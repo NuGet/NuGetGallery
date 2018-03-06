@@ -290,6 +290,102 @@ namespace NuGetGallery
             }
         }
 
+        public class TheCopyFileAsyncMethod : IDisposable
+        {
+            private readonly TestDirectory _directory;
+            private readonly string _srcFolderName;
+            private readonly string _srcFileName;
+            private readonly string _destFolderName;
+            private readonly string _destFileName;
+            private readonly Mock<IAppConfiguration> _appConfiguration;
+            private readonly Mock<FileSystemService> _fileSystemService;
+            private readonly FileSystemFileStorageService _target;
+
+            public TheCopyFileAsyncMethod()
+            {
+                _directory = TestDirectory.Create();
+
+                _srcFolderName = "validation";
+                _srcFileName = "4b6f16cc-7acd-45eb-ac21-33f0d927ec14/nuget.versioning.4.5.0.nupkg";
+                _destFolderName = "packages";
+                _destFileName = "nuget.versioning.4.5.0.nupkg";
+
+                _appConfiguration = new Mock<IAppConfiguration>();
+                _appConfiguration
+                    .Setup(x => x.FileStorageDirectory)
+                    .Returns(() => _directory);
+
+                _fileSystemService = new Mock<FileSystemService> { CallBase = true };
+
+                _target = new FileSystemFileStorageService(
+                    _appConfiguration.Object,
+                    _fileSystemService.Object);
+            }
+
+            [Fact]
+            public async Task CopiesFileWhenDestinationDoesNotExist()
+            {
+                // Arrange
+                var content = "Hello, world!";
+                await _target.SaveFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    new MemoryStream(Encoding.ASCII.GetBytes(content)));
+
+                // Act
+                await _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName);
+
+                // Assert
+                using (var destStream = await _target.GetFileAsync(_destFolderName, _destFileName))
+                using (var reader = new StreamReader(destStream))
+                {
+                    Assert.Equal(content, reader.ReadToEnd());
+                }
+            }
+
+            [Fact]
+            public async Task ThrowsWhenDestinationIsSame()
+            {
+                // Arrange
+                var content = "Hello, world!";
+                await _target.SaveFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    new MemoryStream(Encoding.ASCII.GetBytes(content)));
+                await _target.SaveFileAsync(
+                    _destFolderName,
+                    _destFileName,
+                    new MemoryStream(Encoding.ASCII.GetBytes(content)));
+
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+            }
+
+            [Fact]
+            public async Task ThrowsWhenFileAlreadyExists()
+            {
+                // Arrange
+                var content = "Hello, world!";
+                await _target.SaveFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    new MemoryStream(Encoding.ASCII.GetBytes(content)));
+                await _target.SaveFileAsync(
+                    _destFolderName,
+                    _destFileName,
+                    new MemoryStream(Encoding.ASCII.GetBytes("Something else.")));
+
+                // Act & Assert
+                await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+            }
+
+            public void Dispose()
+            {
+                _directory?.Dispose();
+            }
+        }
+
         public class TheSaveFileMethod
         {
             private const string FolderName = "theFolderName";

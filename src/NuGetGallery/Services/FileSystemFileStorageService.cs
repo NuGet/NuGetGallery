@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -166,6 +167,45 @@ namespace NuGetGallery
             }
 
             return Task.FromResult(0);
+        }
+
+        public Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName)
+        {
+            if (srcFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFolderName));
+            }
+
+            if (srcFileName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFileName));
+            }
+
+            if (destFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(destFolderName));
+            }
+
+            if (destFileName == null)
+            {
+                throw new ArgumentNullException(nameof(destFileName));
+            }
+
+            var srcFilePath = BuildPath(_configuration.FileStorageDirectory, srcFolderName, srcFileName);
+            var destFilePath = BuildPath(_configuration.FileStorageDirectory, destFolderName, destFileName);
+
+            _fileSystemService.CreateDirectory(Path.GetDirectoryName(destFilePath));
+            
+            try
+            {
+                _fileSystemService.Copy(srcFilePath, destFilePath, overwrite: false);
+            }
+            catch (IOException e)
+            {
+                throw new InvalidOperationException("Could not copy because destination file already exists", e);
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task<bool> IsAvailableAsync()
