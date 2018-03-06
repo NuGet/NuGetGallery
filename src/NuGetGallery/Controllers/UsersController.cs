@@ -378,7 +378,7 @@ namespace NuGetGallery
             var orgSent = currentUser.Organizations
                 .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, m.Organization) == PermissionsCheckResult.Allowed)
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
-            var sent = userReceived.Union(orgReceived);
+            var sent = userSent.Union(orgSent);
 
             var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
 
