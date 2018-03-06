@@ -77,7 +77,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                 return RejectSignaturesAtIngestionDecider;
             }
 
-            // NotTimeNested does not affect signatures and should be ignored if is the only status.
+            // NotTimeNested does not affect signatures and should be ignored if it is the only status.
             else if (result.StatusFlags == X509ChainStatusFlags.NotTimeNested)
             {
                 return NoActionDecider;
