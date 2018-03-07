@@ -205,9 +205,9 @@ The {0} Team";
 
         public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
         {
-            string body = @"Hi,
+            string body = @"Hi there,
 
-Heard you were looking for Microsoft logins associated with your account on {0}. 
+We heard you were looking for Microsoft logins associated with your account on {0}. 
 
 {1}
 
@@ -218,7 +218,8 @@ The {0} Team";
             string msaIdentity;
             if (credentials.Any())
             {
-                msaIdentity = string.Format(@"Our records indicate the associated Microsoft login: {0}.", credentials.First().Identity);
+                var identities = string.Join("; ", credentials.Select(cred => cred.Identity).ToArray());
+                msaIdentity = string.Format(@"Our records indicate the associated Microsoft login(s): {0}.", identities);
             }
             else
             {
