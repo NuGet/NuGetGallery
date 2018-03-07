@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Net;
@@ -16,6 +17,15 @@ namespace NuGetGallery
 {
     public class CloudBlobCoreFileStorageService : ICoreFileStorageService
     {
+        /// <summary>
+        /// This is the maximum duration for <see cref="CopyFileAsync(string, string, string, string)"/> to poll,
+        /// waiting for a package copy to complete. The value picked today is based off of the maximum duration we wait
+        /// when uploading files to Azure China blob storage. Note that in cases when the copy source and destination
+        /// are in the same container, the copy completed immediately and no polling is necessary.
+        /// </summary>
+        private static readonly TimeSpan MaxCopyDuration = TimeSpan.FromMinutes(10);
+        private static readonly TimeSpan CopyPollFrequency = TimeSpan.FromMilliseconds(500);
+
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
             CoreConstants.PackagesFolderName,
             CoreConstants.PackageBackupsFolderName,
@@ -97,6 +107,93 @@ namespace NuGetGallery
             {
                 // Not found
                 return null;
+            }
+        }
+
+        public async Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName)
+        {
+            if (srcFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFolderName));
+            }
+
+            if (srcFileName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFileName));
+            }
+
+            if (destFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(destFolderName));
+            }
+
+            if (destFileName == null)
+            {
+                throw new ArgumentNullException(nameof(destFileName));
+            }
+
+            var srcContainer = await GetContainerAsync(srcFolderName);
+            var srcBlob = srcContainer.GetBlobReference(srcFileName);
+
+            var destContainer = await GetContainerAsync(destFolderName);
+            var destBlob = destContainer.GetBlobReference(destFileName);
+
+            // Determine the source blob etag.
+            await srcBlob.FetchAttributesAsync();
+            var srcAccessCondition = AccessCondition.GenerateIfMatchCondition(srcBlob.ETag);
+
+            // Check if the destination blob already exists and fetch attributes.
+            var destAccessCondition = AccessCondition.GenerateIfNotExistsCondition();
+            if (await destBlob.ExistsAsync())
+            {
+                if (destBlob.CopyState?.Status == CopyStatus.Failed)
+                {
+                    // If the last copy failed, allow this copy to occur.
+                    destAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
+                }
+                else if ((srcBlob.Properties.ContentMD5 != null
+                     && srcBlob.Properties.ContentMD5 == destBlob.Properties.ContentMD5
+                     && srcBlob.Properties.Length == destBlob.Properties.Length))
+                {
+                    // If the blob hash is the same and the length is the same, no-op the copy.
+                    return;
+                }
+            }
+
+            // Start the server-side copy and wait for it to complete.
+            try
+            {
+                await destBlob.StartCopyAsync(
+                    srcBlob,
+                    srcAccessCondition,
+                    destAccessCondition);
+            }
+            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
+            {
+                throw new InvalidOperationException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        "There is already a blob with name {0} in container {1}.",
+                        destFileName,
+                        destFolderName),
+                    ex);
+            }
+
+            var stopwatch = Stopwatch.StartNew();
+            while (destBlob.CopyState.Status == CopyStatus.Pending
+                   && stopwatch.Elapsed < MaxCopyDuration)
+            {
+                await destBlob.FetchAttributesAsync();
+                await Task.Delay(CopyPollFrequency);
+            }
+
+            if (destBlob.CopyState.Status == CopyStatus.Pending)
+            {
+                throw new TimeoutException($"Waiting for the blob copy operation to complete timed out after {MaxCopyDuration.TotalSeconds} seconds.");
+            }
+            else if (destBlob.CopyState.Status != CopyStatus.Success)
+            {
+                throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
         }
 

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.IO;
 using System.Net;
@@ -12,9 +13,9 @@ namespace NuGetGallery
 {
     public class CloudBlobWrapper : ISimpleCloudBlob
     {
-        private readonly ICloudBlob _blob;
+        private readonly CloudBlockBlob _blob;
 
-        public CloudBlobWrapper(ICloudBlob blob)
+        public CloudBlobWrapper(CloudBlockBlob blob)
         {
             _blob = blob;
         }
@@ -22,6 +23,11 @@ namespace NuGetGallery
         public BlobProperties Properties
         {
             get { return _blob.Properties; }
+        }
+
+        public CopyState CopyState
+        {
+            get { return _blob.CopyState; }
         }
 
         public Uri Uri
@@ -135,6 +141,24 @@ namespace NuGetGallery
             var signature = this._blob.GetSharedAccessSignature(accessPolicy);
 
             return signature;
+        }
+
+        public async Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition)
+        {
+            // To avoid this we would need to somehow abstract away the primary and secondary storage locations. This
+            // is not worth the effort right now!
+            var sourceWrapper = source as CloudBlobWrapper;
+            if (sourceWrapper == null)
+            {
+                throw new ArgumentException($"The source blob must be a {nameof(CloudBlobWrapper)}.");
+            }
+
+            await _blob.StartCopyAsync(
+                sourceWrapper._blob,
+                sourceAccessCondition: sourceAccessCondition,
+                destAccessCondition: destAccessCondition,
+                options: null,
+                operationContext: null);
         }
 
         // The default retry policy treats a 304 as an error that requires a retry. We don't want that!
