@@ -348,6 +348,7 @@ img.reserved-indicator-icon {
 }
 .modal-container .modal-box .modal-body {
   padding: 0;
+  font-size: 14px;
 }
 .modal-container .modal-box .modal-body .tag-node {
   padding: 13px;
@@ -374,7 +375,6 @@ img.reserved-indicator-icon {
 }
 .modal-container .modal-box .modal-body .text-label {
   padding: 15px;
-  font-size: 14px;
 }
 .modal-container .modal-box .modal-body .form-error-message {
   float: left;

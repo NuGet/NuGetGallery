@@ -12,9 +12,9 @@
 
 <section role="main" class="container main-container page-sign-in">
     <div style="float: right">
-        <span>
-            <a href="#" id="signin-assistance">Need assistance signing in?</a>
-        </span>
+        <p class="text-center" style="font-size: 14px; padding-top: 5px">
+            <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
+        </p>
     </div>
     @if (!string.IsNullOrEmpty(returnUrlMessage))
     {
@@ -53,13 +53,13 @@
         </div>
     }
 
-    <div class="row nuget-signin">
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-            <p class="text-center">
-                <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
-            </p>
+        <div class="row nuget-signin">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                <span>
+                    <a href="#" id="signin-assistance">Need assistance signing in?</a>
+            </span>
+            </div>
         </div>
-    </div>
 </section>
 
 <div style="display: none" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static">
