@@ -378,7 +378,9 @@ namespace NuGetGallery.OData
             {
                 if(semVerLevelKey == SemVerLevelKey.SemVer2)
                 {
-                    queryBuilder.Append("semVerLevel=2.0.0&");
+                    queryBuilder.Append("semVerLevel=");
+                    queryBuilder.Append(SemVerLevelKey.SemVerLevel2);
+                    queryBuilder.Append("&");
                 }
             }
 
