@@ -7,6 +7,7 @@ namespace NuGetGallery
     {
         public const string Account = "Account";
         public const string OrganizationAccount = "ManageOrganization";
+        public const string AddOrganization = "AddOrganization";
         public const string ChangeOrganizationEmailSubscription = "ChangeOrganizationEmailSubscription";
         public const string TransformToOrganization = "TransformToOrganization";
         public const string TransformToOrganizationConfirmation = "ConfirmTransformToOrganization";
@@ -23,7 +24,9 @@ namespace NuGetGallery
         public const string UploadPackage = "UploadPackage";
         public const string UploadPackageProgress = "UploadPackageProgress";
         public const string PackageVersionAction = "PackageVersionAction";
+        public const string ConfirmPendingOwnershipRequest = "ConfirmPendingOwnershipRequest";
         public const string PackageOwnerConfirmation = "PackageOwnerConfirmation";
+        public const string RejectPendingOwnershipRequest = "RejectPendingOwnershipRequest";
         public const string PackageOwnerRejection = "PackageOwnerRejection";
         public const string PackageOwnerCancellation = "PackageOwnerCancellation";
         public const string PackageAction = "PackageAction";

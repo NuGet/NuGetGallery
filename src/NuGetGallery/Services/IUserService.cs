@@ -41,5 +41,7 @@ namespace NuGetGallery
         Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser);
         
         Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);
+
+        Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser);
     }
 }

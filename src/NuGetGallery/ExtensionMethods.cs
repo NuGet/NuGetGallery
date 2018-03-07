@@ -345,14 +345,23 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>(ValidationHtmlAttributes)
             {
                 { "id", $"{propertyName}-validation-message" },
-                { "class", "help-block" },
-                { "role", "alert" },
-                { "aria-live", "assertive" },
             });
         }
+
+        public static MvcHtmlString ShowValidationMessagesForEmpty(this HtmlHelper html)
+        {
+            return html.ValidationMessage(modelName: string.Empty, htmlAttributes: ValidationHtmlAttributes);
+        }
+
+        private static IDictionary<string, object> ValidationHtmlAttributes = new Dictionary<string, object>
+        {
+            { "class", "help-block" },
+            { "role", "alert" },
+            { "aria-live", "assertive" },
+        };
 
         public static string ToShortNameOrNull(this NuGetFramework frameworkName)
         {

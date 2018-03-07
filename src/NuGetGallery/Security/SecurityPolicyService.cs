@@ -28,23 +28,16 @@ namespace NuGetGallery.Security
 
         protected IAppConfiguration Configuration { get; set; }
 
-        protected SecurePushSubscription SecurePush { get; set; }
-
         protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
-
-        protected RequireSecurePushForCoOwnersPolicy SecurePushForCoOwners { get; set; }
 
         protected SecurityPolicyService()
         {
         }
 
-        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration,
-            SecurePushSubscription securePush = null, RequireSecurePushForCoOwnersPolicy securePushForCoOwners = null)
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
-            SecurePush = securePush;
-            SecurePushForCoOwners = securePushForCoOwners;
 
             if (diagnostics == null)
             {
@@ -74,8 +67,7 @@ namespace NuGetGallery.Security
         {
             get
             {
-                yield return SecurePush;
-                yield return SecurePushForCoOwners;
+                return new List<IUserSecurityPolicySubscription>();
             }
         }
 
@@ -253,7 +245,7 @@ namespace NuGetGallery.Security
         /// Subscribe a user to one or more security policies.
         /// </summary>
         /// <returns>True if user was subscribed, false if not (i.e., was already subscribed).</returns>
-        public async Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription)
+        public async Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true)
         {
             if (user == null)
             {
@@ -282,7 +274,10 @@ namespace NuGetGallery.Security
                 await Auditing.SaveAuditRecordAsync(
                     new UserAuditRecord(user, AuditedUserAction.SubscribeToPolicies, subscription.Policies));
 
-                await EntitiesContext.SaveChangesAsync();
+                if (commitChanges)
+                {
+                    await EntitiesContext.SaveChangesAsync();
+                }
 
                 Diagnostics.Information($"User is now subscribed to '{subscription.SubscriptionName}'.");
 
@@ -361,7 +356,6 @@ namespace NuGetGallery.Security
         /// </summary>
         private static IEnumerable<UserSecurityPolicyHandler> CreateUserHandlers()
         {
-            yield return new RequireMinClientVersionForPushPolicy();
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
             yield return new RequireOrganizationTenantPolicy();

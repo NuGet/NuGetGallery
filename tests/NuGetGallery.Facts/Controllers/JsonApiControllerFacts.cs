@@ -2,17 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading.Tasks;
-using System.Web;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
-using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -344,11 +339,10 @@ namespace NuGetGallery.Controllers
                     public class TheGetAddPackageOwnerConfirmationMethod : TestContainer
                     {
                         public static IEnumerable<object[]> AllCanManagePackageOwnersPairedWithCanBeAdded_Data => TheAddPackageOwnerMethods.AllCanManagePackageOwnersPairedWithCanBeAdded_Data;
-                        public static IEnumerable<object[]> PendingOwnerPropagatesPolicy_Data => TheAddPackageOwnerMethods.PendingOwnerPropagatesPolicy_Data;
 
                         [Theory]
                         [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public void ReturnsDefaultConfirmationIfNoPolicyPropagation(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
+                        public void ReturnsConfirmation(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
                         {
                             // Arrange
                             var fakes = Get<Fakes>();
@@ -365,172 +359,6 @@ namespace NuGetGallery.Controllers
                             Assert.True(data.success);
                             Assert.Equal($"Please confirm if you would like to proceed adding '{userToAdd.Username}' as a co-owner of this package.", data.confirmation);
                         }
-
-                        [Theory]
-                        [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public void ReturnsDetailedConfirmationIfNewOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-
-                            userToAdd.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.StartsWith(
-                                $"User '{userToAdd.Username}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:",
-                                data.policyMessage);
-                        }
-
-                        public static IEnumerable<object[]> ReturnsDetailedConfirmationIfCurrentOwnerPropagatesPolicy_Data
-                        {
-                            get
-                            {
-                                foreach (var canManagePackageOwnersUser in _canManagePackageOwnersUsers)
-                                {
-                                    foreach (var canBeAddedUser in _canBeAddedUsers)
-                                    {
-                                        foreach (var cannotBeAddedUser in _cannotBeAddedUsers)
-                                        {
-                                            yield return new object[]
-                                            {
-                                                canManagePackageOwnersUser,
-                                                canBeAddedUser,
-                                                cannotBeAddedUser,
-                                            };
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(ReturnsDetailedConfirmationIfCurrentOwnerPropagatesPolicy_Data))]
-                        public void ReturnsDetailedConfirmationIfCurrentOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd, Func<Fakes,User> getExistingOwner)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var existingOwner = getExistingOwner(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-                            existingOwner.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.StartsWith(
-                                $"Owner(s) '{existingOwner.Username}' has (have) the following requirements that will be enforced for user '{userToAdd.Username}' once the user accepts ownership of this package:",
-                                data.policyMessage);
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public void DoesNotReturnConfirmationIfCurrentOwnerPropagatesButNewOwnerIsSubscribed(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-                            GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(userToAdd, SecurePushSubscription.Name)).Returns(true);
-                            currentUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.StartsWith($"Please confirm if you would like to proceed adding '{userToAdd.Username}' as a co-owner of this package.",
-                                data.confirmation);
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(PendingOwnerPropagatesPolicy_Data))]
-                        public void ReturnsDetailedConfirmationIfPendingOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd, Func<Fakes, User> getPendingUser)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var pendingUser = getPendingUser(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-
-                            pendingUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-
-                            GetMock<IPackageOwnershipManagementService>()
-                                .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
-                                .Returns((new[] 
-                                {
-                                    new PackageOwnerRequest()
-                                    {
-                                        PackageRegistration = fakes.Package,
-                                        PackageRegistrationKey = fakes.Package.Key,
-                                        NewOwner = pendingUser,
-                                        NewOwnerKey = pendingUser.Key
-                                    }
-                                }));
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.StartsWith(
-                                $"Pending owner(s) '{pendingUser.Username}' has (have) the following requirements that will be enforced for all co-owners, including '{userToAdd.Username}', once ownership requests are accepted:",
-                                data.policyMessage);
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(PendingOwnerPropagatesPolicy_Data))]
-                        public void DoesNotReturnConfirmationIfPendingOwnerPropagatesButNewOwnerIsSubscribed(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd, Func<Fakes, User> getPendingUser)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var pendingUser = getPendingUser(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-                            GetMock<ISecurityPolicyService>().Setup(s => s.IsSubscribed(userToAdd, SecurePushSubscription.Name)).Returns(true);
-
-                            pendingUser.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-                            var pendingOwnerRequest = new PackageOwnerRequest()
-                            {
-                                PackageRegistrationKey = fakes.Package.Key,
-                                NewOwner = pendingUser
-                            };
-
-                            GetMock<IPackageOwnerRequestService>()
-                                .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
-                                .Returns((new[] { pendingOwnerRequest }));
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.StartsWith($"Please confirm if you would like to proceed adding '{userToAdd.Username}' as a co-owner of this package.",
-                                data.confirmation);
-                        }
-
                     }
 
                     public class TheAddPackageOwnerMethod : TestContainer
@@ -579,114 +407,6 @@ namespace NuGetGallery.Controllers
                             
                             packageOwnershipManagementServiceMock.Verify();
                             messageServiceMock.Verify();
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public async Task SendsPackageOwnerRequestEmailWhereNewOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
-                        {
-                            // Arrange & Act
-                            var fakes = Get<Fakes>();
-                            var policyMessage = await GetSendPackageOwnerRequestPolicyMessage(fakes, getCurrentUser(fakes), getUserToAdd(fakes), getUserToAdd(fakes));
-
-                            // Assert
-                            Assert.StartsWith(
-                                "Note: The following policies will be enforced on package co-owners once you accept this request.",
-                                policyMessage);
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public async Task SendsPackageOwnerRequestEmailWhereCurrentOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
-                        {
-                            // Arrange & Act
-                            var fakes = Get<Fakes>();
-                            var policyMessage = await GetSendPackageOwnerRequestPolicyMessage(fakes, getCurrentUser(fakes), getUserToAdd(fakes), fakes.Owner);
-
-                            // Assert
-                            Assert.StartsWith(
-                                "Note: Owner(s) 'testPackageOwner' has (have) the following policies that will be enforced on your account once you accept this request.",
-                                policyMessage);
-                        }
-
-                        [Theory]
-                        [MemberData(nameof(PendingOwnerPropagatesPolicy_Data))]
-                        public async Task SendsPackageOwnerRequestEmailWherePendingOwnerPropagatesPolicy(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd, Func<Fakes, User> getPendingUser)
-                        {
-                            // Arrange & Act
-                            var fakes = Get<Fakes>();
-
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var pendingUser = getPendingUser(fakes);
-
-                            var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
-                            packageOwnershipManagementServiceMock
-                                .Setup(p => p.GetPackageOwnershipRequests(fakes.Package, null, null))
-                                .Returns(
-                                    new[]
-                                    {
-                                        new PackageOwnerRequest
-                                        {
-                                            PackageRegistration = fakes.Package,
-                                            RequestingOwner = currentUser,
-                                            NewOwner = pendingUser,
-                                            ConfirmationCode = "confirmation-code"
-                                        }
-                                    })
-                                .Verifiable();
-
-                            var policyMessage = await GetSendPackageOwnerRequestPolicyMessage(fakes, currentUser, userToAdd, pendingUser);
-
-                            // Assert
-                            Assert.StartsWith(
-                                $"Note: Pending owner(s) '{pendingUser.Username}' has (have) the following policies that will be enforced on your account once ownership requests are accepted.",
-                                policyMessage);
-                        }
-
-                        private async Task<string> GetSendPackageOwnerRequestPolicyMessage(Fakes fakes, User currentUser, User userToAdd, User userToSubscribe)
-                        {
-                            // Arrange
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-
-                            userToSubscribe.SecurityPolicies = (new RequireSecurePushForCoOwnersPolicy().Policies).ToList();
-
-                            var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
-                            packageOwnershipManagementServiceMock
-                                .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, currentUser, userToAdd))
-                                .Returns(Task.FromResult(
-                                    new PackageOwnerRequest
-                                    {
-                                        PackageRegistration = fakes.Package,
-                                        RequestingOwner = currentUser,
-                                        NewOwner = userToAdd,
-                                        ConfirmationCode = "confirmation-code"
-                                    }))
-                                .Verifiable();
-
-                            string actualMessage = string.Empty;
-                            GetMock<IMessageService>()
-                                .Setup(m => m.SendPackageOwnerRequest(
-                                    currentUser,
-                                    userToAdd,
-                                    fakes.Package,
-                                    TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
-                                    TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code",
-                                    TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code",
-                                    string.Empty,
-                                    It.IsAny<string>()))
-                                .Callback<User, User, PackageRegistration, string, string, string, string, string>(
-                                    (from, to, pkg, pkgUrl, cnfUrl, rjUrl, msg, policyMsg) => actualMessage = policyMsg);
-
-                            // Act
-                            JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, userToAdd.Username, string.Empty);
-                            dynamic data = result.Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.False(String.IsNullOrEmpty(actualMessage));
-                            return actualMessage;
                         }
                     }
                 }

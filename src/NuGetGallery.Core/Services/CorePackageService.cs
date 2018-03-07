@@ -6,6 +6,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Versioning;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -16,6 +17,41 @@ namespace NuGetGallery
         public CorePackageService(IEntityRepository<Package> packageRepository)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
+        }
+
+        public virtual async Task UpdatePackageStreamMetadataAsync(
+            Package package,
+            PackageStreamMetadata metadata,
+            bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (metadata == null)
+            {
+                throw new ArgumentNullException(nameof(metadata));
+            }
+
+            package.Hash = metadata.Hash;
+            package.HashAlgorithm = metadata.HashAlgorithm;
+            package.PackageFileSize = metadata.Size;
+
+            var now = DateTime.UtcNow;
+            package.LastUpdated = now;
+
+            /// If the package is available, consider this change as an "edit" so that the package appears for cursors
+            /// on the <see cref="Package.LastEdited"/> field.
+            if (package.PackageStatusKey == PackageStatus.Available)
+            {
+                package.LastEdited = now;
+            }
+
+            if (commitChanges)
+            {
+                await _packageRepository.CommitChangesAsync();
+            }
         }
 
         public virtual async Task UpdatePackageStatusAsync(

@@ -169,7 +169,8 @@ namespace NuGetGallery
                     try
                     {
                         packageMetadata = PackageMetadata.FromNuspecReader(
-                            package.GetNuspecReader());
+                            package.GetNuspecReader(),
+                            strict: true);
                     }
                     catch (Exception ex)
                     {
@@ -407,7 +408,8 @@ namespace NuGetGallery
                 try
                 {
                     packageMetadata = PackageMetadata.FromNuspecReader(
-                        package.GetNuspecReader());
+                        package.GetNuspecReader(),
+                        strict: true);
                 }
                 catch (Exception ex)
                 {
@@ -1050,7 +1052,8 @@ namespace NuGetGallery
             var reflowPackageService = new ReflowPackageService(
                 _entitiesContext,
                 (PackageService)_packageService,
-                _packageFileService);
+                _packageFileService,
+                _telemetryService);
 
             try
             {
@@ -1298,6 +1301,8 @@ namespace NuGetGallery
 
             if (package.Owners.Any(o => o.MatchesUser(user)))
             {
+                // If the user is already an owner, clean up the invalid request.
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.AlreadyOwner));
             }
 
@@ -1309,11 +1314,9 @@ namespace NuGetGallery
 
             if (accept)
             {
-                var result = await HandleSecurePushPropagation(package, user);
-
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
-                SendAddPackageOwnerNotification(package, user, result.Item1, result.Item2);
+                SendAddPackageOwnerNotification(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -1334,18 +1337,22 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("cancel pending ownership request")]
         public virtual async Task<ActionResult> CancelPendingOwnershipRequest(string id, string requestingUsername, string pendingUsername)
         {
-            if (!string.Equals(requestingUsername, User.Identity.Name, StringComparison.OrdinalIgnoreCase))
-            {
-                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
-            }
-
             var package = _packageService.FindPackageRegistrationById(id);
             if (package == null)
             {
                 return HttpNotFound();
             }
 
-            var requestingUser = GetCurrentUser();
+            if (ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, requestingUsername, ConfirmOwnershipResult.NotYourRequest));
+            }
+
+            var requestingUser = _userService.FindByUsername(requestingUsername);
+            if (requestingUser == null)
+            {
+                return HttpNotFound();
+            }
 
             var pendingUser = _userService.FindByUsername(pendingUsername);
             if (pendingUser == null)
@@ -1371,97 +1378,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package to which owner was added.</param>
         /// <param name="newOwner">Owner added.</param>
-        /// <param name="propagators">Propagating owners for secure push.</param>
-        /// <param name="subscribed">Owners subscribed to secure push.</param>
-        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner, List<User> propagators, List<User> subscribed)
+        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner)
         {
             var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
             Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
 
-            // prepare policy messages if there were any secure push subscriptions.
-            var propagatorsPolicyMessage = string.Empty;
-            var subscribedPolicyMessage = string.Empty;
-            if (subscribed.Any())
-            {
-                propagatorsPolicyMessage = string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddOwnerNotification_SecurePushRequired_Propagators,
-                    string.Join(", ", propagators.Select(u => u.Username)),
-                    string.Join(", ", subscribed.Select(s => s.Username)),
-                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
-
-                subscribedPolicyMessage = string.Format(CultureInfo.CurrentCulture,
-                    Strings.AddOwnerNotification_SecurePushRequired_Subscribed,
-                    string.Join(", ", propagators.Select(u => u.Username)),
-                    GetSecurePushPolicyDescriptions(), _config.GalleryOwner.Address);
-            }
-            else
-            {
-                // new owner should only be notified if they have propagated policies.
-                propagators = propagators.Where(notNewOwner).ToList();
-            }
-
-            // notify propagators about new owner, including policy statement if any owners were subscribed.
-            propagators.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, propagatorsPolicyMessage));
-
-            // notify subscribed about new owner, including policy statement.
-            subscribed.Where(notNewOwner).ToList()
-                .ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, subscribedPolicyMessage));
-
-            // notify already subscribed about new owner, excluding any policy statement.
-            var notSubscribed = package.Owners.Where(notNewOwner).Except(propagators).Except(subscribed).ToList();
-            notSubscribed.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, string.Empty));
-        }
-
-        /// <summary>
-        /// Enforce secure push policies on co-owners if new or existing owner requires it.
-        /// </summary>
-        /// <returns>Tuple where Item1 is propagators, Item2 is subscribed owners</returns>
-        private async Task<Tuple<List<User>, List<User>>> HandleSecurePushPropagation(PackageRegistration package, User user)
-        {
-            var subscribed = new List<User>();
-            var propagators = package.Owners.Where(RequireSecurePushForCoOwnersPolicy.IsSubscribed).ToList();
-
-            if (RequireSecurePushForCoOwnersPolicy.IsSubscribed(user))
-            {
-                propagators.Add(user);
-            }
-
-            if (propagators.Any())
-            {
-                if (await SubscribeToSecurePushAsync(user))
-                {
-                    subscribed.Add(user);
-                }
-                foreach (var owner in package.Owners)
-                {
-                    if (await SubscribeToSecurePushAsync(owner))
-                    {
-                        subscribed.Add(owner);
-                    }
-                }
-            }
-
-            return Tuple.Create(propagators, subscribed);
-        }
-
-        private string GetSecurePushPolicyDescriptions()
-        {
-            return string.Format(CultureInfo.CurrentCulture, Strings.SecurePushPolicyDescriptions,
-                SecurePushSubscription.MinProtocolVersion, SecurePushSubscription.PushKeysExpirationInDays);
-        }
-
-        private async Task<bool> SubscribeToSecurePushAsync(User user)
-        {
-            try
-            {
-                return await _securityPolicyService.SubscribeAsync(user, SecurePushSubscription.Name);
-            }
-            catch (Exception ex)
-            {
-                ex.Log();
-
-                throw;
-            }
+            // Notify existing owners
+            var notNewOwners = package.Owners.Where(notNewOwner).ToList();
+            notNewOwners.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl, string.Empty));
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
@@ -1545,7 +1469,8 @@ namespace NuGetGallery
                 Debug.Assert(nugetPackage != null);
 
                 var packageMetadata = PackageMetadata.FromNuspecReader(
-                    nugetPackage.GetNuspecReader());
+                    nugetPackage.GetNuspecReader(),
+                    strict: true);
 
                 // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                 // viewing a different package to what was actually most recently uploaded

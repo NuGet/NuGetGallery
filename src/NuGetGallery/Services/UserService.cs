@@ -23,12 +23,17 @@ namespace NuGetGallery
 
         public IEntityRepository<Credential> CredentialRepository { get; protected set; }
 
+        public IEntityRepository<Organization> OrganizationRepository { get; protected set; }
+
         public IAuditingService Auditing { get; protected set; }
 
         public IEntitiesContext EntitiesContext { get; protected set; }
+
         public IContentObjectService ContentObjectService { get; protected set; }
 
         public ISecurityPolicyService SecurityPolicyService { get; set; }
+
+        public IDateTimeProvider DateTimeProvider { get; protected set; }
 
         protected UserService() { }
 
@@ -36,19 +41,23 @@ namespace NuGetGallery
             IAppConfiguration config,
             IEntityRepository<User> userRepository,
             IEntityRepository<Credential> credentialRepository,
+            IEntityRepository<Organization> organizationRepository,
             IAuditingService auditing,
             IEntitiesContext entitiesContext,
             IContentObjectService contentObjectService,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            IDateTimeProvider dateTimeProvider)
             : this()
         {
             Config = config;
             UserRepository = userRepository;
             CredentialRepository = credentialRepository;
+            OrganizationRepository = organizationRepository;
             Auditing = auditing;
             EntitiesContext = entitiesContext;
             ContentObjectService = contentObjectService;
             SecurityPolicyService = securityPolicyService;
+            DateTimeProvider = dateTimeProvider;
         }
 
         public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)
@@ -314,7 +323,7 @@ namespace NuGetGallery
             else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
             {
                 errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_FailedReasonNotInDomainWhitelist, accountToTransform.Username);
+                    Strings.Organizations_NotInDomainWhitelist, accountToTransform.Username);
             }
 
             return errorReason == null;
@@ -344,11 +353,11 @@ namespace NuGetGallery
             }
             else
             {
-                var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+                var tenantId = GetAzureActiveDirectoryCredentialTenant(adminUser);
                 if (string.IsNullOrWhiteSpace(tenantId))
                 {
                     errorReason = String.Format(CultureInfo.CurrentCulture,
-                        Strings.TransformAccount_AdminAccountDoesNotHaveTenant, adminUser.Username);
+                        Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUser.Username);
                 }
             }
 
@@ -357,19 +366,90 @@ namespace NuGetGallery
 
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
-            var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+            if (!await SubscribeOrganizationToTenantPolicy(accountToTransform, adminUser))
+            {
+                return false;
+            }
+            
+            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
+        }
+
+        public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
+        {
+            if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
+            {
+                throw new EntityException(String.Format(CultureInfo.CurrentCulture,
+                    Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
+            }
+            
+            var existingUserWithIdentity = EntitiesContext.Users
+                .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
+            if (existingUserWithIdentity != null)
+            {
+                if (existingUserWithIdentity.Username.Equals(username, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new EntityException(Strings.UsernameNotAvailable, username);
+                }
+
+                if (string.Equals(existingUserWithIdentity.EmailAddress, emailAddress, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new EntityException(Strings.EmailAddressBeingUsed, emailAddress);
+                }
+            }
+
+            var organization = new Organization(username)
+            {
+                EmailAllowed = true,
+                UnconfirmedEmailAddress = emailAddress,
+                EmailConfirmationToken = Crypto.GenerateToken(),
+                NotifyPackagePushed = true,
+                CreatedUtc = DateTimeProvider.UtcNow,
+                Members = new List<Membership>()
+            };
+
+            var membership = new Membership { Organization = organization, Member = adminUser, IsAdmin = true };
+
+            organization.Members.Add(membership);
+            adminUser.Organizations.Add(membership);
+
+            OrganizationRepository.InsertOnCommit(organization);
+
+            if (string.IsNullOrEmpty(GetAzureActiveDirectoryCredentialTenant(adminUser)))
+            {
+                throw new EntityException(String.Format(CultureInfo.CurrentCulture,
+                        Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUser.Username));
+            }
+            
+            if (!await SubscribeOrganizationToTenantPolicy(organization, adminUser, commitChanges: false))
+            {
+                throw new EntityException(Strings.DefaultUserSafeExceptionMessage);
+            }
+
+            await EntitiesContext.SaveChangesAsync();
+
+            return organization;
+        }
+
+        private async Task<bool> SubscribeOrganizationToTenantPolicy(User organization, User adminUser, bool commitChanges = true)
+        {
+            var tenantId = GetAzureActiveDirectoryCredentialTenant(adminUser);
             if (string.IsNullOrWhiteSpace(tenantId))
             {
                 return false;
             }
 
             var tenantPolicy = RequireOrganizationTenantPolicy.Create(tenantId);
-            if (!await SecurityPolicyService.SubscribeAsync(accountToTransform, tenantPolicy))
+            if (!await SecurityPolicyService.SubscribeAsync(organization, tenantPolicy, commitChanges))
             {
                 return false;
             }
-            
-            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
+
+            return true;
+        }
+
+        private string GetAzureActiveDirectoryCredentialTenant(User user)
+        {
+            return user.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
         }
     }
 }

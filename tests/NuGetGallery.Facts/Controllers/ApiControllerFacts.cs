@@ -96,7 +96,9 @@ namespace NuGetGallery
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
                 .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
-                    var packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+                    var packageMetadata = PackageMetadata.FromNuspecReader(
+                        nugetPackage.GetNuspecReader(),
+                        strict: true);
 
                     var package = new Package();
                     package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = false };

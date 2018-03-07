@@ -21,11 +21,6 @@ namespace NuGetGallery
         Task<ActionResult> CreateDownloadPackageActionResultAsync(Uri requestUrl, string unsafeId, string unsafeVersion);
 
         /// <summary>
-        /// Copies the contents of the package represented by the stream into the file storage backup location.
-        /// </summary>
-        Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
-
-        /// <summary>
         /// Deletes the package readme.md file from storage.
         /// </summary>
         /// <param name="package">The package associated with the readme.</param>

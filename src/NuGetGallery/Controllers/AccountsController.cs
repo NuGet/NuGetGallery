@@ -23,10 +23,6 @@ namespace NuGetGallery
             public string EmailPreferencesUpdated { get; set; }
 
             public string EmailUpdateCancelled { get; set; }
-
-            public string EmailUpdated { get; set; }
-
-            public string EmailUpdatedWithConfirmationRequired { get; set; }
         }
 
         public AuthenticationService AuthenticationService { get; }
@@ -237,12 +233,6 @@ namespace NuGetGallery
             if (account.Confirmed)
             {
                 SendEmailChangedConfirmationNotice(account);
-
-                TempData["Message"] = Messages.EmailUpdatedWithConfirmationRequired;
-            }
-            else
-            {
-                TempData["Message"] = Messages.EmailUpdated;
             }
 
             return RedirectToAction(AccountAction);

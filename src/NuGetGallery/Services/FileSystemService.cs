@@ -51,5 +51,10 @@ namespace NuGetGallery
             var info = new FileInfo(path);
             return info.Exists ? new LocalFileReference(info) : null;
         }
+
+        public virtual void Copy(string sourceFileName, string destFileName, bool overwrite)
+        {
+            File.Copy(sourceFileName, destFileName, overwrite);
+        }
     }
 }

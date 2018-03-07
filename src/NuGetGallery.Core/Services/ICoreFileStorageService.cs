@@ -35,5 +35,17 @@ namespace NuGetGallery
         Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess);
 
         Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true);
+
+        /// <summary>
+        /// Copies the source file to the destination file. If the destination already exists and the content
+        /// is different, an exception should be thrown. If the file already exists, the implementation can choose to
+        /// no-op if the content is the same instead of throwing an exception. This method should throw if the source
+        /// file does not exist.
+        /// </summary>
+        /// <param name="srcFolderName">The source folder.</param>
+        /// <param name="srcFileName">The source file name or relative file path.</param>
+        /// <param name="destFolderName">The destination folder.</param>
+        /// <param name="destFileName">The destination file name or relative file path.</param>
+        Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName);
     }
 }

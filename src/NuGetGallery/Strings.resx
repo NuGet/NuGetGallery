@@ -245,7 +245,7 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -261,7 +261,7 @@ Click the following link within the next hour to set your password:
 
 [{0}]({0})
 
-Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -293,12 +293,6 @@ The {1} Team</value>
   </data>
   <data name="UserEmailPreferencesUpdated" xml:space="preserve">
     <value>Your email preferences have been updated.</value>
-  </data>
-  <data name="UserEmailUpdated" xml:space="preserve">
-    <value>Your new email address was saved!</value>
-  </data>
-  <data name="UserEmailUpdatedWithConfirmationRequired" xml:space="preserve">
-    <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
   </data>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
     <value>This package requires version '{0}' of NuGet, which this gallery does not currently support. Please contact us if you have questions.</value>
@@ -459,10 +453,6 @@ The {1} Team</value>
   <data name="AddOwner_PackageNotFound" xml:space="preserve">
     <value>Package not found.</value>
   </data>
-  <data name="SecurePushPolicyDescriptions" xml:space="preserve">
-    <value>1. All co-owners must use client version {0} or higher to push all of their packages.
-2. All existing push API keys for co-owners new to this policy will expire in {1} days.</value>
-  </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
 {1}
@@ -510,12 +500,6 @@ For more information, please contact '{2}'.</value>
   <data name="DisplayPackage_SecurePushRequired" xml:space="preserve">
     <value>Owner(s) '{0}' require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
 </value>
-  </data>
-  <data name="SecurePushPolicyDescriptionsHtml" xml:space="preserve">
-    <value>&lt;ol&gt;
-&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
-&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
-&lt;/ol&gt;</value>
   </data>
   <data name="UploadPackage_UploadInProgress" xml:space="preserve">
     <value>Cannot upload file because an upload is already in progress.</value>
@@ -708,7 +692,7 @@ For more information, please contact '{2}'.</value>
     <value>The user '{0}' doesn't exist. You cannot upload a package as a user that doesn't exist.</value>
   </data>
   <data name="TransformAccount_Failed" xml:space="preserve">
-    <value>An unexpected error occurred while transforming this account. Contact support  for assistance.</value>
+    <value>An unexpected error occurred while transforming this account. Contact support for assistance.</value>
   </data>
   <data name="TransformAccount_OrganizationAccountDoesNotExist" xml:space="preserve">
     <value>Organization account '{0}' does not exist.</value>
@@ -722,7 +706,7 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_AccountNotConfirmed" xml:space="preserve">
     <value>Account '{0}' should be a confirmed user.</value>
   </data>
-  <data name="TransformAccount_FailedReasonNotInDomainWhitelist" xml:space="preserve">
+  <data name="Organizations_NotInDomainWhitelist" xml:space="preserve">
     <value>Account '{0}' does not support organizations.</value>
   </data>
   <data name="TransformAccount_AccountIsAnOrganization" xml:space="preserve">
@@ -774,12 +758,6 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="OrganizationEmailUpdateCancelled" xml:space="preserve">
     <value>You canceled your organization email address change request.</value>
   </data>
-  <data name="OrganizationEmailUpdated" xml:space="preserve">
-    <value>The new organization email address was saved!</value>
-  </data>
-  <data name="OrganizationEmailUpdatedWithConfirmationRequired" xml:space="preserve">
-    <value>The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one.</value>
-  </data>
   <data name="UserEmailConfirmed" xml:space="preserve">
     <value>You have successfully confirmed your email address!</value>
   </data>
@@ -813,7 +791,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
     <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
   </data>
-  <data name="TransformAccount_AdminAccountDoesNotHaveTenant" xml:space="preserve">
+  <data name="Organizations_AdminAccountDoesNotHaveTenant" xml:space="preserve">
     <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
   </data>
   <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
