@@ -2095,7 +2095,6 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
-    <Content Include="Public\clientaccesspolicy.xml" />
     <Content Include="Content\font-awesome\font-awesome-ie7.min.css" />
     <Content Include="Content\font-awesome\font-awesome.css" />
     <Content Include="Content\font-awesome\font-awesome.min.css" />
