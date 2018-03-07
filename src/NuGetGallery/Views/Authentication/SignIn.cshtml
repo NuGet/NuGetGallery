@@ -11,11 +11,6 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
-    <div style="float: right">
-        <p class="text-center" style="font-size: 14px; padding-top: 5px">
-            <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
-        </p>
-    </div>
     @if (!string.IsNullOrEmpty(returnUrlMessage))
     {
         <div class="row">
@@ -48,14 +43,15 @@
             </div>
         </div>
         <div class="row text-center create-provider-account">
-            No Account?
-            <a href="@Url.Authenticate(provider.ProviderName, returnUrl)">Create one!</a>
-        </div>
-        <div class="row nuget-signin">
-            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
                 <span>
                     <a href="#" id="signin-assistance">Need assistance signing in?</a>
                 </span>
+        </div>
+        <div class="row nuget-signin">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                <p class="text-center">
+                    <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
+                </p>
             </div>
         </div>
     }
