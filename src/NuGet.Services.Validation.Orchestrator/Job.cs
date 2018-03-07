@@ -287,7 +287,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     parameterKey: ValidationStorageBindingKey);
 
             containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<NuGetGallery.ICorePackageFileService, NuGetGallery.CorePackageFileService, NuGetGallery.ICoreFileStorageService>(
+                .RegisterKeyedTypeWithKeyedParameter<IValidationPackageFileService, ValidationPackageFileService, NuGetGallery.ICoreFileStorageService>(
                     typeKey: ValidationStorageBindingKey,
                     parameterKey: ValidationStorageBindingKey);
 
@@ -295,13 +295,19 @@ namespace NuGet.Services.Validation.Orchestrator
                 .RegisterTypeWithKeyedParameter<
                     IValidationOutcomeProcessor,
                     ValidationOutcomeProcessor,
-                    NuGetGallery.ICorePackageFileService>(ValidationStorageBindingKey);
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
+
+            containerBuilder
+                .RegisterTypeWithKeyedParameter<
+                    IValidationSetProvider,
+                    ValidationSetProvider,
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
 
             containerBuilder
                 .RegisterTypeWithKeyedParameter<
                     IValidationSetProcessor,
                     ValidationSetProcessor,
-                    NuGetGallery.ICorePackageFileService>(ValidationStorageBindingKey);
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
 
             containerBuilder
                 .RegisterType<ScopedMessageHandler<PackageValidationMessageData>>()

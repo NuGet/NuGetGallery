@@ -17,6 +17,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
     public class ValidationSetProviderFacts
     {
         public Mock<IValidationStorageService> ValidationStorageMock { get; }
+        public Mock<IValidationPackageFileService> PackageFileServiceMock { get; }
         public Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
         public Mock<ITelemetryService> TelemetryServiceMock { get; }
         public Mock<ILogger<ValidationSetProvider>> LoggerMock { get; }
@@ -40,10 +41,100 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(vs => vs.GetValidationSetAsync(ValidationSet.ValidationTrackingId), Times.Once());
 
             Assert.Same(ValidationSet, set);
-            
+
+            PackageFileServiceMock.Verify(
+                x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
+            PackageFileServiceMock.Verify(
+                x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
             TelemetryServiceMock.Verify(
                 x => x.TrackDurationToValidationSetCreation(It.IsAny<TimeSpan>()),
                 Times.Never);
+        }
+
+        [Fact]
+        public async Task CopiesPackageFromPackagesContainerWhenAvailable()
+        {
+            const string validation1 = "validation1";
+            Configuration.Validations = new List<ValidationConfigurationItem>
+            {
+                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+            };
+
+            Package.PackageStatusKey = PackageStatus.Available;
+            
+            Guid validationTrackingId = Guid.NewGuid();
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.OtherRecentValidationSetForPackageExists(It.IsAny<int>(), It.IsAny<TimeSpan>(), validationTrackingId))
+                .ReturnsAsync(false);
+
+            PackageValidationSet createdSet = null;
+            ValidationStorageMock
+                .Setup(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns<PackageValidationSet>(pvs => Task.FromResult(pvs))
+                .Callback<PackageValidationSet>(pvs => createdSet = pvs)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetCountAsync(It.IsAny<int>()))
+                .ReturnsAsync(1);
+
+            var provider = CreateProvider();
+
+            await provider.TryGetOrCreateValidationSetAsync(validationTrackingId, Package);
+
+            PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(createdSet), Times.Once);
+            PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
+            PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        }
+
+        [Theory]
+        [InlineData(PackageStatus.Validating)]
+        [InlineData(PackageStatus.FailedValidation)]
+        public async Task CopiesPackageFromPackagesContainerWhenNotAvailable(PackageStatus packageStatus)
+        {
+            const string validation1 = "validation1";
+            Configuration.Validations = new List<ValidationConfigurationItem>
+            {
+                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+            };
+
+            Package.PackageStatusKey = packageStatus;
+
+            Guid validationTrackingId = Guid.NewGuid();
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetAsync(validationTrackingId))
+                .ReturnsAsync((PackageValidationSet)null)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.OtherRecentValidationSetForPackageExists(It.IsAny<int>(), It.IsAny<TimeSpan>(), validationTrackingId))
+                .ReturnsAsync(false);
+
+            PackageValidationSet createdSet = null;
+            ValidationStorageMock
+                .Setup(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns<PackageValidationSet>(pvs => Task.FromResult(pvs))
+                .Callback<PackageValidationSet>(pvs => createdSet = pvs)
+                .Verifiable();
+
+            ValidationStorageMock
+                .Setup(vs => vs.GetValidationSetCountAsync(It.IsAny<int>()))
+                .ReturnsAsync(1);
+
+            var provider = CreateProvider();
+
+            await provider.TryGetOrCreateValidationSetAsync(validationTrackingId, Package);
+
+            PackageFileServiceMock.Verify(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+            PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(createdSet), Times.Once);
+            PackageFileServiceMock.Verify(x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Once);
         }
 
         [Fact]
@@ -112,6 +203,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var provider = new ValidationSetProvider(
                 ValidationStorageMock.Object,
+                PackageFileServiceMock.Object,
                 ConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
@@ -141,6 +233,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Contains(createdSet.PackageValidations, v => v.Type == validation1);
             Assert.Contains(createdSet.PackageValidations, v => v.Type == validation2);
 
+            PackageFileServiceMock.Verify(
+                x => x.CopyValidationPackageForValidationSetAsync(returnedSet),
+                Times.Once);
             TelemetryServiceMock.Verify(
                 x => x.TrackDurationToValidationSetCreation(createdSet.Created - Package.Created),
                 Times.Once);
@@ -178,6 +273,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var provider = new ValidationSetProvider(
                 ValidationStorageMock.Object,
+                PackageFileServiceMock.Object,
                 ConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
@@ -221,14 +317,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Times.Once);
             ValidationStorageMock
                 .Verify(vs => vs.CreateValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+            PackageFileServiceMock.Verify(
+                x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
+            PackageFileServiceMock.Verify(
+                x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
         }
 
         public ValidationSetProviderFacts()
         {
             ValidationStorageMock = new Mock<IValidationStorageService>(MockBehavior.Strict);
+            PackageFileServiceMock = new Mock<IValidationPackageFileService>(MockBehavior.Strict); 
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             TelemetryServiceMock = new Mock<ITelemetryService>();
             LoggerMock = new Mock<ILogger<ValidationSetProvider>>();
+
+            PackageFileServiceMock
+                .Setup(x => x.CopyPackageFileForValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask);
+
+            PackageFileServiceMock
+                .Setup(x => x.CopyValidationPackageForValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Returns(Task.CompletedTask);
 
             Configuration = new ValidationConfiguration();
             ConfigurationAccessorMock
@@ -242,6 +353,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 NormalizedVersion = "1.2.3",
                 Key = 42,
                 Created = new DateTime(2010, 1, 2, 8, 30, 0, DateTimeKind.Utc),
+                PackageStatusKey = PackageStatus.Validating,
             };
             Package.PackageRegistration.Packages = new List<Package> { Package };
 
@@ -257,6 +369,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             return new ValidationSetProvider(
                 ValidationStorageMock.Object,
+                PackageFileServiceMock.Object,
                 ConfigurationAccessorMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);

@@ -15,7 +15,7 @@ namespace NuGet.Services.Validation.Orchestrator
     public class ValidationOutcomeProcessor : IValidationOutcomeProcessor
     {
         private readonly ICorePackageService _galleryPackageService;
-        private readonly ICorePackageFileService _packageFileService;
+        private readonly IValidationPackageFileService _packageFileService;
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly IMessageService _messageService;
@@ -24,7 +24,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public ValidationOutcomeProcessor(
             ICorePackageService galleryPackageService,
-            ICorePackageFileService packageFileService,
+            IValidationPackageFileService packageFileService,
             IPackageValidationEnqueuer validationEnqueuer,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             IMessageService messageService,
@@ -106,6 +106,8 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.ValidationTrackingId);
                 }
 
+                await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
+
                 TrackTotalValidationDuration(validationSet, isSuccess: false);
             }
             else if (AllValidationsSucceeded(validationSet, GetValidationConfigurationItem))
@@ -114,6 +116,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
+
                 if (package.PackageStatusKey != PackageStatus.Available)
                 {
                     await MoveFileToPublicStorageAndMarkPackageAsAvailable(validationSet, package);
@@ -139,6 +142,9 @@ namespace NuGet.Services.Validation.Orchestrator
                         TrackMissingNupkgForAvailablePackage(validationSet);
                     }
                 }
+
+                await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
+
                 _logger.LogInformation("Done processing {PackageId} {PackageVersion} {ValidationSetId}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
@@ -176,23 +182,27 @@ namespace NuGet.Services.Validation.Orchestrator
                 package.PackageRegistration.Id,
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
-            var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package);
 
-            try
+            if (await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
             {
-                await _packageFileService.SavePackageFileAsync(package, packageStream);
+                await CopyAsync(
+                    validationSet,
+                    package,
+                    x => _packageFileService.CopyValidationSetPackageToPackageFileAsync(x));
             }
-            catch (InvalidOperationException)
+            else
             {
-                // The package already exists in the packages container. This can happen if the DB commit below fails
-                // and this flow is retried. We assume that the package content has not changed. Today there is no way
-                // for the content to change. Hard deletes (the one way a package ID and version can get different
-                // content) delete from both the packages and validating container so this can't be a mismatch.
                 _logger.LogInformation(
-                    "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                    "The package specific to the validation set does not exist. Falling back to the validation " +
+                    "container for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
+
+                await CopyAsync(
+                    validationSet,
+                    package,
+                    x => _packageFileService.CopyValidationPackageToPackageFileAsync(x.PackageId, x.PackageNormalizedVersion));
             }
 
             _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
@@ -227,6 +237,26 @@ namespace NuGet.Services.Validation.Orchestrator
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
             await _packageFileService.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version);
+        }
+
+        private async Task CopyAsync(PackageValidationSet validationSet, Package package, Func<PackageValidationSet, Task> copyAsync)
+        {
+            try
+            {
+                await copyAsync(validationSet);
+            }
+            catch (InvalidOperationException)
+            {
+                // The package already exists in the packages container. This can happen if the DB commit below fails
+                // and this flow is retried. We assume that the package content has not changed. Today there is no way
+                // for the content to change. Hard deletes (the one way a package ID and version can get different
+                // content) delete from both the packages and validating container so this can't be a mismatch.
+                _logger.LogInformation(
+                    "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    validationSet.ValidationTrackingId);
+            }
         }
 
         private bool AllValidationsSucceeded(

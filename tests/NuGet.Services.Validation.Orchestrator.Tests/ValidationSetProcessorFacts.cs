@@ -301,20 +301,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(ts => ts.TrackValidatorTimeout(It.IsAny<string>()), Times.Once);
         }
 
-        [Theory]
-        [InlineData(true, false, PublicContainerName)]
-        [InlineData(false, true, ValidationContainerName)]
-        public async Task UsesProperNupkgUrl(bool existsInPublicContainer, bool existsInValidationContainer, string expectedUrlSubstring)
+        [Fact]
+        public async Task UsesProperNupkgUrl()
         {
             UseDefaultValidatorProvider();
             var validator = AddValidation("validation1", TimeSpan.FromDays(1));
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesPackageFileExistAsync(Package))
-                .ReturnsAsync(existsInPublicContainer);
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationPackageFileExistAsync(Package))
-                .ReturnsAsync(existsInValidationContainer);
+            
             IValidationRequest validationRequest = null;
             validator
                 .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
@@ -330,35 +322,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             validator
                 .Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
             Assert.NotNull(validationRequest);
-            Assert.Contains(expectedUrlSubstring, validationRequest.NupkgUrl);
+            Assert.Contains(ValidationSet.ValidationTrackingId.ToString(), validationRequest.NupkgUrl);
+            Assert.Contains(ValidationContainerName, validationRequest.NupkgUrl);
             Assert.Equal(Package.PackageRegistration.Id, validationRequest.PackageId);
             Assert.Equal(Package.NormalizedVersion, validationRequest.PackageVersion);
-        }
-
-        [Fact]
-        public void ThrowsIfNupkgDoesNotExist()
-        {
-            UseDefaultValidatorProvider();
-            var validator = AddValidation("validation1", TimeSpan.FromDays(1));
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesPackageFileExistAsync(Package))
-                .ReturnsAsync(false);
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationPackageFileExistAsync(Package))
-                .ReturnsAsync(false);
-
-            var processor = CreateProcessor();
-            var ex = Assert.ThrowsAsync<Exception>(() => processor.ProcessValidationsAsync(ValidationSet, Package));
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DoesPackageFileExistAsync(Package), Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DoesPackageFileExistAsync(It.IsAny<Package>()), Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DoesValidationPackageFileExistAsync(Package), Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DoesValidationPackageFileExistAsync(It.IsAny<Package>()), Times.Once());
         }
     }
 
@@ -370,7 +337,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected Mock<IValidatorProvider> ValidatorProviderMock { get; }
         protected Mock<IValidationStorageService> ValidationStorageMock { get; }
         protected Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
-        protected Mock<ICorePackageFileService> PackageFileServiceMock { get; }
+        protected Mock<IValidationPackageFileService> PackageFileServiceMock { get; }
         protected Mock<ILogger<ValidationSetProcessor>> LoggerMock { get; }
         public Mock<ITelemetryService> TelemetryServiceMock { get; }
         protected ValidationConfiguration Configuration { get; }
@@ -389,7 +356,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidatorProviderMock = new Mock<IValidatorProvider>(validatorProviderMockBehavior);
             ValidationStorageMock = new Mock<IValidationStorageService>(validationStorageMockBehavior);
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>(configurationAccessorMockBehavior);
-            PackageFileServiceMock = new Mock<ICorePackageFileService>(packageFileServiceMockBehavior);
+            PackageFileServiceMock = new Mock<IValidationPackageFileService>(packageFileServiceMockBehavior);
             LoggerMock = new Mock<ILogger<ValidationSetProcessor>>(loggerMockBehavior);
             TelemetryServiceMock = new Mock<ITelemetryService>(telemetryServiceMockBehavior);
             Configuration = new ValidationConfiguration
@@ -424,18 +391,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Validators = new Dictionary<string, Mock<IValidator>>();
 
             PackageFileServiceMock
-                .Setup(pfs => pfs.GetValidationPackageReadUriAsync(It.IsAny<Package>(), It.IsAny<DateTimeOffset>()))
-                .Returns<Package, DateTimeOffset>(
-                    (p, e) => Task.FromResult(new Uri($"https://example.com/{ValidationContainerName}/{p.PackageRegistration.Id}/{p.NormalizedVersion}?e={e:yyyy-MM-dd-hh-mm-ss}")));
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.GetPackageReadUriAsync(It.IsAny<Package>()))
-                .Returns<Package>(
-                    p => Task.FromResult(new Uri($"https://example.com/{PublicContainerName}/{p.PackageRegistration.Id}/{p.NormalizedVersion}")));
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationPackageFileExistAsync(Package))
-                .ReturnsAsync(true);
+                .Setup(pfs => pfs.GetPackageForValidationSetReadUriAsync(It.IsAny<PackageValidationSet>(), It.IsAny<DateTimeOffset>()))
+                .Returns<PackageValidationSet, DateTimeOffset>(
+                    (p, e) => Task.FromResult(new Uri($"https://example.com/{ValidationContainerName}/{p.ValidationTrackingId}/{p.PackageId}.{p.PackageNormalizedVersion}?e={e:yyyy-MM-dd-hh-mm-ss}")));
         }
 
         protected ValidationSetProcessor CreateProcessor()

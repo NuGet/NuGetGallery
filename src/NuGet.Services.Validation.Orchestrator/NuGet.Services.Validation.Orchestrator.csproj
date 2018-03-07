@@ -53,6 +53,7 @@
     <Compile Include="Error.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
+    <Compile Include="IValidationPackageFileService.cs" />
     <Compile Include="IValidationSetProcessor.cs" />
     <Compile Include="IValidationSetProvider.cs" />
     <Compile Include="IValidationStorageService.cs" />
@@ -79,6 +80,7 @@
     <Compile Include="Configuration\ValidationConfiguration.cs" />
     <Compile Include="Configuration\ValidationConfigurationItem.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
+    <Compile Include="ValidationPackageFileService.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
     <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />

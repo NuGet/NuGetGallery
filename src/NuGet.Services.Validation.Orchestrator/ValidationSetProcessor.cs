@@ -18,7 +18,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IValidatorProvider _validatorProvider;
         private readonly IValidationStorageService _validationStorageService;
         private readonly ValidationConfiguration _validationConfiguration;
-        private readonly ICorePackageFileService _packageFileService;
+        private readonly IValidationPackageFileService _packageFileService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProcessor> _logger;
 
@@ -26,7 +26,7 @@ namespace NuGet.Services.Validation.Orchestrator
             IValidatorProvider validatorProvider,
             IValidationStorageService validationStorageService,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
-            ICorePackageFileService packageFileService,
+            IValidationPackageFileService packageFileService,
             ITelemetryService telemetryService,
             ILogger<ValidationSetProcessor> logger)
         {
@@ -251,29 +251,18 @@ namespace NuGet.Services.Validation.Orchestrator
             Package package,
             ValidationConfigurationItem validationConfiguration)
         {
+            var nupkgUrl = await _packageFileService.GetPackageForValidationSetReadUriAsync(
+                packageValidationSet,
+                DateTimeOffset.UtcNow.Add(validationConfiguration.FailAfter));
+
             var validationRequest = new ValidationRequest(
                 validationId: packageValidation.Key,
                 packageKey: packageValidationSet.PackageKey,
                 packageId: packageValidationSet.PackageId,
                 packageVersion: packageValidationSet.PackageNormalizedVersion,
-                nupkgUrl: (await GetNupkgUrl(package, validationConfiguration)).AbsoluteUri
-            );
+                nupkgUrl: nupkgUrl.AbsoluteUri);
 
             return validationRequest;
-        }
-
-        private async Task<Uri> GetNupkgUrl(Package package, ValidationConfigurationItem validationConfiguration)
-        {
-            if (await _packageFileService.DoesPackageFileExistAsync(package))
-            {
-                return await _packageFileService.GetPackageReadUriAsync(package);
-            }
-            else if (await _packageFileService.DoesValidationPackageFileExistAsync(package))
-            {
-                return await _packageFileService.GetValidationPackageReadUriAsync(package, DateTimeOffset.UtcNow.Add(validationConfiguration.FailAfter));
-            }
-
-            throw new Exception($"Package {package.PackageRegistration.Id} {package.NormalizedVersion} does not exist neither in validation nor in public container");
         }
 
         private bool ArePrerequisitesMet(PackageValidation packageValidation, PackageValidationSet packageValidationSet)

@@ -14,17 +14,20 @@ namespace NuGet.Services.Validation.Orchestrator
     public class ValidationSetProvider : IValidationSetProvider
     {
         private readonly IValidationStorageService _validationStorageService;
+        private readonly IValidationPackageFileService _packageFileService;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProvider> _logger;
 
         public ValidationSetProvider(
             IValidationStorageService validationStorageService,
+            IValidationPackageFileService packageFileService,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             ITelemetryService telemetryService,
             ILogger<ValidationSetProvider> logger)
         {
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             if (validationConfigurationAccessor == null)
             {
                 throw new ArgumentNullException(nameof(validationConfigurationAccessor));
@@ -48,7 +51,17 @@ namespace NuGet.Services.Validation.Orchestrator
                 {
                     return null;
                 }
+
                 validationSet = await CreateValidationSet(validationTrackingId, package);
+
+                if (package.PackageStatusKey == PackageStatus.Available)
+                {
+                    await _packageFileService.CopyPackageFileForValidationSetAsync(validationSet);
+                }
+                else
+                {
+                    await _packageFileService.CopyValidationPackageForValidationSetAsync(validationSet);
+                }
             }
             else
             {
