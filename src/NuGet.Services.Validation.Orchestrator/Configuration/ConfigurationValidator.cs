@@ -103,8 +103,8 @@ namespace NuGet.Services.Validation.Orchestrator
             foreach (var validatorItem in _configuration.Validations)
             {
                 // This method will throw if the validator does not exist.
-                var validator = _validatorProvider.GetValidator(validatorItem.Name);
-                if (validator == null)
+                var validatorType = _validatorProvider.GetValidatorType(validatorItem.Name);
+                if (validatorType == null)
                 {
                     throw new ConfigurationErrorsException("Validator implementation not found for " + validatorItem.Name);
                 }
@@ -142,7 +142,7 @@ namespace NuGet.Services.Validation.Orchestrator
             var processorNames = _configuration
                 .Validations
                 .Select(x => x.Name)
-                .Where(x => _validatorProvider.GetValidator(x) is IProcessor)
+                .Where(x => typeof(IProcessor).IsAssignableFrom(_validatorProvider.GetValidatorType(x)))
                 .ToList();
 
             TopologicalSort.Validate(_configuration.Validations, processorNames);

@@ -148,11 +148,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.GetValidator(It.Is<string>(n => n == validationName1 || n == validationName2)))
-                .Returns(() => new Mock<IValidator>().Object);
+                .Setup(x => x.GetValidatorType(It.Is<string>(n => n == validationName1 || n == validationName2)))
+                .Returns(() => new Mock<IValidator>().Object.GetType());
             validatorProvider
-                .Setup(x => x.GetValidator(processorName1))
-                .Returns(() => new Mock<IProcessor>().Object);
+                .Setup(x => x.GetValidatorType(processorName1))
+                .Returns(() => new Mock<IProcessor>().Object.GetType());
 
             var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
 
@@ -195,11 +195,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.GetValidator(It.Is<string>(n => n == validationName1 || n == validationName2)))
-                .Returns(() => new Mock<IValidator>().Object);
+                .Setup(x => x.GetValidatorType(It.Is<string>(n => n == validationName1 || n == validationName2)))
+                .Returns(() => new Mock<IValidator>().Object.GetType());
             validatorProvider
-                .Setup(x => x.GetValidator(processorName1))
-                .Returns(() => new Mock<IProcessor>().Object);
+                .Setup(x => x.GetValidatorType(processorName1))
+                .Returns(() => new Mock<IProcessor>().Object.GetType());
 
             var ex = Record.Exception(() => Validate(validatorProvider.Object, configuration));
 
@@ -601,8 +601,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             var validatorProvider = new Mock<IValidatorProvider>();
             validatorProvider
-                .Setup(x => x.GetValidator(It.IsAny<string>()))
-                .Returns(() => new Mock<IValidator>().Object);
+                .Setup(x => x.GetValidatorType(It.IsAny<string>()))
+                .Returns(() => new Mock<IValidator>().Object.GetType());
 
             Validate(validatorProvider.Object, configuration);
         }

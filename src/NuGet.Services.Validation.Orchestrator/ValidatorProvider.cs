@@ -35,16 +35,25 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        public IValidator GetValidator(string validatorName)
+        public Type GetValidatorType(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
             if (_validatorTypes.TryGetValue(validatorName, out Type validatorType))
             {
-                return (IValidator)_serviceProvider.GetRequiredService(validatorType);
+                return validatorType;
             }
 
             throw new ArgumentException($"Unknown validator name: {validatorName}", nameof(validatorName));
+        }
+
+        public IValidator GetValidator(string validatorName)
+        {
+            validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
+
+            var validatorType = GetValidatorType(validatorName);
+
+            return (IValidator)_serviceProvider.GetRequiredService(validatorType);
         }
 
         private static IEnumerable<Type> GetCandidateTypes(Assembly callingAssembly)
