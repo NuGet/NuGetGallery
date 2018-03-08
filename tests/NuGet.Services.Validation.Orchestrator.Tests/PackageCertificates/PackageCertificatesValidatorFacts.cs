@@ -203,22 +203,21 @@ namespace NuGet.Services.Validation.PackageSigning
 
             public static IEnumerable<object[]> InvalidSignatureFailsValidationData()
             {
-                // Signatures SHOULD NOT have "Valid" and "InGracePeriod" Statuses before
-                // the CertificateValidator finishes. If the signatures somehow do, the
-                // validator should fail as this is an invalid state.
-                yield return new object[]
-                {
-                    ValidationStatus.Failed, PackageSignatureStatus.Valid
-                };
-
-                yield return new object[]
-                {
-                    ValidationStatus.Failed, PackageSignatureStatus.InGracePeriod
-                };
-
                 yield return new object[]
                 {
                     ValidationStatus.Succeeded, PackageSignatureStatus.Unknown
+                };
+
+                // Signatures may have "Valid" and "InGracePeriod" Statuses before
+                // the CertificateValidator finishes due to revalidations.
+                yield return new object[]
+                {
+                    ValidationStatus.Succeeded, PackageSignatureStatus.Valid
+                };
+
+                yield return new object[]
+                {
+                    ValidationStatus.Succeeded, PackageSignatureStatus.InGracePeriod
                 };
 
                 yield return new object[]

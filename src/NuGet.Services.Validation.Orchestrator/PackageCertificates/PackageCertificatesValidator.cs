@@ -74,10 +74,10 @@ namespace NuGet.Services.Validation.PackageCertificates
                 return status;
             }
 
-            // All of the requested certificate validations have finished. Fail the validation if the
-            // signature has been invalidated. At this point, the signature MUST have a state of either
-            // "Unknown" or "Invalid" as the PackageSigningValidator sets signatures to an "Unknown" status
-            // and the ValidateCertificate job may set signatures to the "Invalid" state.
+            // All of the requested certificate validations have finished. At this point, the signature
+            // may have a status of "Unknown" if the package is at ingestion and its signature has passed
+            // all validations, "Invalid" if one or more of the signature's certificates has failed validations,
+            // or "InGracePeriod" or "Valid" if this is a revalidation request.
             var signature = await FindSignatureAsync(request);
 
             if (signature.Status == PackageSignatureStatus.Invalid)
@@ -88,18 +88,6 @@ namespace NuGet.Services.Validation.PackageCertificates
                     request.PackageId,
                     request.PackageVersion,
                     signature.Key);
-
-                return await _validatorStateService.TryUpdateValidationStatusAsync(request, status, ValidationStatus.Failed);
-            }
-            else if (signature.Status != PackageSignatureStatus.Unknown)
-            {
-                _logger.LogError(
-                    Error.PackageCertificateValidationInvalidSignatureState,
-                    "Failing validation {ValidationId} ({PackageId} {PackageVersion}) due to invalid signature status: {SignatureStatus}",
-                    request.ValidationId,
-                    request.PackageId,
-                    request.PackageVersion,
-                    signature.Status);
 
                 return await _validatorStateService.TryUpdateValidationStatusAsync(request, status, ValidationStatus.Failed);
             }
@@ -256,9 +244,10 @@ namespace NuGet.Services.Validation.PackageCertificates
                                         : PackageSignatureStatus.InGracePeriod;
 
             _logger.LogInformation(
-                "Promoting package {PackageId} {PackageVersion} signature to status {SignatureStatus}",
+                "Promoting package {PackageId} {PackageVersion} signature from status {OldSignatureStatus} to status {NewSignatureStatus}",
                 request.PackageId,
                 request.PackageVersion,
+                signature.Status,
                 newSignatureStatus);
 
             signature.Status = newSignatureStatus;
@@ -288,7 +277,7 @@ namespace NuGet.Services.Validation.PackageCertificates
                 if (timestamp.EndCertificate.Status == EndCertificateStatus.Revoked)
                 {
                     _logger.LogError(
-                        0,
+                        Error.PackageCertificateValidationInvalidSignatureState,
                         "Valid signature cannot have a timestamp whose end certificate is revoked ({ValidationId}, {PackageId} {PackageVersion})",
                         request.ValidationId,
                         request.PackageId,
