@@ -183,6 +183,19 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IPackageCriteriaEvaluator, PackageCriteriaEvaluator>();
             services.AddTransient<VcsValidator>();
             services.AddTransient<IPackageSignatureVerificationEnqueuer, PackageSignatureVerificationEnqueuer>();
+            services.AddTransient<NuGetGallery.ICloudBlobClient>(c =>
+                {
+                    var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
+                    return new NuGetGallery.CloudBlobClientWrapper(
+                        configurationAccessor.Value.ValidationStorageConnectionString,
+                        readAccessGeoRedundant: false);
+                });
+            services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
+            services.AddTransient<IValidationPackageFileService, ValidationPackageFileService>();
+            services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
+            services.AddTransient<IPackageStatusProcessor, PackageStatusProcessor>();
+            services.AddTransient<IValidationSetProvider, ValidationSetProvider>();
+            services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IValidatorStateService, ValidatorStateService>();
             services.AddTransient<PackageSigningValidator>();
@@ -272,42 +285,6 @@ namespace NuGet.Services.Validation.Orchestrator
                     (pi, ctx) => ctx.Resolve<SignatureValidationMessageSerializer>()
                     ))
                 .As<IPackageSignatureVerificationEnqueuer>();
-
-            containerBuilder
-                .Register(c => 
-                {
-                    var configurationAccessor = c.Resolve<IOptionsSnapshot<ValidationConfiguration>>();
-                    return new NuGetGallery.CloudBlobClientWrapper(configurationAccessor.Value.ValidationStorageConnectionString, false);
-                })
-                .Keyed<NuGetGallery.ICloudBlobClient>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService, NuGetGallery.ICloudBlobClient>(
-                    typeKey: ValidationStorageBindingKey,
-                    parameterKey: ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<IValidationPackageFileService, ValidationPackageFileService, NuGetGallery.ICoreFileStorageService>(
-                    typeKey: ValidationStorageBindingKey,
-                    parameterKey: ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationOutcomeProcessor,
-                    ValidationOutcomeProcessor,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationSetProvider,
-                    ValidationSetProvider,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationSetProcessor,
-                    ValidationSetProcessor,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
 
             containerBuilder
                 .RegisterType<ScopedMessageHandler<PackageValidationMessageData>>()
