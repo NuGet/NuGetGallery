@@ -21,7 +21,7 @@ namespace NuGetGallery.Filters
         {
             // If the user has a discontinued login claim, redirect them to the homepage
             var identity = filterContext.HttpContext.User.Identity as ClaimsIdentity;
-            if (!AllowDiscontinuedLogins && ClaimsExtensions.HasDiscontinuedLoginCLaims(identity))
+            if (!AllowDiscontinuedLogins && ClaimsExtensions.HasDiscontinuedLoginClaims(identity))
             {
                 filterContext.Result = new RedirectToRouteResult(
                     new RouteValueDictionary(

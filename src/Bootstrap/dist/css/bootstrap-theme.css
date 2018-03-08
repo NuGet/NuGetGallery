@@ -358,7 +358,7 @@ img.reserved-indicator-icon {
   vertical-align: top;
 }
 .modal-container .modal-box .modal-body .action-node {
-  padding: 9% 6%;
+  padding: 0 6%;
   text-align: center;
 }
 .modal-container .modal-box .modal-body .action-button {
@@ -366,7 +366,7 @@ img.reserved-indicator-icon {
   line-height: 2em;
 }
 .modal-container .modal-box .modal-body .transform-text {
-  padding: 0 15px;
+  padding: 40px 15px;
   margin: 0;
 }
 #edit-metadata-form-container .loading:after {
