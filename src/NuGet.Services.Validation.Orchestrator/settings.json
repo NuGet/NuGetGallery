@@ -2,11 +2,25 @@
   "Configuration": {
     "Validations": [
       {
-        "name": "",
+        "name": "VcsValidator",
         "failAfter": "1:00:00:00",
         "requiredValidations": [],
         "ShouldStart": true,
         "FailureBehavior": "MustSucceed"
+      },
+      {
+        "name": "PackageSigningValidator",
+        "failAfter": "1:00:00:00",
+        "requiredValidations": [],
+        "ShouldStart": true,
+        "FailureBehavior": "MustSucceed"
+      },
+      {
+        "name": "PackageCertificatesValidator",
+        "failAfter": "10:00",
+        "requiredValidations": [ "PackageSigningValidator" ],
+        "ShouldStart": true,
+        "FailureBehavior": "AllowedToFail"
       }
     ],
     "ValidationStorageConnectionString": "",

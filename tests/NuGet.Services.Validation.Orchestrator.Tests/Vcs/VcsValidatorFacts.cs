@@ -286,7 +286,7 @@ namespace NuGet.Services.Validation.Vcs
             public async Task UsesTheCorrectPackageForValidation()
             {
                 // Arrange & Act
-                var status = await _target.StartValidationAsync(_validationRequest.Object);
+                var status = await _target.StartAsync(_validationRequest.Object);
 
                 // Assert
                 Assert.Equal(1, _started.Count);
@@ -324,7 +324,7 @@ namespace NuGet.Services.Validation.Vcs
                         inner: null));
 
                 // Act
-                var result = await _target.StartValidationAsync(_validationRequest.Object);
+                var result = await _target.StartAsync(_validationRequest.Object);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Incomplete, result.Status);
@@ -351,7 +351,7 @@ namespace NuGet.Services.Validation.Vcs
                 // Act & Assert
                 var actual = await Assert.ThrowsAsync(
                     expected.GetType(),
-                    () => _target.StartValidationAsync(_validationRequest.Object));
+                    () => _target.StartAsync(_validationRequest.Object));
                 Assert.Same(expected, actual);            
 
                 _validationService.Verify(
@@ -374,7 +374,7 @@ namespace NuGet.Services.Validation.Vcs
                     .Returns(false);
 
                 // Act
-                var actual = await _target.StartValidationAsync(_validationRequest.Object);
+                var actual = await _target.StartAsync(_validationRequest.Object);
 
                 // Assert
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);

@@ -122,7 +122,7 @@ namespace NuGet.Services.Validation.PackageSigning
                      });
 
                 // Act & Assert
-                await _target.StartValidationAsync(_validationRequest.Object);
+                await _target.StartAsync(_validationRequest.Object);
 
                 _packageSignatureVerifier
                     .Verify(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()), Times.Never);
@@ -174,7 +174,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     });
 
                 // Act
-                await _target.StartValidationAsync(_validationRequest.Object);
+                await _target.StartAsync(_validationRequest.Object);
 
                 // Assert
                 _packageSignatureVerifier

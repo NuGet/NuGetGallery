@@ -33,14 +33,16 @@ namespace NuGet.Services.Validation
 
         class AValidator : IValidator
         {
+            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
             public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
         class BValidator : IValidator
         {
+            public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
             public Task<IValidationResult> GetResultAsync(IValidationRequest request) => throw new NotImplementedException();
-            public Task<IValidationResult> StartValidationAsync(IValidationRequest request) => throw new NotImplementedException();
+            public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
         public class TheGetStatusMethod : FactsBase

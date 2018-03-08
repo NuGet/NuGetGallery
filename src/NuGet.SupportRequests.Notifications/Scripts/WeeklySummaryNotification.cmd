@@ -6,6 +6,18 @@ echo "Starting job - NuGet - SupportRequests.Notifications.WeeklySummaryNotifica
 	
 title "NuGet - SupportRequests.Notifications.WeeklySummaryNotification.cmd"
 
-start /w nuget.supportrequests.notifications.exe -Task "WeeklySummaryNotification" -TargetEmailAddress "#{Jobs.supportrequests.notifications.weeklysummarynotification.TargetEmailAddress}" -SourceDatabase "Server=tcp:vz2xmz8oda.database.windows.net;Database=nuget-prod-supportrequest;Persist Security Info=False;User ID=$$Prod-SupportRequestDBReadOnly-UserName$$;Password=$$Prod-SupportRequestDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True" -PagerDutyAccountName "nuget" -PagerDutyApiKey "$$Prod-PagerDuty-ApiKey$$" -SmtpUri "smtps://nuget:$$Prod-SendGridSMTP-Password$$@smtp.sendgrid.net:587/" -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -InstrumentationKey "#{Jobs.supportrequests.notifications.InstrumentationKey}" -verbose true -Once
+start /w nuget.supportrequests.notifications.exe ^
+    -Task "WeeklySummaryNotification" ^
+    -TargetEmailAddress "#{Jobs.supportrequests.notifications.weeklysummarynotification.TargetEmailAddress}" ^
+    -SourceDatabase "#{Jobs.supportrequests.notifications.SupportRequestsDatabase}" ^
+    -PagerDutyAccountName "nuget" ^
+    -PagerDutyApiKey "$$Prod-PagerDuty-ApiKey$$" ^
+    -SmtpUri "#{Jobs.supportrequests.notifications.SmtpUri}" ^
+    -VaultName "#{Deployment.Azure.KeyVault.VaultName}" ^
+    -ClientId "#{Deployment.Azure.KeyVault.ClientId}" ^
+    -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" ^
+    -InstrumentationKey "#{Jobs.supportrequests.notifications.InstrumentationKey}" ^
+    -verbose true ^
+    -Once
 
 echo "Finished job - NuGet - SupportRequests.Notifications.WeeklySummaryNotification.cmd"

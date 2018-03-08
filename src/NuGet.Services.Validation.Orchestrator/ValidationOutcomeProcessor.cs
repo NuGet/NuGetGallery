@@ -177,7 +177,23 @@ namespace NuGet.Services.Validation.Orchestrator
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
             var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package);
-            await _packageFileService.SavePackageFileAsync(package, packageStream);
+
+            try
+            {
+                await _packageFileService.SavePackageFileAsync(package, packageStream);
+            }
+            catch (InvalidOperationException)
+            {
+                // The package already exists in the packages container. This can happen if the DB commit below fails
+                // and this flow is retried. We assume that the package content has not changed. Today there is no way
+                // for the content to change. Hard deletes (the one way a package ID and version can get different
+                // content) delete from both the packages and validating container so this can't be a mismatch.
+                _logger.LogInformation(
+                    "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    validationSet.ValidationTrackingId);
+            }
 
             _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
                 package.PackageRegistration.Id,

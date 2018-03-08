@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Services.Validation.PackageSigning
 {
-    public class PackageSigningValidator : IValidator
+    public class PackageSigningValidator : BaseValidator, IValidator
     {
         private readonly IValidatorStateService _validatorStateService;
         private readonly IPackageSignatureVerificationEnqueuer _signatureVerificationEnqueuer;
@@ -32,14 +32,14 @@ namespace NuGet.Services.Validation.PackageSigning
             return validatorStatus.ToValidationResult();
         }
 
-        public async Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+        public async Task<IValidationResult> StartAsync(IValidationRequest request)
         {
-            var validatorStatus = await StartValidationInternalAsync(request);
+            var validatorStatus = await StartInternalAsync(request);
 
             return validatorStatus.ToValidationResult();
         }
 
-        private async Task<ValidatorStatus> StartValidationInternalAsync(IValidationRequest request)
+        private async Task<ValidatorStatus> StartInternalAsync(IValidationRequest request)
         {
             // Check that this is the first validation for this specific request.
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);

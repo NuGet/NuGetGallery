@@ -154,6 +154,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task AllowsPackageAlreadyInPublicContainer()
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            Package.PackageStatusKey = PackageStatus.Validating;
+
+            var stream = new MemoryStream();
+
+            PackageFileServiceMock
+                .Setup(pfs => pfs.DownloadValidationPackageFileAsync(Package))
+                .ReturnsAsync(stream);
+
+            PackageFileServiceMock
+                .Setup(pfs => pfs.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                .Throws(new InvalidOperationException("Duplicate!"));
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            PackageFileServiceMock
+                .Verify(pfs => pfs.DownloadValidationPackageFileAsync(Package), Times.Once);
+            PackageFileServiceMock
+                .Verify(pfs => pfs.SavePackageFileAsync(Package, stream), Times.Once);
+            PackageServiceMock
+                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true), Times.Once);
+            PackageFileServiceMock
+                .Verify(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.Once);
+            MessageServiceMock
+                .Verify(ms => ms.SendPackagePublishedMessage(Package), Times.Once);
+        }
+
+        [Fact]
         public async Task DoesNotCopyPackageIfItsAvailable()
         {
             AddValidation("validation1", ValidationStatus.Succeeded);

@@ -15,18 +15,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
 
         [Fact]
-        public void SmokeTest()
+        public void ValidatorSmokeTest()
         {
+            var validator = new TestValidator();
+
             ServiceProviderMock
-                .Setup(sp => sp.GetService(typeof(TestValidator1)))
-                .Returns(() => new TestValidator1());
+                .Setup(sp => sp.GetService(validator.GetType()))
+                .Returns(() => validator);
 
             var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var result = provider.GetValidator(nameof(TestValidator1));
-            ServiceProviderMock
-                .Verify(sp => sp.GetService(typeof(TestValidator1)), Times.Once());
+            var result = provider.GetValidator(validator.GetType().Name);
 
-            Assert.IsType<TestValidator1>(result);
+            ServiceProviderMock
+                .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
+            Assert.IsType(validator.GetType(), result);
+        }
+
+        [Fact]
+        public void ProcessorSmokeTest()
+        {
+            var processor = new TestProcessor();
+
+            ServiceProviderMock
+                .Setup(sp => sp.GetService(processor.GetType()))
+                .Returns(() => processor);
+
+            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
+            var result = provider.GetValidator(processor.GetType().Name);
+
+            ServiceProviderMock
+                .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
+            Assert.IsType(processor.GetType(), result);
         }
 
         [Fact]
@@ -52,14 +71,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         }
 
-        public class TestValidator1 : IValidator
+        public class TestValidator : IValidator
         {
+            public Task CleanUpAsync(IValidationRequest request)
+            {
+                throw new NotImplementedException();
+            }
+
             public Task<IValidationResult> GetResultAsync(IValidationRequest request)
             {
                 throw new NotImplementedException();
             }
 
-            public Task<IValidationResult> StartValidationAsync(IValidationRequest request)
+            public Task<IValidationResult> StartAsync(IValidationRequest request)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class TestProcessor : IProcessor
+        {
+            public Task CleanUpAsync(IValidationRequest request)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IValidationResult> GetResultAsync(IValidationRequest request)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<IValidationResult> StartAsync(IValidationRequest request)
             {
                 throw new NotImplementedException();
             }
