@@ -352,11 +352,6 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    if (!IsValidEmail(providedEmailAddress))
-                    {
-                        throw new ArgumentException(Strings.SigninAssistance_InvalidEmail);
-                    }
-
                     if (!email.Equals(providedEmailAddress, StringComparison.OrdinalIgnoreCase))
                     {
                         throw new ArgumentException(Strings.SigninAssistance_EmailMismatched);
@@ -570,37 +565,20 @@ namespace NuGetGallery
 
         private string FormatEmailAddressForAssistance(string email)
         {
-            var emailIdLastIndex = email.IndexOf('@');
-            if (emailIdLastIndex < 1)
+            var emailParts = email.Split('@');
+            if (emailParts.Length != 2)
             {
-                throw new ArgumentException(@"Cannot format an invalid email address");
-            }
-
-            var startingIndex = 1;
-            var length = emailIdLastIndex - 2; // we want to keep first and the last characters of the email id
-            if (emailIdLastIndex == 1)
-            {
-                // one character wide email id eg: x@domain.com; format it as x**********@domain.com
-                return email.Insert(startingIndex, EMAIL_FORMAT_PADDING);
+                throw new ArgumentException(@"Invalid email address. Please contact support for assistance.");
             }
 
             // Format the email address as x**********y@domain.com
-            return email
-                .Remove(startingIndex, length)
-                .Insert(startingIndex, EMAIL_FORMAT_PADDING);
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            try
-            {
-                var addr = new MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
+            // One character wide email id eg: x@domain.com; format it as x**********@domain.com
+            var idPart = emailParts[0];
+            var domainPart = emailParts[1];
+            return idPart[0]
+              + EMAIL_FORMAT_PADDING
+              + (idPart.Length > 1 ? idPart[idPart.Length - 1] + "" : "")
+              + $"@{domainPart}";
         }
 
         private ActionResult RedirectFromRegister(string returnUrl)

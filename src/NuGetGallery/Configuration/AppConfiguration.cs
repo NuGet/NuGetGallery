@@ -69,6 +69,7 @@ namespace NuGetGallery.Configuration
         public TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         public bool DeprecateNuGetPasswordLogins { get; set; }
+
         /// <summary>
         /// Gets the URI to the search service
         /// </summary>
