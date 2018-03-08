@@ -8,7 +8,7 @@
     <div class="modal-body">
         <div class="tag-node">
             <span class="title-text">
-                Forgot Microsoft account you used to sign-in?
+                Forgot the Microsoft account you used to sign-in?
             </span>
         </div>
         <div class="text-label">
@@ -18,9 +18,14 @@
                 <div id="assistance-form" data-bind="visible: !emailNotificationSent()">
                     <div id="username-entry" data-bind="visible: getUsername()">
                         <div class="form-group">
-                            <label for="newOwnerUserName">Please enter the username</label>
-                            <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control" />
-                            <div class="text-danger form-error-message" id="warning-message" data-bind="text: message"></div>
+                            <div>
+                                If you cannot remember which Microsoft account you used to sign-in to @this.Config.Current.Brand, we can help you out.
+                            </div>
+                            <div class="text-row">
+                                <label for="newOwnerUserName">Please enter the username</label>
+                                <input type="text" id="usernameForAssistance" name="usernameForAssistance" data-bind="value: usernameForAssistance" aria-required="true" class="form-control" />
+                                <div class="text-danger form-error-message" id="warning-message" data-bind="text: message"></div>
+                            </div>
                         </div>
                         <div class="form-button-node">
                             <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
@@ -28,8 +33,8 @@
                     </div>
                     <div id="email-entry" data-bind="visible: getEmail()">
                         <div class="form-group">
-                            <div class="text-row">
-                                Please enter the Email address linked to account <span style="font-weight: bold" data-bind="text: usernameForAssistance()"/> :
+                            <div>
+                                Please enter the email address linked to account <span style="font-weight: bold" data-bind="text: usernameForAssistance()"/> :
                             </div>
                             <div class="text-row" data-bind="text: formattedEmailAddress()"></div>
                             <div class="text-row">
@@ -43,7 +48,7 @@
                     </div>
                 </div>
                 <div id="notification-sent" data-bind="visible: emailNotificationSent()">
-                    <div class="text-row">
+                    <div>
                         Thanks for providing the details. We have sent the sign-in account details to the email address linked to your account:
                         <div class="text-row">
                             <span style="font-weight: bold" data-bind="text: usernameForAssistance()"></span>
