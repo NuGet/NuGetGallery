@@ -227,8 +227,8 @@ namespace NuGetGallery
 
             routes.MapRoute(
                 RouteName.SigninAssistance,
-                "account/signinassistance",
-                new { controller = "Authentication", action = "SigninAssistance" },
+                "account/assistance",
+                new { controller = "Authentication", action = "SignInAssistance" },
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(

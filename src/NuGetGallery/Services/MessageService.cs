@@ -223,7 +223,7 @@ The {0} Team";
             }
             else
             {
-                msaIdentity = "No associated Microsoft logins found.";
+                msaIdentity = "No associated Microsoft logins were found.";
             }
 
             body = String.Format(
@@ -235,7 +235,7 @@ The {0} Team";
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, "[{0}] Signin Assistance.", Config.GalleryOwner.DisplayName);
+                    CultureInfo.CurrentCulture, "[{0}] Sign-In Assistance.", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 

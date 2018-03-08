@@ -106,7 +106,7 @@ namespace NuGetGallery.Controllers
             {
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SigninAssistance(username: null, providedEmailAddress: null);
+                var result = controller.SignInAssistance(username: null, providedEmailAddress: null);
                 dynamic data = result.Data;
                 Assert.False(data.success);
             }
@@ -128,7 +128,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: null);
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 Assert.Equal(expectedEmail, data.EmailAddress);
@@ -150,7 +150,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: providedEmail);
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: providedEmail);
                 dynamic data = result.Data;
                 Assert.False(data.success);
             }
@@ -174,7 +174,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SigninAssistance(username: "existingUser", providedEmailAddress: email);
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: email);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 messageServiceMock.Verify();

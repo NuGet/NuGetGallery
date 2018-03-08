@@ -29,7 +29,7 @@ namespace NuGetGallery
 
         private readonly ICredentialBuilder _credentialBuilder;
 
-        private static string EMAIL_FORMAT_PADDING = "**********";
+        private const string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
         private readonly static string[] ExternalAuthenticationPriority = new string[] {
@@ -332,10 +332,10 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual JsonResult SigninAssistance(string username, string providedEmailAddress)
+        public virtual JsonResult SignInAssistance(string username, string providedEmailAddress)
         {
             // If provided email address is empty or null, return the result with a formatted
-            // email address, otherwise send signin assistance email to the associated mail address.
+            // email address, otherwise send sign-in assistance email to the associated mail address.
             try
             {
                 var user = _userService.FindByUsername(username);
