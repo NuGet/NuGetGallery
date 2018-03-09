@@ -11,12 +11,16 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
-        public HashSet<string> DiscontinuedForEmailAddresses { get; }
-        public HashSet<string> DiscontinuedForDomains { get; }
-        public HashSet<string> ExceptionsForEmailAddresses { get; }
+        internal HashSet<string> DiscontinuedForEmailAddresses { get; }
+        internal HashSet<string> DiscontinuedForDomains { get; }
+        internal HashSet<string> ExceptionsForEmailAddresses { get; }
+        internal HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
 
         public LoginDiscontinuationConfiguration()
-            : this(Enumerable.Empty<string>(), Enumerable.Empty<string>(), Enumerable.Empty<string>())
+            : this(Enumerable.Empty<string>(), 
+                  Enumerable.Empty<string>(), 
+                  Enumerable.Empty<string>(), 
+                  Enumerable.Empty<string>())
         {
         }
 
@@ -24,15 +28,22 @@ namespace NuGetGallery
         public LoginDiscontinuationConfiguration(
             IEnumerable<string> discontinuedForEmailAddresses,
             IEnumerable<string> discontinuedForDomains,
-            IEnumerable<string> exceptionsForEmailAddresses)
+            IEnumerable<string> exceptionsForEmailAddresses,
+            IEnumerable<string> forceTransformationToOrganizationForEmailAddresses)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
+            ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses);
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
         {
+            if (authUser == null || authUser.User == null)
+            {
+                return false;
+            }
+
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
@@ -42,10 +53,26 @@ namespace NuGetGallery
 
         public bool AreOrganizationsSupportedForUser(User user)
         {
+            if (user == null)
+            {
+                return false;
+            }
+
             var email = user.ToMailAddress();
             return
                 DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase) ||
                 DiscontinuedForEmailAddresses.Contains(email.Address);
+        }
+
+        public bool ShouldUserTransformIntoOrganization(User user)
+        {
+            if (user == null)
+            {
+                return false;
+            }
+
+            var email = user.ToMailAddress();
+            return ForceTransformationToOrganizationForEmailAddresses.Contains(email.Address);
         }
     }
 
@@ -53,5 +80,6 @@ namespace NuGetGallery
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
         bool AreOrganizationsSupportedForUser(User user);
+        bool ShouldUserTransformIntoOrganization(User user);
     }
 }
