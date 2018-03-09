@@ -370,6 +370,30 @@ namespace NuGetGallery
             {
                 return false;
             }
+
+            var apiKeys = accountToTransform.Credentials.Where(c => c.IsApiKey());
+            foreach (var apiKey in apiKeys)
+            {
+                accountToTransform.Credentials.Remove(apiKey);
+                if (apiKey.Scopes.All(k => k.Owner == null || k.Owner == accountToTransform))
+                {
+                    foreach (var scope in apiKey.Scopes)
+                    {
+                        scope.Owner = accountToTransform;
+                        scope.OwnerKey = accountToTransform.Key;
+                    }
+
+                    apiKey.User = adminUser;
+                    apiKey.UserKey = adminUser.Key;
+
+                    adminUser.Credentials.Add(apiKey);
+                }
+            }
+
+            if (apiKeys.Any())
+            {
+                await EntitiesContext.SaveChangesAsync();
+            }
             
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
