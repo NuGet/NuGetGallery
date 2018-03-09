@@ -1490,6 +1490,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The email address you provided does not match with the email address linked to the account.
+        /// </summary>
+        public static string SigninAssistance_EmailMismatched {
+            get {
+                return ResourceManager.GetString("SigninAssistance_EmailMismatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid email address.
+        /// </summary>
+        public static string SigninAssistance_InvalidEmail {
+            get {
+                return ResourceManager.GetString("SigninAssistance_InvalidEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid username.
+        /// </summary>
+        public static string SigninAssistance_InvalidUser {
+            get {
+                return ResourceManager.GetString("SigninAssistance_InvalidUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The requested resource can only be accessed via SSL..
         /// </summary>
         public static string SSLRequired {

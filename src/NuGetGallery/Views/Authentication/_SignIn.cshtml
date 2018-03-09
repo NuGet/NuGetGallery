@@ -56,7 +56,7 @@
         <div class="form-group">
             <input type="submit" class="btn btn-primary form-control" value="Sign in" />
         </div>
-        if (Model.External == null || !Model.External.FoundExistingUser)
+        if (!this.Config.Current.DeprecateNuGetPasswordLogins && (Model.External == null || !Model.External.FoundExistingUser))
         {
             <p class="text-center">
                 Don't have an account? <a href="@Url.SignUp(returnUrl)">Register</a>
