@@ -71,11 +71,7 @@
     "SubscriptionName": ""
   },
   "Smtp": {
-    "SmtpHost": "",
-    "SmtpPort": "587",
-    "EnableSsl": "true",
-    "Username": "",
-    "Password": ""
+    "SmtpUri": ""
   },
   "Email": {
     "GalleryOwner": "NuGet Gallery <support@nuget.org>",
