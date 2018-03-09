@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -169,63 +170,100 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Times.Never);
             }
 
-            [Fact]
-            public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageExists()
+            [Theory]
+            [InlineData(PackageStatus.Validating)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task ThrowsExceptionWhenValidationSetPackageAndDestinationPackageBothExist(PackageStatus packageStatus)
             {
+                ValidationSet.PackageETag = null;
+                Package.PackageStatusKey = packageStatus;
+                var expected = new InvalidOperationException("Duplicate!");
+
                 PackageFileServiceMock
                     .Setup(x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()))
                     .ReturnsAsync(true);
                 PackageFileServiceMock
-                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()))
-                    .Throws(new InvalidOperationException("Duplicate!"));
+                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>(), It.IsAny<IAccessCondition>()))
+                    .Throws(expected);
 
-                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
+                var actual = await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available));
+
+                Assert.Same(expected, actual);
 
                 PackageFileServiceMock.Verify(
-                    x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet),
+                    x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.Is<IAccessCondition>(y => y.IfNoneMatchETag == "*")),
                     Times.Once);
                 PackageServiceMock.Verify(
-                    x => x.UpdatePackageStatusAsync(Package, PackageStatus.Available, true),
-                    Times.Once);
-                PackageFileServiceMock.Verify(
-                    x => x.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version),
-                    Times.Once);
-                PackageFileServiceMock.Verify(
-                    x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                    x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
                     Times.Never);
-            }
-
-            [Fact]
-            public async Task DoesNotCopyPackageIfItsAvailable()
-            {
-                Package.PackageStatusKey = PackageStatus.Available;
-                
-                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
-
-                PackageFileServiceMock.Verify(
-                    x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()),
-                    Times.Never);
-            }
-
-            [Fact]
-            public async Task DeletesValidationPackageOnSuccess()
-            {
-                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
-
-                PackageFileServiceMock.Verify(
-                    x => x.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version),
-                    Times.Once);
                 PackageFileServiceMock.Verify(
                     x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ThrowsExceptionWhenValidationSetPackageAndDestinationPackageDoesNotMatchETag()
+            {
+                ValidationSet.PackageETag = "\"some-etag\"";
+                Package.PackageStatusKey = PackageStatus.Available;
+                var expected = new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.PreconditionFailed }, "Changed!", null);
+
+                PackageFileServiceMock
+                    .Setup(x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()))
+                    .ReturnsAsync(true);
+                PackageFileServiceMock
+                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>(), It.IsAny<IAccessCondition>()))
+                    .Throws(expected);
+
+                var actual = await Assert.ThrowsAsync<StorageException>(
+                    () => Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available));
+
+                Assert.Same(expected, actual);
+
+                PackageFileServiceMock.Verify(
+                    x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.Is<IAccessCondition>(y => y.IfMatchETag == "\"some-etag\"")),
                     Times.Once);
+                PackageServiceMock.Verify(
+                    x => x.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()),
+                    Times.Never);
+                PackageFileServiceMock.Verify(
+                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available, false)]
+            [InlineData(PackageStatus.Validating, true)]
+            [InlineData(PackageStatus.FailedValidation, true)]
+            public async Task DeletesValidationPackageOnSuccess(PackageStatus fromStatus, bool delete)
+            {
+                Package.PackageStatusKey = fromStatus;
+
+                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
+
+                PackageFileServiceMock.Verify(
+                    x => x.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version),
+                    delete ? Times.Once() : Times.Never());
+                PackageFileServiceMock.Verify(
+                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    delete ? Times.Once() : Times.Never());
                 PackageFileServiceMock.Verify(
                     x => x.DeletePackageForValidationSetAsync(ValidationSet),
                     Times.Never);
             }
 
             [Fact]
-            public async Task DeletesPackageFromPublicStorageOnDbUpdateFailureIfCopied()
+            public async Task DeletesPackageFromPublicStorageOnDbUpdateFailureIfCopiedAndOriginallyValidating()
             {
+                Package.PackageStatusKey = PackageStatus.Validating;
+
                 var expected = new Exception("Everything failed");
                 PackageServiceMock
                     .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
@@ -239,6 +277,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 PackageFileServiceMock.Verify(
                     x => x.DeletePackageFileAsync(Package.PackageRegistration.Id, Package.Version),
                     Times.Once);
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotDeletePackageFromPublicStorageOnDbUpdateFailureIfCopiedAndOriginallyAvailable()
+            {
+                Package.PackageStatusKey = PackageStatus.Available;
+
+                var expected = new Exception("Everything failed");
+                PackageServiceMock
+                    .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
+                    .Throws(expected);
+
+                var actual = await Assert.ThrowsAsync<Exception>(
+                    () => Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available));
+
+                Assert.Same(expected, actual);
+
+                PackageFileServiceMock.Verify(
+                    x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
                 PackageFileServiceMock.Verify(
                     x => x.DeletePackageForValidationSetAsync(ValidationSet),
                     Times.Never);
@@ -278,7 +339,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .ReturnsAsync(true)
                     .Callback(() => operations.Add(nameof(IValidationPackageFileService.DoesValidationSetPackageExistAsync)));
                 PackageFileServiceMock
-                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet))
+                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.IsAny<IAccessCondition>()))
                     .Returns(Task.CompletedTask)
                     .Callback(() => operations.Add(nameof(IValidationPackageFileService.CopyValidationSetPackageToPackageFileAsync)));
                 PackageServiceMock
@@ -318,7 +379,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.IsProcessor(It.Is<string>(n => n.Contains("Processor"))))
                     .Returns(true);
                 PackageFileServiceMock
-                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet))
+                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet, It.IsAny<IAccessCondition>()))
                     .Throws(expected);
 
                 var actual = await Assert.ThrowsAsync<StorageException>(

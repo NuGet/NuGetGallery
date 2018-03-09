@@ -22,6 +22,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private readonly string _packageFileName;
         private readonly string _validationSetPackageFileName;
         private readonly Uri _testUri;
+        private readonly string _etag;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
         private readonly Mock<IPackageDownloader> _packageDownloader;
         private readonly Mock<ILogger<ValidationPackageFileService>> _logger;
@@ -49,6 +50,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             _packageFileName = "nuget.versioning.4.5.0-alpha.nupkg";
             _validationSetPackageFileName = "validation-sets/0b44d53f-0689-4f82-9530-f25f26b321aa/nuget.versioning.4.5.0-alpha.nupkg";
             _testUri = new Uri("http://example.com/nupkg.nupkg");
+            _etag = "\"some-etag\"";
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
             _packageDownloader = new Mock<IPackageDownloader>(MockBehavior.Strict);
@@ -92,8 +94,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _validationContainerName,
                     _packageFileName,
                     _validationContainerName,
-                    _validationSetPackageFileName))
-                .Returns(Task.CompletedTask)
+                    _validationSetPackageFileName,
+                    It.Is<IAccessCondition>(y => y.IfMatchETag == null && y.IfNoneMatchETag == null)))
+                .ReturnsAsync(string.Empty)
                 .Verifiable();
 
             await _target.CopyValidationPackageForValidationSetAsync(_validationSet);
@@ -109,13 +112,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _packagesContainerName,
                     _packageFileName,
                     _validationContainerName,
-                    _validationSetPackageFileName))
-                .Returns(Task.CompletedTask)
+                    _validationSetPackageFileName,
+                    It.Is<IAccessCondition>(y => y.IfMatchETag == null && y.IfNoneMatchETag == null)))
+                .ReturnsAsync(_etag)
                 .Verifiable();
 
-            await _target.CopyPackageFileForValidationSetAsync(_validationSet);
+            var actual = await _target.CopyPackageFileForValidationSetAsync(_validationSet);
 
             _fileStorageService.Verify();
+            Assert.Equal(_etag, actual);
         }
 
         [Fact]
@@ -126,8 +131,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _validationContainerName,
                     _packageFileName,
                     _packagesContainerName,
-                    _packageFileName))
-                .Returns(Task.CompletedTask)
+                    _packageFileName,
+                    It.Is<IAccessCondition>(y => y.IfNoneMatchETag == "*")))
+                .ReturnsAsync(string.Empty)
                 .Verifiable();
 
             await _target.CopyValidationPackageToPackageFileAsync(_validationSet.PackageId, _validationSet.PackageNormalizedVersion);
@@ -154,16 +160,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public async Task CopyValidationSetPackageToPackageFileAsync()
         {
+            var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(_etag);
             _fileStorageService
                 .Setup(x => x.CopyFileAsync(
                     _validationContainerName,
                     _validationSetPackageFileName,
                     _packagesContainerName,
-                    _packageFileName))
-                .Returns(Task.CompletedTask)
+                    _packageFileName,
+                    accessCondition))
+                .ReturnsAsync(string.Empty)
                 .Verifiable();
 
-            await _target.CopyValidationSetPackageToPackageFileAsync(_validationSet);
+            await _target.CopyValidationSetPackageToPackageFileAsync(_validationSet, accessCondition);
             
             _fileStorageService.Verify();
         }

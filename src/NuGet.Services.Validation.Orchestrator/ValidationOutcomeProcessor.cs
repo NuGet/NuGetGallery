@@ -115,10 +115,18 @@ namespace NuGet.Services.Validation.Orchestrator
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
 
-                if (package.PackageStatusKey != PackageStatus.Available)
-                {
-                    await _packageStateProcessor.SetPackageStatusAsync(package, validationSet, PackageStatus.Available);
+                var fromStatus = package.PackageStatusKey;
 
+                // Always set the package status to available so that processors can have a change to fix packages
+                // that are already available. Processors should no-op when their work is already done, so the
+                // modification of an already available package should be rare. The most common case for this is if
+                // the processor has never been run on a package that was published before the processor was
+                // implemented. In this case, the processor has to play catch-up.
+                await _packageStateProcessor.SetPackageStatusAsync(package, validationSet, PackageStatus.Available);
+
+                // Only send the email when first transitioning into the Available state.
+                if (fromStatus != PackageStatus.Available)
+                {
                     _messageService.SendPackagePublishedMessage(package);
                 }
 

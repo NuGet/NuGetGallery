@@ -149,13 +149,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Theory]
-        [InlineData(ValidationStatus.Failed, PackageStatus.Validating, PackageStatus.FailedValidation)]
-        [InlineData(ValidationStatus.Failed, PackageStatus.Available, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation, PackageStatus.FailedValidation)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.Validating, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.FailedValidation, PackageStatus.Available)]
-        public async Task MarksPackageStatusBasedOnValidatorResults(ValidationStatus validation, PackageStatus fromStatus, PackageStatus toStatus)
+        [InlineData(ValidationStatus.Failed, PackageStatus.Validating, PackageStatus.FailedValidation, true)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.Available, PackageStatus.Available, false)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation, PackageStatus.FailedValidation, false)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Validating, PackageStatus.Available, true)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available, PackageStatus.Available, true)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.FailedValidation, PackageStatus.Available, true)]
+        public async Task MarksPackageStatusBasedOnValidatorResults(
+            ValidationStatus validation,
+            PackageStatus fromStatus,
+            PackageStatus toStatus,
+            bool setPackageStatus)
         {
             AddValidation("validation1", validation);
             Package.PackageStatusKey = fromStatus;
@@ -171,7 +175,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
             var after = DateTime.UtcNow;
 
-            if (fromStatus != toStatus)
+            if (setPackageStatus)
             {
                 PackageStateProcessorMock.Verify(
                     x => x.SetPackageStatusAsync(Package, ValidationSet, toStatus),

@@ -77,91 +77,61 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private Task MakePackageFailedValidationAsync(Package package, PackageValidationSet validationSet)
+        private async Task MakePackageFailedValidationAsync(Package package, PackageValidationSet validationSet)
         {
-            return UpdatePackageStatusAsync(package, PackageStatus.FailedValidation);
+            var fromStatus = package.PackageStatusKey;
+
+            await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.FailedValidation, commitChanges: true);
+
+            if (fromStatus != PackageStatus.FailedValidation)
+            {
+                _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.FailedValidation);
+            }
         }
 
         private async Task MakePackageAvailableAsync(Package package, PackageValidationSet validationSet)
         {
-            if (package.PackageStatusKey != PackageStatus.Available)
+            // 1) Operate on blob storage.
+            var copied = await UpdatePublicPackageAsync(validationSet, package);
+
+            // 2) Operate on the database.
+            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, package, copied);
+
+            // 3) Emit telemetry and clean up.
+            if (fromStatus != PackageStatus.Available)
             {
-                await MoveFileToPublicStorageAndMarkPackageAsAvailable(validationSet, package);
-            }
-            else
-            {
-                _logger.LogInformation("Package {PackageId} {PackageVersion} {ValidationSetId} was already available, not going to copy data and update DB",
+                _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.Available);
+
+                _logger.LogInformation("Deleting from the source for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
 
-                if (!await _packageFileService.DoesPackageFileExistAsync(package))
-                {
-                    var validationPackageAvailable = await _packageFileService.DoesValidationPackageFileExistAsync(package);
-
-                    _logger.LogWarning("Package {PackageId} {PackageVersion} is marked as available, but does not exist " +
-                        "in public container. Does package exist in validation container: {ExistsInValidation}",
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
-                        validationPackageAvailable);
-
-                    // Report missing package, don't try to fix up anything. This shouldn't happen and needs an investigation.
-                    _telemetryService.TrackMissingNupkgForAvailablePackage(
-                        validationSet.PackageId,
-                        validationSet.PackageNormalizedVersion,
-                        validationSet.ValidationTrackingId.ToString());
-                }
+                await _packageFileService.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version);
             }
-        }
 
-        private async Task UpdatePackageStatusAsync(Package package, PackageStatus toStatus)
-        {
-            var fromStatus = package.PackageStatusKey;
-
-            await _galleryPackageService.UpdatePackageStatusAsync(package, toStatus, commitChanges: true);
-
-            if (fromStatus != toStatus)
+            // 4) Verify the package still exists (we've had bugs here before).
+            if (package.PackageStatusKey == PackageStatus.Available
+                && !await _packageFileService.DoesPackageFileExistAsync(package))
             {
-                _telemetryService.TrackPackageStatusChange(fromStatus, toStatus);
-            }
-        }
+                var validationPackageAvailable = await _packageFileService.DoesValidationPackageFileExistAsync(package);
 
-        private async Task MoveFileToPublicStorageAndMarkPackageAsAvailable(PackageValidationSet validationSet, Package package)
-        {
-            _logger.LogInformation("Copying .nupkg to public storage for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                package.PackageRegistration.Id,
-                package.NormalizedVersion,
-                validationSet.ValidationTrackingId);
-
-            // If the validation set contains any processors, we must use the copy of the package that is specific to
-            // this validation set. We can't use the original validation package because it does not have any of the
-            // changes that the processors made. If the validation set package does not exist for some reason and there
-            // are processors in the validation set, this indicates a bug and an exception will be thrown by the copy
-            // operation below. This will cause the validation queue message to eventually dead-letter at which point
-            // the on-call person should investigate.
-            bool copied;
-            if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)) ||
-                await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
-            {
-                copied = await CopyAsync(
-                    validationSet,
-                    package,
-                    x => _packageFileService.CopyValidationSetPackageToPackageFileAsync(x));
-            }
-            else
-            {
-                _logger.LogInformation(
-                    "The package specific to the validation set does not exist. Falling back to the validation " +
-                    "container for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                _logger.LogWarning("Package {PackageId} {PackageVersion} is marked as available, but does not exist " +
+                    "in public container. Does package exist in validation container: {ExistsInValidation}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
-                    validationSet.ValidationTrackingId);
+                    validationPackageAvailable);
 
-                copied = await CopyAsync(
-                    validationSet,
-                    package,
-                    x => _packageFileService.CopyValidationPackageToPackageFileAsync(x.PackageId, x.PackageNormalizedVersion));
+                // Report missing package, don't try to fix up anything. This shouldn't happen and needs an investigation.
+                _telemetryService.TrackMissingNupkgForAvailablePackage(
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
+                    validationSet.ValidationTrackingId.ToString());
             }
+        }
+
+        private async Task<PackageStatus> MarkPackageAsAvailableAsync(PackageValidationSet validationSet, Package package, bool copied)
+        {
 
             // Use whatever package made it into the packages container. This is what customers will consume so the DB
             // record must match.
@@ -202,10 +172,12 @@ namespace NuGet.Services.Validation.Orchestrator
                 validationSet.ValidationTrackingId,
                 PackageStatus.Available);
 
+            var fromStatus = package.PackageStatusKey;
+
             try
             {
                 // Make the package available and commit any other pending changes (e.g. updated hash).
-                await UpdatePackageStatusAsync(package, PackageStatus.Available);
+                await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: true);
             }
             catch (Exception e)
             {
@@ -221,45 +193,112 @@ namespace NuGet.Services.Validation.Orchestrator
                 // This prevents a missing passing in the (unlikely) case where two actors attempt the DB update, one
                 // succeeds and one fails. We don't want an available package record with nothing in the packages
                 // container!
-                if (copied)
+                if (copied && fromStatus != PackageStatus.Available)
                 {
                     await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version);
                 }
 
                 throw;
             }
-            
-            _logger.LogInformation("Deleting from the source for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+
+            return fromStatus;
+        }
+
+        private async Task<bool> UpdatePublicPackageAsync(PackageValidationSet validationSet, Package package)
+        {
+            _logger.LogInformation("Copying .nupkg to public storage for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                 package.PackageRegistration.Id,
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
 
-            await _packageFileService.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version);
-        }
-
-        private async Task<bool> CopyAsync(PackageValidationSet validationSet, Package package, Func<PackageValidationSet, Task> copyAsync)
-        {
-            try
+            // If the validation set contains any processors, we must use the copy of the package that is specific to
+            // this validation set. We can't use the original validation package because it does not have any of the
+            // changes that the processors made. If the validation set package does not exist for some reason and there
+            // are processors in the validation set, this indicates a bug and an exception will be thrown by the copy
+            // operation below. This will cause the validation queue message to eventually dead-letter at which point
+            // the on-call person should investigate.
+            bool copied;
+            if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)) ||
+                await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
             {
-                await copyAsync(validationSet);
+                IAccessCondition destAccessCondition;
 
-                return true;
+                // The package etag will be null if this validation set is expecting the package to not yet exist in
+                // the packages container.
+                if (validationSet.PackageETag == null)
+                {
+                    // This will fail with HTTP 409 if the package already exists. This means that another validation
+                    // set has completed and moved the package into the Available state first, with different package
+                    // content.
+                    destAccessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
+
+                    _logger.LogInformation(
+                        "Attempting to copy validation set {ValidationSetId} package {PackageId} {PackageVersion} to" +
+                        " the packages container, assuming that the package does not already exist.",
+                        validationSet.ValidationTrackingId,
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion);
+                }
+                else
+                {
+                    // This will fail with HTTP 412 if the package has been modified by another validation set. This
+                    // would only happen if this validation set and another validation set are operating on a package
+                    // already in the Available state.
+                    destAccessCondition = AccessConditionWrapper.GenerateIfMatchCondition(validationSet.PackageETag);
+
+                    _logger.LogInformation(
+                        "Attempting to copy validation set {ValidationSetId} package {PackageId} {PackageVersion} to" +
+                        " the packages container, assuming that the package has etag {PackageETag}.",
+                        validationSet.ValidationTrackingId,
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        validationSet.PackageETag);
+                }
+
+                // Failures here should result in an unhandled exception. This means that this validation set has
+                // modified the package but is unable to copy the modified package into the packages container because
+                // another validation set completed first.
+                await _packageFileService.CopyValidationSetPackageToPackageFileAsync(
+                    validationSet,
+                    destAccessCondition);
+
+                copied = true;
             }
-            catch (InvalidOperationException)
+            else
             {
-                // The package already exists in the packages container. This can happen if the DB commit below fails
-                // and this flow is retried or another validation set for the package completed first. Either way, we
-                // will later attempt to use the hash from the package in the packages container (the destination).
-                // In other words, we don't care which copy wins, but the DB record must match the package that ends
-                // up in the packages container.
                 _logger.LogInformation(
-                    "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                    "The package specific to the validation set does not exist. Falling back to the validation " +
+                    "container for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
                     validationSet.ValidationTrackingId);
 
-                return false;
+                try
+                {
+                    await _packageFileService.CopyValidationPackageToPackageFileAsync(
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion);
+
+                    copied = true;
+                }
+                catch (InvalidOperationException)
+                {
+                    // The package already exists in the packages container. This can happen if the DB commit below fails
+                    // and this flow is retried or another validation set for the package completed first. Either way, we
+                    // will later attempt to use the hash from the package in the packages container (the destination).
+                    // In other words, we don't care which copy wins when copying from the validation package because
+                    // we know the package has not been modified.
+                    _logger.LogInformation(
+                        "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        validationSet.ValidationTrackingId);
+
+                    copied = false;
+                }
             }
+
+            return copied;
         }
     }
 }
