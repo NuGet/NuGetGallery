@@ -2,8 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -11,14 +14,24 @@ namespace NuGet.Services.Validation.Orchestrator
     public class ValidationPackageFileService : CorePackageFileService, IValidationPackageFileService
     {
         private readonly ICoreFileStorageService _fileStorageService;
+        private readonly IPackageDownloader _packageDownloader;
         private readonly ILogger<ValidationPackageFileService> _logger;
 
         public ValidationPackageFileService(
             ICoreFileStorageService fileStorageService,
+            IPackageDownloader packageDownloader,
             ILogger<ValidationPackageFileService> logger) : base(fileStorageService)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+            _packageDownloader = packageDownloader ?? throw new ArgumentNullException(nameof(packageDownloader));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Stream> DownloadPackageFileToDiskAsync(Package package)
+        {
+            var packageUri = await GetPackageReadUriAsync(package);
+
+            return await _packageDownloader.DownloadAsync(packageUri, CancellationToken.None);
         }
 
         public Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet)

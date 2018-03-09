@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -105,6 +106,8 @@ namespace NuGet.Jobs.Validation
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
 
+            services.AddSingleton(new TelemetryClient());
+            services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IPackageDownloader, PackageDownloader>();
 
             services.AddScoped<IValidationEntitiesContext>(p =>

@@ -17,11 +17,16 @@ namespace NuGet.Jobs.Validation
         private const int BufferSize = 8192;
 
         private readonly HttpClient _httpClient;
+        private readonly ICommonTelemetryService _telemetryService;
         private readonly ILogger<PackageDownloader> _logger;
 
-        public PackageDownloader(HttpClient httpClient, ILogger<PackageDownloader> logger)
+        public PackageDownloader(
+            HttpClient httpClient,
+            ICommonTelemetryService telemetryService,
+            ILogger<PackageDownloader> logger)
         {
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -65,11 +70,15 @@ namespace NuGet.Jobs.Validation
 
                 packageStream.Position = 0;
 
+                stopwatch.Stop();
+
                 _logger.LogInformation(
                     "Downloaded {PackageSizeInBytes} bytes in {DownloadElapsedTime} seconds for request {PackageUri}",
                     packageStream.Length,
                     stopwatch.Elapsed.TotalSeconds,
                     packageUri);
+
+                _telemetryService.TrackPackageDownloaded(packageUri, stopwatch.Elapsed, packageStream.Length);
 
                 return packageStream;
             }

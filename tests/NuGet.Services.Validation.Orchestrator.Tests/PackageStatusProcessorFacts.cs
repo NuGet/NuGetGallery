@@ -3,11 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
 using Moq;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
@@ -86,6 +90,59 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         public class MakePackageAvailableAsync : BaseFacts
         {
+            [Fact]
+            public async Task DoesNotSetPackageStreamMetadataIfNotChanged()
+            {
+                var content = "Hello, world.";
+                Package.PackageFileSize = content.Length;
+                Package.HashAlgorithm = "SHA512";
+                Package.Hash = "rQw3wx1psxXzqB8TyM3nAQlK2RcluhsNwxmcqXE2YbgoDW735o8TPmIR4uWpoxUERddvFwjgRSGw7gNPCwuvJg==";
+                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadPackageFileToDiskAsync(Package))
+                    .ReturnsAsync(stream);
+
+                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
+
+                PackageServiceMock.Verify(
+                    x => x.UpdatePackageStreamMetadataAsync(It.IsAny<Package>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<bool>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task SetsPackageStreamMetadataIfChanged()
+            {
+                var content = "Hello, world.";
+                var expectedHash = "rQw3wx1psxXzqB8TyM3nAQlK2RcluhsNwxmcqXE2YbgoDW735o8TPmIR4uWpoxUERddvFwjgRSGw7gNPCwuvJg==";
+                var stream = new MemoryStream(Encoding.ASCII.GetBytes(content));
+                PackageStreamMetadata actual = null;
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadPackageFileToDiskAsync(Package))
+                    .ReturnsAsync(stream);
+                PackageServiceMock
+                    .Setup(x => x.UpdatePackageStreamMetadataAsync(Package, It.IsAny<PackageStreamMetadata>(), false))
+                    .Returns(Task.CompletedTask)
+                    .Callback<Package, PackageStreamMetadata, bool>((_, m, __) => actual = m);
+
+                await Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available);
+
+                Assert.NotNull(actual);
+                Assert.Equal(content.Length, actual.Size);
+                Assert.Equal(expectedHash, actual.Hash);
+                Assert.Equal("SHA512", actual.HashAlgorithm);
+                PackageServiceMock.Verify(
+                    x => x.UpdatePackageStreamMetadataAsync(Package, actual, false),
+                    Times.Once);
+                TelemetryServiceMock.Verify(
+                    x => x.TrackDurationToHashPackage(
+                        It.Is<TimeSpan>(y => y > TimeSpan.Zero),
+                        Package.PackageRegistration.Id,
+                        Package.NormalizedVersion,
+                        "SHA512",
+                        "System.IO.MemoryStream"),
+                    Times.Once);
+            }
+
             [Fact]
             public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageDoesNotExist()
             {
@@ -247,6 +304,47 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             [Fact]
+            public async Task AlwaysUsesValidationSetPackageWhenHasAnyProcessor()
+            {
+                ValidationSet.PackageValidations = new List<PackageValidation>
+                {
+                    new PackageValidation { Type = "SomeValidatorA" },
+                    new PackageValidation { Type = "SomeValidatorB" },
+                    new PackageValidation { Type = "SomeProcessorA" },
+                    new PackageValidation { Type = "SomeProcessorB" },
+                };
+                var expected = new StorageException("Validation set package not found!");
+                ValidatorProviderMock
+                    .Setup(x => x.IsProcessor(It.Is<string>(n => n.Contains("Processor"))))
+                    .Returns(true);
+                PackageFileServiceMock
+                    .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(ValidationSet))
+                    .Throws(expected);
+
+                var actual = await Assert.ThrowsAsync<StorageException>(
+                    () => Target.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available));
+                Assert.Same(expected, actual);
+                PackageFileServiceMock.Verify(
+                    x => x.CopyValidationPackageToPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Never);
+                PackageFileServiceMock.Verify(
+                    x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()),
+                    Times.Never);
+                ValidatorProviderMock.Verify(
+                    x => x.IsProcessor("SomeValidatorA"),
+                    Times.Once);
+                ValidatorProviderMock.Verify(
+                    x => x.IsProcessor("SomeValidatorB"),
+                    Times.Once);
+                ValidatorProviderMock.Verify(
+                    x => x.IsProcessor("SomeProcessorA"),
+                    Times.Once);
+                ValidatorProviderMock.Verify(
+                    x => x.IsProcessor("SomeProcessorB"),
+                    Times.Never); // Never checked, since SomeProcessorA was found.
+            }
+
+            [Fact]
             public async Task CopyDbUpdateDeleteInCorrectOrderWhenValidationSetPackageDoesNotExist()
             {
                 var operations = new List<string>();
@@ -336,16 +434,28 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     PackageRegistration = new PackageRegistration(),
                     PackageStatusKey = PackageStatus.Validating,
                 };
-                ValidationSet = new PackageValidationSet();
+                ValidationSet = new PackageValidationSet
+                {
+                    PackageValidations = new List<PackageValidation>
+                    {
+                        new PackageValidation { Type = "SomeValidator" },
+                    }
+                };
 
                 PackageServiceMock = new Mock<ICorePackageService>();
                 PackageFileServiceMock = new Mock<IValidationPackageFileService>();
+                ValidatorProviderMock = new Mock<IValidatorProvider>();
                 TelemetryServiceMock = new Mock<ITelemetryService>();
                 LoggerMock = new Mock<ILogger<PackageStatusProcessor>>();
+
+                PackageFileServiceMock
+                    .Setup(x => x.DownloadPackageFileToDiskAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(() => Stream.Null);
 
                 Target = new PackageStatusProcessor(
                     PackageServiceMock.Object,
                     PackageFileServiceMock.Object,
+                    ValidatorProviderMock.Object,
                     TelemetryServiceMock.Object,
                     LoggerMock.Object);
             }
@@ -354,6 +464,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public PackageValidationSet ValidationSet { get; }
             public Mock<ICorePackageService> PackageServiceMock { get; }
             public Mock<IValidationPackageFileService> PackageFileServiceMock { get; }
+            public Mock<IValidatorProvider> ValidatorProviderMock { get; }
             public Mock<ITelemetryService> TelemetryServiceMock { get; }
             public Mock<ILogger<PackageStatusProcessor>> LoggerMock { get; }
             public PackageStatusProcessor Target { get; }

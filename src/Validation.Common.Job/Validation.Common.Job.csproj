@@ -36,8 +36,10 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonTelemetryService.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="ICommonTelemetryService.cs" />
     <Compile Include="IPackageDownloader.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

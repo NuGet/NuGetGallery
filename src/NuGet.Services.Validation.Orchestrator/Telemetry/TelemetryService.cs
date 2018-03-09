@@ -23,6 +23,7 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string ClientValidationIssue = Prefix + "ClientValidationIssue";
         private const string MissingPackageForValidationMessage = Prefix + "MissingPackageForValidationMessage";
         private const string MissingNupkgForAvailablePackage = Prefix + "MissingNupkgForAvailablePackage";
+        private const string DurationToHashPackageSeconds = Prefix + "DurationToHashPackageSeconds";
 
         private const string FromStatus = "FromStatus";
         private const string ToStatus = "ToStatus";
@@ -33,12 +34,30 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string PackageId = "PackageId";
         private const string NormalizedVersion = "NormalizedVersion";
         private const string ValidationTrackingId = "ValidationTrackingId";
+        private const string PackageSize = "PackageSize";
+        private const string HashAlgorithm = "HashAlgorithm";
+        private const string StreamType = "StreamType";
 
         private readonly TelemetryClient _telemetryClient;
 
         public TelemetryService(TelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
+
+        public void TrackDurationToHashPackage(TimeSpan duration, string packageId, string normalizedVersion, string hashAlgorithm, string streamType)
+        {
+            _telemetryClient.TrackMetric(
+                DurationToHashPackageSeconds,
+                duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { PackageId, packageId },
+                    { NormalizedVersion, normalizedVersion },
+                    { PackageSize, PackageSize.ToString() },
+                    { HashAlgorithm, hashAlgorithm },
+                    { StreamType, streamType },
+                });
         }
 
         public void TrackDurationToValidationSetCreation(TimeSpan duration)

@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
@@ -18,12 +19,12 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
-using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageCertificates;
@@ -48,6 +49,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string SmtpConfigurationSectionName = "Smtp";
         private const string EmailConfigurationSectionName = "Email";
+        private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         private const string VcsBindingKey = VcsSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -192,7 +194,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 });
             services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
             services.AddTransient<IValidationPackageFileService, ValidationPackageFileService>();
-            services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
+            services.AddTransient<IPackageDownloader, PackageDownloader>();
             services.AddTransient<IPackageStatusProcessor, PackageStatusProcessor>();
             services.AddTransient<IValidationSetProvider, ValidationSetProvider>();
             services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();
@@ -230,8 +232,27 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<ICoreMessageService, CoreMessageService>();
             services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddSingleton(new TelemetryClient());
+            services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
+            services.AddSingleton(p =>
+            {
+                var assembly = Assembly.GetEntryAssembly();
+                var assemblyName = assembly.GetName().Name;
+                var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+
+                var client = new HttpClient(new WebRequestHandler
+                {
+                    AllowPipelining = true,
+                    AutomaticDecompression = (DecompressionMethods.GZip | DecompressionMethods.Deflate),
+                });
+
+                client.Timeout = configurationRoot.GetValue<TimeSpan>(PackageDownloadTimeoutName);
+                client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
+
+                return client;
+            });
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)

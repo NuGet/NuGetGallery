@@ -15,6 +15,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<ValidatorProvider> _logger;
         private readonly Dictionary<string, Type> _validatorTypes;
+        private readonly Dictionary<string, Type> _processorTypes;
 
         public ValidatorProvider(IServiceProvider serviceProvider, ILogger<ValidatorProvider> logger)
         {
@@ -27,33 +28,46 @@ namespace NuGet.Services.Validation.Orchestrator
                 IEnumerable<Type> candidateTypes = GetCandidateTypes(Assembly.GetCallingAssembly());
 
                 _validatorTypes = candidateTypes
-                    .Where(type => typeof(IValidator).IsAssignableFrom(type) && type != typeof(IValidator))
+                    .Where(type => typeof(IValidator).IsAssignableFrom(type)
+                           && type != typeof(IValidator)
+                           && type != typeof(IProcessor))
                     .ToDictionary(type => type.Name);
+
+                _processorTypes = _validatorTypes
+                    .Values
+                    .Where(IsProcessor)
+                    .ToDictionary(type => type.Name);
+
                 _logger.LogTrace("After enumeration, got {NumImplementations} implementations: {TypeNames}",
                     _validatorTypes.Count,
                     _validatorTypes.Keys);
             }
         }
 
-        public Type GetValidatorType(string validatorName)
+        public bool IsValidator(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
-            if (_validatorTypes.TryGetValue(validatorName, out Type validatorType))
-            {
-                return validatorType;
-            }
+            return _validatorTypes.ContainsKey(validatorName);
+        }
 
-            throw new ArgumentException($"Unknown validator name: {validatorName}", nameof(validatorName));
+        public bool IsProcessor(string validatorName)
+        {
+            validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
+
+            return _processorTypes.ContainsKey(validatorName);
         }
 
         public IValidator GetValidator(string validatorName)
         {
             validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
 
-            var validatorType = GetValidatorType(validatorName);
+            if (_validatorTypes.TryGetValue(validatorName, out Type validatorType))
+            {
+                return (IValidator)_serviceProvider.GetRequiredService(validatorType);
+            }
 
-            return (IValidator)_serviceProvider.GetRequiredService(validatorType);
+            throw new ArgumentException($"Unknown validator name: {validatorName}", nameof(validatorName));
         }
 
         private static IEnumerable<Type> GetCandidateTypes(Assembly callingAssembly)
@@ -66,6 +80,11 @@ namespace NuGet.Services.Validation.Orchestrator
             }
 
             return candidateTypes;
+        }
+
+        private static bool IsProcessor(Type type)
+        {
+            return typeof(IProcessor).IsAssignableFrom(type);
         }
     }
 }

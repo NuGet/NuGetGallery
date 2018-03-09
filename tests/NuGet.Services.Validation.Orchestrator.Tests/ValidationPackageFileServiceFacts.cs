@@ -2,9 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGetGallery;
 using Xunit;
 
@@ -13,31 +16,72 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
     public class ValidationPackageFileServiceFacts
     {
         private readonly PackageValidationSet _validationSet;
+        private readonly Package _package;
         private readonly string _validationContainerName;
         private readonly string _packagesContainerName;
         private readonly string _packageFileName;
         private readonly string _validationSetPackageFileName;
+        private readonly Uri _testUri;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
+        private readonly Mock<IPackageDownloader> _packageDownloader;
         private readonly Mock<ILogger<ValidationPackageFileService>> _logger;
         private readonly ValidationPackageFileService _target;
 
         public ValidationPackageFileServiceFacts()
         {
+            _package = new Package
+            {
+                PackageRegistration = new PackageRegistration
+                {
+                    Id = "NuGet.Versioning",
+                },
+                NormalizedVersion = "4.5.0-ALPHA",
+            };
             _validationSet = new PackageValidationSet
             {
                 ValidationTrackingId = new Guid("0b44d53f-0689-4f82-9530-f25f26b321aa"),
-                PackageId = "NuGet.Versioning",
-                PackageNormalizedVersion = "4.5.0-ALPHA",
+                PackageId = _package.PackageRegistration.Id,
+                PackageNormalizedVersion = _package.NormalizedVersion,
             };
 
             _packagesContainerName = "packages";
             _validationContainerName = "validation";
             _packageFileName = "nuget.versioning.4.5.0-alpha.nupkg";
             _validationSetPackageFileName = "validation-sets/0b44d53f-0689-4f82-9530-f25f26b321aa/nuget.versioning.4.5.0-alpha.nupkg";
+            _testUri = new Uri("http://example.com/nupkg.nupkg");
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
+            _packageDownloader = new Mock<IPackageDownloader>(MockBehavior.Strict);
             _logger = new Mock<ILogger<ValidationPackageFileService>>();
-            _target = new ValidationPackageFileService(_fileStorageService.Object, _logger.Object);
+
+            _target = new ValidationPackageFileService(
+                _fileStorageService.Object,
+                _packageDownloader.Object,
+                _logger.Object);
+        }
+
+        [Fact]
+        public async Task DownloadPackageFileToDiskAsync()
+        {
+            _fileStorageService
+                .Setup(x => x.GetFileReadUriAsync(
+                    _packagesContainerName,
+                    _packageFileName,
+                    null))
+                .ReturnsAsync(_testUri)
+                .Verifiable();
+
+            var expected = new MemoryStream();
+            _packageDownloader
+                .Setup(x => x.DownloadAsync(
+                    _testUri,
+                    CancellationToken.None))
+                .ReturnsAsync(expected);
+
+            var actual = await _target.DownloadPackageFileToDiskAsync(_package);
+
+            Assert.Same(expected, actual);
+            _fileStorageService.Verify();
         }
 
         [Fact]
@@ -143,18 +187,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task GetPackageForValidationSetReadUriAsync()
         {
             var endOfAccess = new DateTimeOffset(2018, 1, 3, 8, 30, 0, TimeSpan.Zero);
-            var expected = new Uri("http://example.com/nupkg.nupkg");
             _fileStorageService
                 .Setup(x => x.GetFileReadUriAsync(
                     _validationContainerName,
                     _validationSetPackageFileName,
                     endOfAccess))
-                .ReturnsAsync(expected)
+                .ReturnsAsync(_testUri)
                 .Verifiable();
 
             var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, endOfAccess);
 
-            Assert.Equal(expected, actual);
+            Assert.Equal(_testUri, actual);
             _fileStorageService.Verify();
         }
     }

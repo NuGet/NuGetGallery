@@ -24,7 +24,7 @@
       }
     ],
     "ValidationStorageConnectionString": "",
-    "MissingPackageRetryCount":  15,
+    "MissingPackageRetryCount": 15,
     "ValidationMessageRecheckPeriod": "00:01:00",
     "NewValidationRequestDeduplicationWindow": "00:20:00"
   },
@@ -82,6 +82,7 @@
     "AnnouncementsUrl": "https://github.com/NuGet/Announcements/issues",
     "TwitterUrl": "https://twitter.com/nuget"
   },
+  "PackageDownloadTimeout": "00:10:00",
   "KeyVault_VaultName": "",
   "KeyVault_ClientId": "",
   "KeyVault_CertificateThumbprint": "",

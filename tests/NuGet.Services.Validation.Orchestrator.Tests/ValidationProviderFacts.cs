@@ -11,64 +11,99 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationProviderFacts
     {
-        private Mock<IServiceProvider> ServiceProviderMock { get; }
-        private Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
-
-        [Fact]
-        public void ValidatorSmokeTest()
+        public class IsProcessor : BaseFacts
         {
-            var validator = new TestValidator();
-
-            ServiceProviderMock
-                .Setup(sp => sp.GetService(validator.GetType()))
-                .Returns(() => validator);
-
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var result = provider.GetValidator(validator.GetType().Name);
-
-            ServiceProviderMock
-                .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
-            Assert.IsType(validator.GetType(), result);
+            [Theory]
+            [InlineData(nameof(TestProcessor), true)]
+            [InlineData(nameof(TestValidator), false)]
+            [InlineData(nameof(IsProcessor), false)]
+            [InlineData(nameof(IProcessor), false)]
+            [InlineData(nameof(IValidator), false)]
+            [InlineData("NotARealType", false)]
+            public void ReturnsTrueForProcessors(string name, bool expected)
+            {
+                Assert.Equal(expected, Target.IsProcessor(name));
+            }
         }
 
-        [Fact]
-        public void ProcessorSmokeTest()
+        public class IsValidator : BaseFacts
         {
-            var processor = new TestProcessor();
-
-            ServiceProviderMock
-                .Setup(sp => sp.GetService(processor.GetType()))
-                .Returns(() => processor);
-
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var result = provider.GetValidator(processor.GetType().Name);
-
-            ServiceProviderMock
-                .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
-            Assert.IsType(processor.GetType(), result);
+            [Theory]
+            [InlineData(nameof(TestProcessor), true)]
+            [InlineData(nameof(TestValidator), true)]
+            [InlineData(nameof(IsProcessor), false)]
+            [InlineData(nameof(IProcessor), false)]
+            [InlineData(nameof(IValidator), false)]
+            [InlineData("NotARealType", false)]
+            public void ReturnsTrueForValidators(string name, bool expected)
+            {
+                Assert.Equal(expected, Target.IsValidator(name));
+            }
         }
 
-        [Fact]
-        public void ThrowsOnNullArgument()
+        public class GetValidator : BaseFacts
         {
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            Assert.Throws<ArgumentNullException>(() => provider.GetValidator(null));
+            [Fact]
+            public void CanGetValidator()
+            {
+                var validator = new TestValidator();
+
+                ServiceProviderMock
+                    .Setup(sp => sp.GetService(validator.GetType()))
+                    .Returns(() => validator);
+
+                var result = Target.GetValidator(validator.GetType().Name);
+
+                ServiceProviderMock
+                    .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
+                Assert.IsType(validator.GetType(), result);
+            }
+
+            [Fact]
+            public void CanGetProcessor()
+            {
+                var processor = new TestProcessor();
+
+                ServiceProviderMock
+                    .Setup(sp => sp.GetService(processor.GetType()))
+                    .Returns(() => processor);
+                
+                var result = Target.GetValidator(processor.GetType().Name);
+
+                ServiceProviderMock
+                    .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
+                Assert.IsType(processor.GetType(), result);
+            }
+
+            [Fact]
+            public void ThrowsOnNullArgument()
+            {
+                Assert.Throws<ArgumentNullException>(() => Target.GetValidator(null));
+            }
+
+            [Fact]
+            public void ThrowsOnUnknownValidator()
+            {
+                const string validatorName = "someNonExistentValidator";
+
+                var ex = Assert.Throws<ArgumentException>(() => Target.GetValidator(validatorName));
+                Assert.Contains(validatorName, ex.Message);
+            }
         }
 
-        [Fact]
-        public void ThrowsOnUnknownValidator()
+        public abstract class BaseFacts
         {
-            const string validatorName = "someNonExistentValidator";
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentException>(() => provider.GetValidator(validatorName));
-            Assert.Contains(validatorName, ex.Message);
-        }
+            public BaseFacts()
+            {
+                ServiceProviderMock = new Mock<IServiceProvider>();
+                LoggerMock = new Mock<ILogger<ValidatorProvider>>();
 
-        public ValidationProviderFacts()
-        {
-            ServiceProviderMock = new Mock<IServiceProvider>();
-            LoggerMock = new Mock<ILogger<ValidatorProvider>>();
+                Target = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
+            }
 
+            protected Mock<IServiceProvider> ServiceProviderMock { get; }
+            protected Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
+            public ValidatorProvider Target { get; }
         }
 
         public class TestValidator : IValidator

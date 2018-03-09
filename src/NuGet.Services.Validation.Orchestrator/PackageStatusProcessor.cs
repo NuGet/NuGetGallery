@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -13,17 +16,20 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         private readonly ICorePackageService _galleryPackageService;
         private readonly IValidationPackageFileService _packageFileService;
+        private readonly IValidatorProvider _validatorProvider;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<PackageStatusProcessor> _logger;
 
         public PackageStatusProcessor(
             ICorePackageService galleryPackageService,
             IValidationPackageFileService packageFileService,
+            IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
             ILogger<PackageStatusProcessor> logger)
         {
             _galleryPackageService = galleryPackageService ?? throw new ArgumentNullException(nameof(galleryPackageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _validatorProvider = validatorProvider ?? throw new ArgumentNullException(nameof(validatorProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -127,8 +133,15 @@ namespace NuGet.Services.Validation.Orchestrator
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
 
+            // If the validation set contains any processors, we must use the copy of the package that is specific to
+            // this validation set. We can't use the original validation package because it does not have any of the
+            // changes that the processors made. If the validation set package does not exist for some reason and there
+            // are processors in the validation set, this indicates a bug and an exception will be thrown by the copy
+            // operation below. This will cause the validation queue message to eventually dead-letter at which point
+            // the on-call person should investigate.
             bool copied;
-            if (await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
+            if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)) ||
+                await _packageFileService.DoesValidationSetPackageExistAsync(validationSet))
             {
                 copied = await CopyAsync(
                     validationSet,
@@ -150,6 +163,39 @@ namespace NuGet.Services.Validation.Orchestrator
                     x => _packageFileService.CopyValidationPackageToPackageFileAsync(x.PackageId, x.PackageNormalizedVersion));
             }
 
+            // Use whatever package made it into the packages container. This is what customers will consume so the DB
+            // record must match.
+            using (var packageStream = await _packageFileService.DownloadPackageFileToDiskAsync(package))
+            {
+                var stopwatch = Stopwatch.StartNew();
+                var hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
+                _telemetryService.TrackDurationToHashPackage(
+                    stopwatch.Elapsed,
+                    package.PackageRegistration.Id,
+                    package.NormalizedVersion,
+                    CoreConstants.Sha512HashAlgorithmId,
+                    packageStream.GetType().FullName);
+
+                var streamMetadata = new PackageStreamMetadata
+                {
+                    Size = packageStream.Length,
+                    Hash = hash,
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                };
+
+                // We don't immediately commit here. Later, we will commit these changes as well as the new package
+                // status as part of the same transaction.
+                if (streamMetadata.Size != package.PackageFileSize
+                    || streamMetadata.Hash != package.Hash
+                    || streamMetadata.HashAlgorithm != package.HashAlgorithm)
+                {
+                    await _galleryPackageService.UpdatePackageStreamMetadataAsync(
+                        package,
+                        streamMetadata,
+                        commitChanges: false);
+                }
+            }
+
             _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
                 package.PackageRegistration.Id,
                 package.NormalizedVersion,
@@ -158,6 +204,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             try
             {
+                // Make the package available and commit any other pending changes (e.g. updated hash).
                 await UpdatePackageStatusAsync(package, PackageStatus.Available);
             }
             catch (Exception e)
@@ -171,8 +218,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.ValidationTrackingId);
 
                 // If this execution was not the one to copy the package, then don't delete the package on failure.
-                // This prevents the (unlikely) case where two actors attempt the DB update, one suceeds and one fails.
-                // We don't want an available package record with nothing in the packages container!
+                // This prevents a missing passing in the (unlikely) case where two actors attempt the DB update, one
+                // succeeds and one fails. We don't want an available package record with nothing in the packages
+                // container!
                 if (copied)
                 {
                     await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version);
@@ -200,9 +248,10 @@ namespace NuGet.Services.Validation.Orchestrator
             catch (InvalidOperationException)
             {
                 // The package already exists in the packages container. This can happen if the DB commit below fails
-                // and this flow is retried. We assume that the package content has not changed. Today there is no way
-                // for the content to change. Hard deletes (the one way a package ID and version can get different
-                // content) delete from both the packages and validating container so this can't be a mismatch.
+                // and this flow is retried or another validation set for the package completed first. Either way, we
+                // will later attempt to use the hash from the package in the packages container (the destination).
+                // In other words, we don't care which copy wins, but the DB record must match the package that ends
+                // up in the packages container.
                 _logger.LogInformation(
                     "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,

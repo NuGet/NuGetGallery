@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using NuGetGallery;
 
@@ -9,6 +10,13 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public interface IValidationPackageFileService : ICorePackageFileService
     {
+        /// <summary>
+        /// Download the package content from the packages container to a temporary location on disk.
+        /// </summary>
+        /// <param name="package">The package metadata.</param>
+        /// <returns>The package stream.</returns>
+        Task<Stream> DownloadPackageFileToDiskAsync(Package package);
+
         /// <summary>
         /// Copy a package from the validation container to a location specific for the validation set. This allows the
         /// validation set to have its own copy of the package to mutate (via <see cref="IProcessor"/>) and validate.

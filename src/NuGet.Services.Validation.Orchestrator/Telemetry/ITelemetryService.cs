@@ -91,5 +91,10 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// in the public container.
         /// </summary>
         void TrackMissingNupkgForAvailablePackage(string packageId, string normalizedVersion, string validationTrackingId);
+
+        /// <summary>
+        /// A metric to of how long it took to hash a package.
+        /// </summary>
+        void TrackDurationToHashPackage(TimeSpan duration, string packageId, string normalizedVersion, string hashAlgorithm, string streamType);
     }
 }
