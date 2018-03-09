@@ -371,7 +371,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            var apiKeys = accountToTransform.Credentials.Where(c => c.IsApiKey());
+            var apiKeys = accountToTransform.Credentials.Where(c => c.IsApiKey()).ToArray();
             foreach (var apiKey in apiKeys)
             {
                 accountToTransform.Credentials.Remove(apiKey);
