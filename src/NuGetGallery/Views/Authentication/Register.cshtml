@@ -8,9 +8,12 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
-    <div class="deprecate-alert text-center">
-        @ViewHelpers.AlertPasswordDeprecation()
-    </div>
+    @if (this.Config.Current.DeprecateNuGetPasswordLogins)
+    {
+        <div class="deprecate-alert text-center">
+            @ViewHelpers.AlertPasswordDeprecation()
+        </div>
+    }
 
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">

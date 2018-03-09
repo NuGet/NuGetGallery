@@ -348,6 +348,7 @@ img.reserved-indicator-icon {
 }
 .modal-container .modal-box .modal-body {
   padding: 0;
+  font-size: 14px;
 }
 .modal-container .modal-box .modal-body .tag-node {
   padding: 13px;
@@ -364,6 +365,31 @@ img.reserved-indicator-icon {
 .modal-container .modal-box .modal-body .action-button {
   font-size: 16px;
   line-height: 2em;
+}
+.modal-container .modal-box .modal-body .form-button-node {
+  padding-right: 0;
+  padding-bottom: 0;
+  padding-left: 65%;
+  text-align: center;
+}
+.modal-container .modal-box .modal-body .username-submit {
+  padding-top: 13%;
+}
+.modal-container .modal-box .modal-body .email-submit {
+  padding-top: 16%;
+}
+.modal-container .modal-box .modal-body .close-button {
+  padding-top: 27%;
+}
+.modal-container .modal-box .modal-body .text-label {
+  padding: 15px;
+}
+.modal-container .modal-box .modal-body .form-error-message {
+  float: left;
+  padding-top: 6px;
+}
+.modal-container .modal-box .modal-body .text-row {
+  padding-top: 13px;
 }
 .modal-container .modal-box .modal-body .transform-text {
   padding: 40px 15px;

@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Security;
@@ -947,8 +949,192 @@ namespace NuGetGallery
                 return service.TransformUserToOrganization(account, admin, "token");
             }
         }
+        
+        public class TheTransferApiKeysScopedToUserMethod
+        {
+            public static IEnumerable<object[]> TransfersApiKeysAsExpected_Data
+            {
+                get
+                {
+                    foreach (var hasExternalCredential in new[] { false, true })
+                    {
+                        foreach (var hasPasswordCredential in new[] { false, true })
+                        {
+                            foreach (var hasUnscopedApiKeyCredential in new[] { false, true })
+                            {
+                                foreach (var hasApiKeyScopedToUserCredential in new[] { false, true })
+                                {
+                                    foreach (var hasApiKeyScopedToDifferentUser in new[] { false, true })
+                                    {
+                                        yield return MemberDataHelper.AsData(
+                                            hasExternalCredential, 
+                                            hasPasswordCredential, 
+                                            hasUnscopedApiKeyCredential, 
+                                            hasApiKeyScopedToUserCredential, 
+                                            hasApiKeyScopedToDifferentUser);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
 
-        public class TheCreateOrganizationAccountMethod
+            [Theory]
+            [MemberData(nameof(TransfersApiKeysAsExpected_Data))]
+            public async Task TransfersApiKeysAsExpected(
+                bool hasExternalCredential, 
+                bool hasPasswordCredential,
+                bool hasUnscopedApiKeyCredential, 
+                bool hasApiKeyScopedToUserCredential, 
+                bool hasApiKeyScopedToDifferentUser)
+            {
+                // Arrange
+                var originalOwner = new User("originalOwner") { Key = 11111 };
+                var randomUser = new User("randomUser") { Key = 57576768 };
+                var newOwner = new User("newOwner") { Key = 69785, Credentials = new List<Credential>() };
+
+                var credentials = new List<Credential>();
+
+                var externalCredential = TestCredentialHelper.CreateExternalCredential("cred", null);
+                AddFieldsToCredential(externalCredential, "externalCredential", "value1", originalOwner, expiration: null);
+
+                var passwordCredential = TestCredentialHelper.CreateSha1Password("password");
+                AddFieldsToCredential(passwordCredential, "passwordCredential", "value2", originalOwner, expiration: null);
+
+                var unscopedApiKeyCredential = TestCredentialHelper.CreateV4ApiKey(new TimeSpan(5, 5, 5, 5), out var key1);
+                AddFieldsToCredential(unscopedApiKeyCredential, "unscopedApiKey", "value3", originalOwner, expiration: new DateTime(2018, 3, 9));
+
+                var scopedToUserApiKeyCredential = TestCredentialHelper.CreateV4ApiKey(new TimeSpan(5, 5, 5, 5), out var key2)
+                            .WithScopes(new[] { new Scope { Owner = originalOwner, OwnerKey = originalOwner.Key } });
+                AddFieldsToCredential(scopedToUserApiKeyCredential, "scopedToUserApiKey", "value4", originalOwner, expiration: new DateTime(2018, 3, 10));
+
+                var scopedToDifferentUserApiKeyCredential = TestCredentialHelper.CreateV4ApiKey(new TimeSpan(5, 5, 5, 5), out var key3)
+                            .WithScopes(new[] { new Scope { Owner = randomUser, OwnerKey = randomUser.Key } });
+                AddFieldsToCredential(scopedToDifferentUserApiKeyCredential, "scopedToDifferentUserApiKey", "value5", originalOwner, expiration: new DateTime(2018, 3, 11));
+
+                if (hasExternalCredential)
+                {
+                    credentials.Add(externalCredential);
+                }
+
+                if (hasPasswordCredential)
+                {
+                    credentials.Add(passwordCredential);
+                }
+
+                if (hasUnscopedApiKeyCredential)
+                {
+                    credentials.Add(unscopedApiKeyCredential);
+                }
+
+                if (hasApiKeyScopedToUserCredential)
+                {
+                    credentials.Add(scopedToUserApiKeyCredential);
+                }
+                
+                if (hasApiKeyScopedToDifferentUser)
+                {
+                    credentials.Add(scopedToDifferentUserApiKeyCredential);
+                }
+
+                originalOwner.Credentials = credentials;
+                var originalCredentialCount = credentials.Count();
+
+                var service = new TestableUserService();
+
+                // Act
+                await service.TransferApiKeysScopedToUser(originalOwner, newOwner);
+
+                // Assert
+                service.MockEntitiesContext.Verify(
+                    x => x.SaveChangesAsync(), 
+                    hasUnscopedApiKeyCredential || hasApiKeyScopedToUserCredential ? Times.Once() : Times.Never());
+
+                Assert.Equal(originalCredentialCount, originalOwner.Credentials.Count());
+
+                Assert.Equal(
+                    (hasUnscopedApiKeyCredential ? 1 : 0) + (hasApiKeyScopedToUserCredential ? 1 : 0), 
+                    newOwner.Credentials.Count());
+
+                AssertCredentialInOriginalOnly(externalCredential, originalOwner, newOwner, hasExternalCredential);
+                AssertCredentialInOriginalOnly(passwordCredential, originalOwner, newOwner, hasPasswordCredential);
+                AssertCredentialInOriginalOnly(scopedToDifferentUserApiKeyCredential, originalOwner, newOwner, hasApiKeyScopedToDifferentUser);
+
+                AssertCredentialInNew(unscopedApiKeyCredential, originalOwner, newOwner, hasUnscopedApiKeyCredential);
+                AssertCredentialInNew(scopedToUserApiKeyCredential, originalOwner, newOwner, hasApiKeyScopedToUserCredential);
+            }
+
+            private void AddFieldsToCredential(Credential credential, string description, string value, User originalOwner, DateTime? expiration)
+            {
+                credential.Description = description;
+                credential.Value = value;
+                credential.User = originalOwner;
+                credential.UserKey = originalOwner.Key;
+
+                if (expiration.HasValue)
+                {
+                    credential.ExpirationTicks = expiration.Value.Ticks;
+                    credential.Expires = expiration.Value;
+                }
+            }
+
+            private void AssertCredentialInOriginalOnly(Credential credential, User originalOwner, User newOwner, bool hasCredential)
+            {
+                var credentialEquals = CredentialEqualsFunc(credential);
+                Assert.Equal(hasCredential, originalOwner.Credentials.Any(
+                    hasCredential ? CredentialEqualsWithOwnerFunc(credential, originalOwner) : CredentialEqualsFunc(credential)));
+                Assert.False(newOwner.Credentials.Any(CredentialEqualsFunc(credential)));
+            }
+
+            private void AssertCredentialInNew(Credential credential, User originalOwner, User newOwner, bool hasCredential)
+            {
+                Assert.Equal(hasCredential, originalOwner.Credentials.Any(
+                    hasCredential ? CredentialEqualsWithOwnerFunc(credential, originalOwner) : CredentialEqualsFunc(credential)));
+                Assert.Equal(hasCredential, newOwner.Credentials.Any(
+                    hasCredential ? CredentialEqualsWithOwnerAndScopeFunc(credential, newOwner, originalOwner) : CredentialEqualsFunc(credential)));
+            }
+
+            private bool CredentialEquals(Credential expected, Credential actual)
+            {
+                return
+                    expected.Description == actual.Description &&
+                    expected.ExpirationTicks == actual.ExpirationTicks &&
+                    expected.Expires == actual.Expires &&
+                    expected.Type == actual.Type &&
+                    expected.Value == actual.Value;
+            }
+
+            private bool CredentialEqualsWithOwner(Credential expected, Credential actual, User owner)
+            {
+                return CredentialEquals(expected, actual) &&
+                    owner == actual.User &&
+                    owner.Key == actual.UserKey;
+            }
+
+            private bool CredentialEqualsWithOwnerAndScope(Credential expected, Credential actual, User owner, User scopeOwner)
+            {
+                return CredentialEqualsWithOwner(expected, actual, owner) &&
+                    expected.Scopes.All(s => s.Owner == scopeOwner && s.OwnerKey == scopeOwner.Key);
+            }
+
+            private Func<Credential, bool> CredentialEqualsFunc(Credential expected)
+            {
+                return (c) => CredentialEquals(expected, c);
+            }
+
+            private Func<Credential, bool> CredentialEqualsWithOwnerFunc(Credential expected, User owner)
+            {
+                return (c) => CredentialEqualsWithOwner(expected, c, owner);
+            }
+
+            private Func<Credential, bool> CredentialEqualsWithOwnerAndScopeFunc(Credential expected, User owner, User scopeOwner)
+            {
+                return (c) => CredentialEqualsWithOwnerAndScope(expected, c, owner, scopeOwner);
+            }
+        }
+
+        public class TheAddOrganizationAccountMethod
         {
             private const string OrgName = "myOrg";
             private const string OrgEmail = "myOrg@myOrg.com";
@@ -962,7 +1148,7 @@ namespace NuGetGallery
             public async Task WithUserNotSupportedForOrganizations_ThrowsEntityException()
             {
                 SetupOrganizationsSupportedForUser(supported: false);
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization());
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_NotInDomainWhitelist, AdminName), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
@@ -981,7 +1167,7 @@ namespace NuGetGallery
 
                 SetupOrganizationsSupportedForUser();
 
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization(orgName: conflictUsername));
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgName: conflictUsername));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.UsernameNotAvailable, conflictUsername), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
@@ -1000,7 +1186,7 @@ namespace NuGetGallery
 
                 SetupOrganizationsSupportedForUser();
 
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization(orgEmail: conflictEmail));
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgEmail: conflictEmail));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.EmailAddressBeingUsed, conflictEmail), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
@@ -1017,7 +1203,7 @@ namespace NuGetGallery
 
                 var adminUsername = "adminWithNoTenant";
                 SetupOrganizationsSupportedForUser(adminUsername);
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization(admin: new User(adminUsername)));
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: new User(adminUsername)));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUsername), exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
@@ -1037,7 +1223,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(false));
                 SetupOrganizationsSupportedForUser();
 
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeCreateOrganization());
+                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
                 Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
@@ -1057,7 +1243,7 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(true));
                 SetupOrganizationsSupportedForUser();
 
-                var org = await InvokeCreateOrganization();
+                var org = await InvokeAddOrganization();
 
                 Assert.Equal(OrgName, org.Username);
                 Assert.Equal(OrgEmail, org.UnconfirmedEmailAddress);
@@ -1077,7 +1263,7 @@ namespace NuGetGallery
                 _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
             }
 
-            private Task<Organization> InvokeCreateOrganization(string orgName = OrgName, string orgEmail = OrgEmail, User admin = null)
+            private Task<Organization> InvokeAddOrganization(string orgName = OrgName, string orgEmail = OrgEmail, User admin = null)
             {
                 // Arrange
                 admin = admin ?? new User(AdminName)
