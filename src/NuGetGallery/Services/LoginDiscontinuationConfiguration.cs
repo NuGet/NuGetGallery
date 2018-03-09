@@ -11,10 +11,10 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
-        public HashSet<string> DiscontinuedForEmailAddresses { get; }
-        public HashSet<string> DiscontinuedForDomains { get; }
-        public HashSet<string> ExceptionsForEmailAddresses { get; }
-        public HashSet<string> ForceTransformationForEmailAddresses { get; }
+        internal HashSet<string> DiscontinuedForEmailAddresses { get; }
+        internal HashSet<string> DiscontinuedForDomains { get; }
+        internal HashSet<string> ExceptionsForEmailAddresses { get; }
+        internal HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
 
         public LoginDiscontinuationConfiguration()
             : this(Enumerable.Empty<string>(), 
@@ -29,12 +29,12 @@ namespace NuGetGallery
             IEnumerable<string> discontinuedForEmailAddresses,
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses,
-            IEnumerable<string> forceTransformationForEmailAddresses)
+            IEnumerable<string> forceTransformationToOrganizationForEmailAddresses)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
-            ForceTransformationForEmailAddresses = new HashSet<string>(forceTransformationForEmailAddresses);
+            ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses);
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -72,7 +72,7 @@ namespace NuGetGallery
             }
 
             var email = user.ToMailAddress();
-            return ForceTransformationForEmailAddresses.Contains(email.Address);
+            return ForceTransformationToOrganizationForEmailAddresses.Contains(email.Address);
         }
     }
 

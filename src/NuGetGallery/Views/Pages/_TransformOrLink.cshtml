@@ -14,7 +14,7 @@
                 NuGet.org authentication is deprecated
             </span>
         </div>
-        @if (Model.ShouldTransform)
+        @if (Model.TransformIntoOrganization)
         {
             <p class="transform-text">We have determined this is a team (DL) based account, so you must transform it to an organization on NuGet.org:</p>
             <div class="action-node">

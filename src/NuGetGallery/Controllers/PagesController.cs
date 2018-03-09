@@ -106,9 +106,9 @@ namespace NuGetGallery
         {
             var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
             var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginClaims(identity);
-            var shouldTransform = _contentObjectService.LoginDiscontinuationConfiguration
+            var transformIntoOrganization = _contentObjectService.LoginDiscontinuationConfiguration
                 .ShouldUserTransformIntoOrganization(GetCurrentUser());
-            return View(new GalleryHomeViewModel(showTransformModal, shouldTransform));
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization));
         }
 
         [HttpGet]
