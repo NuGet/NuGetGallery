@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
@@ -200,6 +201,48 @@ The {0} Team";
                 mailMessage.To.Add(toAddress);
                 SendMessage(mailMessage);
             }
+        }
+
+        public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
+        {
+            string body = @"Hi there,
+
+We heard you were looking for Microsoft logins associated with your account on {0}. 
+
+{1}
+
+Thanks,
+
+The {0} Team";
+
+            string msaIdentity;
+            if (credentials.Any())
+            {
+                var identities = string.Join("; ", credentials.Select(cred => cred.Identity).ToArray());
+                msaIdentity = string.Format(@"Our records indicate the associated Microsoft login(s): {0}.", identities);
+            }
+            else
+            {
+                msaIdentity = "No associated Microsoft logins were found.";
+            }
+
+            body = String.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                Config.GalleryOwner.DisplayName,
+                msaIdentity);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = String.Format(
+                    CultureInfo.CurrentCulture, "[{0}] Sign-In Assistance.", Config.GalleryOwner.DisplayName);
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+
+                mailMessage.To.Add(emailAddress);
+                SendMessage(mailMessage);
+            }
+
         }
 
         public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)

@@ -2,14 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Web;
-using System.Linq;
-using System.Web.Mvc;
-using System.Net.Mail;
-using System.Globalization;
-using System.Threading.Tasks;
-using System.Security.Claims;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Net.Mail;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
@@ -28,6 +28,8 @@ namespace NuGetGallery
         private readonly IMessageService _messageService;
 
         private readonly ICredentialBuilder _credentialBuilder;
+
+        private const string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
         private readonly static string[] ExternalAuthenticationPriority = new string[] {
@@ -328,6 +330,46 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual JsonResult SignInAssistance(string username, string providedEmailAddress)
+        {
+            // If provided email address is empty or null, return the result with a formatted
+            // email address, otherwise send sign-in assistance email to the associated mail address.
+            try
+            {
+                var user = _userService.FindByUsername(username);
+                if (user == null)
+                {
+                    throw new ArgumentException(Strings.UserNotFound);
+                }
+
+                var email = user.EmailAddress;
+                if (string.IsNullOrWhiteSpace(providedEmailAddress))
+                {
+                    var formattedEmail = FormatEmailAddressForAssistance(email);
+                    return Json(new { success = true, EmailAddress = formattedEmail });
+                }
+                else
+                {
+                    if (!email.Equals(providedEmailAddress, StringComparison.OrdinalIgnoreCase))
+                    {
+                        throw new ArgumentException(Strings.SigninAssistance_EmailMismatched);
+                    }
+                    else
+                    {
+                        var externalCredentials = user.Credentials.Where(cred => cred.IsExternal());
+                        _messageService.SendSigninAssistanceEmail(new MailAddress(email, user.Username), externalCredentials);
+                        return Json(new { success = true });
+                    }
+                }
+            }
+            catch (ArgumentException ex)
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [ActionName("Authenticate")]
         [HttpGet]
         public virtual ActionResult AuthenticateGet(string returnUrl, string provider)
@@ -519,6 +561,24 @@ namespace NuGetGallery
 
                 return LinkExternalView(model);
             }
+        }
+
+        private string FormatEmailAddressForAssistance(string email)
+        {
+            var emailParts = email.Split('@');
+            if (emailParts.Length != 2)
+            {
+                throw new ArgumentException(@"Invalid email address. Please contact support for assistance.");
+            }
+
+            // Format the email address as x**********y@domain.com
+            // One character wide email id eg: x@domain.com; format it as x**********@domain.com
+            var idPart = emailParts[0];
+            var domainPart = emailParts[1];
+            return idPart[0]
+              + EMAIL_FORMAT_PADDING
+              + (idPart.Length > 1 ? idPart[idPart.Length - 1] + "" : "")
+              + $"@{domainPart}";
         }
 
         private ActionResult RedirectFromRegister(string returnUrl)

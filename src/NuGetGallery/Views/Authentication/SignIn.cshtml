@@ -43,16 +43,31 @@
             </div>
         </div>
         <div class="row text-center create-provider-account">
-            No Account?
-            <a href="@Url.Authenticate(provider.ProviderName, returnUrl)">Create one!</a>
+                <span>
+                    <a href="#" id="signin-assistance">Need assistance signing in?</a>
+                </span>
+        </div>
+        <div class="row nuget-signin">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                <p class="text-center">
+                    <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
+                </p>
+            </div>
         </div>
     }
-
-    <div class="row nuget-signin">
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-            <p class="text-center">
-                <a href="@Url.LogOnNuGetAccount(returnUrl)">Sign in using NuGet.org account</a>
-            </p>
-        </div>
-    </div>
 </section>
+
+<div style="display: none" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static">
+    @Html.Partial("_SigninAssistance")
+</div>
+
+@section bottomScripts {
+    <script type="text/javascript">
+        var signinAssistanceUrl = "@Url.SigninAssistance()"
+
+        // Strings
+        var strings_InvalidUsername = "@Html.Raw(Strings.SigninAssistance_InvalidUser)";
+    </script>
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-signin.min.js")
+}

@@ -16,6 +16,7 @@ using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
+using System.Collections.Generic;
 
 namespace NuGetGallery.Controllers
 {
@@ -95,6 +96,88 @@ namespace NuGetGallery.Controllers
 
                 var result = controller.LogOff("account/profile");
                 ResultAssert.IsSafeRedirectTo(result, null);
+            }
+        }
+
+        public class TheSigninAssistanceAction : TestContainer
+        {
+            [Fact]
+            public void NullUsernameReturnsFalse()
+            {
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: null, providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Theory]
+            [InlineData("random@address.com", "r**********m@address.com")]
+            [InlineData("rm@address.com", "r**********m@address.com")]
+            [InlineData("r@address.com", "r**********@address.com")]
+            [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
+            public void NullProvidedEmailReturnsFormattedEmail(string email, string expectedEmail)
+            {
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
+                var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                Assert.Equal(expectedEmail, data.EmailAddress);
+            }
+
+            [Theory]
+            [InlineData("blarg")]
+            [InlineData("wrong@email")]
+            [InlineData("nonmatching@emailaddress.com")]
+            public void InvalidProvidedEmailReturnsFalse(string providedEmail)
+            {
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
+                var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: providedEmail);
+                dynamic data = result.Data;
+                Assert.False(data.success);
+            }
+
+            [Fact]
+            public void SendsNotificationForAssistance()
+            {
+                var email = "existing@example.com";
+                var fakes = Get<Fakes>();
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
+                var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>()))
+                    .Returns(existingUser);
+                var messageServiceMock = GetMock<IMessageService>();
+                    messageServiceMock
+                    .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
+                    .Verifiable();
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: email);
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                messageServiceMock.Verify();
             }
         }
 

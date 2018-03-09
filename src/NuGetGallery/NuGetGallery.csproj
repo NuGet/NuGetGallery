@@ -2050,6 +2050,7 @@
     <Content Include="Views\Pages\_TransformOrLink.cshtml" />
     <Content Include="Views\Organizations\_OrganizationAccountManageMembers.cshtml" />
     <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
+    <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
   </ItemGroup>
   <ItemGroup>
