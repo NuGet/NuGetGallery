@@ -67,6 +67,11 @@ namespace NuGetGallery
         /// </summary>
         public virtual OrganizationMigrationRequest OrganizationMigrationRequest { get; set; }
 
+        /// <summary>
+        /// Requests for this user to become the admin of a <see cref="User"/> account that was transformed into an <see cref="Organization"/> account.
+        /// </summary>
+        public virtual ICollection<OrganizationMigrationRequest> OrganizationMigrationRequests { get; set; }
+
         [StringLength(256)]
         public string EmailAddress { get; set; }
 

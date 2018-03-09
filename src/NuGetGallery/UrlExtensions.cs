@@ -799,6 +799,51 @@ namespace NuGetGallery
                     { "accountName", accountName }
                 });
         }
+        
+        public static string AcceptOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
+        {
+            return url.AcceptOrganizationMembershipRequest(request.Organization.Username, request.ConfirmationToken, relativeUrl);
+        }
+
+        public static string RejectOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
+        {
+            return url.RejectOrganizationMembershipRequest(request.Organization.Username, request.ConfirmationToken, relativeUrl);
+        }
+
+        public static string AcceptOrganizationMembershipRequest(this UrlHelper url, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleOrganizationMembershipRequest("ConfirmMemberRequest", organizationUsername, confirmationToken, relativeUrl);
+        }
+
+        public static string RejectOrganizationMembershipRequest(this UrlHelper url, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleOrganizationMembershipRequest("RejectMemberRequest", organizationUsername, confirmationToken, relativeUrl);
+        }
+
+        private static string HandleOrganizationMembershipRequest(this UrlHelper url, string routeName, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                routeName,
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", organizationUsername },
+                    { "confirmationToken", confirmationToken }
+                });
+        }
+
+        public static string CancelOrganizationMembershipRequest(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "CancelMemberRequest",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
 
         public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
