@@ -27,7 +27,7 @@
                                 <div class="text-danger form-error-message" id="warning-message" data-bind="text: message"></div>
                             </div>
                         </div>
-                        <div class="form-button-node">
+                        <div class="form-button-node username-submit">
                             <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: getEmailAddress" value="Next" />
                         </div>
                     </div>
@@ -42,7 +42,7 @@
                             </div>
                             <div class="text-danger form-error-message" id="warning-message" data-bind="text: message"></div>
                         </div>
-                        <div class="form-button-node">
+                        <div class="form-button-node email-submit">
                             <input type="submit" class="btn btn-primary btn-block action-button" data-bind="click: sendEmailNotification" value="Next" />
                         </div>
                     </div>
@@ -54,7 +54,7 @@
                             <span style="font-weight: bold" data-bind="text: usernameForAssistance()"></span>
                         </div>
                     </div>
-                    <div class="form-button-node">
+                    <div class="form-button-node close-button">
                         <button type="button" class="btn btn-primary btn-block action-button" data-dismiss="modal" data-bind="click: resetViewModel" aria-label="Close">
                             Close
                         </button>

@@ -367,11 +367,19 @@ img.reserved-indicator-icon {
   line-height: 2em;
 }
 .modal-container .modal-box .modal-body .form-button-node {
-  padding-top: 20%;
   padding-right: 0;
   padding-bottom: 0;
   padding-left: 65%;
   text-align: center;
+}
+.modal-container .modal-box .modal-body .username-submit {
+  padding-top: 13%;
+}
+.modal-container .modal-box .modal-body .email-submit {
+  padding-top: 16%;
+}
+.modal-container .modal-box .modal-body .close-button {
+  padding-top: 27%;
 }
 .modal-container .modal-box .modal-body .text-label {
   padding: 15px;
