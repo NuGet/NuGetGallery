@@ -226,8 +226,8 @@ namespace NuGet.Services.Validation.PackageCertificates
         {
             return _validationContext
                         .PackageSignatures
-                        .Include(s => s.TrustedTimestamps)
                         .Include(s => s.EndCertificate)
+                        .Include(s => s.TrustedTimestamps.Select(t => t.EndCertificate))
                         .SingleAsync(s => s.PackageKey == request.PackageKey);
         }
 
