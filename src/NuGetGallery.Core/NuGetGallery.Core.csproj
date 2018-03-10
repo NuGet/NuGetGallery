@@ -232,6 +232,7 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="NuGetVersionExtensions.cs" />
     <Compile Include="SemVerLevelKey.cs" />
+    <Compile Include="Services\AccessConditionWrapper.cs" />
     <Compile Include="Services\CloudBlobClientWrapper.cs" />
     <Compile Include="Services\CloudBlobContainerWrapper.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
@@ -241,6 +242,7 @@
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
+    <Compile Include="Services\IAccessCondition.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\ICoreMessageService.cs" />
