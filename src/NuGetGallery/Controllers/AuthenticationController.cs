@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -390,11 +392,24 @@ namespace NuGetGallery
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
             var user = GetCurrentUser();
-            var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
-            if (aadCredential != null)
+            var userOrganizationsWithTenantPolicy = user?
+                .Organizations?
+                .Where(o => o
+                    .Organization
+                    .SecurityPolicies
+                    .Any(policy => policy.Name == nameof(RequireOrganizationTenantPolicy)));
+
+            if (userOrganizationsWithTenantPolicy != null && userOrganizationsWithTenantPolicy.Any())
             {
-                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                return Redirect(returnUrl);
+                var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
+                if (aadCredential != null)
+                {
+                    var orgList = string.Join(", ",
+                        userOrganizationsWithTenantPolicy.Select(member => member.Organization.Username));
+
+                    TempData["WarningMessage"] = string.Format(Strings.ChangeCredential_NotAllowed, orgList);
+                    return Redirect(returnUrl);
+                }
             }
 
             var externalAuthProvider = GetExternalProvider();
@@ -416,7 +431,14 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider)
         {
-            return _authService.Challenge(provider, returnUrl);
+            try
+            {
+                return _authService.Challenge(provider, returnUrl);
+            }
+            catch (InvalidOperationException)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
         }
 
         /// <summary>

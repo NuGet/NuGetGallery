@@ -479,7 +479,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login..
         /// </summary>
         public static string ChangeCredential_NotAllowed {
             get {

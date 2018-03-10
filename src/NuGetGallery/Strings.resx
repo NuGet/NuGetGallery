@@ -738,7 +738,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
   </data>
   <data name="ChangeCredential_NotAllowed" xml:space="preserve">
-    <value>The change of Azure active directory account is not allowed.</value>
+    <value>The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login.</value>
   </data>
   <data name="ChangeCredential_Success" xml:space="preserve">
     <value>Successfully linked the Microsoft account ({0}).</value>
