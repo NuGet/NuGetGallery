@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Net;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
@@ -309,6 +311,76 @@ namespace NuGetGallery
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.True(model.WrongUsername);
                 Assert.False(model.SuccessfulConfirmation);
+            }
+        }
+
+        public class TheCreateAction : TestContainer
+        {
+            private const string OrgName = "TestOrg";
+            private const string OrgEmail = "TestOrg@testorg.com";
+
+            private AddOrganizationViewModel Model = 
+                new AddOrganizationViewModel { OrganizationName = OrgName, OrganizationEmailAddress = OrgEmail };
+
+            private User Admin;
+
+            private Fakes Fakes;
+
+            public TheCreateAction()
+            {
+                Fakes = Get<Fakes>();
+                Admin = Fakes.User;
+            }
+
+            [Fact]
+            public async Task WhenAddOrganizationThrowsEntityException_ReturnsViewWithMessage()
+            {
+                var message = "message";
+
+                var mockUserService = GetMock<IUserService>();
+                mockUserService
+                    .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
+                    .Throws(new EntityException(message));
+
+                var controller = GetController<OrganizationsController>();
+                controller.SetCurrentUser(Admin);
+
+                var result = await controller.Add(Model);
+
+                ResultAssert.IsView<AddOrganizationViewModel>(result);
+                Assert.Equal(message, controller.TempData["ErrorMessage"]);
+            }
+
+            [Fact]
+            public async Task WhenAddOrganizationSucceeds_RedirectsToManageOrganization()
+            {
+                var token = "token";
+                var org = new Organization("newlyCreated")
+                {
+                    UnconfirmedEmailAddress = OrgEmail,
+                    EmailConfirmationToken = token
+                };
+
+                var mockUserService = GetMock<IUserService>();
+                mockUserService
+                    .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
+                    .Returns(Task.FromResult(org));
+
+                var messageService = GetMock<IMessageService>();
+
+                var controller = GetController<OrganizationsController>();
+                controller.SetCurrentUser(Admin);
+
+                var result = await controller.Add(Model);
+
+                ResultAssert.IsRedirectToRoute(result, 
+                    new { accountName = org.Username, action = nameof(OrganizationsController.ManageOrganization) });
+
+                messageService.Verify(
+                    x => x.SendNewAccountEmail(
+                        It.Is<MailAddress>(m => m.Address == OrgEmail && m.DisplayName == org.Username), 
+                        It.Is<string>(s => s.Contains(token))), 
+                    Times.Once());
             }
         }
 

@@ -207,6 +207,10 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
 
+            var signinScriptBundle = new ScriptBundle("~/Scripts/gallery/page-signin.min.js")
+                .Include("~/Scripts/gallery/page-signin.js");
+            BundleTable.Bundles.Add(signinScriptBundle);
+
             var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
                 .Include("~/Scripts/gallery/page-display-package.js")
                 .Include("~/Scripts/gallery/clamp.js");
@@ -235,6 +239,11 @@ namespace NuGetGallery
             var manageOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-organization.min.js")
                 .Include("~/Scripts/gallery/page-manage-organization.js");
             BundleTable.Bundles.Add(manageOrganizationScriptBundle);
+
+            var addOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-add-organization.min.js")
+                .Include("~/Scripts/gallery/page-add-organization.js")
+                .Include("~/Scripts/gallery/md5.js");
+            BundleTable.Bundles.Add(addOrganizationScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

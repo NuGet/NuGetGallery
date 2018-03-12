@@ -13,6 +13,18 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
+        void TrackPackageUnlisted(Package package);
+
+        void TrackPackageListed(Package package);
+
+        void TrackPackageDelete(Package package, bool isHardDelete);
+
+        void TrackPackageReflow(Package package);
+
+        void TrackPackageHardDeleteReflow(string packageId, string packageVersion);
+
+        void TrackPackageRevalidate(Package package);
+
         void TrackPackageReadMeChangeEvent(Package package, string readMeSourceType, PackageEditReadMeState readMeState);
 
         void TrackCreatePackageVerificationKeyEvent(string packageId, string packageVersion, User user, IIdentity identity);

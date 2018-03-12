@@ -12,6 +12,7 @@ namespace NuGetGallery
     public interface ISimpleCloudBlob
     {
         BlobProperties Properties { get; }
+        CopyState CopyState { get; }
         Uri Uri { get; }
         string Name { get; }
         DateTime LastModifiedUtc { get; }
@@ -26,6 +27,8 @@ namespace NuGetGallery
         Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
 
         Task FetchAttributesAsync();
+
+        Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition);
 
         /// <summary>
         /// Generates the shared read signature that if appended to the blob URI

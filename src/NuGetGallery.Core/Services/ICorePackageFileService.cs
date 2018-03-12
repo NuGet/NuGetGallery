@@ -81,5 +81,10 @@ namespace NuGetGallery
         /// <param name="id">The package ID. This value is case-insensitive.</param>
         /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
         Task DeletePackageFileAsync(string id, string version);
+
+        /// <summary>
+        /// Copies the contents of the package represented by the stream into the file storage backup location.
+        /// </summary>
+        Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile);
     }
 }

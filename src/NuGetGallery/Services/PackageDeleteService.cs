@@ -270,6 +270,8 @@ namespace NuGetGallery
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
+
+                    _telemetryService.TrackPackageDelete(package, isHardDelete: false);
                 }
 
                 _packageDeletesRepository.InsertOnCommit(packageDelete);
@@ -314,6 +316,8 @@ namespace NuGetGallery
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
 
+                    _telemetryService.TrackPackageDelete(package, isHardDelete: true);
+
                     package.PackageRegistration.Packages.Remove(package);
                     _packageRepository.DeleteOnCommit(package);
                 }
@@ -338,7 +342,7 @@ namespace NuGetGallery
             UpdateSearchIndex();
         }
 
-        public Task ReflowHardDeletedPackageAsync(string id, string version)
+        public async Task ReflowHardDeletedPackageAsync(string id, string version)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -381,7 +385,10 @@ namespace NuGetGallery
                 registrationRecord: null,
                 action: AuditedPackageAction.Delete,
                 reason: "reflow hard-deleted package");
-            return _auditingService.SaveAuditRecordAsync(auditRecord);
+
+            await _auditingService.SaveAuditRecordAsync(auditRecord);
+
+            _telemetryService.TrackPackageHardDeleteReflow(normalizedId, normalizedVersionString);
         }
 
         protected virtual async Task ExecuteSqlCommandAsync(IDatabase database, string sql, params object[] parameters)

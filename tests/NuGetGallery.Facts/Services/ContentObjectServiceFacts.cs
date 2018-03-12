@@ -32,8 +32,9 @@ namespace NuGetGallery.Services
                 var emails = new[] { "discontinued@different.com" };
                 var domains = new[] { "example.com" };
                 var exceptions = new[] { "exception@example.com" };
+                var shouldTransforms = new[] { "transfomer@example.com" };
 
-                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions);
+                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms);
                 var configString = JsonConvert.SerializeObject(config);
 
                 GetMock<IContentService>()

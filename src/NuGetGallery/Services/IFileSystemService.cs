@@ -16,5 +16,7 @@ namespace NuGetGallery
         DateTimeOffset GetCreationTimeUtc(string path);
 
         IFileReference GetFileReference(string path);
+
+        void Copy(string sourceFileName, string destFileName, bool overwrite);
     }
 }

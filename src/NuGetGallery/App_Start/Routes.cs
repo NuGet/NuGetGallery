@@ -226,6 +226,12 @@ namespace NuGetGallery
                 new { httpMethod = new HttpMethodConstraint("POST") });
 
             routes.MapRoute(
+                RouteName.SigninAssistance,
+                "account/assistance",
+                new { controller = "Authentication", action = "SignInAssistance" },
+                new { httpMethod = new HttpMethodConstraint("POST") });
+
+            routes.MapRoute(
                 RouteName.LegacyRegister,
                 "account/register",
                 new { controller = "Authentication", action = "RegisterLegacy" },
@@ -296,6 +302,11 @@ namespace NuGetGallery
                 RouteName.Account,
                 "account/{action}",
                 new { controller = "Users", action = "Account" });
+
+            routes.MapRoute(
+                RouteName.AddOrganization,
+                "organization/add",
+                new { controller = "Organizations", action = "Add" });
 
             routes.MapRoute(
                 RouteName.OrganizationAccount,

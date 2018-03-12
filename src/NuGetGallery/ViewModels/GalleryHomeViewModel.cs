@@ -9,13 +9,16 @@ namespace NuGetGallery
     {
         public bool ShowTransformModal { get; set; }
 
+        public bool TransformIntoOrganization { get; set; }
+
         public IList<AuthenticationProviderViewModel> Providers { get; set; }
 
-        public GalleryHomeViewModel() : this(showTransformModal: false) { }
+        public GalleryHomeViewModel() : this(showTransformModal: false, transformIntoOrganization: false) { }
 
-        public GalleryHomeViewModel(bool showTransformModal)
+        public GalleryHomeViewModel(bool showTransformModal, bool transformIntoOrganization)
         {
             ShowTransformModal = showTransformModal;
+            TransformIntoOrganization = transformIntoOrganization;
         }
     }
 }

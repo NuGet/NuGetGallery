@@ -7,5 +7,8 @@
   ],
   "ExceptionsForEmailAddresses": [
     "exception@cannotUsePassword.com"
+  ],
+  "ForceTransformationToOrganizationForEmailAddresses": [
+    "organization@cannotUsePassword.com"
   ]
 }

@@ -154,6 +154,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageOwnerRequest>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Organization>>()
+                .AsSelf()
+                .As<IEntityRepository<Organization>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()
@@ -246,12 +251,6 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IApiScopeEvaluator>()
                 .InstancePerLifetimeScope();
-
-            builder.RegisterType<SecurePushSubscription>()
-                .SingleInstance();
-
-            builder.RegisterType<RequireSecurePushForCoOwnersPolicy>()
-                .SingleInstance();
             
             builder.RegisterType<ContentObjectService>()
                 .AsSelf()

@@ -465,10 +465,8 @@
     <Compile Include="SearchClient\RequestInspectingHandler.cs" />
     <Compile Include="SearchClient\WebApiCorrelationHandlerFacts.cs" />
     <Compile Include="Security\RequirePackageVerifyScopePolicyFacts.cs" />
-    <Compile Include="Security\RequireMinClientVersionForPushPolicyFacts.cs" />
-    <Compile Include="Security\RequireSecurePushForCoOwnersPolicyFacts.cs" />
     <Compile Include="Security\SecurityPolicyServiceFacts.cs" />
-    <Compile Include="Security\SecurePushSubscriptionFacts.cs" />
+    <Compile Include="Security\DefaultSubscriptionFacts.cs" />
     <Compile Include="Security\TestSecurityPolicyService.cs" />
     <Compile Include="Security\TestUserSecurityPolicyData.cs" />
     <Compile Include="Services\AllowLocalHttpRedirectPolicyFacts.cs" />

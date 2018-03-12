@@ -10,14 +10,44 @@ namespace NuGetGallery.Services
 {
     public class LoginDiscontinuationConfigurationFacts
     {
-        public class TheIsLoginDiscontinuedMethod : TestContainer
-        {
-            private const string _incorrectEmail = "incorrect@notExample.com";
-            private const string _incorrectDomain = "notExample.com";
-            private const string _domain = "example.com";
-            private const string _incorrectException = "fake@notExample.com";
-            private const string _email = "test@example.com";
+        private const string _incorrectEmail = "incorrect@notExample.com";
+        private const string _incorrectDomain = "notExample.com";
+        private const string _domain = "example.com";
+        private const string _incorrectException = "fake@notExample.com";
+        private const string _email = "test@example.com";
 
+        public static IEnumerable<object[]> PossibleListStates
+        {
+            get
+            {
+                foreach (var isOnWhiteList in new[] { true, false })
+                {
+                    foreach (var isOnDomainList in new[] { true, false })
+                    {
+                        foreach (var isOnExceptionList in new[] { true, false })
+                        {
+                            foreach (var isOnTransformList in new[] { true, false })
+                            {
+                                yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+        {
+            var emails = isOnWhiteList ? new[] { _email } : new[] { _incorrectEmail };
+            var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
+            var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
+            var shouldTransforms = isOnTransformList ? new[] { _email } : new[] { _incorrectException };
+
+            return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms);
+        }
+
+        public class TheIsLoginDiscontinuedMethod
+        {
             public static IEnumerable<object[]> IfPasswordLoginReturnsTrueIfOnWhitelists_Data
             {
                 get
@@ -33,7 +63,10 @@ namespace NuGetGallery.Services
                             {
                                 foreach (var isOnExceptionList in new[] { true, false })
                                 {
-                                    yield return MemberDataHelper.AsData(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList);
+                                    foreach (var isOnTransformList in new[] { true, false })
+                                    {
+                                        yield return MemberDataHelper.AsData(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                                    }
                                 }
                             }
                         }
@@ -43,9 +76,9 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfPasswordLoginReturnsTrueIfOnWhitelists_Data))]
-            public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList)
+            public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
             {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, 
+                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, 
                     expectedResult: (isOnWhiteList || isOnDomainList) && !isOnExceptionList);
             }
 
@@ -68,7 +101,10 @@ namespace NuGetGallery.Services
                             {
                                 foreach (var isOnExceptionList in new[] { true, false })
                                 {
-                                    yield return MemberDataHelper.AsData(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList);
+                                    foreach (var isOnTransformList in new[] { true, false })
+                                    {
+                                        yield return MemberDataHelper.AsData(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                                    }
                                 }
                             }
                         }
@@ -78,29 +114,57 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfNotPasswordLoginReturnsFalse_Data))]
-            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList)
+            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
             {
-                TestIsLoginDiscontinued(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, expectedResult: false);
+                TestIsLoginDiscontinued(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, expectedResult: false);
             }
 
-            private void TestIsLoginDiscontinued(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool expectedResult)
+            private void TestIsLoginDiscontinued(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool expectedResult)
             {
                 // Arrange
                 var credential = new Credential(credentialType, "value");
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
 
-                var emails = isOnWhiteList ? new[] { _email } : new[] { _incorrectEmail };
-                var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
-                var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
-
-                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions);
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);
 
                 // Assert
                 Assert.Equal(expectedResult, result);
+            }
+        }
+
+        public class TheSupportedForUserMethods
+        {
+            public static IEnumerable<object[]> PossibleListStates => PossibleListStates;
+
+            public void IsSupportedAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+            {
+                // Arrange
+                var user = new User("test") { EmailAddress = _email };
+
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+
+                // Act
+                var areOrganizationsSupported = config.AreOrganizationsSupportedForUser(user);
+                var shouldTransform = config.ShouldUserTransformIntoOrganization(user);
+
+                // Assert
+                Assert.Equal(isOnWhiteList || isOnDomainList, areOrganizationsSupported);
+                Assert.Equal(isOnTransformList, shouldTransform);
+            }
+
+            public void IsUnsupportedWhenNull()
+            {
+                var config = new LoginDiscontinuationConfiguration();
+
+                var areOrganizationsSupported = config.AreOrganizationsSupportedForUser(null);
+                var shouldTransform = config.ShouldUserTransformIntoOrganization(null);
+
+                Assert.False(areOrganizationsSupported);
+                Assert.False(shouldTransform);
             }
         }
     }

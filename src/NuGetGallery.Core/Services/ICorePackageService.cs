@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
@@ -10,6 +11,14 @@ namespace NuGetGallery
     /// </summary>
     public interface ICorePackageService
     {
+        /// <summary>
+        /// Updates the package properties related to the package stream itself.
+        /// </summary>
+        /// <param name="package">The package to update the stream details of.</param>
+        /// <param name="metadata">The new package stream metadata.</param>
+        /// <param name="commitChanges">Whether or not to commit the changes to the entity context.</param>
+        Task UpdatePackageStreamMetadataAsync(Package package, PackageStreamMetadata metadata, bool commitChanges = true);
+
         /// <summary>
         /// Set the status on the package and any other related package properties.
         /// </summary>

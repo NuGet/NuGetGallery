@@ -721,7 +721,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -749,7 +749,7 @@ namespace NuGetGallery {
         ///
         ///[{0}]({0})
         ///
-        ///Note that NuGet.org password login is being deprecated. Please use Microsoft account to sign into {1}.
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
         ///
         ///Thanks,
         ///The {1} Team.
@@ -1022,29 +1022,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The new organization email address was saved!.
-        /// </summary>
-        public static string OrganizationEmailUpdated {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The organization email address has been changed! We sent a confirmation email to verify the new email. When the new email address is confirmed, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string OrganizationEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("OrganizationEmailUpdatedWithConfirmationRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Member name is required..
         /// </summary>
         public static string OrganizationMemberNameIsRequired {
             get {
                 return ResourceManager.GetString("OrganizationMemberNameIsRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
+        /// </summary>
+        public static string Organizations_AdminAccountDoesNotHaveTenant {
+            get {
+                return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotInDomainWhitelist {
+            get {
+                return ResourceManager.GetString("Organizations_NotInDomainWhitelist", resourceCulture);
             }
         }
         
@@ -1472,28 +1472,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 1. All co-owners must use client version {0} or higher to push all of their packages.
-        ///2. All existing push API keys for co-owners new to this policy will expire in {1} days..
-        /// </summary>
-        public static string SecurePushPolicyDescriptions {
-            get {
-                return ResourceManager.GetString("SecurePushPolicyDescriptions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &lt;ol&gt;
-        ///&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
-        ///&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
-        ///&lt;/ol&gt;.
-        /// </summary>
-        public static string SecurePushPolicyDescriptionsHtml {
-            get {
-                return ResourceManager.GetString("SecurePushPolicyDescriptionsHtml", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
@@ -1508,6 +1486,33 @@ namespace NuGetGallery {
         public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
                 return ResourceManager.GetString("SecurityPolicy_RequireMinProtocolVersionForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The email address you provided does not match with the email address linked to the account.
+        /// </summary>
+        public static string SigninAssistance_EmailMismatched {
+            get {
+                return ResourceManager.GetString("SigninAssistance_EmailMismatched", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid email address.
+        /// </summary>
+        public static string SigninAssistance_InvalidEmail {
+            get {
+                return ResourceManager.GetString("SigninAssistance_InvalidEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Please enter a valid username.
+        /// </summary>
+        public static string SigninAssistance_InvalidUser {
+            get {
+                return ResourceManager.GetString("SigninAssistance_InvalidUser", resourceCulture);
             }
         }
         
@@ -1593,15 +1598,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; is not linked to an AAD credential with an organization tenant..
-        /// </summary>
-        public static string TransformAccount_AdminAccountDoesNotHaveTenant {
-            get {
-                return ResourceManager.GetString("TransformAccount_AdminAccountDoesNotHaveTenant", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Administrator account &apos;{0}&apos; cannot be an organization..
         /// </summary>
         public static string TransformAccount_AdminAccountIsOrganization {
@@ -1629,20 +1625,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support  for assistance..
+        ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
-        /// </summary>
-        public static string TransformAccount_FailedReasonNotInDomainWhitelist {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedReasonNotInDomainWhitelist", resourceCulture);
             }
         }
         
@@ -1859,24 +1846,6 @@ namespace NuGetGallery {
         public static string UserEmailUpdateCancelled {
             get {
                 return ResourceManager.GetString("UserEmailUpdateCancelled", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your new email address was saved!.
-        /// </summary>
-        public static string UserEmailUpdated {
-            get {
-                return ResourceManager.GetString("UserEmailUpdated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one..
-        /// </summary>
-        public static string UserEmailUpdatedWithConfirmationRequired {
-            get {
-                return ResourceManager.GetString("UserEmailUpdatedWithConfirmationRequired", resourceCulture);
             }
         }
         

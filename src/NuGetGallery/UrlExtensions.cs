@@ -447,6 +447,22 @@ namespace NuGetGallery
             return GetActionLink(url, "LogOn", "Authentication", relativeUrl);
         }
 
+        public static RouteUrlTemplate<string> SearchTemplate(this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<string, object>>
+            {
+                { "q", s => s }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetRouteLink(
+                url,
+                RouteName.ListPackages,
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<string>(linkGenerator, routesGenerator);
+        }
+
         public static string Search(this UrlHelper url, string searchTerm, bool relativeUrl = true)
         {
             return GetRouteLink(
@@ -764,6 +780,14 @@ namespace NuGetGallery
             return GetActionLink(url, "Organizations", "Users", relativeUrl);
         }
 
+        public static string AddOrganization(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "Add",
+                "Organizations",
+                relativeUrl);
+        }
+
         public static string ManageMyOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
@@ -860,9 +884,20 @@ namespace NuGetGallery
             return GetActionLink(url, "AddPackageOwner", "JsonApi", relativeUrl);
         }
 
+        public static string SigninAssistance(this UrlHelper url, bool relativeUrl = true)
+        {
+            return GetRouteLink(url, RouteName.SigninAssistance, relativeUrl);
+        }
+
         public static string RemovePackageOwner(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "RemovePackageOwner", "JsonApi", relativeUrl);
+        }
+
+        public static RouteUrlTemplate<OwnerRequestsListItemViewModel> ConfirmPendingOwnershipRequestTemplate(
+            this UrlHelper url, bool relativeUrl = true)
+        {
+            return HandlePendingOwnershipRequestTemplate(url, RouteName.ConfirmPendingOwnershipRequest, relativeUrl);
         }
 
         public static string ConfirmPendingOwnershipRequest(
@@ -872,18 +907,50 @@ namespace NuGetGallery
             string confirmationCode,
             bool relativeUrl = true)
         {
-            var routeValues = new RouteValueDictionary
-            {
-                ["id"] = packageId,
-                ["username"] = username,
-                ["token"] = confirmationCode
-            };
+            return HandlePendingOwnershipRequest(url, RouteName.ConfirmPendingOwnershipRequest, packageId, username, confirmationCode, relativeUrl);
+        }
 
-            return GetActionLink(url, "ConfirmPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
+        public static RouteUrlTemplate<OwnerRequestsListItemViewModel> RejectPendingOwnershipRequestTemplate(
+            this UrlHelper url, bool relativeUrl = true)
+        {
+            return HandlePendingOwnershipRequestTemplate(url, RouteName.RejectPendingOwnershipRequest, relativeUrl);
         }
 
         public static string RejectPendingOwnershipRequest(
             this UrlHelper url,
+            string packageId,
+            string username,
+            string confirmationCode,
+            bool relativeUrl = true)
+        {
+            return HandlePendingOwnershipRequest(url, RouteName.RejectPendingOwnershipRequest, packageId, username, confirmationCode, relativeUrl);
+        }
+
+        private static RouteUrlTemplate<OwnerRequestsListItemViewModel> HandlePendingOwnershipRequestTemplate(
+            this UrlHelper url,
+            string routeName,
+            bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<OwnerRequestsListItemViewModel, object>>
+            {
+                { "id", r => r.Package.Id },
+                { "username", r => r.Request.NewOwner.Username },
+                { "token", r => r.Request.ConfirmationCode }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                routeName,
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<OwnerRequestsListItemViewModel>(linkGenerator, routesGenerator);
+        }
+
+        private static string HandlePendingOwnershipRequest(
+            this UrlHelper url,
+            string routeName,
             string packageId,
             string username,
             string confirmationCode,
@@ -896,7 +963,27 @@ namespace NuGetGallery
                 ["token"] = confirmationCode
             };
 
-            return GetActionLink(url, "RejectPendingOwnershipRequest", "Packages", relativeUrl, routeValues);
+            return GetActionLink(url, routeName, "Packages", relativeUrl, routeValues);
+        }
+
+        public static RouteUrlTemplate<OwnerRequestsListItemViewModel> CancelPendingOwnershipRequestTemplate(
+            this UrlHelper url, bool relativeUrl = true)
+        {
+            var routesGenerator = new Dictionary<string, Func<OwnerRequestsListItemViewModel, object>>
+            {
+                { "id", r => r.Package.Id },
+                { "requestingUsername", r => r.Request.RequestingOwner.Username },
+                { "pendingUsername", r => r.Request.NewOwner.Username }
+            };
+
+            Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
+                url,
+                "CancelPendingOwnershipRequest",
+                "Packages",
+                relativeUrl,
+                routeValues: rv);
+
+            return new RouteUrlTemplate<OwnerRequestsListItemViewModel>(linkGenerator, routesGenerator);
         }
 
         public static string CancelPendingOwnershipRequest(

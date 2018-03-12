@@ -83,6 +83,16 @@ namespace NuGetGallery
                 /// <see cref="IPackageService"/> to do this.
                 Assert.Equal(PackageStatus.Available, _package.PackageStatusKey);
             }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                // Arrange & Act
+                await _target.RevalidateAsync(_package);
+
+                // Assert
+                _telemetryService.Verify(x => x.TrackPackageRevalidate(_package), Times.Once);
+            }
         }
 
         public class TheGetLatestValidationIssuesMethod : FactsBase
@@ -303,6 +313,7 @@ namespace NuGetGallery
             protected readonly Mock<IPackageService> _packageService;
             protected readonly Mock<IPackageValidationInitiator> _initiator;
             protected readonly Mock<IEntityRepository<PackageValidationSet>> _validationSets;
+            protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Package _package;
             protected readonly ValidationService _target;
 
@@ -311,13 +322,15 @@ namespace NuGetGallery
                 _packageService = new Mock<IPackageService>();
                 _initiator = new Mock<IPackageValidationInitiator>();
                 _validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
+                _telemetryService = new Mock<ITelemetryService>();
 
                 _package = new Package();
 
                 _target = new ValidationService(
                     _packageService.Object,
                     _initiator.Object,
-                    _validationSets.Object);
+                    _validationSets.Object,
+                    _telemetryService.Object);
             }
         }
     }

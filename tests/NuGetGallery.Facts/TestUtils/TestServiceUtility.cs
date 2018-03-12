@@ -137,9 +137,11 @@ namespace NuGetGallery.TestUtils
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
+        public Mock<IEntityRepository<Organization>> MockOrganizationRepository { get; protected set; }
         public Mock<IEntitiesContext> MockEntitiesContext { get; protected set; }
         public Mock<IDatabase> MockDatabase { get; protected set; }
         public Mock<IContentObjectService> MockConfigObjectService { get; protected set; }
+        public Mock<IDateTimeProvider> MockDateTimeProvider { get; protected set; }
 
         public TestableUserService()
         {
@@ -147,8 +149,10 @@ namespace NuGetGallery.TestUtils
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
+            OrganizationRepository = (MockOrganizationRepository = new Mock<IEntityRepository<Organization>>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             ContentObjectService = (MockConfigObjectService = new Mock<IContentObjectService>()).Object;
+            DateTimeProvider = (MockDateTimeProvider = new Mock<IDateTimeProvider>()).Object;
             Auditing = new TestAuditingService();
 
             // Set ConfirmEmailAddress to a default of true
@@ -287,11 +291,14 @@ namespace NuGetGallery.TestUtils
                     packageRepository.Object);
             var auditingService = new TestAuditingService();
 
+            var telemetryService = new Mock<ITelemetryService>();
+
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 packageNamingConflictValidator,
-                auditingService);
+                auditingService,
+                telemetryService.Object);
 
             packageService.CallBase = true;
 
