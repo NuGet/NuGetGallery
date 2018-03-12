@@ -10,6 +10,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 
@@ -110,6 +111,22 @@ namespace NuGetGallery
             }
         }
 
+        public Task CopyFileAsync(
+            Uri srcUri,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
+        {
+            if (srcUri == null)
+            {
+                throw new ArgumentNullException(nameof(srcUri));
+            }
+
+            var srcBlob = _client.GetBlobFromUri(srcUri);
+
+            return CopyFileAsync(srcBlob, destFolderName, destFileName, destAccessCondition);
+        }
+
         public async Task<string> CopyFileAsync(
             string srcFolderName,
             string srcFileName,
@@ -127,6 +144,18 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(srcFileName));
             }
 
+            var srcContainer = await GetContainerAsync(srcFolderName);
+            var srcBlob = srcContainer.GetBlobReference(srcFileName);
+
+            return await CopyFileAsync(srcBlob, destFolderName, destFileName, destAccessCondition);
+        }
+
+        private async Task<string> CopyFileAsync(
+            ISimpleCloudBlob srcBlob,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
+        {
             if (destFolderName == null)
             {
                 throw new ArgumentNullException(nameof(destFolderName));
@@ -136,9 +165,6 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(destFileName));
             }
-
-            var srcContainer = await GetContainerAsync(srcFolderName);
-            var srcBlob = srcContainer.GetBlobReference(srcFileName);
 
             var destContainer = await GetContainerAsync(destFolderName);
             var destBlob = destContainer.GetBlobReference(destFileName);

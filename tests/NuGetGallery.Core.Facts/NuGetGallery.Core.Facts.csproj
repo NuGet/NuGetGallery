@@ -154,6 +154,7 @@
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
+    <Compile Include="Services\CloudBlobClientWrapperFacts.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageServiceFacts.cs" />
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
