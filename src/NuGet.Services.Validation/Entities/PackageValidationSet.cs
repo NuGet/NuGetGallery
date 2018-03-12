@@ -55,6 +55,14 @@ namespace NuGet.Services.Validation
         public DateTime Updated { get; set; }
 
         /// <summary>
+        /// The etag of the available package being validated. Null if the package is not yet available (i.e. it is not
+        /// yet in the packages container). A validation set for a package that is already available will have its
+        /// packages container package etag in this column. This is used to control the concurrency of validation sets
+        /// that mutate packages.
+        /// </summary>
+        public string PackageETag { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating which validations are in the set.
         /// </summary>
         public byte[] RowVersion { get; set; }

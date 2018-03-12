@@ -96,6 +96,10 @@
     <Compile Include="Migrations\201802212317262_AddPackageCompatibilityIssuesTable.Designer.cs">
       <DependentUpon>201802212317262_AddPackageCompatibilityIssuesTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201803120118455_AddPackageETag.cs" />
+    <Compile Include="Migrations\201803120118455_AddPackageETag.Designer.cs">
+      <DependentUpon>201803120118455_AddPackageETag.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -144,6 +148,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201802212317262_AddPackageCompatibilityIssuesTable.resx">
       <DependentUpon>201802212317262_AddPackageCompatibilityIssuesTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803120118455_AddPackageETag.resx">
+      <DependentUpon>201803120118455_AddPackageETag.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
