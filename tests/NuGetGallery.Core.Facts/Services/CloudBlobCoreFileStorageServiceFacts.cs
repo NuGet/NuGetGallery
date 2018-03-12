@@ -861,7 +861,7 @@ namespace NuGetGallery
                 _destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Once);
-                Assert.NotEqual("etag!", destAccessCondition.IfMatchETag);
+                Assert.Equal("etag!", destAccessCondition.IfMatchETag);
                 Assert.Null(destAccessCondition.IfNoneMatchETag);
             }
 
