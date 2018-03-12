@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Lucene.Net.Store;
+using Moq;
 using Ng;
 using Ng.Jobs;
 using NgTests.Data;
@@ -56,11 +57,12 @@ namespace NgTests
                 using (var indexWriter = Catalog2LuceneJob.CreateIndexWriter(luceneDirectory))
                 {
                     var target = new SearchIndexFromCatalogCollector(
-                        new TestLogger(),
                         new Uri("http://tempuri.org/index.json"),
                         indexWriter,
                         commitEachBatch: true,
                         baseAddress: null,
+                        telemetryService: new Mock<ITelemetryService>().Object,
+                        logger: new TestLogger(),
                         handlerFunc: () => mockServer);
 
                     // Act

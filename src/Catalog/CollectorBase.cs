@@ -12,17 +12,14 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class CollectorBase
     {
+        protected readonly ITelemetryService _telemetryService;
         Func<HttpMessageHandler> _handlerFunc;
 
-        public CollectorBase(Uri index, Func<HttpMessageHandler> handlerFunc = null)
+        public CollectorBase(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
         {
-            if (index == null)
-            {
-                throw new ArgumentNullException(nameof(index));
-            }
-
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _handlerFunc = handlerFunc;
-            Index = index;
+            Index = index ?? throw new ArgumentNullException(nameof(index));
             ServicePointManager.DefaultConnectionLimit = 4;
             ServicePointManager.MaxServicePointIdleTime = 10000;
         }

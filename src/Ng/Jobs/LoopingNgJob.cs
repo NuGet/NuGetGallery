@@ -13,8 +13,8 @@ namespace Ng.Jobs
 {
     public abstract class LoopingNgJob : NgJob
     {
-        protected LoopingNgJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        protected LoopingNgJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 

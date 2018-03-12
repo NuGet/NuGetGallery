@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NgTests.Infrastructure;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
@@ -25,9 +26,24 @@ namespace CatalogTests.Helpers
         public async Task GetCatalogPropertiesAsync_ThrowsForNullStorage()
         {
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(
-                () => FeedHelpers.GetCatalogPropertiesAsync(storage: null, cancellationToken: CancellationToken.None));
+                () => FeedHelpers.GetCatalogPropertiesAsync(
+                    storage: null,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    cancellationToken: CancellationToken.None));
 
             Assert.Equal("storage", exception.ParamName);
+        }
+
+        [Fact]
+        public async Task GetCatalogPropertiesAsync_ThrowsForNullTelemetryService()
+        {
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+                () => FeedHelpers.GetCatalogPropertiesAsync(
+                    storage: Mock.Of<IStorage>(),
+                    telemetryService: null,
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal("telemetryService", exception.ParamName);
         }
 
         [Fact]
@@ -36,6 +52,7 @@ namespace CatalogTests.Helpers
             await Assert.ThrowsAsync<OperationCanceledException>(
                 () => FeedHelpers.GetCatalogPropertiesAsync(
                     Mock.Of<IStorage>(),
+                    Mock.Of<ITelemetryService>(),
                     new CancellationToken(canceled: true)));
         }
 
@@ -46,6 +63,7 @@ namespace CatalogTests.Helpers
 
             var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(
                 storage.Object,
+                Mock.Of<ITelemetryService>(),
                 CancellationToken.None);
 
             Assert.NotNull(catalogProperties);
@@ -63,6 +81,7 @@ namespace CatalogTests.Helpers
 
             var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(
                 storage.Object,
+                Mock.Of<ITelemetryService>(),
                 CancellationToken.None);
 
             Assert.NotNull(catalogProperties);
@@ -84,6 +103,7 @@ namespace CatalogTests.Helpers
 
             var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(
                 storage.Object,
+                Mock.Of<ITelemetryService>(),
                 CancellationToken.None);
 
             Assert.NotNull(catalogProperties);
@@ -443,6 +463,7 @@ namespace CatalogTests.Helpers
 
             var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(
                 storage.Object,
+                Mock.Of<ITelemetryService>(),
                 CancellationToken.None);
 
             Assert.NotNull(catalogProperties);

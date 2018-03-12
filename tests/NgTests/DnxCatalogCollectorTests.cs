@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Data;
 using NgTests.Infrastructure;
@@ -33,7 +34,11 @@ namespace NgTests
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
             // Setup collector
-            _target = new DnxCatalogCollector(new Uri("http://tempuri.org/index.json"), _catalogToDnxStorageFactory, () => _mockServer)
+            _target = new DnxCatalogCollector(
+                new Uri("http://tempuri.org/index.json"),
+                _catalogToDnxStorageFactory,
+                new Mock<ITelemetryService>().Object,
+                () => _mockServer)
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages")
             };            

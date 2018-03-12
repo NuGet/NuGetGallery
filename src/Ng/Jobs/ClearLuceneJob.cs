@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Lucene.Net.Index;
 using Lucene.Net.Analysis.Standard;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
@@ -15,7 +16,7 @@ namespace Ng.Jobs
     {
         private Lucene.Net.Store.Directory _directory;
 
-        public ClearLuceneJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public ClearLuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
         {
         }
 

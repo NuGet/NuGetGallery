@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Moq;
 using Ng.Jobs;
 using NgTests.Infrastructure;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
 
@@ -84,8 +85,14 @@ namespace NgTests
                 string gallery,
                 string packageId,
                 string packageVersion,
-                bool verbose)
-                : base(new TestLoggerFactory(), storage, gallery, packageId, packageVersion, verbose)
+                bool verbose) : base(
+                    new Mock<ITelemetryService>().Object,
+                    new TestLoggerFactory(),
+                    storage,
+                    gallery,
+                    packageId,
+                    packageVersion,
+                    verbose)
             {
                 _handler = handler;
             }

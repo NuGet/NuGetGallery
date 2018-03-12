@@ -12,11 +12,6 @@ namespace Ng
         private readonly string _catalogBaseAddress;
         private readonly string _storageBaseAddress;
 
-        public StorageAccessHandler(string catalogBaseAddress, string storageBaseAddress)
-            : this(catalogBaseAddress, storageBaseAddress, new HttpClientHandler())
-        {
-        }
-
         public StorageAccessHandler(string catalogBaseAddress, string storageBaseAddress, HttpMessageHandler handler)
             : base(handler)
         {

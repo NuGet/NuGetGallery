@@ -28,8 +28,8 @@ namespace Ng.Jobs
         protected TimeSpan Timeout;
         protected int Top;
 
-        public Feed2CatalogJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Feed2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -86,7 +86,7 @@ namespace Ng.Jobs
                 client.Timeout = Timeout;
 
                 // baseline timestamps
-                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, cancellationToken);
+                var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, TelemetryService, cancellationToken);
                 var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? DateTimeMinValueUtc);
                 var lastEdited = catalogProperties.LastEdited ?? lastCreated;
                 var lastDeleted = catalogProperties.LastDeleted ?? lastCreated;
@@ -142,7 +142,16 @@ namespace Ng.Jobs
                     Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackages.Count);
 
                     lastCreated = await FeedHelpers.DownloadMetadata2Catalog(
-                        client, createdPackages, CatalogStorage, lastCreated, lastEdited, lastDeleted, true, cancellationToken, Logger);
+                        client,
+                        createdPackages,
+                        CatalogStorage,
+                        lastCreated,
+                        lastEdited,
+                        lastDeleted,
+                        createdPackages: true,
+                        cancellationToken: cancellationToken,
+                        telemetryService: TelemetryService,
+                        logger: Logger);
                     if (previousLastCreated == lastCreated)
                     {
                         break;
@@ -163,7 +172,16 @@ namespace Ng.Jobs
                     Logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", editedPackages.Count);
 
                     lastEdited = await FeedHelpers.DownloadMetadata2Catalog(
-                        client, editedPackages, CatalogStorage, lastCreated, lastEdited, lastDeleted, false, cancellationToken, Logger);
+                        client,
+                        editedPackages,
+                        CatalogStorage,
+                        lastCreated,
+                        lastEdited,
+                        lastDeleted,
+                        createdPackages: false,
+                        cancellationToken: cancellationToken,
+                        telemetryService: TelemetryService,
+                        logger: Logger);
                     if (previousLastEdited == lastEdited)
                     {
                         break;
@@ -178,7 +196,7 @@ namespace Ng.Jobs
         // Overriden by NgTests.TestableFeed2CatalogJob
         protected virtual HttpClient CreateHttpClient()
         {
-            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(Verbose));
+            return FeedHelpers.CreateHttpClient(CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, Verbose));
         }
 
         private static Uri MakeCreatedUri(string source, DateTime since, int top)
@@ -287,7 +305,10 @@ namespace Ng.Jobs
             DateTime lastDeleted,
             CancellationToken cancellationToken)
         {
-            var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
+            var writer = new AppendOnlyCatalogWriter(
+                storage,
+                TelemetryService,
+                maxPageSize: 550);
 
             if (packages == null || packages.Count == 0)
             {

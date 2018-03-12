@@ -16,8 +16,8 @@ namespace NuGet.Services.Metadata.Catalog
     {
         Uri[] _types;
 
-        public SortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+        public SortingGraphCollector(Uri index, Uri[] types, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, telemetryService, handlerFunc)
         {
             _types = types;
         }

@@ -1,10 +1,14 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Monitoring;
 using NuGet.Services.Storage;
 
@@ -18,8 +22,8 @@ namespace Ng.Jobs
         private IPackageMonitoringStatusService _statusService;
         private IStorageQueue<PackageValidatorContext> _queue;
 
-        public Monitoring2MonitoringJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Monitoring2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 

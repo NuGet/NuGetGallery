@@ -3,13 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
-using System.Linq;
-using Microsoft.Extensions.Logging;
 using NuGet.Services.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -26,9 +26,10 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         public ValidationCollector(
             IStorageQueue<PackageValidatorContext> queue,
             Uri index,
+            ITelemetryService telemetryService,
             ILogger<ValidationCollector> logger,
             Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+            : base(index, telemetryService, handlerFunc)
         {
             _queue = queue;
             _logger = logger;

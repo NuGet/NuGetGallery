@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -19,7 +18,7 @@ namespace Ng.Jobs
         private ReadWriteCursor _front;
         private ReadCursor _back;
 
-        public Catalog2RegistrationJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public Catalog2RegistrationJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
         {
         }
 
@@ -101,7 +100,8 @@ namespace Ng.Jobs
                 new Uri(source),
                 storageFactories.LegacyStorageFactory,
                 storageFactories.SemVer2StorageFactory,
-                CommandHelpers.GetHttpMessageHandlerFactory(verbose))
+                TelemetryService,
+                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose))
             {
                 ContentBaseAddress = contentBaseAddress == null
                     ? null

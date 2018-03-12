@@ -1,7 +1,11 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Ng.Jobs;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng
 {
@@ -24,14 +28,14 @@ namespace Ng
             { "monitoringprocessor", typeof(MonitoringProcessorJob) }
         };
 
-        public static NgJob GetJob(string jobName, ILoggerFactory loggerFactory)
+        public static NgJob GetJob(string jobName, ITelemetryService telemetryService, ILoggerFactory loggerFactory)
         {
             if (JobMap.ContainsKey(jobName))
             {
                 return
                     (NgJob)
-                    JobMap[jobName].GetConstructor(new[] {typeof(ILoggerFactory)})
-                        .Invoke(new object[] {loggerFactory});
+                    JobMap[jobName].GetConstructor(new[] { typeof(ITelemetryService), typeof(ILoggerFactory) })
+                        .Invoke(new object[] { telemetryService, loggerFactory });
             }
 
             throw new ArgumentException("Missing or invalid job name!");

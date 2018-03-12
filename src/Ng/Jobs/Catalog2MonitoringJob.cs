@@ -1,7 +1,8 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -22,8 +23,8 @@ namespace Ng.Jobs
         private ReadWriteCursor _front;
         private ReadCursor _back;
 
-        public Catalog2MonitoringJob(ILoggerFactory loggerFactory)
-            : base(loggerFactory)
+        public Catalog2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
             _collectorFactory = new ValidationCollectorFactory(LoggerFactory);
         }
@@ -41,7 +42,7 @@ namespace Ng.Jobs
 
             var endpointInputs = CommandHelpers.GetEndpointFactoryInputs(arguments);
 
-            var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(verbose);
+            var messageHandlerFactory = CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose);
 
             var statusService = CommandHelpers.GetPackageMonitoringStatusService(arguments, monitoringStorageFactory, LoggerFactory);
 
@@ -56,6 +57,7 @@ namespace Ng.Jobs
                 source,
                 monitoringStorageFactory,
                 endpointInputs,
+                TelemetryService,
                 messageHandlerFactory);
 
             _collector = context.Collector;

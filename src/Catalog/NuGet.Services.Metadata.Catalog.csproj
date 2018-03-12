@@ -60,6 +60,9 @@
       <HintPath>..\..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.2.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.KeyVault.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Azure.KeyVault.Core.1.0.0\lib\net40\Microsoft.Azure.KeyVault.Core.dll</HintPath>
       <Private>True</Private>
@@ -135,7 +138,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AggregateCursor.cs" />
-    <Compile Include="BatchCollector.cs" />
     <Compile Include="CatalogIndexEntry.cs" />
     <Compile Include="CatalogIndexReader.cs" />
     <Compile Include="CatalogTypeConverter.cs" />
@@ -158,6 +160,9 @@
     <Compile Include="SortingIdVersionCollector.cs" />
     <Compile Include="SortingIdCollector.cs" />
     <Compile Include="StringInterner.cs" />
+    <Compile Include="TelemetryHandler.cs" />
+    <Compile Include="Telemetry\ITelemetryService.cs" />
+    <Compile Include="Telemetry\TelemetryService.cs" />
     <Compile Include="TransientException.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="DeleteCatalogItem.cs" />
@@ -181,32 +186,18 @@
     <Compile Include="Registration\RegistrationKey.cs" />
     <Compile Include="Registration\RegistrationMaker.cs" />
     <Compile Include="Registration\RegistrationPersistence.cs" />
-    <Compile Include="ReindexCatalogCollector.cs" />
     <Compile Include="HttpReadCursor.cs" />
-    <Compile Include="NuspecCollector.cs" />
     <Compile Include="ReindexCatalogItem.cs" />
     <Compile Include="ResourceSaveOperation.cs" />
     <Compile Include="SortingCollector.cs" />
     <Compile Include="SortingGraphCollector.cs" />
     <Compile Include="StorageWriteLock.cs" />
-    <Compile Include="StoreCollector.cs" />
-    <Compile Include="Test\FindCollector.cs" />
-    <Compile Include="Test\PrintCollector.cs" />
-    <Compile Include="Test\PrintCommitCollector.cs" />
-    <Compile Include="TransHttpClient.cs" />
     <Compile Include="VerboseFileSystemEmulatorHandler.cs" />
-    <Compile Include="Test\DistinctDependencyPackageIdCollector.cs" />
-    <Compile Include="Test\DistinctPackageIdCollector.cs" />
-    <Compile Include="Test\CheckLinksCollector.cs" />
-    <Compile Include="Test\CountCollector.cs" />
-    <Compile Include="Test\FindFirstCollector.cs" />
-    <Compile Include="Test\PackageCollector.cs" />
     <Compile Include="VerboseHandler.cs" />
     <Compile Include="CollectorBase.cs" />
     <Compile Include="CollectorHttpClient.cs" />
     <Compile Include="DurableCursor.cs" />
     <Compile Include="FileSystemEmulatorHandler.cs" />
-    <Compile Include="Helpers\IndexingHelpers.cs" />
     <Compile Include="Helpers\JsonSort.cs" />
     <Compile Include="AppendOnlyCatalogItem.cs" />
     <Compile Include="AppendOnlyCatalogWriter.cs" />
@@ -240,11 +231,6 @@
     <Compile Include="ReadCursor.cs" />
     <Compile Include="ReadWriteCursor.cs" />
     <Compile Include="Schema.cs" />
-    <Compile Include="WarehouseIntegration\StatisticsCatalogItem.cs" />
-    <Compile Include="WarehouseIntegration\StatsCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\StatsGreaterThanCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\StatsLessThanCountCollector.cs" />
-    <Compile Include="WarehouseIntegration\WarehouseHelper.cs" />
     <EmbeddedResource Include="sparql\ConstructPackagePageContentGraph.rq" />
   </ItemGroup>
   <ItemGroup>

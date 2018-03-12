@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -79,7 +80,11 @@ namespace CatalogTests
         {
             private readonly ConcurrentBag<KeyValuePair<string, IDictionary<string, IGraph>>> _allSortedGraphs;
 
-            public TestSortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc) : base(index, types, handlerFunc)
+            public TestSortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc) : base(
+                index,
+                types,
+                new Mock<ITelemetryService>().Object,
+                handlerFunc)
             {
                 _allSortedGraphs = new ConcurrentBag<KeyValuePair<string, IDictionary<string, IGraph>>>();
             }

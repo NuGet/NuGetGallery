@@ -14,14 +14,16 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class CommitCollector : CollectorBase
     {
-        public CommitCollector(Uri index, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+        public CommitCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, telemetryService, handlerFunc)
         {
         }
 
         protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
+            var stopwatch = Stopwatch.StartNew();
             JObject root = await client.GetJObjectAsync(Index, cancellationToken);
+            _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, Index);
 
             IEnumerable<CatalogItem> rootItems = root["items"]
                 .Select(item => new CatalogItem(item))

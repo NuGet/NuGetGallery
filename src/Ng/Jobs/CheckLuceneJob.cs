@@ -1,12 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
 using Lucene.Net.Index;
+using Microsoft.Extensions.Logging;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng.Jobs
 {
@@ -14,7 +14,7 @@ namespace Ng.Jobs
     {
         private Lucene.Net.Store.Directory _directory;
 
-        public CheckLuceneJob(ILoggerFactory loggerFactory) : base(loggerFactory)
+        public CheckLuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
         {
         }
 

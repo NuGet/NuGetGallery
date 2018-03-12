@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -36,6 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// which are the timestamps of the catalog cursor.</remarks>
         /// <param name="storage"></param>
         /// <param name="cancellationToken"></param>
+        /// <param name="telemetryService"></param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="CatalogProperties" />.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="storage" /> is <c>null</c>.</exception>
@@ -43,11 +45,17 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// is cancelled.</exception>
         public static async Task<CatalogProperties> GetCatalogPropertiesAsync(
             IStorage storage,
+            ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
             if (storage == null)
             {
                 throw new ArgumentNullException(nameof(storage));
+            }
+
+            if (telemetryService == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryService));
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -56,11 +64,14 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime? lastDeleted = null;
             DateTime? lastEdited = null;
 
-            var json = await storage.LoadString(storage.ResolveUri("index.json"), cancellationToken);
+            var stopwatch = Stopwatch.StartNew();
+            var indexUri = storage.ResolveUri("index.json");
+            var json = await storage.LoadString(indexUri, cancellationToken);
 
             if (json != null)
             {
                 var obj = JObject.Parse(json);
+                telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, indexUri);
                 JToken token;
 
                 if (obj.TryGetValue("nuget:lastCreated", out token))
@@ -238,9 +249,10 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime lastDeleted,
             bool? createdPackages,
             CancellationToken cancellationToken,
+            ITelemetryService telemetryService,
             ILogger logger)
         {
-            var writer = new AppendOnlyCatalogWriter(storage, maxPageSize: 550);
+            var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 

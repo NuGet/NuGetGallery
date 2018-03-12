@@ -6,7 +6,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Moq;
 using Ng.Jobs;
+using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NgTests
@@ -25,7 +27,7 @@ namespace NgTests
             TimeSpan timeout,
             int top,
             bool verbose)
-            : base(new TestLoggerFactory())
+            : base(new Mock<ITelemetryService>().Object, new TestLoggerFactory())
         {
             _handler = handler;
 

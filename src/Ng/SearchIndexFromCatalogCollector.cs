@@ -1,21 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Lucene.Net.Documents;
-using Lucene.Net.Index;
-using Lucene.Net.Search;
-using Newtonsoft.Json.Linq;
-using NuGet.Indexing;
-using NuGet.Services.Metadata.Catalog;
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Documents;
+using Lucene.Net.Index;
+using Lucene.Net.Search;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using NuGet.Indexing;
+using NuGet.Services.Metadata.Catalog;
+using NuGet.Versioning;
 
 namespace Ng
 {
@@ -29,8 +30,15 @@ namespace Ng
 
         private LuceneCommitMetadata _metadataForNextCommit;
 
-        public SearchIndexFromCatalogCollector(ILogger logger, Uri index, IndexWriter indexWriter, bool commitEachBatch, string baseAddress, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+        public SearchIndexFromCatalogCollector(
+            Uri index,
+            IndexWriter indexWriter,
+            bool commitEachBatch,
+            string baseAddress,
+            ITelemetryService telemetryService,
+            ILogger logger,
+            Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, telemetryService, handlerFunc)
         {
             _indexWriter = indexWriter;
             _commitEachBatch = commitEachBatch;
@@ -40,7 +48,14 @@ namespace Ng
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
-            JObject catalogIndex = (_baseAddress != null) ? await client.GetJObjectAsync(Index, cancellationToken) : null;
+            JObject catalogIndex = null; ;
+            if (_baseAddress != null)
+            {
+                var stopwatch = Stopwatch.StartNew();
+                catalogIndex = await client.GetJObjectAsync(Index, cancellationToken);
+                _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, Index);
+            }
+
             IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
 
             var numDocs = _indexWriter.NumDocs();

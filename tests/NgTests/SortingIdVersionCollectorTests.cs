@@ -103,7 +103,10 @@ namespace NgTests
         public class TestableSortingIdVersionCollector : SortingIdVersionCollector
         {
             public TestableSortingIdVersionCollector() 
-                : base(new Uri("https://www.microsoft.com"), null)
+                : base(
+                      new Uri("https://www.microsoft.com"),
+                    new Mock<ITelemetryService>().Object,
+                    null)
             {
             }
 

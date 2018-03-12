@@ -3,25 +3,30 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
 {
     public class AppendOnlyCatalogWriter : CatalogWriterBase
     {
-        bool _append;
-        bool _first;
+        private readonly ITelemetryService _telemetryService;
+        private readonly bool _append;
+        private bool _first;
 
         public AppendOnlyCatalogWriter(
             IStorage storage,
+            ITelemetryService telemetryService,
             int maxPageSize = 1000,
             bool append = true,
             ICatalogGraphPersistence catalogGraphPersistence = null,
             CatalogContext context = null)
             : base(storage, catalogGraphPersistence, context)
         {
+            _telemetryService = telemetryService;
             _append = append;
             _first = true;
             MaxPageSize = maxPageSize;
@@ -36,6 +41,18 @@ namespace NuGet.Services.Metadata.Catalog
         protected override Uri[] GetAdditionalRootType()
         {
             return new Uri[] { Schema.DataTypes.AppendOnlyCatalog, Schema.DataTypes.Permalink };
+        }
+
+        protected override async Task SaveRoot(
+            Guid commitId,
+            DateTime commitTimeStamp,
+            IDictionary<string, CatalogItemSummary> pageEntries,
+            IGraph commitMetadata,
+            CancellationToken cancellationToken)
+        {
+            var stopwatch = Stopwatch.StartNew();
+            await base.SaveRoot(commitId, commitTimeStamp, pageEntries, commitMetadata, cancellationToken);
+            _telemetryService.TrackCatalogIndexWriteDuration(stopwatch.Elapsed, RootUri);
         }
 
         protected override async Task<IDictionary<string, CatalogItemSummary>> SavePages(Guid commitId, DateTime commitTimeStamp, IDictionary<string, CatalogItemSummary> itemEntries, CancellationToken cancellationToken)

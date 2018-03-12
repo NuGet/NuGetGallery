@@ -153,6 +153,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CatalogIndexReaderTests.cs" />
+    <Compile Include="CollectorHttpClientTests.cs" />
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
@@ -167,9 +168,7 @@
     <Compile Include="Registration\RegistrationCatalogEntryTests.cs" />
     <Compile Include="SortingGraphCollectorTests.cs" />
     <Compile Include="StringInternerTests.cs" />
-    <Compile Include="TestCollector.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestCatalogItem.cs" />
     <None Include="TestData\DependencyMissingId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

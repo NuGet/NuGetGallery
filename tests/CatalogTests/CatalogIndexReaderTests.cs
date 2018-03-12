@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using NgTests.Data;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Versioning;
@@ -30,7 +31,8 @@ namespace CatalogTests
 
             var reader = new CatalogIndexReader(
                 new Uri(indexUri),
-                new CollectorHttpClient(new InMemoryHttpHandler(responses)));
+                new CollectorHttpClient(new InMemoryHttpHandler(responses)),
+                new Mock<ITelemetryService>().Object);
 
             // Act
             var entries = await reader.GetEntries();

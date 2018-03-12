@@ -10,8 +10,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
@@ -20,8 +20,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         DnxMaker _dnxMaker;
         StorageFactory _storageFactory;
 
-        public DnxCatalogCollector(Uri index, StorageFactory storageFactory, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, handlerFunc)
+        public DnxCatalogCollector(Uri index, StorageFactory storageFactory, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
+            : base(index, telemetryService, handlerFunc)
         {
             _storageFactory = storageFactory;
             _dnxMaker = new DnxMaker(storageFactory);
