@@ -151,7 +151,7 @@ WHERE u.[EmailAllowed] = 1
   AND u.[EmailAddress] &lt;&gt; ''
   AND cr.[Expires] &lt;= DATEADD(day,@DaysBeforeExpiration,GETUTCDATE())
   AND cr.[Expires] &gt; DATEADD(day,-1 * @DaysBeforeExpiration,GETUTCDATE())
-  AND (cr.[Type] = 'apikey.v1' or cr.[Type] = 'apikey.v2')
+  AND (cr.[Type] = 'apikey.v3' or cr.[Type] = 'apikey.v4')
 ORDER BY u.[Username]</value>
   </data>
   <data name="ExpiredEmailSubject" xml:space="preserve">

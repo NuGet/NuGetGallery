@@ -142,7 +142,7 @@ namespace Gallery.CredentialExpiration {
         ///  AND u.[EmailAddress] &lt;&gt; &apos;&apos;
         ///  AND cr.[Expires] &lt;= DATEADD(day,@DaysBeforeExpiration,GETUTCDATE())
         ///  AND cr.[Expires] &gt; DATEADD(day,-1 * @DaysBeforeExpiration,GETUTCDATE())
-        ///  AND (cr.[Type] = &apos;apikey.v1&apos; or cr.[Type] = &apos;apikey.v2&apos;)
+        ///  AND (cr.[Type] = &apos;apikey.v3&apos; or cr.[Type] = &apos;apikey.v4&apos;)
         ///ORDER BY u.[Username].
         /// </summary>
         public static string GetExpiredCredentialsQuery {

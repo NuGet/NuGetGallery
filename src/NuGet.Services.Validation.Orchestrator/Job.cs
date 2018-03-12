@@ -190,14 +190,21 @@ namespace NuGet.Services.Validation.Orchestrator
             {
                 var smtpConfigurationAccessor = serviceProvider.GetRequiredService<IOptionsSnapshot<SmtpConfiguration>>();
                 var smtpConfiguration = smtpConfigurationAccessor.Value;
+                if (string.IsNullOrWhiteSpace(smtpConfiguration.SmtpUri))
+                {
+                    return new MailSenderConfiguration();
+                }
+                var smtpUri = new SmtpUri(new Uri(smtpConfiguration.SmtpUri));
                 return new MailSenderConfiguration
                 {
                     DeliveryMethod = System.Net.Mail.SmtpDeliveryMethod.Network,
-                    Host = smtpConfiguration.SmtpHost,
-                    Port = smtpConfiguration.SmtpPort,
-                    EnableSsl = smtpConfiguration.EnableSsl,
+                    Host = smtpUri.Host,
+                    Port = smtpUri.Port,
+                    EnableSsl = smtpUri.Secure,
                     UseDefaultCredentials = false,
-                    Credentials = new NetworkCredential(smtpConfiguration.Username, smtpConfiguration.Password)
+                    Credentials = new NetworkCredential(
+                        smtpUri.UserName,
+                        smtpUri.Password)
                 };
             });
             services.AddTransient<IMailSender>(serviceProvider =>
@@ -280,7 +287,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     parameterKey: ValidationStorageBindingKey);
 
             containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<NuGetGallery.ICorePackageFileService, NuGetGallery.CorePackageFileService, NuGetGallery.ICoreFileStorageService>(
+                .RegisterKeyedTypeWithKeyedParameter<IValidationPackageFileService, ValidationPackageFileService, NuGetGallery.ICoreFileStorageService>(
                     typeKey: ValidationStorageBindingKey,
                     parameterKey: ValidationStorageBindingKey);
 
@@ -288,13 +295,19 @@ namespace NuGet.Services.Validation.Orchestrator
                 .RegisterTypeWithKeyedParameter<
                     IValidationOutcomeProcessor,
                     ValidationOutcomeProcessor,
-                    NuGetGallery.ICorePackageFileService>(ValidationStorageBindingKey);
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
+
+            containerBuilder
+                .RegisterTypeWithKeyedParameter<
+                    IValidationSetProvider,
+                    ValidationSetProvider,
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
 
             containerBuilder
                 .RegisterTypeWithKeyedParameter<
                     IValidationSetProcessor,
                     ValidationSetProcessor,
-                    NuGetGallery.ICorePackageFileService>(ValidationStorageBindingKey);
+                    IValidationPackageFileService>(ValidationStorageBindingKey);
 
             containerBuilder
                 .RegisterType<ScopedMessageHandler<PackageValidationMessageData>>()
