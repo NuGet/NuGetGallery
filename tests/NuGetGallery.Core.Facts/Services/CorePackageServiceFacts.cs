@@ -545,7 +545,7 @@ namespace NuGetGallery
             }
         }
 
-        private static ICorePackageService CreateService(
+        private static ICorePackageService<Package> CreateService(
             Mock<IEntityRepository<Package>> packageRepository = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();

@@ -745,18 +745,18 @@ namespace NuGetGallery
             return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
         }
 
-        static CorePackageFileService CreateService(Mock<ICoreFileStorageService> fileStorageService = null)
+        static CorePackageFileService<Package> CreateService(Mock<ICoreFileStorageService> fileStorageService = null)
         {
             fileStorageService = fileStorageService ?? new Mock<ICoreFileStorageService>();
 
-            return new CorePackageFileService(
+            return new CorePackageFileService<Package>(
                 fileStorageService.Object);
         }
 
         public abstract class FactsBase
         {
             protected readonly Mock<ICoreFileStorageService> _fileStorageService;
-            protected readonly CorePackageFileService _service;
+            protected readonly CorePackageFileService<Package> _service;
             protected Package _package;
             protected Stream _packageFile;
 

@@ -10,7 +10,7 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class CorePackageService : ICorePackageService
+    public class CorePackageService : ICorePackageService<Package>
     {
         protected readonly IEntityRepository<Package> _packageRepository;
         

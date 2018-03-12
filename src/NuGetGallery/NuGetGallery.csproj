@@ -827,6 +827,10 @@
     <Compile Include="Migrations\201801101337052_RemovePackageEdits.Designer.cs">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201803071852348_SymbolPackage.cs" />
+    <Compile Include="Migrations\201803071852348_SymbolPackage.Designer.cs">
+      <DependentUpon>201803071852348_SymbolPackage.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1967,6 +1971,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801101337052_RemovePackageEdits.resx">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803071852348_SymbolPackage.resx">
+      <DependentUpon>201803071852348_SymbolPackage.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

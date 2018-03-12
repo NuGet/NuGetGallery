@@ -12,7 +12,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class PackageFileService : CorePackageFileService, IPackageFileService
+    public class PackageFileService : CorePackageFileService<Package>, IPackageFileService
     {
         /// <summary>
         /// Active readme markdown file, formatted as 'active/{packageId}/{version}.md'

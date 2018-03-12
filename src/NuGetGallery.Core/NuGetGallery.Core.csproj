@@ -175,6 +175,7 @@
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\DatabaseWrapper.cs" />
     <Compile Include="Entities\IDatabase.cs" />
+    <Compile Include="Entities\IPackage.cs" />
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
     <Compile Include="Entities\AccountDelete.cs" />
@@ -209,6 +210,7 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Include="Entities\SymbolPackage.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />

@@ -183,6 +183,13 @@ namespace NuGetGallery
                 .HasForeignKey(p => p.UserKey)
                 .WillCascadeOnDelete(true);
 
+            //modelBuilder.Entity<SymbolPackage>()
+            //    .Map(m =>
+            //    {
+            //        m.MapInheritedProperties();
+            //        m.ToTable("SymbolPackage");
+            //    });
+
             modelBuilder.Entity<ReservedNamespace>()
                 .HasKey(p => p.Key);
 
@@ -243,7 +250,15 @@ namespace NuGetGallery
                 .HasMany<PackageType>(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
-            
+
+            modelBuilder.Entity<SymbolPackage>()
+              .HasKey(p => p.Key);
+
+            modelBuilder.Entity<Package>()
+               .HasOptional<SymbolPackage>(p => p.SymbolPackage)
+               .WithRequired(sp => sp.Package)
+               .WillCascadeOnDelete(true);
+
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 

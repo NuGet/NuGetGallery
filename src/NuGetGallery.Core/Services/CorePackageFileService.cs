@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class CorePackageFileService : ICorePackageFileService
+    public class CorePackageFileService<T> : ICorePackageFileService<T> where T : IPackage
     {
         private readonly ICoreFileStorageService _fileStorageService;
 
@@ -19,7 +19,7 @@ namespace NuGetGallery
             _fileStorageService = fileStorageService;
         }
 
-        public Task SavePackageFileAsync(Package package, Stream packageFile)
+        public Task SavePackageFileAsync(T package, Stream packageFile)
         {
             if (packageFile == null)
             {
@@ -30,25 +30,25 @@ namespace NuGetGallery
             return _fileStorageService.SaveFileAsync(CoreConstants.PackagesFolderName, fileName, packageFile, overwrite: false);
         }
 
-        public Task<Stream> DownloadPackageFileAsync(Package package)
+        public Task<Stream> DownloadPackageFileAsync(T package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task<Uri> GetPackageReadUriAsync(Package package)
+        public Task<Uri> GetPackageReadUriAsync(T package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.PackagesFolderName, fileName, endOfAccess: null);
         }
 
-        public Task<bool> DoesPackageFileExistAsync(Package package)
+        public Task<bool> DoesPackageFileExistAsync(T package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.FileExistsAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task SaveValidationPackageFileAsync(Package package, Stream packageFile)
+        public Task SaveValidationPackageFileAsync(T package, Stream packageFile)
         {
             if (packageFile == null)
             {
@@ -67,7 +67,7 @@ namespace NuGetGallery
                 overwrite: false);
         }
 
-        public Task<Stream> DownloadValidationPackageFileAsync(Package package)
+        public Task<Stream> DownloadValidationPackageFileAsync(T package)
         {
             var fileName = BuildFileName(
                 package,
@@ -112,10 +112,13 @@ namespace NuGetGallery
             return _fileStorageService.DeleteFileAsync(CoreConstants.PackagesFolderName, fileName);
         }
 
-        public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess)
+        public Task<Uri> GetValidationPackageReadUriAsync(T package, DateTimeOffset endOfAccess)
         {
-            package = package ?? throw new ArgumentNullException(nameof(package));
-
+            //package = package ?? throw new ArgumentNullException(nameof(package));
+            if(package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
             var fileName = BuildFileName(
                 package,
                 CoreConstants.PackageFileSavePathTemplate,
@@ -124,13 +127,13 @@ namespace NuGetGallery
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
         }
 
-        public Task<bool> DoesValidationPackageFileExistAsync(Package package)
+        public Task<bool> DoesValidationPackageFileExistAsync(T package)
         {
             var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
             return _fileStorageService.FileExistsAsync(CoreConstants.ValidationFolderName, fileName);
         }
 
-        public async Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
+        public async Task StorePackageFileInBackupLocationAsync(T package, Stream packageFile)
         {
             if (package == null)
             {
@@ -210,7 +213,7 @@ namespace NuGetGallery
                 CoreConstants.NuGetPackageFileExtension);
         }
 
-        protected static string BuildFileName(Package package, string format, string extension)
+        protected static string BuildFileName(T package, string format, string extension)
         {
             if (package == null)
             {

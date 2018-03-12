@@ -9,7 +9,7 @@ using AnglicanGeek.MarkdownMailer;
 
 namespace NuGetGallery.Services
 {
-    public class CoreMessageService : ICoreMessageService
+    public class CoreMessageService  : ICoreMessageService
     {
         protected CoreMessageService()
         {
@@ -24,7 +24,7 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public void SendPackageAddedNotice(IPackage package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
             string subject = "[{0}] Package published - {1} {2}";
             string body = @"The package [{1} {2}]({3}) was just published on {0}. If this was not intended, please [contact support]({4}).
@@ -62,7 +62,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl)
+        public void SendPackageValidationFailedNotice(IPackage package, string packageUrl, string packageSupportUrl)
         {
             string subject = "[{0}] Package validation failed - {1} {2}";
             string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.";
@@ -93,7 +93,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendSignedPackageNotAllowedNotice(Package package, string packageUrl, string announcementsUrl, string twitterUrl)
+        public void SendSignedPackageNotAllowedNotice(IPackage package, string packageUrl, string announcementsUrl, string twitterUrl)
         {
             string subject = "[{0}] Package validation failed - {1} {2}";
             string body = @"The package [{1} {2}]({3}) could not be published since it is signed. {0} does not accept signed packages at this moment. To be notified when {0} starts accepting signed packages, and more, watch our [Announcements]({4}) page or follow us on [Twitter]({5}).";
@@ -125,7 +125,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendValidationTakingTooLongNotice(Package package, string packageUrl)
+        public void SendValidationTakingTooLongNotice(IPackage package, string packageUrl)
         {
             string subject = "[{0}] Package validation taking longer than expected - {1} {2}";
             string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +

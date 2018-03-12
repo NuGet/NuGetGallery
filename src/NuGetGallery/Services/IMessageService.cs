@@ -23,7 +23,7 @@ namespace NuGetGallery
         void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel);
         void SendCredentialAddedNotice(User user, CredentialViewModel addedCrdentialViewModel);
         void SendContactSupportEmail(ContactSupportRequest request);
-        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        void SendPackageAddedNotice(IPackage package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
         void SendAccountDeleteNotice(MailAddress mailAddress, string userName);
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
