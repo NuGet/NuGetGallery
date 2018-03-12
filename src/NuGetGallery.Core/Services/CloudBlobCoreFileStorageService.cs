@@ -110,7 +110,12 @@ namespace NuGetGallery
             }
         }
 
-        public async Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName)
+        public async Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
         {
             if (srcFolderName == null)
             {
@@ -137,36 +142,46 @@ namespace NuGetGallery
 
             var destContainer = await GetContainerAsync(destFolderName);
             var destBlob = destContainer.GetBlobReference(destFileName);
+            destAccessCondition = destAccessCondition ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
+            var mappedDestAccessCondition = new AccessCondition
+            {
+                IfNoneMatchETag = destAccessCondition.IfNoneMatchETag,
+                IfMatchETag = destAccessCondition.IfMatchETag,
+            };
 
             // Determine the source blob etag.
             await srcBlob.FetchAttributesAsync();
             var srcAccessCondition = AccessCondition.GenerateIfMatchCondition(srcBlob.ETag);
 
             // Check if the destination blob already exists and fetch attributes.
-            var destAccessCondition = AccessCondition.GenerateIfNotExistsCondition();
             if (await destBlob.ExistsAsync())
             {
                 if (destBlob.CopyState?.Status == CopyStatus.Failed)
                 {
-                    // If the last copy failed, allow this copy to occur.
-                    destAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
+                    // If the last copy failed, allow this copy to occur no matter what the caller's destination
+                    // condition is. This is because the source blob is preferable over a failed copy. We use the etag
+                    // of the failed blob to avoid inadvertently replacing a blob that is now valid (i.e. has a
+                    // successful copy status).
+                    mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
                 }
                 else if ((srcBlob.Properties.ContentMD5 != null
                      && srcBlob.Properties.ContentMD5 == destBlob.Properties.ContentMD5
                      && srcBlob.Properties.Length == destBlob.Properties.Length))
                 {
                     // If the blob hash is the same and the length is the same, no-op the copy.
-                    return;
+                    return srcBlob.ETag;
                 }
             }
 
-            // Start the server-side copy and wait for it to complete.
+            // Start the server-side copy and wait for it to complete. If "If-None-Match: *" was specified and the
+            // destination already exists, HTTP 409 is thrown. If "If-Match: ETAG" was specified and the destination
+            // has changed, HTTP 412 is thrown.
             try
             {
                 await destBlob.StartCopyAsync(
                     srcBlob,
                     srcAccessCondition,
-                    destAccessCondition);
+                    mappedDestAccessCondition);
             }
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
             {
@@ -195,6 +210,8 @@ namespace NuGetGallery
             {
                 throw new StorageException($"The blob copy operation had copy status {destBlob.CopyState.Status} ({destBlob.CopyState.StatusDescription}).");
             }
+
+            return srcBlob.ETag;
         }
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)

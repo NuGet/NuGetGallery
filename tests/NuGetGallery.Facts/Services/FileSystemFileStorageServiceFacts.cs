@@ -333,7 +333,12 @@ namespace NuGetGallery
                     new MemoryStream(Encoding.ASCII.GetBytes(content)));
 
                 // Act
-                await _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName);
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    destAccessCondition: null);
 
                 // Assert
                 using (var destStream = await _target.GetFileAsync(_destFolderName, _destFileName))
@@ -358,7 +363,12 @@ namespace NuGetGallery
                     new MemoryStream(Encoding.ASCII.GetBytes(content)));
 
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+                    () => _target.CopyFileAsync(
+                        _srcFolderName,
+                        _srcFileName,
+                        _destFolderName,
+                        _destFileName,
+                        destAccessCondition: null));
             }
 
             [Fact]
@@ -377,7 +387,12 @@ namespace NuGetGallery
 
                 // Act & Assert
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+                    () => _target.CopyFileAsync(
+                        _srcFolderName,
+                        _srcFileName,
+                        _destFolderName,
+                        _destFileName,
+                        destAccessCondition: null));
             }
 
             public void Dispose()

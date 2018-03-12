@@ -46,6 +46,18 @@ namespace NuGetGallery
         /// <param name="srcFileName">The source file name or relative file path.</param>
         /// <param name="destFolderName">The destination folder.</param>
         /// <param name="destFileName">The destination file name or relative file path.</param>
-        Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName);
+        /// <param name="destAccessCondition">
+        /// The access condition used to determine whether the destination is in the expected state.
+        /// </param>
+        /// <returns>
+        /// The etag of the source file. This can be used if the destination file is later intended to replace
+        /// the source file in conjunction with <paramref name="destAccessCondition"/>.
+        /// </returns>
+        Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition);
     }
 }
