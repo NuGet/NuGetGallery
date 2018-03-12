@@ -16,15 +16,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationStorageServiceFacts
     {
-        public class UpdateValidationSetStatusAsync : TelemetryFacts
+        public class UpdateValidationSetStatusAsync : Facts
         {
             public UpdateValidationSetStatusAsync(ITestOutputHelper output) : base(output)
             {
-            }
-
-            protected override async Task ExecuteAsync(ValidationResult validationResult)
-            {
-                await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
             }
 
             [Fact]
@@ -47,15 +42,30 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        public class UpdateValidationStatusAsync : TelemetryFacts
+        public class UpdateValidationStatusAsync : StatusUpdaterFacts
         {
             public UpdateValidationStatusAsync(ITestOutputHelper output) : base(output)
             {
             }
 
-            protected override async Task ExecuteAsync(ValidationResult validationResult)
+            protected override async Task ExecuteAsync(IValidationResult validationResult)
             {
                 await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
+            }
+
+            [Fact]
+            public async Task DoesNotSetStartedProperty()
+            {
+                // Arrange
+                _packageValidation.Started = null;
+
+                var validationResult = ValidationResult.Incomplete;
+
+                // Act
+                await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
+
+                // Assert
+                Assert.Null(_packageValidation.Started);
             }
 
             [Theory]
@@ -79,15 +89,33 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        public class MarkValidationStartedAsync : TelemetryFacts
+        public class MarkValidationStartedAsync : StatusUpdaterFacts
         {
             public MarkValidationStartedAsync(ITestOutputHelper output) : base(output)
             {
             }
 
-            protected override async Task ExecuteAsync(ValidationResult validationResult)
+            protected override async Task ExecuteAsync(IValidationResult validationResult)
             {
                 await _target.MarkValidationStartedAsync(_packageValidation, validationResult);
+            }
+
+            [Fact]
+            public async Task SetsStartedProperty()
+            {
+                // Arrange
+                _packageValidation.Started = null;
+
+                var validationResult = ValidationResult.Incomplete;
+
+                // Act
+                var before = DateTime.UtcNow;
+                await _target.MarkValidationStartedAsync(_packageValidation, validationResult);
+                var after = DateTime.UtcNow;
+
+                // Assert
+                Assert.NotNull(_packageValidation.Started);
+                Assert.InRange(_packageValidation.Started.Value, before, after);
             }
         }
 
@@ -201,13 +229,124 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
-        public abstract class TelemetryFacts : Facts
+        public abstract class StatusUpdaterFacts : Facts
         {
-            public TelemetryFacts(ITestOutputHelper output) : base(output)
+            public StatusUpdaterFacts(ITestOutputHelper output) : base(output)
             {
             }
 
-            protected abstract Task ExecuteAsync(ValidationResult validationResult);
+            protected abstract Task ExecuteAsync(IValidationResult validationResult);
+
+            [Theory]
+            [InlineData(ValidationStatus.Failed)]
+            [InlineData(ValidationStatus.Incomplete)]
+            public async Task DoesNotCopyNupkgUrlWhenValidationDidNotSucceed(ValidationStatus status)
+            {
+                // Arrange
+                _validatorProvider
+                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Returns(true);
+                var validationResult = new Mock<IValidationResult>();
+                validationResult.Setup(x => x.Status).Returns(status);
+                validationResult.Setup(x => x.NupkgUrl).Returns(_nupkgUrl);
+                validationResult.Setup(x => x.Issues).Returns(new List<IValidationIssue>());
+
+                // Act
+                await ExecuteAsync(validationResult.Object);
+
+                // Assert
+                _packageFileService.Verify(
+                    x => x.CopyPackageUrlForValidationSetAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task CopiesNupkgUrlBeforeSavingDb()
+            {
+                // Arrange
+                _validatorProvider
+                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Returns(true);
+                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+
+                var operations = new List<string>();
+                _packageFileService
+                    .Setup(x => x.CopyPackageUrlForValidationSetAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<PackageValidationSet, string>((_, __) => operations.Add(
+                        nameof(IValidationPackageFileService.CopyPackageUrlForValidationSetAsync)));
+                _entitiesContext
+                    .Setup(x => x.SaveChangesAsync())
+                    .ReturnsAsync(1)
+                    .Callback(() => operations.Add(nameof(IValidationEntitiesContext.SaveChangesAsync)));
+
+                // Act
+                await ExecuteAsync(validationResult);
+
+                // Assert
+                Assert.Equal(new List<string>
+                {
+                    nameof(IValidationPackageFileService.CopyPackageUrlForValidationSetAsync),
+                    nameof(IValidationEntitiesContext.SaveChangesAsync),
+                }, operations);
+            }
+
+            [Fact]
+            public async Task CopiesNupkgUrlWhenValidatorIsProcessor()
+            {
+                // Arrange
+                _validatorProvider
+                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Returns(true);
+                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+
+                // Act
+                await ExecuteAsync(validationResult);
+
+                // Assert
+                _packageFileService.Verify(
+                    x => x.CopyPackageUrlForValidationSetAsync(_packageValidation.PackageValidationSet, _nupkgUrl),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.CopyPackageUrlForValidationSetAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotCopyNupkgUrlWhenNupkgUrlIsNull()
+            {
+                // Arrange
+                _validatorProvider
+                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Returns(true);
+                var validationResult = ValidationResult.Succeeded;
+
+                // Act
+                await ExecuteAsync(validationResult);
+
+                // Assert
+                _packageFileService.Verify(
+                    x => x.CopyPackageUrlForValidationSetAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task RejectsNupkgUrlWhenValidatorIsNotProcessor()
+            {
+                // Arrange
+                _validatorProvider
+                    .Setup(x => x.IsProcessor(It.IsAny<string>()))
+                    .Returns(false);
+                var validationResult = new ValidationResult(ValidationStatus.Succeeded, _nupkgUrl);
+
+                // Act & Assert
+                var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+                    () => ExecuteAsync(validationResult));
+                Assert.Equal(
+                    $"The validator '{_validatorType}' is not a processor but returned a .nupkg URL as " +
+                    $"part of the validation result.",
+                    ex.Message);
+            }
 
             [Theory]
             [InlineData(ValidationStatus.Failed, false)]
@@ -266,7 +405,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
 
             [Fact]
-            public async Task DoesNotEmitTelemtryForIncomplete()
+            public async Task DoesNotEmitTelemetryForIncomplete()
             {
                 // Arrange
                 _packageValidation.ValidationStatus = ValidationStatus.NotStarted;
@@ -305,7 +444,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             protected int _packageKey;
             protected string _validatorType;
             protected PackageValidation _packageValidation;
+            protected string _nupkgUrl;
             protected Mock<IValidationEntitiesContext> _entitiesContext;
+            protected Mock<IValidationPackageFileService> _packageFileService;
+            protected Mock<IValidatorProvider> _validatorProvider;
             protected Mock<ITelemetryService> _telemetryService;
             protected LoggerFactory _loggerFactory;
             protected ValidationStorageService _target;
@@ -323,11 +465,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     PackageValidationIssues = new List<PackageValidationIssue>(),
                     PackageValidationSet = new PackageValidationSet(),
                 };
+                _nupkgUrl = "https://example/nuget.versioning.4.3.0.nupkg";
 
                 _entitiesContext = new Mock<IValidationEntitiesContext>();
                 _entitiesContext
                     .Setup(x => x.PackageValidationSets)
                     .Returns(DbSetMockFactory.Create<PackageValidationSet>());
+
+                _packageFileService = new Mock<IValidationPackageFileService>();
+
+                _validatorProvider = new Mock<IValidatorProvider>();
 
                 _telemetryService = new Mock<ITelemetryService>();
 
@@ -341,6 +488,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 _target = new ValidationStorageService(
                     _entitiesContext.Object,
+                    _packageFileService.Object,
+                    _validatorProvider.Object,
                     _telemetryService.Object,
                     _loggerFactory.CreateLogger<ValidationStorageService>());
             }

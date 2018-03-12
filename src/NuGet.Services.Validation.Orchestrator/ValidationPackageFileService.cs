@@ -129,6 +129,23 @@ namespace NuGet.Services.Validation.Orchestrator
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
         }
 
+        public Task CopyPackageUrlForValidationSetAsync(PackageValidationSet validationSet, string srcPackageUrl)
+        {
+            var destFileName = BuildValidationSetPackageFileName(validationSet);
+
+            _logger.LogInformation(
+                "Copying URL {SrcPackageUrl} to {DestFolderName}/{DestFileName}.",
+                srcPackageUrl,
+                CoreConstants.ValidationFolderName,
+                srcPackageUrl);
+
+            return _fileStorageService.CopyFileAsync(
+                new Uri(srcPackageUrl),
+                CoreConstants.ValidationFolderName,
+                destFileName,
+                AccessConditionWrapper.GenerateEmptyCondition());
+        }
+
         private Task<string> CopyFileAsync(
             string srcFolderName,
             string srcFileName,

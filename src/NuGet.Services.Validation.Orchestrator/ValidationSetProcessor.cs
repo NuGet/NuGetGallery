@@ -110,7 +110,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     else
                     {
                         _logger.LogDebug(
-                            "Validation {ValidationType} for {PackageId} {PackageVersion} is still " +
+                            "Validation {ValidationType} for {PackageId} {PackageVersion} is already " +
                             "{ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
                             packageValidation.Type,
                             package.PackageRegistration.Id,

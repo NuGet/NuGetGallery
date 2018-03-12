@@ -177,6 +177,23 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task CopyPackageUrlForValidationSetAsync()
+        {
+            _fileStorageService
+                .Setup(x => x.CopyFileAsync(
+                    _testUri,
+                    _validationContainerName,
+                    _validationSetPackageFileName,
+                    It.Is<IAccessCondition>(y => y.IfMatchETag == null && y.IfNoneMatchETag == null)))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            await _target.CopyPackageUrlForValidationSetAsync(_validationSet, _testUri.AbsoluteUri);
+
+            _fileStorageService.Verify();
+        }
+
+        [Fact]
         public async Task DeletePackageForValidationSetAsync()
         {
             _fileStorageService

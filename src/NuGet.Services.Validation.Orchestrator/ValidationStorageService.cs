@@ -13,20 +13,26 @@ using NuGet.Services.Validation.Orchestrator.Telemetry;
 namespace NuGet.Services.Validation.Orchestrator
 {
     /// <summary>
-    /// Provides an access layer to the validation information stored in DB
+    /// Provides an access layer to the validation information stored in DB and blob storage.
     /// </summary>
     public class ValidationStorageService : IValidationStorageService
     {
         private readonly IValidationEntitiesContext _validationContext;
+        private readonly IValidationPackageFileService _packageFileService;
+        private readonly IValidatorProvider _validatorProvider;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationStorageService> _logger;
 
         public ValidationStorageService(
             IValidationEntitiesContext validationContext,
+            IValidationPackageFileService packageFileService,
+            IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
             ILogger<ValidationStorageService> logger)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _validatorProvider = validatorProvider ?? throw new ArgumentNullException(nameof(validatorProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -58,12 +64,14 @@ namespace NuGet.Services.Validation.Orchestrator
         public async Task MarkValidationStartedAsync(PackageValidation packageValidation, IValidationResult validationResult)
         {
             packageValidation = packageValidation ?? throw new ArgumentNullException(nameof(packageValidation));
+
             _logger.LogInformation("Marking validation {ValidationName} {ValidationId} {PackageId} {PackageVersion} as started with status {ValidationStatus}",
                 packageValidation.Type,
                 packageValidation.PackageValidationSet.ValidationTrackingId,
                 packageValidation.PackageValidationSet.PackageId,
                 packageValidation.PackageValidationSet.PackageNormalizedVersion,
                 validationResult.Status);
+
             if (validationResult.Status == ValidationStatus.NotStarted)
             {
                 throw new ArgumentOutOfRangeException(
@@ -74,20 +82,10 @@ namespace NuGet.Services.Validation.Orchestrator
                     $"with status {ValidationStatus.NotStarted}");
             }
 
-            packageValidation.ValidationStatus = validationResult.Status;
-
-            // If the validation has completed, save the validation issues to the package's validation.
-            if (validationResult.Status != ValidationStatus.Incomplete)
-            {
-                AddValidationIssues(packageValidation, validationResult.Issues);
-            }
-
             var now = DateTime.UtcNow;
-            packageValidation.ValidationStatusTimestamp = now;
             packageValidation.Started = now;
-            await _validationContext.SaveChangesAsync();
 
-            TrackValidationStatus(packageValidation);
+            await SetValidationStatusAsync(packageValidation, validationResult, now);
         }
 
         public Task UpdateValidationSetAsync(PackageValidationSet packageValidationSet)
@@ -107,6 +105,19 @@ namespace NuGet.Services.Validation.Orchestrator
         public async Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult)
         {
             packageValidation = packageValidation ?? throw new ArgumentNullException(nameof(packageValidation));
+
+            if (packageValidation.ValidationStatus == validationResult.Status)
+            {
+                _logger.LogInformation("Validation {ValidationName} {ValidationId} {PackageId} {PackageVersion} already has status {ValidationStatus}",
+                    packageValidation.Type,
+                    packageValidation.PackageValidationSet.ValidationTrackingId,
+                    packageValidation.PackageValidationSet.PackageId,
+                    packageValidation.PackageValidationSet.PackageNormalizedVersion,
+                    validationResult.Status);
+
+                return;
+            }
+
             _logger.LogInformation("Updating the status of the validation {ValidationName} {ValidationId} {PackageId} {PackageVersion} to {ValidationStatus}",
                 packageValidation.Type,
                 packageValidation.PackageValidationSet.ValidationTrackingId,
@@ -114,17 +125,36 @@ namespace NuGet.Services.Validation.Orchestrator
                 packageValidation.PackageValidationSet.PackageNormalizedVersion,
                 validationResult.Status);
 
-            if (packageValidation.ValidationStatus == validationResult.Status)
+            await SetValidationStatusAsync(packageValidation, validationResult, DateTime.UtcNow);
+        }
+
+        private async Task SetValidationStatusAsync(
+            PackageValidation packageValidation,
+            IValidationResult validationResult,
+            DateTime now)
+        {
+            if (validationResult.Status != ValidationStatus.Incomplete)
             {
-                return;
+                AddValidationIssues(packageValidation, validationResult.Issues);
             }
 
-            var previousValidationStatus = packageValidation.ValidationStatus;
+            if (validationResult.Status == ValidationStatus.Succeeded
+                && validationResult.NupkgUrl != null)
+            {
+                if (!_validatorProvider.IsProcessor(packageValidation.Type))
+                {
+                    throw new InvalidOperationException(
+                        $"The validator '{packageValidation.Type}' is not a processor but returned a .nupkg URL as " +
+                        $"part of the validation result.");
+                }
 
-            AddValidationIssues(packageValidation, validationResult.Issues);
+                await _packageFileService.CopyPackageUrlForValidationSetAsync(
+                    packageValidation.PackageValidationSet,
+                    validationResult.NupkgUrl);
+            }
 
             packageValidation.ValidationStatus = validationResult.Status;
-            packageValidation.ValidationStatusTimestamp = DateTime.UtcNow;
+            packageValidation.ValidationStatusTimestamp = now;
             await _validationContext.SaveChangesAsync();
 
             TrackValidationStatus(packageValidation);

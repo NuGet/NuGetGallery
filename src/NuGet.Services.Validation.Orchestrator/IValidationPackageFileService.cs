@@ -51,6 +51,14 @@ namespace NuGet.Services.Validation.Orchestrator
         Task CopyValidationPackageToPackageFileAsync(string id, string normalizedVersion);
 
         /// <summary>
+        /// Copy a package URL to a location specific for the validation set.
+        /// </summary>
+        /// <param name="validationSet">The validation set.</param>
+        /// <param name="srcPackageUrl">The source package URL.</param>
+        /// <returns></returns>
+        Task CopyPackageUrlForValidationSetAsync(PackageValidationSet validationSet, string srcPackageUrl);
+
+        /// <summary>
         /// Delete a package from a location specific for the validation set.
         /// </summary>
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
