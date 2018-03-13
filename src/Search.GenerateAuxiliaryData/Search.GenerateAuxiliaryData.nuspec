@@ -11,9 +11,8 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="bin"/>
-	
     <file src="Scripts\Search.GenerateAuxiliaryData.cmd" />
-	
+    <file src="Scripts\Search.GenerateAuxiliaryData.Asia.cmd" />
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />
