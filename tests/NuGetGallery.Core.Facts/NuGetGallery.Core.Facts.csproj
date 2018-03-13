@@ -154,8 +154,12 @@
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
+    <Compile Include="TestUtils\BlobStorageCollection.cs" />
+    <Compile Include="TestUtils\BlobStorageFact.cs" />
+    <Compile Include="TestUtils\BlobStorageFixture.cs" />
     <Compile Include="Services\CloudBlobClientWrapperFacts.cs" />
     <Compile Include="Services\CloudBlobCoreFileStorageServiceFacts.cs" />
+    <Compile Include="Services\CloudBlobCoreFileStorageServiceIntegrationTests.cs" />
     <Compile Include="Services\CorePackageFileServiceFacts.cs" />
     <Compile Include="Services\CorePackageServiceFacts.cs" />
     <Compile Include="TestUtils\CoreMockExtensions.cs" />

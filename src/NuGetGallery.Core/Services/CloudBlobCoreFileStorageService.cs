@@ -10,7 +10,6 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 
