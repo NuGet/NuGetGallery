@@ -15,6 +15,8 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string DurationToValidationSetCreationSeconds = Prefix + "DurationToValidationSetCreationSeconds";
         private const string PackageStatusChange = Prefix + "PackageStatusChange";
         private const string TotalValidationDurationSeconds = Prefix + "TotalValidationDurationSeconds";
+        private const string SentValidationTakingTooLongMessage = Prefix + "SentValidationTakingTooLongMessage";
+        private const string ValidationSetTimeout = Prefix + "TotalValidationDurationSeconds";
         private const string ValidationIssue = Prefix + "ValidationIssue";
         private const string ValidationIssueCount = Prefix + "ValidationIssueCount";
         private const string ValidatorTimeout = Prefix + "ValidatorTimeout";
@@ -89,6 +91,28 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                     { IsSuccess, isSuccess.ToString() },
                 });
         }
+
+        public void TrackSentValidationTakingTooLongMessage(string packageId, string normalizedVersion, Guid validationTrackingId)
+            => _telemetryClient.TrackMetric(
+                    SentValidationTakingTooLongMessage,
+                    1,
+                    new Dictionary<string, string>
+                    {
+                        { PackageId, packageId },
+                        { NormalizedVersion, normalizedVersion },
+                        { ValidationTrackingId, validationTrackingId.ToString() },
+                    });
+
+        public void TrackValidationSetTimeout(string packageId, string normalizedVersion, Guid validationTrackingId)
+            => _telemetryClient.TrackMetric(
+                    ValidationSetTimeout,
+                    1,
+                    new Dictionary<string, string>
+                    {
+                        { PackageId, packageId },
+                        { NormalizedVersion, normalizedVersion },
+                        { ValidationTrackingId, validationTrackingId.ToString() },
+                    });
 
         public void TrackValidationIssue(string validatorType, ValidationIssueCode code)
         {

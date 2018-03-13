@@ -14,15 +14,18 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class ValidationOutcomeProcessor : IValidationOutcomeProcessor
     {
+        private readonly IValidationStorageService _validationStorageService;
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly IPackageStatusProcessor _packageStateProcessor;
         private readonly IValidationPackageFileService _packageFileService;
         private readonly ValidationConfiguration _validationConfiguration;
+        private readonly Dictionary<string, ValidationConfigurationItem> _validationConfigurationsByName;
         private readonly IMessageService _messageService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationOutcomeProcessor> _logger;
 
         public ValidationOutcomeProcessor(
+            IValidationStorageService validationStorageService,
             IPackageValidationEnqueuer validationEnqueuer,
             IPackageStatusProcessor validatedPackageProcessor,
             IValidationPackageFileService packageFileService,
@@ -31,6 +34,7 @@ namespace NuGet.Services.Validation.Orchestrator
             ITelemetryService telemetryService,
             ILogger<ValidationOutcomeProcessor> logger)
         {
+            _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _validationEnqueuer = validationEnqueuer ?? throw new ArgumentNullException(nameof(validationEnqueuer));
             _packageStateProcessor = validatedPackageProcessor ?? throw new ArgumentNullException(nameof(validatedPackageProcessor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -44,24 +48,16 @@ namespace NuGet.Services.Validation.Orchestrator
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _validationConfigurationsByName = _validationConfiguration.Validations.ToDictionary(v => v.Name);
         }
 
         public async Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, Package package)
         {
-            var validations = _validationConfiguration.Validations.ToDictionary(v => v.Name);
-            ValidationConfigurationItem GetValidationConfigurationItem(string validationName)
-            {
-                if (validations.TryGetValue(validationName, out ValidationConfigurationItem validationConfigurationItem))
-                {
-                    return validationConfigurationItem;
-                }
-                return null;
-            }
+            var failedValidations = GetFailedValidations(validationSet);
 
-            if (AnyValidationFailed(validationSet, GetValidationConfigurationItem))
+            if (failedValidations.Any())
             {
-                var failedValidations = GetFailedValidations(validationSet, GetValidationConfigurationItem).ToList();
-
                 _logger.LogWarning("Some validations failed for package {PackageId} {PackageVersion}, validation set {ValidationSetId}: {FailedValidations}",
                     package.PackageRegistration.Id,
                     package.NormalizedVersion,
@@ -108,7 +104,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 await CompleteValidationSetAsync(package, validationSet, isSuccess: false);
             }
-            else if (AllValidationsSucceeded(validationSet, GetValidationConfigurationItem))
+            else if (AllValidationsSucceeded(validationSet))
             {
                 _logger.LogInformation("All validations are complete for the package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
@@ -134,10 +130,59 @@ namespace NuGet.Services.Validation.Orchestrator
             }
             else
             {
-                // No failed validations and some validations are still in progress.
-                // Scheduling another check
-                var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
-                await _validationEnqueuer.StartValidationAsync(messageData, DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod);
+                // There are no failed validations and some validations are still in progress. Update
+                // the validation set's Updated field and send a notice if the validation set is taking
+                // too long to complete.
+                var previousUpdateTime = validationSet.Updated;
+
+                await _validationStorageService.UpdateValidationSetAsync(validationSet);
+
+                var validationSetDuration = validationSet.Updated - validationSet.Created;
+                var previousDuration = previousUpdateTime - validationSet.Created;
+
+                // Only send a "validating taking too long" notice once. This is ensured by verifying this is
+                // the package's first validation set and that this is the first time the validation set duration
+                // is greater than the configured threshold. Service Bus message duplication for a single validation
+                // set will not cause multiple notices to be sent due to the row version on PackageValidationSet.
+                if (validationSetDuration > _validationConfiguration.ValidationSetNotificationTimeout &&
+                    previousDuration <= _validationConfiguration.ValidationSetNotificationTimeout &&
+                    await _validationStorageService.GetValidationSetCountAsync(package.Key) == 1)
+                {
+                    _messageService.SendPackageValidationTakingTooLongMessage(package);
+                    _telemetryService.TrackSentValidationTakingTooLongMessage(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+                }
+
+                // Track any validations that have timed out.
+                var timedOutValidations = GetIncompleteTimedOutValidations(validationSet);
+
+                if (timedOutValidations.Any())
+                {
+                    foreach (var validation in timedOutValidations)
+                    {
+                        var duration = DateTime.UtcNow - validation.Started;
+
+                        _logger.LogWarning("Validation {Validation} for package {PackageId} {PackageVersion} has reached the configured failure timeout after duration {Duration}",
+                            validation.Type,
+                            validationSet.PackageId,
+                            validationSet.PackageNormalizedVersion,
+                            duration);
+
+                        _telemetryService.TrackValidatorTimeout(validation.Type);
+                    }
+                }
+
+                // Schedule another check if we haven't reached the validation set timeout yet.
+                if (validationSetDuration <= _validationConfiguration.TimeoutValidationSetAfter)
+                {
+                    var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
+                    var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
+
+                    await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+                }
+                else
+                {
+                    _telemetryService.TrackValidationSetTimeout(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+                }
             }
         }
 
@@ -154,6 +199,13 @@ namespace NuGet.Services.Validation.Orchestrator
             TrackTotalValidationDuration(validationSet, isSuccess);
         }
 
+        private ValidationConfigurationItem GetValidationConfigurationItemByName(string name)
+        {
+            _validationConfigurationsByName.TryGetValue(name, out var item);
+
+            return item;
+        }
+
         private void TrackTotalValidationDuration(PackageValidationSet validationSet, bool isSuccess)
         {
             _telemetryService.TrackTotalValidationDuration(
@@ -161,31 +213,38 @@ namespace NuGet.Services.Validation.Orchestrator
                 isSuccess);
         }
 
-        private bool AllValidationsSucceeded(
-            PackageValidationSet packageValidationSet,
-            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
+        private bool AllValidationsSucceeded(PackageValidationSet packageValidationSet)
         {
             return packageValidationSet
                 .PackageValidations
                 .All(pv => pv.ValidationStatus == ValidationStatus.Succeeded
-                    || getValidationConfigurationItem(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
+                    || GetValidationConfigurationItemByName(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
         }
 
-        private IEnumerable<PackageValidation> GetFailedValidations(
-            PackageValidationSet packageValidationSet,
-            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
+        private List<PackageValidation> GetFailedValidations(PackageValidationSet packageValidationSet)
         {
             return packageValidationSet
                 .PackageValidations
-                .Where(v => v.ValidationStatus == ValidationStatus.Failed
-                    && getValidationConfigurationItem(v.Type)?.FailureBehavior == ValidationFailureBehavior.MustSucceed);
+                .Where(v => v.ValidationStatus == ValidationStatus.Failed)
+                .Where(v => GetValidationConfigurationItemByName(v.Type)?.FailureBehavior == ValidationFailureBehavior.MustSucceed)
+                .ToList();
         }
 
-        private bool AnyValidationFailed(
-            PackageValidationSet packageValidationSet,
-            Func<string, ValidationConfigurationItem> getValidationConfigurationItem)
+        private List<PackageValidation> GetIncompleteTimedOutValidations(PackageValidationSet packageValidationSet)
         {
-            return GetFailedValidations(packageValidationSet, getValidationConfigurationItem).Any();
+            bool IsPackageValidationTimedOut(PackageValidation validation)
+            {
+                var config = GetValidationConfigurationItemByName(validation.Type);
+                var duration = DateTime.UtcNow - validation.Started;
+
+                return duration > config?.TrackAfter;
+            }
+
+            return packageValidationSet
+                .PackageValidations
+                .Where(v => v.ValidationStatus == ValidationStatus.Incomplete)
+                .Where(IsPackageValidationTimedOut)
+                .ToList();
         }
     }
 }

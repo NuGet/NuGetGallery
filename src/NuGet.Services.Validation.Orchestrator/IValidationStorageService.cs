@@ -46,6 +46,13 @@ namespace NuGet.Services.Validation.Orchestrator
         Task MarkValidationStartedAsync(PackageValidation packageValidation, IValidationResult validationResult);
 
         /// <summary>
+        /// Updates the <see cref="PackageValidationSet.Updated"/> to the current timestamp and persists changes.
+        /// </summary>
+        /// <param name="packageValidationSet">The validation set to update.</param>
+        /// <returns>Task object tracking the async operation status.</returns>
+        Task UpdateValidationSetAsync(PackageValidationSet packageValidationSet);
+
+        /// <summary>
         /// Updates the passed <see cref="PackageValidation"/> object with the result's validation status,
         /// updates the <see cref="PackageValidation.ValidationStatusTimestamp"/> property to the current
         /// timestamp, adds the result's <see cref="PackageValidationIssue"/>s to the validation, and then persists

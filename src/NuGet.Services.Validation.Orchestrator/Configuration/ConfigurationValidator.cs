@@ -67,9 +67,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     throw new ConfigurationErrorsException("Validation name cannot be empty");
                 }
 
-                if (validationConfigurationItem.FailAfter == TimeSpan.Zero)
+                if (validationConfigurationItem.TrackAfter == TimeSpan.Zero)
                 {
-                    throw new ConfigurationErrorsException($"failAfter timeout must be set for validation {validationConfigurationItem.Name}");
+                    throw new ConfigurationErrorsException($"{nameof(validationConfigurationItem.TrackAfter)} must be set for validation {validationConfigurationItem.Name}");
                 }
             }
         }

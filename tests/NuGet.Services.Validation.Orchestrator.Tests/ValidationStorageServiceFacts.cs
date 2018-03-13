@@ -16,6 +16,37 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationStorageServiceFacts
     {
+        public class UpdateValidationSetStatusAsync : TelemetryFacts
+        {
+            public UpdateValidationSetStatusAsync(ITestOutputHelper output) : base(output)
+            {
+            }
+
+            protected override async Task ExecuteAsync(ValidationResult validationResult)
+            {
+                await _target.UpdateValidationStatusAsync(_packageValidation, validationResult);
+            }
+
+            [Fact]
+            public async Task UpdatesUpdateTimestamp()
+            {
+                // Arrange
+                var originalUpdated = DateTime.UtcNow - TimeSpan.FromMinutes(5);
+
+                var validationSet = new PackageValidationSet()
+                {
+                    Updated = originalUpdated
+                };
+
+                // Act & Assert
+                await _target.UpdateValidationSetAsync(validationSet);
+
+                _entitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+
+                Assert.True(validationSet.Updated > originalUpdated);
+            }
+        }
+
         public class UpdateValidationStatusAsync : TelemetryFacts
         {
             public UpdateValidationStatusAsync(ITestOutputHelper output) : base(output)

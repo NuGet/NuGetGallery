@@ -266,42 +266,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task UsesFailAfterConfigurationToTreatLongImcompleteAsFailed()
-        {
-            UseDefaultValidatorProvider();
-            var failAfter = TimeSpan.FromDays(1);
-            var validator = AddValidation("validation1", failAfter, validationStatus: ValidationStatus.Incomplete);
-            var validation = ValidationSet.PackageValidations.First();
-            validation.Started = DateTime.UtcNow - failAfter.Add(TimeSpan.FromSeconds(1));
-
-            var validationResult = new ValidationResult(ValidationStatus.Incomplete);
-
-            validator
-                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(validationResult)
-                .Verifiable();
-
-            ValidationStorageMock
-                .Setup(vs => vs.UpdateValidationStatusAsync(
-                                validation,
-                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)))
-                .Returns(Task.FromResult(0));
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationsAsync(ValidationSet, Package);
-
-            ValidationStorageMock
-                .Verify(vs => vs.UpdateValidationStatusAsync(
-                                validation,
-                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)),
-                    Times.Once);
-            TelemetryServiceMock
-                .Verify(ts => ts.TrackValidatorTimeout(validation.Type), Times.Once);
-            TelemetryServiceMock
-                .Verify(ts => ts.TrackValidatorTimeout(It.IsAny<string>()), Times.Once);
-        }
-
-        [Fact]
         public async Task UsesProperNupkgUrl()
         {
             UseDefaultValidatorProvider();
@@ -429,7 +393,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var validation = new ValidationConfigurationItem
             {
                 Name = name,
-                FailAfter = failAfter,
+                TrackAfter = failAfter,
                 RequiredValidations = requiredValidations.ToList(),
                 ShouldStart = shouldStart,
                 FailureBehavior = failureBehavior

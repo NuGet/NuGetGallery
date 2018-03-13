@@ -34,7 +34,17 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackTotalValidationDuration(TimeSpan duration, bool isSuccess);
 
         /// <summary>
-        /// A counter metric emitted when a validator fails due to the <see cref="ValidationConfigurationItem.FailAfter"/>
+        /// A counter metric emitted when a notification is sent because a validation set takes too long.
+        /// </summary>
+        void TrackSentValidationTakingTooLongMessage(string packageId, string normalizedVersion, Guid validationTrackingId);
+
+        /// <summary>
+        /// A counter metric emitted when a validation set times out.
+        /// </summary>
+        void TrackValidationSetTimeout(string packageId, string normalizedVersion, Guid validationTrackingId);
+
+        /// <summary>
+        /// A counter metric emitted when a validation is past its validator's <see cref="ValidationConfigurationItem.TrackAfter"/>
         /// configuration.
         /// </summary>
         /// <param name="validatorType">The validator type (name).</param>

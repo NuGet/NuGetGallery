@@ -17,9 +17,9 @@ namespace NuGet.Services.Validation.Orchestrator
         public string Name { get; set; }
 
         /// <summary>
-        /// Timeout after which started validation is considered failed if it didn't produce any outcome
+        /// Time after which a validation's processing time will be tracked. Use this to track validations that take too long.
         /// </summary>
-        public TimeSpan FailAfter { get; set; }
+        public TimeSpan TrackAfter { get; set; }
 
         /// <summary>
         /// List of validation names that must finish before this validation can run

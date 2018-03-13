@@ -63,7 +63,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 new ValidationConfigurationItem
                 {
                     Name = validation1,
-                    FailAfter = TimeSpan.FromDays(1),
+                    TrackAfter = TimeSpan.FromDays(1),
                     RequiredValidations = new List<string>{}
                 }
             };
@@ -111,7 +111,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation1 = "validation1";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
             };
 
             Package.PackageStatusKey = PackageStatus.Available;
@@ -155,7 +155,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation1 = "validation1";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
             };
 
             Package.PackageStatusKey = packageStatus;
@@ -249,8 +249,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation2 = "validation2";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ validation2 } },
-                new ValidationConfigurationItem(){ Name = validation2, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ validation2 } },
+                new ValidationConfigurationItem(){ Name = validation2, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
             };
 
             Guid validationTrackingId = Guid.NewGuid();
@@ -320,7 +320,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             const string validation1 = "validation1";
             Configuration.Validations = new List<ValidationConfigurationItem>
             {
-                new ValidationConfigurationItem(){ Name = validation1, FailAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
+                new ValidationConfigurationItem(){ Name = validation1, TrackAfter = TimeSpan.FromDays(1), RequiredValidations = new List<string>{ } }
             };
 
             Guid validationTrackingId = Guid.NewGuid();

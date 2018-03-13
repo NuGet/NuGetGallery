@@ -23,13 +23,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     }
                 }
@@ -51,12 +51,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = validationName,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                     },
                     new ValidationConfigurationItem
                     {
                         Name = validationName,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                     }
                 }
             };
@@ -79,7 +79,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ NonExistentValidationName }
                     },
                 }
@@ -102,7 +102,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = validationName,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>(),
                     },
                 }
@@ -128,19 +128,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = validationName1,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>(),
                     },
                     new ValidationConfigurationItem
                     {
                         Name = validationName2,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string> { validationName1 },
                     },
                     new ValidationConfigurationItem
                     {
                         Name = processorName1,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string> { validationName1 },
                     },
                 }
@@ -177,19 +177,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = validationName1,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>(),
                     },
                     new ValidationConfigurationItem
                     {
                         Name = validationName2,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string> { validationName1 },
                     },
                     new ValidationConfigurationItem
                     {
                         Name = processorName1,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string> { validationName2 },
                     },
                 }
@@ -221,13 +221,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2"}
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation1"}
                     }
                 }
@@ -249,7 +249,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation1" }
                     },
                 }
@@ -271,13 +271,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2" }
                     }
                 }
@@ -299,7 +299,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "",
-                        FailAfter = TimeSpan.FromHours(1)
+                        TrackAfter = TimeSpan.FromHours(1)
                     }
                 }
             };
@@ -311,7 +311,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public void FailureTimeoutsCantBeZero()
+        public void ValidationTimeoutsCantBeZero()
         {
             var configuration = new ValidationConfiguration()
             {
@@ -320,7 +320,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "SomeValidation",
-                        FailAfter = TimeSpan.Zero
+                        TrackAfter = TimeSpan.Zero
                     }
                 }
             };
@@ -328,7 +328,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var ex = Record.Exception(() => Validate(configuration));
 
             Assert.IsType<ConfigurationErrorsException>(ex);
-            Assert.Contains("FailAfter", ex.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.Contains(nameof(ValidationConfigurationItem.TrackAfter), ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -352,25 +352,25 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation3", "Validation4" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation3", "Validation4" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation3",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation4",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     }
                 }
@@ -401,25 +401,25 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2", "Validation3" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation4" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation3",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation4" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation4",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     }
                 }
@@ -441,19 +441,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation3",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation1" }
                     }
                 }
@@ -474,13 +474,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     }
                 }
@@ -506,19 +506,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = "Validation1",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>()
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation2",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation3" }
                     },
                     new ValidationConfigurationItem
                     {
                         Name = "Validation3",
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>{ "Validation2" }
                     }
                 }
@@ -553,7 +553,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     new ValidationConfigurationItem
                     {
                         Name = firstValidationName,
-                        FailAfter = TimeSpan.FromHours(1),
+                        TrackAfter = TimeSpan.FromHours(1),
                         RequiredValidations = new List<string>(),
                         ShouldStart = false
                     }
@@ -567,7 +567,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 configuration.Validations.Add(new ValidationConfigurationItem
                 {
                     Name = intermediateValidationName,
-                    FailAfter = TimeSpan.FromHours(1),
+                    TrackAfter = TimeSpan.FromHours(1),
                     RequiredValidations = new List<string> { previousValidationName },
                     ShouldStart = true,
                     FailureBehavior = intermediateValidationsFailureBehavior
@@ -578,7 +578,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             configuration.Validations.Add(new ValidationConfigurationItem
             {
                 Name = lastValidationName,
-                FailAfter = TimeSpan.FromHours(1),
+                TrackAfter = TimeSpan.FromHours(1),
                 RequiredValidations = new List<string> { previousValidationName },
                 ShouldStart = true,
                 FailureBehavior = lastValidationFailureBehavior

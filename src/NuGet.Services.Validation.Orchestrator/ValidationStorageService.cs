@@ -90,6 +90,20 @@ namespace NuGet.Services.Validation.Orchestrator
             TrackValidationStatus(packageValidation);
         }
 
+        public Task UpdateValidationSetAsync(PackageValidationSet packageValidationSet)
+        {
+            packageValidationSet = packageValidationSet ?? throw new ArgumentNullException(nameof(packageValidationSet));
+
+            _logger.LogInformation("Updating the status of the validation set {ValidationId} {PackageId} {PackageVersion}",
+                packageValidationSet.ValidationTrackingId,
+                packageValidationSet.PackageId,
+                packageValidationSet.PackageNormalizedVersion);
+
+            packageValidationSet.Updated = DateTime.UtcNow;
+
+            return _validationContext.SaveChangesAsync();
+        }
+
         public async Task UpdateValidationStatusAsync(PackageValidation packageValidation, IValidationResult validationResult)
         {
             packageValidation = packageValidation ?? throw new ArgumentNullException(nameof(packageValidation));

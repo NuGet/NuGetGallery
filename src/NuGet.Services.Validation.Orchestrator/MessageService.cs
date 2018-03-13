@@ -49,8 +49,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             package = package ?? throw new ArgumentNullException(nameof(package));
 
-            var galleryPackageUrl = string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
-            var packageSupportUrl = string.Format(_emailConfiguration.PackageSupportTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
+            var galleryPackageUrl = GalleryPackageUrl(package);
+            var packageSupportUrl = PackageSupportUrl(package);
+
             _coreMessageService.SendPackageAddedNotice(package, galleryPackageUrl, packageSupportUrl, _emailConfiguration.EmailSettingsUrl);
         }
 
@@ -58,8 +59,9 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             package = package ?? throw new ArgumentNullException(nameof(package));
 
-            var galleryPackageUrl = string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
-            var packageSupportUrl = string.Format(_emailConfiguration.PackageSupportTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
+            var galleryPackageUrl = GalleryPackageUrl(package);
+            var packageSupportUrl = PackageSupportUrl(package);
+
             _coreMessageService.SendPackageValidationFailedNotice(package, galleryPackageUrl, packageSupportUrl);
         }
 
@@ -67,8 +69,19 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             package = package ?? throw new ArgumentNullException(nameof(package));
 
-            var galleryPackageUrl = string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
+            var galleryPackageUrl = GalleryPackageUrl(package);
+
             _coreMessageService.SendSignedPackageNotAllowedNotice(package, galleryPackageUrl, _emailConfiguration.AnnouncementsUrl, _emailConfiguration.TwitterUrl);
         }
+
+        public void SendPackageValidationTakingTooLongMessage(Package package)
+        {
+            package = package ?? throw new ArgumentNullException(nameof(package));
+
+            _coreMessageService.SendValidationTakingTooLongNotice(package, GalleryPackageUrl(package));
+        }
+
+        private string GalleryPackageUrl(Package package) => string.Format(_emailConfiguration.PackageUrlTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
+        private string PackageSupportUrl(Package package) => string.Format(_emailConfiguration.PackageSupportTemplate, package.PackageRegistration.Id, package.NormalizedVersion);
     }
 }
