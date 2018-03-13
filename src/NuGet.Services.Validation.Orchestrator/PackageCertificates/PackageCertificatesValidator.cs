@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation.Orchestrator;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 
 namespace NuGet.Services.Validation.PackageCertificates
 {
@@ -19,6 +21,7 @@ namespace NuGet.Services.Validation.PackageCertificates
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
         private readonly ICertificateVerificationEnqueuer _certificateVerificationEnqueuer;
+        private readonly ITelemetryService _telemetryService;
         private readonly TimeSpan _certificateRevalidationThresholdTime;
         private readonly ILogger<PackageCertificatesValidator> _logger;
 
@@ -34,12 +37,14 @@ namespace NuGet.Services.Validation.PackageCertificates
             IValidationEntitiesContext validationContext,
             IValidatorStateService validatorStateService,
             ICertificateVerificationEnqueuer certificateVerificationEnqueuer,
+            ITelemetryService telemetryService,
             ILogger<PackageCertificatesValidator> logger,
             TimeSpan? certificateRevalidationThreshold = null)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
             _certificateVerificationEnqueuer = certificateVerificationEnqueuer ?? throw new ArgumentNullException(nameof(certificateVerificationEnqueuer));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _certificateRevalidationThresholdTime = certificateRevalidationThreshold ?? DefaultCertificateRevalidationThresholdTime;
@@ -172,18 +177,18 @@ namespace NuGet.Services.Validation.PackageCertificates
 
             if (certificates.Any())
             {
+                var stopwatch = Stopwatch.StartNew();
+
                 await StartCertificateValidationsAsync(request, certificates);
 
-                return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
+                var result = await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
+
+                _telemetryService.TrackDurationToStartPackageCertificatesValidator(stopwatch.Elapsed);
+
+                return result;
             }
             else
             {
-                _logger.LogInformation(
-                    "All certificates for package {PackageId} {PackageVersion} have already been validated, no additional validations necessary. " +
-                    "Promoting signature to status {SignatureStatus}",
-                    request.PackageId,
-                    request.PackageVersion);
-
                 PromoteSignature(request, signature);
 
                 return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Succeeded);

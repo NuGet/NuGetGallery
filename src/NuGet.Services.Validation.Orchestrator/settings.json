@@ -20,7 +20,7 @@
         "TrackAfter": "00:10:00",
         "requiredValidations": [ "PackageSigningValidator" ],
         "ShouldStart": true,
-        "FailureBehavior": "AllowedToFail"
+        "FailureBehavior": "MustSucceed"
       }
     ],
     "ValidationStorageConnectionString": "",
@@ -47,7 +47,8 @@
       "ConnectionString": "",
       "TopicPath": "",
       "SubscriptionName": ""
-    }
+    },
+    "MessageDelay": "00:00:05"
   },
   "PackageCertificates": {
     "CertificateRevalidationThreshold": "1:00:00:00",
@@ -55,7 +56,8 @@
       "ConnectionString": "",
       "TopicPath": "",
       "SubscriptionName": ""
-    }
+    },
+    "MessageDelay": "00:00:05"
   },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",

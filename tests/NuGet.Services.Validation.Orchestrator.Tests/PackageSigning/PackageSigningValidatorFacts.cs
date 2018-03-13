@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Xunit;
 
 namespace NuGet.Services.Validation.PackageSigning
@@ -129,6 +130,10 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _validatorStateService
                     .Verify(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
+
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
             }
 
             [Fact]
@@ -188,6 +193,10 @@ namespace NuGet.Services.Validation.PackageSigning
                                 It.Is<ValidationStatus>(s => s == ValidationStatus.Incomplete)),
                         Times.Once);
 
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<TimeSpan>()),
+                    Times.Once);
+
                 Assert.True(verificationQueuedBeforeStatePersisted);
             }
 
@@ -198,6 +207,7 @@ namespace NuGet.Services.Validation.PackageSigning
         {
             protected readonly Mock<IValidatorStateService> _validatorStateService;
             protected readonly Mock<IPackageSignatureVerificationEnqueuer> _packageSignatureVerifier;
+            protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ILogger<PackageSigningValidator>> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly PackageSigningValidator _target;
@@ -206,6 +216,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _packageSignatureVerifier = new Mock<IPackageSignatureVerificationEnqueuer>();
+                _telemetryService = new Mock<ITelemetryService>();
                 _logger = new Mock<ILogger<PackageSigningValidator>>();
 
                 _validationRequest = new Mock<IValidationRequest>();
@@ -218,6 +229,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _target = new PackageSigningValidator(
                         _validatorStateService.Object,
                         _packageSignatureVerifier.Object,
+                        _telemetryService.Object,
                         _logger.Object);
             }
         }

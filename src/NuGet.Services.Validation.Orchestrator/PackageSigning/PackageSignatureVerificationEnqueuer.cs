@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Services.ServiceBus;
 
@@ -14,14 +15,17 @@ namespace NuGet.Services.Validation.PackageSigning
     public class PackageSignatureVerificationEnqueuer : IPackageSignatureVerificationEnqueuer
     {
         private readonly ITopicClient _topicClient;
-        private readonly IBrokeredMessageSerializer<SignatureValidationMessage> _signatureValidationSerializer;
+        private readonly IBrokeredMessageSerializer<SignatureValidationMessage> _serializer;
+        private readonly IOptionsSnapshot<PackageSigningConfiguration> _configuration;
 
         public PackageSignatureVerificationEnqueuer(
             ITopicClient topicClient,
-            IBrokeredMessageSerializer<SignatureValidationMessage> signatureValidationSerializer)
+            IBrokeredMessageSerializer<SignatureValidationMessage> serializer,
+            IOptionsSnapshot<PackageSigningConfiguration> configuration)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
-            _signatureValidationSerializer = signatureValidationSerializer ?? throw new ArgumentNullException(nameof(signatureValidationSerializer));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         /// <summary>
@@ -34,8 +38,15 @@ namespace NuGet.Services.Validation.PackageSigning
         /// <returns>A task that will complete when the verification process has been queued.</returns>
         public Task EnqueueVerificationAsync(IValidationRequest request)
         {
-            var brokeredMessage = _signatureValidationSerializer.Serialize(
-                new SignatureValidationMessage(request.PackageId, request.PackageVersion, new Uri(request.NupkgUrl), request.ValidationId));
+            var message = new SignatureValidationMessage(
+                request.PackageId,
+                request.PackageVersion,
+                new Uri(request.NupkgUrl),
+                request.ValidationId);
+            var brokeredMessage = _serializer.Serialize(message);
+
+            var visibleAt = DateTimeOffset.UtcNow + (_configuration.Value.MessageDelay ?? TimeSpan.Zero);
+            brokeredMessage.ScheduledEnqueueTimeUtc = visibleAt;
 
             return _topicClient.SendAsync(brokeredMessage);
         }

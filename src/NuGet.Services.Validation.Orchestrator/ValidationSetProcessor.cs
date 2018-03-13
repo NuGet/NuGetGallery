@@ -94,13 +94,31 @@ namespace NuGet.Services.Validation.Orchestrator
                     var validator = _validatorProvider.GetValidator(packageValidation.Type);
                     var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
                     var validationResult = await validator.GetResultAsync(validationRequest);
-                    _logger.LogInformation("New status for validation {ValidationType} for {PackageId} {PackageVersion} is {ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
-                        packageValidation.Type,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
-                        validationResult.Status,
-                        validationSet.ValidationTrackingId,
-                        packageValidation.Key);
+
+                    if (validationResult.Status != ValidationStatus.Incomplete)
+                    {
+                        _logger.LogInformation(
+                            "New status for validation {ValidationType} for {PackageId} {PackageVersion} is " +
+                            "{ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
+                           packageValidation.Type,
+                           package.PackageRegistration.Id,
+                           package.NormalizedVersion,
+                           validationResult.Status,
+                           validationSet.ValidationTrackingId,
+                           packageValidation.Key);
+                    }
+                    else
+                    {
+                        _logger.LogDebug(
+                            "Validation {ValidationType} for {PackageId} {PackageVersion} is still " +
+                            "{ValidationStatus}, validation set {ValidationSetId}, {ValidationId}",
+                            packageValidation.Type,
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion,
+                            validationResult.Status,
+                            validationSet.ValidationTrackingId,
+                            packageValidation.Key);
+                    }
 
                     switch (validationResult.Status)
                     {

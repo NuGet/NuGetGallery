@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageCertificates;
 using Validation.PackageSigning.Helpers;
 using Xunit;
@@ -558,6 +559,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
 
                 Assert.Equal(status, actual.Status);
             }
@@ -592,6 +596,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 Assert.Equal(ValidationStatus.Succeeded, validatorStatus.State);
@@ -671,6 +678,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
                 Assert.Equal(ValidationStatus.Succeeded, validatorStatus.State);
@@ -748,6 +758,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(2));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
@@ -828,6 +841,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Once);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
@@ -906,6 +922,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
 
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
                 Assert.Equal(ValidationStatus.Failed, validatorStatus.State);
@@ -1068,6 +1087,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(expectedCertificateValidations));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
                 Assert.Equal(ValidationStatus.Incomplete, validatorStatus.State);
@@ -1133,6 +1155,9 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
 
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
                 Assert.Equal(ValidationStatus.Failed, validatorStatus.State);
@@ -1147,6 +1172,7 @@ namespace NuGet.Services.Validation.PackageSigning
         {
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
             protected readonly Mock<ICertificateVerificationEnqueuer> _certificateVerifier;
+            protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ILogger<PackageCertificatesValidator>> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly PackageCertificatesValidator _target;
@@ -1155,6 +1181,7 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 _validationContext = new Mock<IValidationEntitiesContext>();
                 _certificateVerifier = new Mock<ICertificateVerificationEnqueuer>();
+                _telemetryService = new Mock<ITelemetryService>();
                 _logger = new Mock<ILogger<PackageCertificatesValidator>>();
 
                 _validationRequest = new Mock<IValidationRequest>();
@@ -1174,6 +1201,7 @@ namespace NuGet.Services.Validation.PackageSigning
                         _validationContext.Object,
                         validatorStateService,
                         _certificateVerifier.Object,
+                        _telemetryService.Object,
                         _logger.Object);
             }
         }

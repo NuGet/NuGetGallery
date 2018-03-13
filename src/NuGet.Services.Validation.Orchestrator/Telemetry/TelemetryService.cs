@@ -10,22 +10,28 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
 {
     public class TelemetryService : ITelemetryService
     {
-        private const string Prefix = "Orchestrator.";
+        private const string OrchestratorPrefix = "Orchestrator.";
+        private const string PackageSigningPrefix = "PackageSigning.";
+        private const string PackageCertificatesPrefix = "PackageCertificates.";
 
-        private const string DurationToValidationSetCreationSeconds = Prefix + "DurationToValidationSetCreationSeconds";
-        private const string PackageStatusChange = Prefix + "PackageStatusChange";
-        private const string TotalValidationDurationSeconds = Prefix + "TotalValidationDurationSeconds";
-        private const string SentValidationTakingTooLongMessage = Prefix + "SentValidationTakingTooLongMessage";
-        private const string ValidationSetTimeout = Prefix + "TotalValidationDurationSeconds";
-        private const string ValidationIssue = Prefix + "ValidationIssue";
-        private const string ValidationIssueCount = Prefix + "ValidationIssueCount";
-        private const string ValidatorTimeout = Prefix + "ValidatorTimeout";
-        private const string ValidatorDurationSeconds = Prefix + "ValidatorDurationSeconds";
-        private const string ValidatorStarted = Prefix + "ValidatorStarted";
-        private const string ClientValidationIssue = Prefix + "ClientValidationIssue";
-        private const string MissingPackageForValidationMessage = Prefix + "MissingPackageForValidationMessage";
-        private const string MissingNupkgForAvailablePackage = Prefix + "MissingNupkgForAvailablePackage";
-        private const string DurationToHashPackageSeconds = Prefix + "DurationToHashPackageSeconds";
+        private const string DurationToValidationSetCreationSeconds = OrchestratorPrefix + "DurationToValidationSetCreationSeconds";
+        private const string PackageStatusChange = OrchestratorPrefix + "PackageStatusChange";
+        private const string TotalValidationDurationSeconds = OrchestratorPrefix + "TotalValidationDurationSeconds";
+        private const string SentValidationTakingTooLongMessage = OrchestratorPrefix + "SentValidationTakingTooLongMessage";
+        private const string ValidationSetTimeout = OrchestratorPrefix + "TotalValidationDurationSeconds";
+        private const string ValidationIssue = OrchestratorPrefix + "ValidationIssue";
+        private const string ValidationIssueCount = OrchestratorPrefix + "ValidationIssueCount";
+        private const string ValidatorTimeout = OrchestratorPrefix + "ValidatorTimeout";
+        private const string ValidatorDurationSeconds = OrchestratorPrefix + "ValidatorDurationSeconds";
+        private const string ValidatorStarted = OrchestratorPrefix + "ValidatorStarted";
+        private const string ClientValidationIssue = OrchestratorPrefix + "ClientValidationIssue";
+        private const string MissingPackageForValidationMessage = OrchestratorPrefix + "MissingPackageForValidationMessage";
+        private const string MissingNupkgForAvailablePackage = OrchestratorPrefix + "MissingNupkgForAvailablePackage";
+        private const string DurationToHashPackageSeconds = OrchestratorPrefix + "DurationToHashPackageSeconds";
+
+        private const string DurationToStartPackageSigningValidatorSeconds = PackageSigningPrefix + "DurationToStartSeconds";
+
+        private const string DurationToStartPackageCertificatesValidatorSeconds = PackageCertificatesPrefix + "DurationToStartSeconds";
 
         private const string FromStatus = "FromStatus";
         private const string ToStatus = "ToStatus";
@@ -205,5 +211,19 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                         { NormalizedVersion, normalizedVersion },
                         { ValidationTrackingId, validationTrackingId },
                     });
+
+        public void TrackDurationToStartPackageSigningValidator(TimeSpan duration)
+        {
+            _telemetryClient.TrackMetric(
+                DurationToStartPackageSigningValidatorSeconds,
+                duration.TotalSeconds);
+        }
+
+        public void TrackDurationToStartPackageCertificatesValidator(TimeSpan duration)
+        {
+            _telemetryClient.TrackMetric(
+                DurationToStartPackageCertificatesValidatorSeconds,
+                duration.TotalSeconds);
+        }
     }
 }

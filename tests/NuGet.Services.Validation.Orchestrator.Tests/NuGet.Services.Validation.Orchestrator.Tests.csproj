@@ -46,7 +46,9 @@
     <Compile Include="Configuration\TopologicalSortFacts.cs" />
     <Compile Include="MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
+    <Compile Include="PackageCertificates\CertificateVerificationEnqueuerFacts.cs" />
     <Compile Include="PackageCertificates\PackageCertificatesValidatorFacts.cs" />
+    <Compile Include="PackageSigning\PackageSignatureVerificationEnqueuerFacts.cs" />
     <Compile Include="PackageSigning\PackageSigningValidatorFacts.cs" />
     <Compile Include="PackageStatusProcessorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -14,6 +14,11 @@ namespace NuGet.Services.Validation.PackageCertificates
         public TimeSpan? CertificateRevalidationThreshold { get; set; }
 
         /// <summary>
+        /// The visibility delay to apply to Service Bus messages requesting a new validation.
+        /// </summary>
+        public TimeSpan? MessageDelay { get; set; }
+
+        /// <summary>
         /// The Service Bus configuration used to enqueue package certificate validations.
         /// </summary>
         public ServiceBusConfiguration ServiceBus { get; set; }
