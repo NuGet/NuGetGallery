@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 
-namespace Validation.PackageSigning.ExtractAndValidateSignature.Tests
+namespace Validation.PackageSigning.Core.Tests.Support
 {
     public class RecordingLogger<T> : ILogger<T>
     {

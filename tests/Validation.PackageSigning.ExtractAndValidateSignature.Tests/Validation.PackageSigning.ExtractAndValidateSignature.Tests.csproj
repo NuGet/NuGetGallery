@@ -35,7 +35,6 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\CertificateIntegrationTestCollection.cs" />
     <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
     <Compile Include="HashFacts.cs" />

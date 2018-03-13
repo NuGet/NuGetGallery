@@ -41,6 +41,7 @@
     <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
     <Compile Include="Support\DbSetMockFactory.cs" />
     <Compile Include="Support\ExtensionMethods.cs" />
+    <Compile Include="Support\RecordingLogger.cs" />
     <Compile Include="Support\TestDbAsyncEnumerable.cs" />
     <Compile Include="Support\TestDbAsyncEnumerator.cs" />
     <Compile Include="Support\TestDbAsyncQueryProvider.cs" />

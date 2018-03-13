@@ -2,15 +2,51 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationProviderFacts
     {
+        public class Constructor
+        {
+            private readonly ITestOutputHelper _output;
+
+            public Constructor(ITestOutputHelper output)
+            {
+                _output = output ?? throw new ArgumentNullException(nameof(output));
+            }
+
+            [Fact]
+            public void CachesEvaluatedTypes()
+            {
+                var messages = new ConcurrentBag<string>();
+                var serviceProvider = new Mock<IServiceProvider>();
+                var loggerFactory = new LoggerFactory().AddXunit(_output);
+                var innerLogger = loggerFactory.CreateLogger<ValidatorProvider>();
+                var logger = new RecordingLogger<ValidatorProvider>(innerLogger);
+
+                _output.WriteLine("Initializing the first instance.");
+
+                var targetA = new ValidatorProvider(serviceProvider.Object, logger);
+                var messageCountA = logger.Messages.Count;
+
+                _output.WriteLine("Initializing the second instance.");
+
+                var targetB = new ValidatorProvider(serviceProvider.Object, logger);
+                var messageCountB = logger.Messages.Count;
+
+                Assert.Equal(messageCountA, messageCountB);
+            }
+        }
+
         public class IsProcessor : BaseFacts
         {
             [Theory]
