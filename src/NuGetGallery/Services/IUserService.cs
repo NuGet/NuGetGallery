@@ -42,8 +42,6 @@ namespace NuGetGallery
         
         Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token);
 
-        Task TransferApiKeysScopedToUser(User userWithKeys, User userToOwnKeys);
-
         Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser);
     }
 }
