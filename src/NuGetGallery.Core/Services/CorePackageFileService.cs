@@ -159,10 +159,17 @@ namespace NuGetGallery
                 version = package.NormalizedVersion;
             }
 
+            // Hash the provided stream instead of using the hash on the package. This is to avoid a backup with the
+            // incorrect file name if the hash in the DB does not match the package (a potentially transient issue).
+            var hash = CryptographyService.GenerateHash(
+                packageFile,
+                hashAlgorithmId: CoreConstants.Sha512HashAlgorithmId);
+            packageFile.Position = 0;
+
             var fileName = BuildBackupFileName(
                 package.PackageRegistration.Id,
                 version,
-                package.Hash);
+                hash);
 
             // If the package already exists, don't even bother uploading it. The file name is based off of the hash so
             // we know the upload isn't necessary.

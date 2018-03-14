@@ -12,7 +12,7 @@ namespace NuGetGallery
     {
         public static string GenerateHash(
             Stream input,
-            string hashAlgorithmId = CoreConstants.Sha512HashAlgorithmId)
+            string hashAlgorithmId)
         {
             input.Position = 0;
 
