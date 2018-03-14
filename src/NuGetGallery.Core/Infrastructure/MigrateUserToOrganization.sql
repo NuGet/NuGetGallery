@@ -23,6 +23,11 @@ BEGIN TRY
 	INSERT INTO [dbo].[Memberships] (OrganizationKey, MemberKey, IsAdmin) VALUES (@organizationKey, @adminKey, 1)
 
 	-- Reassign organization API keys to the admin user
+	UPDATE [dbo].[Scopes] SET OwnerKey = @organizationKey
+	WHERE CredentialKey IN (
+	    SELECT [Key] FROM [dbo].[Credentials]
+		WHERE UserKey = @organizationKey AND Type LIKE 'apikey.%'
+	)
 	UPDATE [dbo].[Credentials] SET UserKey = @adminKey
 	WHERE UserKey = @organizationKey AND Type LIKE 'apikey.%'
 
