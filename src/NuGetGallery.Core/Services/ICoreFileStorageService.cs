@@ -37,6 +37,28 @@ namespace NuGetGallery
         Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true);
 
         /// <summary>
+        /// Copies the source URI to the destination file. If the destination already exists and the content
+        /// is different, an exception should be thrown. If the file already exists, the implementation can choose to
+        /// no-op if the content is the same instead of throwing an exception. This method should throw if the source
+        /// file does not exist.
+        /// </summary>
+        /// <param name="srcUri">The URI of the source file.</param>
+        /// <param name="destFolderName">The destination folder.</param>
+        /// <param name="destFileName">The destination file name or relative file path.</param>
+        /// <param name="destAccessCondition">
+        /// The access condition used to determine whether the destination is in the expected state.
+        /// </param>
+        /// <returns>
+        /// The etag of the source file. This can be used if the destination file is later intended to replace
+        /// the source file in conjunction with <paramref name="destAccessCondition"/>.
+        /// </returns>
+        Task CopyFileAsync(
+            Uri srcUri,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition);
+
+        /// <summary>
         /// Copies the source file to the destination file. If the destination already exists and the content
         /// is different, an exception should be thrown. If the file already exists, the implementation can choose to
         /// no-op if the content is the same instead of throwing an exception. This method should throw if the source
@@ -46,6 +68,18 @@ namespace NuGetGallery
         /// <param name="srcFileName">The source file name or relative file path.</param>
         /// <param name="destFolderName">The destination folder.</param>
         /// <param name="destFileName">The destination file name or relative file path.</param>
-        Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName);
+        /// <param name="destAccessCondition">
+        /// The access condition used to determine whether the destination is in the expected state.
+        /// </param>
+        /// <returns>
+        /// The etag of the source file. This can be used if the destination file is later intended to replace
+        /// the source file in conjunction with <paramref name="destAccessCondition"/>.
+        /// </returns>
+        Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition);
     }
 }

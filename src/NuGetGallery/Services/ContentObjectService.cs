@@ -18,9 +18,7 @@ namespace NuGetGallery
         {
             _contentService = contentService;
 
-            LoginDiscontinuationConfiguration = 
-                new LoginDiscontinuationConfiguration(
-                    Enumerable.Empty<string>(), Enumerable.Empty<string>(), Enumerable.Empty<string>());
+            LoginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; set; }

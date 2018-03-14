@@ -19,15 +19,18 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IContentService _contentService;
+        private readonly IContentObjectService _contentObjectService;
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
 
         protected PagesController() { }
         public PagesController(IContentService contentService,
+            IContentObjectService contentObjectService,
             IMessageService messageService,
             ISupportRequestService supportRequestService)
         {
             _contentService = contentService;
+            _contentObjectService = contentObjectService;
             _messageService = messageService;
             _supportRequestService = supportRequestService;
         }
@@ -102,8 +105,10 @@ namespace NuGetGallery
         public virtual ActionResult Home()
         {
             var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
-            var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginCLaims(identity);
-            return View(new GalleryHomeViewModel(showTransformModal));
+            var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginClaims(identity);
+            var transformIntoOrganization = _contentObjectService.LoginDiscontinuationConfiguration
+                .ShouldUserTransformIntoOrganization(GetCurrentUser());
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization));
         }
 
         [HttpGet]

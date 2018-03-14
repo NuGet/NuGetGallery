@@ -169,7 +169,19 @@ namespace NuGetGallery
             return Task.FromResult(0);
         }
 
-        public Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName)
+        public Task CopyFileAsync(Uri srcUri, string destFolderName, string destFileName, IAccessCondition destAccessCondition)
+        {
+            // We could theoretically support this by downloading the source URI to the destination path. This is not
+            // needed today so this method will remain unimplemented until it is needed.
+            throw new NotImplementedException();
+        }
+
+        public Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
         {
             if (srcFolderName == null)
             {
@@ -205,7 +217,7 @@ namespace NuGetGallery
                 throw new InvalidOperationException("Could not copy because destination file already exists", e);
             }
 
-            return Task.CompletedTask;
+            return Task.FromResult<string>(null);
         }
 
         public Task<bool> IsAvailableAsync()

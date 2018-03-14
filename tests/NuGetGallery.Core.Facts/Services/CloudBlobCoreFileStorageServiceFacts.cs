@@ -631,6 +631,7 @@ namespace NuGetGallery
             private string _srcFolderName;
             private string _srcFileName;
             private string _srcETag;
+            private Uri _srcUri;
             private BlobProperties _srcProperties;
             private string _destFolderName;
             private string _destFileName;
@@ -649,6 +650,7 @@ namespace NuGetGallery
                 _srcFolderName = "validation";
                 _srcFileName = "4b6f16cc-7acd-45eb-ac21-33f0d927ec14/nuget.versioning.4.5.0.nupkg";
                 _srcETag = "\"src-etag\"";
+                _srcUri = new Uri("https://example/nuget.versioning.4.5.0.nupkg");
                 _srcProperties = new BlobProperties();
                 _destFolderName = "packages";
                 _destFileName = "nuget.versioning.4.5.0.nupkg";
@@ -697,6 +699,41 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillCopyBlobFromSourceUri()
+            {
+                // Arrange
+                _blobClient
+                    .Setup(x => x.GetBlobFromUri(It.IsAny<Uri>()))
+                    .Returns(_srcBlobMock.Object);
+
+                _destBlobMock
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Returns(Task.FromResult(0))
+                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
+                    {
+                        SetDestCopyStatus(CopyStatus.Success);
+                    });
+
+                // Act
+                await _target.CopyFileAsync(
+                    _srcUri,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+                // Assert
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(_srcBlobMock.Object, It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                _blobClient.Verify(
+                    x => x.GetBlobFromUri(_srcUri),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task WillCopyTheFileIfDestinationDoesNotExist()
             {
                 // Arrange
@@ -715,7 +752,12 @@ namespace NuGetGallery
                     });
 
                 // Act
-                await _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName);
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
 
                 // Assert
                 _destBlobMock.Verify(
@@ -736,7 +778,12 @@ namespace NuGetGallery
 
                 // Act & Assert
                 await Assert.ThrowsAsync<InvalidOperationException>(
-                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+                    () => _target.CopyFileAsync(
+                        _srcFolderName,
+                        _srcFileName,
+                        _destFolderName,
+                        _destFileName,
+                        AccessConditionWrapper.GenerateIfNotExistsCondition()));
             }
 
             [Fact]
@@ -770,15 +817,89 @@ namespace NuGetGallery
                     .Callback(() => SetDestCopyStatus(CopyStatus.Success));
 
                 // Act
-                await _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName);
+                var srcETag = await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
 
                 // Assert
                 _destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Once);
+                Assert.Equal(_srcETag, srcETag);
                 Assert.Equal(_srcFileName, srcBlob.Name);
                 Assert.Equal(_srcETag, srcAccessCondition.IfMatchETag);
                 Assert.Equal(_destETag, destAccessCondition.IfMatchETag);
+            }
+
+            [Fact]
+            public async Task WillDefaultToIfNotExists()
+            {
+                // Arrange
+                AccessCondition srcAccessCondition = null;
+                AccessCondition destAccessCondition = null;
+                ISimpleCloudBlob srcBlob = null;
+                _destBlobMock
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Returns(Task.FromResult(0))
+                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    {
+                        srcBlob = b;
+                        srcAccessCondition = s;
+                        destAccessCondition = d;
+                        SetDestCopyStatus(CopyStatus.Success);
+                    });
+
+                // Act
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    destAccessCondition: null);
+
+                // Assert
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                Assert.Null(destAccessCondition.IfMatchETag);
+                Assert.Equal("*", destAccessCondition.IfNoneMatchETag);
+            }
+
+            [Fact]
+            public async Task UsesProvidedMatchETag()
+            {
+                // Arrange
+                AccessCondition srcAccessCondition = null;
+                AccessCondition destAccessCondition = null;
+                ISimpleCloudBlob srcBlob = null;
+                _destBlobMock
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Returns(Task.FromResult(0))
+                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((b, s, d) =>
+                    {
+                        srcBlob = b;
+                        srcAccessCondition = s;
+                        destAccessCondition = d;
+                        SetDestCopyStatus(CopyStatus.Success);
+                    });
+
+                // Act
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfMatchCondition("etag!"));
+
+                // Assert
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                Assert.Equal("etag!", destAccessCondition.IfMatchETag);
+                Assert.Null(destAccessCondition.IfNoneMatchETag);
             }
 
             [Fact]
@@ -795,7 +916,12 @@ namespace NuGetGallery
                     .ReturnsAsync(true);
 
                 // Act
-                await _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName);
+                await _target.CopyFileAsync(
+                    _srcFolderName,
+                    _srcFileName,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
 
                 // Assert
                 _destBlobMock.Verify(
@@ -817,7 +943,12 @@ namespace NuGetGallery
 
                 // Act & Assert
                 var ex = await Assert.ThrowsAsync<StorageException>(
-                    () => _target.CopyFileAsync(_srcFolderName, _srcFileName, _destFolderName, _destFileName));
+                    () => _target.CopyFileAsync(
+                        _srcFolderName,
+                        _srcFileName,
+                        _destFolderName,
+                        _destFileName,
+                        AccessConditionWrapper.GenerateIfNotExistsCondition()));
                 Assert.Contains("The blob copy operation had copy status Failed", ex.Message);
             }
 

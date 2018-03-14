@@ -33,7 +33,7 @@ namespace NuGetGallery
             return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
         }
 
-        public static bool HasDiscontinuedLoginCLaims(ClaimsIdentity identity)
+        public static bool HasDiscontinuedLoginClaims(ClaimsIdentity identity)
         {
             if (identity == null || !identity.IsAuthenticated)
             {

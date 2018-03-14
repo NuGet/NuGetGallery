@@ -25,28 +25,31 @@
             <h1>Sign in</h1>
         </div>
     </div>
-
-    @foreach (var provider in Model.Providers)
+    @if (Model.Providers.Any())
     {
-        <div class="row">
-            <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
-                <a role="button" class="btn btn-default btn-block provider-button"
-                   href="@Url.Authenticate(provider.ProviderName, returnUrl)">
-                    @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
-                    {
-                        <img height="24" width="24" alt="" aria-hidden="true"
-                             src="@Href(provider.UI.IconImagePath)"
-                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
-                    }
-                    @provider.UI.SignInMessage
-                </a>
+        foreach (var provider in Model.Providers)
+        {
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
+                    <a role="button" class="btn btn-default btn-block provider-button"
+                       href="@Url.Authenticate(provider.ProviderName, returnUrl)">
+                        @if (!string.IsNullOrEmpty(@provider.UI.IconImagePath))
+                        {
+                            <img height="24" width="24" alt="" aria-hidden="true"
+                                 src="@Href(provider.UI.IconImagePath)"
+                                 @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
+                        }
+                        @provider.UI.SignInMessage
+                    </a>
+                </div>
             </div>
-        </div>
-        <div class="row text-center create-provider-account">
-                <span>
-                    <a href="#" id="signin-assistance">Need assistance signing in?</a>
-                </span>
-        </div>
+            <div class="row text-center create-provider-account">
+                    <span>
+                        <a href="#" id="signin-assistance">Need assistance signing in?</a>
+                    </span>
+            </div>
+        }
+
         <div class="row nuget-signin">
             <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
                 <p class="text-center">
@@ -55,7 +58,16 @@
             </div>
         </div>
     }
+    else
+    {
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                @Html.Partial("_SignIn", Model)
+            </div>
+        </div>
+    }
 </section>
+
 
 <div style="display: none" id="signinAssistanceModal" class="modal fade modal-container" data-backdrop="static">
     @Html.Partial("_SigninAssistance")
@@ -64,8 +76,6 @@
 @section bottomScripts {
     <script type="text/javascript">
         var signinAssistanceUrl = "@Url.SigninAssistance()"
-
-        // Strings
         var strings_InvalidUsername = "@Html.Raw(Strings.SigninAssistance_InvalidUser)";
     </script>
     @ViewHelpers.SectionsScript(this)

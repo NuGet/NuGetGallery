@@ -1,4 +1,6 @@
-﻿<div class="modal-dialog modal-box">
+﻿@model GalleryHomeViewModel
+
+<div class="modal-dialog modal-box">
     <div class="modal-title">
         <span class="title-text">Sign-in with Microsoft corporate account</span>
         <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
@@ -12,23 +14,30 @@
                 NuGet.org authentication is deprecated
             </span>
         </div>
-        <div class="action-node">
-            <a role="button" 
-               class="btn btn-default btn-block action-button" 
-               href="@Url.AuthenticateExternal("/")">
-                <img height="24" width="24" alt="" aria-hidden="true"
-                     src="@Href("~/Content/gallery/img/microsoft-account.svg")"
-                     @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
-                <span>Sign in with Microsoft</span>
-            </a>
-        </div>
-        <p class="transform-text">If this is a team (DL) based account, you must transform it to an organization on NuGet.org:</p>
-        <div class="action-node">
-            <a role="button"
-                class="btn btn-default btn-block action-button"
-                href="@Url.TransformAccount()">
-                <span>Transform to an Organization</span>
-            </a>
-        </div>
+        @if (Model.TransformIntoOrganization)
+        {
+            <p class="transform-text">We have determined this is a team (DL) based account, so you must transform it to an organization on NuGet.org:</p>
+            <div class="action-node">
+                <a role="button"
+                    class="btn btn-default btn-block action-button"
+                    href="@Url.TransformAccount()">
+                    <span>Transform to an Organization</span>
+                </a>
+            </div>
+        }
+        else
+        {
+            <p class="transform-text">We have determined this is an account owned by an individual, so you must link it to a Microsoft account:</p>
+            <div class="action-node">
+                <a role="button" 
+                   class="btn btn-default btn-block action-button" 
+                   href="@Url.AuthenticateExternal("/")">
+                    <img height="24" width="24" alt="" aria-hidden="true"
+                         src="@Href("~/Content/gallery/img/microsoft-account.svg")"
+                         @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
+                    <span>Sign in with Microsoft</span>
+                </a>
+            </div>
+        }
     </div>
 </div>

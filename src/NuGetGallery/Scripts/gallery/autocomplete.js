@@ -194,5 +194,5 @@
         return id.replace(/(\.|-)/g, "");
     }
 
-    hookAutocomplete(_maxResults);
+    // hookAutocomplete(_maxResults);
 });
