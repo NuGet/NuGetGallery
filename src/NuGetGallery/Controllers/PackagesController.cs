@@ -461,6 +461,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
+            model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);

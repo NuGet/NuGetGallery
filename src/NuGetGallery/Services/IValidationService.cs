@@ -27,6 +27,13 @@ namespace NuGetGallery
         Task RevalidateAsync(Package package);
 
         /// <summary>
+        /// Whether the package's validation time exceeds the expected validation time.
+        /// </summary>
+        /// <param name="package">The package whose validation time should be inspected.</param>
+        /// <returns>Whether the package's validation time exceeds the expected validation time.</returns>
+        bool IsValidatingTooLong(Package package);
+
+        /// <summary>
         /// Get the package's validation issues from the latest validation.
         /// </summary>
         /// <param name="package">The package whose validation issues should be fetched.</param>

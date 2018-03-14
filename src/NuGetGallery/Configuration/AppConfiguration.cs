@@ -68,6 +68,8 @@ namespace NuGetGallery.Configuration
 
         public TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
+        public TimeSpan ValidationExpectedTime { get; set; }
+
         public bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
@@ -254,6 +256,11 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to an external status page
+        /// </summary>
+        public string ExternalStatusUrl { get; set; }
 
         /// <summary>
         /// Gets/sets a string that is a link to an external about page
