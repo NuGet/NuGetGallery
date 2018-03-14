@@ -4,9 +4,16 @@
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
-    var transformNote = "Note that administrators have full control over the organization, including the ability to add and remove other members.";
-    var transformToolTip = "Please enter a username for the organization administrator. " + transformNote;
-    var transformConfirmation = "You have added '{0}' as an administrator. " + transformNote;
+    var transformNote = "Administrators have full control over the organization, including the ability to add and remove other members.";
+    var transformNote2 = "Organization API keys will be transferred to this administrator on transformation.";
+    var transformToolTip = "Please enter a username for the organization administrator. "
+        + transformNote
+        + Environment.NewLine + Environment.NewLine
+        + transformNote2;
+    var transformConfirmation = "You have added '{0}' as an administrator. "
+        + transformNote
+        + "\\n\\n"
+        + transformNote2;
 }
 
 <section role="main" class="container main-container page-transform-account">
