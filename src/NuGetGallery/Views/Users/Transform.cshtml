@@ -5,10 +5,10 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     var transformNote = "Administrators have full control over the organization, including the ability to add and remove other members.";
-    var transformNote2 = "This organization's scoped API keys will be transferred to this administrator on transformation. Full access API keys will not be transferred.";
+    var transformNote2 = "This organization's scoped API keys will be transferred to '{0}' on transformation. Full access API keys will not be transferred.";
     var transformToolTip = "Please enter a username for the organization administrator. "
         + transformNote
-        + Environment.NewLine + Environment.NewLine
+        + "\\n\\n"
         + transformNote2;
     var transformConfirmation = "You have added '{0}' as an administrator. "
         + transformNote
@@ -42,7 +42,7 @@
 
                         <div class="form-group @Html.HasErrorFor(m => m.AdminUsername)">
                             @Html.ShowLabelFor(m => m.AdminUsername)
-                            <a href="#" data-toggle="tooltip" title="@transformToolTip">
+                            <a href="#" id="transform-tooltip" data-toggle="tooltip">
                                 <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
                             </a>
                             @Html.ShowTextBoxFor(m => m.AdminUsername)
@@ -81,12 +81,16 @@
     <script type="text/javascript">
         $(function ()
         {
-           var confirmation = "@Html.Raw(transformConfirmation)";
+            var adminUsername = $("#AdminUsername");
+            var tooltip = "@Html.Raw(transformToolTip)";
+            var confirmation = "@Html.Raw(transformConfirmation)";
             $("#transform").submit(function (event) {
+                var adminUsernameVal = adminUsername.val();
+                $("#transform-tooltip").attr("title", window.nuget.formatString(tooltip, adminUsernameVal));
                 return window.nuget.confirmEvent(
-                    window.nuget.formatString(confirmation, $("#AdminUsername").val()),
+                    window.nuget.formatString(confirmation, adminUsernameVal),
                     event);
-            })
+            });
         });
     </script>
 }
