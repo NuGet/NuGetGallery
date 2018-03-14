@@ -25,11 +25,13 @@ BEGIN TRY
 	-- Reassign organization API keys to the admin user
 	UPDATE [dbo].[Scopes] SET OwnerKey = @organizationKey
 	WHERE CredentialKey IN (
-	    SELECT [Key] FROM [dbo].[Credentials]
+		SELECT [Key] FROM [dbo].[Credentials]
 		WHERE UserKey = @organizationKey AND Type LIKE 'apikey.%'
 	)
 	UPDATE [dbo].[Credentials] SET UserKey = @adminKey
-	WHERE UserKey = @organizationKey AND Type LIKE 'apikey.%'
+	FROM [dbo].[Credentials] AS C
+	JOIN [dbo].[Scopes] AS S ON S.CredentialKey = C.[Key]
+	WHERE C.UserKey = @organizationKey AND C.Type LIKE 'apikey.%'
 
 	-- Remove remaining organization credentials
 	DELETE FROM [dbo].[Credentials] WHERE UserKey = @organizationKey
