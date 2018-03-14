@@ -251,9 +251,19 @@ namespace NuGetGallery.Authentication
         {
             await _contentObjectService.Refresh();
 
-            return _contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user) ?
-                new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } :
-                new Claim[0];
+            var claims = new List<Claim>();
+
+            if (_contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user))
+            {
+                claims.Add(new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue));
+            }
+
+            if (user.CredentialUsed.IsPassword())
+            {
+                claims.Add(new Claim(NuGetClaims.PasswordLogin, NuGetClaims.DefaultValue));
+            }
+
+            return claims.ToArray();
         }
 
         public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)

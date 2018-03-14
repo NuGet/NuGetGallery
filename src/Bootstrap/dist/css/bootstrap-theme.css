@@ -1513,4 +1513,8 @@ img.reserved-indicator-icon {
 .page-upload #browse-for-package-button {
   margin: 0;
 }
+.warning-icon {
+  color: sandybrown;
+  vertical-align: bottom;
+}
 /*# sourceMappingURL=bootstrap-theme.css.map */

@@ -82,6 +82,38 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Determine if the current user logged in using password login.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if the user used password login.</returns>
+        public static bool UsedPasswordLogin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var passwordLoginClaim = GetPasswordLoginClaim(self.Identity);
+            return !string.IsNullOrEmpty(passwordLoginClaim);
+        }
+
+        /// <summary>
+        /// Determine if the current user logged in using password login.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if the user used password login.</returns>
+        public static bool HasExternalCredentials(this IPrincipal self)
+        {
+            if (self == null)
+            {
+                return false;
+            }
+
+            var user = self as User;
+            return user.Credentials.Any(cred => cred.IsExternal());
+        }
+
+        /// <summary>
         /// Determine if the current user context is authenticated with a scoped API key.
         /// </summary>
         /// <param name="self">Current user identity.</param>
@@ -139,6 +171,17 @@ namespace NuGetGallery
         private static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
+        }
+
+        private static string GetPasswordLoginClaim(IIdentity self)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            var identity = self as ClaimsIdentity;
+            return identity.GetClaimOrDefault(NuGetClaims.PasswordLogin);
         }
     }
 }
