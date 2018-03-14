@@ -166,8 +166,10 @@
     <Compile Include="CoreConstants.cs" />
     <Compile Include="CredentialTypes.cs" />
     <Compile Include="Completion.cs" />
+    <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\IDiagnosticsService.cs" />
     <Compile Include="Diagnostics\IDiagnosticsSource.cs" />
+    <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="DisposableAction.cs" />
     <Compile Include="Entities\Certificate.cs" />
     <Compile Include="Entities\Credential.cs" />
