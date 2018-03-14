@@ -23,6 +23,7 @@ BEGIN TRY
 	INSERT INTO [dbo].[Memberships] (OrganizationKey, MemberKey, IsAdmin) VALUES (@organizationKey, @adminKey, 1)
 
 	-- Reassign organization API keys to the admin user
+	-- Only reassign scoped keys (not full access keys)
 	UPDATE [dbo].[Scopes] SET OwnerKey = @organizationKey
 	WHERE CredentialKey IN (
 		SELECT [Key] FROM [dbo].[Credentials]

@@ -5,14 +5,11 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     var transformNote = "Administrators have full control over the organization, including the ability to add and remove other members.";
-    var transformNote2 = "Organization API keys will be transferred to this administrator on transformation.";
-    var transformNote3 = "Full access API keys will not be transferred."
+    var transformNote2 = "This organization's scoped API keys will be transferred to this administrator on transformation. Full access API keys will not be transferred.";
     var transformToolTip = "Please enter a username for the organization administrator. "
         + transformNote
         + Environment.NewLine + Environment.NewLine
-        + transformNote2
-        + Environment.NewLine
-        + transformNote3;
+        + transformNote2;
     var transformConfirmation = "You have added '{0}' as an administrator. "
         + transformNote
         + "\\n\\n"
