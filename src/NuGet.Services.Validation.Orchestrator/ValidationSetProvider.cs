@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -15,6 +16,7 @@ namespace NuGet.Services.Validation.Orchestrator
     {
         private readonly IValidationStorageService _validationStorageService;
         private readonly IValidationPackageFileService _packageFileService;
+        private readonly IValidatorProvider _validatorProvider;
         private readonly ValidationConfiguration _validationConfiguration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationSetProvider> _logger;
@@ -22,12 +24,14 @@ namespace NuGet.Services.Validation.Orchestrator
         public ValidationSetProvider(
             IValidationStorageService validationStorageService,
             IValidationPackageFileService packageFileService,
+            IValidatorProvider validatorProvider,
             IOptionsSnapshot<ValidationConfiguration> validationConfigurationAccessor,
             ITelemetryService telemetryService,
             ILogger<ValidationSetProvider> logger)
         {
             _validationStorageService = validationStorageService ?? throw new ArgumentNullException(nameof(validationStorageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _validatorProvider = validatorProvider ?? throw new ArgumentNullException(nameof(validatorProvider));
             if (validationConfigurationAccessor == null)
             {
                 throw new ArgumentNullException(nameof(validationConfigurationAccessor));
@@ -68,6 +72,13 @@ namespace NuGet.Services.Validation.Orchestrator
                     // This indicates that the package in the packages container is expected to not exist (i.e. it has
                     // has no etag at all).
                     validationSet.PackageETag = null;
+                }
+
+                // If there are any processors in the validation set, back up the original. We back up from the
+                // validation set copy to avoid concurrency issues.
+                if (validationSet.PackageValidations.Any(x => _validatorProvider.IsProcessor(x.Type)))
+                {
+                    await _packageFileService.BackupPackageFileFromValidationSetPackageAsync(package, validationSet);
                 }
 
                 validationSet = await PersistValidationSetAsync(validationSet, package);

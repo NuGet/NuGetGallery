@@ -13,6 +13,12 @@ namespace NuGet.Services.Validation.Orchestrator
 {
     public class ValidationPackageFileService : CorePackageFileService, IValidationPackageFileService
     {
+        /// <summary>
+        /// The value picked today is based off of the maximum duration we wait when downloading packages using the
+        /// <see cref="IPackageDownloader"/>.
+        /// </summary>
+        private static readonly TimeSpan AccessDuration = TimeSpan.FromMinutes(10);
+
         private readonly ICoreFileStorageService _fileStorageService;
         private readonly IPackageDownloader _packageDownloader;
         private readonly ILogger<ValidationPackageFileService> _logger;
@@ -48,6 +54,24 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.ValidationFolderName,
                 BuildValidationSetPackageFileName(validationSet),
                 AccessConditionWrapper.GenerateEmptyCondition());
+        }
+
+        public async Task BackupPackageFileFromValidationSetPackageAsync(Package package, PackageValidationSet validationSet)
+        {
+            _logger.LogInformation(
+                "Backing up package for validation set {ValidationTrackingId} ({PackageId} {PackageVersion}).",
+                validationSet.ValidationTrackingId,
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion);
+
+            var packageUri = await GetPackageForValidationSetReadUriAsync(
+                validationSet,
+                DateTimeOffset.UtcNow.Add(AccessDuration));
+
+            using (var packageStream = await _packageDownloader.DownloadAsync(packageUri, CancellationToken.None))
+            {
+                await StorePackageFileInBackupLocationAsync(package, packageStream);
+            }
         }
 
         public Task<string> CopyPackageFileForValidationSetAsync(PackageValidationSet validationSet)

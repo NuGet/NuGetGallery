@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -18,11 +19,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private readonly PackageValidationSet _validationSet;
         private readonly Package _package;
         private readonly string _validationContainerName;
+        private readonly string _backupContainerName;
         private readonly string _packagesContainerName;
         private readonly string _packageFileName;
         private readonly string _validationSetPackageFileName;
+        private readonly string _backupFileName;
         private readonly Uri _testUri;
         private readonly string _etag;
+        private readonly string _packageContent;
+        private readonly MemoryStream _packageStream;
+        private readonly DateTimeOffset _endOfAccess;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
         private readonly Mock<IPackageDownloader> _packageDownloader;
         private readonly Mock<ILogger<ValidationPackageFileService>> _logger;
@@ -37,6 +43,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     Id = "NuGet.Versioning",
                 },
                 NormalizedVersion = "4.5.0-ALPHA",
+                Hash = "NzMzMS1QNENLNEczSDQ1SA==",
             };
             _validationSet = new PackageValidationSet
             {
@@ -47,10 +54,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             _packagesContainerName = "packages";
             _validationContainerName = "validation";
+            _backupContainerName = "package-backups";
             _packageFileName = "nuget.versioning.4.5.0-alpha.nupkg";
             _validationSetPackageFileName = "validation-sets/0b44d53f-0689-4f82-9530-f25f26b321aa/nuget.versioning.4.5.0-alpha.nupkg";
+            _backupFileName = "nuget.versioning/4.5.0-alpha/rQw3wx1psxXzqB8TyM3nAQlK2RcluhsNwxmcqXE2YbgoDW735o8TPmIR4uWpoxUERddvFwjgRSGw7gNPCwuvJg2..nupkg";
             _testUri = new Uri("http://example.com/nupkg.nupkg");
             _etag = "\"some-etag\"";
+            _packageContent = "Hello, world.";
+            _packageStream = new MemoryStream(Encoding.ASCII.GetBytes(_packageContent));
+            _endOfAccess = new DateTimeOffset(2018, 1, 3, 8, 30, 0, TimeSpan.Zero);
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
             _packageDownloader = new Mock<IPackageDownloader>(MockBehavior.Strict);
@@ -63,6 +75,45 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task BackupPackageFileFromValidationSetPackageAsync()
+        {
+            DateTimeOffset? endOfAccess = null;
+            _fileStorageService
+                .Setup(x => x.GetFileReadUriAsync(
+                    _validationContainerName,
+                    _validationSetPackageFileName,
+                    It.IsAny<DateTimeOffset?>()))
+                .ReturnsAsync(_testUri)
+                .Callback<string, string, DateTimeOffset?>((_, __, a) => endOfAccess = a)
+                .Verifiable();
+
+            _packageDownloader
+                .Setup(x => x.DownloadAsync(_testUri, CancellationToken.None))
+                .ReturnsAsync(_packageStream)
+                .Verifiable();
+
+            _fileStorageService
+                .Setup(x => x.FileExistsAsync(_backupContainerName, _backupFileName))
+                .ReturnsAsync(false)
+                .Verifiable();
+
+            _fileStorageService
+                .Setup(x => x.SaveFileAsync(_backupContainerName, _backupFileName, _packageStream, true))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var before = DateTimeOffset.UtcNow;
+            await _target.BackupPackageFileFromValidationSetPackageAsync(_package, _validationSet);
+            var after = DateTimeOffset.UtcNow;
+
+            _fileStorageService.Verify();
+            _packageDownloader.Verify();
+            Assert.NotNull(endOfAccess);
+            Assert.InRange(endOfAccess.Value, before.AddMinutes(10), after.AddMinutes(10));
+            Assert.Throws<ObjectDisposedException>(() => _packageStream.Length);
+        }
+
+        [Fact]
         public async Task DownloadPackageFileToDiskAsync()
         {
             _fileStorageService
@@ -72,18 +123,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     null))
                 .ReturnsAsync(_testUri)
                 .Verifiable();
-
-            var expected = new MemoryStream();
+            
             _packageDownloader
-                .Setup(x => x.DownloadAsync(
-                    _testUri,
-                    CancellationToken.None))
-                .ReturnsAsync(expected);
+                .Setup(x => x.DownloadAsync(_testUri, CancellationToken.None))
+                .ReturnsAsync(_packageStream)
+                .Verifiable();
 
             var actual = await _target.DownloadPackageFileToDiskAsync(_package);
 
-            Assert.Same(expected, actual);
+            Assert.Same(_packageStream, actual);
             _fileStorageService.Verify();
+            _packageDownloader.Verify();
         }
 
         [Fact]
@@ -96,7 +146,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _validationContainerName,
                     _validationSetPackageFileName,
                     It.Is<IAccessCondition>(y => y.IfMatchETag == null && y.IfNoneMatchETag == null)))
-                .ReturnsAsync(string.Empty)
+                .ReturnsAsync(_etag)
                 .Verifiable();
 
             await _target.CopyValidationPackageForValidationSetAsync(_validationSet);
@@ -133,7 +183,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _packagesContainerName,
                     _packageFileName,
                     It.Is<IAccessCondition>(y => y.IfNoneMatchETag == "*")))
-                .ReturnsAsync(string.Empty)
+                .ReturnsAsync(_etag)
                 .Verifiable();
 
             await _target.CopyValidationPackageToPackageFileAsync(_validationSet.PackageId, _validationSet.PackageNormalizedVersion);
@@ -168,7 +218,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     _packagesContainerName,
                     _packageFileName,
                     accessCondition))
-                .ReturnsAsync(string.Empty)
+                .ReturnsAsync(_etag)
                 .Verifiable();
 
             await _target.CopyValidationSetPackageToPackageFileAsync(_validationSet, accessCondition);
@@ -211,16 +261,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public async Task GetPackageForValidationSetReadUriAsync()
         {
-            var endOfAccess = new DateTimeOffset(2018, 1, 3, 8, 30, 0, TimeSpan.Zero);
             _fileStorageService
                 .Setup(x => x.GetFileReadUriAsync(
                     _validationContainerName,
                     _validationSetPackageFileName,
-                    endOfAccess))
+                    _endOfAccess))
                 .ReturnsAsync(_testUri)
                 .Verifiable();
 
-            var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, endOfAccess);
+            var actual = await _target.GetPackageForValidationSetReadUriAsync(_validationSet, _endOfAccess);
 
             Assert.Equal(_testUri, actual);
             _fileStorageService.Verify();

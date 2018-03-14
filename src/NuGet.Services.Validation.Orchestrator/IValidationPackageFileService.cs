@@ -18,6 +18,13 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<Stream> DownloadPackageFileToDiskAsync(Package package);
 
         /// <summary>
+        /// Backs up the package file from the location specific for the validation set.
+        /// </summary>
+        /// <param name="package">The package metadata.</param>
+        /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
+        Task BackupPackageFileFromValidationSetPackageAsync(Package package, PackageValidationSet validationSet);
+
+        /// <summary>
         /// Copy a package from the validation container to a location specific for the validation set. This allows the
         /// validation set to have its own copy of the package to mutate (via <see cref="IProcessor"/>) and validate.
         /// </summary>
