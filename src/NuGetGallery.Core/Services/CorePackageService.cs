@@ -10,7 +10,7 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    public class CorePackageService : ICorePackageService
+    public class CorePackageService : ICorePackageService<Package>
     {
         protected readonly IEntityRepository<Package> _packageRepository;
         
@@ -221,6 +221,12 @@ namespace NuGetGallery
 
             return package;
         }
+
+        public PackageStatus GetStatus(Package package)
+        {
+            return package.PackageStatusKey;
+        }
+
 
         protected IQueryable<Package> GetPackagesByIdQueryable(string id)
         {

@@ -8,7 +8,7 @@ using System.Web.Mvc;
 
 namespace NuGetGallery
 {
-    public interface IPackageFileService : ICorePackageFileService
+    public interface IPackageFileService : ICorePackageFileService<Package>
     {
         /// <summary>
         /// Creates an ActionResult that allows a third-party client to download the nupkg for the package.
