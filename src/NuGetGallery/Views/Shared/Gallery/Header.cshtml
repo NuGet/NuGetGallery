@@ -26,21 +26,21 @@
 }
 
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
-    {
-        <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
-            aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" role="presentation">
-            <a role="menuitem" href="@url" title="@title">
-                @if (bold)
-                {
-                    @:<b>
-                    }
-                <span>@tab</span>
-                @if (bold)
-                {
-                @:</b>
-            }
-            </a>
-        </li>
+{
+    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
+        aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" role="presentation">
+        <a role="menuitem" href="@url" title="@title">
+            @if (bold)
+            {
+                @:<b>
+                }
+            <span>@tab</span>
+            @if (bold)
+            {
+            @:</b>
+        }
+        </a>
+    </li>
 }
 
 <nav class="navbar navbar-inverse" role="navigation">
@@ -205,7 +205,9 @@
 
 @if (TempData.ContainsKey("ShowPasswordDeprecationWarning"))
 {
-    if ((Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])) && Request.IsAuthenticated && User.HasPasswordLogin())
+    if ((Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"]))
+        && Request.IsAuthenticated
+        && User.HasPasswordLogin())
     {
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
@@ -213,11 +215,11 @@
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @if (User.HasExternalLogin()) 
                     {
-                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. <a href="@Url.AccountSettings()">Remove</a> this authentication mechanism and use Microsoft account to sign-in to NuGet.org.</text>)
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. <a href="@Url.AccountSettings()">Remove</a> this authentication mechanism and use Microsoft account to sign-in to @(this.Config.Current.Brand).</text>)
                     }
                     else
                     {
-                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Please <a href="@Url.AccountSettings()">link</a> Microsoft account to sign-in to NuGet.org.</text>)
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Please <a href="@Url.AccountSettings()">link</a> Microsoft account to sign-in to @(this.Config.Current.Brand).</text>)
                     }
                 </div>
             </div>
