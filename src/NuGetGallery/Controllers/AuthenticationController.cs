@@ -198,6 +198,8 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+
+            TempData["ShowPasswordDeprecationWarning"] = true;
             return SafeRedirect(returnUrl);
         }
 
@@ -433,6 +435,7 @@ namespace NuGetGallery
         {
             try
             {
+                TempData["ShowPasswordDeprecationWarning"] = true;
                 return _authService.Challenge(provider, returnUrl);
             }
             catch (InvalidOperationException)

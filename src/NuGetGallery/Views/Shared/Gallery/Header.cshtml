@@ -95,7 +95,7 @@
                                     aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
                                     <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                         <div>
-                                            @if (User.UsedPasswordLogin())
+                                            @if (User.HasPasswordLogin())
                                             {
                                                 <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
                                             }
@@ -124,9 +124,9 @@
                                         <li role="presentation">
                                             <a href="@Url.AccountSettings()" role="menuitem">
                                                 Account Settings
-                                                @if (User.UsedPasswordLogin())
+                                                @if (User.HasPasswordLogin())
                                                 {
-                                                    <span class="ms-Icon ms-Icon--Warning warning-icon" style="vertical-align: bottom" aria-hidden="true"></span>
+                                                    <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
                                                 }
                                             </a>
                                         </li>
@@ -203,15 +203,25 @@
     </div>
 }
 
-@if (Request.IsAuthenticated && User.UsedPasswordLogin())
+@if (TempData.ContainsKey("ShowPasswordDeprecationWarning"))
 {
+    if ((Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])) && Request.IsAuthenticated && User.HasPasswordLogin())
+    {
     <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
         <div class="container">
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
-                    @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Remove this authentication mechanism and use Microsoft account to sign in to NuGet.org.</text>)
+                    @if (User.HasExternalLogin()) 
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. <a href="@Url.AccountSettings()">Remove</a> this authentication mechanism and use Microsoft account to sign-in to NuGet.org.</text>)
+                    }
+                    else
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Please <a href="@Url.AccountSettings()">link</a> Microsoft account to sign-in to NuGet.org.</text>)
+                    }
                 </div>
             </div>
         </div>
     </div>
+    }
 }

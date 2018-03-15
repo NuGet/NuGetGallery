@@ -258,9 +258,14 @@ namespace NuGetGallery.Authentication
                 claims.Add(new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue));
             }
 
-            if (user.CredentialUsed.IsPassword())
+            if (user.User.HasPasswordCredential())
             {
-                claims.Add(new Claim(NuGetClaims.PasswordLogin, NuGetClaims.DefaultValue));
+                claims.Add(new Claim(NuGetClaims.HasPasswordLogin, NuGetClaims.DefaultValue));
+            }
+
+            if (user.User.HasExternalCredential())
+            {
+                claims.Add(new Claim(NuGetClaims.HasExternalLogin, NuGetClaims.DefaultValue));
             }
 
             return claims.ToArray();

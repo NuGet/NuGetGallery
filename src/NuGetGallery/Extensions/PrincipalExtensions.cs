@@ -82,35 +82,37 @@ namespace NuGetGallery
         }
 
         /// <summary>
-        /// Determine if the current user logged in using password login.
+        /// Determine if the current user has an associated password credential.
         /// </summary>
         /// <param name="self">Current user principal.</param>
-        /// <returns>True if the user used password login.</returns>
-        public static bool UsedPasswordLogin(this IPrincipal self)
+        /// <returns>True if user has password credential, false otherwise.</returns>
+        public static bool HasPasswordLogin(this IPrincipal self)
         {
             if (self == null || self.Identity == null)
             {
                 return false;
             }
 
-            var passwordLoginClaim = GetPasswordLoginClaim(self.Identity);
-            return !string.IsNullOrEmpty(passwordLoginClaim);
+            var identity = self.Identity as ClaimsIdentity;
+            var passwordClaim = identity.GetClaimOrDefault(NuGetClaims.HasPasswordLogin);
+            return !string.IsNullOrEmpty(passwordClaim);
         }
 
         /// <summary>
-        /// Determine if the current user logged in using password login.
+        /// Determine if the current user has an associated external credential.
         /// </summary>
         /// <param name="self">Current user principal.</param>
-        /// <returns>True if the user used password login.</returns>
-        public static bool HasExternalCredentials(this IPrincipal self)
+        /// <returns>True if user has password credential, false otherwise.</returns>
+        public static bool HasExternalLogin(this IPrincipal self)
         {
-            if (self == null)
+            if (self == null || self.Identity == null)
             {
                 return false;
             }
 
-            var user = self as User;
-            return user.Credentials.Any(cred => cred.IsExternal());
+            var identity = self.Identity as ClaimsIdentity;
+            var externalLoginClaim = identity.GetClaimOrDefault(NuGetClaims.HasExternalLogin);
+            return !string.IsNullOrEmpty(externalLoginClaim);
         }
 
         /// <summary>
@@ -171,17 +173,6 @@ namespace NuGetGallery
         private static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
-        }
-
-        private static string GetPasswordLoginClaim(IIdentity self)
-        {
-            if (self == null)
-            {
-                throw new ArgumentNullException(nameof(self));
-            }
-
-            var identity = self as ClaimsIdentity;
-            return identity.GetClaimOrDefault(NuGetClaims.PasswordLogin);
         }
     }
 }

@@ -23,6 +23,22 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Return true if the user has a credential of type <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public static bool HasPasswordCredential(this User user)
+        {
+            return user.Credentials.Any(c => c.IsPassword());
+        }
+
+        /// <summary>
+        /// Return true if the user has a credential of type <see cref="CredentialTypes.External"/>.
+        /// </summary>
+        public static bool HasExternalCredential(this User user)
+        {
+            return user.Credentials.Any(c => c.IsExternal());
+        }
+
+        /// <summary>
         /// Get the current API key credential, if available.
         /// </summary>
         public static Credential GetCurrentApiKeyCredential(this User user, IIdentity identity)

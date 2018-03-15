@@ -33,12 +33,17 @@ namespace NuGetGallery.Authentication
         public const string DiscontinuedLoginValue = "true";
 
         /// <summary>
-        /// The claim url for the claim that stores whether or not the user is authenticated with a password login.
+        /// The claim url for the claim that stores whether or not the user has a password login.
         /// </summary>
-        public const string PasswordLogin = ClaimsDomain + "passwordlogin";
+        public const string HasPasswordLogin = ClaimsDomain + "passwordlogin";
 
         /// <summary>
-        /// The value of <see cref="PasswordLogin"/> when the user is logged in with password or has linked external credentials.
+        /// The claim url for the claim that stores whether or not the user has an external login.
+        /// </summary>
+        public const string HasExternalLogin = ClaimsDomain + "externallogin";
+
+        /// <summary>
+        /// The value of <see cref="HasPasswordLogin"/> when the user is logged in with password or has linked external credentials.
         /// </summary>
         public const string DefaultValue = "true";
     }
