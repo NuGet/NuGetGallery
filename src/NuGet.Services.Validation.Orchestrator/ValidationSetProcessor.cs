@@ -127,10 +127,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
                         case ValidationStatus.Failed:
                             await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
+                            await validator.CleanUpAsync(validationRequest);
                             break;
 
                         case ValidationStatus.Succeeded:
                             await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
+                            await validator.CleanUpAsync(validationRequest);
                             // need another iteration to try running new validations
                             tryMoreValidations = true;
                             break;
@@ -216,6 +218,12 @@ namespace NuGet.Services.Validation.Orchestrator
                     else
                     {
                         await _validationStorageService.MarkValidationStartedAsync(packageValidation, validationResult);
+
+                        if (validationResult.Status == ValidationStatus.Succeeded
+                            || validationResult.Status == ValidationStatus.Failed)
+                        {
+                            await validator.CleanUpAsync(validationRequest);
+                        }
 
                         _telemetryService.TrackValidatorStarted(packageValidation.Type);
                     }
