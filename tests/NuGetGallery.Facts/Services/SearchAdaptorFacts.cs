@@ -133,6 +133,23 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=200&$top=1000"), nextLink);
             }
+
+            [Fact]
+            public void GeneratesNextLinkForComplexUrlWithSemVerLevel2()
+            {
+                // Arrange
+                var requestUri = new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=100&$top=1000&semVerLevel=2.0.0");
+                var resultCount = 2000; // our result set contains 2000 elements
+
+                // Act
+                var nextLink = SearchAdaptor.GetNextLink(requestUri, resultCount, new { searchTerm = "foo" },
+                    GetODataQueryOptionsForTest(requestUri),
+                    GetODataQuerySettingsForTest(),
+                    SemVerLevelKey.SemVer2);
+
+                // Assert
+                Assert.Equal(new Uri("https://localhost:8081/api/v2/Search()?searchTerm='foo'&$orderby=Id&$skip=200&$top=1000&semVerLevel=2.0.0"), nextLink);
+            }
         }
     }
 }

@@ -183,7 +183,7 @@ namespace NuGetGallery.Controllers
                         .ToV2FeedPackageQuery(GetSiteRoot(), _configurationService.Features.FriendlyLicenses, semVerLevelKey);
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey));
                 }
             }
             catch (Exception ex)
@@ -299,7 +299,8 @@ namespace NuGetGallery.Controllers
                             resultCount, 
                             new { searchTerm, targetFramework, includePrerelease }, 
                             o, 
-                            s);
+                            s,
+                            semVerLevelKey);
                     }
                     return null;
                 });
