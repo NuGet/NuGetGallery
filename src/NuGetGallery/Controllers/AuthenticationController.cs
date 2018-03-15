@@ -427,6 +427,7 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult AuthenticateAndLinkExternal(string returnUrl, string provider)
         {
+            TempData["ShowPasswordDeprecationWarning"] = true;
             return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), provider);
         }
 
@@ -435,7 +436,6 @@ namespace NuGetGallery
         {
             try
             {
-                TempData["ShowPasswordDeprecationWarning"] = true;
                 return _authService.Challenge(provider, returnUrl);
             }
             catch (InvalidOperationException)
@@ -463,16 +463,16 @@ namespace NuGetGallery
             var newCredential = result.Credential;
             if (await _authService.TryReplaceCredential(user, newCredential))
             {
-                // Authenticate with the new credential after successful replacement
-                var authenticatedUser = await _authService.Authenticate(newCredential);
-                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
-
                 // Remove the password credential after linking to external account.
                 var passwordCred = user.GetPasswordCredential();
                 if (passwordCred != null)
                 {
                     await _authService.RemoveCredential(user, passwordCred);
                 }
+
+                // Authenticate with the new credential after successful replacement
+                var authenticatedUser = await _authService.Authenticate(newCredential);
+                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
 
                 // Get email address of the new credential for updating success message
                 var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
