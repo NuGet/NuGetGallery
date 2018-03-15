@@ -53,6 +53,7 @@ namespace NuGetGallery
             DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
         }
 
+        public bool ValidatingTooLong { get; set; }
         public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }

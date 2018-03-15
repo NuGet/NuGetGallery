@@ -153,6 +153,15 @@
                         validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
                     </text>
                 )
+
+                if (Model.ValidatingTooLong)
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            <strong>Package validation is taking longer than expected.</strong> This is not normal, but we are on it!
+                        </text>
+                    )
+                }
             }
 
             @if (Model.FailedValidation)

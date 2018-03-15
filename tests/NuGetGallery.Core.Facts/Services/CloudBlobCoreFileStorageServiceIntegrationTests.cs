@@ -5,6 +5,10 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Moq;
+using NuGetGallery.Diagnostics;
 using Xunit;
 
 namespace NuGetGallery
@@ -26,6 +30,8 @@ namespace NuGetGallery
         private readonly string _prefixB;
         private readonly CloudBlobClientWrapper _clientA;
         private readonly CloudBlobClientWrapper _clientB;
+        private readonly CloudBlobClient _blobClientA;
+        private readonly CloudBlobClient _blobClientB;
         private readonly CloudBlobCoreFileStorageService _targetA;
         private readonly CloudBlobCoreFileStorageService _targetB;
 
@@ -39,8 +45,11 @@ namespace NuGetGallery
             _clientA = new CloudBlobClientWrapper(_fixture.ConnectionStringA, readAccessGeoRedundant: false);
             _clientB = new CloudBlobClientWrapper(_fixture.ConnectionStringB, readAccessGeoRedundant: false);
 
-            _targetA = new CloudBlobCoreFileStorageService(_clientA);
-            _targetB = new CloudBlobCoreFileStorageService(_clientB);
+            _blobClientA = CloudStorageAccount.Parse(_fixture.ConnectionStringA).CreateCloudBlobClient();
+            _blobClientB = CloudStorageAccount.Parse(_fixture.ConnectionStringB).CreateCloudBlobClient();
+
+            _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>());
+            _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>());
         }
 
         [BlobStorageFact]
@@ -59,6 +68,113 @@ namespace NuGetGallery
         public async Task CopyingWithNamesWorksWithinTheSameStorageAccount()
         {
             await CopyFileWorksAsync(CopyFileWithNamesAsync, _prefixA, _targetA, _prefixA, _targetA);
+        }
+
+        [BlobStorageFact]
+        public async Task DoesNotCopyWhenSourceAndDestinationHaveSameHash()
+        {
+            // Arrange
+            var srcFolderName = CoreConstants.ValidationFolderName;
+            var srcFileName = $"{_prefixA}/src";
+            var srcContent = "Hello, world.";
+
+            var destFolderName = CoreConstants.PackagesFolderName;
+            var destFileName = $"{_prefixB}/dest";
+
+            await _targetA.SaveFileAsync(
+                srcFolderName,
+                srcFileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(srcContent)),
+                overwrite: false);
+
+            await _targetB.SaveFileAsync(
+                destFolderName,
+                destFileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(srcContent)),
+                overwrite: false);
+
+            var originalDestFileReference = await _targetB.GetFileReferenceAsync(destFolderName, destFileName);
+            var originalDestETag = originalDestFileReference.ContentId;
+
+            var srcUri = await _targetA.GetFileReadUriAsync(
+                srcFolderName,
+                srcFileName,
+                DateTimeOffset.UtcNow.AddHours(1));
+
+            var destAccessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
+
+            // Act
+            await _targetB.CopyFileAsync(
+                srcUri,
+                destFolderName,
+                destFileName,
+                destAccessCondition);
+
+            // Assert
+            var finalDestFileReference = await _targetB.GetFileReferenceAsync(destFolderName, destFileName);
+            var finalDestETag = finalDestFileReference.ContentId;
+            Assert.Equal(originalDestETag, finalDestETag);
+        }
+
+        [BlobStorageFact]
+        public async Task CopiesWhenDestinationHasNotHashButContentsAreTheSame()
+        {
+            // Arrange
+            var srcFolderName = CoreConstants.ValidationFolderName;
+            var srcFileName = $"{_prefixA}/src";
+            var srcContent = "Hello, world.";
+
+            var destFolderName = CoreConstants.PackagesFolderName;
+            var destFileName = $"{_prefixB}/dest";
+
+            await _targetA.SaveFileAsync(
+                srcFolderName,
+                srcFileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(srcContent)),
+                overwrite: false);
+
+            await _targetB.SaveFileAsync(
+                destFolderName,
+                destFileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(srcContent)),
+                overwrite: false);
+
+            var originalDestFileReference = await _targetB.GetFileReferenceAsync(destFolderName, destFileName);
+            var originalDestETag = originalDestFileReference.ContentId;
+
+            await ClearContentMD5(_blobClientB, destFolderName, destFileName);
+
+            var srcUri = await _targetA.GetFileReadUriAsync(
+                srcFolderName,
+                srcFileName,
+                DateTimeOffset.UtcNow.AddHours(1));
+
+            var destAccessCondition = AccessConditionWrapper.GenerateEmptyCondition();
+
+            // Act
+            await _targetB.CopyFileAsync(
+                srcUri,
+                destFolderName,
+                destFileName,
+                destAccessCondition);
+
+            // Assert
+            var finalDestFileReference = await _targetB.GetFileReferenceAsync(destFolderName, destFileName);
+            var finalDestETag = finalDestFileReference.ContentId;
+            Assert.NotEqual(originalDestETag, finalDestETag);
+        }
+
+        private static CloudBlockBlob GetBlob(CloudBlobClient blobClient, string folderName, string fileName)
+        {
+            return blobClient.GetContainerReference(folderName).GetBlockBlobReference(fileName);
+        }
+
+        private async Task ClearContentMD5(CloudBlobClient blobClient, string folderName, string fileName)
+        {
+            var blob = GetBlob(blobClient, folderName, fileName);
+            await blob.FetchAttributesAsync();
+            blob.Properties.ContentMD5 = null;
+            await blob.SetPropertiesAsync();
         }
 
         private static async Task CopyFileWorksAsync(
@@ -102,12 +218,14 @@ namespace NuGetGallery
             string destFolderName,
             string destFileName)
         {
+            var destAccessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
+
             await destService.CopyFileAsync(
                 srcFolderName,
                 srcFileName,
                 destFolderName,
                 destFileName,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                destAccessCondition);
         }
 
         private static async Task CopyFileWithUriAsync(
@@ -120,12 +238,13 @@ namespace NuGetGallery
         {
             var endOfAccess = DateTimeOffset.UtcNow.AddHours(1);
             var srcUri = await srcService.GetFileReadUriAsync(srcFolderName, srcFileName, endOfAccess);
+            var destAccessCondition = AccessConditionWrapper.GenerateIfNotExistsCondition();
 
             await destService.CopyFileAsync(
                 srcUri,
                 destFolderName,
                 destFileName,
-                AccessConditionWrapper.GenerateIfNotExistsCondition());
+                destAccessCondition);
         }
     }
 }

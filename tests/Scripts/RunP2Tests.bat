@@ -16,14 +16,11 @@ set nuget="nuget.exe"
 set mstest="C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\mstest.exe"
 
 REM Clean previous test results
-if exist functionaltests.*.xml (
-    del functionaltests.*.xml
+if exist functionaltests.P2.xml (
+    del functionaltests.P2.xml
 )
 if exist NuGetGallery.P2.*.trx (
     del NuGetGallery.P2.*.trx
-)
-if exist TestResults (
-    rd TestResults /S /Q
 )
 
 REM Restore packages
