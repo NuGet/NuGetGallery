@@ -92,7 +92,7 @@ namespace NuGetGallery.Controllers
                                 semVerLevelKey);
 
                         return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                           SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, null, o, s, semVerLevelKey));
+                           SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, null, o, s));
                     }
                 }
             }
@@ -251,7 +251,7 @@ namespace NuGetGallery.Controllers
                             semVerLevelKey);
 
                     return QueryResult(options, pagedQueryable, MaxPageSize, totalHits, (o, s, resultCount) =>
-                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s, semVerLevelKey));
+                       SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { id }, o, s));
                 }
             }
             catch (Exception ex)
@@ -358,7 +358,7 @@ namespace NuGetGallery.Controllers
                     // Strip it of for backward compatibility.
                     if (o.Top == null || (resultCount.HasValue && o.Top.Value >= resultCount.Value))
                     {
-                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s, semVerLevelKey);
+                        return SearchAdaptor.GetNextLink(Request.RequestUri, resultCount, new { searchTerm, targetFramework, includePrerelease }, o, s);
                     }
                     return null;
                 });
