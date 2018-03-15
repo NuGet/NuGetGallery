@@ -38,7 +38,7 @@ namespace NuGetGallery.Authentication
         public const string HasExternalLogin = ClaimsDomain + "externallogin";
 
         /// <summary>
-        /// The default value for all the boolean claims in <see cref="NuGetClaims"/>.
+        /// The default string value for all the boolean claims in <see cref="NuGetClaims"/>.
         /// </summary>
         public const string DefaultValue = "true";
     }
