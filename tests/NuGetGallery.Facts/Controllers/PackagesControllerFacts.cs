@@ -28,6 +28,7 @@ using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
 using System.Globalization;
+using System.Text;
 
 namespace NuGetGallery
 {
@@ -57,7 +58,8 @@ namespace NuGetGallery
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
             Mock<IPackageUploadService> packageUploadService = null,
             Mock<IValidationService> validationService = null,
-            Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null)
+            Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
+            IReadMeService readMeService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -108,6 +110,8 @@ namespace NuGetGallery
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>();
 
+            readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -127,7 +131,7 @@ namespace NuGetGallery
                 securityPolicyService.Object,
                 reservedNamespaceService.Object,
                 packageUploadService.Object,
-                new ReadMeService(packageFileService.Object, entitiesContext.Object),
+                readMeService,
                 validationService.Object,
                 packageOwnershipManagementService.Object);
 
@@ -1896,7 +1900,8 @@ namespace NuGetGallery
                 User owner,
                 bool hasReadMe = false,
                 bool isPackageLocked = false,
-                Mock<IPackageFileService> packageFileService = null)
+                Mock<IPackageFileService> packageFileService = null,
+                IReadMeService readMeService = null)
             {
                 var package = new Package
                 {
@@ -1916,7 +1921,8 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: packageService,
-                    packageFileService: packageFileService);
+                    packageFileService: packageFileService,
+                    readMeService: readMeService);
                 controller.SetCurrentUser(currentUser);
 
                 var routeCollection = new RouteCollection();
@@ -2209,6 +2215,59 @@ namespace NuGetGallery
 
                 // Verify that a comparison was done against the active readme.
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Exactly(hasReadMe ? 1 : 0));
+            }
+
+            [Fact]
+            public async Task AlwaysCommitsChangesToReadMeService()
+            {
+                // Arrange
+                var packageFileService = new Mock<IPackageFileService>();
+                packageFileService.Setup(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()))
+                    .Returns(Task.FromResult("markdown"))
+                    .Verifiable();
+                packageFileService.Setup(s => s.SaveReadMeMdFileAsync(It.IsAny<Package>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var readMeService = new Mock<IReadMeService>();
+
+                var controller = SetupController(
+                    TestUtility.FakeUser, 
+                    TestUtility.FakeUser,
+                    hasReadMe: true,
+                    packageFileService: packageFileService,
+                    readMeService: readMeService.Object);
+
+                var formData = new VerifyPackageRequest
+                {
+                    Edit = new EditPackageVersionReadMeRequest
+                    {
+                        ReadMe = new ReadMeRequest
+                        {
+                            SourceType = "written",
+                            SourceText = "markdown2"
+                        }
+                    }
+                };
+
+                // Act.
+                var result = await controller.Edit("packageId", "1.0", formData, "returnUrl");
+
+                // Assert.
+                readMeService.Verify(
+                    x => x.SaveReadMeMdIfChanged(
+                        It.IsAny<Package>(),
+                        formData.Edit,
+                        controller.Request.ContentEncoding,
+                        true),
+                    Times.Once);
+                readMeService.Verify(
+                    x => x.SaveReadMeMdIfChanged(
+                        It.IsAny<Package>(),
+                        It.IsAny<EditPackageVersionReadMeRequest>(),
+                        It.IsAny<Encoding>(),
+                        It.IsAny<bool>()),
+                    Times.Once);
             }
 
             [Theory]
@@ -4688,6 +4747,85 @@ namespace NuGetGallery
                         ar.Action == AuditedPackageAction.Create
                         && ar.Id == fakePackage.PackageRegistration.Id
                         && ar.Version == fakePackage.Version));
+                }
+            }
+
+            [Fact]
+            public async Task WillNotCommitChangesToReadMeService()
+            {
+                // Arrange
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.CompletedTask);
+
+                    var fakePackageUploadService = new Mock<IPackageUploadService>();
+                    var fakePackage = new Package
+                    {
+                        PackageRegistration = new PackageRegistration
+                        {
+                            Id = "theId",
+                        },
+                        Version = "theVersion"
+                    };
+                    fakePackageUploadService
+                        .Setup(x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()))
+                        .Returns(Task.FromResult(fakePackage));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username)).Returns(TestUtility.FakeUser);
+
+                    var fakeReadMeService = new Mock<IReadMeService>();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        telemetryService: fakeTelemetryService,
+                        userService: fakeUserService,
+                        readMeService: fakeReadMeService.Object);
+
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var request = new VerifyPackageRequest
+                    {
+                        Listed = true,
+                        Owner = TestUtility.FakeUser.Username,
+                        Edit = new EditPackageVersionReadMeRequest(),
+                    };
+
+                    // Act
+                    await controller.VerifyPackage(request);
+
+                    // Assert
+                    fakeReadMeService.Verify(
+                        x => x.SaveReadMeMdIfChanged(
+                            fakePackage,
+                            request.Edit,
+                            controller.Request.ContentEncoding,
+                            false),
+                        Times.Once);
+                    fakeReadMeService.Verify(
+                        x => x.SaveReadMeMdIfChanged(
+                            It.IsAny<Package>(),
+                            It.IsAny<EditPackageVersionReadMeRequest>(),
+                            It.IsAny<Encoding>(),
+                            It.IsAny<bool>()),
+                        Times.Once);
                 }
             }
 
