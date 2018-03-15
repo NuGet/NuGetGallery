@@ -1,0 +1,49 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using Microsoft.ApplicationInsights;
+
+namespace NuGet.Services.Logging
+{
+    public class TelemetryClientWrapper : ITelemetryClient
+    {
+        private readonly TelemetryClient _telemetryClient;
+
+        private TelemetryClientWrapper(TelemetryClient telemetryClient)
+        {
+            _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+        }
+
+        public void TrackException(
+            Exception exception,
+            IDictionary<string, string> properties = null,
+            IDictionary<string, double> metrics = null)
+        {
+            try
+            {
+                _telemetryClient.TrackException(exception, properties, metrics);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        public void TrackMetric(
+            string metricName,
+            double value,
+            IDictionary<string, string> properties = null)
+        {
+            try
+            {
+                _telemetryClient.TrackMetric(metricName, value, properties);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+    }
+}
