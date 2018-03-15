@@ -42,7 +42,7 @@ namespace NuGetGallery
 
             var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
             return !string.IsNullOrWhiteSpace(discontinuedLoginClaim)
-                && NuGetClaims.DiscontinuedLoginValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase);
+                && NuGetClaims.DefaultValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

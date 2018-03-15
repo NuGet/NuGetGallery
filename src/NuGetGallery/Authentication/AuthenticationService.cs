@@ -255,7 +255,7 @@ namespace NuGetGallery.Authentication
 
             if (_contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user))
             {
-                claims.Add(new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue));
+                claims.Add(new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DefaultValue));
             }
 
             if (user.User.HasPasswordCredential())

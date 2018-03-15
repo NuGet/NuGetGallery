@@ -130,7 +130,7 @@ namespace NuGetGallery.Filters
 
                 mockIdentity.SetupGet(i => i.Claims).Returns(
                     hasDiscontinuedLoginClaim ? 
-                        new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } : 
+                        new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DefaultValue) } : 
                         new Claim[0]);
                 mockIdentity.SetupGet(i => i.IsAuthenticated).Returns(authenticated);
                 mockIdentity.SetupGet(i => i.AuthenticationType).Returns(authType);
