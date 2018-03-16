@@ -1249,7 +1249,12 @@ namespace NuGetGallery
             if (formData.Edit != null)
             {
                 // Update readme.md file, if modified.
-                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(
+                    package,
+                    formData.Edit,
+                    Request.ContentEncoding,
+                    commitChanges: true);
+
                 if (readmeChanged)
                 {
                     _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
@@ -1574,7 +1579,11 @@ namespace NuGetGallery
 
                 if (formData.Edit != null)
                 {
-                    if (await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
+                    if (await _readMeService.SaveReadMeMdIfChanged(
+                        package,
+                        formData.Edit,
+                        Request.ContentEncoding,
+                        commitChanges: false))
                     {
                         _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                     }
