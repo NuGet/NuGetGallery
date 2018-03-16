@@ -94,8 +94,7 @@ namespace NuGetGallery
             }
 
             var identity = self.Identity as ClaimsIdentity;
-            var passwordClaim = identity.GetClaimOrDefault(NuGetClaims.HasPasswordLogin);
-            return !string.IsNullOrEmpty(passwordClaim);
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin);
         }
 
         /// <summary>
@@ -111,8 +110,7 @@ namespace NuGetGallery
             }
 
             var identity = self.Identity as ClaimsIdentity;
-            var externalLoginClaim = identity.GetClaimOrDefault(NuGetClaims.HasExternalLogin);
-            return !string.IsNullOrEmpty(externalLoginClaim);
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.ExternalLogin);
         }
 
         /// <summary>

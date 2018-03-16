@@ -255,17 +255,17 @@ namespace NuGetGallery.Authentication
 
             if (_contentObjectService.LoginDiscontinuationConfiguration.IsLoginDiscontinued(user))
             {
-                claims.Add(new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DefaultValue));
+                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.DiscontinuedLogin);
             }
 
             if (user.User.HasPasswordCredential())
             {
-                claims.Add(new Claim(NuGetClaims.HasPasswordLogin, NuGetClaims.DefaultValue));
+                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.PasswordLogin);
             }
 
             if (user.User.HasExternalCredential())
             {
-                claims.Add(new Claim(NuGetClaims.HasExternalLogin, NuGetClaims.DefaultValue));
+                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.ExternalLogin);
             }
 
             return claims.ToArray();

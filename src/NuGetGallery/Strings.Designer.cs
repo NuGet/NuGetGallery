@@ -1184,7 +1184,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        ///   Looks up a localized string similar to The password login is deprecated. You must use Microsoft account to sign in..
         /// </summary>
         public static string PasswordLoginDeprecated {
             get {

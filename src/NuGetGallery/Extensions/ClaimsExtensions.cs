@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
@@ -10,6 +11,8 @@ namespace NuGetGallery
 {
     public static class ClaimsExtensions
     {
+        private const string BooleanClaimDefault = "true";
+
         public static IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity, string authType)
         {
             return GetIdentityInformation(claimsIdentity, authType, ClaimTypes.NameIdentifier, ClaimTypes.Name, ClaimTypes.Email);
@@ -40,9 +43,20 @@ namespace NuGetGallery
                 return false;
             }
 
-            var discontinuedLoginClaim = identity.GetClaimOrDefault(NuGetClaims.DiscontinuedLogin);
-            return !string.IsNullOrWhiteSpace(discontinuedLoginClaim)
-                && NuGetClaims.DefaultValue.Equals(discontinuedLoginClaim, StringComparison.OrdinalIgnoreCase);
+            return HasBooleanClaim(identity, NuGetClaims.DiscontinuedLogin);
+        }
+
+        public static void AddBooleanClaim(List<Claim> claims, string claimType)
+        {
+            claims.Add(new Claim(claimType, BooleanClaimDefault));
+        }
+
+        public static bool HasBooleanClaim(ClaimsIdentity identity, string claimType)
+        {
+            return identity
+                .GetClaimOrDefault(claimType)?
+                .Equals(BooleanClaimDefault, StringComparison.OrdinalIgnoreCase)
+                ?? false;
         }
     }
 }

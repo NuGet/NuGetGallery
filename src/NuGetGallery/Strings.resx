@@ -744,7 +744,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>Successfully linked the Microsoft account ({0}).</value>
   </data>
   <data name="PasswordLoginDeprecated" xml:space="preserve">
-    <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
+    <value>The password login is deprecated. You must use Microsoft account to sign in.</value>
   </data>
   <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
     <value>No valid external provider found for authentication</value>

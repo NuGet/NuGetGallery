@@ -30,16 +30,11 @@ namespace NuGetGallery.Authentication
         /// <summary>
         /// The claim url for the claim that stores whether or not the user has a password login.
         /// </summary>
-        public const string HasPasswordLogin = ClaimsDomain + "passwordlogin";
+        public const string PasswordLogin = ClaimsDomain + "passwordlogin";
 
         /// <summary>
         /// The claim url for the claim that stores whether or not the user has an external login.
         /// </summary>
-        public const string HasExternalLogin = ClaimsDomain + "externallogin";
-
-        /// <summary>
-        /// The default string value for all the boolean claims in <see cref="NuGetClaims"/>.
-        /// </summary>
-        public const string DefaultValue = "true";
+        public const string ExternalLogin = ClaimsDomain + "externallogin";
     }
 }

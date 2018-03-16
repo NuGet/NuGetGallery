@@ -440,6 +440,7 @@ namespace NuGetGallery
             }
             catch (InvalidOperationException)
             {
+                // This exception will be thrown when the unsupported provider is invoked, return 404.
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
         }
