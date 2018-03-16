@@ -25,11 +25,13 @@ using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageCertificates;
 using NuGet.Services.Validation.PackageSigning;
 using NuGet.Services.Validation.Vcs;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Services;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -235,6 +237,8 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IMessageService, MessageService>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
+            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
             services.AddSingleton(p =>

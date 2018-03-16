@@ -19,17 +19,17 @@ namespace Validation.PackageSigning.Core.Tests.Support
 
         public IReadOnlyList<string> Messages => _messages;
 
-        public IDisposable BeginScope<TState>(TState state)
+        public virtual IDisposable BeginScope<TState>(TState state)
         {
             return _inner.BeginScope(state);
         }
 
-        public bool IsEnabled(LogLevel logLevel)
+        public virtual bool IsEnabled(LogLevel logLevel)
         {
             return _inner.IsEnabled(logLevel);
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public virtual void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             _messages.Add(formatter(state, exception));
             _inner.Log(logLevel, eventId, state, exception, formatter);

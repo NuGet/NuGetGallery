@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ApplicationInsights;
+using NuGet.Services.Logging;
 
 namespace NuGet.Jobs.Validation
 {
@@ -13,9 +13,9 @@ namespace NuGet.Jobs.Validation
         private const string PackageUri = "PackageUri";
         private const string PackageSize = "PackageSize";
 
-        private readonly TelemetryClient _telemetryClient;
+        private readonly ITelemetryClient _telemetryClient;
 
-        public CommonTelemetryService(TelemetryClient telemetryClient)
+        public CommonTelemetryService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }

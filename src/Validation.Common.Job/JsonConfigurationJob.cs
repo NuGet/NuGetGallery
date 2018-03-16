@@ -17,9 +17,11 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGetGallery;
+using NuGetGallery.Diagnostics;
 
 namespace NuGet.Jobs.Validation
 {
@@ -107,7 +109,9 @@ namespace NuGet.Jobs.Validation
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
 
             services.AddSingleton(new TelemetryClient());
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
+            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IPackageDownloader, PackageDownloader>();
 
             services.AddScoped<IValidationEntitiesContext>(p =>

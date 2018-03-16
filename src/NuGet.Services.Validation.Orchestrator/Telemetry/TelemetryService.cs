@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
+using NuGet.Services.Logging;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator.Telemetry
@@ -46,9 +47,9 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string HashAlgorithm = "HashAlgorithm";
         private const string StreamType = "StreamType";
 
-        private readonly TelemetryClient _telemetryClient;
+        private readonly ITelemetryClient _telemetryClient;
 
-        public TelemetryService(TelemetryClient telemetryClient)
+        public TelemetryService(ITelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
