@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
@@ -22,6 +23,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public const string Email = "preferred_username";
             public const string Name = "name";
             public const string Issuer = "iss";
+            public const string ACR = "http://schemas.microsoft.com/claims/authnclassreference";
         }
 
         public static class AuthenticationType
@@ -36,6 +38,13 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
         private static readonly string ACCESS_DENIED = "access_denied";
+
+        public static class ACR_VALUES
+        {
+            public static readonly string DEFAULT = "urn:microsoft:policies:default";
+            public static readonly string MFA = "urn:microsoft:policies:mfa";
+            public static readonly string ANY = DEFAULT + "+" + MFA;
+        }
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
@@ -58,7 +67,8 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
                 Notifications = new OpenIdConnectAuthenticationNotifications
                 {
-                    AuthenticationFailed = AuthenticationFailed
+                    AuthenticationFailed = AuthenticationFailed,
+                    RedirectToIdentityProvider = RedirectToIdentityProvider
                 }
             };
 
@@ -79,9 +89,10 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl)
+        public override ActionResult Challenge(string redirectUrl, bool invokeMfa = false)
         {
-            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
+            var mfaTokenValue = invokeMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
+            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, mfaTokenValue);
         }
 
         public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
@@ -142,7 +153,10 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Email}'");
             }
 
-            return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId);
+            var acrClaim = claimsIdentity.FindFirst(V2Claims.ACR);
+            var multiFactorAuthenticated = acrClaim?.Value.Equals(ACR_VALUES.MFA, StringComparison.OrdinalIgnoreCase) ?? false;
+
+            return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId, multiFactorAuthenticated);
         }
 
         // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user, 
@@ -155,20 +169,32 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 // For every 'Challenge' sent to the external providers, we store the 'State'
                 // with the redirect uri where we intend to return after successful authentication.
                 // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
-                var authenticationPropertiesEncodedString = notification
-                    .ProtocolMessage
-                    .State
-                    .Split('=');
-                var authenticationProperties = notification
-                    .Options
-                    .StateDataFormat
-                    .Unprotect(authenticationPropertiesEncodedString[1]);
+                var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
                 notification.HandleResponse();
                 notification.Response.Redirect(authenticationProperties.RedirectUri);
             }
 
             return Task.FromResult(0);
+        }
+
+        // Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication.
+        private Task RedirectToIdentityProvider(RedirectToIdentityProviderNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
+        {
+            var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
+
+            if (authenticationProperties.Dictionary.TryGetValue(ChallengeResult.MFA_TOKEN_TYPE, out string acr_value))
+            {
+                notification.ProtocolMessage.AcrValues = acr_value;
+            }
+
+            return Task.FromResult(0);
+        }
+
+        private AuthenticationProperties GetAuthenticationPropertiesFromProtocolMessage(OpenIdConnectMessage message, OpenIdConnectAuthenticationOptions options)
+        {
+            var authenticationPropertiesEncodedString = message.State.Split('=');
+             return options.StateDataFormat.Unprotect(authenticationPropertiesEncodedString[1]);
         }
     }
 }

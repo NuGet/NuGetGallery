@@ -414,7 +414,7 @@ namespace NuGetGallery
         }
 
         [NonAction]
-        public ActionResult ChallengeAuthentication(string returnUrl, string provider)
+        public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool invokeMfa = false)
         {
             return _authService.Challenge(provider, returnUrl);
         }
@@ -491,6 +491,13 @@ namespace NuGetGallery
                     NuGetContext.Config.Current.EnforcedAuthProviderForAdmin, result.Authentication, returnUrl, out challenge))
                 {
                     return challenge;
+                }
+
+                // TODO: Change this to use the 2FA value for the set user.
+                if (result.Authentication.User.Confirmed && !result.MultiFactorAuthenticated)
+                {
+                    // Require 2FA here. Perhaps invoke a challenge again?
+                    return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), result.Authenticator.Name, invokeMfa: true);
                 }
 
                 // Create session

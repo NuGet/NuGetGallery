@@ -76,7 +76,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             return base.IsProviderForIdentity(claimsIdentity);
         }
 
-        public override ActionResult Challenge(string redirectUrl)
+        public override ActionResult Challenge(string redirectUrl, bool invokeMfa = false)
         {
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }

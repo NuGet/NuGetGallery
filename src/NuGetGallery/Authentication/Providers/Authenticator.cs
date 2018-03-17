@@ -90,7 +90,7 @@ namespace NuGetGallery.Authentication.Providers
             return null;
         }
 
-        public virtual ActionResult Challenge(string redirectUrl)
+        public virtual ActionResult Challenge(string redirectUrl, bool invokeMfa = false)
         {
             return new HttpUnauthorizedResult();
         }

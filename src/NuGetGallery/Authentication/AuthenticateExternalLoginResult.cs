@@ -12,5 +12,6 @@ namespace NuGetGallery.Authentication
         public ClaimsIdentity ExternalIdentity { get; set; }
         public Authenticator Authenticator { get; set; }
         public Credential Credential { get; set; }
+        public bool MultiFactorAuthenticated { get; set; }
     }
 }
