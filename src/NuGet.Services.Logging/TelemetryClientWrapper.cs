@@ -11,7 +11,7 @@ namespace NuGet.Services.Logging
     {
         private readonly TelemetryClient _telemetryClient;
 
-        private TelemetryClientWrapper(TelemetryClient telemetryClient)
+        public TelemetryClientWrapper(TelemetryClient telemetryClient)
         {
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
