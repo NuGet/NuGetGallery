@@ -64,91 +64,97 @@ namespace NuGet.Jobs.Validation.PackageSigning.ExtractAndValidateSignature
 
         private async Task<bool> HandleAsync(SignatureValidationMessage message, CancellationToken cancellationToken)
         {
-            // Find the signature validation entity that matches this message.
-            var validation = await _validatorStateService.GetStatusAsync(message.ValidationId);
-
-            // A signature validation should be queued with ValidatorState == Incomplete.
-            if (validation == null)
+            using (_logger.BeginScope("Handling signature validation message for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+                message.PackageId,
+                message.PackageVersion,
+                message.ValidationId))
             {
-                _logger.LogInformation(
-                    "Could not find validation entity, requeueing (package: {PackageId} {PackageVersion}, validationId: {ValidationId})",
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId);
+                // Find the signature validation entity that matches this message.
+                var validation = await _validatorStateService.GetStatusAsync(message.ValidationId);
 
-                // Message may be retried.
-                return false;
-            }
-            else if (validation.State == ValidationStatus.NotStarted)
-            {
-                _logger.LogWarning(
-                    "Unexpected signature verification status '{ValidatorState}' when 'Incomplete' was expected, requeueing (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
-                    validation.State,
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId);
-
-                // Message may be retried.
-                return false;
-            }
-            else if (validation.State != ValidationStatus.Incomplete)
-            {
-                _logger.LogWarning(
-                    "Terminal signature verification status '{ValidatorState}' when 'Incomplete' was expected, dropping message (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
-                    validation.State,
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId);
-
-                // Consume the message.
-                return true;
-            }
-
-            // Validate package
-            using (var packageStream = await _packageDownloader.DownloadAsync(message.NupkgUri, cancellationToken))
-            using (var packageWriteStream = new MemoryStream()) // Unused, but to be careful we don't pass the original stream.
-            using (var package = new SignedPackageArchive(packageStream, packageWriteStream))
-            {
-                var result = await _signatureValidator.ValidateAsync(
-                    validation.PackageKey,
-                    package,
-                    message,
-                    cancellationToken);
-
-                validation.State = result.State;
-
-                // Save any issues if the resulting state is terminal.
-                if (validation.State == ValidationStatus.Failed
-                    || validation.State == ValidationStatus.Succeeded)
+                // A signature validation should be queued with ValidatorState == Incomplete.
+                if (validation == null)
                 {
-                    validation.ValidatorIssues = validation.ValidatorIssues ?? new List<ValidatorIssue>();
-                    foreach (var issue in result.Issues)
+                    _logger.LogInformation(
+                        "Could not find validation entity, requeueing (package: {PackageId} {PackageVersion}, validationId: {ValidationId})",
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId);
+
+                    // Message may be retried.
+                    return false;
+                }
+                else if (validation.State == ValidationStatus.NotStarted)
+                {
+                    _logger.LogWarning(
+                        "Unexpected signature verification status '{ValidatorState}' when 'Incomplete' was expected, requeueing (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                        validation.State,
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId);
+
+                    // Message may be retried.
+                    return false;
+                }
+                else if (validation.State != ValidationStatus.Incomplete)
+                {
+                    _logger.LogWarning(
+                        "Terminal signature verification status '{ValidatorState}' when 'Incomplete' was expected, dropping message (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                        validation.State,
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId);
+
+                    // Consume the message.
+                    return true;
+                }
+
+                // Validate package
+                using (var packageStream = await _packageDownloader.DownloadAsync(message.NupkgUri, cancellationToken))
+                using (var packageWriteStream = new MemoryStream()) // Unused, but to be careful we don't pass the original stream.
+                using (var package = new SignedPackageArchive(packageStream, packageWriteStream))
+                {
+                    var result = await _signatureValidator.ValidateAsync(
+                        validation.PackageKey,
+                        package,
+                        message,
+                        cancellationToken);
+
+                    validation.State = result.State;
+
+                    // Save any issues if the resulting state is terminal.
+                    if (validation.State == ValidationStatus.Failed
+                        || validation.State == ValidationStatus.Succeeded)
                     {
-                        validation.ValidatorIssues.Add(new ValidatorIssue
+                        validation.ValidatorIssues = validation.ValidatorIssues ?? new List<ValidatorIssue>();
+                        foreach (var issue in result.Issues)
                         {
-                            IssueCode = issue.IssueCode,
-                            Data = issue.Serialize(),
-                        });
+                            validation.ValidatorIssues.Add(new ValidatorIssue
+                            {
+                                IssueCode = issue.IssueCode,
+                                Data = issue.Serialize(),
+                            });
+                        }
                     }
                 }
+
+                // The signature validator should do all of the work to bring this validation to its completion.
+                if (validation.State != ValidationStatus.Succeeded
+                    && validation.State != ValidationStatus.Failed)
+                {
+                    _logger.LogError("The signature validator should have set the status 'Succeeded' or 'Failed', not " +
+                        "'{ValidatorState}' (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
+                        validation.State,
+                        message.PackageId,
+                        message.PackageVersion,
+                        message.ValidationId);
+
+                    return false;
+                }
+
+                // Save the resulting validation status.
+                return await SaveStatusAsync(validation, message);
             }
-
-            // The signature validator should do all of the work to bring this validation to its completion.
-            if (validation.State != ValidationStatus.Succeeded
-                && validation.State != ValidationStatus.Failed)
-            {
-                _logger.LogError("The signature validator should have set the status 'Succeeded' or 'Failed', not " +
-                    "'{ValidatorState}' (package id: {PackageId} package version: {PackageVersion} validation id: {ValidationId})",
-                    validation.State,
-                    message.PackageId,
-                    message.PackageVersion,
-                    message.ValidationId);
-
-                return false;
-            }
-
-            // Save the resulting validation status.
-            return await SaveStatusAsync(validation, message);
         }
 
         private async Task<bool> SaveStatusAsync(ValidatorStatus validation, SignatureValidationMessage message)

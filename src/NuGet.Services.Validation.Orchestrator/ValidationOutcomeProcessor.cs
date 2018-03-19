@@ -166,7 +166,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     {
                         var duration = DateTime.UtcNow - validation.Started;
 
-                        _logger.LogWarning("Validation {Validation} for package {PackageId} {PackageVersion} has reached the configured failure timeout after duration {Duration}",
+                        _logger.LogWarning("Validation {Validation} for package {PackageId} {PackageVersion} is past its expected duration after {Duration}",
                             validation.Type,
                             validationSet.PackageId,
                             validationSet.PackageNormalizedVersion,
