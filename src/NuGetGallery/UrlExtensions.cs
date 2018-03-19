@@ -1257,6 +1257,21 @@ namespace NuGetGallery
 
         private static string HandleTransformAccount(this UrlHelper url, string routeName, User accountToTransform, bool relativeUrl = true)
         {
+            return url.HandleTransformAccount(routeName, accountToTransform.Username, accountToTransform.OrganizationMigrationRequest.ConfirmationToken, relativeUrl);
+        }
+
+        public static string ConfirmTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransformUsername, confirmationToken, relativeUrl);
+        }
+
+        public static string RejectTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount("RejectTransform", accountToTransformUsername, confirmationToken, relativeUrl);
+        }
+
+        private static string HandleTransformAccount(this UrlHelper url, string routeName, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
             return GetActionLink(
                 url,
                 routeName,
@@ -1264,8 +1279,8 @@ namespace NuGetGallery
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "accountNameToTransform", accountToTransform.Username },
-                    { "token", accountToTransform.OrganizationMigrationRequest.ConfirmationToken }
+                    { "accountNameToTransform", accountToTransformUsername },
+                    { "token", confirmationToken }
                 });
         }
 
