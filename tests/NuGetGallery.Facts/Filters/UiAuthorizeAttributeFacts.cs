@@ -127,11 +127,13 @@ namespace NuGetGallery.Filters
             private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedLoginClaim)
             {
                 var mockIdentity = new Mock<ClaimsIdentity>();
+                var claims = new List<Claim>();
+                if (hasDiscontinuedLoginClaim)
+                {
+                    ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.DiscontinuedLogin);
+                }
 
-                mockIdentity.SetupGet(i => i.Claims).Returns(
-                    hasDiscontinuedLoginClaim ? 
-                        new[] { new Claim(NuGetClaims.DiscontinuedLogin, NuGetClaims.DiscontinuedLoginValue) } : 
-                        new Claim[0]);
+                mockIdentity.SetupGet(i => i.Claims).Returns(claims.ToArray());
                 mockIdentity.SetupGet(i => i.IsAuthenticated).Returns(authenticated);
                 mockIdentity.SetupGet(i => i.AuthenticationType).Returns(authType);
 

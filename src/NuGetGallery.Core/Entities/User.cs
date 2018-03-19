@@ -161,12 +161,6 @@ namespace NuGetGallery
             EmailConfirmationToken = generateToken();
         }
 
-        public bool HasPassword()
-        {
-            return Credentials.Any(c =>
-                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-        }
-
         public bool IsInRole(string roleName)
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));

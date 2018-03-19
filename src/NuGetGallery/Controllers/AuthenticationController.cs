@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -196,6 +198,8 @@ namespace NuGetGallery
 
             // Create session
             await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+
+            TempData["ShowPasswordDeprecationWarning"] = true;
             return SafeRedirect(returnUrl);
         }
 
@@ -390,11 +394,24 @@ namespace NuGetGallery
         public virtual ActionResult AuthenticateExternal(string returnUrl)
         {
             var user = GetCurrentUser();
-            var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
-            if (aadCredential != null)
+            var userOrganizationsWithTenantPolicy = user?
+                .Organizations?
+                .Where(o => o
+                    .Organization
+                    .SecurityPolicies
+                    .Any(policy => policy.Name == nameof(RequireOrganizationTenantPolicy)));
+
+            if (userOrganizationsWithTenantPolicy != null && userOrganizationsWithTenantPolicy.Any())
             {
-                TempData["WarningMessage"] = Strings.ChangeCredential_NotAllowed;
-                return Redirect(returnUrl);
+                var aadCredential = user?.Credentials.GetAzureActiveDirectoryCredential();
+                if (aadCredential != null)
+                {
+                    var orgList = string.Join(", ",
+                        userOrganizationsWithTenantPolicy.Select(member => member.Organization.Username));
+
+                    TempData["WarningMessage"] = string.Format(Strings.ChangeCredential_NotAllowed, orgList);
+                    return Redirect(returnUrl);
+                }
             }
 
             var externalAuthProvider = GetExternalProvider();
@@ -410,13 +427,22 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult AuthenticateAndLinkExternal(string returnUrl, string provider)
         {
+            TempData["ShowPasswordDeprecationWarning"] = true;
             return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), provider);
         }
 
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool invokeMfa = false)
         {
-            return _authService.Challenge(provider, returnUrl, invokeMfa);
+            try
+            {
+                return _authService.Challenge(provider, returnUrl);
+            }
+            catch (InvalidOperationException)
+            {
+                // This exception will be thrown when the unsupported provider is invoked, return 404.
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
         }
 
         /// <summary>
@@ -438,16 +464,16 @@ namespace NuGetGallery
             var newCredential = result.Credential;
             if (await _authService.TryReplaceCredential(user, newCredential))
             {
-                // Authenticate with the new credential after successful replacement
-                var authenticatedUser = await _authService.Authenticate(newCredential);
-                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
-
                 // Remove the password credential after linking to external account.
                 var passwordCred = user.GetPasswordCredential();
                 if (passwordCred != null)
                 {
                     await _authService.RemoveCredential(user, passwordCred);
                 }
+
+                // Authenticate with the new credential after successful replacement
+                var authenticatedUser = await _authService.Authenticate(newCredential);
+                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
 
                 // Get email address of the new credential for updating success message
                 var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
