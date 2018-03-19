@@ -416,7 +416,7 @@ namespace NuGetGallery
         [NonAction]
         public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool invokeMfa = false)
         {
-            return _authService.Challenge(provider, returnUrl);
+            return _authService.Challenge(provider, returnUrl, invokeMfa);
         }
 
         /// <summary>

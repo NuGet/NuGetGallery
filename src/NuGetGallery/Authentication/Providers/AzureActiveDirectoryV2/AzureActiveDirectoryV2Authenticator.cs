@@ -43,7 +43,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             public static readonly string DEFAULT = "urn:microsoft:policies:default";
             public static readonly string MFA = "urn:microsoft:policies:mfa";
-            public static readonly string ANY = DEFAULT + "+" + MFA;
+            public static readonly string ANY = MFA + " " + DEFAULT;
         }
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
