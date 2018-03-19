@@ -198,7 +198,7 @@ namespace NuGetGallery
                 return AccountView(account, model);
             }
             
-            if (account.HasPassword())
+            if (account.HasPasswordCredential())
             {
                 if (!ModelState.IsValidField("ChangeEmail.Password"))
                 {

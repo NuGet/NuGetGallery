@@ -1,4 +1,13 @@
-﻿@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
+﻿@{
+    var ShowWarningBanner = Config.Current.DeprecateNuGetPasswordLogins && User.HasPasswordLogin();
+    var ShowPasswordDeprecationBanner = TempData.ContainsKey("ShowPasswordDeprecationWarning")
+        && Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])
+        && Request.IsAuthenticated
+        && Config.Current.DeprecateNuGetPasswordLogins
+        && User.HasPasswordLogin();
+}
+
+@if (!string.IsNullOrWhiteSpace(Config.Current.WarningBanner))
 {
     <div class="container-fluid banner banner-bright text-center">
         <div class="row">
@@ -94,8 +103,14 @@
                                 <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
                                     aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
                                     <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
-                                        <b><span>@User.Identity.Name</span></b>
-                                        <span class="caret"></span>
+                                        <div>
+                                            @if (ShowWarningBanner)
+                                            {
+                                                <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
+                                            }
+                                            <b><span>@User.Identity.Name</span></b>
+                                            <span class="caret"></span>
+                                        </div>
                                     </a>
                                     <ul class="dropdown-menu" role="menu" aria-labelledby="account-dropdown">
                                         <li class="dropdown-header row">
@@ -115,10 +130,18 @@
                                         }
                                         <li class="divider"></li>
                                         <li role="presentation"><a href="@Url.User(CurrentUser.Username)" role="menuitem">View Profile</a></li>
-                                        <li role="presentation"><a href="@Url.AccountSettings()" role="menuitem">Account Settings</a></li>
+                                        <li role="presentation">
+                                            <a href="@Url.AccountSettings()" role="menuitem">
+                                                Account Settings
+                                                @if (ShowWarningBanner)
+                                                {
+                                                    <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
+                                                }
+                                            </a>
+                                        </li>
                                         <li role="presentation"><a href="@Url.ManageMyApiKeys()" role="menuitem">API Keys</a></li>
                                         <li class="divider"></li>
-                                        @if (CurrentUser.Organizations.Any() || 
+                                        @if (CurrentUser.Organizations.Any() ||
                                             ContentObjectService.Value.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(CurrentUser))
                                         {
                                             <li role="presentation"><a href="@Url.ManageMyOrganizations()" role="menuitem">Manage Organizations</a></li>
@@ -183,6 +206,26 @@
             <div class="row">
                 <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
                     @ViewHelpers.AlertDanger(@<text>@((string)TempData["ErrorMessage"])</text>)
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (ShowPasswordDeprecationBanner)
+{
+    <div class="alert-transient @(ViewBag.HasJumbotron == true ? "alert-transient-jumbotron" : string.Empty)">
+        <div class="container">
+            <div class="row">
+                <div class="@ViewHelpers.GetColumnClasses(ViewBag)" role="alert" aria-live="assertive">
+                    @if (User.HasExternalLogin()) 
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Go to <a href="@Url.AccountSettings()">Account Settings</a> to disable your password login and use Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                    }
+                    else
+                    {
+                        @ViewHelpers.AlertWarning(@<text>NuGet.org password login is deprecated. Go to <a href="@Url.AccountSettings()">Account Settings</a> and link a Microsoft account to sign in to the @(this.Config.Current.Brand).</text>)
+                    }
                 </div>
             </div>
         </div>
