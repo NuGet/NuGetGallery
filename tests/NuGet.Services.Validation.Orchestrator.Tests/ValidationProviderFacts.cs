@@ -79,6 +79,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         public class GetValidator : BaseFacts
         {
+            /// <summary>
+            /// Names of known processors. These must never change unless there is a well thought out migration story
+            /// or data fix. These names are encoded into DB tables used for orchestrator bookkeeping.
+            /// </summary>
+            [Theory]
+            [InlineData("VcsValidator", false)]
+            [InlineData("PackageSigningValidator", false)]
+            [InlineData("PackageCertificatesValidator", false)]
+            public void KnownValidatorsDoNotChangeNames(string validatorName, bool isProcessor)
+            {
+                Assert.True(Target.IsValidator(validatorName));
+                Assert.Equal(isProcessor, Target.IsProcessor(validatorName));
+            }
+
             [Fact]
             public void CanGetValidator()
             {

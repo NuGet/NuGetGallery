@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632}</ProjectGuid>
+    <ProjectGuid>{26435822-8938-48C9-96FD-0DCCF8F7CE00}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Services.Validation.Orchestrator.Tests</RootNamespace>
-    <AssemblyName>NuGet.Services.Validation.Orchestrator.Tests</AssemblyName>
+    <RootNamespace>Validation.PackageSigning.ProcessSignature.Tests</RootNamespace>
+    <AssemblyName>Validation.PackageSigning.ProcessSignature.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,49 +31,35 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\ConfigurationValidatorFacts.cs" />
-    <Compile Include="Configuration\CoreMessageServiceConfigurationFacts.cs" />
-    <Compile Include="Configuration\TopologicalSortFacts.cs" />
-    <Compile Include="MessageServiceFacts.cs" />
-    <Compile Include="OrchestrationRunnerFacts.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\CertificateVerificationEnqueuerFacts.cs" />
-    <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidatorFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureVerificationEnqueuerFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSigningValidatorFacts.cs" />
-    <Compile Include="PackageStatusProcessorFacts.cs" />
+    <Compile Include="Support\CertificateIntegrationTestCollection.cs" />
+    <Compile Include="Support\CertificateIntegrationTestFixture.cs" />
+    <Compile Include="HashFacts.cs" />
+    <Compile Include="SignaturePartsExtractorFacts.cs" />
+    <Compile Include="SignatureValidatorFacts.cs" />
+    <Compile Include="SignatureValidatorIntegrationTests.cs" />
+    <Compile Include="Support\EmbeddedResourceTestHandler.cs" />
+    <Compile Include="PackageSigningStateServiceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ValidationMessageHandlerFacts.cs" />
-    <Compile Include="ValidationOutcomeProcessorFacts.cs" />
-    <Compile Include="ValidationPackageFileServiceFacts.cs" />
-    <Compile Include="ValidationProviderFacts.cs" />
-    <Compile Include="ValidationSetProcessorFacts.cs" />
-    <Compile Include="ValidationSetProviderFacts.cs" />
-    <Compile Include="ValidationStorageServiceFacts.cs" />
-    <Compile Include="ValidatorStateServiceFacts.cs" />
-    <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
-    <Compile Include="Vcs\VcsValidatorFacts.cs" />
+    <Compile Include="SignatureValidationMessageHandlerFacts.cs" />
+    <Compile Include="Support\SubjectAndThumbprint.cs" />
+    <Compile Include="Support\TestResources.cs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="EntityFramework">
-      <Version>6.1.3</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
       <Version>1.1.2</Version>
     </PackageReference>
-    <PackageReference Include="moq">
+    <PackageReference Include="Moq">
       <Version>4.7.145</Version>
     </PackageReference>
-    <PackageReference Include="System.Net.Http">
-      <Version>4.3.3</Version>
+    <PackageReference Include="Portable.BouncyCastle">
+      <Version>1.8.1.3</Version>
+    </PackageReference>
+    <PackageReference Include="Test.Utility">
+      <Version>4.7.0-preview1.4948+f399fefacef3d4cc769a1580e812e1045d1d3b3e</Version>
     </PackageReference>
     <PackageReference Include="xunit">
       <Version>2.3.1</Version>
@@ -84,33 +69,33 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
-      <Project>{E6D094FB-9068-4578-B176-116F97E7506B}</Project>
-      <Name>NuGet.Services.Validation.Orchestrator</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.Common.Job\Validation.Common.Job.csproj">
       <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
       <Name>Validation.Common.Job</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\src\Validation.Common\Validation.Common.csproj">
-      <Project>{2539DDF3-0CC5-4A03-B5F9-39B47744A7BD}</Project>
-      <Name>Validation.Common</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj">
+      <Project>{dd043977-6bcd-475a-bee2-8c34309ec622}</Project>
+      <Name>Validation.PackageSigning.ProcessSignature</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Validation.PackageSigning.Core.Tests\Validation.PackageSigning.Core.Tests.csproj">
       <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
-      <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Validation.PackageSigning.Helpers</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\TestUnsigned.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestData\Zip64Package.1.0.0.nupkg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

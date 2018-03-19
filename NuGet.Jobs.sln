@@ -73,8 +73,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gallery.Maintenance", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CopyAzureContainer", "src\CopyAzureContainer\CopyAzureContainer.csproj", "{A07F7D0C-F269-43D5-A812-3ABC47090885}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnapshotAzureBlob", "SnapshotAzureBlob\SnapshotAzureBlob.csproj", "{ED2D370C-D921-433A-A0B9-A601F936EDD3}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Helper", "src\Validation.Helper\Validation.Helper.csproj", "{305FB2C1-01FD-413D-B788-7B85BAD85A41}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Helper.Tests", "tests\Validation.Helper.Tests\Validation.Helper.Tests.csproj", "{8336BEBE-EC6A-4E40-A1C9-8C34A507E62D}"
@@ -97,10 +95,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Tests", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.Core", "src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj", "{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ExtractAndValidateSignature", "src\Validation.PackageSigning.ExtractAndValidateSignature\Validation.PackageSigning.ExtractAndValidateSignature.csproj", "{DD043977-6BCD-475A-BEE2-8C34309EC622}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ExtractAndValidateSignature.Tests", "tests\Validation.PackageSigning.ExtractAndValidateSignature.Tests\Validation.PackageSigning.ExtractAndValidateSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ValidateCertificate", "src\Validation.PackageSigning.ValidateCertificate\Validation.PackageSigning.ValidateCertificate.csproj", "{A245E448-8AE0-452B-9338-8C0E0B637D72}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ValidateCertificate.Tests", "tests\Validation.PackageSigning.ValidateCertificate.Tests\Validation.PackageSigning.ValidateCertificate.Tests.csproj", "{5ACE7756-F8D0-4D90-9957-872DE4A1381E}"
@@ -114,6 +108,12 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PackageHash", "src\PackageHash\PackageHash.csproj", "{40843020-6F0A-48F0-AC28-42FFE3A5C21E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Common.Job.Tests", "tests\Validation.Common.Job.Tests\Validation.Common.Job.Tests.csproj", "{430F63C7-20C2-4872-AC3E-DDE846E50AA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ProcessSignature", "src\Validation.PackageSigning.ProcessSignature\Validation.PackageSigning.ProcessSignature.csproj", "{DD043977-6BCD-475A-BEE2-8C34309EC622}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnapshotAzureBlob", "src\SnapshotAzureBlob\SnapshotAzureBlob.csproj", "{ED2D370C-D921-433A-A0B9-A601F936EDD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ProcessSignature.Tests", "tests\Validation.PackageSigning.ProcessSignature.Tests\Validation.PackageSigning.ProcessSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -211,10 +211,6 @@ Global
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A07F7D0C-F269-43D5-A812-3ABC47090885}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{305FB2C1-01FD-413D-B788-7B85BAD85A41}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -259,14 +255,6 @@ Global
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Release|Any CPU.Build.0 = Release|Any CPU
-		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A245E448-8AE0-452B-9338-8C0E0B637D72}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A245E448-8AE0-452B-9338-8C0E0B637D72}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A245E448-8AE0-452B-9338-8C0E0B637D72}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -295,6 +283,18 @@ Global
 		{430F63C7-20C2-4872-AC3E-DDE846E50AA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{430F63C7-20C2-4872-AC3E-DDE846E50AA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{430F63C7-20C2-4872-AC3E-DDE846E50AA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DD043977-6BCD-475A-BEE2-8C34309EC622}.Release|Any CPU.Build.0 = Release|Any CPU
+		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{ED2D370C-D921-433A-A0B9-A601F936EDD3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -322,7 +322,6 @@ Global
 		{12719498-B87E-4E92-8C2B-30046393CF85} = {BEC3DF4D-9A04-42C8-8B4F-D42750202B4D}
 		{EFF021CA-1BF4-4C09-BFB8-D314EAAD24D2} = {88725659-D5F8-49F9-9B7E-D87C5B9917D7}
 		{A07F7D0C-F269-43D5-A812-3ABC47090885} = {FA5644B5-4F08-43F6-86B3-039374312A47}
-		{ED2D370C-D921-433A-A0B9-A601F936EDD3} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{305FB2C1-01FD-413D-B788-7B85BAD85A41} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{8336BEBE-EC6A-4E40-A1C9-8C34A507E62D} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{BC9EA7CE-AD21-4D17-B581-F8ED8CBD7191} = {FA5644B5-4F08-43F6-86B3-039374312A47}
@@ -334,8 +333,6 @@ Global
 		{A3B0B15D-22D9-4F1F-94C4-B24B28ECF632} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{F9690B52-3C92-42A0-B41F-1A6040C2D2EE} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
-		{DD043977-6BCD-475A-BEE2-8C34309EC622} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
-		{26435822-8938-48C9-96FD-0DCCF8F7CE00} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{A245E448-8AE0-452B-9338-8C0E0B637D72} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{5ACE7756-F8D0-4D90-9957-872DE4A1381E} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{2C5BE067-ADFD-49E3-BA9F-13A74436E5DB} = {6A776396-02B1-475D-A104-26940ADB04AB}
@@ -343,6 +340,9 @@ Global
 		{FA87D075-A934-4443-8D0B-5DB32640B6D7} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{40843020-6F0A-48F0-AC28-42FFE3A5C21E} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{430F63C7-20C2-4872-AC3E-DDE846E50AA4} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{DD043977-6BCD-475A-BEE2-8C34309EC622} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
+		{ED2D370C-D921-433A-A0B9-A601F936EDD3} = {FA5644B5-4F08-43F6-86B3-039374312A47}
+		{26435822-8938-48C9-96FD-0DCCF8F7CE00} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
