@@ -148,11 +148,16 @@ namespace NuGet.Services.Validation.Orchestrator
                     previousDuration <= _validationConfiguration.ValidationSetNotificationTimeout &&
                     await _validationStorageService.GetValidationSetCountAsync(package.Key) == 1)
                 {
+                    _logger.LogWarning("Sending message that validation set {ValidationTrackingId} for package {PackageId} {PackageVersion} is taking too long",
+                        validationSet.ValidationTrackingId,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion);
+
                     _messageService.SendPackageValidationTakingTooLongMessage(package);
                     _telemetryService.TrackSentValidationTakingTooLongMessage(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
                 }
 
-                // Track any validations that have timed out.
+                // Track any validations that are past their expected thresholds.
                 var timedOutValidations = GetIncompleteTimedOutValidations(validationSet);
 
                 if (timedOutValidations.Any())
