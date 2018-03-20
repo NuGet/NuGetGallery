@@ -9,6 +9,12 @@
         <div data-bind="text: MembersLabel"></div>
     </text>,
     @<text>
+        <p>
+            A collaborator can manage the organization's existing packages. They can upload new versions of packages that an organization owns and edit those packages. They cannot, however, manage the ownership of packages that the organization owns.
+        </p>
+        <p>
+            Administrators can manage the organization's packages and the organization itself. They can upload new package IDs to the organization and manage the ownership of the packages that the organization owns. They can also add and remove members from the organization and edit organization settings.
+        </p>
         <div data-bind="template: 'error-container'"></div>
         <div class="row members-list">
             <div data-bind="template: { name: 'manage-members' }"></div>
