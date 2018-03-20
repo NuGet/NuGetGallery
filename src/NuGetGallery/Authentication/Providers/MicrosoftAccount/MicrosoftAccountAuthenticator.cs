@@ -34,7 +34,7 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl, bool invokeMfa = false)
+        public override ActionResult Challenge(string redirectUrl, bool enforceMfa = false)
         {
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
         }

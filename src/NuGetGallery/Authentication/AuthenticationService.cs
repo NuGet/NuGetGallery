@@ -484,7 +484,7 @@ namespace NuGetGallery.Authentication
             return true;
         }
 
-        public virtual ActionResult Challenge(string providerName, string redirectUrl, bool invokeMfa = false)
+        public virtual ActionResult Challenge(string providerName, string redirectUrl, bool enforceMfa = false)
         {
             Authenticator provider;
 
@@ -504,7 +504,7 @@ namespace NuGetGallery.Authentication
                     providerName));
             }
 
-            return provider.Challenge(redirectUrl, invokeMfa);
+            return provider.Challenge(redirectUrl, enforceMfa);
         }
 
         public virtual async Task AddCredential(User user, Credential credential)

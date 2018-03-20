@@ -432,11 +432,11 @@ namespace NuGetGallery
         }
 
         [NonAction]
-        public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool invokeMfa = false)
+        public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool enforceMfa = false)
         {
             try
             {
-                return _authService.Challenge(provider, returnUrl);
+                return _authService.Challenge(provider, returnUrl, enforceMfa);
             }
             catch (InvalidOperationException)
             {
@@ -523,7 +523,7 @@ namespace NuGetGallery
                 if (result.Authentication.User.Confirmed && !result.MultiFactorAuthenticated)
                 {
                     // Require 2FA here. Perhaps invoke a challenge again?
-                    return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), result.Authenticator.Name, invokeMfa: true);
+                    return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), result.Authenticator.Name, enforceMfa: true);
                 }
 
                 // Create session

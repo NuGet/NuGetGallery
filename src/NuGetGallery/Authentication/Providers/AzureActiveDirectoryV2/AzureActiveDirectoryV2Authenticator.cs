@@ -89,9 +89,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl, bool invokeMfa = false)
+        public override ActionResult Challenge(string redirectUrl, bool enforceMfa = false)
         {
-            var mfaTokenValue = invokeMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
+            var mfaTokenValue = enforceMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
             return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, mfaTokenValue);
         }
 
@@ -186,6 +186,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             if (authenticationProperties.Dictionary.TryGetValue(ChallengeResult.MFA_TOKEN_TYPE, out string acr_value))
             {
                 notification.ProtocolMessage.AcrValues = acr_value;
+                //Set the notification.ProtocolMessage.LoginHint to the preferred_username when trying to enforce MFA.
             }
 
             return Task.FromResult(0);
