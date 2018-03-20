@@ -19,7 +19,7 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         private const string PackageStatusChange = OrchestratorPrefix + "PackageStatusChange";
         private const string TotalValidationDurationSeconds = OrchestratorPrefix + "TotalValidationDurationSeconds";
         private const string SentValidationTakingTooLongMessage = OrchestratorPrefix + "SentValidationTakingTooLongMessage";
-        private const string ValidationSetTimeout = OrchestratorPrefix + "TotalValidationDurationSeconds";
+        private const string ValidationSetTimeout = OrchestratorPrefix + "ValidationSetTimedOut";
         private const string ValidationIssue = OrchestratorPrefix + "ValidationIssue";
         private const string ValidationIssueCount = OrchestratorPrefix + "ValidationIssueCount";
         private const string ValidatorTimeout = OrchestratorPrefix + "ValidatorTimeout";
