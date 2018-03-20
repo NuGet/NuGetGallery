@@ -59,6 +59,28 @@ namespace Validation.PackageSigning.Core.Tests.Storage
             }
 
             [Fact]
+            public void IncludesNupkgUrlIfPresent()
+            {
+                // Arrange
+                var nupkgUrl = "http://example/packages/nuget.versioning.4.6.0.nupkg";
+                var validatorStatus = new ValidatorStatus
+                {
+                    State = ValidationStatus.Succeeded,
+                    ValidatorIssues = new List<ValidatorIssue>(),
+                    NupkgUrl = nupkgUrl,
+                };
+
+                // Act
+                var result = validatorStatus.ToValidationResult();
+
+                // Assert
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
+                Assert.NotNull(result.Issues);
+                Assert.Empty(result.Issues);
+                Assert.Equal(nupkgUrl, result.NupkgUrl);
+            }
+
+            [Fact]
             public void BlindlyConvertsIssues()
             {
                 // Arrange

@@ -15,6 +15,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
@@ -107,12 +108,22 @@ namespace NuGet.Jobs.Validation
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
+            services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
 
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IPackageDownloader, PackageDownloader>();
+
+            services.AddTransient<ICloudBlobClient>(c =>
+            {
+                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationStorageConfiguration>>();
+                return new CloudBlobClientWrapper(
+                    configurationAccessor.Value.ConnectionString,
+                    readAccessGeoRedundant: false);
+            });
+            services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
 
             services.AddScoped<IValidationEntitiesContext>(p =>
             {

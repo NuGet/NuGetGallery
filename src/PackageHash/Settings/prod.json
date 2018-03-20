@@ -13,7 +13,7 @@
     ]
   },
 
-  "PackageDownloadTimeout": "10:00",
+  "PackageDownloadTimeout": "00:10:00",
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
