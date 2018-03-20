@@ -67,15 +67,21 @@
                                 <span data-bind="text: SelectedRole()"></span>
                             }
                         </td>
-                        @if (Model.CanManage)
+                        @if (!Model.CanManage)
                         {
-                            <td class="text-center align-middle heading-right member-controls col-xs-1">
-                                <span>
-                                    <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                    </a>
-                                </span>
-                            </td>
+                            // If the user cannot manage the organization, only show the delete member button if they are the member.
+                            <!-- ko if: IsCurrentUser -->
+                        }
+                        <td class="text-center align-middle heading-right member-controls col-xs-1">
+                            <span>
+                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                        </td>
+                        @if (!Model.CanManage)
+                        {
+                            <!-- /ko -->
                         }
                     </tr>
                 </tbody>
