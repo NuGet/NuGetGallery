@@ -759,7 +759,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>You have successfully confirmed your email address!</value>
   </data>
   <data name="DeleteMember_CannotDeleteLastAdmin" xml:space="preserve">
-    <value>Organization member '{0}' is the last admin and cannot be deleted.</value>
+    <value>Organization member '{0}' is the last administrator and cannot be deleted.</value>
   </data>
   <data name="UpdateMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't change your role to collaborator. In order to change, another collaborator must be assigned as an administrator.</value>
