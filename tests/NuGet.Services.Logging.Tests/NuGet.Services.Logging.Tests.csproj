@@ -42,9 +42,14 @@
     <Compile Include="LoggingSetupTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestTelemetryProcessorTests.cs" />
+    <Compile Include="TelemetryClientExtensionsTests.cs" />
     <Compile Include="TelemetryProcessorTest.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\src\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">
+      <Project>{6674B4B4-2D0E-4840-8CF0-2356ACDE8863}</Project>
+      <Name>NuGet.Services.Contracts</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\src\NuGet.Services.Logging\NuGet.Services.Logging.csproj">
       <Project>{088f2bf5-1220-4125-bc64-601c2f032c13}</Project>
       <Name>NuGet.Services.Logging</Name>
