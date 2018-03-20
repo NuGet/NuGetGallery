@@ -706,9 +706,6 @@ For more information, please contact '{2}'.</value>
   <data name="TransformAccount_AccountNotConfirmed" xml:space="preserve">
     <value>Account '{0}' should be a confirmed user.</value>
   </data>
-  <data name="Organizations_NotInDomainWhitelist" xml:space="preserve">
-    <value>Account '{0}' does not support organizations.</value>
-  </data>
   <data name="TransformAccount_AccountIsAnOrganization" xml:space="preserve">
     <value>Account '{0}' is already an organization.</value>
   </data>

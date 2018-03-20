@@ -47,11 +47,11 @@ namespace NuGetGallery
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
-                AreOrganizationsSupportedForUser(authUser.User) &&
+                IsUserOnWhitelist(authUser.User) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
         }
 
-        public bool AreOrganizationsSupportedForUser(User user)
+        public bool IsUserOnWhitelist(User user)
         {
             if (user == null)
             {
@@ -79,7 +79,7 @@ namespace NuGetGallery
     public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
-        bool AreOrganizationsSupportedForUser(User user);
+        bool IsUserOnWhitelist(User user);
         bool ShouldUserTransformIntoOrganization(User user);
     }
 }
