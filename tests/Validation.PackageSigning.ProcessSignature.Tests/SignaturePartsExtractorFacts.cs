@@ -27,7 +27,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private const string BouncyCastleCollection = "Collection";
 
         private static readonly DateTime Leaf1TimestampValue = DateTime
-            .Parse("2018-01-26T22:08:31.0000000Z")
+            .Parse("2018-01-26T22:09:01.0000000Z")
             .ToUniversalTime();
 
         /// <summary>
@@ -510,8 +510,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 using (var package = TestResources.LoadPackage(TestResources.SignedPackageLeaf1))
                 using (var unrelatedPackage = TestResources.LoadPackage(TestResources.SignedPackageLeaf2))
                 {
-                    var originalSignature = await package.GetSignatureAsync(_token);
-                    var unrelatedSignature = await unrelatedPackage.GetSignatureAsync(_token);
+                    var originalSignature = await package.GetPrimarySignatureAsync(_token);
+                    var unrelatedSignature = await unrelatedPackage.GetPrimarySignatureAsync(_token);
 
                     var signature = AddCertificates(originalSignature.SignedCms, unrelatedSignature.SignedCms);
 
@@ -519,7 +519,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(true);
                     _packageMock
-                        .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                        .Setup(x => x.GetPrimarySignatureAsync(It.IsAny<CancellationToken>()))
                         .ReturnsAsync(signature);
 
                     // Act
@@ -642,7 +642,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        private static Signature AddCertificates(SignedCms destination, SignedCms source)
+        private static PrimarySignature AddCertificates(SignedCms destination, SignedCms source)
         {
             using (var readStream = new MemoryStream(destination.Encode()))
             using (var writeStream = new MemoryStream())
@@ -665,7 +665,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     attributeCertificateStore,
                     writeStream);
 
-                return Signature.Load(writeStream.ToArray());
+                return PrimarySignature.Load(writeStream.ToArray());
             }
         }
 

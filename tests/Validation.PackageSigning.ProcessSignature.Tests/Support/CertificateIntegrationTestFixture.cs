@@ -88,41 +88,19 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             var timestampProvider = new Rfc3161TimestampProvider(timestampUri);
             var signatureProvider = new X509SignatureProvider(timestampProvider);
 
-            var unsignedBytes = await OperateOnSignerAsync(
-                TestResources.GetResourceStream(resourceName),
-                signatureProvider,
-                x => x.RemoveSignaturesAsync(testLogger, CancellationToken.None));
-
-            var signedBytes = await OperateOnSignerAsync(
-                new MemoryStream(unsignedBytes),
-                signatureProvider,
-                x =>
-                {
-                    var request = new AuthorSignPackageRequest(certificate, HashAlgorithmName.SHA256);
-                    return x.SignAsync(request, testLogger, CancellationToken.None);
-                });
-
-            return signedBytes;
-        }
-
-        private static async Task<byte[]> OperateOnSignerAsync(
-            Stream packageReadStream,
-            X509SignatureProvider signatureProvider,
-            Func<Signer, Task> executeAsync)
-        {
-            using (packageReadStream)
-            using (var packageWriteStream = new MemoryStream())
+            using (var outputPackageStream = new MemoryStream())
             {
-                packageReadStream.CopyTo(packageWriteStream);
+                await SigningUtility.SignAsync(
+                    new SigningOptions(
+                        inputPackageStream: new Lazy<Stream>(() => TestResources.GetResourceStream(resourceName)),
+                        outputPackageStream: new Lazy<Stream>(() => outputPackageStream),
+                        overwrite: true,
+                        signatureProvider: signatureProvider,
+                        logger: testLogger),
+                    new AuthorSignPackageRequest(certificate, HashAlgorithmName.SHA256),
+                    CancellationToken.None);
 
-                using (var signedPackage = new SignedPackageArchive(packageReadStream, packageWriteStream))
-                {
-                    var signer = new Signer(signedPackage, signatureProvider);
-
-                    await executeAsync(signer);
-
-                    return packageWriteStream.ToArray();
-                }
+                return outputPackageStream.ToArray();
             }
         }
 

@@ -12,6 +12,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
@@ -139,7 +140,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
             var issue = Assert.Single(result.Issues);
             var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
-            Assert.Equal("NU3021", clientIssue.ClientCode);
+            Assert.Equal("NU3012", clientIssue.ClientCode);
             Assert.Equal(
                 "A certificate chain processed, but terminated in a root certificate which is not trusted by the trust provider.",
                 clientIssue.ClientMessage);
@@ -398,7 +399,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
             var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
             Assert.Equal("NU3003", typedIssue.ClientCode);
-            Assert.Equal("The package signature is invalid.", typedIssue.ClientMessage);
+            Assert.Equal("The package signature is invalid or cannot be verified on this platform.", typedIssue.ClientMessage);
         }
 
         [Fact]
@@ -429,7 +430,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, issue.IssueCode);
             var typedIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
             Assert.Equal("NU3009", typedIssue.ClientCode);
-            Assert.Equal("The package signature contains multiple primary signatures.", typedIssue.ClientMessage);
+            Assert.Equal("The package signature file does not contain exactly one primary signature.", typedIssue.ClientMessage);
         }
 
         [Theory]
@@ -649,13 +650,22 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             try
             {
-                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
-                using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
+                using (var zipFile = new ICSharpCode.SharpZipLib.Zip.ZipFile(packageStream))
                 {
-                    entryStream.Position = 0;
-                    entryStream.SetLength(0);
-                    entryStream.Write(fileContent, 0, fileContent.Length);
+                    zipFile.IsStreamOwner = false;
+
+                    zipFile.BeginUpdate();
+                    zipFile.Delete(SigningSpecifications.V1.SignaturePath);
+                    zipFile.CommitUpdate();
+                    zipFile.BeginUpdate();
+                    zipFile.Add(
+                        new StreamDataSource(new MemoryStream(fileContent)),
+                        SigningSpecifications.V1.SignaturePath,
+                        CompressionMethod.Stored);
+                    zipFile.CommitUpdate();
                 }
+
+                packageStream.Position = 0;
 
                 _package = new SignedPackageArchive(packageStream, packageStream);
             }
@@ -666,6 +676,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
+
         private void ModifySignatureContent(Stream packageStream, Action<SignedCms> configuredSignedCms = null)
         {
             SignedCms signedCms;
@@ -674,7 +685,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
                 using (var entryStream = zipArchive.GetEntry(".signature.p7s").Open())
                 {
-                    var signature = Signature.Load(entryStream);
+                    var signature = PrimarySignature.Load(entryStream);
                     signedCms = signature.SignedCms;
                 }
             }
@@ -750,6 +761,21 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public void Dispose()
         {
             _package?.Dispose();
+        }
+
+        private class StreamDataSource : IStaticDataSource
+        {
+            private readonly Stream _stream;
+
+            public StreamDataSource(Stream stream)
+            {
+                _stream = stream;
+            }
+
+            public Stream GetSource()
+            {
+                return _stream;
+            }
         }
     }
 }

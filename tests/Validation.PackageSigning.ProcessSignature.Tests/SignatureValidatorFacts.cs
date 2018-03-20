@@ -57,13 +57,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _mimialVerifyResult = new VerifySignaturesResult(true);
                 _mimimalPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
                 _mimimalPackageSignatureVerifier
-                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()))
                     .ReturnsAsync(() => _mimialVerifyResult);
 
                 _fullVerifyResult = new VerifySignaturesResult(true);
                 _fullPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
                 _fullPackageSignatureVerifier
-                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()))
                     .ReturnsAsync(() => _fullVerifyResult);
 
                 _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
@@ -183,7 +183,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 Assert.Empty(result.Issues);
                 _fullPackageSignatureVerifier.Verify(
-                    x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()),
+                    x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()),
                     Times.Never);
             }
 
@@ -300,13 +300,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             public async Task RejectsSignedPackagesWithUnknownCertificates()
             {
                 // Arrange
-                var signature = await TestResources.SignedPackageLeaf1Reader.GetSignatureAsync(CancellationToken.None);
+                var signature = await TestResources.SignedPackageLeaf1Reader.GetPrimarySignatureAsync(CancellationToken.None);
 
                 _packageMock
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(true);
                 _packageMock
-                    .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                    .Setup(x => x.GetPrimarySignatureAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(signature);
                 _certificates
                     .Setup(x => x.GetAll())
@@ -347,13 +347,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             private async Task ConfigureKnownSignedPackage(ISignedPackageReader package, string thumbprint)
             {
-                var signature = await package.GetSignatureAsync(CancellationToken.None);
+                var signature = await package.GetPrimarySignatureAsync(CancellationToken.None);
 
                 _packageMock
                     .Setup(x => x.IsSignedAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(true);
                 _packageMock
-                    .Setup(x => x.GetSignatureAsync(It.IsAny<CancellationToken>()))
+                    .Setup(x => x.GetPrimarySignatureAsync(It.IsAny<CancellationToken>()))
                     .ReturnsAsync(signature);
                 _certificates
                     .Setup(x => x.GetAll())

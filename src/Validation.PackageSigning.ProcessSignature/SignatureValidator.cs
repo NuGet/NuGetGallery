@@ -102,7 +102,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 }
 
                 // We now know we can safely read the signature.
-                var packageSignature = await signedPackageReader.GetSignatureAsync(cancellationToken);
+                var packageSignature = await signedPackageReader.GetPrimarySignatureAsync(cancellationToken);
 
                 // Block packages with any unknown signing certificates.
                 var packageThumbprint = packageSignature
@@ -221,7 +221,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             var verifyResult = await verifier.VerifySignaturesAsync(
                 signedPackageReader,
-                cancellationToken);
+                cancellationToken,
+                parentId: Guid.Empty); // Pass an empty GUID, since we don't use client telemetry infrastructure.
 
             var errorIssues = verifyResult
                 .Results

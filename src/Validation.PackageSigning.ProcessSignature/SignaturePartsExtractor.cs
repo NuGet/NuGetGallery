@@ -38,7 +38,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             // Read the package signature.
-            var signature = await signedPackageReader.GetSignatureAsync(token);
+            var signature = await signedPackageReader.GetPrimarySignatureAsync(token);
 
             // Extract the certificates found in the package signatures.
             var extractedCertificates = ExtractCertificates(signature);
@@ -53,7 +53,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             await _entitiesContext.SaveChangesAsync();
         }
 
-        private ExtractedCertificates ExtractCertificates(Signature signature)
+        private ExtractedCertificates ExtractCertificates(PrimarySignature signature)
         {
             if (signature.Timestamps.Count != 1)
             {
@@ -76,7 +76,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             var signatureParentCertificates = hashedSignatureCertificates.Skip(1).ToList();
 
             var timestampCertificates = SignatureUtility
-                .GetPrimarySignatureTimestampSignatureCertificates(signature);
+                .GetPrimarySignatureTimestampCertificates(signature);
             if (timestampCertificates == null || !timestampCertificates.Any())
             {
                 throw new ArgumentException(
