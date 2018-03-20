@@ -15,6 +15,7 @@ namespace NuGet.Services.Validation.Issues
         public static ValidationIssue OnlyAuthorSignaturesSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.OnlyAuthorSignaturesSupported);
         public static ValidationIssue AuthorAndRepositoryCounterSignaturesNotSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported);
         public static ValidationIssue OnlySignatureFormatVersion1Supported { get; } = new NoDataValidationIssue(ValidationIssueCode.OnlySignatureFormatVersion1Supported);
+        public static ValidationIssue AuthorCounterSignaturesNotSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.AuthorCounterSignaturesNotSupported);
 
         /// <summary>
         /// The map of issue codes to the type that represents the issues. The types MUST extend <see cref="ValidationIssue"/>.
@@ -38,6 +39,7 @@ namespace NuGet.Services.Validation.Issues
             ValidationIssueCode.OnlyAuthorSignaturesSupported,
             ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported,
             ValidationIssueCode.OnlySignatureFormatVersion1Supported,
+            ValidationIssueCode.AuthorCounterSignaturesNotSupported,
         };
 
         /// <summary>

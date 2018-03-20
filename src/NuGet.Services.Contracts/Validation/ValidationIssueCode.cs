@@ -47,6 +47,12 @@ namespace NuGet.Services.Validation
         OnlySignatureFormatVersion1Supported = 6,
 
         /// <summary>
+        /// Counter signatures on a package signature signed CMS that have the author commitment type are not
+        /// supported.
+        /// </summary>
+        AuthorCounterSignaturesNotSupported = 7,
+
+        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]

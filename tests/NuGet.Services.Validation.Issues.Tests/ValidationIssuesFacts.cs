@@ -213,6 +213,7 @@ namespace NuGet.Services.Validation.Issues.Tests
             { ValidationIssueCode.OnlyAuthorSignaturesSupported, () => ValidationIssue.OnlyAuthorSignaturesSupported },
             { ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported, () => ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported },
             { ValidationIssueCode.OnlySignatureFormatVersion1Supported, () => ValidationIssue.OnlySignatureFormatVersion1Supported },
+            { ValidationIssueCode.AuthorCounterSignaturesNotSupported, () => ValidationIssue.AuthorCounterSignaturesNotSupported },
         };
     }
 }

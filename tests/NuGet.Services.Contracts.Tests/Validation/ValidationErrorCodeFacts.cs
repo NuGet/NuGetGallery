@@ -19,6 +19,7 @@ namespace NuGet.Services.Validation
             { 4, ValidationIssueCode.OnlyAuthorSignaturesSupported },
             { 5, ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported },
             { 6, ValidationIssueCode.OnlySignatureFormatVersion1Supported },
+            { 7, ValidationIssueCode.AuthorCounterSignaturesNotSupported },
 #pragma warning disable 618
             { 9999, ValidationIssueCode.ObsoleteTesting },
 #pragma warning restore 618
