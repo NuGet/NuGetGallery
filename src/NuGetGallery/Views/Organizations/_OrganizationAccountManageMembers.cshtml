@@ -9,12 +9,6 @@
         <div data-bind="text: MembersLabel"></div>
     </text>,
     @<text>
-        <p>
-            Administrators can manage the organization account, memberships, and have full control over new and existing packages for this organization.
-        </p>
-        <p>
-            Collaborators can manage manage existing packages for this organization.
-        </p>
         <div data-bind="template: 'error-container'"></div>
         <div class="row members-list">
             <div data-bind="template: { name: 'manage-members' }"></div>
@@ -44,6 +38,7 @@
                         <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember, enable: NewMemberUsername">Add</button>
                     </div>
                 </div><br />
+                <p class="icon-left" data-bind="text: NewMemberRoleDescription"></p>
             }
             <table class="table">
                 <tbody data-bind="foreach: Members">

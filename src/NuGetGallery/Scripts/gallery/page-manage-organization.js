@@ -140,6 +140,13 @@
             this.ProfileUrlTemplate = initialData.ProfileUrlTemplate;
 
             this.NewMemberUsername = ko.observable();
+            this.NewMemberRoleDescription = ko.pureComputed(function () {
+                if (self.AddMemberIsAdmin()) {
+                    return "An administrator can manage the organization's memberships and its packages.";
+                } else {
+                    return "A collaborator can manage the organization's packages but cannot manage the organization's memberships.";
+                }
+            })
 
             this.AdminCount = ko.observable();
             this.CollaboratorCount = ko.observable();
@@ -182,12 +189,15 @@
             this.RoleNames = ko.observableArray(["Administrator", "Collaborator"]);
 
             this.AddMemberRole = ko.observable(this.RoleNames()[1]);
+            this.AddMemberIsAdmin = ko.pureComputed(function () {
+                return self.AddMemberRole() == self.RoleNames()[0];
+            });
             this.AddMember = function () {
                 // Build the request.
                 var data = {
                     accountName: self.AccountName,
                     memberName: self.NewMemberUsername(),
-                    isAdmin: self.AddMemberRole() == self.RoleNames()[0]
+                    isAdmin: self.AddMemberIsAdmin()
                 };
                 addAntiForgeryToken(data);
 
