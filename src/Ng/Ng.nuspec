@@ -19,6 +19,7 @@
     <file src="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
     <file src="Scripts\Catalog2LuceneV3-Reg2.cmd" />
     <file src="Scripts\Catalog2LuceneV3-Reg2-Secondary.cmd" />
+    <file src="Scripts\Catalog2LuceneV3-Asia.cmd" />
 	
     <file src="Scripts\Catalog2RegistrationV3-Reg1.cmd" />
     <file src="Scripts\Catalog2RegistrationV3-Reg1-Secondary.cmd" />
