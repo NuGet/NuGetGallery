@@ -806,4 +806,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="SigninAssistance_InvalidUser" xml:space="preserve">
     <value>Please enter a valid username</value>
   </data>
+  <data name="TransformAccount_Rejected" xml:space="preserve">
+    <value>The transform request for you to become an admin of '{0}' has been successfully cancelled.</value>
+  </data>
+  <data name="TransformAccount_FailedMissingRequestToCancel" xml:space="preserve">
+    <value>The transform request you are attempting to cancel was not found.</value>
+  </data>
+  <data name="TransformAccount_Cancelled" xml:space="preserve">
+    <value>The transform request for your account has been successfully cancelled.</value>
+  </data>
 </root>

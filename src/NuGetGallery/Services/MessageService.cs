@@ -656,7 +656,7 @@ Note: This package has not been published yet. It will appear in search results 
 
         public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
         {
-            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team immediately.
+            string body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.
 {2}When your account will be deleted, we will:{2}
  - revoke your API key(s)
  - remove you as the owner for any package you own 
@@ -721,6 +721,137 @@ The {0} Team";
                 {
                     SendMessage(mailMessage);
                 }
+            }
+        }
+
+        public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
+        {
+            if (!adminUser.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account ['{accountToTransform.Username}']({profileUrl}) into an organization.
+
+To proceed with the transformation and become an administrator of '{accountToTransform.Username}':
+
+[{confirmationUrl}]({confirmationUrl})
+
+To cancel the transformation:
+
+[{rejectionUrl}]({rejectionUrl})
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToTransform.ToMailAddress());
+
+                mailMessage.To.Add(adminUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformInitiatedNotice(User accountToTransform, User adminUser, string cancellationUrl)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account '{accountToTransform.Username}' into an organization with user '{adminUser.Username}' as its admin.
+
+To cancel the transformation:
+
+[{cancellationUrl}]({cancellationUrl})
+
+If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Account '{accountToTransform.Username}' has been transformed into an organization";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"Account '{accountToTransform.Username}' has been transformed into an organization with user '{adminUser.Username}' as its administrator. If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser)
+        {
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: true);
+        }
+
+        public void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser)
+        {
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: false);
+        }
+
+        private void SendOrganizationTransformRequestRejectedNoticeInternal(User accountToTransform, User adminUser, bool isCancelledByAdmin)
+        {
+            var accountToSendTo = isCancelledByAdmin ? accountToTransform : adminUser;
+            var accountToReplyTo = isCancelledByAdmin ? adminUser : accountToTransform;
+
+            if (!accountToSendTo.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Transformation of account '{accountToTransform.Username}' has been cancelled";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"Transformation of account '{accountToTransform.Username}' has been cancelled by user '{accountToReplyTo.Username}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToReplyTo.ToMailAddress());
+
+                mailMessage.To.Add(accountToSendTo.ToMailAddress());
+                SendMessage(mailMessage);
             }
         }
 

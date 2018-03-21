@@ -949,7 +949,7 @@ namespace NuGetGallery
                 return service.TransformUserToOrganization(account, admin, "token");
             }
         }
-
+        
         public class TheAddOrganizationAccountMethod
         {
             private const string OrgName = "myOrg";
@@ -1111,6 +1111,79 @@ namespace NuGetGallery
                     .Returns(supported);
 
                 _service.MockConfigObjectService.Setup(x => x.LoginDiscontinuationConfiguration).Returns(mockLoginDiscontinuationConfiguration.Object);
+            }
+        }
+        public class TheRejectTransformUserToOrganizationRequestMethod
+        {
+            public async Task IfNoExistingRequest_ReturnsFalse()
+            {
+                var accountToTransform = new User("norequest");
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfAdminUserNull_ReturnsFalse()
+            {
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest() };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfAdminUserDoesntMatchRequest_ReturnsFalse()
+            {
+                var admin = new User("requestAdmin");
+                var wrongAdmin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, wrongAdmin, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfTokenDoesntMatch_ReturnsFalse()
+            {
+                var admin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin, ConfirmationToken = "token" } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, "wrongToken");
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfTokenMatches_RemovesRequest()
+            {
+                var token = "token";
+                var admin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin, ConfirmationToken = token } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, token);
+
+                Assert.True(result);
+                Assert.Null(accountToTransform.OrganizationMigrationRequest);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
         }
     }

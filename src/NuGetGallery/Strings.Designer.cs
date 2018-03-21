@@ -1625,6 +1625,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request for your account has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Cancelled {
+            get {
+                return ResourceManager.GetString("TransformAccount_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
@@ -1634,11 +1643,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request you are attempting to cancel was not found..
+        /// </summary>
+        public static string TransformAccount_FailedMissingRequestToCancel {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedMissingRequestToCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_OrganizationAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The transform request for you to become an admin of &apos;{0}&apos; has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Rejected {
+            get {
+                return ResourceManager.GetString("TransformAccount_Rejected", resourceCulture);
             }
         }
         
