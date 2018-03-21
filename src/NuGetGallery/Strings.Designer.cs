@@ -1652,15 +1652,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The transform request you are attempting to reject was not found..
-        /// </summary>
-        public static string TransformAccount_FailedMissingRequestToReject {
-            get {
-                return ResourceManager.GetString("TransformAccount_FailedMissingRequestToReject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_OrganizationAccountDoesNotExist {
@@ -1670,7 +1661,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The transform request for you to become an admin of &apos;{0}&apos; has been successfully rejected..
+        ///   Looks up a localized string similar to The transform request for you to become an admin of &apos;{0}&apos; has been successfully cancelled..
         /// </summary>
         public static string TransformAccount_Rejected {
             get {

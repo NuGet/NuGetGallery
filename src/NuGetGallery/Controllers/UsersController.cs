@@ -221,7 +221,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    message = Strings.TransformAccount_FailedMissingRequestToReject;
+                    message = Strings.TransformAccount_FailedMissingRequestToCancel;
                 }
             }
 

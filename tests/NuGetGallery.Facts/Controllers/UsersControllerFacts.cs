@@ -2459,7 +2459,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(Strings.TransformAccount_FailedMissingRequestToReject, controller.TempData["Message"]);
+                Assert.Equal(Strings.TransformAccount_FailedMissingRequestToCancel, controller.TempData["Message"]);
             }
 
             [Fact]
