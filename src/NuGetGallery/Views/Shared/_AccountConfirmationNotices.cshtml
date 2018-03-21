@@ -7,12 +7,16 @@
         ViewBag.ConfirmationLink = Url.OrganizationConfirmationRequired(account.Username);
         ViewBag.UnconfirmedEmailMessage = "A new organization email address was recently registered: ";
         ViewBag.ConfirmNowLinkText = "confirm your organization account";
+        ViewBag.ShowConfirmationLink = (Model as OrganizationAccountViewModel).CanManage;
+        ViewBag.NonConfirmationText = "Your organization needs to be confirmed before you can upload any packages to it.";
     }
     else
     {
         ViewBag.ConfirmationLink = Url.ConfirmationRequired();
         ViewBag.UnconfirmedEmailMessage = "You recently registered a new email address: ";
         ViewBag.ConfirmNowLinkText = "confirm your account";
+        ViewBag.ShowConfirmationLink = true;
+        ViewBag.NonConfirmationText = "Your account needs to be confirmed before you can upload any packages.";
     }
 }
 
@@ -39,8 +43,14 @@
 
 @if (!account.Confirmed)
 {
-    @ViewHelpers.AlertInfo(
-    @<text>
-        Uploading packages requires that you <a href="@ViewBag.ConfirmationLink">@ViewBag.ConfirmNowLinkText</a>. Why not get that out of the way now?
-    </text>)
+    if (ViewBag.ShowConfirmationLink)
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>Uploading packages requires that you <a href="@ViewBag.ConfirmationLink">@ViewBag.ConfirmNowLinkText</a>. Why not get that out of the way now?</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertInfo(
+            @<text>@ViewBag.NonConfirmationText</text>)
+    }
 }
