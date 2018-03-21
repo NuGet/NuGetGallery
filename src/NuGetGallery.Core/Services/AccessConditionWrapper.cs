@@ -10,12 +10,19 @@ namespace NuGetGallery
         private AccessConditionWrapper(string ifNoneMatchETag, string ifMatchETag)
         {
             IfNoneMatchETag = ifNoneMatchETag;
-            IfMatchETag = IfMatchETag;
+            IfMatchETag = ifMatchETag;
         }
 
         public string IfNoneMatchETag { get; }
 
         public string IfMatchETag { get; }
+
+        public static IAccessCondition GenerateEmptyCondition()
+        {
+            return new AccessConditionWrapper(
+                ifNoneMatchETag: null,
+                ifMatchETag: null);
+        }
 
         public static IAccessCondition GenerateIfMatchCondition(string etag)
         {

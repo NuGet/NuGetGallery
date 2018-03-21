@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
+using NuGetGallery.Configuration;
 using Xunit;
 
 namespace NuGetGallery
@@ -92,6 +94,67 @@ namespace NuGetGallery
 
                 // Assert
                 _telemetryService.Verify(x => x.TrackPackageRevalidate(_package), Times.Once);
+            }
+        }
+
+        public class TheIsValidatingTooLongMethod : FactsBase
+        {
+            public static IEnumerable<object[]> ReturnsTrueIfPackageIsValidatingTooLongData()
+            {
+                yield return new object[]
+                {
+                    new Package
+                    {
+                        PackageStatusKey = PackageStatus.Validating,
+                        Created = DateTime.UtcNow - TimeSpan.FromHours(1),
+                    },
+
+                    true,
+                };
+
+                yield return new object[]
+                {
+                    new Package
+                    {
+                        PackageStatusKey = PackageStatus.Validating,
+                        Created = DateTime.UtcNow - TimeSpan.FromMinutes(29),
+                    },
+
+                    false,
+                };
+
+                // Packages whose status is not "Validating" should NEVER return true
+                foreach (var status in new[] { PackageStatus.Available, PackageStatus.Deleted, PackageStatus.FailedValidation })
+                {
+                    yield return new object[]
+                    {
+                        new Package
+                        {
+                            PackageStatusKey = status,
+                            Created = DateTime.UtcNow - TimeSpan.FromHours(1),
+                        },
+
+                        false,
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsTrueIfPackageIsValidatingTooLongData))]
+            public void ReturnsTrueIfPackageIsValidatingTooLong(Package package, bool expectedResult)
+            {
+                _appConfiguration
+                    .Setup(c => c.ValidationExpectedTime)
+                    .Returns(TimeSpan.FromMinutes(30));
+
+                if (expectedResult)
+                {
+                    Assert.True(_target.IsValidatingTooLong(package));
+                }
+                else
+                {
+                    Assert.False(_target.IsValidatingTooLong(package));
+                }
             }
         }
 
@@ -310,6 +373,7 @@ namespace NuGetGallery
 
         public class FactsBase
         {
+            protected readonly Mock<IAppConfiguration> _appConfiguration;
             protected readonly Mock<IPackageService> _packageService;
             protected readonly Mock<IPackageValidationInitiator> _initiator;
             protected readonly Mock<IEntityRepository<PackageValidationSet>> _validationSets;
@@ -319,6 +383,7 @@ namespace NuGetGallery
 
             public FactsBase()
             {
+                _appConfiguration = new Mock<IAppConfiguration>();
                 _packageService = new Mock<IPackageService>();
                 _initiator = new Mock<IPackageValidationInitiator>();
                 _validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
@@ -327,6 +392,7 @@ namespace NuGetGallery
                 _package = new Package();
 
                 _target = new ValidationService(
+                    _appConfiguration.Object,
                     _packageService.Object,
                     _initiator.Object,
                     _validationSets.Object,

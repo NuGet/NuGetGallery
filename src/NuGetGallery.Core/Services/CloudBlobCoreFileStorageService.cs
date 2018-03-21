@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -40,11 +41,13 @@ namespace NuGetGallery
         };
 
         protected readonly ICloudBlobClient _client;
+        protected readonly IDiagnosticsSource _trace;
         protected readonly ConcurrentDictionary<string, ICloudBlobContainer> _containers = new ConcurrentDictionary<string, ICloudBlobContainer>();
 
-        public CloudBlobCoreFileStorageService(ICloudBlobClient client)
+        public CloudBlobCoreFileStorageService(ICloudBlobClient client, IDiagnosticsService diagnosticsService)
         {
-            _client = client;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _trace = diagnosticsService?.SafeGetSource(nameof(CloudBlobCoreFileStorageService)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
         }
 
         public async Task DeleteFileAsync(string folderName, string fileName)
@@ -110,6 +113,22 @@ namespace NuGetGallery
             }
         }
 
+        public Task CopyFileAsync(
+            Uri srcUri,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
+        {
+            if (srcUri == null)
+            {
+                throw new ArgumentNullException(nameof(srcUri));
+            }
+
+            var srcBlob = _client.GetBlobFromUri(srcUri);
+
+            return CopyFileAsync(srcBlob, destFolderName, destFileName, destAccessCondition);
+        }
+
         public async Task<string> CopyFileAsync(
             string srcFolderName,
             string srcFileName,
@@ -127,6 +146,18 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(srcFileName));
             }
 
+            var srcContainer = await GetContainerAsync(srcFolderName);
+            var srcBlob = srcContainer.GetBlobReference(srcFileName);
+
+            return await CopyFileAsync(srcBlob, destFolderName, destFileName, destAccessCondition);
+        }
+
+        private async Task<string> CopyFileAsync(
+            ISimpleCloudBlob srcBlob,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
+        {
             if (destFolderName == null)
             {
                 throw new ArgumentNullException(nameof(destFolderName));
@@ -136,9 +167,6 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(destFileName));
             }
-
-            var srcContainer = await GetContainerAsync(srcFolderName);
-            var srcBlob = srcContainer.GetBlobReference(srcFileName);
 
             var destContainer = await GetContainerAsync(destFolderName);
             var destBlob = destContainer.GetBlobReference(destFileName);
@@ -162,6 +190,12 @@ namespace NuGetGallery
                     // condition is. This is because the source blob is preferable over a failed copy. We use the etag
                     // of the failed blob to avoid inadvertently replacing a blob that is now valid (i.e. has a
                     // successful copy status).
+                    _trace.TraceEvent(
+                        TraceEventType.Information,
+                        id: 0,
+                        message: $"Destination blob '{destFolderName}/{destFileName}' already exists but has a " +
+                        $"failed copy status. This blob will be replaced if the etag matches '{destBlob.ETag}'.");
+
                     mappedDestAccessCondition = AccessCondition.GenerateIfMatchCondition(destBlob.ETag);
                 }
                 else if ((srcBlob.Properties.ContentMD5 != null
@@ -169,9 +203,23 @@ namespace NuGetGallery
                      && srcBlob.Properties.Length == destBlob.Properties.Length))
                 {
                     // If the blob hash is the same and the length is the same, no-op the copy.
+                    _trace.TraceEvent(
+                        TraceEventType.Information,
+                        id: 0,
+                        message: $"Destination blob '{destFolderName}/{destFileName}' already has hash " +
+                        $"'{destBlob.Properties.ContentMD5}' and length '{destBlob.Properties.Length}'. The copy " +
+                        $"will be skipped.");
+
                     return srcBlob.ETag;
                 }
             }
+
+            _trace.TraceEvent(
+                TraceEventType.Information,
+                id: 0,
+                message: $"Copying of source blob '{srcBlob.Uri}' to '{destFolderName}/{destFileName}' with source " +
+                $"access condition {Log(srcAccessCondition)} and destination access condition " +
+                $"{Log(mappedDestAccessCondition)}.");
 
             // Start the server-side copy and wait for it to complete. If "If-None-Match: *" was specified and the
             // destination already exists, HTTP 409 is thrown. If "If-Match: ETAG" was specified and the destination
@@ -212,6 +260,20 @@ namespace NuGetGallery
             }
 
             return srcBlob.ETag;
+        }
+
+        private static string Log(AccessCondition accessCondition)
+        {
+            if (accessCondition?.IfMatchETag != null)
+            {
+                return $"'If-Match: {accessCondition.IfMatchETag}'";
+            }
+            else if (accessCondition?.IfNoneMatchETag != null)
+            {
+                return $"'If-None-Match: {accessCondition.IfNoneMatchETag}'";
+            }
+
+            return "(none)";
         }
 
         public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)

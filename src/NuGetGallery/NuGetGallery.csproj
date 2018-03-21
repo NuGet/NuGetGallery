@@ -827,6 +827,10 @@
     <Compile Include="Migrations\201801101337052_RemovePackageEdits.Designer.cs">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.cs" />
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.Designer.cs">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1060,9 +1064,7 @@
     <Compile Include="Infrastructure\DependencyResolverServiceProviderAdapter.cs" />
     <Compile Include="Infrastructure\Lucene\CloudDownloadCountServiceRefreshJob.cs" />
     <Compile Include="Infrastructure\MessageQueue.cs" />
-    <Compile Include="Diagnostics\NullDiagnosticsSource.cs" />
     <Compile Include="Diagnostics\TraceDiagnosticsSource.cs" />
-    <Compile Include="Diagnostics\DiagnosticsServiceExtensions.cs" />
     <Compile Include="Diagnostics\DiagnosticsSourceExtensions.cs" />
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
@@ -1964,6 +1966,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201801101337052_RemovePackageEdits.resx">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.resx">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

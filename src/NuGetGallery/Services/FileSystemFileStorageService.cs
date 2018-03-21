@@ -169,6 +169,13 @@ namespace NuGetGallery
             return Task.FromResult(0);
         }
 
+        public Task CopyFileAsync(Uri srcUri, string destFolderName, string destFileName, IAccessCondition destAccessCondition)
+        {
+            // We could theoretically support this by downloading the source URI to the destination path. This is not
+            // needed today so this method will remain unimplemented until it is needed.
+            throw new NotImplementedException();
+        }
+
         public Task<string> CopyFileAsync(
             string srcFolderName,
             string srcFileName,

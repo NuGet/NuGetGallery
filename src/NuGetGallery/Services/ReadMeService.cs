@@ -112,8 +112,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package version edit readme request.</param>
+        /// <param name="encoding">The encoding used when reading the existing readme.</param>
+        /// <param name="commitChanges">Whether or not to commit the pending changes to the database.</param>
         /// <returns>True if the package readme changed, otherwise false.</returns>
-        public async Task<bool> SaveReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding)
+        public async Task<bool> SaveReadMeMdIfChanged(
+            Package package,
+            EditPackageVersionReadMeRequest edit,
+            Encoding encoding,
+            bool commitChanges)
         {
             var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetReadMeMdAsync(package)) :
@@ -131,7 +137,11 @@ namespace NuGetGallery
 
                 // Save entity to db.
                 package.HasReadMe = true;
-                await _entitiesContext.SaveChangesAsync();
+
+                if (commitChanges)
+                {
+                    await _entitiesContext.SaveChangesAsync();
+                }
             }
             else if (!hasReadMe && !string.IsNullOrEmpty(activeReadMe))
             {
@@ -140,7 +150,11 @@ namespace NuGetGallery
                 
                 // Save entity to db.
                 package.HasReadMe = false;
-                await _entitiesContext.SaveChangesAsync();
+
+                if (commitChanges)
+                {
+                    await _entitiesContext.SaveChangesAsync();
+                }
             }
             else
             {

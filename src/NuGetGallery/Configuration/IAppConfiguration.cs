@@ -96,6 +96,11 @@ namespace NuGetGallery.Configuration
         TimeSpan AsynchronousPackageValidationDelay { get; set; }
 
         /// <summary>
+        /// The upper bound for package validations. A notice will be displayed if a package's validation exceeds this value.
+        /// </summary>
+        TimeSpan ValidationExpectedTime { get; set; }
+
+        /// <summary>
         /// Gets a boolean indicating whether NuGet password logins are deprecated.
         /// </summary>
         bool DeprecateNuGetPasswordLogins { get; set; }
@@ -253,6 +258,11 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to the status page
+        /// </summary>
+        string ExternalStatusUrl { get; set; }
 
         /// <summary>
         /// Gets/sets a string that is a link to an external about page

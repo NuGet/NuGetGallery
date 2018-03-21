@@ -12,6 +12,7 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Moq;
+using NuGetGallery.Diagnostics;
 using Xunit;
 using Xunit.Sdk;
 
@@ -27,7 +28,7 @@ namespace NuGetGallery
                 fakeBlobClient = new Mock<ICloudBlobClient>();
             }
 
-            return new CloudBlobCoreFileStorageService(fakeBlobClient.Object);
+            return new CloudBlobCoreFileStorageService(fakeBlobClient.Object, Mock.Of<IDiagnosticsService>());
         }
 
         private class FolderNamesDataAttribute : DataAttribute
@@ -631,6 +632,7 @@ namespace NuGetGallery
             private string _srcFolderName;
             private string _srcFileName;
             private string _srcETag;
+            private Uri _srcUri;
             private BlobProperties _srcProperties;
             private string _destFolderName;
             private string _destFileName;
@@ -649,6 +651,7 @@ namespace NuGetGallery
                 _srcFolderName = "validation";
                 _srcFileName = "4b6f16cc-7acd-45eb-ac21-33f0d927ec14/nuget.versioning.4.5.0.nupkg";
                 _srcETag = "\"src-etag\"";
+                _srcUri = new Uri("https://example/nuget.versioning.4.5.0.nupkg");
                 _srcProperties = new BlobProperties();
                 _destFolderName = "packages";
                 _destFileName = "nuget.versioning.4.5.0.nupkg";
@@ -694,6 +697,41 @@ namespace NuGetGallery
                     .Returns(() => _destCopyState);
 
                 _target = CreateService(fakeBlobClient: _blobClient);
+            }
+
+            [Fact]
+            public async Task WillCopyBlobFromSourceUri()
+            {
+                // Arrange
+                _blobClient
+                    .Setup(x => x.GetBlobFromUri(It.IsAny<Uri>()))
+                    .Returns(_srcBlobMock.Object);
+
+                _destBlobMock
+                    .Setup(x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()))
+                    .Returns(Task.FromResult(0))
+                    .Callback<ISimpleCloudBlob, AccessCondition, AccessCondition>((_, __, ___) =>
+                    {
+                        SetDestCopyStatus(CopyStatus.Success);
+                    });
+
+                // Act
+                await _target.CopyFileAsync(
+                    _srcUri,
+                    _destFolderName,
+                    _destFileName,
+                    AccessConditionWrapper.GenerateIfNotExistsCondition());
+
+                // Assert
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(_srcBlobMock.Object, It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                _destBlobMock.Verify(
+                    x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
+                    Times.Once);
+                _blobClient.Verify(
+                    x => x.GetBlobFromUri(_srcUri),
+                    Times.Once);
             }
 
             [Fact]
@@ -861,7 +899,7 @@ namespace NuGetGallery
                 _destBlobMock.Verify(
                     x => x.StartCopyAsync(It.IsAny<ISimpleCloudBlob>(), It.IsAny<AccessCondition>(), It.IsAny<AccessCondition>()),
                     Times.Once);
-                Assert.NotEqual("etag!", destAccessCondition.IfMatchETag);
+                Assert.Equal("etag!", destAccessCondition.IfMatchETag);
                 Assert.Null(destAccessCondition.IfNoneMatchETag);
             }
 
