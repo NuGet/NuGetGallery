@@ -479,5 +479,26 @@ namespace NuGetGallery
 
             return true;
         }
+
+        public async Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
+        {
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+
+            if (transformRequest == null)
+            {
+                return false;
+            }
+
+            if (transformRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
+            accountToTransform.OrganizationMigrationRequest = null;
+
+            await UserRepository.CommitChangesAsync();
+
+            return true;
+        }
     }
 }

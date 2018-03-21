@@ -30,6 +30,7 @@ namespace NuGetGallery
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
         void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials);
         void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl);
+        void SendOrganizationTransformInitiatedNotice(User accountToTransform, User adminUser, string cancellationUrl);
         void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser);
         void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser);
         void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser);

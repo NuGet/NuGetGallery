@@ -150,6 +150,9 @@ namespace NuGetGallery
             var rejectUrl = Url.RejectTransformAccount(accountToTransform, relativeUrl: false);
             MessageService.SendOrganizationTransformRequest(accountToTransform, adminUser, Url.User(accountToTransform, relativeUrl: false), confirmUrl, rejectUrl);
 
+            var cancelUrl = Url.CancelTransformAccount(accountToTransform, relativeUrl: false);
+            MessageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
+
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
 
@@ -157,8 +160,7 @@ namespace NuGetGallery
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
             return Redirect(Url.LogOn(returnUrl));
         }
-
-
+        
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ActionName("ConfirmTransform")]
@@ -224,6 +226,29 @@ namespace NuGetGallery
             }
 
             TempData["Message"] = message;
+
+            return RedirectToAction(actionName: "Home", controllerName: "Pages");
+        }
+
+        [HttpGet]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ActionName("CancelTransform")]
+        public virtual async Task<ActionResult> CancelTransformToOrganization(string token)
+        {
+            var accountToTransform = GetCurrentUser();
+            var adminUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
+            
+            if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
+            {
+                MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_Cancelled);
+            }
+            else
+            {
+                TempData["ErrorMessage"] = Strings.TransformAccount_FailedMissingRequestToCancel;
+            }
 
             return RedirectToAction(actionName: "Home", controllerName: "Pages");
         }

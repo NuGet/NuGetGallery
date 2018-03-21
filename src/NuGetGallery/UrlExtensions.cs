@@ -1188,6 +1188,19 @@ namespace NuGetGallery
                 });
         }
 
+        public static string CancelTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                "CancelTransform",
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "token", accountToTransform.OrganizationMigrationRequest.ConfirmationToken }
+                });
+        }
+
         private static UriBuilder GetCanonicalUrl(UrlHelper url)
         {
             var builder = new UriBuilder(url.RequestContext.HttpContext.Request.Url);

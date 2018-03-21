@@ -109,6 +109,7 @@ namespace NuGetGallery.Controllers
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.TransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.ConfirmTransformToOrganization)),
                 new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.RejectTransformToOrganization)),
+                new ControllerActionRuleException(typeof(UsersController), nameof(UsersController.CancelTransformToOrganization)),
             };
 
             // Act

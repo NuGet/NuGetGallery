@@ -1333,9 +1333,8 @@ namespace NuGetGallery
                 Assert.Equal(adminUser.EmailAddress, message.To[0].Address);
                 Assert.Equal(accountToTransform.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.", message.Subject);
-                Assert.Contains($"The user '{accountToTransform.Username}' is transforming into an organization and would like you to be its admin.", message.Body);
-                Assert.Contains($"[{profileUrl}]({profileUrl})", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'", message.Subject);
+                Assert.Contains($"We have received a request to transform account ['{accountToTransform.Username}']({profileUrl}) into an organization.", message.Body);
                 Assert.Contains($"[{confirmationUrl}]({confirmationUrl})", message.Body);
                 Assert.Contains($"[{rejectionUrl}]({rejectionUrl})", message.Body);
             }
@@ -1354,6 +1353,52 @@ namespace NuGetGallery
 
                 // Act
                 messageService.SendOrganizationTransformRequest(accountToTransform, adminUser, profileUrl, confirmationUrl, rejectionUrl);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
+        public class TheSendOrganizationTransformInitiatedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void WillSendEmailIfEmailAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = true };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var cancelUrl = "www.cancel.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
+                Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'", message.Subject);
+                Assert.Contains($"We have received a request to transform account '{accountToTransform.Username}' into an organization with user '{adminUser.Username}' as its admin.", message.Body);
+                Assert.Contains($"[{cancelUrl}]({cancelUrl})", message.Body);
+                Assert.Contains($"If you did not request this change, please contact support by responding to this email.", message.Body);
+            }
+
+            [Fact]
+            public void WillNotSendEmailIfEmailNotAllowed()
+            {
+                // Arrange
+                var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = false };
+                var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var cancelUrl = "www.cancel.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1380,9 +1425,9 @@ namespace NuGetGallery
 
                 Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
                 Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
-                Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.", message.Subject);
-                Assert.Contains($"The user '{adminUser.Username}' has accepted your request and your account, '{accountToTransform.Username}' has now been transformed into an organization.", message.Body);
+                Assert.Equal(TestGalleryOwner, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Account '{accountToTransform.Username}' has been transformed into an organization", message.Subject);
+                Assert.Contains($"Account '{accountToTransform.Username}' has been transformed into an organization with user '{adminUser.Username}' as its administrator. If you did not request this change, please contact support by responding to this email.", message.Body);
             }
 
             [Fact]
@@ -1423,8 +1468,8 @@ namespace NuGetGallery
                 Assert.Equal(accountToTransform.EmailAddress, message.To[0].Address);
                 Assert.Equal(adminUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.", message.Subject);
-                Assert.Contains($"The user '{adminUser.Username}' has rejected your request for them to be the admin of your transformed account.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Transformation of account '{accountToTransform.Username}' has been cancelled", message.Subject);
+                Assert.Contains($"Transformation of account '{accountToTransform.Username}' has been cancelled by user '{adminUser.Username}'.", message.Body);
             }
 
             [Fact]
@@ -1465,8 +1510,8 @@ namespace NuGetGallery
                 Assert.Equal(adminUser.EmailAddress, message.To[0].Address);
                 Assert.Equal(accountToTransform.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.", message.Subject);
-                Assert.Contains($"The user '{accountToTransform.Username}' has cancelled their request for you to be the admin of their transformed account.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Transformation of account '{accountToTransform.Username}' has been cancelled", message.Subject);
+                Assert.Contains($"Transformation of account '{accountToTransform.Username}' has been cancelled by user '{accountToTransform.Username}'.", message.Body);
             }
 
             [Fact]

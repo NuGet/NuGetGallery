@@ -1625,11 +1625,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request for your account has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Cancelled {
+            get {
+                return ResourceManager.GetString("TransformAccount_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
             get {
                 return ResourceManager.GetString("TransformAccount_Failed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The transform request you are attempting to cancel was not found..
+        /// </summary>
+        public static string TransformAccount_FailedMissingRequestToCancel {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedMissingRequestToCancel", resourceCulture);
             }
         }
         
