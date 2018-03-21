@@ -27,15 +27,17 @@
 
         @if (Model.HasConfirmedEmailAddress)
         {
+            var linkText = "new email address is verified.";
             <text>
                 We will continue sending notification emails to the old verified email address (@account.EmailAddress)
-                until the <a href="@ViewBag.ConfirmationLink">new email address is verified.</a>
+                until the @(ViewBag.ShowConfirmationLink ? Html.Raw("<a href=\"" + ViewBag.ConfirmationLink + "\">" + linkText + "</a>") : linkText)
             </text>
         }
         else
         {
+            var linkText = "email address has been verified.";
             <text>
-                We will only send notification emails after the <a href="@ViewBag.ConfirmationLink">email address has been verified.</a><br />
+                We will only send notification emails after the @(ViewBag.ShowConfirmationLink ? Html.Raw("<a href=\"" + ViewBag.ConfirmationLink + "\">" + linkText + "</a>") : linkText)<br />
             </text>
         }
     </text>)
