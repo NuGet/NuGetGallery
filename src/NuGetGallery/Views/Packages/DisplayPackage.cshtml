@@ -59,6 +59,16 @@
                 InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
             },
 
+            new PackageManagerViewModel()
+            {
+                Id = "package-reference",
+                Name = "PackageReference",
+                InstallPackageCommand = string.Format("<PackageReference Include=\"{0}\" Version=\"{1}\" />", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format("For projects that support <a href=\"{0}\">PackageReference</a>, copy this XML node into the project file to reference the package.",
+                                             "https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files"),
+            },
+
             new ThirdPartyPackageManagerViewModel("https://fsprojects.github.io/Paket/contact.html")
             {
                 Id = "paket-cli",
@@ -925,6 +935,11 @@ foreach (var owner in Model.Owners)
 
         foreach (var packageManager in packageManagers)
         {
+            if (string.IsNullOrWhiteSpace(packageManager.CommandPrefix))
+            {
+                continue;
+            }
+
             packageManagersCss += "#" + packageManager.Id + " .install-script span::before {";
             packageManagersCss += "    content: \"" + packageManager.CommandPrefix + "\"";
             packageManagersCss += "}";
