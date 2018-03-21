@@ -380,7 +380,7 @@ namespace NuGetGallery
 
                 messageService.Verify(
                     x => x.SendNewAccountEmail(
-                        It.Is<MailAddress>(m => m.Address == OrgEmail && m.DisplayName == org.Username), 
+                        org, 
                         It.Is<string>(s => s.Contains(token))), 
                     Times.Once());
             }

@@ -38,13 +38,13 @@ namespace NuGetGallery
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendNewAccountEmail(account, confirmationUrl);
         }
 
         protected override void SendEmailChangedConfirmationNotice(User account)
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendEmailChangeConfirmationNotice(account, confirmationUrl);
         }
 
         [HttpGet]

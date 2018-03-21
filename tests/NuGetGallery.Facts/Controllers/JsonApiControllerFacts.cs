@@ -397,6 +397,18 @@ namespace NuGetGallery.Controllers
                                     ""))
                                 .Verifiable();
 
+                            foreach (var owner in fakes.Package.Owners)
+                            {
+                                messageServiceMock
+                                    .Setup(m => m.SendPackageOwnerRequestInitiatedNotice(
+                                        currentUser,
+                                        owner,
+                                        userToAdd,
+                                        fakes.Package,
+                                        It.IsAny<string>()))
+                                    .Verifiable();
+                            }
+
                             JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, userToAdd.Username, "Hello World! Html Encoded <3");
                             dynamic data = result.Data;
                             PackageOwnersResultViewModel model = data.model;
