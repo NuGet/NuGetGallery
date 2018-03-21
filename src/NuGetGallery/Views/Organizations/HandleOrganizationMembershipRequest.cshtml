@@ -22,11 +22,11 @@
             {
                 if (Model.Successful)
                 {
-                    @:Membership Rejected
+                    @:Membership Declined
                 }
                 else
                 {
-                    @:Membership Rejection Failed
+                    @:Membership Declination Failed
                 }
             }
         </h1>
@@ -57,14 +57,14 @@
             if (Model.Successful)
             {
                 <p class="text-center">
-                    You have successfully rejected your membership request for the
+                    You have successfully declined your membership request for the
                     '<strong><a href="@Url.User(@Model.OrganizationName)" title="The @Model.OrganizationName organization">@Model.OrganizationName</a></strong>' organization!
                 </p>
             }
             else
             {
                 <p class="text-center">
-                    We were not able to reject your membership request for the @(Model.OrganizationName).
+                    We were not able to decline your membership request for the @(Model.OrganizationName).
                 </p>
                 <p class="text-center">
                     @Model.FailureReason
