@@ -388,18 +388,23 @@ namespace NuGetGallery
         public class TheSendNewAccountEmailMethod
             : TestContainer
         {
-            [Fact]
-            public void WillSendEmailToNewUser()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmailToNewUser(bool isOrganization)
             {
-                var to = new MailAddress("legit@example.com", "too");
+                var unconfirmedEmailAddress = "unconfirmed@unconfirmed.com";
+                var user = isOrganization ? new Organization("organization") : new User("user");
+                user.UnconfirmedEmailAddress = unconfirmedEmailAddress;
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendNewAccountEmail(to, "http://example.com/confirmation-token-url");
+                messageService.SendNewAccountEmail(user, "http://example.com/confirmation-token-url");
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal("legit@example.com", message.To[0].Address);
+                Assert.Equal(unconfirmedEmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your account", message.Subject);
+                Assert.Contains($"Thank you for {(isOrganization ? $"creating an organization on the" : $"registering with the")} {TestGalleryOwner.DisplayName}.", message.Body);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
         }

@@ -12,7 +12,7 @@ namespace NuGetGallery
         void SendContactOwnersMessage(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
         void ReportAbuse(ReportPackageRequest report);
         void ReportMyPackage(ReportPackageRequest report);
-        void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl);
+        void SendNewAccountEmail(User newUser, string confirmationUrl);
         void SendEmailChangeConfirmationNotice(User user, string confirmationUrl);
         void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
         void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);

@@ -173,24 +173,19 @@ namespace NuGetGallery
             }
         }
 
-        public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        public void SendNewAccountEmail(User newUser, string confirmationUrl)
         {
-            string body = @"Thank you for registering with the {0}.
+            var isOrganization = newUser is Organization;
+
+            string body = $@"Thank you for {(isOrganization ? $"creating an organization on the" : $"registering with the")} {Config.GalleryOwner.DisplayName}.
 We can't wait to see what packages you'll upload.
 
 So we can be sure to contact you, please verify your email address and click the following link:
 
-[{1}]({2})
+[{HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_")}]({confirmationUrl})
 
 Thanks,
-The {0} Team";
-
-            body = String.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                Config.GalleryOwner.DisplayName,
-                HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
-                confirmationUrl);
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
@@ -198,7 +193,7 @@ The {0} Team";
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
-                mailMessage.To.Add(toAddress);
+                mailMessage.To.Add(newUser.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
