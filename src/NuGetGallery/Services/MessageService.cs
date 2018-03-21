@@ -860,6 +860,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
 To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
 To accept the request and become {membershipLevel} of '{organization.Username}':
@@ -867,14 +868,17 @@ To accept the request and become {membershipLevel} of '{organization.Username}':
 To decline the request:
 =======
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.
+=======
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
+>>>>>>> string changes
 
-Organization profile on NuGet.org: [{profileUrl}]({profileUrl})
+To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
 
-To accept this request and become {membershipLevel} of '{organization.Username}' and gain the ability to manage the organization's packages, click the following URL:
+To accept the request and become {membershipLevel} of '{organization.Username}':
 
 [{confirmationUrl}]({confirmationUrl})
 
-If you do not want to become {membershipLevel} of '{organization.Username}', click the following URL:
+To decline the request:
 
 >>>>>>> small fixes
 [{rejectionUrl}]({rejectionUrl})
@@ -932,9 +936,13 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined";
 
 <<<<<<< HEAD
+<<<<<<< HEAD
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
 =======
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.
+=======
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
+>>>>>>> string changes
 
 >>>>>>> small fixes
 Thanks,
