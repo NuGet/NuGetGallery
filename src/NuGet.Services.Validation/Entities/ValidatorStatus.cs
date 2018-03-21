@@ -34,6 +34,11 @@ namespace NuGet.Services.Validation
         public ValidationStatus State { get; set; }
 
         /// <summary>
+        /// The .nupkg URL returned by a processor.
+        /// </summary>
+        public string NupkgUrl { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating the statuses.
         /// </summary>
         public byte[] RowVersion { get; set; }
