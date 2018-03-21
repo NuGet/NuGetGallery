@@ -173,36 +173,31 @@ namespace NuGetGallery
             }
         }
 
-        public void SendNewAccountEmail(MailAddress toAddress, string confirmationUrl)
+        public void SendNewAccountEmail(User newUser, string confirmationUrl)
         {
-            string body = @"Thank you for registering with the {0}.
+            var isOrganization = newUser is Organization;
+
+            string body = $@"Thank you for {(isOrganization ? $"creating an organization on the" : $"registering with the")} {Config.GalleryOwner.DisplayName}.
 We can't wait to see what packages you'll upload.
 
 So we can be sure to contact you, please verify your email address and click the following link:
 
-[{1}]({2})
+[{HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_")}]({confirmationUrl})
 
 Thanks,
-The {0} Team";
-
-            body = String.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                Config.GalleryOwner.DisplayName,
-                HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
-                confirmationUrl);
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account.", Config.GalleryOwner.DisplayName);
+                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Please verify your account", Config.GalleryOwner.DisplayName);
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
-                mailMessage.To.Add(toAddress);
+                mailMessage.To.Add(newUser.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
-
+        
         public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
         {
             string body = @"Hi there,
@@ -244,29 +239,35 @@ The {0} Team";
             }
 
         }
-
-        public void SendEmailChangeConfirmationNotice(MailAddress newEmailAddress, string confirmationUrl)
+        
+        public void SendEmailChangeConfirmationNotice(User user, string confirmationUrl)
         {
-            string body = @"You recently changed your {0} email address.
+            string body = @"You recently changed your {0}'s {1} email address.
 
-To verify your new email address, please click the following link:
+To verify {0} new email address:
 
-[{1}]({2})
+[{2}]({3})
 
 Thanks,
-The {0} Team";
+The {1} Team";
+
+            var yourString = user is Organization ? "organization" : "account";
 
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
+                yourString,
                 Config.GalleryOwner.DisplayName,
                 HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_"),
                 confirmationUrl);
 
+            var newEmailAddress = new MailAddress(user.UnconfirmedEmailAddress, user.Username);
+
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = String.Format(
-                    CultureInfo.CurrentCulture, "[{0}] Please verify your new email address.", Config.GalleryOwner.DisplayName);
+                    CultureInfo.CurrentCulture, "[{0}] Please verify your {1}'s new email address", 
+                    Config.GalleryOwner.DisplayName, yourString);
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
@@ -277,22 +278,22 @@ The {0} Team";
 
         public void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
         {
-            string body = @"Hi there,
-
-The email address associated to your {0} account was recently
-changed from _{1}_ to _{2}_.
+            string body = @"The email address associated with your {0} {1} was recently changed from _{2}_ to _{3}_.
 
 Thanks,
 The {0} Team";
+
+            var yourString = user is Organization ? "organization" : "account";
 
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
                 Config.GalleryOwner.DisplayName,
+                yourString,
                 oldEmailAddress,
                 user.EmailAddress);
 
-            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your account.", Config.GalleryOwner.DisplayName);
+            string subject = String.Format(CultureInfo.CurrentCulture, "[{0}] Recent changes to your {1}'s email", Config.GalleryOwner.DisplayName, yourString);
             using (
                 var mailMessage = new MailMessage())
             {
@@ -340,19 +341,11 @@ The {0} Team";
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
             }
 
-            const string subject = "[{0}] The user '{1}' would like to add you as an owner of the package '{2}'.";
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}'");
 
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' wants to add you as an owner of the package '{package.Id}'.
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{fromUser.Username}' would like to add {(toUser is Organization ? "your organization" : "you")} as an owner of the package ['{package.Id}']({packageUrl}).
 
-Package URL on NuGet.org: [{packageUrl}]({packageUrl})
-{policyMessage}
-To accept this request and become a listed owner of the package, click the following URL:
-
-[{confirmationUrl}]({confirmationUrl})
-
-If you do not want to be listed as an owner of this package, click the following URL:
-
-[{rejectionUrl}]({rejectionUrl})");
+{policyMessage}");
 
             if (!string.IsNullOrWhiteSpace(message))
             {
@@ -361,31 +354,47 @@ If you do not want to be listed as an owner of this package, click the following
 '{message}'");
             }
 
+            body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"To accept this request and {(toUser is Organization ? "make your organization" : "become")} a listed owner of the package:
+
+[{confirmationUrl}]({confirmationUrl})
+
+To decline:
+
+[{rejectionUrl}]({rejectionUrl})");
+
             body += Environment.NewLine + Environment.NewLine + $@"Thanks,
 The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }
 
-        public void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package)
+        public void SendPackageOwnerRequestInitiatedNotice(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl)
         {
-            if (!requestingOwner.EmailAllowed)
+            if (!receivingOwner.EmailAllowed)
             {
                 return;
             }
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.");
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}'");
 
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{newOwner.Username}' has rejected your request to add them as an owner of the package '{package.Id}'.
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has requested that user '{newOwner.Username}' be added as an owner of the package '{package.Id}'.
+
+To cancel this request:
+
+[{cancellationUrl}]({cancellationUrl})
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -397,7 +406,41 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
 
-                mailMessage.To.Add(requestingOwner.ToMailAddress());
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, receivingOwner))
+                {
+                    return;
+                }
+
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package)
+        {
+            if (!requestingOwner.EmailAllowed)
+            {
+                return;
+            }
+
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}' declined");
+
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{newOwner.Username}' has declined {(requestingOwner is Organization ? "your organization's" : "your" )} request to add them as an owner of the package '{package.Id}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(newOwner.ToMailAddress());
+
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, requestingOwner))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }
@@ -408,10 +451,10 @@ The {Config.GalleryOwner.DisplayName} Team");
             {
                 return;
             }
+            
+            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}' cancelled");
 
-            var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.");
-
-            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for you to be added as an owner of the package '{package.Id}'.
+            var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for {(newOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{package.Id}'.
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
@@ -423,7 +466,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(requestingOwner.ToMailAddress());
 
-                mailMessage.To.Add(newOwner.ToMailAddress());
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, newOwner))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
             }
         }
@@ -440,24 +487,25 @@ The {Config.GalleryOwner.DisplayName} Team");
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
             }
 
-            const string subject = "[{0}] The user '{1}' is now an owner of the package '{2}'.";
+            var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership update for '{package.Id}'";
 
-            string body = @"This is to inform you that '{0}' is now an owner of the package
+            var body = $@"User '{newOwner.Username}' is now an owner of the package ['{package.Id}']({packageUrl}).
 
-{1}
-{2}
+{policyMessage}
 Thanks,
-The {3} Team";
-            body = String.Format(CultureInfo.CurrentCulture, body, newOwner.Username, packageUrl, policyMessage, Config.GalleryOwner.DisplayName);
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, newOwner.Username, package.Id);
+                mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(Config.GalleryNoReplyAddress);
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
                 SendMessage(mailMessage);
             }
         }
@@ -469,25 +517,57 @@ The {3} Team";
                 return;
             }
 
-            const string subject = "[{0}] The user '{1}' has removed you as an owner of the package '{2}'.";
+            var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership removal for '{package.Id}'";
 
-            string body = @"The user '{0}' removed you as an owner of the package '{1}'.
-
-If this was done incorrectly, we'd recommend contacting '{0}' at '{2}'.
+            var body = $@"The user '{fromUser.Username}' removed {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.
 
 Thanks,
-The {3} Team";
-            body = String.Format(CultureInfo.CurrentCulture, body, fromUser.Username, package.Id, fromUser.EmailAddress, Config.GalleryOwner.DisplayName);
+The {Config.GalleryOwner.DisplayName} Team";
 
             using (var mailMessage = new MailMessage())
             {
-                mailMessage.Subject = String.Format(CultureInfo.CurrentCulture, subject, Config.GalleryOwner.DisplayName, fromUser.Username, package.Id);
+                mailMessage.Subject = subject;
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
                 mailMessage.ReplyToList.Add(fromUser.ToMailAddress());
 
-                mailMessage.To.Add(toUser.ToMailAddress());
+                if (!AddAddressesForPackageOwnershipManagementToEmail(mailMessage, toUser))
+                {
+                    return;
+                }
+
                 SendMessage(mailMessage);
+            }
+        }
+
+        private bool AddAddressesForPackageOwnershipManagementToEmail(MailMessage mailMessage, User user)
+        {
+            if (user is Organization organization)
+            {
+                var membersAllowedToAct = organization.Members
+                    .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
+                    .Select(m => m.Member);
+
+                bool hasRecipients = false;
+
+                foreach (var member in membersAllowedToAct)
+                {
+                    if (!member.EmailAllowed)
+                    {
+                        continue;
+                    }
+
+                    mailMessage.To.Add(member.ToMailAddress());
+
+                    hasRecipients = true;
+                }
+
+                return hasRecipients;
+            }
+            else
+            {
+                mailMessage.To.Add(user.ToMailAddress());
+                return true;
             }
         }
 
@@ -512,13 +592,13 @@ The {3} Team";
             
         }
 
-        public void SendCredentialAddedNotice(User user, CredentialViewModel addedCrdentialViewModel)
+        public void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel)
         {
-            if (CredentialTypes.IsApiKey(addedCrdentialViewModel.Type))
+            if (CredentialTypes.IsApiKey(addedCredentialViewModel.Type))
             {
                 SendApiKeyChangeNotice(
                     user,
-                    addedCrdentialViewModel,
+                    addedCredentialViewModel,
                     Strings.Emails_ApiKeyAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
@@ -526,7 +606,7 @@ The {3} Team";
             {
                 SendCredentialChangeNotice(
                     user,
-                    addedCrdentialViewModel,
+                    addedCredentialViewModel,
                     Strings.Emails_CredentialAdded_Body,
                     Strings.Emails_CredentialAdded_Subject);
             }
@@ -656,7 +736,7 @@ Note: This package has not been published yet. It will appear in search results 
 
         public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
         {
-            string body = @"We received a request to delete your account {0}. If you did not initiate this request please contact the {1} team immediately.
+            string body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.
 {2}When your account will be deleted, we will:{2}
  - revoke your API key(s)
  - remove you as the owner for any package you own 
@@ -721,6 +801,137 @@ The {0} Team";
                 {
                     SendMessage(mailMessage);
                 }
+            }
+        }
+
+        public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
+        {
+            if (!adminUser.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account ['{accountToTransform.Username}']({profileUrl}) into an organization.
+
+To proceed with the transformation and become an administrator of '{accountToTransform.Username}':
+
+[{confirmationUrl}]({confirmationUrl})
+
+To cancel the transformation:
+
+[{rejectionUrl}]({rejectionUrl})
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToTransform.ToMailAddress());
+
+                mailMessage.To.Add(adminUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformInitiatedNotice(User accountToTransform, User adminUser, string cancellationUrl)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account '{accountToTransform.Username}' into an organization with user '{adminUser.Username}' as its admin.
+
+To cancel the transformation:
+
+[{cancellationUrl}]({cancellationUrl})
+
+If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser)
+        {
+            if (!accountToTransform.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Account '{accountToTransform.Username}' has been transformed into an organization";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"Account '{accountToTransform.Username}' has been transformed into an organization with user '{adminUser.Username}' as its administrator. If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryOwner;
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(accountToTransform.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser)
+        {
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: true);
+        }
+
+        public void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser)
+        {
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: false);
+        }
+
+        private void SendOrganizationTransformRequestRejectedNoticeInternal(User accountToTransform, User adminUser, bool isCancelledByAdmin)
+        {
+            var accountToSendTo = isCancelledByAdmin ? accountToTransform : adminUser;
+            var accountToReplyTo = isCancelledByAdmin ? adminUser : accountToTransform;
+
+            if (!accountToSendTo.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Transformation of account '{accountToTransform.Username}' has been cancelled";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"Transformation of account '{accountToTransform.Username}' has been cancelled by user '{accountToReplyTo.Username}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(accountToReplyTo.ToMailAddress());
+
+                mailMessage.To.Add(accountToSendTo.ToMailAddress());
+                SendMessage(mailMessage);
             }
         }
 

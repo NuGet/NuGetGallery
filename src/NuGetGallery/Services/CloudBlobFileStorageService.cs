@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 
 namespace NuGetGallery
 {
@@ -15,8 +16,11 @@ namespace NuGetGallery
         private readonly IAppConfiguration _configuration;
         private readonly ISourceDestinationRedirectPolicy _redirectPolicy;
 
-        public CloudBlobFileStorageService(ICloudBlobClient client, IAppConfiguration configuration, ISourceDestinationRedirectPolicy redirectPolicy)
-            : base(client)
+        public CloudBlobFileStorageService(
+            ICloudBlobClient client,
+            IAppConfiguration configuration,
+            ISourceDestinationRedirectPolicy redirectPolicy,
+            IDiagnosticsService diagnosticsService) : base(client, diagnosticsService)
         {
             _configuration = configuration;
             _redirectPolicy = redirectPolicy;

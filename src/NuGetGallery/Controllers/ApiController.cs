@@ -462,7 +462,9 @@ namespace NuGetGallery
                         var packageStreamMetadata = new PackageStreamMetadata
                         {
                             HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                            Hash = CryptographyService.GenerateHash(packageStream.AsSeekableStream()),
+                            Hash = CryptographyService.GenerateHash(
+                                packageStream.AsSeekableStream(),
+                                CoreConstants.Sha512HashAlgorithmId),
                             Size = packageStream.Length
                         };
 

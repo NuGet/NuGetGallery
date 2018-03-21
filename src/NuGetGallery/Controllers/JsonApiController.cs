@@ -148,10 +148,21 @@ namespace NuGetGallery
                     ownerRequest.ConfirmationCode,
                     relativeUrl: false);
 
+                var cancellationUrl = Url.CancelPendingOwnershipRequest(
+                    model.Package.Id,
+                    model.CurrentUser.Username,
+                    model.User.Username,
+                    relativeUrl: false);
+
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
 
                 _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
                     confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
+
+                foreach (var owner in model.Package.Owners)
+                {
+                    _messageService.SendPackageOwnerRequestInitiatedNotice(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                }
 
                 return Json(new
                 {

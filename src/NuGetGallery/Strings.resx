@@ -738,13 +738,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
   </data>
   <data name="ChangeCredential_NotAllowed" xml:space="preserve">
-    <value>The change of Azure active directory account is not allowed.</value>
+    <value>The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login.</value>
   </data>
   <data name="ChangeCredential_Success" xml:space="preserve">
     <value>Successfully linked the Microsoft account ({0}).</value>
   </data>
   <data name="PasswordLoginDeprecated" xml:space="preserve">
-    <value>The password login has been deprecated. You must use Microsoft account to sign in. </value>
+    <value>The password login is deprecated. You must use Microsoft account to sign in.</value>
   </data>
   <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
     <value>No valid external provider found for authentication</value>
@@ -762,7 +762,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
     <value>You have successfully confirmed your email address!</value>
   </data>
   <data name="DeleteMember_CannotDeleteLastAdmin" xml:space="preserve">
-    <value>Organization member '{0}' is the last admin and cannot be deleted.</value>
+    <value>Organization member '{0}' is the last administrator and cannot be deleted.</value>
   </data>
   <data name="UpdateMember_CannotRemoveLastAdmin" xml:space="preserve">
     <value>You can't change your role to collaborator. In order to change, another collaborator must be assigned as an administrator.</value>
@@ -805,5 +805,14 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   </data>
   <data name="SigninAssistance_InvalidUser" xml:space="preserve">
     <value>Please enter a valid username</value>
+  </data>
+  <data name="TransformAccount_Rejected" xml:space="preserve">
+    <value>The transform request for you to become an admin of '{0}' has been successfully cancelled.</value>
+  </data>
+  <data name="TransformAccount_FailedMissingRequestToCancel" xml:space="preserve">
+    <value>The transform request you are attempting to cancel was not found.</value>
+  </data>
+  <data name="TransformAccount_Cancelled" xml:space="preserve">
+    <value>The transform request for your account has been successfully cancelled.</value>
   </data>
 </root>

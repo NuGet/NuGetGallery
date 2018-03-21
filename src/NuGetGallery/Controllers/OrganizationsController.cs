@@ -37,13 +37,13 @@ namespace NuGetGallery
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendNewAccountEmail(account, confirmationUrl);
         }
 
         protected override void SendEmailChangedConfirmationNotice(User account)
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendEmailChangeConfirmationNotice(account, confirmationUrl);
         }
 
         [HttpGet]
@@ -145,9 +145,12 @@ namespace NuGetGallery
         {
             var account = GetAccount(accountName);
 
-            if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
-                    != PermissionsCheckResult.Allowed)
+            var currentUser = GetCurrentUser();
+
+            if (account == null || 
+                (currentUser.Username != memberName && 
+                ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                    != PermissionsCheckResult.Allowed))
             {
                 return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
             }

@@ -461,6 +461,7 @@ namespace NuGetGallery
 
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
+            model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
@@ -1248,7 +1249,12 @@ namespace NuGetGallery
             if (formData.Edit != null)
             {
                 // Update readme.md file, if modified.
-                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding);
+                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(
+                    package,
+                    formData.Edit,
+                    Request.ContentEncoding,
+                    commitChanges: true);
+
                 if (readmeChanged)
                 {
                     _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
@@ -1487,7 +1493,9 @@ namespace NuGetGallery
                 var packageStreamMetadata = new PackageStreamMetadata
                 {
                     HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(uploadFile.AsSeekableStream()),
+                    Hash = CryptographyService.GenerateHash(
+                        uploadFile.AsSeekableStream(),
+                        CoreConstants.Sha512HashAlgorithmId),
                     Size = uploadFile.Length,
                 };
 
@@ -1571,7 +1579,11 @@ namespace NuGetGallery
 
                 if (formData.Edit != null)
                 {
-                    if (await _readMeService.SaveReadMeMdIfChanged(package, formData.Edit, Request.ContentEncoding))
+                    if (await _readMeService.SaveReadMeMdIfChanged(
+                        package,
+                        formData.Edit,
+                        Request.ContentEncoding,
+                        commitChanges: false))
                     {
                         _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
                     }

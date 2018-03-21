@@ -13,14 +13,11 @@ namespace NuGetGallery
             var member = membership?.Member ?? throw new ArgumentNullException(nameof(membership));
 
             Username = member.Username;
-            EmailAddress = member.EmailAddress;
             IsAdmin = membership.IsAdmin;
-            GravatarUrl = GravatarHelper.Url(EmailAddress, Constants.GravatarElementSize);
+            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
         }
 
         public string Username { get; }
-
-        public string EmailAddress { get; }
 
         public bool IsAdmin { get; }
 

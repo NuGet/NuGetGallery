@@ -8,22 +8,26 @@ using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
     public class ValidationService : IValidationService
     {
+        private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageService _packageService;
         private readonly IPackageValidationInitiator _initiator;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly ITelemetryService _telemetryService;
 
         public ValidationService(
+            IAppConfiguration appConfiguration,
             IPackageService packageService,
             IPackageValidationInitiator initiator,
             IEntityRepository<PackageValidationSet> validationSets,
             ITelemetryService telemetryService)
         {
+            _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
@@ -45,6 +49,16 @@ namespace NuGetGallery
             await _initiator.StartValidationAsync(package);
 
             _telemetryService.TrackPackageRevalidate(package);
+        }
+
+        public bool IsValidatingTooLong(Package package)
+        {
+            if (package.PackageStatusKey == PackageStatus.Validating)
+            {
+                return ((DateTime.UtcNow - package.Created) >= _appConfiguration.ValidationExpectedTime);
+            }
+
+            return false;
         }
 
         public IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package)

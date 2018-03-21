@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using Xunit;
 using Xunit.Sdk;
 
@@ -38,7 +39,11 @@ namespace NuGetGallery
                 redirectPolicy.Setup(p => p.IsAllowed(It.IsAny<Uri>(), It.IsAny<Uri>())).Returns(true);
             }
 
-            return new CloudBlobFileStorageService(fakeBlobClient.Object, Mock.Of<IAppConfiguration>(), redirectPolicy.Object);
+            return new CloudBlobFileStorageService(
+                fakeBlobClient.Object,
+                Mock.Of<IAppConfiguration>(),
+                redirectPolicy.Object,
+                Mock.Of<IDiagnosticsService>());
         }
 
         private class FolderNamesDataAttribute : DataAttribute

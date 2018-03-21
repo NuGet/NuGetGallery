@@ -82,6 +82,38 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Determine if the current user has an associated password credential.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user has password credential, false otherwise.</returns>
+        public static bool HasPasswordLogin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin);
+        }
+
+        /// <summary>
+        /// Determine if the current user has an associated external credential.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user has password credential, false otherwise.</returns>
+        public static bool HasExternalLogin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.ExternalLogin);
+        }
+
+        /// <summary>
         /// Determine if the current user context is authenticated with a scoped API key.
         /// </summary>
         /// <param name="self">Current user identity.</param>

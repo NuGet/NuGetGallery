@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
@@ -21,6 +22,8 @@ namespace NuGetGallery
         private const string LowercaseId = "nuget.versioning";
         private const string LowercaseVersion = "4.3.0-beta";
         private static readonly string ValidationFileName = $"{LowercaseId}.{LowercaseVersion}.nupkg";
+        private const string PackageContent = "Hello, world.";
+        private const string PackageHash = "rQw3wx1psxXzqB8TyM3nAQlK2RcluhsNwxmcqXE2YbgoDW735o8TPmIR4uWpoxUERddvFwjgRSGw7gNPCwuvJg==";
 
         public class TheSavePackageFileMethod
         {
@@ -498,8 +501,6 @@ namespace NuGetGallery
 
         public class TheStorePackageFileInBackupLocationAsyncMethod
         {
-            private string packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
-
             [Fact]
             public async Task WillThrowIfPackageIsNull()
             {
@@ -564,10 +565,9 @@ namespace NuGetGallery
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageService: fileStorageSvc);
                 var packageRegistraion = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01", Hash = packageHashForTests };
-                package.Hash = packageHashForTests;
+                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01" };
 
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", PackageHash), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
@@ -577,7 +577,35 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUseLowercaseNormalizedIdAndVersion()
+            public async Task WillSeekTheStreamBeforeAndAfterHashing()
+            {
+                var fileStorageSvc = new Mock<ICoreFileStorageService>();
+                var service = CreateService(fileStorageService: fileStorageSvc);
+                string path = null;
+                long position = -1;
+                fileStorageSvc
+                    .Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
+                    .Returns(Task.FromResult(true))
+                    .Callback<string, string, Stream, bool>((_, p, s, ___) =>
+                    {
+                        path = p;
+                        position = s.Position;
+                    });
+                
+                var package = CreatePackage();
+                package.PackageRegistration.Id = Id;
+                package.NormalizedVersion = NormalizedVersion;
+                var stream = CreatePackageFileStream();
+                stream.Seek(0, SeekOrigin.End);
+
+                await service.StorePackageFileInBackupLocationAsync(package, stream);
+
+                Assert.Equal($"nuget.versioning/4.3.0-beta/{HttpServerUtility.UrlTokenEncode(Convert.FromBase64String(PackageHash))}..nupkg", path);
+                Assert.Equal(0, position);
+            }
+
+            [Fact]
+            public async Task WillUseLowercaseNormalizedIdAndVersionAndStreamHash()
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageService: fileStorageSvc);
@@ -590,11 +618,11 @@ namespace NuGetGallery
                 var package = CreatePackage();
                 package.PackageRegistration.Id = Id;
                 package.NormalizedVersion = NormalizedVersion;
-                package.Hash = packageHashForTests;
+                package.Hash = "NzMzMS1QNENLNEczSDQ1SA=="; // This hash should not be used.
 
                 await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
 
-                Assert.Equal("nuget.versioning/4.3.0-beta/NzMzMS1QNENLNEczSDQ1SA2..nupkg", path);
+                Assert.Equal($"nuget.versioning/4.3.0-beta/{HttpServerUtility.UrlTokenEncode(Convert.FromBase64String(PackageHash))}..nupkg", path);
             }
 
             [Fact]
@@ -607,7 +635,6 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
 
@@ -619,12 +646,11 @@ namespace NuGetGallery
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var service = CreateService(fileStorageService: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", PackageHash), It.IsAny<Stream>(), It.Is<bool>(b => b)))
                     .Completes()
                     .Verifiable();
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
 
@@ -642,7 +668,6 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
 
@@ -660,7 +685,6 @@ namespace NuGetGallery
                     .ReturnsAsync(true);
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
 
@@ -680,7 +704,6 @@ namespace NuGetGallery
                     .Throws(new InvalidOperationException("File already exists."));
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
 
@@ -701,7 +724,6 @@ namespace NuGetGallery
                     .Throws(exception);
 
                 var package = CreatePackage();
-                package.Hash = packageHashForTests;
 
                 var actual = await Assert.ThrowsAsync<ArgumentException>(
                     () => service.StorePackageFileInBackupLocationAsync(package, fakeStream));
@@ -742,7 +764,7 @@ namespace NuGetGallery
 
         static MemoryStream CreatePackageFileStream()
         {
-            return new MemoryStream(new byte[] { 0, 0, 1, 0, 1, 0, 1, 0 }, 0, 8, true, true);
+            return new MemoryStream(Encoding.ASCII.GetBytes(PackageContent));
         }
 
         static CorePackageFileService CreateService(Mock<ICoreFileStorageService> fileStorageService = null)

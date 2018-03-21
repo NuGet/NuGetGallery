@@ -28,8 +28,13 @@ namespace NuGetGallery.Authentication
         public const string DiscontinuedLogin = ClaimsDomain + "discontinuedlogin";
 
         /// <summary>
-        /// The value of <see cref="DiscontinuedLogin"/> when the user is authenticated with a discontinued <see cref="Credential"/>.
+        /// The claim url for the claim that stores whether or not the user has a password login.
         /// </summary>
-        public const string DiscontinuedLoginValue = "true";
+        public const string PasswordLogin = ClaimsDomain + "passwordlogin";
+
+        /// <summary>
+        /// The claim url for the claim that stores whether or not the user has an external login.
+        /// </summary>
+        public const string ExternalLogin = ClaimsDomain + "externallogin";
     }
 }

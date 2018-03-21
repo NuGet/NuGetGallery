@@ -39,7 +39,6 @@
             this.OrganizationViewModel = parent;
 
             this.Username = member.Username;
-            this.EmailAddress = member.EmailAddress;
             this.IsAdmin = ko.observable(member.IsAdmin);
             this.SelectedRole = ko.pureComputed({
                 read: function () {
@@ -57,8 +56,14 @@
             this.GravatarUrl = member.GravatarUrl;
 
             this.DeleteMember = function () {
-                if (!window.nuget.confirmEvent("Are you sure you want to delete member '" + self.Username + "'?")) {
-                    return;
+                if (self.IsCurrentUser) {
+                    if (!window.nuget.confirmEvent("Are you sure you want to leave this organization? You will no longer be able to manage it or its packages if you do.")) {
+                        return;
+                    }
+                } else {
+                    if (!window.nuget.confirmEvent("Are you sure you want to delete member '" + self.Username + "'?")) {
+                        return;
+                    }
                 }
 
                 // Build the request.

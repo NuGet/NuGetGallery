@@ -479,7 +479,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed..
+        ///   Looks up a localized string similar to The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login..
         /// </summary>
         public static string ChangeCredential_NotAllowed {
             get {
@@ -614,7 +614,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last admin and cannot be deleted..
+        ///   Looks up a localized string similar to Organization member &apos;{0}&apos; is the last administrator and cannot be deleted..
         /// </summary>
         public static string DeleteMember_CannotDeleteLastAdmin {
             get {
@@ -1184,7 +1184,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The password login has been deprecated. You must use Microsoft account to sign in. .
+        ///   Looks up a localized string similar to The password login is deprecated. You must use Microsoft account to sign in..
         /// </summary>
         public static string PasswordLoginDeprecated {
             get {
@@ -1625,6 +1625,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request for your account has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Cancelled {
+            get {
+                return ResourceManager.GetString("TransformAccount_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
@@ -1634,11 +1643,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request you are attempting to cancel was not found..
+        /// </summary>
+        public static string TransformAccount_FailedMissingRequestToCancel {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedMissingRequestToCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_OrganizationAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The transform request for you to become an admin of &apos;{0}&apos; has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Rejected {
+            get {
+                return ResourceManager.GetString("TransformAccount_Rejected", resourceCulture);
             }
         }
         

@@ -41,7 +41,13 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
         /// <param name="edit">Package version edit readme request.</param>
+        /// <param name="encoding">The encoding used when reading the existing readme.</param>
+        /// <param name="commitChanges">Whether or not to commit the pending changes to the database.</param>
         /// <returns>True if the package readme changed, otherwise false.</returns>
-        Task<bool> SaveReadMeMdIfChanged(Package package, EditPackageVersionReadMeRequest edit, Encoding encoding);
+        Task<bool> SaveReadMeMdIfChanged(
+            Package package,
+            EditPackageVersionReadMeRequest edit,
+            Encoding encoding,
+            bool commitChanges);
     }
 }

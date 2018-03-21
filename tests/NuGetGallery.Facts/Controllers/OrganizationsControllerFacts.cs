@@ -378,7 +378,7 @@ namespace NuGetGallery
 
                 messageService.Verify(
                     x => x.SendNewAccountEmail(
-                        It.Is<MailAddress>(m => m.Address == OrgEmail && m.DisplayName == org.Username), 
+                        org, 
                         It.Is<string>(s => s.Contains(token))), 
                     Times.Once());
             }
@@ -700,7 +700,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenSuccess_ReturnsSuccess()
+            public async Task WhenDeletingAsAdmin_ReturnsSuccess()
             {
                 // Arrange
                 var controller = GetController();
@@ -715,6 +715,26 @@ namespace NuGetGallery
                 Assert.Equal(Strings.DeleteMember_Success, ((JsonResult)result).Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
+            }
+
+            [Fact]
+            public async Task WhenDeletingSelfAsCollaborator_ReturnsSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                var collaborator = Fakes.OrganizationCollaborator;
+                controller.SetCurrentUser(collaborator);
+
+                // Act
+                var result = await InvokeDeleteMember(controller, account, memberName: collaborator.Username);
+
+                // Assert
+                Assert.Equal(0, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.DeleteMember_Success, ((JsonResult)result).Data);
+
+                GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, collaborator.Username), Times.Once);
             }
 
             private Task<JsonResult> InvokeDeleteMember(

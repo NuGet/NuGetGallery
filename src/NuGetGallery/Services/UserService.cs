@@ -372,39 +372,8 @@ namespace NuGetGallery
             {
                 return false;
             }
-
-            await TransferApiKeysScopedToUser(accountToTransform, adminUser);
-            
+   
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
-        }
-
-        public async Task TransferApiKeysScopedToUser(User userWithKeys, User userToOwnKeys)
-        {
-            var eligibleApiKeys = userWithKeys.Credentials
-                .Where(c => c.IsApiKey() && c.Scopes.All(k => k.Owner == null || k.Owner == userWithKeys)).ToArray();
-            foreach (var originalApiKey in eligibleApiKeys)
-            {
-                var scopes = originalApiKey.Scopes.Select(s =>
-                    new Scope(userWithKeys, s.Subject, s.AllowedAction));
-
-                var clonedApiKey = new Credential(originalApiKey.Type, originalApiKey.Value)
-                {
-                    Description = originalApiKey.Description,
-                    ExpirationTicks = originalApiKey.ExpirationTicks,
-                    Expires = originalApiKey.Expires,
-                    Scopes = scopes.ToArray(),
-                    User = userToOwnKeys,
-                    UserKey = userToOwnKeys.Key,
-                    Value = originalApiKey.Value
-                };
-
-                userToOwnKeys.Credentials.Add(clonedApiKey);
-            }
-
-            if (eligibleApiKeys.Any())
-            {
-                await EntitiesContext.SaveChangesAsync();
-            }
         }
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
@@ -483,6 +452,53 @@ namespace NuGetGallery
         private string GetAzureActiveDirectoryCredentialTenant(User user)
         {
             return user.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
+        }
+
+        public async Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
+        {
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+
+            if (transformRequest == null)
+            {
+                return false;
+            }
+
+            if (transformRequest.AdminUser == null || !transformRequest.AdminUser.MatchesUser(adminUser))
+            {
+                return false;
+            }
+
+            if (transformRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
+            accountToTransform.OrganizationMigrationRequest = null;
+
+            await UserRepository.CommitChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
+        {
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+
+            if (transformRequest == null)
+            {
+                return false;
+            }
+
+            if (transformRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
+            accountToTransform.OrganizationMigrationRequest = null;
+
+            await UserRepository.CommitChangesAsync();
+
+            return true;
         }
     }
 }

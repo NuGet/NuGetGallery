@@ -42,20 +42,19 @@
             <table class="table">
                 <tbody data-bind="foreach: Members">
                     <tr>
-                        <td class="align-middle member-icon icon-left hidden-xs col-xs-1">
+                        <td class="align-middle row-center icon-left hidden-xs col-xs-1">
                             <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar"
                                  height="@Constants.GravatarElementSize" width="@Constants.GravatarElementSize">
                         </td>
-                        <td class="align-middle heading-right member-username col-xs-8 col-sm-7">
+                        <td class="align-middle heading-right row-center col-xs-8 col-sm-7">
                             <a title="View Member Profile" data-bind="attr: { href: ProfileUrl }">
                                 <span data-bind="text: Username"></span>
                             </a>
                             <!-- ko if: IsCurrentUser -->
                             <i>(that's you)</i>
                             <!-- /ko -->
-                            <div data-bind="text: EmailAddress"></div>
                         </td>
-                        <td class="align-middle heading-left heading-right member-username col-xs-3">
+                        <td class="align-middle heading-left heading-right row-center col-xs-3">
                             @if (Model.CanManage)
                             {
                                 <select class="form-control" aria-label="Change member role"
@@ -67,16 +66,15 @@
                                 <span data-bind="text: SelectedRole()"></span>
                             }
                         </td>
-                        @if (Model.CanManage)
-                        {
-                            <td class="text-center align-middle heading-right member-controls col-xs-1">
-                                <span>
-                                    <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                    </a>
-                                </span>
-                            </td>
-                        }
+                        <!-- ko if: IsCurrentUser || @(Model.CanManage ? "true" : "false") -->
+                        <td class="text-center align-middle heading-right member-controls col-xs-1">
+                            <span>
+                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                        </td>
+                        <!-- /ko -->
                     </tr>
                 </tbody>
             </table>

@@ -13,9 +13,151 @@ namespace NuGetGallery
 {
     public class ReadMeServiceFacts
     {
+        public class TheSaveReadMeMdIfChangedMethod
+        {
+            private readonly Package _package;
+            private readonly EditPackageVersionReadMeRequest _edit;
+            private readonly Encoding _encoding;
+            private readonly Mock<IPackageFileService> _packageFileService;
+            private readonly Mock<IEntitiesContext> _entitiesContext;
+            private readonly ReadMeService _target;
+
+            public TheSaveReadMeMdIfChangedMethod()
+            {
+                _package = new Package
+                {
+                    HasReadMe = false,
+                };
+                _edit = new EditPackageVersionReadMeRequest
+                {
+                    ReadMe = new ReadMeRequest
+                    {
+                        SourceText = "# Title" + Environment.NewLine + "Some *groovy* content.",
+                        SourceType = "written",
+                    },
+                    ReadMeState = PackageEditReadMeState.Changed,
+                };
+                _encoding = Encoding.UTF8;
+
+                _packageFileService = new Mock<IPackageFileService>();
+                _entitiesContext = new Mock<IEntitiesContext>();
+
+                _target = new ReadMeService(
+                    _packageFileService.Object,
+                    _entitiesContext.Object);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task OnlyCommitsWhenSpecifiedAndUpdatingReadme(bool commitChanges)
+            {
+                // Arrange
+                _edit.ReadMeState = PackageEditReadMeState.Unchanged;
+
+                // Act
+                var changed = await _target.SaveReadMeMdIfChanged(
+                    _package,
+                    _edit,
+                    _encoding,
+                    commitChanges);
+
+                // Assert
+                Assert.True(changed);
+                Assert.True(_package.HasReadMe);
+                Assert.Equal(PackageEditReadMeState.Changed, _edit.ReadMeState);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    commitChanges ? Times.Once() : Times.Never());
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task NeverCommitsWhenReadmeExistsAndHasNotChanged(bool commitChanges)
+            {
+                // Arrange
+                _packageFileService
+                    .Setup(x => x.DownloadReadMeMdFileAsync(_package))
+                    .ReturnsAsync(_edit.ReadMe.SourceText);
+
+                _package.HasReadMe = true;
+                _edit.ReadMeState = PackageEditReadMeState.Changed;
+
+                // Act
+                var changed = await _target.SaveReadMeMdIfChanged(
+                    _package,
+                    _edit,
+                    _encoding,
+                    commitChanges);
+
+                // Assert
+                Assert.False(changed);
+                Assert.True(_package.HasReadMe);
+                Assert.Equal(PackageEditReadMeState.Unchanged, _edit.ReadMeState);
+                _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task NeverCommitsWhenReadmeStillDoesNotExist(bool commitChanges)
+            {
+                // Arrange
+                _package.HasReadMe = false;
+                _edit.ReadMe.SourceText = null;
+                _edit.ReadMeState = PackageEditReadMeState.Changed;
+
+                // Act
+                var changed = await _target.SaveReadMeMdIfChanged(
+                    _package,
+                    _edit,
+                    _encoding,
+                    commitChanges);
+
+                // Assert
+                Assert.False(changed);
+                Assert.False(_package.HasReadMe);
+                Assert.Equal(PackageEditReadMeState.Unchanged, _edit.ReadMeState);
+                _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task OnlyCommitsWhenSpecifiedAndRemovingReadme(bool commitChanges)
+            {
+                // Arrange
+                _packageFileService
+                    .Setup(x => x.DownloadReadMeMdFileAsync(_package))
+                    .ReturnsAsync(_edit.ReadMe.SourceText);
+
+                _package.HasReadMe = true;
+                _edit.ReadMe.SourceText = null;
+                _edit.ReadMeState = PackageEditReadMeState.Unchanged;
+
+                // Act
+                var changed = await _target.SaveReadMeMdIfChanged(
+                    _package,
+                    _edit,
+                    _encoding,
+                    commitChanges);
+
+                // Assert
+                Assert.True(changed);
+                Assert.False(_package.HasReadMe);
+                Assert.Equal(PackageEditReadMeState.Deleted, _edit.ReadMeState);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    commitChanges ? Times.Once() : Times.Never());
+            }
+        }
+
         public class TheHasReadMeSourceMethod
         {
-            internal ReadMeService ReadMeService = new ReadMeService(new Mock<IPackageFileService>().Object, new Mock<IEntitiesContext>().Object);
+            internal ReadMeService ReadMeService = new ReadMeService(
+                new Mock<IPackageFileService>().Object,
+                new Mock<IEntitiesContext>().Object);
 
             [Fact]
             public void WhenRequestIsNull_ReturnsFalse()

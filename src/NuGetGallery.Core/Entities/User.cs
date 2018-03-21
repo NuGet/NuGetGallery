@@ -85,6 +85,8 @@ namespace NuGetGallery
 
         public bool IsDeleted { get; set; }
 
+        public bool EnableMultiFactorAuthentication { get; set; }
+
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         [DefaultValue(true)]
@@ -159,12 +161,6 @@ namespace NuGetGallery
 
             UnconfirmedEmailAddress = newEmailAddress;
             EmailConfirmationToken = generateToken();
-        }
-
-        public bool HasPassword()
-        {
-            return Credentials.Any(c =>
-                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
         }
 
         public bool IsInRole(string roleName)
