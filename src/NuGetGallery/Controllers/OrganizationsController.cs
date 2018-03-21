@@ -148,9 +148,9 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
 
             if (account == null || 
-                (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                    != PermissionsCheckResult.Allowed && 
-                currentUser.Username != memberName))
+                (currentUser.Username != memberName && 
+                ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                    != PermissionsCheckResult.Allowed))
             {
                 return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
