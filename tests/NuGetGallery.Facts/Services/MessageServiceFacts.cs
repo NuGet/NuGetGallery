@@ -399,7 +399,7 @@ namespace NuGetGallery
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your account.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your account", message.Subject);
                 Assert.Contains("http://example.com/confirmation-token-url", message.Body);
             }
         }
@@ -423,7 +423,7 @@ namespace NuGetGallery
 
                 Assert.Equal(user.UnconfirmedEmailAddress, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your {(isOrganization ? "organization's" : "account's")} new email address.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Please verify your {(isOrganization ? "organization's" : "account's")} new email address", message.Subject);
                 Assert.Contains(tokenUrl, message.Body);
             }
         }
@@ -449,7 +449,7 @@ namespace NuGetGallery
 
                 Assert.Equal(oldEmail, message.To[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Recent changes to your {accountString}.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Recent changes to your {accountString}'s email", message.Subject);
                 Assert.Contains($"The email address associated with your {TestGalleryOwner.DisplayName} {accountString} was recently changed from _{oldEmail}_ to _{user.EmailAddress}_.", message.Body);
             }
         }
@@ -490,12 +490,12 @@ namespace NuGetGallery
                 }   
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(from.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{from.Username}' would like to add {yourString} as an owner of the package '{package.Id}'.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Package ownership request for '{package.Id}'", message.Subject);
                 Assert.Contains($"The user '{from.Username}' added the following message for you", message.Body);
                 Assert.Contains(userMessage, message.Body);
                 Assert.Contains(confirmationUrl, message.Body);
-                Assert.Contains(userMessage, message.Body);
-                Assert.Contains($"The user '{from.Username}' would like to add {yourString} as an owner of the package '{package.Id}'.", message.Body);
+                Assert.Contains(rejectionUrl, message.Body);
+                Assert.Contains($"The user '{from.Username}' would like to add {(to is Organization ? "your organization" : "you")} as an owner of the package ['{package.Id}']({packageUrl}).", message.Body);
             }
 
             [Theory]
@@ -542,6 +542,70 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendPackageOwnerRequestInitiatedNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void SendsNotice()
+            {
+                var requestingOwner = new User("Existing") { EmailAddress = "existing-owner@example.com" };
+                var receivingOwner = new User("Receiving")
+                {
+                    EmailAddress = "receiving-owner@example.com",
+                    EmailAllowed = true
+                };
+
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+                var cancelUrl = "http://example.com/cancellation-url";
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+                messageService.SendPackageOwnerRequestInitiatedNotice(requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(receivingOwner.EmailAddress, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
+                Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Package ownership request for '{package.Id}'", message.Subject);
+                Assert.Contains($"The user '{requestingOwner.Username}' has requested that user '{newOwner.Username}' be added as an owner of the package '{package.Id}'.", message.Body);
+                Assert.Contains($"[{cancelUrl}]({cancelUrl})", message.Body);
+            }
+
+            [Fact]
+            public void DoesNotSendNoticeIfUserDoesNotAllowEmails()
+            {
+                var requestingOwner = new User("Existing") { EmailAddress = "existing-owner@example.com" };
+                var receivingOwner = new User("Receiving")
+                {
+                    EmailAddress = "receiving-owner@example.com",
+                    EmailAllowed = false
+                };
+
+                var newOwner = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
+                var package = new PackageRegistration { Id = "CoolStuff" };
+                var cancelUrl = "http://example.com/cancellation-url";
+
+                var request = new PackageOwnerRequest
+                {
+                    PackageRegistration = package,
+                    RequestingOwner = requestingOwner,
+                    NewOwner = newOwner
+                };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+                messageService.SendPackageOwnerRequestInitiatedNotice(requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TheSendPackageOwnerRequestRejectionNoticeMethod
             : TestContainer
         {
@@ -580,8 +644,8 @@ namespace NuGetGallery
                 }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(newOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{newOwner.Username}' has rejected {yourString} request to add them as an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains($"The user '{newOwner.Username}' has rejected {yourString} request to add them as an owner of the package '{package.Id}'.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Package ownership request for '{package.Id}' declined", message.Subject);
+                Assert.Contains($"The user '{newOwner.Username}' has declined {(requestingOwner is Organization ? "your organization's" : "your")} request to add them as an owner of the package '{package.Id}'.", message.Body);
             }
 
             [Theory]
@@ -641,8 +705,8 @@ namespace NuGetGallery
                 }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(requestingOwner.EmailAddress, message.ReplyToList.Single().Address);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{requestingOwner.Username}' has cancelled their request for {yourString} to be added as an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains($"The user '{requestingOwner.Username}' has cancelled their request for {yourString} to be added as an owner of the package '{package.Id}'.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Package ownership request for '{package.Id}' cancelled", message.Subject);
+                Assert.Contains($"The user '{requestingOwner.Username}' has cancelled their request for {(newOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{package.Id}'.", message.Body);
             }
 
             [Theory]
@@ -688,9 +752,11 @@ namespace NuGetGallery
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 var messageService = TestableMessageService.Create(GetConfigurationService());
+                var packageUrl = "packageUrl";
+                var policyMessage = "policyMessage";
 
                 // Act
-                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
+                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, packageUrl, policyMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -703,9 +769,9 @@ namespace NuGetGallery
                     Assert.Equal(toUser.EmailAddress, message.To[0].Address);
                 }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, "noreply@example.com");
-                Assert.Contains($"The user '{newUser.Username}' is now an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains($"This is to inform you that '{newUser.Username}' is now an owner of the package", message.Body);
-                Assert.Contains("policyMessage", message.Body);
+                Assert.Contains($"Package ownership update for '{package.Id}'", message.Subject);
+                Assert.Contains($"User '{newUser.Username}' is now an owner of the package ['{package.Id}']({packageUrl}).", message.Body);
+                Assert.Contains(policyMessage, message.Body);
             }
 
             [Theory]
@@ -759,9 +825,8 @@ namespace NuGetGallery
                 }
                 Assert.Equal(TestGalleryNoReplyAddress.Address, message.From.Address);
                 Assert.Equal(from.EmailAddress, message.ReplyToList.Single().Address);
-                var yourString = isOrganization ? "your organization" : "you";
-                Assert.Contains($"The user '{from.Username}' removed {yourString} as an owner of the package '{package.Id}'.", message.Subject);
-                Assert.Contains($"The user '{from.Username}' removed {yourString} as an owner of the package '{package.Id}'", message.Body);
+                Assert.Contains($"Package ownership removal for '{package.Id}'", message.Subject);
+                Assert.Contains($"The user '{from.Username}' removed {(isOrganization ? "your organization" : "you")} as an owner of the package '{package.Id}'.", message.Body);
             }
 
             [Theory]
