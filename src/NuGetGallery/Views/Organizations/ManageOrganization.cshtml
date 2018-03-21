@@ -44,7 +44,6 @@
             Members = Model.Members.Select(m => new
             {
                 Username = m.Username,
-                EmailAddress = m.EmailAddress,
                 IsAdmin = m.IsAdmin,
                 IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
                 GravatarUrl = m.GravatarUrl
