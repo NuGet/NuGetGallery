@@ -734,10 +734,15 @@ The {0} Team";
             string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account ['{accountToTransform.Username}']({profileUrl}) into an organization.
+
 To proceed with the transformation and become an administrator of '{accountToTransform.Username}':
+
 [{confirmationUrl}]({confirmationUrl})
+
 To cancel the transformation:
+
 [{rejectionUrl}]({rejectionUrl})
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -763,9 +768,13 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Organization transformation for account '{accountToTransform.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"We have received a request to transform account '{accountToTransform.Username}' into an organization with user '{adminUser.Username}' as its admin.
+
 To cancel the transformation:
+
 [{cancellationUrl}]({cancellationUrl})
+
 If you did not request this change, please contact support by responding to this email.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -791,6 +800,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Account '{accountToTransform.Username}' has been transformed into an organization";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"Account '{accountToTransform.Username}' has been transformed into an organization with user '{adminUser.Username}' as its administrator. If you did not request this change, please contact support by responding to this email.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -829,6 +839,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Transformation of account '{accountToTransform.Username}' has been cancelled";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"Transformation of account '{accountToTransform.Username}' has been cancelled by user '{accountToReplyTo.Username}'.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -857,11 +868,17 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
+
 To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
+
 To accept the request and become {membershipLevel} of '{organization.Username}':
+
 [{confirmationUrl}]({confirmationUrl})
+
 To decline the request:
+
 [{rejectionUrl}]({rejectionUrl})
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -890,6 +907,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -915,6 +933,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -940,6 +959,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' cancelled";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The request for you to become a member of '{organization.Username}' has been cancelled.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -968,6 +988,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -993,6 +1014,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.
+
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
