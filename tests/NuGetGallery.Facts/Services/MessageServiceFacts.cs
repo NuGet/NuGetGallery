@@ -1559,10 +1559,9 @@ namespace NuGetGallery
                 Assert.Equal(organization.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(adminUser.EmailAddress, message.ReplyToList[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                var membershipLevel = isAdmin ? "an admin" : "a collaborator";
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.", message.Subject);
-                Assert.Contains($"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.", message.Body);
-                Assert.Contains($"[{profileUrl}]({profileUrl})", message.Body);
+                var membershipLevel = isAdmin ? "an administrator" : "a collaborator";
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'", message.Subject);
+                Assert.Contains($"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).", message.Body);
                 Assert.Contains($"[{confirmationUrl}]({confirmationUrl})", message.Body);
                 Assert.Contains($"[{rejectionUrl}]({rejectionUrl})", message.Body);
             }
@@ -1590,6 +1589,56 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendOrganizationMembershipRequestInitiatedNoticeMethod
+            : TestContainer
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillSendEmailIfEmailAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var cancelUrl = "www.cancel.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestInitiatedNotice(organization, requestingUser, pendingUser, isAdmin, cancelUrl);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                Assert.Equal(requestingUser.EmailAddress, message.ReplyToList[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'", message.Subject);
+                Assert.Contains($"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {(isAdmin ? "an administrator" : "a collaborator")} of organization '{organization.Username}'.", message.Body);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void WillNotSendEmailIfEmailNotAllowed(bool isAdmin)
+            {
+                // Arrange
+                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
+                var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
+                var cancelUrl = "www.cancel.com";
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendOrganizationMembershipRequestInitiatedNotice(organization, requestingUser, pendingUser, isAdmin, cancelUrl);
+
+                // Assert
+                Assert.Empty(messageService.MockMailSender.Sent);
+            }
+        }
+
         public class TheSendOrganizationMembershipRequestRejectedNoticeMethod
             : TestContainer
         {
@@ -1611,8 +1660,8 @@ namespace NuGetGallery
                 Assert.Equal(organization.EmailAddress, message.To[0].Address);
                 Assert.Equal(pendingUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.", message.Subject);
-                Assert.Contains($"The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.", message.Body);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined", message.Subject);
+                Assert.Contains($"The user '{pendingUser.Username}' has declined your request to become a member of your organization.", message.Body);
             }
 
             [Fact]
@@ -1653,7 +1702,7 @@ namespace NuGetGallery
                 Assert.Equal(pendingUser.EmailAddress, message.To[0].Address);
                 Assert.Equal(organization.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The request for you to become a member of '{organization.Username}' has been cancelled.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' cancelled", message.Subject);
                 Assert.Contains($"The request for you to become a member of '{organization.Username}' has been cancelled.", message.Body);
             }
 
@@ -1698,8 +1747,8 @@ namespace NuGetGallery
                 Assert.Equal(organization.EmailAddress, message.To[0].Address);
                 Assert.Equal(member.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                var membershipLevel = isAdmin ? "an admin" : "a collaborator";
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.", message.Subject);
+                var membershipLevel = isAdmin ? "an administrator" : "a collaborator";
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'", message.Subject);
                 Assert.Contains($"The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.", message.Body);
             }
 
@@ -1744,7 +1793,7 @@ namespace NuGetGallery
                 Assert.Equal(organization.EmailAddress, message.To[0].Address);
                 Assert.Equal(removedUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Equal($"[{TestGalleryOwner.DisplayName}] The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.", message.Subject);
+                Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'", message.Subject);
                 Assert.Contains($"The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.", message.Body);
             }
 

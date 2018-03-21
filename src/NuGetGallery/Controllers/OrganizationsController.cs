@@ -106,11 +106,15 @@ namespace NuGetGallery
             try
             {
                 var request = await UserService.AddMembershipRequestAsync(account, memberName, isAdmin);
+                var currentUser = GetCurrentUser();
 
                 var profileUrl = Url.User(account, relativeUrl: false);
                 var confirmUrl = Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false);
                 var rejectUrl = Url.RejectOrganizationMembershipRequest(request, relativeUrl: false);
-                MessageService.SendOrganizationMembershipRequest(account, request.NewMember, GetCurrentUser(), request.IsAdmin, profileUrl, confirmUrl, rejectUrl);
+                var cancelUrl = Url.CancelOrganizationMembershipRequest(memberName, relativeUrl: false);
+
+                MessageService.SendOrganizationMembershipRequest(account, request.NewMember, currentUser, request.IsAdmin, profileUrl, confirmUrl, rejectUrl);
+                MessageService.SendOrganizationMembershipRequestInitiatedNotice(account, currentUser, request.NewMember, request.IsAdmin, cancelUrl);
 
                 return Json(new OrganizationMemberViewModel(request));
             }

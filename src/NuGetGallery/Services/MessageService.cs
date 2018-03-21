@@ -911,6 +911,10 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'.
+<<<<<<< HEAD
+=======
+
+>>>>>>> fix unit tests, add initiated email
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 

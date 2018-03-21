@@ -485,6 +485,13 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<string>()));
+                GetMock<IMessageService>()
+                    .Verify(s => s.SendOrganizationMembershipRequestInitiatedNotice(
+                        account,
+                        controller.GetCurrentUser(),
+                        It.Is<User>(u => u.Username == defaultMemberName),
+                        isAdmin,
+                        It.IsAny<string>()));
             }
 
             private Task<JsonResult> InvokeAddMember(

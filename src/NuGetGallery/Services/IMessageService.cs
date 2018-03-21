@@ -35,6 +35,7 @@ namespace NuGetGallery
         void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser);
         void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser);
         void SendOrganizationMembershipRequest(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl);
+        void SendOrganizationMembershipRequestInitiatedNotice(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl);
         void SendOrganizationMembershipRequestRejectedNotice(Organization organization, User pendingUser);
         void SendOrganizationMembershipRequestCancelledNotice(Organization organization, User pendingUser);
         void SendOrganizationMemberUpdatedNotice(Organization organization, Membership membership);
