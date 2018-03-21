@@ -66,16 +66,15 @@
                                 <span data-bind="text: SelectedRole()"></span>
                             }
                         </td>
-                        @if (Model.CanManage)
-                        {
-                            <td class="text-center align-middle heading-right member-controls col-xs-1">
-                                <span>
-                                    <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
-                                        <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                    </a>
-                                </span>
-                            </td>
-                        }
+                        <!-- ko if: IsCurrentUser || @(Model.CanManage ? "true" : "false") -->
+                        <td class="text-center align-middle heading-right member-controls col-xs-1">
+                            <span>
+                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                    <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                        </td>
+                        <!-- /ko -->
                     </tr>
                 </tbody>
             </table>
