@@ -724,7 +724,6 @@ The {0} Team";
             }
         }
 
-<<<<<<< HEAD
         public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
         {
             if (!adminUser.EmailAllowed)
@@ -845,10 +844,8 @@ The {Config.GalleryOwner.DisplayName} Team");
             }
         }
 
-=======
->>>>>>> wrapped long lines
         public void SendOrganizationMembershipRequest(
-            Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
+    Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
         {
             if (!newUser.EmailAllowed)
             {
@@ -859,30 +856,12 @@ The {Config.GalleryOwner.DisplayName} Team");
 
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
 To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
 To accept the request and become {membershipLevel} of '{organization.Username}':
 [{confirmationUrl}]({confirmationUrl})
 To decline the request:
-=======
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, '{organization.Username}'.
-=======
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
->>>>>>> string changes
-
-To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
-
-To accept the request and become {membershipLevel} of '{organization.Username}':
-
-[{confirmationUrl}]({confirmationUrl})
-
-To decline the request:
-
->>>>>>> small fixes
 [{rejectionUrl}]({rejectionUrl})
-
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -911,10 +890,6 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'.
-<<<<<<< HEAD
-=======
-
->>>>>>> fix unit tests, add initiated email
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -939,16 +914,7 @@ The {Config.GalleryOwner.DisplayName} Team");
 
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined";
 
-<<<<<<< HEAD
-<<<<<<< HEAD
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
-=======
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has rejected your request for them to become a member of your organization.
-=======
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
->>>>>>> string changes
-
->>>>>>> small fixes
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -974,7 +940,6 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' cancelled";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The request for you to become a member of '{organization.Username}' has been cancelled.
-
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -1003,7 +968,6 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.
-
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
@@ -1029,7 +993,6 @@ The {Config.GalleryOwner.DisplayName} Team");
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
 
             string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.
-
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
 
