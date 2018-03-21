@@ -85,6 +85,8 @@ namespace NuGetGallery
 
         public bool IsDeleted { get; set; }
 
+        public bool EnableMultiFactorAuthentication { get; set; }
+
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
         [DefaultValue(true)]

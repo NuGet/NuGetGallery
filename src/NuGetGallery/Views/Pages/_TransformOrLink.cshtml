@@ -1,8 +1,11 @@
 ﻿@model GalleryHomeViewModel
+@{ 
+    var title = Model.TransformIntoOrganization ? "Transform to an organization" : "Sign-in with Microsoft corporate account";
+}
 
 <div class="modal-dialog modal-box">
     <div class="modal-title">
-        <span class="title-text">Sign-in with Microsoft corporate account</span>
+        <span class="title-text">@title</span>
         <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
         </button>
@@ -16,7 +19,7 @@
         </div>
         @if (Model.TransformIntoOrganization)
         {
-            <p class="transform-text">We have determined this is a team (DL) based account, so you must transform it to an organization on NuGet.org:</p>
+            <p class="transform-text">Since this is a team (DL-based) account, you must transform it to an organization on NuGet.org:</p>
             <div class="action-node">
                 <a role="button"
                     class="btn btn-default btn-block action-button"
@@ -27,7 +30,7 @@
         }
         else
         {
-            <p class="transform-text">We have determined this is an account owned by an individual, so you must link it to a Microsoft account:</p>
+            <p class="transform-text">Since this is an account using a Microsoft email address, you must link it to your Microsoft Azure AD account:</p>
             <div class="action-node">
                 <a role="button" 
                    class="btn btn-default btn-block action-button" 
