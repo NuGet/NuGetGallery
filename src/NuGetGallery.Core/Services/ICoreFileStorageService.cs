@@ -34,6 +34,22 @@ namespace NuGetGallery
         /// <returns>Time limited URI (if requested and implementation supports it) for the specified file.</returns>
         Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess);
 
+        /// <summary>
+        /// Generates a storage file URI giving certain permissions for the specific file. For example, this method can
+        /// be used to generate a URI that allows the caller to either delete (via
+        /// <see cref="FileUriPermissions.Delete"/>) or read (via <see cref="FileUriPermissions.Read"/>) the file.
+        /// </summary>
+        /// <param name="folderName">The folder name containing the file.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="permissions">The permissions to give to the privileged URI.</param>
+        /// <param name="endOfAccess">The time when the access ends.</param>
+        /// <returns>The URI with privileged access.</returns>
+        Task<Uri> GetPriviledgedFileUriAsync(
+            string folderName,
+            string fileName,
+            FileUriPermissions permissions,
+            DateTimeOffset endOfAccess);
+
         Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true);
 
         /// <summary>

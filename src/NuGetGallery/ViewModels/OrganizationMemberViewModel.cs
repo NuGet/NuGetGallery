@@ -13,16 +13,35 @@ namespace NuGetGallery
             var member = membership?.Member ?? throw new ArgumentNullException(nameof(membership));
 
             Username = member.Username;
-            EmailAddress = member.EmailAddress;
             IsAdmin = membership.IsAdmin;
-            GravatarUrl = GravatarHelper.Url(EmailAddress, Constants.GravatarElementSize);
+            Pending = false;
+            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
+        }
+
+        public OrganizationMemberViewModel(MembershipRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var member = request.NewMember;
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(request.NewMember));
+            }
+
+            Username = member.Username;
+            IsAdmin = request.IsAdmin;
+            Pending = true;
+            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
         }
 
         public string Username { get; }
 
-        public string EmailAddress { get; }
-
         public bool IsAdmin { get; }
+
+        public bool Pending { get; }
 
         public string GravatarUrl { get; }
     }

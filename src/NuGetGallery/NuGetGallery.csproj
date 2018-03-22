@@ -827,6 +827,10 @@
     <Compile Include="Migrations\201801101337052_RemovePackageEdits.Designer.cs">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.cs" />
+    <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.Designer.cs">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1067,6 +1071,7 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
+    <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -1963,6 +1968,9 @@
     <EmbeddedResource Include="Migrations\201801101337052_RemovePackageEdits.resx">
       <DependentUpon>201801101337052_RemovePackageEdits.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.resx">
+      <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -2050,6 +2058,7 @@
     <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
     <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
+    <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
