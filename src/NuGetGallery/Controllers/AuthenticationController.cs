@@ -761,6 +761,11 @@ namespace NuGetGallery
 
         private bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
         {
+            if (result?.Authenticator == null || result.Authentication == null)
+            {
+                return false;
+            }
+
             // Enforce multi factor authentication if 
             // 1. The authenticator supports multi-factor authentication, otherwise no use.
             // 2. The user has enabled multi-factor authentication for their account.
@@ -770,8 +775,8 @@ namespace NuGetGallery
                 && result.Authentication.User.EnableMultiFactorAuthentication
                 && !result.LoginDetails.WasMultiFactorAuthenticated
                 && result.Authentication.CredentialUsed.IsExternal()
-                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type)
-                    || string.Equals(result.Authentication.CredentialUsed.TenantId, Constants.MicrosoftAADTenantId, StringComparison.OrdinalIgnoreCase));
+                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
+//                    || string.Equals(result.Authentication.CredentialUsed.TenantId, Constants.MicrosoftAADTenantId, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
