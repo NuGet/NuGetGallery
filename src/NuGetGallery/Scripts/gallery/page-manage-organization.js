@@ -146,7 +146,7 @@
                 } else {
                     return "A collaborator can manage the organization's packages but cannot manage the organization's memberships.";
                 }
-            })
+            });
 
             this.AdminCount = ko.observable();
             this.CollaboratorCount = ko.observable();
@@ -231,6 +231,14 @@
         // Set up the data binding.
         var manageOrganizationViewModel = new ManageOrganizationViewModel(initialData);
         ko.applyBindings(manageOrganizationViewModel, document.body);
+
+        // Set up the Add Member textbox to submit upon pressing enter.
+        var newMemberTextbox = $("#new-member-textbox");
+        newMemberTextbox.keydown(function (event) {
+            if (event.which == 13 && newMemberTextbox.val()) {
+                manageOrganizationViewModel.AddMember();
+            }
+        });
     });
 
 })();
