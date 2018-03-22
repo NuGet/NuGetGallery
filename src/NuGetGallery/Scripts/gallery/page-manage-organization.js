@@ -39,7 +39,6 @@
             this.OrganizationViewModel = parent;
 
             this.Username = member.Username;
-            this.EmailAddress = member.EmailAddress;
             this.IsAdmin = ko.observable(member.IsAdmin);
             this.SelectedRole = ko.pureComputed({
                 read: function () {

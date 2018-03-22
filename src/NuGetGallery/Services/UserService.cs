@@ -453,5 +453,52 @@ namespace NuGetGallery
         {
             return user.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
         }
+
+        public async Task<bool> RejectTransformUserToOrganizationRequest(User accountToTransform, User adminUser, string token)
+        {
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+
+            if (transformRequest == null)
+            {
+                return false;
+            }
+
+            if (transformRequest.AdminUser == null || !transformRequest.AdminUser.MatchesUser(adminUser))
+            {
+                return false;
+            }
+
+            if (transformRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
+            accountToTransform.OrganizationMigrationRequest = null;
+
+            await UserRepository.CommitChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> CancelTransformUserToOrganizationRequest(User accountToTransform, string token)
+        {
+            var transformRequest = accountToTransform.OrganizationMigrationRequest;
+
+            if (transformRequest == null)
+            {
+                return false;
+            }
+
+            if (transformRequest.ConfirmationToken != token)
+            {
+                return false;
+            }
+
+            accountToTransform.OrganizationMigrationRequest = null;
+
+            await UserRepository.CommitChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -10,7 +10,7 @@ namespace NuGetGallery
         public const string AddOrganization = "AddOrganization";
         public const string ChangeOrganizationEmailSubscription = "ChangeOrganizationEmailSubscription";
         public const string TransformToOrganization = "TransformToOrganization";
-        public const string TransformToOrganizationConfirmation = "ConfirmTransformToOrganization";
+        public const string TransformToOrganizationConfirmation = "ConfirmTransform";
         public const string ApiKeys = "ApiKeys";
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
