@@ -1044,6 +1044,9 @@ img.reserved-indicator-icon {
 .manage-members-listing {
   margin-bottom: 0;
 }
+.manage-members-listing .members-list {
+  margin-top: 15px;
+}
 .manage-members-listing .heading-left {
   padding-left: 5px;
 }
@@ -1055,6 +1058,13 @@ img.reserved-indicator-icon {
 }
 .manage-members-listing .row-center {
   vertical-align: middle;
+}
+.manage-members-listing .icon-right {
+  padding-right: 20px;
+}
+.manage-members-listing .role-description {
+  margin-top: 15px;
+  margin-bottom: 35px;
 }
 .page-manage-owners h2 .ms-Icon {
   position: relative;

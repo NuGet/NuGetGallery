@@ -9,13 +9,13 @@
         <div data-bind="text: MembersLabel"></div>
     </text>,
     @<text>
-        <div data-bind="template: 'error-container'"></div>
         <div class="row members-list">
             <div data-bind="template: { name: 'manage-members' }"></div>
         </div>
     </text>, expanded: false)
 
 <script type="text/html" id="error-container">
+    <p class="role-description" data-bind="text: NewMemberRoleDescription, visible: !Error()"></p>
     <!-- ko if: Error -->
     @ViewHelpers.AlertDanger(@<text><span data-bind="html: Error"></span></text>)
     <!-- /ko -->
@@ -37,8 +37,8 @@
                     <div class="text-center align-middle col-xs-1">
                         <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember, enable: NewMemberUsername">Add</button>
                     </div>
-                </div><br />
-                <p class="icon-left" data-bind="text: NewMemberRoleDescription"></p>
+                </div>
+                <div class="icon-left icon-right" data-bind="template: 'error-container'"></div>
             }
             <table class="table">
                 <tbody data-bind="foreach: Members">
@@ -68,7 +68,7 @@
                             }
                         </td>
                         <!-- ko if: IsCurrentUser || @(Model.CanManage ? "true" : "false") -->
-                        <td class="text-center align-middle heading-right member-controls col-xs-1">
+                        <td class="text-center align-middle heading-right row-center col-xs-1">
                             <span>
                                 <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
