@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -268,10 +269,12 @@ namespace NuGetGallery
         protected override void UpdateAccountViewModel(Organization account, OrganizationAccountViewModel model)
         {
             base.UpdateAccountViewModel(account, model);
-
+            
             model.Members =
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
+
+            model.RequiresTenant = account.SecurityPolicies.Any(sp => sp.Name == nameof(RequireOrganizationTenantPolicy));
         }
     }
 }
