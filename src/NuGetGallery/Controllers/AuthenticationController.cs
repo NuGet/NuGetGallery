@@ -776,7 +776,6 @@ namespace NuGetGallery
                 && !result.LoginDetails.WasMultiFactorAuthenticated
                 && result.Authentication.CredentialUsed.IsExternal()
                 && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
-//                    || string.Equals(result.Authentication.CredentialUsed.TenantId, Constants.MicrosoftAADTenantId, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
