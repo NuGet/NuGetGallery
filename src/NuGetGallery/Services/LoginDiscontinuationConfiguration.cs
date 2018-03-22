@@ -39,7 +39,7 @@ namespace NuGetGallery
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses);
-            EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants);
+            EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -94,7 +94,7 @@ namespace NuGetGallery
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }
 
-    public class OrganizationTenantPair : IEqualityComparer<OrganizationTenantPair>
+    public class OrganizationTenantPair
     {
         public string EmailDomain { get; }
         public string TenantId { get; }
@@ -105,7 +105,10 @@ namespace NuGetGallery
             EmailDomain = emailDomain;
             TenantId = tenantId;
         }
+    }
 
+    public class OrganizationTenantPairComparer : IEqualityComparer<OrganizationTenantPair>
+    {
         public bool Equals(OrganizationTenantPair x, OrganizationTenantPair y)
         {
             if (x == null || y == null)
@@ -120,7 +123,7 @@ namespace NuGetGallery
 
         public int GetHashCode(OrganizationTenantPair obj)
         {
-            return EmailDomain.GetHashCode() ^ TenantId.GetHashCode();
+            return obj.EmailDomain.GetHashCode() ^ obj.TenantId.GetHashCode();
         }
     }
 }
