@@ -105,15 +105,22 @@
                             <img class="package-icon img-responsive" aria-hidden="true"
                                  data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
                         </td>
-                        <td class="align-middle package-id">
+                        <td class="align-middle package-id text-nowrap">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
                                 <span data-bind="text: Id"></span>
                             </a>
                         </td>
                         <td class="align-middle">
                             <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <!-- ko if: $index() < 2 -->
                                 <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
                                 <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                                <!-- /ko -->
+                                <!-- ko if: $index() === 2 -->
+                                <span class="ms-noWrap">
+                                    ...
+                                </span>
+                                <!-- /ko -->
                             </span>
                         </td>
                         <td class="align-middle text-nowrap">
@@ -286,10 +293,10 @@
 
         return new
         {
-            p.Id,
+            Id = p.Id.Abbreviate(40),
             Owners = GetSerializableOwners(p.Owners),
             p.TotalDownloadCount,
-            LatestVersion = p.FullVersion.Abbreviate(25),
+            LatestVersion = p.FullVersion.Abbreviate(15),
             PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
             PackageUrl = packageUrlTemplate.Resolve(p),
             EditUrl = editUrlTemplate.Resolve(p),
