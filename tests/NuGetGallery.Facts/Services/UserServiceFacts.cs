@@ -1156,48 +1156,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WhenAccountIsNotInWhitelist_ReturnsFalse()
-            {
-                // Arrange
-                var service = new TestableUserService();
-                var fakes = new Fakes();
-                var user = fakes.User;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(false);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
-                // Act
-                string errorReason;
-                var result = service.CanTransformUserToOrganization(user, out errorReason);
-
-                // Assert
-                Assert.False(result);
-                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, user.Username));
-            }
-
-            [Fact]
             public void WhenAccountIsInWhitelist_ReturnsTrue()
             {
                 // Arrange
                 var service = new TestableUserService();
                 var fakes = new Fakes();
                 var user = fakes.User;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
@@ -1218,15 +1182,6 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
                 // Act
                 string errorReason;
                 var result = service.CanTransformUserToOrganization(user, user, out errorReason);
@@ -1246,15 +1201,6 @@ namespace NuGetGallery
                 var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
                 // Act
                 string errorReason;
                 var result = service.CanTransformUserToOrganization(user, unconfirmedUser, out errorReason);
@@ -1273,15 +1219,6 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
                 var organization = fakes.Organization;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
@@ -1450,18 +1387,6 @@ namespace NuGetGallery
             private TestableUserService _service = new TestableUserService();
 
             [Fact]
-            public async Task WithUserNotSupportedForOrganizations_ThrowsEntityException()
-            {
-                SetupOrganizationsSupportedForUser(supported: false);
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
-                Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_NotInDomainWhitelist, AdminName), exception.Message);
-
-                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
-                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
-            }
-
-            [Fact]
             public async Task WithUsernameConflict_ThrowsEntityException()
             {
                 var conflictUsername = "ialreadyexist";
@@ -1469,8 +1394,6 @@ namespace NuGetGallery
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(new[] { new User(conflictUsername) }.MockDbSet().Object);
-
-                SetupOrganizationsSupportedForUser();
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgName: conflictUsername));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.UsernameNotAvailable, conflictUsername), exception.Message);
@@ -1489,8 +1412,6 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(new[] { new User("user") { EmailAddress = conflictEmail } }.MockDbSet().Object);
 
-                SetupOrganizationsSupportedForUser();
-
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgEmail: conflictEmail));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.EmailAddressBeingUsed, conflictEmail), exception.Message);
 
@@ -1507,7 +1428,6 @@ namespace NuGetGallery
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 var adminUsername = "adminWithNoTenant";
-                SetupOrganizationsSupportedForUser(adminUsername);
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: new User(adminUsername)));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUsername), exception.Message);
 
@@ -1526,7 +1446,6 @@ namespace NuGetGallery
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(false));
-                SetupOrganizationsSupportedForUser();
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
                 Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
@@ -1546,7 +1465,6 @@ namespace NuGetGallery
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(true));
-                SetupOrganizationsSupportedForUser();
 
                 var org = await InvokeAddOrganization();
 
@@ -1588,18 +1506,6 @@ namespace NuGetGallery
 
                 // Act
                 return _service.AddOrganizationAsync(orgName, orgEmail, admin);
-            }
-
-            private void SetupOrganizationsSupportedForUser(string adminUsername = null, bool supported = true)
-            {
-                adminUsername = adminUsername ?? AdminName;
-
-                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
-                mockLoginDiscontinuationConfiguration
-                    .Setup(x => x.AreOrganizationsSupportedForUser(It.Is<User>(u => u.Username == adminUsername)))
-                    .Returns(supported);
-
-                _service.MockConfigObjectService.Setup(x => x.LoginDiscontinuationConfiguration).Returns(mockLoginDiscontinuationConfiguration.Object);
             }
         }
         public class TheRejectTransformUserToOrganizationRequestMethod
