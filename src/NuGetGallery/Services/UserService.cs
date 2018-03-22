@@ -442,11 +442,6 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
-            {
-                errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, accountToTransform.Username);
-            }
 
             return errorReason == null;
         }
@@ -498,12 +493,6 @@ namespace NuGetGallery
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
         {
-            if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
-            {
-                throw new EntityException(String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
-            }
-            
             var existingUserWithIdentity = EntitiesContext.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
             if (existingUserWithIdentity != null)
