@@ -947,21 +947,6 @@ namespace NuGetGallery
               => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
 
             [MemberData(nameof(TestData_RoleVariants))]
-            [Theory]
-            public virtual void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
-            {
-                var context = GetMixedVersioningPackagesContext(currentUser, packageOwner);
-
-                var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
-
-                var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
-                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
-
-                var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
-                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
-            }
-
-            [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
               => base.ReturnsFirstIfMultiplePackagesSetToLatest(currentUser, packageOwner);
 
