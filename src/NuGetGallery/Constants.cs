@@ -58,6 +58,7 @@ namespace NuGetGallery
 
         public const string UrlValidationRegEx = @"(https?):\/\/[^ ""]+$";
         public const string UrlValidationErrorMessage = "This doesn't appear to be a valid HTTP/HTTPS URL";
+        public const string MicrosoftAADTenantId = "72f988bf-86f1-41af-91ab-2d7cd011db47";
 
         // Note: regexes must be tested to work in JavaScript
         // We do NOT follow strictly the RFCs at this time, and we choose not to support many obscure email address variants.

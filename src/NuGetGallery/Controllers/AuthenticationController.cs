@@ -769,7 +769,9 @@ namespace NuGetGallery
             return result.Authenticator.SupportsMultiFactorAuthentication()
                 && result.Authentication.User.EnableMultiFactorAuthentication
                 && !result.LoginDetails.WasMultiFactorAuthenticated
-                && CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type);
+                && result.Authentication.CredentialUsed.IsExternal()
+                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type)
+                    || string.Equals(result.Authentication.CredentialUsed.TenantId, Constants.MicrosoftAADTenantId, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
