@@ -154,6 +154,7 @@
     <Compile Include="Packaging\NupkgRewriterFacts.cs" />
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
+    <Compile Include="Services\FileUriPermissionsFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />
     <Compile Include="TestUtils\BlobStorageFixture.cs" />

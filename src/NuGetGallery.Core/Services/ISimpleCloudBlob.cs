@@ -31,16 +31,17 @@ namespace NuGetGallery
         Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition);
 
         /// <summary>
-        /// Generates the shared read signature that if appended to the blob URI
-        /// would allow reading the contents of the blob using the produced URI 
-        /// only (without storage account credentials).
+        /// Generates the shared access signature that if appended to the blob URI
+        /// would allow actions matching the provided <paramref name="permissions"/> without having access to the
+        /// access keys of the storage account.
         /// </summary>
+        /// <param name="permissions">The permissions to include in the SAS token.</param>
         /// <param name="endOfAccess">
         /// "End of access" timestamp. After the specified timestamp, 
         /// the returned signature becomes invalid if implementation supports it.
         /// Null for no time limit.
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
-        string GetSharedReadSignature(DateTimeOffset? endOfAccess);
+        string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess);
     }
 }
