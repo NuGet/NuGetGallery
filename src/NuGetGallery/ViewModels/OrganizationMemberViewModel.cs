@@ -14,12 +14,34 @@ namespace NuGetGallery
 
             Username = member.Username;
             IsAdmin = membership.IsAdmin;
+            Pending = false;
+            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
+        }
+
+        public OrganizationMemberViewModel(MembershipRequest request)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var member = request.NewMember;
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(request.NewMember));
+            }
+
+            Username = member.Username;
+            IsAdmin = request.IsAdmin;
+            Pending = true;
             GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
         }
 
         public string Username { get; }
 
         public bool IsAdmin { get; }
+
+        public bool Pending { get; }
 
         public string GravatarUrl { get; }
     }

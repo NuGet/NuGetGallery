@@ -6,6 +6,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGetGallery.Diagnostics;
@@ -50,6 +51,40 @@ namespace NuGetGallery
 
             _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>());
             _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>());
+        }
+
+        [BlobStorageFact]
+        public async Task CanReadAndDeleteBlobUsingPrivilegedFileUri()
+        {
+            // Arrange
+            var folderName = CoreConstants.ValidationFolderName;
+            var fileName = _prefixA;
+            var expectedContent = "Hello, world.";
+
+            await _targetA.SaveFileAsync(
+                folderName,
+                fileName,
+                new MemoryStream(Encoding.ASCII.GetBytes(expectedContent)),
+                overwrite: false);
+
+            var deleteUri = await _targetA.GetPriviledgedFileUriAsync(
+                folderName,
+                fileName,
+                FileUriPermissions.Read | FileUriPermissions.Delete,
+                DateTimeOffset.UtcNow.AddHours(1));
+
+            // Act
+            var sasToken = new StorageCredentials(deleteUri.Query);
+            var deleteUriBuilder = new UriBuilder(deleteUri) { Query = null };
+            var blob = new CloudBlockBlob(deleteUriBuilder.Uri, sasToken);
+
+            var actualContent = await blob.DownloadTextAsync();
+            await blob.DeleteAsync();
+
+            // Assert
+            Assert.Equal(expectedContent, actualContent);
+            var exists = await _targetA.FileExistsAsync(folderName, fileName);
+            Assert.False(exists, "The file should no longer exist.");
         }
 
         [BlobStorageFact]

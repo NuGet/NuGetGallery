@@ -331,11 +331,6 @@ The {0} Team";
 
         public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage)
         {
-            if (!toUser.EmailAllowed)
-            {
-                return;
-            }
-
             if (!string.IsNullOrEmpty(policyMessage))
             {
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
@@ -383,11 +378,6 @@ The {Config.GalleryOwner.DisplayName} Team";
 
         public void SendPackageOwnerRequestInitiatedNotice(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl)
         {
-            if (!receivingOwner.EmailAllowed)
-            {
-                return;
-            }
-
             var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}'");
 
             var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has requested that user '{newOwner.Username}' be added as an owner of the package '{package.Id}'.
@@ -447,11 +437,6 @@ The {Config.GalleryOwner.DisplayName} Team");
 
         public void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package)
         {
-            if (!newOwner.EmailAllowed)
-            {
-                return;
-            }
-            
             var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}' cancelled");
 
             var body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingOwner.Username}' has cancelled their request for {(newOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{package.Id}'.
@@ -477,11 +462,6 @@ The {Config.GalleryOwner.DisplayName} Team");
 
         public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage)
         {
-            if (!toUser.EmailAllowed)
-            {
-                return;
-            }
-
             if (!string.IsNullOrEmpty(policyMessage))
             {
                 policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
@@ -512,11 +492,6 @@ The {Config.GalleryOwner.DisplayName} Team";
 
         public void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package)
         {
-            if (!toUser.EmailAllowed)
-            {
-                return;
-            }
-
             var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership removal for '{package.Id}'";
 
             var body = $@"The user '{fromUser.Username}' removed {(toUser is Organization ? "your organization" : "you")} as an owner of the package '{package.Id}'.
@@ -542,33 +517,7 @@ The {Config.GalleryOwner.DisplayName} Team";
 
         private bool AddAddressesForPackageOwnershipManagementToEmail(MailMessage mailMessage, User user)
         {
-            if (user is Organization organization)
-            {
-                var membersAllowedToAct = organization.Members
-                    .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
-                    .Select(m => m.Member);
-
-                bool hasRecipients = false;
-
-                foreach (var member in membersAllowedToAct)
-                {
-                    if (!member.EmailAllowed)
-                    {
-                        continue;
-                    }
-
-                    mailMessage.To.Add(member.ToMailAddress());
-
-                    hasRecipients = true;
-                }
-
-                return hasRecipients;
-            }
-            else
-            {
-                mailMessage.To.Add(user.ToMailAddress());
-                return true;
-            }
+            return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.HandlePackageOwnershipRequest);
         }
 
         public void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel)
@@ -589,7 +538,6 @@ The {Config.GalleryOwner.DisplayName} Team";
                     Strings.Emails_CredentialRemoved_Body,
                     Strings.Emails_CredentialRemoved_Subject);
             }
-            
         }
 
         public void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel)
@@ -935,6 +883,183 @@ The {Config.GalleryOwner.DisplayName} Team");
             }
         }
 
+        public void SendOrganizationMembershipRequest(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
+        {
+            if (!newUser.EmailAllowed)
+            {
+                return;
+            }
+
+            var membershipLevel = isAdmin ? "an administrator" : "a collaborator";
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{adminUser.Username}' would like you to become {membershipLevel} of their organization, ['{organization.Username}']({profileUrl}).
+
+To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
+
+To accept the request and become {membershipLevel} of '{organization.Username}':
+
+[{confirmationUrl}]({confirmationUrl})
+
+To decline the request:
+
+[{rejectionUrl}]({rejectionUrl})
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(organization.ToMailAddress());
+                mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
+
+                mailMessage.To.Add(newUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationMembershipRequestInitiatedNotice(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl)
+        {
+            var membershipLevel = isAdmin ? "an administrator" : "a collaborator";
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(requestingUser.ToMailAddress());
+
+                if (!AddAddressesForAccountManagementToEmail(mailMessage, organization))
+                {
+                    return;
+                }
+
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationMembershipRequestRejectedNotice(Organization organization, User pendingUser)
+        {
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{pendingUser.Username}' has declined your request to become a member of your organization.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(pendingUser.ToMailAddress());
+
+                if (!AddAddressesForAccountManagementToEmail(mailMessage, organization))
+                {
+                    return;
+                }
+
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationMembershipRequestCancelledNotice(Organization organization, User pendingUser)
+        {
+            if (!pendingUser.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' cancelled";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The request for you to become a member of '{organization.Username}' has been cancelled.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(organization.ToMailAddress());
+
+                mailMessage.To.Add(pendingUser.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationMemberUpdatedNotice(Organization organization, Membership membership)
+        {
+            if (!organization.EmailAllowed)
+            {
+                return;
+            }
+
+            var membershipLevel = membership.IsAdmin ? "an administrator" : "a collaborator";
+            var member = membership.Member;
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{member.Username}' is now {membershipLevel} of organization '{organization.Username}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(member.ToMailAddress());
+
+                mailMessage.To.Add(organization.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        public void SendOrganizationMemberRemovedNotice(Organization organization, User removedUser)
+        {
+            if (!organization.EmailAllowed)
+            {
+                return;
+            }
+
+            string subject = $"[{Config.GalleryOwner.DisplayName}] Membership update for organization '{organization.Username}'";
+
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{removedUser.Username}' is no longer a member of organization '{organization.Username}'.
+
+Thanks,
+The {Config.GalleryOwner.DisplayName} Team");
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = Config.GalleryNoReplyAddress;
+                mailMessage.ReplyToList.Add(removedUser.ToMailAddress());
+
+                mailMessage.To.Add(organization.ToMailAddress());
+                SendMessage(mailMessage);
+            }
+        }
+
+        private bool AddAddressesForAccountManagementToEmail(MailMessage mailMessage, User user)
+        {
+            return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.ManageAccount);
+        }
+
         protected override void SendMessage(MailMessage mailMessage, bool copySender)
         {
             try
@@ -950,6 +1075,42 @@ The {Config.GalleryOwner.DisplayName} Team");
             {
                 // Log but swallow the exception
                 QuietLog.LogHandledException(ex);
+            }
+        }
+
+        private bool AddAddressesWithPermissionToEmail(MailMessage mailMessage, User user, ActionRequiringAccountPermissions action)
+        {
+            if (user is Organization organization)
+            {
+                var membersAllowedToAct = organization.Members
+                    .Where(m => action.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
+                    .Select(m => m.Member);
+
+                bool hasRecipients = false;
+
+                foreach (var member in membersAllowedToAct)
+                {
+                    if (!member.EmailAllowed)
+                    {
+                        continue;
+                    }
+
+                    mailMessage.To.Add(member.ToMailAddress());
+
+                    hasRecipients = true;
+                }
+
+                return hasRecipients;
+            }
+            else
+            {
+                if (!user.EmailAllowed)
+                {
+                    return false;
+                }
+
+                mailMessage.To.Add(user.ToMailAddress());
+                return true;
             }
         }
     }
