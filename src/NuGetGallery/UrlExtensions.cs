@@ -857,42 +857,6 @@ namespace NuGetGallery
                 });
         }
 
-        public static string AcceptOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
-        {
-            return url.HandleOrganizationMembershipRequest("ConfirmMemberRequest", request, relativeUrl);
-        }
-
-        public static string RejectOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
-        {
-            return url.HandleOrganizationMembershipRequest("RejectMemberRequest", request, relativeUrl);
-        }
-
-        private static string HandleOrganizationMembershipRequest(
-            this UrlHelper url, string routeName, MembershipRequest request, bool relativeUrl = true)
-        {
-            return GetActionLink(url,
-                routeName,
-                "Organizations",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "accountName", request.Organization.Username },
-                    { "confirmationToken", request.ConfirmationToken }
-                });
-        }
-
-        public static string CancelOrganizationMembershipRequest(this UrlHelper url, string accountName, bool relativeUrl = true)
-        {
-            return GetActionLink(url,
-                "CancelMemberRequest",
-                "Organizations",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "accountName", accountName }
-                });
-        }
-
         public static string UpdateOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
