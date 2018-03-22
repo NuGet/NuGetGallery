@@ -799,7 +799,19 @@ namespace NuGetGallery
                     { "accountName", accountName }
                 });
         }
-        
+
+        public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "AddMember",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string AcceptOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
         {
             return url.AcceptOrganizationMembershipRequest(request.Organization.Username, request.ConfirmationToken, relativeUrl);
@@ -837,18 +849,6 @@ namespace NuGetGallery
         {
             return GetActionLink(url,
                 "CancelMemberRequest",
-                "Organizations",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "accountName", accountName }
-                });
-        }
-
-        public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
-        {
-            return GetActionLink(url,
-                "AddMember",
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
