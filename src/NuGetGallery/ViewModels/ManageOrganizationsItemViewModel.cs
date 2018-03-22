@@ -7,7 +7,7 @@ namespace NuGetGallery
 {
     public class ManageOrganizationsItemViewModel
     {
-        public string Username { get; }
+        public string OrganizationName { get; }
         public string EmailAddress { get; }
         public bool CurrentUserIsAdmin { get; }
         public int MemberCount { get; }
@@ -18,7 +18,7 @@ namespace NuGetGallery
 
         public ManageOrganizationsItemViewModel(User user, bool isAdmin, IPackageService packageService)
         {
-            Username = user.Username;
+            OrganizationName = user.Username;
             EmailAddress = user.EmailAddress;
             CurrentUserIsAdmin = isAdmin;
             PackagesCount = packageService.FindPackageRegistrationsByOwner(user).Count();
@@ -28,7 +28,7 @@ namespace NuGetGallery
         public ManageOrganizationsItemViewModel(Organization organization, bool isAdmin, IPackageService packageService)
             : this(organization as User, isAdmin, packageService)
         {
-            Username = organization.Username;
+            OrganizationName = organization.Username;
             EmailAddress = organization.EmailAddress ?? organization.UnconfirmedEmailAddress;
             CurrentUserIsAdmin = isAdmin;
             MemberCount = organization.Members.Count();

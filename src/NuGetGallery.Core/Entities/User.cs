@@ -47,6 +47,7 @@ namespace NuGetGallery
             SecurityPolicies = new List<UserSecurityPolicy>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             Organizations = new List<Membership>();
+            OrganizationMigrationRequests = new List<OrganizationMigrationRequest>();
             OrganizationRequests = new List<MembershipRequest>();
             Roles = new List<Role>();
             Username = username;
