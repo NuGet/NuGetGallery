@@ -269,7 +269,7 @@ namespace NuGetGallery
         protected override void UpdateAccountViewModel(Organization account, OrganizationAccountViewModel model)
         {
             base.UpdateAccountViewModel(account, model);
-            
+
             model.Members =
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
