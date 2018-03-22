@@ -124,9 +124,9 @@ namespace NuGetGallery.Authentication.Providers
         }
 
         /// <summary>
-        /// Returns true if the provider supports multi-factor authentication
+        /// Check if the provider supports multi-factor authentication
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Returns true if the provider supports multi-factor authentication</returns>
         public virtual bool SupportsMultiFactorAuthentication()
         {
             return false;

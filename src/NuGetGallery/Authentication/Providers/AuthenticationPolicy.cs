@@ -13,7 +13,6 @@ namespace NuGetGallery.Authentication.Providers
         public bool EnforceMfa { get; set; }
 
         private static string ENFORCE_MFA_TOKEN = "enforce_mfa";
-
         private static string EMAIL_TOKEN = "email";
 
         public IDictionary<string, string> GetProperties()

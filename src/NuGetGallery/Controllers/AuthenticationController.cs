@@ -521,7 +521,7 @@ namespace NuGetGallery
 
                 if (ShouldEnforceMultiFactorAuthentication(result))
                 {
-                    // Invoke the authentication again enforcing multi-factor authentication for the provider.
+                    // Invoke the authentication again enforcing multi-factor authentication for the same provider.
                     return ChallengeAuthentication(
                         Url.LinkExternalAccount(returnUrl), 
                         result.Authenticator.Name, 
@@ -766,10 +766,10 @@ namespace NuGetGallery
                 return false;
             }
 
-            // Enforce multi factor authentication if 
+            // Enforce multi-factor authentication only if:
             // 1. The authenticator supports multi-factor authentication, otherwise no use.
             // 2. The user has enabled multi-factor authentication for their account.
-            // 3. The user authenticated with the personal microsoft account(for now). AAD 2FA policy is controlled by their admins.
+            // 3. The user authenticated with the personal microsoft account. AAD 2FA policy is controlled by the tenant admins.
             // 4. The user did not use the multi-factor authentication for the session, obviously.
             return result.Authenticator.SupportsMultiFactorAuthentication()
                 && result.Authentication.User.EnableMultiFactorAuthentication

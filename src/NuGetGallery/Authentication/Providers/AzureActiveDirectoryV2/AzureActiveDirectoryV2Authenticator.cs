@@ -188,6 +188,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
+            // AcrValues token control the multi-factor authentication, when supplied with any(which could be default or mfa), the user set policy for 2FA
+            // is enforced. When explicitly set to mfa, the authentication is enforced with multi-factor auth. The LoginHint token, is useful for redirecting
+            // an already logged in user directly to the multi-factor auth flow.
             if (AuthenticationPolicy.TryGetPolicyFromProperties(authenticationProperties.Dictionary, out AuthenticationPolicy policy))
             {
                 notification.ProtocolMessage.AcrValues = policy.EnforceMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
