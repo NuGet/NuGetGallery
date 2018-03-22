@@ -62,7 +62,7 @@ namespace NuGetGallery
             DateTimeProvider = dateTimeProvider;
         }
 
-        public async Task<Membership> AddMemberAsync(Organization organization, string memberName, bool isAdmin)
+        public async Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin)
         {
             organization = organization ?? throw new ArgumentNullException(nameof(organization));
 
@@ -71,6 +71,16 @@ namespace NuGetGallery
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_AlreadyAMember, memberName));
+            }
+
+            var request = FindMembershipRequestByUsername(organization, memberName);
+            if (request != null)
+            {
+                // If there is already an existing request, return it.
+                // If the existing request grants collaborator but we are trying to create a request that grants admin, update the request to grant admin.
+                request.IsAdmin = isAdmin || request.IsAdmin;
+                await EntitiesContext.SaveChangesAsync();
+                return request;
             }
 
             var member = FindByUsername(memberName);
@@ -94,12 +104,111 @@ namespace NuGetGallery
                 throw new EntityException(policyResult.ErrorMessage);
             }
 
-            membership = new Membership()
+            request = new MembershipRequest()
             {
-                Member = member,
-                IsAdmin = isAdmin
+                Organization = organization,
+                NewMember = member,
+                IsAdmin = isAdmin,
+                ConfirmationToken = Crypto.GenerateToken(),
+                RequestDate = DateTime.UtcNow,
             };
-            organization.Members.Add(membership);
+            organization.MemberRequests.Add(request);
+
+            await EntitiesContext.SaveChangesAsync();
+
+            return request;
+        }
+
+        public async Task RejectMembershipRequestAsync(Organization organization, string memberName, string confirmationToken)
+        {
+            try
+            {
+                await DeleteMembershipRequestHelperAsync(organization, memberName, confirmationToken);
+            }
+            catch (InvalidOperationException)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.RejectMembershipRequest_NotFound, memberName));
+            }
+        }
+
+        public async Task<User> CancelMembershipRequestAsync(Organization organization, string memberName)
+        {
+            try
+            {
+                return await DeleteMembershipRequestHelperAsync(organization, memberName);
+            }
+            catch (InvalidOperationException)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.CancelMembershipRequest_MissingRequest, memberName));
+            }
+        }
+
+        private async Task<User> DeleteMembershipRequestHelperAsync(Organization organization, string memberName, string confirmationToken = null)
+        {
+            organization = organization ?? throw new ArgumentNullException(nameof(organization));
+
+            var request = FindMembershipRequestByUsername(organization, memberName);
+            if (request == null || (confirmationToken != null && request.ConfirmationToken != confirmationToken))
+            {
+                throw new InvalidOperationException("No such membership request exists!");
+            }
+
+            var pendingMember = request.NewMember;
+
+            organization.MemberRequests.Remove(request);
+            await EntitiesContext.SaveChangesAsync();
+
+            return pendingMember;
+        }
+
+        public async Task<Membership> AddMemberAsync(Organization organization, string memberName, string confirmationToken)
+        {
+            organization = organization ?? throw new ArgumentNullException(nameof(organization));
+
+            var request = FindMembershipRequestByUsername(organization, memberName);
+            if (request == null || request.ConfirmationToken != confirmationToken)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_MissingRequest, memberName));
+            }
+
+            var member = request.NewMember;
+
+            organization.MemberRequests.Remove(request);
+
+            if (!member.Confirmed)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserNotConfirmed, memberName));
+            }
+
+            var membership = FindMembershipByUsername(organization, memberName);
+            if (membership == null)
+            {
+                // Ensure that the new member meets the AAD tenant policy for this organization.
+                var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
+                    SecurityPolicyAction.JoinOrganization, organization, member);
+                if (policyResult != SecurityPolicyResult.SuccessResult)
+                {
+                    throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddMember_PolicyFailure, policyResult.ErrorMessage));
+                }
+
+                membership = new Membership()
+                {
+                    Member = member,
+                    IsAdmin = request.IsAdmin
+                };
+                organization.Members.Add(membership);
+            }
+            else
+            {
+                // If the user is already a member, update the existing membership.
+                // If the request grants admin but this member is not an admin, grant admin to the member.
+                membership.IsAdmin = membership.IsAdmin || request.IsAdmin;
+            }
 
             await EntitiesContext.SaveChangesAsync();
 
@@ -132,7 +241,7 @@ namespace NuGetGallery
             return membership;
         }
 
-        public async Task DeleteMemberAsync(Organization organization, string memberName)
+        public async Task<User> DeleteMemberAsync(Organization organization, string memberName)
         {
             organization = organization ?? throw new ArgumentNullException(nameof(organization));
 
@@ -143,6 +252,8 @@ namespace NuGetGallery
                     Strings.UpdateOrDeleteMember_MemberNotFound, memberName));
             }
 
+            var memberToRemove = membership.Member;
+
             // block removal of last admin
             if (membership.IsAdmin && organization.Administrators.Count() == 1)
             {
@@ -151,12 +262,21 @@ namespace NuGetGallery
 
             organization.Members.Remove(membership);
             await EntitiesContext.SaveChangesAsync();
+
+            return memberToRemove;
         }
 
         private Membership FindMembershipByUsername(Organization organization, string memberName)
         {
             return organization.Members
                 .Where(m => m.Member.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase))
+                .SingleOrDefault();
+        }
+
+        private MembershipRequest FindMembershipRequestByUsername(Organization organization, string memberName)
+        {
+            return organization.MemberRequests
+                .Where(m => m.NewMember.Username.Equals(memberName, StringComparison.OrdinalIgnoreCase))
                 .SingleOrDefault();
         }
 
@@ -322,11 +442,6 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
-            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
-            {
-                errorReason = String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, accountToTransform.Username);
-            }
 
             return errorReason == null;
         }
@@ -378,12 +493,6 @@ namespace NuGetGallery
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
         {
-            if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
-            {
-                throw new EntityException(String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, adminUser.Username));
-            }
-            
             var existingUserWithIdentity = EntitiesContext.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
             if (existingUserWithIdentity != null)

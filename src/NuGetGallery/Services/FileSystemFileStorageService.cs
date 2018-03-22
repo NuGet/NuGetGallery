@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -234,6 +233,12 @@ namespace NuGetGallery
             // produces the
             // file:///c:/Afoo%20bar%2525.baz
             // which is not particularly correct, so we'd need to work around that to have a correct implementation
+            throw new NotImplementedException();
+        }
+
+        public Task<Uri> GetPriviledgedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
         }
 

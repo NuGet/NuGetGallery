@@ -136,11 +136,11 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheSupportedForUserMethods
+        public class TheWhitelistMethods
         {
             public static IEnumerable<object[]> PossibleListStates => PossibleListStates;
 
-            public void IsSupportedAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
             {
                 // Arrange
                 var user = new User("test") { EmailAddress = _email };
@@ -148,7 +148,7 @@ namespace NuGetGallery.Services
                 var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
 
                 // Act
-                var areOrganizationsSupported = config.AreOrganizationsSupportedForUser(user);
+                var areOrganizationsSupported = config.IsUserOnWhitelist(user);
                 var shouldTransform = config.ShouldUserTransformIntoOrganization(user);
 
                 // Assert
@@ -156,11 +156,11 @@ namespace NuGetGallery.Services
                 Assert.Equal(isOnTransformList, shouldTransform);
             }
 
-            public void IsUnsupportedWhenNull()
+            public void ReturnsFalseWhenNull()
             {
                 var config = new LoginDiscontinuationConfiguration();
 
-                var areOrganizationsSupported = config.AreOrganizationsSupportedForUser(null);
+                var areOrganizationsSupported = config.IsUserOnWhitelist(null);
                 var shouldTransform = config.ShouldUserTransformIntoOrganization(null);
 
                 Assert.False(areOrganizationsSupported);
