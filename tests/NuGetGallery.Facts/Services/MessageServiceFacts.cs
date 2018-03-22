@@ -467,7 +467,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void SendsPackageOwnerRequestConfirmationUrl(bool isOrganization)
             {
-                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var to = isOrganization ? GetOrganizationWithRecipients() : new User();
                 to.Username = "Noob";
                 to.EmailAddress = "new-owner@example.com";
                 to.EmailAllowed = true;
@@ -508,7 +508,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void SendsPackageOwnerRequestConfirmationUrlWithoutUserMessage(bool isOrganization)
             {
-                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var to = isOrganization ? GetOrganizationWithRecipients() : new User();
                 to.Username = "Noob";
                 to.EmailAddress = "new-owner@example.com";
                 to.EmailAllowed = true;
@@ -530,7 +530,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void DoesNotSendRequestIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var to = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                var to = isOrganization ? GetOrganizationWithoutRecipients() : new User();
                 to.Username = "Noob";
                 to.EmailAddress = "new-owner@example.com";
                 to.EmailAllowed = false;
@@ -619,7 +619,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void SendsNotice(bool isOrganization)
             {
-                var requestingOwner = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var requestingOwner = isOrganization ? GetOrganizationWithRecipients() : new User();
                 requestingOwner.Username = "Existing";
                 requestingOwner.EmailAddress = "existing-owner@example.com";
                 requestingOwner.EmailAllowed = true;
@@ -658,7 +658,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void DoesNotSendNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var requestingOwner = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                var requestingOwner = isOrganization ? GetOrganizationWithoutRecipients() : new User();
                 requestingOwner.Username = "Existing";
                 requestingOwner.EmailAddress = "existing-owner@example.com";
                 requestingOwner.EmailAllowed = false;
@@ -688,7 +688,7 @@ namespace NuGetGallery
             public void SendsNotice(bool isOrganization)
             {
                 var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
-                var newOwner = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var newOwner = isOrganization ? GetOrganizationWithRecipients() : new User();
                 newOwner.Username = "Noob";
                 newOwner.EmailAddress = "new-owner@example.com";
                 newOwner.EmailAllowed = true;
@@ -721,7 +721,7 @@ namespace NuGetGallery
             {
                 var requestingOwner = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
 
-                var newOwner = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                var newOwner = isOrganization ? GetOrganizationWithoutRecipients() : new User();
                 newOwner.Username = "Noob";
                 newOwner.EmailAddress = "new-owner@example.com";
                 newOwner.EmailAllowed = false;
@@ -750,7 +750,7 @@ namespace NuGetGallery
             public void SendsPackageOwnerAddedNotice(bool isOrganization)
             {
                 // Arrange
-                var toUser = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var toUser = isOrganization ? GetOrganizationWithRecipients() : new User();
                 toUser.Username = "Existing";
                 toUser.EmailAddress = "existing-owner@example.com";
                 toUser.EmailAllowed = true;
@@ -785,7 +785,7 @@ namespace NuGetGallery
             public void DoesNotSendPackageOwnerAddedNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
                 // Arrange
-                var toUser = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                var toUser = isOrganization ? GetOrganizationWithoutRecipients() : new User();
                 toUser.Username = "Existing";
                 toUser.EmailAddress = "existing-owner@example.com";
                 toUser.EmailAllowed = false;
@@ -809,7 +809,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void SendsPackageOwnerRemovedNotice(bool isOrganization)
             {
-                var to = isOrganization ? GetOrganizationForPackageOwnership() : new User();
+                var to = isOrganization ? GetOrganizationWithRecipients() : new User();
                 to.Username = "Noob";
                 to.EmailAddress = "old-owner@example.com";
                 to.EmailAllowed = true;
@@ -839,7 +839,7 @@ namespace NuGetGallery
             [InlineData(true)]
             public void DoesNotSendRemovedNoticeIfUserDoesNotAllowEmails(bool isOrganization)
             {
-                var to = isOrganization ? GetOrganizationForPackageOwnershipWithoutRecipients() : new User();
+                var to = isOrganization ? GetOrganizationWithoutRecipients() : new User();
                 to.Username = "Noob";
                 to.EmailAddress = "old-owner@example.com";
                 to.EmailAllowed = false;
@@ -853,69 +853,9 @@ namespace NuGetGallery
             }
         }
 
-        private static Organization GetOrganizationForPackageOwnership()
-        {
-            var org = GetOrganizationForPackageOwnershipWithoutRecipients();
-
-            var admin1 = new User("admin1") { EmailAddress = "admin1@org.com", EmailAllowed = true };
-            var admin2 = new User("admin2") { EmailAddress = "admin2@org.com", EmailAllowed = true };
-            
-            org.Members.Add(GetMembershipForPackageOwnership(org, admin1, true));
-            org.Members.Add(GetMembershipForPackageOwnership(org, admin2, true));
-
-            return org;
-        }
-
-        private static Organization GetOrganizationForPackageOwnershipWithoutRecipients()
-        {
-            var collaborator1 = new User("collaborator") { EmailAddress = "collab@org.com", EmailAllowed = true };
-            var collaborator2 = new User("collaboratorUnallowed") { EmailAddress = "collabUnallowed@org.com", EmailAllowed = false };
-            var admin3 = new User("adminUnallowed") { EmailAddress = "adminUnallowed@org.com", EmailAllowed = false };
-            var org = new Organization("org")
-            {
-                EmailAddress = "org@org.com",
-                Members = new List<Membership>()
-            };
-
-            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator1, false));
-            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator2, false));
-            org.Members.Add(GetMembershipForPackageOwnership(org, admin3, true));
-
-            return org;
-        }
-
-        private static void AddMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
-        {
-            var membership = GetMembershipForPackageOwnership(org, member, isAdmin);
-
-            org.Members.Add(membership);
-            member.Organizations = new[] { membership };
-        }
-
-        private static Membership GetMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
-        {
-            return new Membership
-            {
-                IsAdmin = isAdmin,
-                Member = member,
-                Organization = org
-            };
-        }
-
         private static void AssertMessageSentToPackageOwnershipManagersOfOrganizationOnly(MailMessage message, Organization organization)
         {
-            var membersAllowedToAct = organization.Members
-                .Where(m => ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
-                .Select(m => m.Member);
-
-            // Each member must appear in the To list at least once.
-            foreach (var member in membersAllowedToAct)
-            {
-                Assert.True(!member.EmailAllowed || message.To.Any(a => member.EmailAddress == a.Address));
-            }
-
-            // The size of the To list and admins should be the same.
-            Assert.Equal(membersAllowedToAct.Count(m => m.EmailAllowed), message.To.Count());
+            AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.HandlePackageOwnershipRequest);
         }
 
         public class TheSendResetPasswordInstructionsMethod
@@ -1882,7 +1822,7 @@ namespace NuGetGallery
             public void WillSendEmailIfEmailAllowed(bool isAdmin)
             {
                 // Arrange
-                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var organization = GetOrganizationWithRecipients();
                 var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
@@ -1895,7 +1835,8 @@ namespace NuGetGallery
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                AssertMessageSentToAccountManagersOfOrganizationOnly(message, organization);
+                
                 Assert.Equal(requestingUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'", message.Subject);
@@ -1908,7 +1849,7 @@ namespace NuGetGallery
             public void WillNotSendEmailIfEmailNotAllowed(bool isAdmin)
             {
                 // Arrange
-                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var organization = GetOrganizationWithoutRecipients();
                 var requestingUser = new User("optimusprime") { EmailAddress = "optimusprime@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
@@ -1930,7 +1871,7 @@ namespace NuGetGallery
             public void WillSendEmailIfEmailAllowed()
             {
                 // Arrange
-                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
+                var organization = GetOrganizationWithRecipients();
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -1941,7 +1882,8 @@ namespace NuGetGallery
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
 
-                Assert.Equal(organization.EmailAddress, message.To[0].Address);
+                AssertMessageSentToAccountManagersOfOrganizationOnly(message, organization);
+
                 Assert.Equal(pendingUser.EmailAddress, message.ReplyToList[0].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Equal($"[{TestGalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined", message.Subject);
@@ -1952,7 +1894,7 @@ namespace NuGetGallery
             public void WillNotSendEmailIfEmailNotAllowed()
             {
                 // Arrange
-                var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
+                var organization = GetOrganizationWithoutRecipients();
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
                 var messageService = TestableMessageService.Create(GetConfigurationService());
@@ -2096,6 +2038,77 @@ namespace NuGetGallery
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
+        }
+
+        private static void AssertMessageSentToAccountManagersOfOrganizationOnly(MailMessage message, Organization organization)
+        {
+            AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.ManageAccount);
+        }
+
+        private static Organization GetOrganizationWithRecipients()
+        {
+            var org = GetOrganizationWithoutRecipients();
+
+            var admin1 = new User("admin1") { Key = 1, EmailAddress = "admin1@org.com", EmailAllowed = true };
+            var admin2 = new User("admin2") { Key = 2, EmailAddress = "admin2@org.com", EmailAllowed = true };
+
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin1, true));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin2, true));
+
+            return org;
+        }
+
+        private static Organization GetOrganizationWithoutRecipients()
+        {
+            var collaborator1 = new User("collaborator") { Key = 3, EmailAddress = "collab@org.com", EmailAllowed = true };
+            var collaborator2 = new User("collaboratorUnallowed") { Key = 4, EmailAddress = "collabUnallowed@org.com", EmailAllowed = false };
+            var admin3 = new User("adminUnallowed") { Key = 5, EmailAddress = "adminUnallowed@org.com", EmailAllowed = false };
+            var org = new Organization("org")
+            {
+                Key = 6,
+                EmailAddress = "org@org.com",
+                Members = new List<Membership>()
+            };
+
+            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator1, false));
+            org.Members.Add(GetMembershipForPackageOwnership(org, collaborator2, false));
+            org.Members.Add(GetMembershipForPackageOwnership(org, admin3, true));
+
+            return org;
+        }
+
+        private static void AddMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
+        {
+            var membership = GetMembershipForPackageOwnership(org, member, isAdmin);
+
+            org.Members.Add(membership);
+            member.Organizations = new[] { membership };
+        }
+
+        private static Membership GetMembershipForPackageOwnership(Organization org, User member, bool isAdmin)
+        {
+            return new Membership
+            {
+                IsAdmin = isAdmin,
+                Member = member,
+                Organization = org
+            };
+        }
+
+        private static void AssertMessageSentToMembersOfOrganizationWithPermissionOnly(MailMessage message, Organization organization, ActionRequiringAccountPermissions action)
+        {
+            var membersAllowedToAct = organization.Members
+                .Where(m => action.CheckPermissions(m.Member, m.Organization) == PermissionsCheckResult.Allowed)
+                .Select(m => m.Member);
+
+            // Each member must appear in the To list at least once.
+            foreach (var member in membersAllowedToAct)
+            {
+                Assert.True(!member.EmailAllowed || message.To.Any(a => member.EmailAddress == a.Address));
+            }
+
+            // The size of the To list and admins should be the same.
+            Assert.Equal(membersAllowedToAct.Count(m => m.EmailAllowed), message.To.Count());
         }
 
         public class TestableMessageService 
