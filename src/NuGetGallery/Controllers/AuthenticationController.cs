@@ -432,11 +432,11 @@ namespace NuGetGallery
         }
 
         [NonAction]
-        public ActionResult ChallengeAuthentication(string returnUrl, string provider, bool enforceMfa = false)
+        public ActionResult ChallengeAuthentication(string returnUrl, string provider, AuthenticationPolicy policy = null)
         {
             try
             {
-                return _authService.Challenge(provider, returnUrl, enforceMfa);
+                return _authService.Challenge(provider, returnUrl, policy);
             }
             catch (InvalidOperationException)
             {
@@ -519,11 +519,13 @@ namespace NuGetGallery
                     return challenge;
                 }
 
-                // TODO: Change this to use the 2FA value for the set user.
-                if (result.Authentication.User.Confirmed && !result.MultiFactorAuthenticated)
+                if (ShouldEnforceMultiFactorAuthentication(result))
                 {
-                    // Require 2FA here. Perhaps invoke a challenge again?
-                    return ChallengeAuthentication(Url.LinkExternalAccount(returnUrl), result.Authenticator.Name, enforceMfa: true);
+                    // Invoke the authentication again enforcing multi-factor authentication for the provider.
+                    return ChallengeAuthentication(
+                        Url.LinkExternalAccount(returnUrl), 
+                        result.Authenticator.Name, 
+                        new AuthenticationPolicy() { Email = result.LoginDetails.UsedEmail, EnforceMfa = true });
                 }
 
                 // Create session
@@ -755,6 +757,19 @@ namespace NuGetGallery
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
             return View(viewName, existingModel);
+        }
+
+        private bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
+        {
+            // Enforce multi factor authentication if 
+            // 1. The authenticator supports multi-factor authentication, otherwise no use.
+            // 2. The user has enabled multi-factor authentication for their account.
+            // 3. The user authenticated with the personal microsoft account(for now). AAD 2FA policy is controlled by their admins.
+            // 4. The user did not use the multi-factor authentication for the session, obviously.
+            return result.Authenticator.SupportsMultiFactorAuthentication()
+                && result.Authentication.User.EnableMultiFactorAuthentication
+                && !result.LoginDetails.WasMultiFactorAuthenticated
+                && CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type);
         }
     }
 }

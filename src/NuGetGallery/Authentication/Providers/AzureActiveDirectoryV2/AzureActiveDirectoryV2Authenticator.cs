@@ -89,10 +89,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl, bool enforceMfa = false)
+        public override ActionResult Challenge(string redirectUrl, AuthenticationPolicy policy)
         {
-            var mfaTokenValue = enforceMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
-            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, mfaTokenValue);
+            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, policy?.GetProperties());
         }
 
         public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
@@ -159,6 +158,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId, multiFactorAuthenticated);
         }
 
+        public override bool SupportsMultiFactorAuthentication()
+        {
+            // AADv2 supports multi-factor authentication by the use of OpenIdConnect protocol with ACR_VALUES.
+            return true;
+        }
+
         // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user, 
         // this could result in an internal server error, catch this exception and continue to the controller where appropriate
         // error handling is done.
@@ -183,10 +188,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         {
             var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
-            if (authenticationProperties.Dictionary.TryGetValue(ChallengeResult.MFA_TOKEN_TYPE, out string acr_value))
+            if (AuthenticationPolicy.TryGetPolicyFromProperties(authenticationProperties.Dictionary, out AuthenticationPolicy policy))
             {
-                notification.ProtocolMessage.AcrValues = acr_value;
-                //Set the notification.ProtocolMessage.LoginHint to the preferred_username when trying to enforce MFA.
+                notification.ProtocolMessage.AcrValues = policy.EnforceMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
+                notification.ProtocolMessage.LoginHint = policy.Email;
+            }
+            else
+            {
+                notification.ProtocolMessage.AcrValues = ACR_VALUES.ANY;
             }
 
             return Task.FromResult(0);
@@ -195,7 +204,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         private AuthenticationProperties GetAuthenticationPropertiesFromProtocolMessage(OpenIdConnectMessage message, OpenIdConnectAuthenticationOptions options)
         {
             var authenticationPropertiesEncodedString = message.State.Split('=');
-             return options.StateDataFormat.Unprotect(authenticationPropertiesEncodedString[1]);
+            return options.StateDataFormat.Unprotect(authenticationPropertiesEncodedString[1]);
         }
     }
 }

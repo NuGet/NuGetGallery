@@ -90,7 +90,7 @@ namespace NuGetGallery.Authentication.Providers
             return null;
         }
 
-        public virtual ActionResult Challenge(string redirectUrl, bool enforceMfa = false)
+        public virtual ActionResult Challenge(string redirectUrl, AuthenticationPolicy policy)
         {
             return new HttpUnauthorizedResult();
         }
@@ -121,6 +121,15 @@ namespace NuGetGallery.Authentication.Providers
         public virtual IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
         {
             return null;
+        }
+
+        /// <summary>
+        /// Returns true if the provider supports multi-factor authentication
+        /// </summary>
+        /// <returns></returns>
+        public virtual bool SupportsMultiFactorAuthentication()
+        {
+            return false;
         }
     }
 }

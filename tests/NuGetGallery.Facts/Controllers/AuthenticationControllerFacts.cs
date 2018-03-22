@@ -601,8 +601,8 @@ namespace NuGetGallery.Controllers
                 if (shouldChallenge)
                 {
                     GetMock<AuthenticationService>()
-                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), false))
-                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), null))
+                        .Returns(new ChallengeResult(enforcedProvider, null, null))
                         .Verifiable();
                 }
                 else
@@ -904,8 +904,8 @@ namespace NuGetGallery.Controllers
                 if (shouldChallenge)
                 {
                     GetMock<AuthenticationService>()
-                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), false))
-                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), null))
+                        .Returns(new ChallengeResult(enforcedProvider, null, null))
                         .Verifiable();
                 }
                 else
@@ -1275,8 +1275,8 @@ namespace NuGetGallery.Controllers
                 if (shouldChallenge)
                 {
                     GetMock<AuthenticationService>()
-                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), false))
-                        .Returns(new ChallengeResult(enforcedProvider, null))
+                        .Setup(x => x.Challenge(enforcedProvider, It.IsAny<string>(), null))
+                        .Returns(new ChallengeResult(enforcedProvider, null, null))
                         .Verifiable();
                 }
                 else

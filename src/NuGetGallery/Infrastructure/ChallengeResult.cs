@@ -5,34 +5,27 @@ using System.Collections.Generic;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin.Security;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery
 {
     // Borrowed from ASP.Net template in VS 2013 :)
     public class ChallengeResult : HttpUnauthorizedResult
     {
-        public ChallengeResult(string provider, string redirectUri, string mfaTokenValue = null)
+        public ChallengeResult(string provider, string redirectUri, IDictionary<string, string> properties)
         {
             LoginProvider = provider;
             RedirectUri = redirectUri;
-            MfaTokenValue = mfaTokenValue;
+            Properties = properties;
         }
 
         public string LoginProvider { get; set; }
         public string RedirectUri { get; set; }
-        public string MfaTokenValue { get; set; }
-
-        public static string MFA_TOKEN_TYPE = "mfa_token";
+        public IDictionary<string, string> Properties { get; set; }
 
         public override void ExecuteResult(ControllerContext context)
         {
-            var dictionary = new Dictionary<string, string>();
-            if (!string.IsNullOrEmpty(MfaTokenValue))
-            {
-                dictionary.Add(MFA_TOKEN_TYPE, MfaTokenValue.ToString());
-            }
-
-            var properties = new AuthenticationProperties(dictionary) { RedirectUri = RedirectUri };
+            var properties = new AuthenticationProperties(Properties) { RedirectUri = RedirectUri };
             context.HttpContext.GetOwinContext().Authentication.Challenge(properties, LoginProvider);
         }
     }
