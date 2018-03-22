@@ -1330,12 +1330,12 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
             {
-                Assert.False(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant")));
+                Assert.True(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant") { Credentials = new Credential[0] }));
             }
 
             public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
             {
-                var mockLoginDiscontinuationConfiguration = new Mock<LoginDiscontinuationConfiguration>();
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
                     .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(false);
@@ -1349,7 +1349,7 @@ namespace NuGetGallery
 
             public async Task WhenAdminHasSupportedTenant_TransformsAccountWithPolicy()
             {
-                var mockLoginDiscontinuationConfiguration = new Mock<LoginDiscontinuationConfiguration>();
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
                     .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(true);
@@ -1366,6 +1366,15 @@ namespace NuGetGallery
             [InlineData(-1)]
             public async Task WhenSqlResultIsZeroOrLess_ReturnsFalse(int affectedRecords)
             {
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
                 Assert.False(await InvokeTransformUserToOrganization(affectedRecords));
             }
 
@@ -1374,6 +1383,15 @@ namespace NuGetGallery
             [InlineData(3)]
             public async Task WhenSqlResultIsPositive_ReturnsTrue(int affectedRecords)
             {
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
                 Assert.True(await InvokeTransformUserToOrganization(affectedRecords));
             }
 
@@ -1459,7 +1477,7 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
-                var org = await InvokeAddOrganization(admin: new User("adminWithNoTenant"));
+                var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = new Credential[0] });
 
                 AssertNewOrganizationReturned(org, subscribedToPolicy: false);
             }
@@ -1471,7 +1489,7 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
-                var mockLoginDiscontinuationConfiguration = new Mock<LoginDiscontinuationConfiguration>();
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
                     .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(false);
@@ -1492,7 +1510,7 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
-                var mockLoginDiscontinuationConfiguration = new Mock<LoginDiscontinuationConfiguration>();
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
                     .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(true);
@@ -1517,7 +1535,7 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
-                var mockLoginDiscontinuationConfiguration = new Mock<LoginDiscontinuationConfiguration>();
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
                     .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(true);
