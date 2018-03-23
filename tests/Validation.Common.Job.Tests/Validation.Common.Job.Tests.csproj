@@ -40,6 +40,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTelemetryServiceFacts.cs" />
+    <Compile Include="CsprojNuspecConsistencyFacts.cs" />
     <Compile Include="LoggerDiagnosticSourceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
