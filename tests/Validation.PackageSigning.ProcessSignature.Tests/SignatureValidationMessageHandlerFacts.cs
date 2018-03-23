@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -11,8 +12,6 @@ using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Packaging.Core;
-using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using Xunit;
 
@@ -25,9 +24,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public class HandleAsync
         {
             private readonly SignatureValidationMessage _message;
+            private readonly Uri _outputNupkgUri;
             private readonly ValidatorStatus _validation;
             private readonly Mock<IValidationIssue> _validationIssue;
-            private readonly SignatureValidatorResult _validatorResult;
+            private SignatureValidatorResult _validatorResult;
             private readonly Mock<IPackageDownloader> _packageDownloader;
             private readonly Mock<IValidatorStateService> _validatorStateService;
             private readonly Mock<ISignatureValidator> _signatureValidator;
@@ -41,6 +41,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     "4.3.0",
                     TestPackageUri,
                     new Guid("18e83aca-953a-4484-a698-a8fb8619e0bd"));
+                _outputNupkgUri = new Uri("https://example/processor/18e83aca-953a-4484-a698-a8fb8619e0bd/nuget.versioning.4.3.0.nupkg");
 
                 _validation = new ValidatorStatus
                 {
@@ -48,7 +49,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     State = ValidationStatus.Incomplete,
                 };
                 _validationIssue = new Mock<IValidationIssue>();
-                _validatorResult = new SignatureValidatorResult(ValidationStatus.Succeeded);
+                _validatorResult = new SignatureValidatorResult(ValidationStatus.Succeeded, nupkgUri: null);
 
                 _packageDownloader = new Mock<IPackageDownloader>();
                 _validatorStateService = new Mock<IValidatorStateService>();
@@ -65,11 +66,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackage>(),
+                        It.IsAny<Stream>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => _validatorResult)
-                    .Callback(() => _validation.State = ValidationStatus.Succeeded);
+                    .ReturnsAsync(() => _validatorResult);
 
                 _target = new SignatureValidationMessageHandler(
                     _packageDownloader.Object,
@@ -98,7 +98,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _signatureValidator.Verify(
                     x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackage>(),
+                        It.IsAny<Stream>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()),
                     Times.Never);
@@ -107,40 +107,48 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Times.Never);
             }
 
-            [Theory]
-            [InlineData(TestResources.UnsignedPackage, "TestUnsigned", "1.0.0")]
-            [InlineData(TestResources.SignedPackageLeaf1, "TestSigned.leaf-1", "1.0.0")]
-            [InlineData(TestResources.SignedPackageLeaf2, "TestSigned.leaf-2", "2.0.0")]
-            public async Task LoadsTheDownloadPackage(string resourceName, string id, string version)
+            [Fact]
+            public async Task SetsNupkgUrlIfValidationSucceeds()
             {
                 // Arrange
-                string validatedId = null;
-                string validatedVersion = null;
-                _packageDownloader
-                    .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(() => TestResources.GetResourceStream(resourceName));
-                _signatureValidator
-                    .Setup(x => x.ValidateAsync(
-                        It.IsAny<int>(),
-                        It.IsAny<ISignedPackage>(),
-                        It.IsAny<SignatureValidationMessage>(),
-                        It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(_validatorResult)
-                    .Callback<int, ISignedPackageReader, SignatureValidationMessage, CancellationToken>((_, v, __, ___) =>
-                    {
-                        _validation.State = ValidationStatus.Succeeded;
-                        var identity = ((IPackageCoreReader)v).GetIdentity();
-                        validatedId = identity.Id;
-                        validatedVersion = identity.Version.ToNormalizedString();
-                    });
+                _validatorResult = new SignatureValidatorResult(ValidationStatus.Succeeded, _outputNupkgUri);
 
                 // Act
                 var success = await _target.HandleAsync(_message);
 
                 // Assert
                 Assert.True(success, "The handler should have succeeded processing the message.");
-                Assert.Equal(id, validatedId);
-                Assert.Equal(version, validatedVersion);
+                Assert.Equal(_outputNupkgUri.AbsoluteUri, _validation.NupkgUrl);
+            }
+
+            [Fact]
+            public async Task VerifiesTheDownloadedStream()
+            {
+                // Arrange
+                var stream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+                _packageDownloader
+                    .Setup(x => x.DownloadAsync(_message.NupkgUri, It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => stream);
+
+                // Act
+                var success = await _target.HandleAsync(_message);
+
+                // Assert
+                Assert.True(success, "The handler should have succeeded processing the message.");
+                _signatureValidator.Verify(
+                    x => x.ValidateAsync(
+                        _validation.PackageKey,
+                        stream,
+                        _message,
+                        CancellationToken.None),
+                    Times.Once);
+                _signatureValidator.Verify(
+                    x => x.ValidateAsync(
+                        It.IsAny<int>(),
+                        It.IsAny<Stream>(),
+                        It.IsAny<SignatureValidationMessage>(),
+                        It.IsAny<CancellationToken>()),
+                    Times.Once);
             }
 
             [Theory]
@@ -149,7 +157,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             public async Task SavesStateWithIssuesWhenTerminal(ValidationStatus state)
             {
                 // Arrange & Act
-                bool success = await SetupUpSavesState(state, new[] { _validationIssue.Object });
+                bool success = await SetupState(state, new[] { _validationIssue.Object });
 
                 // Assert
                 Assert.True(success, "The handler should have succeeded processing the message.");
@@ -168,7 +176,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             public async Task SavesStateWithoutIssuesWhenNonTerminal(ValidationStatus state)
             {
                 // Arrange & Act
-                bool success = await SetupUpSavesState(state, new IValidationIssue[0]);
+                bool success = await SetupState(state, new IValidationIssue[0]);
 
                 // Assert
                 Assert.False(success, "The handler should have failed processing the message.");
@@ -179,7 +187,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Times.Never);
             }
 
-            private async Task<bool> SetupUpSavesState(ValidationStatus state, IReadOnlyList<IValidationIssue> issues)
+            private async Task<bool> SetupState(ValidationStatus state, IReadOnlyList<IValidationIssue> issues)
             {
                 // Arrange
                 _validationIssue
@@ -191,10 +199,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _signatureValidator
                     .Setup(x => x.ValidateAsync(
                         It.IsAny<int>(),
-                        It.IsAny<ISignedPackage>(),
+                        It.IsAny<Stream>(),
                         It.IsAny<SignatureValidationMessage>(),
                         It.IsAny<CancellationToken>()))
-                    .ReturnsAsync(new SignatureValidatorResult(state, issues));
+                    .ReturnsAsync(new SignatureValidatorResult(state, issues, nupkgUri: null));
 
                 // Act
                 var success = await _target.HandleAsync(_message);

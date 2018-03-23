@@ -31,6 +31,7 @@ namespace NuGet.Jobs.Validation
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
+        private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
         private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         /// <summary>
@@ -108,7 +109,7 @@ namespace NuGet.Jobs.Validation
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
-            services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
+            services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
 
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();

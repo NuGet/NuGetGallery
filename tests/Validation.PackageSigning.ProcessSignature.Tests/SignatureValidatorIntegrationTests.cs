@@ -18,6 +18,7 @@ using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -37,13 +38,16 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly ITestOutputHelper _output;
         private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
         private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
+        private readonly Mock<IProcessorPackageFileService> _packageFileService;
+        private readonly Uri _nupkgUri;
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
         private readonly List<string> _trustedThumbprints;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly RecordingLogger<SignatureValidator> _logger;
         private readonly int _packageKey;
-        private SignedPackageArchive _package;
+        private Stream _packageStream;
+        private byte[] _savedPackageBytes;
         private readonly SignatureValidationMessage _message;
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
@@ -58,6 +62,24 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _packageSigningStateService = new Mock<IPackageSigningStateService>();
 
             _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
+
+            _packageFileService = new Mock<IProcessorPackageFileService>();
+            _nupkgUri = new Uri("https://example-storage/TestProcessor/b777135f-1aac-4ec2-a3eb-1f64fe1880d5/nuget.versioning.4.3.0.nupkg");
+            _packageFileService
+                .Setup(x => x.GetReadAndDeleteUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()))
+                .ReturnsAsync(() => _nupkgUri);
+            _packageFileService
+                .Setup(x => x.SaveAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<Stream>()))
+                .Returns(Task.CompletedTask)
+                .Callback<string, string, Guid, Stream>((_, __, ___, s) =>
+                {
+                    using (var memoryStream = new MemoryStream())
+                    {
+                        s.Position = 0;
+                        s.CopyTo(memoryStream);
+                        _savedPackageBytes = memoryStream.ToArray();
+                    }
+                });
 
             _certificates = new Mock<IEntityRepository<Certificate>>();
             _trustedThumbprints = new List<string>();
@@ -88,14 +110,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _minimalPackageSignatureVerifier,
                 _fullPackageSignatureVerifier,
                 _signaturePartsExtractor.Object,
+                _packageFileService.Object,
                 _certificates.Object,
                 _logger);
-        }
-
-        public async Task<SignedPackageArchive> GetSignedPackage1Async()
-        {
-            AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
-            return await _fixture.GetSignedPackage1Async(_output);
         }
 
         public async Task<MemoryStream> GetSignedPackageStream1Async()
@@ -108,12 +125,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task AcceptsValidSignedPackage()
         {
             // Arrange
-            _package = await GetSignedPackage1Async();
+            _packageStream = await GetSignedPackageStream1Async();
 
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -127,12 +144,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             // Arrange
             AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
-            _package = TestResources.SignedPackageLeaf1Reader;
+            _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
 
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -172,14 +189,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
 
-                _package = new SignedPackageArchive(
-                    new MemoryStream(packageBytes),
-                    new MemoryStream());
+                _packageStream = new MemoryStream(packageBytes);
 
                 // Act
                 var result = await _target.ValidateAsync(
                     _packageKey,
-                    _package,
+                    _packageStream,
                     _message,
                     _token);
 
@@ -225,9 +240,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
 
-                _package = new SignedPackageArchive(
-                    new MemoryStream(packageBytes),
-                    new MemoryStream());
+                _packageStream = new MemoryStream(packageBytes);
 
                 SignatureValidatorResult result;
                 using (testServer.RegisterResponders(timestampService, addOcsp: false))
@@ -235,7 +248,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     // Act
                     result = await _target.ValidateAsync(
                        _packageKey,
-                       _package,
+                       _packageStream,
                        _message,
                        _token);
                 }
@@ -282,9 +295,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 AllowCertificateThumbprint(signingCertificate.ComputeSHA256Thumbprint());
 
-                _package = new SignedPackageArchive(
-                    new MemoryStream(packageBytes),
-                    new MemoryStream());
+                _packageStream = new MemoryStream(packageBytes);
 
                 SignatureValidatorResult result;
                 using (testServer.RegisterResponders(intermediateCa, addOcsp: false))
@@ -292,7 +303,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     // Act
                     result = await _target.ValidateAsync(
                        _packageKey,
-                       _package,
+                       _packageStream,
                        _message,
                        _token);
                 }
@@ -322,7 +333,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     writer.WriteLine("These contents were added after the package was signed.");
                 }
 
-                _package = new SignedPackageArchive(packageStream, packageStream);
+                _packageStream = packageStream;
             }
             catch
             {
@@ -333,7 +344,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -358,7 +369,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     entryStream.Write(extraBytes, 0, extraBytes.Length);
                 }
 
-                _package = new SignedPackageArchive(packageStream, packageStream);
+                _packageStream = packageStream;
             }
             catch
             {
@@ -369,7 +380,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -389,7 +400,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -420,7 +431,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -433,10 +444,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal("The package signature file does not contain exactly one primary signature.", typedIssue.ClientMessage);
         }
 
-        [Theory]
-        [InlineData(SignatureType.Author)]
-        [InlineData(SignatureType.Repository)]
-        public async Task RejectsAuthorAndRepositoryCounterSignatures(SignatureType counterSignatureType)
+        [Fact]
+        public async Task RejectsAuthorCounterSignatures()
         {
             // Arrange
             var packageStream = await GetSignedPackageStream1Async();
@@ -449,7 +458,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
 
                         var cmsSigner = new CmsSigner(counterCertificate);
-                        cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(counterSignatureType));
+                        cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(SignatureType.Author));
 
                         signedCms.SignerInfos[0].ComputeCounterSignature(cmsSigner);
                     }
@@ -458,14 +467,91 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
             var issue = Assert.Single(result.Issues);
-            Assert.Equal(ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported, issue.IssueCode);
+            Assert.Equal(ValidationIssueCode.AuthorCounterSignaturesNotSupported, issue.IssueCode);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatures()
+        {
+            // Arrange
+            var packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                await GetSignedPackageStream1Async(),
+                new RepositorySignPackageRequest(
+                    await _fixture.GetSigningCertificateAsync(),
+                    NuGetHashAlgorithmName.SHA256,
+                    NuGetHashAlgorithmName.SHA256,
+                    new Uri("https://example-source/v3/index.json"),
+                    new[] { "nuget", "microsoft" }),
+                await _fixture.GetTimestampServiceUrlAsync(),
+                _output);
+            var packageStream = new MemoryStream(packageBytes);
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+            Assert.Empty(result.Issues);
+            Assert.Equal(_nupkgUri, result.NupkgUri);
+            Assert.NotNull(_savedPackageBytes);
+            using (var savedPackageStream = new MemoryStream(_savedPackageBytes))
+            using (var packageReader = new SignedPackageArchive(savedPackageStream, Stream.Null))
+            {
+                Assert.Equal("TestSigned.leaf-1", packageReader.NuspecReader.GetId());
+                Assert.Equal("1.0.0", packageReader.NuspecReader.GetVersion().ToNormalizedString());
+                Assert.True(await packageReader.IsSignedAsync(CancellationToken.None), "The package should still be signed.");
+                var signature = await packageReader.GetPrimarySignatureAsync(CancellationToken.None);
+                Assert.Equal(SignatureType.Author, signature.Type);
+                Assert.Empty(signature.SignedCms.SignerInfos[0].CounterSignerInfos);
+            }
+        }
+
+        [Fact]
+        public async Task StripsRepositorySignatures()
+        {
+            // Arrange
+            var packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                new RepositorySignPackageRequest(
+                    await _fixture.GetSigningCertificateAsync(),
+                    NuGetHashAlgorithmName.SHA256,
+                    NuGetHashAlgorithmName.SHA256,
+                    new Uri("https://example-source/v3/index.json"),
+                    new[] { "nuget", "microsoft" }),
+                await _fixture.GetTimestampServiceUrlAsync(),
+                _output);
+            var packageStream = new MemoryStream(packageBytes);
+
+            // Act
+            var result = await _target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.Equal(_nupkgUri, result.NupkgUri);
+            Assert.NotNull(_savedPackageBytes);
+            using (var savedPackageStream = new MemoryStream(_savedPackageBytes))
+            using (var packageReader = new SignedPackageArchive(savedPackageStream, Stream.Null))
+            {
+                Assert.Equal("TestUnsigned", packageReader.NuspecReader.GetId());
+                Assert.Equal("1.0.0", packageReader.NuspecReader.GetVersion().ToNormalizedString());
+                Assert.False(await packageReader.IsSignedAsync(CancellationToken.None), "The package should no longer be signed.");
+            }
         }
 
         [Theory]
@@ -496,7 +582,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -546,7 +632,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -568,7 +654,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -592,7 +678,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -617,7 +703,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -631,12 +717,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsZip64Packages()
         {
             // Arrange
-            _package = TestResources.LoadPackage(TestResources.Zip64Package);
+            _packageStream = TestResources.GetResourceStream(TestResources.Zip64Package);
 
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _package,
+                _packageStream,
                 _message,
                 _token);
 
@@ -667,7 +753,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 packageStream.Position = 0;
 
-                _package = new SignedPackageArchive(packageStream, packageStream);
+                _packageStream = packageStream;
             }
             catch
             {
@@ -760,7 +846,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
         public void Dispose()
         {
-            _package?.Dispose();
+            _packageStream?.Dispose();
         }
 
         private class StreamDataSource : IStaticDataSource

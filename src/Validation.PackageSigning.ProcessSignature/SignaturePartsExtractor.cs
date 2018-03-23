@@ -30,16 +30,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ExtractAsync(int packageKey, ISignedPackageReader signedPackageReader, CancellationToken token)
+        public async Task ExtractAsync(int packageKey, PrimarySignature signature, CancellationToken token)
         {
-            if (!await signedPackageReader.IsSignedAsync(token))
-            {
-                throw new ArgumentException("The provided package reader must refer to a signed package.", nameof(signedPackageReader));
-            }
-
-            // Read the package signature.
-            var signature = await signedPackageReader.GetPrimarySignatureAsync(token);
-
             // Extract the certificates found in the package signatures.
             var extractedCertificates = ExtractCertificates(signature);
 

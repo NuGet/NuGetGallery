@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using NuGet.Packaging.Signing;
 
 namespace Validation.PackageSigning.ProcessSignature.Tests
@@ -13,6 +15,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
         public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
         public const string Zip64Package = ResourceNamespace + ".Zip64Package.1.0.0.nupkg";
+        public const string RepoSignedPackageLeaf1 = ResourceNamespace + ".TestRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string AuthorAndRepoSignedPackageLeaf1 = ResourceNamespace + ".TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the root CA certificate for the signing certificate of <see cref="SignedPackageLeaf1"/>.
@@ -33,9 +37,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         /// This is the SHA-256 thumbprint of the timestamp certificate in <see cref="SignedPackageLeaf1"/>.
         /// </summary>
         public const string Leaf1TimestampThumbprint = "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67";
-
-        public static SignedPackageArchive SignedPackageLeaf1Reader => LoadPackage(SignedPackageLeaf1);
-        public static SignedPackageArchive SignedPackageLeaf2Reader => LoadPackage(SignedPackageLeaf2);
 
         /// <summary>
         /// Buffer the resource stream into memory so the caller doesn't have to dispose.
@@ -70,6 +71,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             return new SignedPackageArchive(resourceStream, resourceStream);
+        }
+
+        public static async Task<PrimarySignature> LoadPrimarySignatureAsync(string resourceName)
+        {
+            using (var package = LoadPackage(resourceName))
+            {
+                return await package.GetPrimarySignatureAsync(CancellationToken.None);
+            }
         }
     }
 }

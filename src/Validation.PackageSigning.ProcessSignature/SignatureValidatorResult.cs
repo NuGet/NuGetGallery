@@ -10,25 +10,33 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 {
     public class SignatureValidatorResult
     {
-        public SignatureValidatorResult(ValidationStatus state) 
-            : this(state, new IValidationIssue[0])
+        public SignatureValidatorResult(ValidationStatus state, Uri nupkgUri) 
+            : this(state, new IValidationIssue[0], nupkgUri)
         {
         }
 
-        public SignatureValidatorResult(ValidationStatus state, IReadOnlyList<IValidationIssue> issues)
+        public SignatureValidatorResult(ValidationStatus state, IReadOnlyList<IValidationIssue> issues, Uri nupkgUri)
         {
-            State = state;
-            Issues = issues ?? throw new ArgumentNullException(nameof(issues));
-
             if (state != ValidationStatus.Failed
                 && state != ValidationStatus.Succeeded
                 && issues.Any())
             {
                 throw new ArgumentException("Issues are only allowed for terminal states.", nameof(issues));
             }
+
+            if (state != ValidationStatus.Succeeded
+                && nupkgUri != null)
+            {
+                throw new ArgumentException("A .nupkg URI is only allowed for a successful result.", nameof(nupkgUri));
+            }
+
+            State = state;
+            Issues = issues ?? throw new ArgumentNullException(nameof(issues));
+            NupkgUri = nupkgUri;
         }
 
         public ValidationStatus State { get; }
         public IReadOnlyList<IValidationIssue> Issues { get; }
+        public Uri NupkgUri { get; }
     }
 }
