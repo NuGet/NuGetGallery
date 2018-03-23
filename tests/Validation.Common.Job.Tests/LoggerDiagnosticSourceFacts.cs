@@ -234,7 +234,7 @@ namespace Validation.Common.Job.Tests
                 {
                     new KeyValuePair<string, string>("Age", "10"),
                     new KeyValuePair<string, string>("Cost", null),
-                    new KeyValuePair<string, string>("Created", "1/3/2017 8:30:00 AM -08:00"),
+                    new KeyValuePair<string, string>("Created", _payload["Created"].ToString()),
                 }, properties.OrderBy(x => x.Key).ToList());
             }
         }
