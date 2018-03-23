@@ -102,8 +102,8 @@ namespace NuGetGallery
         [JsonConstructor]
         public OrganizationTenantPair(string emailDomain, string tenantId)
         {
-            EmailDomain = emailDomain;
-            TenantId = tenantId;
+            EmailDomain = emailDomain ?? throw new ArgumentNullException(nameof(emailDomain));
+            TenantId = tenantId ?? throw new ArgumentNullException(nameof(tenantId));
         }
     }
 
