@@ -142,6 +142,13 @@
             this.ProfileUrlTemplate = initialData.ProfileUrlTemplate;
 
             this.NewMemberUsername = ko.observable();
+            this.NewMemberRoleDescription = ko.pureComputed(function () {
+                if (self.AddMemberIsAdmin()) {
+                    return "An administrator can manage the organization's memberships and its packages.";
+                } else {
+                    return "A collaborator can manage the organization's packages but cannot manage the organization's memberships.";
+                }
+            });
 
             this.AdminCount = ko.observable();
             this.CollaboratorCount = ko.observable();
@@ -184,6 +191,9 @@
             this.RoleNames = ko.observableArray(["Administrator", "Collaborator"]);
 
             this.AddMemberRole = ko.observable(this.RoleNames()[1]);
+            this.AddMemberIsAdmin = ko.pureComputed(function () {
+                return self.AddMemberRole() == self.RoleNames()[0];
+            });
             this.AddMember = function () {
                 // Check if the member already exists.
                 var memberExists = false;
@@ -203,7 +213,7 @@
                 var data = {
                     accountName: self.AccountName,
                     memberName: self.NewMemberUsername(),
-                    isAdmin: self.AddMemberRole() == self.RoleNames()[0]
+                    isAdmin: self.AddMemberIsAdmin()
                 };
                 addAntiForgeryToken(data);
 
@@ -237,6 +247,14 @@
         // Set up the data binding.
         var manageOrganizationViewModel = new ManageOrganizationViewModel(initialData);
         ko.applyBindings(manageOrganizationViewModel, document.body);
+
+        // Set up the Add Member textbox to submit upon pressing enter.
+        var newMemberTextbox = $("#new-member-textbox");
+        newMemberTextbox.keydown(function (event) {
+            if (event.which == 13 && newMemberTextbox.val()) {
+                manageOrganizationViewModel.AddMember();
+            }
+        });
     });
 
 })();
