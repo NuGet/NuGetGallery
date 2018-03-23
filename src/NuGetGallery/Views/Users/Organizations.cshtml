@@ -48,7 +48,7 @@
                                     <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)" >
                                         @organization.OrganizationName
                                     </a>
-                                    @if (organization.Pending)
+                                    @if (organization.IsPendingRequest)
                                     {
                                         <span>(pending approval)</span>
                                     }
@@ -63,16 +63,16 @@
                                     @organization.PackagesCount
                                 </td>
                                 <td class="text-right align-middle package-controls">
-                                    @if (!organization.Pending && !organization.Transform)
+                                    @if (!organization.IsPendingRequest && !organization.IsPendingTransformRequest)
                                     {
                                         <a class="btn" href="@Url.ManageMyOrganization(organization.OrganizationName)" title="Edit Organization" aria-label="@("Edit Organization " + organization.OrganizationName)">
                                             <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
                                         </a>
                                     }
-                                    else if (organization.Pending)
+                                    else if (organization.IsPendingRequest)
                                     {
-                                        var accept = organization.Transform ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
-                                        var reject = organization.Transform ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+                                        var accept = organization.IsPendingTransformRequest ? Url.ConfirmTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.AcceptOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
+                                        var reject = organization.IsPendingTransformRequest ? Url.RejectTransformAccount(organization.OrganizationName, organization.ConfirmationToken) : Url.RejectOrganizationMembershipRequest(organization.OrganizationName, organization.ConfirmationToken);
 
                                         <a class="btn" href="@accept" title="Accept Organization Membership Request" aria-label="@("Accept Organization Membership Request for " + organization.OrganizationName)">
                                             <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>

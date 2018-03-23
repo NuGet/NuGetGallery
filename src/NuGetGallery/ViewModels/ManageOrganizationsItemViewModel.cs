@@ -12,8 +12,8 @@ namespace NuGetGallery
         public bool CurrentUserIsAdmin { get; }
         public int MemberCount { get; }
         public int PackagesCount { get; }
-        public bool Pending { get; }
-        public bool Transform { get; }
+        public bool IsPendingRequest { get; }
+        public bool IsPendingTransformRequest { get; }
         public string ConfirmationToken { get; }
 
         public ManageOrganizationsItemViewModel(User user, bool isAdmin, IPackageService packageService)
@@ -42,15 +42,15 @@ namespace NuGetGallery
         public ManageOrganizationsItemViewModel(MembershipRequest request, IPackageService packageService)
             : this(request.Organization, request.IsAdmin, packageService)
         {
-            Pending = true;
+            IsPendingRequest = true;
             ConfirmationToken = request.ConfirmationToken;
         }
 
         public ManageOrganizationsItemViewModel(OrganizationMigrationRequest request, IPackageService packageService)
             : this(request.NewOrganization, true, packageService)
         {
-            Pending = true;
-            Transform = true;
+            IsPendingRequest = true;
+            IsPendingTransformRequest = true;
             ConfirmationToken = request.ConfirmationToken;
         }
     }
