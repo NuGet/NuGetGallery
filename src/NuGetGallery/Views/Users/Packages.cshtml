@@ -11,7 +11,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
 
             <div class="clearfix">
-                <h1 class="pull-left">Manage Packages</h1>
+                <h1 class="pull-left"><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> > Manage Packages</h1>
                 <div class="text-center ms-font-xxl">
                     <span class="form-section-data">
                         <select id="ownerFilter" class="form-control pull-right hidden" aria-label="Filter on package owner"
