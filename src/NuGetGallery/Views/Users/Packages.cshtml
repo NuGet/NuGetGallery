@@ -114,12 +114,10 @@
                             <span class="ms-noWrap" data-bind="foreach: Owners">
                                 <!-- ko if: $index() < 2 -->
                                 <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
-                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: TrimmedUsername"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
                                 <!-- /ko -->
                                 <!-- ko if: $index() === 2 -->
-                                <span class="ms-noWrap">
-                                    ...
-                                </span>
+                                <span class="ms-noWrap" data-bind="text: '+' + ($index() - 1)"></span>
                                 <!-- /ko -->
                             </span>
                         </td>
@@ -377,6 +375,7 @@
         return new
         {
             user.Username,
+            TrimmedUsername = user.Username.Abbreviate(15),
             ProfileUrl = userUrlTemplate.Resolve(user),
             IsOrganization = user is Organization
         };
