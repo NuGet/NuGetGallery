@@ -25,7 +25,16 @@ namespace NuGetGallery
             "Users/ConfirmTransform",
             "Users/Delete",
             "Users/Profiles",
-            "Users/ResetPassword"};
+            "Users/ResetPassword",
+            "Users/ConfirmTransform",
+            "Users/RejectTransform",
+            "Organizations/AddMember",
+            "Organizations/ConfirmMemberRequest",
+            "Organizations/RejectMemberRequest",
+            "Organizations/CancelMemberRequest",
+            "Organizations/UpdateMember",
+            "Organizations/DeleteMember",
+        };
 
         internal static string DefaultObfuscatedUrl(Uri url)
         {
