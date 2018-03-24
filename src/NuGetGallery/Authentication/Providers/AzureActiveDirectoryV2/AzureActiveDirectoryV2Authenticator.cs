@@ -176,6 +176,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 // with the redirect uri where we intend to return after successful authentication.
                 // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
                 var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
+
                 notification.HandleResponse();
                 notification.Response.Redirect(authenticationProperties.RedirectUri);
             }
