@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -37,7 +38,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
-        private static readonly string ACCESS_DENIED = "access_denied";
+        private static HashSet<string> ERROR_MESSAGE_LIST = new HashSet<string> { "access_denied", "consent_required" };
 
         public static class ACR_VALUES
         {
@@ -169,13 +170,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
-            if (notification.Exception.Message == ACCESS_DENIED)
+            if (ERROR_MESSAGE_LIST.Contains(notification.Exception.Message))
             {
                 // For every 'Challenge' sent to the external providers, we store the 'State'
                 // with the redirect uri where we intend to return after successful authentication.
                 // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
                 var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
-
                 notification.HandleResponse();
                 notification.Response.Redirect(authenticationProperties.RedirectUri);
             }
