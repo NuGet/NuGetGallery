@@ -244,6 +244,7 @@
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
+    <Compile Include="Services\FileUriPermissions.cs" />
     <Compile Include="Services\IAccessCondition.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />

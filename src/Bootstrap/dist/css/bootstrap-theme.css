@@ -1041,19 +1041,32 @@ img.reserved-indicator-icon {
 .manage-members-listing tbody:first-child {
   border-style: hidden;
 }
-.manage-members-listing {
+.members-list {
+  margin-top: 15px;
+}
+.members-list .manage-members-listing {
   margin-bottom: 0;
 }
-.manage-members-listing .heading-left {
+.members-list .manage-members-listing .heading-left {
   padding-left: 5px;
 }
-.manage-members-listing .heading-right {
+.members-list .manage-members-listing .heading-right {
   padding-right: 5px;
 }
-.manage-members-listing .icon-left {
+.members-list .manage-members-listing .icon-left {
   padding-left: 25px;
 }
-.manage-members-listing .member-icon {
+.members-list .manage-members-listing .icon-right {
+  padding-right: 20px;
+}
+.members-list .manage-members-listing .role-description {
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+.members-list .manage-members-listing .alert {
+  margin-bottom: 5px;
+}
+.members-list .manage-members-listing .row-center {
   vertical-align: middle;
 }
 .page-manage-owners h2 .ms-Icon {

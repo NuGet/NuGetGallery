@@ -512,14 +512,22 @@ namespace NuGetGallery
             }
         }
 
-        public class TheGetFileReadUriAsyncMethod
+        public class TheGetPriviledgedFileUriAsyncMethod
         {
+            private const string folderName = "theFolderName";
+            private const string fileName = "theFileName";
+            private const string signature = "?secret=42";
+
             [Fact]
             public async Task WillThrowIfFolderIsNull()
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(null, "theFileName", DateTimeOffset.UtcNow.AddHours(3)));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                    null,
+                    fileName,
+                    FileUriPermissions.Read,
+                    DateTimeOffset.UtcNow.AddHours(3)));
                 Assert.Equal("folderName", ex.ParamName);
             }
 
@@ -528,7 +536,11 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync("theFolder", null, DateTimeOffset.UtcNow.AddHours(3)));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetPriviledgedFileUriAsync(
+                    folderName,
+                    null,
+                    FileUriPermissions.Read,
+                    DateTimeOffset.UtcNow.AddHours(3)));
                 Assert.Equal("fileName", ex.ParamName);
             }
 
@@ -538,12 +550,128 @@ namespace NuGetGallery
                 var service = CreateService();
 
                 DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
-                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetFileReadUriAsync("theFolder", "theFileName", inThePast));
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetPriviledgedFileUriAsync(
+                    folderName,
+                    fileName,
+                    FileUriPermissions.Read,
+                    inThePast));
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
+            [Theory]
+            [InlineData(CoreConstants.ValidationFolderName, "http://example.com/" + CoreConstants.ValidationFolderName + "/" + fileName + signature)]
+            [InlineData(CoreConstants.PackagesFolderName, "http://example.com/" + CoreConstants.PackagesFolderName + "/" + fileName + signature)]
+            public async Task WillAlwaysUseSasTokenDependingOnContainerAvailability(string containerName, string expectedUri)
+            {
+                var setupResult = Setup(containerName, fileName);
+                var fakeBlobClient = setupResult.Item1;
+                var fakeBlob = setupResult.Item2;
+                var blobUri = setupResult.Item3;
+
+                fakeBlob
+                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
+                    .Returns(signature);
+                var service = CreateService(fakeBlobClient);
+
+                var uri = await service.GetPriviledgedFileUriAsync(
+                    containerName,
+                    fileName,
+                    FileUriPermissions.Read,
+                    DateTimeOffset.Now.AddHours(3));
+
+                Assert.Equal(expectedUri, uri.AbsoluteUri);
+            }
+
+            [Fact]
+            public async Task WillPassTheEndOfAccessTimestampFurther()
+            {
+                const string folderName = CoreConstants.ValidationFolderName;
+                const string fileName = "theFileName";
+                const string signature = "?secret=42";
+                DateTimeOffset endOfAccess = DateTimeOffset.Now.AddHours(3);
+                var setupResult = Setup(folderName, fileName);
+                var fakeBlobClient = setupResult.Item1;
+                var fakeBlob = setupResult.Item2;
+                var blobUri = setupResult.Item3;
+
+                fakeBlob
+                    .Setup(b => b.GetSharedAccessSignature(
+                        SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Delete,
+                        endOfAccess))
+                    .Returns(signature)
+                    .Verifiable();
+
+                var service = CreateService(fakeBlobClient);
+
+                var uri = await service.GetPriviledgedFileUriAsync(
+                    folderName,
+                    fileName,
+                    FileUriPermissions.Read | FileUriPermissions.Delete,
+                    endOfAccess);
+
+                string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
+                Assert.Equal(expectedUri, uri.AbsoluteUri);
+                fakeBlob.Verify(
+                    b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read | SharedAccessBlobPermissions.Delete, endOfAccess),
+                    Times.Once);
+                fakeBlob.Verify(
+                    b => b.GetSharedAccessSignature(It.IsAny<SharedAccessBlobPermissions>(),
+                    It.IsAny<DateTimeOffset?>()), Times.Once);
+            }
+
+            private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobClient
+                    .Setup(bc => bc.GetContainerReference(folderName))
+                    .Returns(fakeContainer.Object)
+                    .Callback(() => { int i = 0; i = i + 1; });
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeContainer.Setup(c => c.GetBlobReference(fileName)).Returns(fakeBlob.Object);
+
+                var blobUri = new Uri($"http://example.com/{folderName}/{fileName}");
+
+                fakeBlob.SetupGet(b => b.Uri).Returns(blobUri);
+
+                return Tuple.Create(fakeBlobClient, fakeBlob, blobUri);
+            }
+        }
+
+
+        public class TheGetFileReadUriAsyncMethod
+        {
+            private const string folderName = "theFolderName";
             private const string fileName = "theFileName";
             private const string signature = "?secret=42";
+
+            [Fact]
+            public async Task WillThrowIfFolderIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(null, fileName, DateTimeOffset.UtcNow.AddHours(3)));
+                Assert.Equal("folderName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfFilenameIsNull()
+            {
+                var service = CreateService();
+
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(folderName, null, DateTimeOffset.UtcNow.AddHours(3)));
+                Assert.Equal("fileName", ex.ParamName);
+            }
+
+            [Fact]
+            public async Task WillThrowIfEndOfAccessIsInThePast()
+            {
+                var service = CreateService();
+
+                DateTimeOffset inThePast = DateTimeOffset.UtcNow.AddSeconds(-1);
+                var ex = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => service.GetFileReadUriAsync(folderName, fileName, inThePast));
+                Assert.Equal("endOfAccess", ex.ParamName);
+            }
 
             [Theory]
             [InlineData(CoreConstants.ValidationFolderName, "http://example.com/" + CoreConstants.ValidationFolderName + "/" + fileName + signature)]
@@ -555,7 +683,9 @@ namespace NuGetGallery
                 var fakeBlob = setupResult.Item2;
                 var blobUri = setupResult.Item3;
 
-                fakeBlob.Setup(b => b.GetSharedReadSignature(It.IsAny<DateTimeOffset?>())).Returns(signature);
+                fakeBlob
+                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, It.IsAny<DateTimeOffset?>()))
+                    .Returns(signature);
                 var service = CreateService(fakeBlobClient);
 
                 var uri = await service.GetFileReadUriAsync(containerName, fileName, DateTimeOffset.Now.AddHours(3));
@@ -568,7 +698,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.ValidationFolderName, "theFileName", null));
+                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, null));
                 Assert.Equal("endOfAccess", ex.ParamName);
             }
 
@@ -588,7 +718,6 @@ namespace NuGetGallery
             public async Task WillPassTheEndOfAccessTimestampFurther()
             {
                 const string folderName = CoreConstants.ValidationFolderName;
-                const string fileName = "theFileName";
                 const string signature = "?secret=42";
                 DateTimeOffset endOfAccess = DateTimeOffset.Now.AddHours(3);
                 var setupResult = Setup(folderName, fileName);
@@ -596,7 +725,10 @@ namespace NuGetGallery
                 var fakeBlob = setupResult.Item2;
                 var blobUri = setupResult.Item3;
 
-                fakeBlob.Setup(b => b.GetSharedReadSignature(endOfAccess)).Returns(signature).Verifiable();
+                fakeBlob
+                    .Setup(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess))
+                    .Returns(signature)
+                    .Verifiable();
 
                 var service = CreateService(fakeBlobClient);
 
@@ -604,8 +736,8 @@ namespace NuGetGallery
 
                 string expectedUri = new Uri(blobUri, signature).AbsoluteUri;
                 Assert.Equal(expectedUri, uri.AbsoluteUri);
-                fakeBlob.Verify(b => b.GetSharedReadSignature(endOfAccess), Times.Once);
-                fakeBlob.Verify(b => b.GetSharedReadSignature(It.IsAny<DateTimeOffset?>()), Times.Once);
+                fakeBlob.Verify(b => b.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess), Times.Once);
+                fakeBlob.Verify(b => b.GetSharedAccessSignature(It.IsAny<SharedAccessBlobPermissions>(), It.IsAny<DateTimeOffset?>()), Times.Once);
             }
 
             private static Tuple<Mock<ICloudBlobClient>, Mock<ISimpleCloudBlob>, Uri> Setup(string folderName, string fileName)

@@ -721,11 +721,10 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<AuthenticationService>().VerifyAll();
-
-                var expectedAddress = new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username);
+                
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmail(
-                        expectedAddress,
+                        authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
@@ -771,7 +770,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmail(
-                        It.IsAny<MailAddress>(),
+                        It.IsAny<User>(),
                         It.IsAny<string>()), Times.Never());
             }
 
@@ -858,11 +857,10 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 authenticationServiceMock.VerifyAll();
-
-                var expectedAddress = new MailAddress(authUser.User.UnconfirmedEmailAddress, authUser.User.Username);
+                
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmail(
-                        expectedAddress,
+                        authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");

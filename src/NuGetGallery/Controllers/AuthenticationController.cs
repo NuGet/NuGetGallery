@@ -299,7 +299,7 @@ namespace NuGetGallery
             if (NuGetContext.Config.Current.ConfirmEmailAddresses && !string.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
                 _messageService.SendNewAccountEmail(
-                    new MailAddress(user.User.UnconfirmedEmailAddress, user.User.Username),
+                    user.User,
                     Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,

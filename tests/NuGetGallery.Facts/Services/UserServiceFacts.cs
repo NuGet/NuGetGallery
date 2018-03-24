@@ -19,6 +19,205 @@ namespace NuGetGallery
 {
     public class UserServiceFacts
     {
+        public class TheAddMembershipRequestAsyncMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenOrganizationIsNull_ThrowsException(bool isAdmin)
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(null, "member", isAdmin);
+                });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            public static IEnumerable<object[]> WhenAlreadyAMember_ThrowsEntityException_Data
+            {
+                get
+                {
+                    foreach (var user in new Func<Fakes, User>[] {
+                        (Fakes fakes) => fakes.OrganizationCollaborator,
+                        (Fakes fakes) => fakes.OrganizationAdmin })
+                    {
+                        foreach (var isAdmin in new[] { false, true })
+                        {
+                            yield return MemberDataHelper.AsData(user, isAdmin);
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WhenAlreadyAMember_ThrowsEntityException_Data))]
+            public async Task WhenAlreadyAMember_ThrowsEntityException(Func<Fakes, User> getUser, bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var user = getUser(fakes);
+                var service = new TestableUserService();
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.Organization, user.Username, isAdmin);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, Strings.AddMember_AlreadyAMember, user.Username), e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            [InlineData(true, true)]
+            public async Task WhenExistingRequest_ReturnsExistingRequest(bool existingRequestIsAdmin, bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                var existingRequest = new MembershipRequest
+                {
+                    NewMember = fakes.User,
+                    ConfirmationToken = "token",
+                    IsAdmin = existingRequestIsAdmin
+                };
+
+                fakes.Organization.MemberRequests.Add(existingRequest);
+
+                // Act
+                var request = await service.AddMembershipRequestAsync(fakes.Organization, fakes.User.Username, isAdmin);
+
+                // Assert
+                Assert.Equal(existingRequest, request);
+                Assert.Equal(existingRequestIsAdmin || isAdmin, request.IsAdmin);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenMemberNotFound_ThrowEntityException(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.Organization
+                    }.AsQueryable());
+
+                // Act
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.Organization, fakes.User.Username, isAdmin);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, Strings.AddMember_UserNotFound, fakes.User.Username), e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenMemberNotConfirmed_ThrowEntityException(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.Organization,
+                        fakes.User
+                    }.AsQueryable());
+
+                fakes.User.EmailAddress = string.Empty;
+                fakes.User.UnconfirmedEmailAddress = "unconfirmed@email.com";
+
+                // Act
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.Organization, fakes.User.Username, isAdmin);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, Strings.AddMember_UserNotConfirmed, fakes.User.Username), e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenSecurityPolicyEvaluationFails_ReturnsSuccess(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                var error = "error";
+
+                service.MockSecurityPolicyService
+                    .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, fakes.Organization, fakes.User))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(error)));
+
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.Organization,
+                        fakes.User
+                    }.AsQueryable());
+
+                // Act
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.Organization, fakes.User.Username, isAdmin);
+                });
+
+                Assert.Equal(error, e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenSecurityPolicyEvaluationSucceeds_ReturnsSuccess(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                service.MockSecurityPolicyService
+                    .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, fakes.Organization, fakes.User))
+                    .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.Organization,
+                        fakes.User
+                    }.AsQueryable());
+
+                // Act
+                var request = await service.AddMembershipRequestAsync(fakes.Organization, fakes.User.Username, isAdmin);
+                Assert.Equal(isAdmin, request.IsAdmin);
+                Assert.Equal(fakes.User, request.NewMember);
+                Assert.Equal(fakes.Organization, request.Organization);
+                Assert.Contains(request, fakes.Organization.MemberRequests);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+        }
+
         public class TheAddMemberAsyncMethod
         {
             public Fakes Fakes { get; }
@@ -29,12 +228,6 @@ namespace NuGetGallery
             {
                 Fakes = new Fakes();
                 UserService = new TestableUserService();
-
-                UserService.MockUserRepository.Setup(r => r.GetAll())
-                    .Returns(new[] {
-                        Fakes.User,
-                        Fakes.Organization
-                    }.AsQueryable());
             }
 
             [Fact]
@@ -43,47 +236,149 @@ namespace NuGetGallery
                 // Act & Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(async () =>
                 {
-                    await UserService.AddMemberAsync(null, "member", false);
-                });
-            }
-
-            [Fact]
-            public async Task WhenMemberExists_ThrowsEntityException()
-            {
-                // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
-                {
-                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.OrganizationCollaborator.Username, false);
+                    await UserService.AddMemberAsync(null, "member", "token");
                 });
 
                 UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
 
             [Fact]
-            public async Task WhenUserNotFound_ThrowsEntityException()
+            public async Task WhenRequestNotFound_ThrowsEntityException()
             {
                 // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await UserService.AddMemberAsync(Fakes.Organization, "notAUser", false);
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, "token");
                 });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_MissingRequest, Fakes.User.Username),
+                    e.Message);
 
                 UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenSecurityPolicyEvalutionFailure_ThrowsEntityException()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenRequestWithTokenNotFound_ThrowsEntityException(bool isAdmin)
             {
                 // Arrange
                 UserService.MockSecurityPolicyService
                     .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, Fakes.Organization, Fakes.User))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("error")));
 
-                // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
                 {
-                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, isAdmin: true);
+                    NewMember = Fakes.OrganizationCollaborator,
+                    ConfirmationToken = "token",
+                    IsAdmin = isAdmin
                 });
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, "wrongToken");
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_MissingRequest, Fakes.User.Username),
+                    e.Message);
+
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenMemberExists_UpdatesMember(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.User,
+                        fakes.Organization
+                    }.AsQueryable());
+
+                var token = "token";
+
+                fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = fakes.OrganizationCollaborator,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
+                });
+
+                // Act
+                var result = await service.AddMemberAsync(fakes.Organization, fakes.OrganizationCollaborator.Username, token);
+                Assert.Equal(isAdmin, result.IsAdmin);
+                Assert.Equal(fakes.OrganizationCollaborator, result.Member);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenRequestFoundWithUnconfirmedUser_ThrowsEntityException(bool isAdmin)
+            {
+                // Arrange
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.User,
+                    ConfirmationToken = token
+                });
+
+                Fakes.User.EmailAddress = string.Empty;
+                Fakes.User.UnconfirmedEmailAddress = "unconfirmed@email.com";
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserNotConfirmed, Fakes.User.Username),
+                    e.Message);
+
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenSecurityPolicyEvalutionFailure_ThrowsEntityException(bool isAdmin)
+            {
+                // Arrange
+                var error = "error";
+
+                UserService.MockSecurityPolicyService
+                    .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, Fakes.Organization, Fakes.User))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(error)));
+
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.User,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
+                });
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddMember_PolicyFailure, error), 
+                        e.Message);
 
                 UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
@@ -91,18 +386,24 @@ namespace NuGetGallery
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
-            public async Task WhenSecurityPolicyEvalutionSuccess_CreatesMembership(bool isAdmin)
+            public async Task WhenSecurityPolicyEvalutionSucceeds_CreatesMembership(bool isAdmin)
             {
                 // Arrange
                 UserService.MockSecurityPolicyService
                     .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, Fakes.Organization, Fakes.User))
                     .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
 
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.User,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
+                });
+
                 // Act
-                var result = await UserService.AddMemberAsync(
-                    Fakes.Organization,
-                    Fakes.User.Username,
-                    isAdmin);
+                var result = await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
 
                 // Assert
                 Assert.Equal(isAdmin, result.IsAdmin);
@@ -125,19 +426,29 @@ namespace NuGetGallery
                 {
                     await service.DeleteMemberAsync(null, "member");
                 });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
-            
+
             [Fact]
             public async Task WhenNoMatch_ThrowsEntityException()
             {
                 // Arrange
                 var service = new TestableUserService();
 
+                var memberName = "member";
+
                 // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
-                    await service.DeleteMemberAsync(new Organization(), "member");
+                    await service.DeleteMemberAsync(new Organization(), memberName);
                 });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.UpdateOrDeleteMember_MemberNotFound, memberName),
+                    e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
 
             [Fact]
@@ -148,7 +459,7 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act & Assert
-                var exception = await Assert.ThrowsAsync<EntityException>(async () =>
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
                     await service.DeleteMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username);
                 });
@@ -157,7 +468,7 @@ namespace NuGetGallery
 
                 Assert.Equal(
                     Strings.DeleteMember_CannotRemoveLastAdmin,
-                    exception.Message);
+                    e.Message);
             }
 
             [Fact]
@@ -174,7 +485,7 @@ namespace NuGetGallery
 
                 // Act
                 await service.DeleteMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username);
-                
+
                 // Assert
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             }
@@ -190,6 +501,180 @@ namespace NuGetGallery
                 await service.DeleteMemberAsync(fakes.Organization, fakes.OrganizationCollaborator.Username);
 
                 // Assert
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+        }
+
+        public class TheRejectMembershipRequestAsyncMethod
+        {
+            [Fact]
+            public async Task WhenOrganizationIsNull_ThrowsException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                {
+                    await service.RejectMembershipRequestAsync(null, "member", "token");
+                });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenNoExistingRequest_ThrowsEntityException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                var memberName = "member";
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.RejectMembershipRequestAsync(new Organization { MemberRequests = new MembershipRequest[0] }, memberName, "token");
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.RejectMembershipRequest_NotFound, memberName),
+                    e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenExistingRequestWithDifferentToken_ThrowsEntityException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                var memberName = "member";
+                var token = "token";
+
+                var organization = new Organization
+                {
+                    MemberRequests = new List<MembershipRequest>
+                    {
+                        new MembershipRequest
+                        {
+                            NewMember = new User(memberName),
+                            ConfirmationToken = "differentToken"
+                        }
+                    }
+                };
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.RejectMembershipRequestAsync(organization, memberName, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.RejectMembershipRequest_NotFound, memberName),
+                    e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WithExistingRequest_Succeeds()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                var memberName = "member";
+                var token = "token";
+
+                var organization = new Organization
+                {
+                    MemberRequests = new List<MembershipRequest>
+                    {
+                        new MembershipRequest
+                        {
+                            NewMember = new User(memberName),
+                            ConfirmationToken = token
+                        }
+                    }
+                };
+
+                // Act & Assert
+                await service.RejectMembershipRequestAsync(organization, memberName, token);
+
+                Assert.True(!organization.MemberRequests.Any());
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+        }
+
+        public class TheCancelMembershipRequestAsyncMethod
+        {
+            [Fact]
+            public async Task WhenOrganizationIsNull_ThrowsException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+                {
+                    await service.CancelMembershipRequestAsync(null, "member");
+                });
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenNoExistingRequest_ThrowsEntityException()
+            {
+                // Arrange
+                var service = new TestableUserService();
+
+                var memberName = "member";
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.CancelMembershipRequestAsync(new Organization { MemberRequests = new MembershipRequest[0] }, memberName);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.CancelMembershipRequest_MissingRequest, memberName),
+                    e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task WithExistingRequest_Succeeds()
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+
+                var memberName = "member";
+
+                var newMember = new User(memberName);
+
+                var organization = new Organization
+                {
+                    MemberRequests = new List<MembershipRequest>
+                    {
+                        new MembershipRequest
+                        {
+                            NewMember = newMember,
+                            ConfirmationToken = "token"
+                        }
+                    }
+                };
+
+                // Act & Assert
+                var pendingMember = await service.CancelMembershipRequestAsync(organization, memberName);
+
+                Assert.True(!organization.MemberRequests.Any());
+                Assert.Equal(newMember, pendingMember);
+
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             }
         }
@@ -217,10 +702,14 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act & Assert
-                await Assert.ThrowsAsync<EntityException>(async () =>
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
                     await service.UpdateMemberAsync(fakes.Organization, fakes.User.Username, false);
                 });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.UpdateOrDeleteMember_MemberNotFound, fakes.User.Username),
+                    e.Message);
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             }
@@ -233,7 +722,7 @@ namespace NuGetGallery
                 var service = new TestableUserService();
 
                 // Act & Assert
-                var exception = await Assert.ThrowsAsync<EntityException>(async () =>
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
                 {
                     await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
                 });
@@ -241,7 +730,7 @@ namespace NuGetGallery
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
                 Assert.Equal(
                     Strings.UpdateMember_CannotRemoveLastAdmin,
-                    exception.Message);
+                    e.Message);
             }
 
             [Fact]
@@ -667,48 +1156,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void WhenAccountIsNotInWhitelist_ReturnsFalse()
-            {
-                // Arrange
-                var service = new TestableUserService();
-                var fakes = new Fakes();
-                var user = fakes.User;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(false);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
-                // Act
-                string errorReason;
-                var result = service.CanTransformUserToOrganization(user, out errorReason);
-
-                // Assert
-                Assert.False(result);
-                Assert.Equal(errorReason, String.Format(CultureInfo.CurrentCulture,
-                    Strings.Organizations_NotInDomainWhitelist, user.Username));
-            }
-
-            [Fact]
             public void WhenAccountIsInWhitelist_ReturnsTrue()
             {
                 // Arrange
                 var service = new TestableUserService();
                 var fakes = new Fakes();
                 var user = fakes.User;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
@@ -729,15 +1182,6 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
                 // Act
                 string errorReason;
                 var result = service.CanTransformUserToOrganization(user, user, out errorReason);
@@ -757,15 +1201,6 @@ namespace NuGetGallery
                 var unconfirmedUser = new User() { UnconfirmedEmailAddress = "unconfirmed@example.com" };
                 var user = fakes.User;
 
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
-
                 // Act
                 string errorReason;
                 var result = service.CanTransformUserToOrganization(user, unconfirmedUser, out errorReason);
@@ -784,15 +1219,6 @@ namespace NuGetGallery
                 var fakes = new Fakes();
                 var user = fakes.User;
                 var organization = fakes.Organization;
-
-                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
-                passwordConfigMock
-                    .Setup(x => x.AreOrganizationsSupportedForUser(user))
-                    .Returns(true);
-
-                service.MockConfigObjectService
-                    .Setup(x => x.LoginDiscontinuationConfiguration)
-                    .Returns(passwordConfigMock.Object);
 
                 // Act
                 string errorReason;
@@ -949,7 +1375,7 @@ namespace NuGetGallery
                 return service.TransformUserToOrganization(account, admin, "token");
             }
         }
-
+        
         public class TheAddOrganizationAccountMethod
         {
             private const string OrgName = "myOrg";
@@ -961,18 +1387,6 @@ namespace NuGetGallery
             private TestableUserService _service = new TestableUserService();
 
             [Fact]
-            public async Task WithUserNotSupportedForOrganizations_ThrowsEntityException()
-            {
-                SetupOrganizationsSupportedForUser(supported: false);
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
-                Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_NotInDomainWhitelist, AdminName), exception.Message);
-
-                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
-                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
-            }
-
-            [Fact]
             public async Task WithUsernameConflict_ThrowsEntityException()
             {
                 var conflictUsername = "ialreadyexist";
@@ -980,8 +1394,6 @@ namespace NuGetGallery
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(new[] { new User(conflictUsername) }.MockDbSet().Object);
-
-                SetupOrganizationsSupportedForUser();
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgName: conflictUsername));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.UsernameNotAvailable, conflictUsername), exception.Message);
@@ -1000,8 +1412,6 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(new[] { new User("user") { EmailAddress = conflictEmail } }.MockDbSet().Object);
 
-                SetupOrganizationsSupportedForUser();
-
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(orgEmail: conflictEmail));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.EmailAddressBeingUsed, conflictEmail), exception.Message);
 
@@ -1018,7 +1428,6 @@ namespace NuGetGallery
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
                 var adminUsername = "adminWithNoTenant";
-                SetupOrganizationsSupportedForUser(adminUsername);
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: new User(adminUsername)));
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUsername), exception.Message);
 
@@ -1037,7 +1446,6 @@ namespace NuGetGallery
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(false));
-                SetupOrganizationsSupportedForUser();
 
                 var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
                 Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
@@ -1057,7 +1465,6 @@ namespace NuGetGallery
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(true));
-                SetupOrganizationsSupportedForUser();
 
                 var org = await InvokeAddOrganization();
 
@@ -1100,17 +1507,78 @@ namespace NuGetGallery
                 // Act
                 return _service.AddOrganizationAsync(orgName, orgEmail, admin);
             }
-
-            private void SetupOrganizationsSupportedForUser(string adminUsername = null, bool supported = true)
+        }
+        public class TheRejectTransformUserToOrganizationRequestMethod
+        {
+            public async Task IfNoExistingRequest_ReturnsFalse()
             {
-                adminUsername = adminUsername ?? AdminName;
+                var accountToTransform = new User("norequest");
 
-                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
-                mockLoginDiscontinuationConfiguration
-                    .Setup(x => x.AreOrganizationsSupportedForUser(It.Is<User>(u => u.Username == adminUsername)))
-                    .Returns(supported);
+                var service = new TestableUserService();
 
-                _service.MockConfigObjectService.Setup(x => x.LoginDiscontinuationConfiguration).Returns(mockLoginDiscontinuationConfiguration.Object);
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfAdminUserNull_ReturnsFalse()
+            {
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest() };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, null, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfAdminUserDoesntMatchRequest_ReturnsFalse()
+            {
+                var admin = new User("requestAdmin");
+                var wrongAdmin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, wrongAdmin, null);
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfTokenDoesntMatch_ReturnsFalse()
+            {
+                var admin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin, ConfirmationToken = "token" } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, "wrongToken");
+
+                Assert.False(result);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+            }
+
+            public async Task IfTokenMatches_RemovesRequest()
+            {
+                var token = "token";
+                var admin = new User("admin");
+                var accountToTransform = new User("hasrequest") { OrganizationMigrationRequest = new OrganizationMigrationRequest { AdminUser = admin, ConfirmationToken = token } };
+
+                var service = new TestableUserService();
+
+                var result = await service.RejectTransformUserToOrganizationRequest(accountToTransform, admin, token);
+
+                Assert.True(result);
+                Assert.Null(accountToTransform.OrganizationMigrationRequest);
+
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
             }
         }
     }

@@ -15,6 +15,7 @@ namespace NuGetGallery
         [Required]
         [StringLength(255)]
         [Display(Name = "Organization Email Address")]
+        [RegularExpression(Constants.EmailValidationRegex, ErrorMessage = "This doesn't appear to be a valid email address.")]
         public string OrganizationEmailAddress { get; set; }
     }
 }
