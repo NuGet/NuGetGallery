@@ -18,8 +18,10 @@ using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Packaging.Signing;
+using NuGet.Services.Logging;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
@@ -44,6 +46,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly List<string> _trustedThumbprints;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
+        private readonly Mock<ITelemetryClient> _telemetryClient;
+        private readonly TelemetryService _telemetryService;
         private readonly RecordingLogger<SignatureValidator> _logger;
         private readonly int _packageKey;
         private Stream _packageStream;
@@ -91,6 +95,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _minimalPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateMinimal();
             _fullPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateFull();
 
+            _telemetryClient = new Mock<ITelemetryClient>();
+            _telemetryService = new TelemetryService(_telemetryClient.Object);
+
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddXunit(output);
             _logger = new RecordingLogger<SignatureValidator>(loggerFactory.CreateLogger<SignatureValidator>());
@@ -112,6 +119,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _signaturePartsExtractor.Object,
                 _packageFileService.Object,
                 _certificates.Object,
+                _telemetryService,
                 _logger);
         }
 

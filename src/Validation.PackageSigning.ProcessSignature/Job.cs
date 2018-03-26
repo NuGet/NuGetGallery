@@ -11,6 +11,7 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
@@ -30,6 +31,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
             services.AddTransient<IEntityRepository<Certificate>, EntityRepository<Certificate>>();
+
+            services.AddTransient<ITelemetryService, TelemetryService>();
 
             services.AddTransient<ICertificateStore>(p =>
             {
@@ -59,6 +62,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 p.GetRequiredService<ISignaturePartsExtractor>(),
                 p.GetRequiredService<IProcessorPackageFileService>(),
                 p.GetRequiredService<IEntityRepository<Certificate>>(),
+                p.GetRequiredService<ITelemetryService>(),
                 p.GetRequiredService<ILogger<SignatureValidator>>()));
         }
 

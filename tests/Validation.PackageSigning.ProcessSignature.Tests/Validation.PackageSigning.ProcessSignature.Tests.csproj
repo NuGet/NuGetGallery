@@ -47,6 +47,7 @@
     <Compile Include="SignatureValidationMessageHandlerFacts.cs" />
     <Compile Include="Support\SubjectAndThumbprint.cs" />
     <Compile Include="Support\TestResources.cs" />
+    <Compile Include="Telemetry\TelemetryServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">

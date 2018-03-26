@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.Pkcs;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
@@ -31,6 +33,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IProcessorPackageFileService _packageFileService;
         private readonly IEntityRepository<Certificate> _certificates;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
@@ -40,6 +43,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             ISignaturePartsExtractor signaturePartsExtractor,
             IProcessorPackageFileService packageFileService,
             IEntityRepository<Certificate> certificates,
+            ITelemetryService telemetryService,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
@@ -48,6 +52,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -208,12 +213,21 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             {
                 packageStreamToDispose = FileStreamUtility.GetTemporaryFile();
 
-                var removed = await SignedPackageArchiveUtility.RemoveRepositorySignaturesAsync(
+                var stopwatch = Stopwatch.StartNew();
+
+                var changed = await SignedPackageArchiveUtility.RemoveRepositorySignaturesAsync(
                     context.PackageStream,
                     packageStreamToDispose,
                     context.CancellationToken);
 
-                if (removed)
+                _telemetryService.TrackDurationToStripRepositorySignatures(
+                    stopwatch.Elapsed,
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId,
+                    changed);
+
+                if (changed)
                 {
                     _logger.LogInformation(
                         "Repository signatures were removed from package {PackageId} {PackageVersion} for validation {ValidationId}.",
@@ -232,6 +246,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     packageStreamToDispose = null;
                     context.PackageReader = new SignedPackageArchive(context.PackageStream, packageWriteStream: Stream.Null);
 
+                    var initialSignature = context.Signature;
+
                     if (await context.PackageReader.IsSignedAsync(context.CancellationToken))
                     {
                         _logger.LogInformation(
@@ -241,6 +257,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                             context.Message.ValidationId);
 
                         context.Signature = await context.PackageReader.GetPrimarySignatureAsync(context.CancellationToken);
+
+                        _telemetryService.TrackStrippedRepositorySignatures(
+                            context.Message.PackageId,
+                            context.Message.PackageVersion,
+                            context.Message.ValidationId,
+                            initialSignature,
+                            context.Signature);
                     }
                     else
                     {
@@ -253,6 +276,14 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                         // The package is now unsigned. This would happen if the primary signature was a repository
                         // signature that was removed.
                         context.Signature = null;
+
+                        _telemetryService.TrackStrippedRepositorySignatures(
+                            context.Message.PackageId,
+                            context.Message.PackageVersion,
+                            context.Message.ValidationId,
+                            initialSignature,
+                            outputSignature: null);
+
                         return await HandleUnsignedPackageAsync(context);
                     }
                 }

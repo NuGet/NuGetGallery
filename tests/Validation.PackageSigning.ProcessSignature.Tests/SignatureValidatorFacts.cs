@@ -12,6 +12,7 @@ using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.PackageSigning.Telemetry;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
@@ -41,6 +42,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Mock<IProcessorPackageFileService> _packageFileService;
             private readonly Uri _nupkgUri;
             private readonly SignatureValidator _target;
+            private readonly Mock<ITelemetryService> _telemetryService;
 
             public ValidateAsync(ITestOutputHelper output)
             {
@@ -82,6 +84,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Setup(x => x.GetReadAndDeleteUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()))
                     .ReturnsAsync(() => _nupkgUri);
 
+                _telemetryService = new Mock<ITelemetryService>();
+
                 _target = new SignatureValidator(
                     _packageSigningStateService.Object,
                     _mimimalPackageSignatureVerifier.Object,
@@ -89,6 +93,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _signaturePartsExtractor.Object,
                     _packageFileService.Object,
                     _certificates.Object,
+                    _telemetryService.Object,
                     _logger);
             }
 
