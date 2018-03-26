@@ -947,19 +947,8 @@ namespace NuGetGallery
               => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
 
             [MemberData(nameof(TestData_RoleVariants))]
-            [Theory]
-            public virtual void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
-            {
-                var context = GetMixedVersioningPackagesContext(currentUser, packageOwner);
-
-                var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
-
-                var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
-                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
-
-                var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
-                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
-            }
+            public override void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
+                => base.ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(currentUser, packageOwner);
 
             [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
@@ -1016,6 +1005,10 @@ namespace NuGetGallery
             [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(User currentUser, User packageOwner)
               => base.ReturnsOnlyLatestStablePackageIfNoLatestStableSemVer2Exist(currentUser, packageOwner);
+
+            [MemberData(nameof(TestData_RoleVariants))]
+            public override void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
+                => base.ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(currentUser, packageOwner);
 
             [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsFirstIfMultiplePackagesSetToLatest(User currentUser, User packageOwner)
@@ -1207,27 +1200,41 @@ namespace NuGetGallery
                 Assert.Contains(latestStablePackage, packages);
             }
 
+            [Theory]
+            public virtual void ReturnsCorrectLatestVersionForMixedSemVer2AndNonSemVer2PackageVersions_IncludeUnlistedTrue(User currentUser, User packageOwner)
+            {
+                var context = GetMixedVersioningPackagesContext(currentUser, packageOwner);
+
+                var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true).ToList();
+
+                var nugetCatalogReaderPackage = packages.Single(p => p.PackageRegistration.Id == "NuGet.CatalogReader");
+                Assert.Equal("1.5.12+git.78e44a8", NuGetVersionFormatter.ToFullStringOrFallback(nugetCatalogReaderPackage.Version, fallback: nugetCatalogReaderPackage.Version));
+
+                var sleetLibPackage = packages.Single(p => p.PackageRegistration.Id == "SleetLib");
+                Assert.Equal("2.2.24+git.f2a0cb6", NuGetVersionFormatter.ToFullStringOrFallback(sleetLibPackage.Version, fallback: sleetLibPackage.Version));
+            }
+
             protected FakeEntitiesContext GetMixedVersioningPackagesContext(User currentUser, User packageOwner)
             {
                 var context = GetFakeContext();
 
                 context.Users.Add(currentUser);
 
-                var sleetLibRegistration = new PackageRegistration { Id = "SleetLib", Owners = { packageOwner } };
+                var sleetLibRegistration = new PackageRegistration { Key = 0, Id = "SleetLib", Owners = { packageOwner } };
                 var sleetLibPackages = new[]
                 {
-                    new Package { Version = "2.2.24+git.f2a0cb6", PackageRegistration = sleetLibRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
-                    new Package { Version = "2.2.18+git.4d361d8", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.16+git.c6be4b4", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.13+git.e657e80", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.9+git.4a81f0c", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.7+git.393c301", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.3+git.98f8237", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.1+git.e11393a", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.2.0+git.6973dc7", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.0.0+git.5106315", PackageRegistration = sleetLibRegistration, Listed = true },
-                    new Package { Version = "2.0.0-beta.19+git.hash.befdb81dbbef6fb5b8cdf147cc467f9904339cc8", PackageRegistration = sleetLibRegistration, Listed = false },
-                    new Package { Version = "1.1.0-beta-296", PackageRegistration = sleetLibRegistration, Listed = true, IsLatest = true }
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.24+git.f2a0cb6", PackageRegistration = sleetLibRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.18+git.4d361d8", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.16+git.c6be4b4", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.13+git.e657e80", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.9+git.4a81f0c", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.7+git.393c301", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.3+git.98f8237", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.1+git.e11393a", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.2.0+git.6973dc7", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.0.0+git.5106315", PackageRegistration = sleetLibRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 0, Version = "2.0.0-beta.19+git.hash.befdb81dbbef6fb5b8cdf147cc467f9904339cc8", PackageRegistration = sleetLibRegistration, Listed = false },
+                    new Package { PackageRegistrationKey = 0, Version = "1.1.0-beta-296", PackageRegistration = sleetLibRegistration, Listed = true, IsLatest = true }
                 };
                 context.PackageRegistrations.Add(sleetLibRegistration);
                 foreach (var package in sleetLibPackages)
@@ -1235,16 +1242,16 @@ namespace NuGetGallery
                     context.Packages.Add(package);
                 }
 
-                var nugetCatalogReaderRegistration = new PackageRegistration { Id = "NuGet.CatalogReader", Owners = { packageOwner } };
+                var nugetCatalogReaderRegistration = new PackageRegistration { Key = 1, Id = "NuGet.CatalogReader", Owners = { packageOwner } };
                 var nugetCatalogReaderPackages = new[]
                 {
-                    new Package { Version = "1.5.12+git.78e44a8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
-                    new Package { Version = "1.5.8+git.bcda3b8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { Version = "1.4.0+git.e2a36b6", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { Version = "1.3.0+git.a6a89a3", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { Version = "1.2.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatest = true, IsLatestStable = true },
-                    new Package { Version = "1.1.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
-                    new Package { Version = "1.0.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true }
+                    new Package { PackageRegistrationKey = 1, Version = "1.5.12+git.78e44a8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatestStableSemVer2 = true, IsLatestSemVer2 = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.5.8+git.bcda3b8", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.4.0+git.e2a36b6", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.3.0+git.a6a89a3", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.2.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true, IsLatest = true, IsLatestStable = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.1.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true },
+                    new Package { PackageRegistrationKey = 1, Version = "1.0.0", PackageRegistration = nugetCatalogReaderRegistration, Listed = true }
                 };
                 context.PackageRegistrations.Add(nugetCatalogReaderRegistration);
                 foreach (var package in nugetCatalogReaderPackages)
