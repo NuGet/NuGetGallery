@@ -15,6 +15,8 @@ namespace NuGetGallery.Services
         private const string _domain = "example.com";
         private const string _incorrectException = "fake@notExample.com";
         private const string _email = "test@example.com";
+        private const string _tenant = "tenantId";
+        private const string _incorrectTenant = "wrongTenantId";
 
         public static IEnumerable<object[]> PossibleListStates
         {
@@ -28,7 +30,10 @@ namespace NuGetGallery.Services
                         {
                             foreach (var isOnTransformList in new[] { true, false })
                             {
-                                yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                                foreach (var isOnTenantPairList in new[] { true, false })
+                                {
+                                    yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList);
+                                }
                             }
                         }
                     }
@@ -36,14 +41,15 @@ namespace NuGetGallery.Services
             }
         }
 
-        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList)
         {
             var emails = isOnWhiteList ? new[] { _email } : new[] { _incorrectEmail };
             var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
             var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
             var shouldTransforms = isOnTransformList ? new[] { _email } : new[] { _incorrectException };
+            var orgTenantPairs = isOnTenantPairList ? new[] { new OrganizationTenantPair(_domain, _tenant) } : new[] { new OrganizationTenantPair(_incorrectDomain, _incorrectTenant) };
 
-            return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms);
+            return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
         }
 
         public class TheIsLoginDiscontinuedMethod
@@ -126,7 +132,7 @@ namespace NuGetGallery.Services
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
 
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);
@@ -140,12 +146,12 @@ namespace NuGetGallery.Services
         {
             public static IEnumerable<object[]> PossibleListStates => PossibleListStates;
 
-            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList)
             {
                 // Arrange
                 var user = new User("test") { EmailAddress = _email };
 
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList);
 
                 // Act
                 var areOrganizationsSupported = config.IsUserOnWhitelist(user);

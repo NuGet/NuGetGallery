@@ -27,6 +27,10 @@
 <script type="text/html" id="manage-members">
     <div class="col-md-12 manage-members-listing">
         <div class="panel-collapse collapse in" aria-expanded="true">
+            @if (Model.RequiresTenant)
+            {
+                @ViewHelpers.AlertInfo(@<text>Membership to this organization is restricted to users from the AAD tenant determined by its email address.</text>)
+            }
             @if (Model.CanManage)
             {
                 <div class="input-group col-xs-12">
