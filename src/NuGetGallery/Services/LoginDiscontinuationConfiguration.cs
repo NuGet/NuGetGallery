@@ -35,10 +35,10 @@ namespace NuGetGallery
             IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
             IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants)
         {
-            DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses);
-            DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains);
-            ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses);
-            ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses);
+            DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
+            DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
+            ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
+            ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
         }
 
@@ -65,7 +65,7 @@ namespace NuGetGallery
 
             var email = user.ToMailAddress();
             return
-                DiscontinuedForDomains.Contains(email.Host, StringComparer.OrdinalIgnoreCase) ||
+                DiscontinuedForDomains.Contains(email.Host) ||
                 DiscontinuedForEmailAddresses.Contains(email.Address);
         }
 
@@ -118,7 +118,7 @@ namespace NuGetGallery
 
             return
                 string.Equals(x.EmailDomain, y.EmailDomain, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(x.TenantId, y.TenantId, StringComparison.OrdinalIgnoreCase);
+                string.Equals(x.TenantId, y.TenantId, StringComparison.Ordinal);
         }
 
         public int GetHashCode(OrganizationTenantPair obj)

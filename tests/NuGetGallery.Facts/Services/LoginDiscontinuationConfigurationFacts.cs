@@ -32,7 +32,10 @@ namespace NuGetGallery.Services
                             {
                                 foreach (var isOnTenantPairList in new[] { true, false })
                                 {
-                                    yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList);
+                                    foreach (var isWrongCase in new[] { true, false })
+                                    {
+                                        yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList, isWrongCase);
+                                    }
                                 }
                             }
                         }
@@ -40,16 +43,23 @@ namespace NuGetGallery.Services
                 }
             }
         }
-
-        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList)
+        
+        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool isWrongCase)
         {
-            var emails = isOnWhiteList ? new[] { _email } : new[] { _incorrectEmail };
-            var domains = isOnDomainList ? new[] { _domain } : new[] { _incorrectDomain };
-            var exceptions = isOnExceptionList ? new[] { _email } : new[] { _incorrectException };
-            var shouldTransforms = isOnTransformList ? new[] { _email } : new[] { _incorrectException };
-            var orgTenantPairs = isOnTenantPairList ? new[] { new OrganizationTenantPair(_domain, _tenant) } : new[] { new OrganizationTenantPair(_incorrectDomain, _incorrectTenant) };
+            var emails = isOnWhiteList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectEmail, isWrongCase) };
+            var domains = isOnDomainList ? new[] { ToUppercaseIfWrongCase(_domain, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase) };
+            var exceptions = isOnExceptionList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
+            var shouldTransforms = isOnTransformList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
+            var orgTenantPairs = isOnTenantPairList ? 
+                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), _tenant) } : 
+                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase), _incorrectTenant) };
 
             return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
+        }
+
+        private static string ToUppercaseIfWrongCase(string input, bool isWrongCase)
+        {
+            return isWrongCase ? input.ToUpperInvariant() : input;
         }
 
         public class TheIsLoginDiscontinuedMethod
@@ -71,7 +81,10 @@ namespace NuGetGallery.Services
                                 {
                                     foreach (var isOnTransformList in new[] { true, false })
                                     {
-                                        yield return MemberDataHelper.AsData(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                                        foreach (var isWrongCase in new[] { true, false })
+                                        {
+                                            yield return MemberDataHelper.AsData(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase);
+                                        }
                                     }
                                 }
                             }
@@ -82,9 +95,9 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfPasswordLoginReturnsTrueIfOnWhitelists_Data))]
-            public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+            public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isWrongCase)
             {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, 
+                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase, 
                     expectedResult: (isOnWhiteList || isOnDomainList) && !isOnExceptionList);
             }
 
@@ -109,7 +122,10 @@ namespace NuGetGallery.Services
                                 {
                                     foreach (var isOnTransformList in new[] { true, false })
                                     {
-                                        yield return MemberDataHelper.AsData(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList);
+                                        foreach (var isWrongCase in new[] { true, false })
+                                        {
+                                            yield return MemberDataHelper.AsData(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase);
+                                        }
                                     }
                                 }
                             }
@@ -120,19 +136,19 @@ namespace NuGetGallery.Services
 
             [Theory]
             [MemberData(nameof(IfNotPasswordLoginReturnsFalse_Data))]
-            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList)
+            public void IfNotPasswordLoginReturnsFalse(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isWrongCase)
             {
-                TestIsLoginDiscontinued(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, expectedResult: false);
+                TestIsLoginDiscontinued(credentialType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase, expectedResult: false);
             }
 
-            private void TestIsLoginDiscontinued(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool expectedResult)
+            private void TestIsLoginDiscontinued(string credentialType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isWrongCase, bool expectedResult)
             {
                 // Arrange
                 var credential = new Credential(credentialType, "value");
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
-
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false);
+                
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false, isWrongCase: isWrongCase);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);
@@ -146,12 +162,12 @@ namespace NuGetGallery.Services
         {
             public static IEnumerable<object[]> PossibleListStates => PossibleListStates;
 
-            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList)
+            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool isWrongCase)
             {
                 // Arrange
                 var user = new User("test") { EmailAddress = _email };
-
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList);
+                
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList, isWrongCase);
 
                 // Act
                 var areOrganizationsSupported = config.IsUserOnWhitelist(user);
