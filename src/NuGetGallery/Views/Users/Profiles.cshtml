@@ -34,6 +34,20 @@
         <article class="col-md-9 col-md-pull-3">
             <div class="profile-title">
                 <h1>@Model.Username</h1>
+                <span class="breadcrumb-manage">
+                    @if (Model.CanViewAccount)
+                    {
+                        if (Model.UserIsOrganization)
+                        {
+                            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span>@((Model.User as Organization).Administrators.Count()) administrators | @((Model.User as Organization).Collaborators.Count()) collaborators</span></a>
+                        }
+                        else if (!Model.UserIsOrganization && Model.User.Organizations.Any())
+                        {
+                            <a href="@Url.ManageMyOrganizations()" aria-label="Manage my organizations"><span>member of @(Model.User.Organizations.Count()) organizations</span></a>
+                        }
+                    }
+                </span>
             </div>
 
             <div class="list-packages" role="list">

@@ -92,7 +92,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("Transform")]
+        [ActionName(RouteName.TransformToOrganization)]
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
@@ -116,7 +116,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ValidateAntiForgeryToken]
-        [ActionName("Transform")]
+        [ActionName(RouteName.TransformToOrganization)]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
@@ -163,7 +163,7 @@ namespace NuGetGallery
         
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("ConfirmTransform")]
+        [ActionName(RouteName.TransformToOrganizationConfirmation)]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -198,7 +198,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("RejectTransform")]
+        [ActionName(RouteName.TransformToOrganizationRejection)]
         public virtual async Task<ActionResult> RejectTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -232,7 +232,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("CancelTransform")]
+        [ActionName(RouteName.TransformToOrganizationCancellation)]
         public virtual async Task<ActionResult> CancelTransformToOrganization(string token)
         {
             var accountToTransform = GetCurrentUser();
@@ -255,7 +255,7 @@ namespace NuGetGallery
 
         private ActionResult TransformToOrganizationFailed(string errorMessage)
         {
-            return View("TransformFailed", new TransformAccountFailedViewModel(errorMessage));
+            return View("TransformToOrganizationFailed", new TransformAccountFailedViewModel(errorMessage));
         }
 
         [HttpGet]
@@ -606,7 +606,7 @@ namespace NuGetGallery
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
-            var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            var model = new UserProfileModel(user, currentUser, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
 
             return View(model);
         }
