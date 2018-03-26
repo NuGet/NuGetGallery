@@ -367,11 +367,7 @@ namespace NuGetGallery
                 RouteName.OrganizationMemberCancelAjax,
                 "organization/{accountName}/members/cancel",
                 new { controller = "Organizations", action = RouteName.OrganizationMemberCancelAjax },
-                new[]
-                {
-                    new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName),
-                    new RouteExtensions.ObfuscatedMetadata(4, Obfuscator.DefaultTelemetryUserName)
-                });
+                new RouteExtensions.ObfuscatedMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
                 RouteName.OrganizationMemberCancel,
