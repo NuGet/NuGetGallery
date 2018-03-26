@@ -274,7 +274,7 @@ namespace NuGetGallery
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
-            model.RequiresTenant = account.SecurityPolicies.Any(sp => sp.Name == nameof(RequireOrganizationTenantPolicy));
+            model.RequiresTenant = account.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
