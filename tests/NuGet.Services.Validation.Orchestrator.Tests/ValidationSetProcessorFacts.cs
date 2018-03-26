@@ -15,9 +15,9 @@ using Xunit;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
-    public class StrictStorageFacts : ValidationSetProcessorFactsBase
+    public class StrictMockValidationSetProcessorFacts : ValidationSetProcessorFactsBase
     {
-        public StrictStorageFacts()
+        public StrictMockValidationSetProcessorFacts()
             : base(validationStorageMockBehavior: MockBehavior.Strict)
         {
         }
@@ -39,14 +39,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
     }
 
-    public class DefaultMockFacts : ValidationSetProcessorFactsBase
+    public class DefaultMockValidationSetProcessorFacts : ValidationSetProcessorFactsBase
     {
         [Theory]
-        [InlineData(ValidationStatus.NotStarted, false)]
-        [InlineData(ValidationStatus.Incomplete, true)]
-        [InlineData(ValidationStatus.Succeeded, true)]
-        [InlineData(ValidationStatus.Failed, true)]
-        public async Task StartsNotStartedValidations(ValidationStatus startStatus, bool expectStorageUpdate)
+        [InlineData(ValidationStatus.NotStarted, false, false)]
+        [InlineData(ValidationStatus.Incomplete, true, false)]
+        [InlineData(ValidationStatus.Succeeded, true, true)]
+        [InlineData(ValidationStatus.Failed, true, true)]
+        public async Task StartsNotStartedValidations(ValidationStatus startStatus, bool expectStorageUpdate, bool expectCleanup)
         {
             UseDefaultValidatorProvider();
             const string validationName = "validation1";
@@ -96,6 +96,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock.Verify(
                     ts => ts.TrackValidatorStarted(It.IsAny<string>()), Times.Never);
             }
+
+            if (expectCleanup)
+            {
+                validator.Verify(
+                    x => x.CleanUpAsync(It.IsAny<IValidationRequest>()),
+                    Times.Once);
+            }
+            else
+            {
+                validator.Verify(
+                    x => x.CleanUpAsync(It.IsAny<IValidationRequest>()),
+                    Times.Never);
+            }
         }
 
         [Fact]
@@ -123,8 +136,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var processor = CreateProcessor();
             await processor.ProcessValidationsAsync(ValidationSet, Package);
 
-            validator2
-                .Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.Never());
+            validator1.Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.Never);
+            validator1.Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.Once);
+            validator1.Verify(v => v.CleanUpAsync(It.IsAny<IValidationRequest>()), Times.Never);
+            validator2.Verify(v => v.StartAsync(It.IsAny<IValidationRequest>()), Times.Never);
+            validator2.Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.Never);
+            validator2.Verify(v => v.CleanUpAsync(It.IsAny<IValidationRequest>()), Times.Never);
         }
 
         [Fact]
@@ -185,11 +202,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     vs => vs.UpdateValidationStatusAsync(validation, It.Is<IValidationResult>(r => r.Status == targetStatus)), Times.Once());
                 ValidationStorageMock.Verify(
                     vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Once());
+                validator.Verify(
+                    x => x.CleanUpAsync(It.IsAny<IValidationRequest>()), Times.Once);
             }
             else
             {
                 ValidationStorageMock.Verify(
                     vs => vs.UpdateValidationStatusAsync(It.IsAny<PackageValidation>(), It.IsAny<ValidationResult>()), Times.Never());
+                validator.Verify(
+                    x => x.CleanUpAsync(It.IsAny<IValidationRequest>()), Times.Never);
             }
             Assert.Equal(targetStatus, validation.ValidationStatus);
         }
@@ -197,7 +218,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Theory]
         [InlineData(ValidationStatus.Failed)]
         [InlineData(ValidationStatus.Succeeded)]
-        public async Task PersistsValidationIssuesOnStart(ValidationStatus targetStatus)
+        public async Task HandlesTerminalStatusOnStart(ValidationStatus targetStatus)
         {
             UseDefaultValidatorProvider();
             var validator = AddValidation("validation1", TimeSpan.FromDays(1), validationStatus: ValidationStatus.NotStarted);
@@ -228,12 +249,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                                 validation,
                                 It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())),
                     Times.Once());
+            validator.Verify(
+                x => x.CleanUpAsync(It.Is<IValidationRequest>(y => y != null)),
+                Times.Once);
         }
 
         [Theory]
         [InlineData(ValidationStatus.Failed)]
         [InlineData(ValidationStatus.Succeeded)]
-        public async Task PersistsValidationIssuesOnUpdate(ValidationStatus targetStatus)
+        public async Task HandlesTerminalStatusOnUpdate(ValidationStatus targetStatus)
         {
             UseDefaultValidatorProvider();
             var validator = AddValidation("validation1", TimeSpan.FromDays(1), validationStatus: ValidationStatus.Incomplete);
@@ -263,42 +287,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                                 validation,
                                 It.Is<IValidationResult>(r => r.Status == targetStatus && r.Issues.Any())),
                     Times.Once());
-        }
-
-        [Fact]
-        public async Task UsesFailAfterConfigurationToTreatLongImcompleteAsFailed()
-        {
-            UseDefaultValidatorProvider();
-            var failAfter = TimeSpan.FromDays(1);
-            var validator = AddValidation("validation1", failAfter, validationStatus: ValidationStatus.Incomplete);
-            var validation = ValidationSet.PackageValidations.First();
-            validation.Started = DateTime.UtcNow - failAfter.Add(TimeSpan.FromSeconds(1));
-
-            var validationResult = new ValidationResult(ValidationStatus.Incomplete);
-
-            validator
-                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
-                .ReturnsAsync(validationResult)
-                .Verifiable();
-
-            ValidationStorageMock
-                .Setup(vs => vs.UpdateValidationStatusAsync(
-                                validation,
-                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)))
-                .Returns(Task.FromResult(0));
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationsAsync(ValidationSet, Package);
-
-            ValidationStorageMock
-                .Verify(vs => vs.UpdateValidationStatusAsync(
-                                validation,
-                                It.Is<IValidationResult>(r => r.Status == ValidationStatus.Failed)),
-                    Times.Once);
-            TelemetryServiceMock
-                .Verify(ts => ts.TrackValidatorTimeout(validation.Type), Times.Once);
-            TelemetryServiceMock
-                .Verify(ts => ts.TrackValidatorTimeout(It.IsAny<string>()), Times.Once);
+            validator.Verify(
+                x => x.CleanUpAsync(It.Is<IValidationRequest>(y => y != null)),
+                Times.Once);
         }
 
         [Fact]
@@ -429,7 +420,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var validation = new ValidationConfigurationItem
             {
                 Name = name,
-                FailAfter = failAfter,
+                TrackAfter = failAfter,
                 RequiredValidations = requiredValidations.ToList(),
                 ShouldStart = shouldStart,
                 FailureBehavior = failureBehavior

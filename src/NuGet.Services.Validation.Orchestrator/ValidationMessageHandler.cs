@@ -99,6 +99,19 @@ namespace NuGet.Services.Validation.Orchestrator
                     }
                 }
 
+                // Immediately halt validation of a soft deleted package.
+                if (package.PackageStatusKey == PackageStatus.Deleted)
+                {
+                    _logger.LogWarning(
+                        "Package {PackageId} {PackageVersion} (package key {PackageKey}) is soft deleted. Dropping message for validation set {ValidationSetId}.",
+                        message.PackageId,
+                        message.PackageVersion,
+                        package.Key,
+                        message.ValidationTrackingId);
+
+                    return true;
+                }
+
                 var validationSet = await _validationSetProvider.TryGetOrCreateValidationSetAsync(message.ValidationTrackingId, package);
 
                 if (validationSet == null)

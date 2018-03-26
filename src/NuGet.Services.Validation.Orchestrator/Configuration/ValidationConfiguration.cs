@@ -39,5 +39,15 @@ namespace NuGet.Services.Validation.Orchestrator
         /// this window.
         /// </summary>
         public TimeSpan NewValidationRequestDeduplicationWindow { get; set; }
+
+        /// <summary>
+        /// The threshold until which an email will be sent out due to a validation set taking too long.
+        /// </summary>
+        public TimeSpan ValidationSetNotificationTimeout { get; set; }
+
+        /// <summary>
+        /// The threshold until a validation set is no longer processed.
+        /// </summary>
+        public TimeSpan TimeoutValidationSetAfter { get; set; }
     }
 }

@@ -32,9 +32,10 @@ Function Run-Tests {
         "tests\Tests.Stats.CollectAzureChinaCDNLogs\bin\$Configuration\Tests.Stats.CollectAzureChinaCDNLogs.dll", `
         "tests\NuGet.Services.Validation.Orchestrator.Tests\bin\$Configuration\NuGet.Services.Validation.Orchestrator.Tests.dll", `
         "tests\Validation.Common.Tests\bin\$Configuration\Validation.Common.Tests.dll", `
-        "tests\Validation.PackageSigning.ExtractAndValidateSignature.Tests\bin\$Configuration\Validation.PackageSigning.ExtractAndValidateSignature.Tests.dll", `
+        "tests\Validation.PackageSigning.ProcessSignature.Tests\bin\$Configuration\Validation.PackageSigning.ProcessSignature.Tests.dll", `
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
-        "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll"
+        "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll", `
+        "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll"
     
     $TestCount = 0
     

@@ -106,6 +106,26 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(vsp => vsp.TryGetOrCreateValidationSetAsync(messageData.ValidationTrackingId, package), Times.Once());
         }
 
+        [Fact]
+        public async Task DropsMessageIfPackageIsSoftDeleted()
+        {
+            var messageData = new PackageValidationMessageData("packageId", "1.2.3", Guid.NewGuid());
+            var validationConfiguration = new ValidationConfiguration();
+            var package = new Package { PackageStatusKey = PackageStatus.Deleted };
+
+            CorePackageServiceMock
+                .Setup(ps => ps.FindPackageByIdAndVersionStrict(messageData.PackageId, messageData.PackageVersion))
+                .Returns(package);
+
+            var handler = CreateHandler();
+
+            var result = await handler.HandleAsync(messageData);
+
+            Assert.True(result);
+            CorePackageServiceMock
+                .Verify(ps => ps.FindPackageByIdAndVersionStrict(messageData.PackageId, messageData.PackageVersion), Times.Once);
+        }
+
         private class MessageWithCustomDeliveryCount : IBrokeredMessage
         {
             private readonly IBrokeredMessage _inner;

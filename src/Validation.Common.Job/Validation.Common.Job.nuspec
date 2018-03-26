@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NuGet.Services.Validation.Common.Job</id>
+    <version>$version$</version>
+    <title>NuGet.Services.Validation.Common.Job</title>
+    <authors>.NET Foundation</authors>
+    <owners>.NET Foundation</owners>
+    <description>NuGet.Services.Validation.Common.Job</description>
+    <copyright>Copyright .NET Foundation</copyright>
+    <dependencies>
+        <dependency id="NuGet.Jobs.Common" version="$version$" />
+        <dependency id="Autofac" version="4.6.2" />
+        <dependency id="Autofac.Extensions.DependencyInjection" version="4.2.0" />
+        <dependency id="Microsoft.ApplicationInsights" version="2.2.0" />
+        <dependency id="Microsoft.Extensions.DependencyInjection" version="1.1.1" />
+        <dependency id="Microsoft.Extensions.Options.ConfigurationExtensions" version="1.1.2" />
+        <dependency id="NuGet.Packaging" version="4.7.0-preview1.5029" />
+        <dependency id="NuGet.Services.Configuration" version="2.19.1" />
+        <dependency id="NuGet.Services.Logging" version="2.19.1" />
+        <dependency id="NuGet.Services.Storage" version="2.19.1" />
+        <dependency id="NuGet.Services.Validation" version="2.19.1" />
+        <dependency id="NuGetGallery.Core" version="4.4.4-dev-26021" />
+        <dependency id="Serilog" version="2.5.0" />
+        <dependency id="System.Net.Http" version="4.3.3" />
+    </dependencies>
+  </metadata>
+</package>

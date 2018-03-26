@@ -10,5 +10,6 @@ namespace NuGet.Services.Validation.Orchestrator
         void SendPackagePublishedMessage(Package package);
         void SendPackageValidationFailedMessage(Package package);
         void SendPackageSignedValidationFailedMessage(Package package);
+        void SendPackageValidationTakingTooLongMessage(Package package);
     }
 }

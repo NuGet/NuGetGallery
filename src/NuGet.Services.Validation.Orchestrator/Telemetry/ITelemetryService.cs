@@ -34,7 +34,17 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         void TrackTotalValidationDuration(TimeSpan duration, bool isSuccess);
 
         /// <summary>
-        /// A counter metric emitted when a validator fails due to the <see cref="ValidationConfigurationItem.FailAfter"/>
+        /// A counter metric emitted when a notification is sent because a validation set takes too long.
+        /// </summary>
+        void TrackSentValidationTakingTooLongMessage(string packageId, string normalizedVersion, Guid validationTrackingId);
+
+        /// <summary>
+        /// A counter metric emitted when a validation set times out.
+        /// </summary>
+        void TrackValidationSetTimeout(string packageId, string normalizedVersion, Guid validationTrackingId);
+
+        /// <summary>
+        /// A counter metric emitted when a validation is past its validator's <see cref="ValidationConfigurationItem.TrackAfter"/>
         /// configuration.
         /// </summary>
         /// <param name="validatorType">The validator type (name).</param>
@@ -54,6 +64,19 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// </summary>
         /// <param name="validatorType">The validator type (name).</param>
         void TrackValidatorStarted(string validatorType);
+
+        /// <summary>
+        /// The duration to start the package signing validator. This includes both the enqueue and DB commit time.
+        /// </summary>
+        /// <param name="duration">The duration.</param>
+        void TrackDurationToStartPackageSigningValidator(TimeSpan duration);
+
+        /// <summary>
+        /// The duration to star the package certificates validator. This includes all enqueue times and the DB commit
+        /// time.
+        /// </summary>
+        /// <param name="duration">The duration.</param>
+        void TrackDurationToStartPackageCertificatesValidator(TimeSpan duration);
 
         /// <summary>
         /// A counter metric emmitted when a validator reaches a terminal state and potentially persists validation
@@ -91,5 +114,10 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// in the public container.
         /// </summary>
         void TrackMissingNupkgForAvailablePackage(string packageId, string normalizedVersion, string validationTrackingId);
+
+        /// <summary>
+        /// A metric to of how long it took to hash a package.
+        /// </summary>
+        void TrackDurationToHashPackage(TimeSpan duration, string packageId, string normalizedVersion, string hashAlgorithm, string streamType);
     }
 }

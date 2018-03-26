@@ -22,41 +22,16 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         public async Task ProcessesFailedValidationAccordingToFailureBehavior(ValidationFailureBehavior failureBehavior, PackageStatus expectedPackageStatus)
         {
             AddValidation("validation1", ValidationStatus.Failed, failureBehavior);
-
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, expectedPackageStatus, true))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
+           
             var processor = CreateProcessor();
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, expectedPackageStatus, true), Times.Once());
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
-        }
-
-        [Fact]
-        public async Task DeleteValidationSetCopyOfPackageOnFailure()
-        {
-            AddValidation("validation1", ValidationStatus.Failed, ValidationFailureBehavior.MustSucceed);
-            AddValidation("validation2", ValidationStatus.Failed, ValidationFailureBehavior.MustSucceed);
-
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
+            PackageStateProcessorMock.Verify(
+                x => x.SetPackageStatusAsync(Package, ValidationSet, expectedPackageStatus),
+                Times.Once);
             PackageFileServiceMock.Verify(
-                x => x.DeletePackageForValidationSetAsync(ValidationSet), Times.Once);
-            PackageFileServiceMock.Verify(
-                x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            PackageFileServiceMock.Verify(
-                x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                Times.Once);
         }
 
         [Theory]
@@ -71,11 +46,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet.PackageValidations.First().PackageValidationIssues = issueCodes
                 .Select(ic => new PackageValidationIssue { IssueCode = ic })
                 .ToList();
-
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
 
             var processor = CreateProcessor();
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
@@ -96,11 +66,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Select(ic => new PackageValidationIssue { IssueCode = ic })
                 .ToList();
 
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, true))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
             var processor = CreateProcessor();
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
@@ -111,11 +76,156 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
+        public async Task TracksTimedOutValidators()
+        {
+            const int postponeMinutes = 1;
+
+            AddValidation(
+                "IncompleteAndNotTimedOut",
+                ValidationStatus.Incomplete,
+                validationStart: DateTime.UtcNow,
+                trackAfter: TimeSpan.FromDays(1));
+            AddValidation(
+                "IncompleteButTimedOut",
+                ValidationStatus.Incomplete,
+                validationStart: DateTime.UtcNow + TimeSpan.FromDays(-5),
+                trackAfter: TimeSpan.FromDays(1));
+
+            Configuration.TimeoutValidationSetAfter = TimeSpan.FromDays(1);
+            Configuration.ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(postponeMinutes);
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(t => t.TrackValidatorTimeout("IncompleteButTimedOut"));
+            ValidationEnqueuerMock
+                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+            PackageFileServiceMock
+                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DoesNotReEnqueueProcessingIfValidationSetTimesOut()
+        {
+            const int postponeMinutes = 1;
+
+            AddValidation("validation1", ValidationStatus.Incomplete);
+
+            Configuration.TimeoutValidationSetAfter = TimeSpan.FromDays(1);
+            Configuration.ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(postponeMinutes);
+
+            ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromDays(1) - TimeSpan.FromHours(1);
+
+            ValidationStorageServiceMock
+                .Setup(s => s.UpdateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Callback<PackageValidationSet>(s => s.Updated = DateTime.UtcNow)
+                .Returns(Task.FromResult(0));
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(t => t.TrackValidationSetTimeout(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId));
+            ValidationEnqueuerMock
+                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Never);
+            PackageFileServiceMock
+                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task SendsValidatingTooLongMessageOnce()
+        {
+            const int postponeMinutes = 1;
+
+            AddValidation("validation1", ValidationStatus.Incomplete);
+
+            Configuration.TimeoutValidationSetAfter = TimeSpan.FromDays(1);
+            Configuration.ValidationSetNotificationTimeout = TimeSpan.FromMinutes(20);
+            Configuration.ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(postponeMinutes);
+
+            ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromMinutes(21);
+            ValidationSet.Updated = DateTime.UtcNow - TimeSpan.FromMinutes(15);
+
+            ValidationStorageServiceMock
+                .Setup(s => s.UpdateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Callback<PackageValidationSet>(s => s.Updated = DateTime.UtcNow)
+                .Returns(Task.FromResult(0));
+
+            ValidationStorageServiceMock
+                .Setup(s => s.GetValidationSetCountAsync(Package.Key))
+                .Returns(Task.FromResult(1));
+
+            // Process the outcome once - the "too long to validate" message should be sent.
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Once);
+            MessageServiceMock
+                .Verify(m => m.SendPackageValidationTakingTooLongMessage(Package), Times.Once);
+            ValidationEnqueuerMock
+                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+            PackageFileServiceMock
+                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+
+            // Process the outcome again - the "too long to validate" message should NOT be sent.
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Once);
+            MessageServiceMock
+                .Verify(m => m.SendPackageValidationTakingTooLongMessage(Package), Times.Once);
+            ValidationEnqueuerMock
+                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Exactly(2));
+            PackageFileServiceMock
+                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DoesNotSendValidatingTooLongMessageOnRevalidations()
+        {
+            const int postponeMinutes = 1;
+
+            AddValidation("validation1", ValidationStatus.Incomplete);
+
+            Configuration.TimeoutValidationSetAfter = TimeSpan.FromDays(1);
+            Configuration.ValidationSetNotificationTimeout = TimeSpan.FromMinutes(20);
+            Configuration.ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(postponeMinutes);
+
+            ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromMinutes(21);
+            ValidationSet.Updated = DateTime.UtcNow - TimeSpan.FromMinutes(15);
+
+            ValidationStorageServiceMock
+                .Setup(s => s.UpdateValidationSetAsync(It.IsAny<PackageValidationSet>()))
+                .Callback<PackageValidationSet>(s => s.Updated = DateTime.UtcNow)
+                .Returns(Task.FromResult(0));
+
+            ValidationStorageServiceMock
+                .Setup(s => s.GetValidationSetCountAsync(Package.Key))
+                .Returns(Task.FromResult(2));
+
+            // Process the outcome once - the "too long to validate" message should NOT be sent.
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            TelemetryServiceMock
+                .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Never);
+            MessageServiceMock
+                .Verify(m => m.SendPackageValidationTakingTooLongMessage(Package), Times.Never);
+            ValidationEnqueuerMock
+                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+            PackageFileServiceMock
+                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        }
+
+        [Fact]
         public async Task ReEnqueuesProcessingIfNotAllComplete()
         {
             const int postponeMinutes = 1;
             AddValidation("validation1", ValidationStatus.Incomplete);
             Configuration.ValidationMessageRecheckPeriod = TimeSpan.FromMinutes(postponeMinutes);
+            Configuration.TimeoutValidationSetAfter = TimeSpan.FromDays(1);
 
             PackageValidationMessageData messageData = null;
             DateTimeOffset postponeTill = DateTimeOffset.MinValue;
@@ -128,10 +238,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var startTime = DateTimeOffset.Now;
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
+            ValidationStorageServiceMock
+                .Verify(s => s.UpdateValidationSetAsync(ValidationSet), Times.Once);
+
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once());
-            PackageFileServiceMock
-                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+
+            PackageStateProcessorMock.Verify(
+                x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                Times.Never);
+
+            PackageFileServiceMock.Verify(
+                x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
+
             Assert.NotNull(messageData);
             Assert.Equal(ValidationSet.ValidationTrackingId, messageData.ValidationTrackingId);
             Assert.Equal(ValidationSet.PackageId, messageData.PackageId);
@@ -140,118 +260,57 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         }
 
         [Fact]
-        public async Task CopiesPackageToPublicStorageAndSendsEmailUponSuccess()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationSetPackageExistAsync(ValidationSet))
-                .ReturnsAsync(true)
-                .Verifiable();
-            PackageFileServiceMock
-                .Setup(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(ValidationSet))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(ValidationSet), Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()), Times.Once());
-
-            MessageServiceMock
-                .Verify(ms => ms.SendPackagePublishedMessage(Package), Times.Once());
-            MessageServiceMock
-                .Verify(ms => ms.SendPackagePublishedMessage(It.IsAny<Package>()), Times.Once());
-
-            PackageFileServiceMock
-                .Verify(x => x.DeletePackageForValidationSetAsync(ValidationSet), Times.Once);
-        }
-
-        [Fact]
-        public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageDoesNotExist()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            PackageFileServiceMock
-                .Setup(x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()))
-                .ReturnsAsync(false);
-            PackageFileServiceMock
-                .Setup(x => x.CopyValidationPackageToPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
-                .Throws(new InvalidOperationException("Duplicate!"));
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.CopyValidationPackageToPackageFileAsync(Package.PackageRegistration.Id, Package.NormalizedVersion), Times.Once);
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true), Times.Once);
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.Once);
-            MessageServiceMock
-                .Verify(ms => ms.SendPackagePublishedMessage(Package), Times.Once);
-        }
-
-        [Fact]
-        public async Task AllowsPackageAlreadyInPublicContainerWhenValidationSetPackageExists()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            PackageFileServiceMock
-                .Setup(x => x.DoesValidationSetPackageExistAsync(It.IsAny<PackageValidationSet>()))
-                .ReturnsAsync(true);
-            PackageFileServiceMock
-                .Setup(x => x.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()))
-                .Throws(new InvalidOperationException("Duplicate!"));
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(ValidationSet), Times.Once);
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true), Times.Once);
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.Once);
-            MessageServiceMock
-                .Verify(ms => ms.SendPackagePublishedMessage(Package), Times.Once);
-        }
-
-        [Fact]
-        public async Task DoesNotCopyPackageIfItsAvailable()
+        public async Task DoesNotSendSuccessEmailIfPackageIsAlreadyAvailable()
         {
             AddValidation("validation1", ValidationStatus.Succeeded);
             Package.PackageStatusKey = PackageStatus.Available;
 
             var processor = CreateProcessor();
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+           
+            MessageServiceMock.Verify(
+                x => x.SendPackagePublishedMessage(It.IsAny<Package>()),
+                Times.Never);
+        }
 
-            PackageFileServiceMock
-                .Verify(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+        [Fact]
+        public async Task MakesPackageAvailableAndSendsEmailUponSuccess()
+        {
+            AddValidation("validation1", ValidationStatus.Succeeded);
+            Package.PackageStatusKey = PackageStatus.Validating;
+
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+
+            PackageStateProcessorMock.Verify(
+                x => x.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available),
+                Times.Once);
+
+            PackageFileServiceMock.Verify(
+                x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                Times.Once);
+
+            MessageServiceMock
+                .Verify(ms => ms.SendPackagePublishedMessage(Package), Times.Once());
+            MessageServiceMock
+                .Verify(ms => ms.SendPackagePublishedMessage(It.IsAny<Package>()), Times.Once());
         }
 
         [Theory]
-        [InlineData(ValidationStatus.Failed, PackageStatus.Validating, PackageStatus.FailedValidation)]
-        [InlineData(ValidationStatus.Failed, PackageStatus.Available, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation, PackageStatus.FailedValidation)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.Validating, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available, PackageStatus.Available)]
-        [InlineData(ValidationStatus.Succeeded, PackageStatus.FailedValidation, PackageStatus.Available)]
-        public async Task MarksPackageStatusBasedOnValidatorResults(ValidationStatus validation, PackageStatus fromStatus, PackageStatus toStatus)
+        [InlineData(ValidationStatus.Failed, PackageStatus.Validating, PackageStatus.FailedValidation, true)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.Available, PackageStatus.Available, false)]
+        [InlineData(ValidationStatus.Failed, PackageStatus.FailedValidation, PackageStatus.FailedValidation, false)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Validating, PackageStatus.Available, true)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.Available, PackageStatus.Available, true)]
+        [InlineData(ValidationStatus.Succeeded, PackageStatus.FailedValidation, PackageStatus.Available, true)]
+        public async Task MarksPackageStatusBasedOnValidatorResults(
+            ValidationStatus validation,
+            PackageStatus fromStatus,
+            PackageStatus toStatus,
+            bool setPackageStatus)
         {
             AddValidation("validation1", validation);
             Package.PackageStatusKey = fromStatus;
-
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, toStatus, true))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
 
             TimeSpan duration = default(TimeSpan);
             TelemetryServiceMock
@@ -263,163 +322,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var before = DateTime.UtcNow;
             await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
             var after = DateTime.UtcNow;
-            
-            if (fromStatus != toStatus)
+
+            if (setPackageStatus)
             {
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(Package, toStatus, true), Times.Once);
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once);
-                TelemetryServiceMock
-                    .Verify(ts => ts.TrackPackageStatusChange(fromStatus, toStatus), Times.Once);
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(Package, ValidationSet, toStatus),
+                    Times.Once);
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                    Times.Once);
             }
             else
             {
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never);
-                TelemetryServiceMock
-                    .Verify(ts => ts.TrackPackageStatusChange(It.IsAny<PackageStatus>(), It.IsAny<PackageStatus>()), Times.Never);
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                    Times.Never);
             }
 
+            PackageFileServiceMock.Verify(
+                x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                Times.Once);
             TelemetryServiceMock
                 .Verify(ts => ts.TrackTotalValidationDuration(It.IsAny<TimeSpan>(), It.IsAny<bool>()), Times.Once());
             Assert.InRange(duration, before - ValidationSet.Created, after - ValidationSet.Created);
-        }
-
-        [Fact]
-        public async Task DeletesValidationPackageOnSuccess()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
-            var procecssor = CreateProcessor();
-            await procecssor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once());
-        }
-
-        [Fact]
-        public async Task DeletesPackageFromPublicStorageOnDbUpdateFailure()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            const string exceptionText = "Everything failed";
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
-                .Throws(new Exception(exceptionText))
-                .Verifiable();
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeletePackageFileAsync(Package.PackageRegistration.Id, Package.Version))
-                .Returns(Task.FromResult(0))
-                .Verifiable();
-
-            var processor = CreateProcessor();
-            var exception = await Assert.ThrowsAsync<Exception>(() => processor.ProcessValidationOutcomeAsync(ValidationSet, Package));
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeletePackageFileAsync(Package.PackageRegistration.Id, Package.Version), Times.AtLeastOnce());
-            Assert.Equal(exceptionText, exception.Message);
-
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeletePackageForValidationSetAsync(ValidationSet), Times.Never);
-        }
-
-        [Fact]
-        public async Task CopyDbUpdateDeleteInCorrectOrderWhenValidationSetPackageExists()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            var operations = new List<string>();
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationSetPackageExistAsync(ValidationSet))
-                .ReturnsAsync(true)
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DoesValidationSetPackageExistAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.CopyValidationSetPackageToPackageFileAsync(ValidationSet))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.CopyValidationSetPackageToPackageFileAsync)));
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(ICorePackageService.UpdatePackageStatusAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DeleteValidationPackageFileAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeletePackageForValidationSetAsync(ValidationSet))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DeletePackageForValidationSetAsync)));
-
-            var procecssor = CreateProcessor();
-            await procecssor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            var expectedOrder = new[]
-            {
-                nameof(IValidationPackageFileService.DoesValidationSetPackageExistAsync),
-                nameof(IValidationPackageFileService.CopyValidationSetPackageToPackageFileAsync),
-                nameof(ICorePackageService.UpdatePackageStatusAsync),
-                nameof(IValidationPackageFileService.DeleteValidationPackageFileAsync),
-                nameof(IValidationPackageFileService.DeletePackageForValidationSetAsync),
-            };
-
-            Assert.Equal(expectedOrder, operations);
-        }
-
-        [Fact]
-        public async Task CopyDbUpdateDeleteInCorrectOrderWhenValidationSetPackageDoesNotExist()
-        {
-            AddValidation("validation1", ValidationStatus.Succeeded);
-            Package.PackageStatusKey = PackageStatus.Validating;
-
-            var operations = new List<string>();
-
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationSetPackageExistAsync(ValidationSet))
-                .ReturnsAsync(false)
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DoesValidationSetPackageExistAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.CopyValidationPackageToPackageFileAsync(Package.PackageRegistration.Id, Package.NormalizedVersion))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.CopyValidationPackageToPackageFileAsync)));
-            PackageServiceMock
-                .Setup(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(ICorePackageService.UpdatePackageStatusAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeleteValidationPackageFileAsync(Package.PackageRegistration.Id, Package.Version))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DeleteValidationPackageFileAsync)));
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DeletePackageForValidationSetAsync(ValidationSet))
-                .Returns(Task.FromResult(0))
-                .Callback(() => operations.Add(nameof(IValidationPackageFileService.DeletePackageForValidationSetAsync)));
-
-            var procecssor = CreateProcessor();
-            await procecssor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            var expectedOrder = new[]
-            {
-                nameof(IValidationPackageFileService.DoesValidationSetPackageExistAsync),
-                nameof(IValidationPackageFileService.CopyValidationPackageToPackageFileAsync),
-                nameof(ICorePackageService.UpdatePackageStatusAsync),
-                nameof(IValidationPackageFileService.DeleteValidationPackageFileAsync),
-                nameof(IValidationPackageFileService.DeletePackageForValidationSetAsync),
-            };
-
-            Assert.Equal(expectedOrder, operations);
         }
 
         [Fact]
@@ -428,11 +353,24 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             AddValidation("validation1", ValidationStatus.Failed);
             Package.PackageStatusKey = PackageStatus.Available;
 
-            var procecssor = CreateProcessor();
-            await procecssor.ProcessValidationOutcomeAsync(ValidationSet, Package);
+            var processor = CreateProcessor();
+            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
 
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.FailedValidation, It.IsAny<bool>()), Times.Never());
+            PackageFileServiceMock.Verify(
+                x => x.DeletePackageForValidationSetAsync(ValidationSet),
+                Times.Once);
+            PackageStateProcessorMock.Verify(
+                x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendPackageSignedValidationFailedMessage(It.IsAny<Package>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendPackageValidationFailedMessage(It.IsAny<Package>()),
+                Times.Never);
+            MessageServiceMock.Verify(
+                x => x.SendPackagePublishedMessage(It.IsAny<Package>()),
+                Times.Never);
         }
 
         [Theory]
@@ -456,7 +394,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Configuration.Validations.Add(new ValidationConfigurationItem
                 {
                     Name = "validation" + cfgValidatorIndex,
-                    FailAfter = TimeSpan.FromDays(1),
+                    TrackAfter = TimeSpan.FromDays(1),
                     RequiredValidations = new List<string> { }
                 });
             }
@@ -476,44 +414,23 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             if (expectedStatus != PackageStatus.Validating)
             {
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(Package, expectedStatus, true), Times.Once());
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Once());
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(Package, ValidationSet, expectedStatus),
+                    Times.Once);
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), expectedStatus),
+                    Times.Once);
             }
             else
             {
-                PackageServiceMock
-                    .Verify(ps => ps.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()), Times.Never());
+                PackageStateProcessorMock.Verify(
+                    x => x.SetPackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
+                    Times.Never);
             }
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task TracksMissingNupkgForAvailablePackage(bool validationFileExists)
-        {
-            Package.PackageStatusKey = PackageStatus.Available;
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesPackageFileExistAsync(Package))
-                .ReturnsAsync(false);
-            PackageFileServiceMock
-                .Setup(pfs => pfs.DoesValidationPackageFileExistAsync(Package))
-                .ReturnsAsync(validationFileExists);
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, Package);
-
-            TelemetryServiceMock
-                .Verify(ts => ts.TrackMissingNupkgForAvailablePackage(
-                    ValidationSet.PackageId,
-                    ValidationSet.PackageNormalizedVersion,
-                    ValidationSet.ValidationTrackingId.ToString()),
-                Times.Once());
-        }
-
         [Fact]
-        public async Task PublishedNotificationSendFailureDoesNotCausePackageToBeDeleted()
+        public async Task PackageStillBecomesAvailableIfPublishedMessageFails()
         {
             var exception = new Exception("Something baaad happened");
 
@@ -524,21 +441,24 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Package.PackageStatusKey = PackageStatus.Validating;
 
             var processor = CreateProcessor();
-            var thrownException = await Record.ExceptionAsync(async () => await processor.ProcessValidationOutcomeAsync(ValidationSet, Package));
+            var thrownException = await Record.ExceptionAsync(
+                async () => await processor.ProcessValidationOutcomeAsync(ValidationSet, Package));
 
             Assert.NotNull(thrownException);
-            PackageServiceMock
-                .Verify(ps => ps.UpdatePackageStatusAsync(Package, PackageStatus.Available, true),
-                    Times.Once());
-            PackageFileServiceMock
-                .Verify(pfs => pfs.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never());
+            PackageStateProcessorMock.Verify(
+                x => x.SetPackageStatusAsync(Package, ValidationSet, PackageStatus.Available),
+                Times.Once);
+            PackageFileServiceMock.Verify(
+                x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()),
+                Times.Never);
         }
 
         public ValidationOutcomeProcessorFacts()
         {
-            PackageServiceMock = new Mock<ICorePackageService>();
-            PackageFileServiceMock = new Mock<IValidationPackageFileService>();
+            ValidationStorageServiceMock = new Mock<IValidationStorageService>();
             ValidationEnqueuerMock = new Mock<IPackageValidationEnqueuer>();
+            PackageStateProcessorMock = new Mock<IPackageStatusProcessor>();
+            PackageFileServiceMock = new Mock<IValidationPackageFileService>();
             ConfigurationAccessorMock = new Mock<IOptionsSnapshot<ValidationConfiguration>>();
             MessageServiceMock = new Mock<IMessageService>();
             TelemetryServiceMock = new Mock<ITelemetryService>();
@@ -561,7 +481,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             ValidationSet.PackageId = Package.PackageRegistration.Id;
             ValidationSet.PackageNormalizedVersion = Package.NormalizedVersion;
             ValidationSet.ValidationTrackingId = Guid.NewGuid();
-            ValidationSet.Created = new DateTime(2017, 1, 1, 8, 30, 0, DateTimeKind.Utc);
+            ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromHours(3);
+            ValidationSet.Updated = ValidationSet.Created + TimeSpan.FromHours(1);
 
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
@@ -571,16 +492,18 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected ValidationOutcomeProcessor CreateProcessor()
         {
             return new ValidationOutcomeProcessor(
-                PackageServiceMock.Object,
-                PackageFileServiceMock.Object,
+                ValidationStorageServiceMock.Object,
                 ValidationEnqueuerMock.Object,
+                PackageStateProcessorMock.Object,
+                PackageFileServiceMock.Object,
                 ConfigurationAccessorMock.Object,
                 MessageServiceMock.Object,
                 TelemetryServiceMock.Object,
                 LoggerMock.Object);
         }
 
-        protected Mock<ICorePackageService> PackageServiceMock { get; }
+        protected Mock<IValidationStorageService> ValidationStorageServiceMock { get; }
+        protected Mock<IPackageStatusProcessor> PackageStateProcessorMock { get; }
         protected Mock<IValidationPackageFileService> PackageFileServiceMock { get; }
         protected Mock<IPackageValidationEnqueuer> ValidationEnqueuerMock { get; }
         protected Mock<IOptionsSnapshot<ValidationConfiguration>> ConfigurationAccessorMock { get; }
@@ -591,18 +514,24 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         protected PackageValidationSet ValidationSet { get; }
         protected Package Package { get; }
 
-        private void AddValidation(string validationName, ValidationStatus validationStatus, ValidationFailureBehavior failureBehavior = ValidationFailureBehavior.MustSucceed)
+        private void AddValidation(
+            string validationName,
+            ValidationStatus validationStatus,
+            ValidationFailureBehavior failureBehavior = ValidationFailureBehavior.MustSucceed,
+            DateTime? validationStart = null,
+            TimeSpan? trackAfter = null)
         {
             ValidationSet.PackageValidations.Add(new PackageValidation
             {
                 Type = validationName,
+                Started = validationStart,
                 ValidationStatus = validationStatus,
                 PackageValidationIssues = new List<PackageValidationIssue> { },
             });
             Configuration.Validations.Add(new ValidationConfigurationItem
             {
                 Name = validationName,
-                FailAfter = TimeSpan.FromDays(1),
+                TrackAfter = trackAfter ?? TimeSpan.FromDays(1),
                 RequiredValidations = new List<string> { },
                 ShouldStart = true,
                 FailureBehavior = failureBehavior

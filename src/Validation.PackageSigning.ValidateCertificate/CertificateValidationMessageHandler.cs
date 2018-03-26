@@ -50,94 +50,99 @@ namespace Validation.PackageSigning.ValidateCertificate
         /// <returns>Whether the validation completed. If false, the validation should be retried later.</returns>
         public async Task<bool> HandleAsync(CertificateValidationMessage message)
         {
-            var validation = await _certificateValidationService.FindCertificateValidationAsync(message);
-
-            if (validation == null)
+            using (_logger.BeginScope("Handling validate certificate message {CertificateKey} {ValidationId}",
+                message.CertificateKey,
+                message.ValidationId))
             {
-                _logger.LogInformation(
-                    "Could not find a certificate validation entity, failing (certificate: {CertificateKey} validation: {ValidationId})",
-                    message.CertificateKey,
-                    message.ValidationId);
+                var validation = await _certificateValidationService.FindCertificateValidationAsync(message);
 
-                return false;
-            }
-
-            if (validation.Status != null)
-            {
-                // A certificate validation should be queued with a Status of null, and once the certificate validation
-                // completes, the Status should be updated to a non-null value. Hence, the Status here SHOULD be null.
-                // A non-null Status may indicate message duplication.
-                _logger.LogWarning(
-                    "Invalid certificate validation entity's status, dropping message (certificate: {CertificateThumbprint} validation: {ValidationId})",
-                    validation.EndCertificate.Thumbprint,
-                    validation.ValidationId);
-
-                return true;
-            }
-
-            if (validation.EndCertificate.Status == EndCertificateStatus.Revoked)
-            {
-                if (message.RevalidateRevokedCertificate)
+                if (validation == null)
                 {
-                    _logger.LogWarning(
-                        "Revalidating certificate that is known to be revoked " +
-                        "(certificate: {CertificateThumbprint} validation: {ValidationId})",
-                        validation.EndCertificate.Thumbprint,
-                        validation.ValidationId);
+                    _logger.LogInformation(
+                        "Could not find a certificate validation entity, failing (certificate: {CertificateKey} validation: {ValidationId})",
+                        message.CertificateKey,
+                        message.ValidationId);
+
+                    return false;
                 }
-                else
+
+                if (validation.Status != null)
                 {
-                    // Do NOT revalidate a certificate that is known to be revoked unless explicitly told to!
-                    // Certificate Authorities are not required to keep a certificate's revocation information
-                    // forever, therefore, revoked certificates should only be revalidated in special cases.
-                    _logger.LogError(
-                        "Certificate known to be revoked MUST be validated with the " +
-                        $"{nameof(CertificateValidationMessage.RevalidateRevokedCertificate)} flag enabled " +
-                        "(certificate: {CertificateThumbprint} validation: {ValidationId})",
+                    // A certificate validation should be queued with a Status of null, and once the certificate validation
+                    // completes, the Status should be updated to a non-null value. Hence, the Status here SHOULD be null.
+                    // A non-null Status may indicate message duplication.
+                    _logger.LogWarning(
+                        "Invalid certificate validation entity's status, dropping message (certificate: {CertificateThumbprint} validation: {ValidationId})",
                         validation.EndCertificate.Thumbprint,
                         validation.ValidationId);
 
                     return true;
                 }
-            }
 
-            CertificateVerificationResult result;
-
-            using (var certificates = await LoadCertificatesAsync(validation))
-            {
-                switch (validation.EndCertificate.Use)
+                if (validation.EndCertificate.Status == EndCertificateStatus.Revoked)
                 {
-                    case EndCertificateUse.CodeSigning:
-                        result = _certificateVerifier.VerifyCodeSigningCertificate(
-                                    certificates.EndCertificate,
-                                    certificates.AncestorCertificates);
-                        break;
+                    if (message.RevalidateRevokedCertificate)
+                    {
+                        _logger.LogWarning(
+                            "Revalidating certificate that is known to be revoked " +
+                            "(certificate: {CertificateThumbprint} validation: {ValidationId})",
+                            validation.EndCertificate.Thumbprint,
+                            validation.ValidationId);
+                    }
+                    else
+                    {
+                        // Do NOT revalidate a certificate that is known to be revoked unless explicitly told to!
+                        // Certificate Authorities are not required to keep a certificate's revocation information
+                        // forever, therefore, revoked certificates should only be revalidated in special cases.
+                        _logger.LogError(
+                            "Certificate known to be revoked MUST be validated with the " +
+                            $"{nameof(CertificateValidationMessage.RevalidateRevokedCertificate)} flag enabled " +
+                            "(certificate: {CertificateThumbprint} validation: {ValidationId})",
+                            validation.EndCertificate.Thumbprint,
+                            validation.ValidationId);
 
-                    case EndCertificateUse.Timestamping:
-                        result = _certificateVerifier.VerifyTimestampingCertificate(
-                                    certificates.EndCertificate,
-                                    certificates.AncestorCertificates);
-                        break;
-
-                    default:
-                        throw new InvalidOperationException($"Unknown {nameof(EndCertificateUse)}: {validation.EndCertificate.Use}");
+                        return true;
+                    }
                 }
+
+                CertificateVerificationResult result;
+
+                using (var certificates = await LoadCertificatesAsync(validation))
+                {
+                    switch (validation.EndCertificate.Use)
+                    {
+                        case EndCertificateUse.CodeSigning:
+                            result = _certificateVerifier.VerifyCodeSigningCertificate(
+                                        certificates.EndCertificate,
+                                        certificates.AncestorCertificates);
+                            break;
+
+                        case EndCertificateUse.Timestamping:
+                            result = _certificateVerifier.VerifyTimestampingCertificate(
+                                        certificates.EndCertificate,
+                                        certificates.AncestorCertificates);
+                            break;
+
+                        default:
+                            throw new InvalidOperationException($"Unknown {nameof(EndCertificateUse)}: {validation.EndCertificate.Use}");
+                    }
+                }
+
+                // Save the result. This may alert if packages are invalidated.
+                if (!await _certificateValidationService.TrySaveResultAsync(validation, result))
+                {
+                    _logger.LogWarning(
+                        "Failed to save certificate validation result " +
+                        "(certificate: {CertificateThumbprint} validation: {ValidationId}), " +
+                        "failing validation",
+                        validation.EndCertificate.Thumbprint,
+                        validation.ValidationId);
+
+                    return false;
+                }
+
+                return HasValidationCompleted(validation, result);
             }
-
-            // Save the result. This may alert if packages are invalidated.
-            if (!await _certificateValidationService.TrySaveResultAsync(validation, result))
-            {
-                _logger.LogWarning(
-                    "Failed to save certificate validation result " +
-                    "(certificate: {CertificateThumbprint} validation: {ValidationId}), " +
-                    "failing validation",
-                    validation.EndCertificate.Thumbprint,
-                    validation.ValidationId);
-
-                return false;
-            }
-
-            return HasValidationCompleted(validation, result);
         }
 
         private bool HasValidationCompleted(EndCertificateValidation validation, CertificateVerificationResult result)

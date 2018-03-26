@@ -3,8 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Reflection;
 using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
@@ -18,6 +19,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -26,9 +28,10 @@ using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
-using NuGet.Services.Validation.PackageCertificates;
-using NuGet.Services.Validation.PackageSigning;
+using NuGet.Services.Validation.PackageSigning.ProcessSignature;
+using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
 using NuGet.Services.Validation.Vcs;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Services;
 
 namespace NuGet.Services.Validation.Orchestrator
@@ -48,6 +51,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string SmtpConfigurationSectionName = "Smtp";
         private const string EmailConfigurationSectionName = "Email";
+        private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
         private const string VcsBindingKey = VcsSectionName;
         private const string PackageVerificationTopicClientBindingKey = "PackageVerificationTopicClient";
@@ -140,8 +144,8 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             services.Configure<ValidationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
             services.Configure<VcsConfiguration>(configurationRoot.GetSection(VcsSectionName));
-            services.Configure<PackageSigningConfiguration>(configurationRoot.GetSection(PackageSigningSectionName));
-            services.Configure<PackageCertificatesConfiguration>(configurationRoot.GetSection(PackageCertificatesSectionName));
+            services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(PackageSigningSectionName));
+            services.Configure<ValidateCertificateConfiguration>(configurationRoot.GetSection(PackageCertificatesSectionName));
             services.Configure<OrchestrationRunnerConfiguration>(configurationRoot.GetSection(RunnerConfigurationSectionName));
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
@@ -182,8 +186,22 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<IPackageCriteriaEvaluator, PackageCriteriaEvaluator>();
             services.AddTransient<VcsValidator>();
-            services.AddTransient<IPackageSignatureVerificationEnqueuer, PackageSignatureVerificationEnqueuer>();
+            services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
+            services.AddTransient<NuGetGallery.ICloudBlobClient>(c =>
+                {
+                    var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationConfiguration>>();
+                    return new NuGetGallery.CloudBlobClientWrapper(
+                        configurationAccessor.Value.ValidationStorageConnectionString,
+                        readAccessGeoRedundant: false);
+                });
+            services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
+            services.AddTransient<IValidationPackageFileService, ValidationPackageFileService>();
+            services.AddTransient<IPackageDownloader, PackageDownloader>();
+            services.AddTransient<IPackageStatusProcessor, PackageStatusProcessor>();
+            services.AddTransient<IValidationSetProvider, ValidationSetProvider>();
+            services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
+            services.AddTransient<IBrokeredMessageSerializer<CertificateValidationMessage>, CertificateValidationMessageSerializer>();
             services.AddTransient<IValidatorStateService, ValidatorStateService>();
             services.AddTransient<PackageSigningValidator>();
             services.AddTransient<MailSenderConfiguration>(serviceProvider =>
@@ -217,8 +235,29 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<ICoreMessageService, CoreMessageService>();
             services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
+            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddSingleton(new TelemetryClient());
+            services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
+            services.AddSingleton(p =>
+            {
+                var assembly = Assembly.GetEntryAssembly();
+                var assemblyName = assembly.GetName().Name;
+                var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
+
+                var client = new HttpClient(new WebRequestHandler
+                {
+                    AllowPipelining = true,
+                    AutomaticDecompression = (DecompressionMethods.GZip | DecompressionMethods.Deflate),
+                });
+
+                client.Timeout = configurationRoot.GetValue<TimeSpan>(PackageDownloadTimeoutName);
+                client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
+
+                return client;
+            });
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)
@@ -263,7 +302,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 .As<IPackageValidationAuditor>();
 
             containerBuilder
-                .RegisterType<PackageSignatureVerificationEnqueuer>()
+                .RegisterType<ProcessSignatureEnqueuer>()
                 .WithParameter(new ResolvedParameter(
                     (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
                     (pi, ctx) => ctx.ResolveKeyed<TopicClientWrapper>(PackageVerificationTopicClientBindingKey)))
@@ -271,43 +310,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     (pi, ctx) => pi.ParameterType == typeof(IBrokeredMessageSerializer<SignatureValidationMessage>),
                     (pi, ctx) => ctx.Resolve<SignatureValidationMessageSerializer>()
                     ))
-                .As<IPackageSignatureVerificationEnqueuer>();
-
-            containerBuilder
-                .Register(c => 
-                {
-                    var configurationAccessor = c.Resolve<IOptionsSnapshot<ValidationConfiguration>>();
-                    return new NuGetGallery.CloudBlobClientWrapper(configurationAccessor.Value.ValidationStorageConnectionString, false);
-                })
-                .Keyed<NuGetGallery.ICloudBlobClient>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService, NuGetGallery.ICloudBlobClient>(
-                    typeKey: ValidationStorageBindingKey,
-                    parameterKey: ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterKeyedTypeWithKeyedParameter<IValidationPackageFileService, ValidationPackageFileService, NuGetGallery.ICoreFileStorageService>(
-                    typeKey: ValidationStorageBindingKey,
-                    parameterKey: ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationOutcomeProcessor,
-                    ValidationOutcomeProcessor,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationSetProvider,
-                    ValidationSetProvider,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
-
-            containerBuilder
-                .RegisterTypeWithKeyedParameter<
-                    IValidationSetProcessor,
-                    ValidationSetProcessor,
-                    IValidationPackageFileService>(ValidationStorageBindingKey);
+                .As<IProcessSignatureEnqueuer>();
 
             containerBuilder
                 .RegisterType<ScopedMessageHandler<PackageValidationMessageData>>()
@@ -340,16 +343,16 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .Register(c =>
                 {
-                    var configuration = c.Resolve<IOptionsSnapshot<PackageSigningConfiguration>>().Value.ServiceBus;
+                    var configuration = c.Resolve<IOptionsSnapshot<ProcessSignatureConfiguration>>().Value.ServiceBus;
 
                     return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
                 })
                 .Keyed<ITopicClient>(PackageSigningBindingKey);
 
             builder
-                .RegisterType<PackageSignatureVerificationEnqueuer>()
+                .RegisterType<ProcessSignatureEnqueuer>()
                 .WithKeyedParameter(typeof(ITopicClient), PackageSigningBindingKey)
-                .As<IPackageSignatureVerificationEnqueuer>();
+                .As<IProcessSignatureEnqueuer>();
 
             // Configure the package signing validator.
             builder
@@ -372,16 +375,16 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .Register(c =>
                 {
-                    var configuration = c.Resolve<IOptionsSnapshot<PackageCertificatesConfiguration>>().Value.ServiceBus;
+                    var configuration = c.Resolve<IOptionsSnapshot<ValidateCertificateConfiguration>>().Value.ServiceBus;
 
                     return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
                 })
                 .Keyed<ITopicClient>(PackageCertificatesBindingKey);
 
             builder
-                .RegisterType<CertificateVerificationEnqueuer>()
+                .RegisterType<ValidateCertificateEnqueuer>()
                 .WithKeyedParameter(typeof(ITopicClient), PackageCertificatesBindingKey)
-                .As<ICertificateVerificationEnqueuer>();
+                .As<IValidateCertificateEnqueuer>();
 
             // Configure the certificates validator.
             builder
@@ -389,7 +392,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 .WithKeyedParameter(typeof(IValidatorStateService), PackageCertificatesBindingKey)
                 .WithParameter(
                     (pi, ctx) => pi.ParameterType == typeof(TimeSpan?),
-                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<PackageCertificatesConfiguration>>().Value.CertificateRevalidationThreshold)
+                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<ValidateCertificateConfiguration>>().Value.CertificateRevalidationThreshold)
                 .As<PackageCertificatesValidator>();
         }
 

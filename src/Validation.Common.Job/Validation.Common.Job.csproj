@@ -36,11 +36,16 @@
     <Reference Include="System.Data" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CommonTelemetryService.cs" />
     <Compile Include="Error.cs" />
     <Compile Include="ExceptionExtensions.cs" />
+    <Compile Include="ICommonTelemetryService.cs" />
     <Compile Include="IPackageDownloader.cs" />
+    <Compile Include="LoggerDiagnosticsService.cs" />
+    <Compile Include="LoggerDiagnosticsSource.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="Storage\AddStatusResult.cs" />
     <Compile Include="Storage\IValidatorStateService.cs" />
     <Compile Include="Storage\SaveStatusResult.cs" />
@@ -67,22 +72,22 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.7.0-preview1-4886</Version>
+      <Version>4.7.0-preview1.5029</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.17.0</Version>
+      <Version>2.19.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.17.0</Version>
+      <Version>2.19.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Storage">
-      <Version>2.17.0</Version>
+      <Version>2.19.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.17.0</Version>
+      <Version>2.19.1</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-dev-25129</Version>
+      <Version>4.4.4-dev-26021</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>2.5.0</Version>

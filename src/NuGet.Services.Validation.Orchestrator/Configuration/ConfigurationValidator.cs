@@ -67,9 +67,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     throw new ConfigurationErrorsException("Validation name cannot be empty");
                 }
 
-                if (validationConfigurationItem.FailAfter == TimeSpan.Zero)
+                if (validationConfigurationItem.TrackAfter == TimeSpan.Zero)
                 {
-                    throw new ConfigurationErrorsException($"failAfter timeout must be set for validation {validationConfigurationItem.Name}");
+                    throw new ConfigurationErrorsException($"{nameof(validationConfigurationItem.TrackAfter)} must be set for validation {validationConfigurationItem.Name}");
                 }
             }
         }
@@ -102,9 +102,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             foreach (var validatorItem in _configuration.Validations)
             {
-                // This method will throw if the validator does not exist.
-                var validatorType = _validatorProvider.GetValidatorType(validatorItem.Name);
-                if (validatorType == null)
+                if (!_validatorProvider.IsValidator(validatorItem.Name))
                 {
                     throw new ConfigurationErrorsException("Validator implementation not found for " + validatorItem.Name);
                 }
@@ -142,7 +140,7 @@ namespace NuGet.Services.Validation.Orchestrator
             var processorNames = _configuration
                 .Validations
                 .Select(x => x.Name)
-                .Where(x => typeof(IProcessor).IsAssignableFrom(_validatorProvider.GetValidatorType(x)))
+                .Where(x => _validatorProvider.IsProcessor(x))
                 .ToList();
 
             TopologicalSort.Validate(_configuration.Validations, processorNames);

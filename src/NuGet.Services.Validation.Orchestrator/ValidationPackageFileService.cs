@@ -2,23 +2,42 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation;
 using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
     public class ValidationPackageFileService : CorePackageFileService, IValidationPackageFileService
     {
+        /// <summary>
+        /// The value picked today is based off of the maximum duration we wait when downloading packages using the
+        /// <see cref="IPackageDownloader"/>.
+        /// </summary>
+        private static readonly TimeSpan AccessDuration = TimeSpan.FromMinutes(10);
+
         private readonly ICoreFileStorageService _fileStorageService;
+        private readonly IPackageDownloader _packageDownloader;
         private readonly ILogger<ValidationPackageFileService> _logger;
 
         public ValidationPackageFileService(
             ICoreFileStorageService fileStorageService,
+            IPackageDownloader packageDownloader,
             ILogger<ValidationPackageFileService> logger) : base(fileStorageService)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+            _packageDownloader = packageDownloader ?? throw new ArgumentNullException(nameof(packageDownloader));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Stream> DownloadPackageFileToDiskAsync(Package package)
+        {
+            var packageUri = await GetPackageReadUriAsync(package);
+
+            return await _packageDownloader.DownloadAsync(packageUri, CancellationToken.None);
         }
 
         public Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet)
@@ -33,10 +52,29 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.ValidationFolderName,
                 srcFileName,
                 CoreConstants.ValidationFolderName,
-                BuildValidationSetPackageFileName(validationSet));
+                BuildValidationSetPackageFileName(validationSet),
+                AccessConditionWrapper.GenerateEmptyCondition());
         }
 
-        public Task CopyPackageFileForValidationSetAsync(PackageValidationSet validationSet)
+        public async Task BackupPackageFileFromValidationSetPackageAsync(Package package, PackageValidationSet validationSet)
+        {
+            _logger.LogInformation(
+                "Backing up package for validation set {ValidationTrackingId} ({PackageId} {PackageVersion}).",
+                validationSet.ValidationTrackingId,
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion);
+
+            var packageUri = await GetPackageForValidationSetReadUriAsync(
+                validationSet,
+                DateTimeOffset.UtcNow.Add(AccessDuration));
+
+            using (var packageStream = await _packageDownloader.DownloadAsync(packageUri, CancellationToken.None))
+            {
+                await StorePackageFileInBackupLocationAsync(package, packageStream);
+            }
+        }
+
+        public Task<string> CopyPackageFileForValidationSetAsync(PackageValidationSet validationSet)
         {
             var srcFileName = BuildFileName(
                 validationSet.PackageId,
@@ -48,7 +86,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.PackagesFolderName,
                 srcFileName,
                 CoreConstants.ValidationFolderName,
-                BuildValidationSetPackageFileName(validationSet));
+                BuildValidationSetPackageFileName(validationSet),
+                AccessConditionWrapper.GenerateEmptyCondition());
         }
 
         public Task CopyValidationPackageToPackageFileAsync(string id, string normalizedVersion)
@@ -63,10 +102,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.ValidationFolderName,
                 fileName,
                 CoreConstants.PackagesFolderName,
-                fileName);
+                fileName,
+                AccessConditionWrapper.GenerateIfNotExistsCondition());
         }
 
-        public Task CopyValidationSetPackageToPackageFileAsync(PackageValidationSet validationSet)
+        public Task CopyValidationSetPackageToPackageFileAsync(
+            PackageValidationSet validationSet,
+            IAccessCondition destAccessCondition)
         {
             var srcFileName = BuildValidationSetPackageFileName(validationSet);
 
@@ -80,7 +122,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.ValidationFolderName,
                 srcFileName,
                 CoreConstants.PackagesFolderName,
-                destFileName);
+                destFileName,
+                destAccessCondition);
         }
 
         public Task<bool> DoesValidationSetPackageExistAsync(PackageValidationSet validationSet)
@@ -110,7 +153,29 @@ namespace NuGet.Services.Validation.Orchestrator
             return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
         }
 
-        private Task CopyFileAsync(string srcFolderName, string srcFileName, string destFolderName, string destFileName)
+        public Task CopyPackageUrlForValidationSetAsync(PackageValidationSet validationSet, string srcPackageUrl)
+        {
+            var destFileName = BuildValidationSetPackageFileName(validationSet);
+
+            _logger.LogInformation(
+                "Copying URL {SrcPackageUrl} to {DestFolderName}/{DestFileName}.",
+                srcPackageUrl,
+                CoreConstants.ValidationFolderName,
+                srcPackageUrl);
+
+            return _fileStorageService.CopyFileAsync(
+                new Uri(srcPackageUrl),
+                CoreConstants.ValidationFolderName,
+                destFileName,
+                AccessConditionWrapper.GenerateEmptyCondition());
+        }
+
+        private Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
         {
             _logger.LogInformation(
                 "Copying file {SrcFolderName}/{SrcFileName} to {DestFolderName}/{DestFileName}.",
@@ -123,7 +188,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 srcFolderName,
                 srcFileName,
                 destFolderName,
-                destFileName);
+                destFileName,
+                destAccessCondition);
         }
 
         private static string BuildValidationSetPackageFileName(PackageValidationSet validationSet)

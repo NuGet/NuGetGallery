@@ -2,73 +2,158 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class ValidationProviderFacts
     {
-        private Mock<IServiceProvider> ServiceProviderMock { get; }
-        private Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
-
-        [Fact]
-        public void ValidatorSmokeTest()
+        public class Constructor
         {
-            var validator = new TestValidator();
+            private readonly ITestOutputHelper _output;
 
-            ServiceProviderMock
-                .Setup(sp => sp.GetService(validator.GetType()))
-                .Returns(() => validator);
+            public Constructor(ITestOutputHelper output)
+            {
+                _output = output ?? throw new ArgumentNullException(nameof(output));
+            }
 
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var result = provider.GetValidator(validator.GetType().Name);
+            [Fact]
+            public void CachesEvaluatedTypes()
+            {
+                var messages = new ConcurrentBag<string>();
+                var serviceProvider = new Mock<IServiceProvider>();
+                var loggerFactory = new LoggerFactory().AddXunit(_output);
+                var innerLogger = loggerFactory.CreateLogger<ValidatorProvider>();
+                var logger = new RecordingLogger<ValidatorProvider>(innerLogger);
 
-            ServiceProviderMock
-                .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
-            Assert.IsType(validator.GetType(), result);
+                _output.WriteLine("Initializing the first instance.");
+
+                var targetA = new ValidatorProvider(serviceProvider.Object, logger);
+                var messageCountA = logger.Messages.Count;
+
+                _output.WriteLine("Initializing the second instance.");
+
+                var targetB = new ValidatorProvider(serviceProvider.Object, logger);
+                var messageCountB = logger.Messages.Count;
+
+                Assert.Equal(messageCountA, messageCountB);
+            }
         }
 
-        [Fact]
-        public void ProcessorSmokeTest()
+        public class IsProcessor : BaseFacts
         {
-            var processor = new TestProcessor();
-
-            ServiceProviderMock
-                .Setup(sp => sp.GetService(processor.GetType()))
-                .Returns(() => processor);
-
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var result = provider.GetValidator(processor.GetType().Name);
-
-            ServiceProviderMock
-                .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
-            Assert.IsType(processor.GetType(), result);
+            [Theory]
+            [InlineData(nameof(TestProcessor), true)]
+            [InlineData(nameof(TestValidator), false)]
+            [InlineData(nameof(IsProcessor), false)]
+            [InlineData(nameof(IProcessor), false)]
+            [InlineData(nameof(IValidator), false)]
+            [InlineData("NotARealType", false)]
+            public void ReturnsTrueForProcessors(string name, bool expected)
+            {
+                Assert.Equal(expected, Target.IsProcessor(name));
+            }
         }
 
-        [Fact]
-        public void ThrowsOnNullArgument()
+        public class IsValidator : BaseFacts
         {
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            Assert.Throws<ArgumentNullException>(() => provider.GetValidator(null));
+            [Theory]
+            [InlineData(nameof(TestProcessor), true)]
+            [InlineData(nameof(TestValidator), true)]
+            [InlineData(nameof(IsProcessor), false)]
+            [InlineData(nameof(IProcessor), false)]
+            [InlineData(nameof(IValidator), false)]
+            [InlineData("NotARealType", false)]
+            public void ReturnsTrueForValidators(string name, bool expected)
+            {
+                Assert.Equal(expected, Target.IsValidator(name));
+            }
         }
 
-        [Fact]
-        public void ThrowsOnUnknownValidator()
+        public class GetValidator : BaseFacts
         {
-            const string validatorName = "someNonExistentValidator";
-            var provider = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentException>(() => provider.GetValidator(validatorName));
-            Assert.Contains(validatorName, ex.Message);
+            /// <summary>
+            /// Names of known processors. These must never change unless there is a well thought out migration story
+            /// or data fix. These names are encoded into DB tables used for orchestrator bookkeeping.
+            /// </summary>
+            [Theory]
+            [InlineData("VcsValidator", false)]
+            [InlineData("PackageSigningValidator", false)]
+            [InlineData("PackageCertificatesValidator", false)]
+            public void KnownValidatorsDoNotChangeNames(string validatorName, bool isProcessor)
+            {
+                Assert.True(Target.IsValidator(validatorName));
+                Assert.Equal(isProcessor, Target.IsProcessor(validatorName));
+            }
+
+            [Fact]
+            public void CanGetValidator()
+            {
+                var validator = new TestValidator();
+
+                ServiceProviderMock
+                    .Setup(sp => sp.GetService(validator.GetType()))
+                    .Returns(() => validator);
+
+                var result = Target.GetValidator(validator.GetType().Name);
+
+                ServiceProviderMock
+                    .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
+                Assert.IsType(validator.GetType(), result);
+            }
+
+            [Fact]
+            public void CanGetProcessor()
+            {
+                var processor = new TestProcessor();
+
+                ServiceProviderMock
+                    .Setup(sp => sp.GetService(processor.GetType()))
+                    .Returns(() => processor);
+                
+                var result = Target.GetValidator(processor.GetType().Name);
+
+                ServiceProviderMock
+                    .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
+                Assert.IsType(processor.GetType(), result);
+            }
+
+            [Fact]
+            public void ThrowsOnNullArgument()
+            {
+                Assert.Throws<ArgumentNullException>(() => Target.GetValidator(null));
+            }
+
+            [Fact]
+            public void ThrowsOnUnknownValidator()
+            {
+                const string validatorName = "someNonExistentValidator";
+
+                var ex = Assert.Throws<ArgumentException>(() => Target.GetValidator(validatorName));
+                Assert.Contains(validatorName, ex.Message);
+            }
         }
 
-        public ValidationProviderFacts()
+        public abstract class BaseFacts
         {
-            ServiceProviderMock = new Mock<IServiceProvider>();
-            LoggerMock = new Mock<ILogger<ValidatorProvider>>();
+            public BaseFacts()
+            {
+                ServiceProviderMock = new Mock<IServiceProvider>();
+                LoggerMock = new Mock<ILogger<ValidatorProvider>>();
 
+                Target = new ValidatorProvider(ServiceProviderMock.Object, LoggerMock.Object);
+            }
+
+            protected Mock<IServiceProvider> ServiceProviderMock { get; }
+            protected Mock<ILogger<ValidatorProvider>> LoggerMock { get; }
+            public ValidatorProvider Target { get; }
         }
 
         public class TestValidator : IValidator
