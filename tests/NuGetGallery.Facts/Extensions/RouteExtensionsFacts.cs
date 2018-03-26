@@ -22,8 +22,8 @@ namespace NuGetGallery.Extensions
 
             // Act + Assert
             Assert.True(RouteExtensions.ObfuscatedRouteMap.ContainsKey(_routeUrl));
-            Assert.Equal(_segment, RouteExtensions.ObfuscatedRouteMap[_routeUrl].ObfuscatedSegment);
-            Assert.Equal(_obfuscatedValue, RouteExtensions.ObfuscatedRouteMap[_routeUrl].ObfuscateValue);
+            Assert.Equal(_segment, RouteExtensions.ObfuscatedRouteMap[_routeUrl][0].ObfuscatedSegment);
+            Assert.Equal(_obfuscatedValue, RouteExtensions.ObfuscatedRouteMap[_routeUrl][0].ObfuscateValue);
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace NuGetGallery.Extensions
         {
             //Arrange
             var urlInput = "newtest/{user}";
-            var route = new Route(url: urlInput, routeHandler:null);
+            var route = new Route(url: urlInput, routeHandler: null);
 
             // Act
             var obfuscated = route.ObfuscateUrlPath("newtest/user1");

@@ -25,12 +25,17 @@ namespace NuGetGallery
             }
         }
 
-        internal static Dictionary<string, ObfuscatedMetadata> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata>();
+        internal static Dictionary<string, ObfuscatedMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata[]>();
 
         public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedMetadata obfuscationMetadata)
         {
+            routes.MapRoute(name, url, defaults, new[] { obfuscationMetadata });
+        }
+
+        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedMetadata[] obfuscationMetadatas)
+        {
             routes.MapRoute(name, url, defaults);
-            if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, obfuscationMetadata); }
+            if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, obfuscationMetadatas); }
         }
 
         public static string ObfuscateUrlPath(this Route route, string urlPath)
@@ -40,9 +45,12 @@ namespace NuGetGallery
             {
                 return null;
             }
-            var metadata = ObfuscatedRouteMap[path];
+            var metadatas = ObfuscatedRouteMap[path];
             string[] segments = urlPath.Split('/');
-            segments[metadata.ObfuscatedSegment] = metadata.ObfuscateValue;
+            foreach (var metadata in metadatas)
+            {
+                segments[metadata.ObfuscatedSegment] = metadata.ObfuscateValue;
+            }
             return string.Join("/", segments);
         }
     }
