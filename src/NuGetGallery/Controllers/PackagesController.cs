@@ -1248,19 +1248,27 @@ namespace NuGetGallery
 
             if (formData.Edit != null)
             {
-                // Update readme.md file, if modified.
-                var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(
-                    package,
-                    formData.Edit,
-                    Request.ContentEncoding,
-                    commitChanges: true);
-
-                if (readmeChanged)
+                try
                 {
-                    _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                    // Update readme.md file, if modified.
+                    var readmeChanged = await _readMeService.SaveReadMeMdIfChanged(
+                        package,
+                        formData.Edit,
+                        Request.ContentEncoding,
+                        commitChanges: true);
 
-                    // Add an auditing record for the package edit.
-                    await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
+                    if (readmeChanged)
+                    {
+                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+
+                        // Add an auditing record for the package edit.
+                        await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Edit));
+                    }
+                }
+                catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
+                {
+                    // Thrown when ReadmeUrlHost is invalid.
+                    return Json(400, new[] { Strings.ReadMeUrlHostInvalid });
                 }
             }
 
