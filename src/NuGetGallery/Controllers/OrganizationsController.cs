@@ -17,13 +17,21 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
+        public IPackageService PackageService { get; }
+
+        public IDeleteAccountService DeleteAccountService { get; }
+
         public OrganizationsController(
             AuthenticationService authService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
+            IUserService userService,
+            IPackageService packageService,
+            IDeleteAccountService deleteAccountService)
             : base(authService, curatedFeedService, messageService, userService)
         {
+            PackageService = packageService;
+            DeleteAccountService = deleteAccountService;
         }
 
         public override string AccountAction => nameof(ManageOrganization);
@@ -263,6 +271,84 @@ namespace NuGetGallery
             catch (EntityException e)
             {
                 return Json((int)HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult Delete(string accountName)
+        {
+            var account = GetAccount(accountName);
+            var currentUser = GetCurrentUser();
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            var listPackageItems = PackageService
+                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
+                 .ToList();
+
+            var model = new DeleteOrganizationViewModel()
+            {
+                Packages = listPackageItems,
+                Organization = account,
+                AccountName = currentUser.Username
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        public virtual async Task<ActionResult> ConfirmDelete(string accountName)
+        {
+            var account = GetAccount(accountName);
+            var currentUser = GetCurrentUser();
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            var listPackageItems = PackageService
+                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
+                 .ToList();
+
+            var model = new DeleteOrganizationViewModel()
+            {
+                Packages = listPackageItems,
+                Organization = account,
+                AccountName = currentUser.Username
+            };
+
+            if (model.HasOrphanPackages)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your organization unless you transfer ownership of all of its packages to another account.";
+
+                return RedirectToAction(nameof(Delete));
+            }
+
+            var result = await DeleteAccountService.DeleteGalleryOrganizationAccountAsync(account, currentUser, true);
+
+            if (result.Success)
+            {
+                TempData["Message"] = $"Your organization '{accountName}' was successfully deleted!";
+
+                return RedirectToAction("Organizations", "Users");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"There was an issue deleting your organization '{accountName}'. Please contact support for assistance.";
+
+                return RedirectToAction("Delete");
             }
         }
 

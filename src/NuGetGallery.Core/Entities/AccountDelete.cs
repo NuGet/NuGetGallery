@@ -9,6 +9,8 @@ namespace NuGetGallery
     public class AccountDelete
         : IEntity
     {
+        public const string NonAdminSignature = "Deleted By Non-Admin";
+
         public int Key { get; set; }
 
         /// <summary>

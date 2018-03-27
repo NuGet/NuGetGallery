@@ -872,6 +872,18 @@ namespace NuGetGallery
                 });
         }
 
+        public static string DeleteOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "Delete",
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
         public static string ManageMyPackages(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "Packages", "Users", relativeUrl);

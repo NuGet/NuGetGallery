@@ -7,22 +7,20 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class DeleteAccountViewModel
+    public class DeleteOrganizationViewModel
     {
         private Lazy<bool> _hasOrphanPackages;
 
-        public DeleteAccountViewModel()
+        public DeleteOrganizationViewModel()
         {
-            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(p => p.HasSingleUserOwner));
+            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(p => p.HasSingleOrganizationOwner));
         }
 
         public List<ListPackageItemViewModel> Packages { get; set; }
 
-        public User User { get; set; }
+        public Organization Organization { get; set; }
 
         public string AccountName { get; set; }
-
-        public bool HasPendingRequests { get; set; }
 
         public bool HasOrphanPackages
         {
