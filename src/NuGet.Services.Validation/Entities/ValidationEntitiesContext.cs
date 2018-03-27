@@ -39,7 +39,7 @@ namespace NuGet.Services.Validation
         private const string PackageSigningStatesPackageIdPackageVersionIndex = "IX_PackageSigningStates_PackageId_PackageNormalizedVersion";
 
         private const string PackageSignaturesTable = "PackageSignatures";
-        private const string PackageSignaturesPackageKeyIndex = "IX_PackageSignatures_PackageKey";
+        private const string PackageSignaturesPackageKeyTypeIndex = "IX_PackageSignatures_PackageKey_Type";
         private const string PackageSignaturesEndCertificateKeyIndex = "IX_PackageSignatures_EndCertificateKey";
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
 
@@ -301,7 +301,20 @@ namespace NuGet.Services.Validation
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(PackageSignaturesPackageKeyIndex)
+                        new IndexAttribute(PackageSignaturesPackageKeyTypeIndex, 0)
+                        {
+                            IsUnique = true,
+                        }
+                    }));
+
+            modelBuilder.Entity<PackageSignature>()
+                .Property(s => s.Type)
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(PackageSignaturesPackageKeyTypeIndex, 1)
                         {
                             IsUnique = true,
                         }

@@ -38,6 +38,11 @@ namespace NuGet.Services.Validation
         public PackageSignatureStatus Status { get; set; }
 
         /// <summary>
+        /// The type of this signature.
+        /// </summary>
+        public PackageSignatureType Type { get; set; }
+
+        /// <summary>
         /// Used for optimistic concurrency when updating package signatures.
         /// </summary>
         public byte[] RowVersion { get; set; }
