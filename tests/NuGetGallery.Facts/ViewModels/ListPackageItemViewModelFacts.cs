@@ -498,22 +498,22 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
                             var packageRegistration = new PackageRegistration { Owners = owners };
 
-                            var packageWithoutUser = new Package { PackageRegistration = packageRegistration };
+                            var packageWithoutUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
                             yield return MemberDataHelper.AsData(packageWithoutUser, currentUser, null);
 
                             var userThatIsNotOwner = new User("notAnOwner") { Key = key++ };
-                            var packageWithUserThatIsNotOwner = new Package { PackageRegistration = packageRegistration, User = userThatIsNotOwner };
+                            var packageWithUserThatIsNotOwner = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = userThatIsNotOwner };
                             yield return MemberDataHelper.AsData(packageWithUserThatIsNotOwner, currentUser, canViewPrivateMetadata ? userThatIsNotOwner.Username : null);
 
                             if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
                             {
-                                var packageWithUserUser = new Package { PackageRegistration = packageRegistration, User = packageOwner };
+                                var packageWithUserUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = packageOwner };
                                 yield return MemberDataHelper.AsData(packageWithUserUser, currentUser, canViewPrivateMetadata ? packageWithUserUser.User.Username : null);
                             }
 
                             if (organizationPackageOwnerState != OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner)
                             {
-                                var packageWithOrganizationUser = new Package { PackageRegistration = packageRegistration, User = organizationOwner };
+                                var packageWithOrganizationUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = organizationOwner };
 
                                 string expected = canViewPrivateMetadata ? 
                                     (organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ? 
@@ -528,6 +528,8 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 }
             }
 
+            [Theory]
+            [MemberData(nameof(Data))]
             public void ReturnsExpectedUser(Package package, User currentUser, string expected)
             {
                 var model = new ListPackageItemViewModel(package, currentUser);
