@@ -1270,6 +1270,11 @@ namespace NuGetGallery
                     // Thrown when ReadmeUrlHost is invalid.
                     return Json(400, new[] { Strings.ReadMeUrlHostInvalid });
                 }
+                catch (InvalidOperationException ex)
+                {
+                    // Thrown when readme max length exceeded, or unexpected file extension.
+                    return Json(400, new[] { ex.Message });
+                }
             }
 
             return Json(new
@@ -1587,13 +1592,26 @@ namespace NuGetGallery
 
                 if (formData.Edit != null)
                 {
-                    if (await _readMeService.SaveReadMeMdIfChanged(
-                        package,
-                        formData.Edit,
-                        Request.ContentEncoding,
-                        commitChanges: false))
+                    try
                     {
-                        _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                        if (await _readMeService.SaveReadMeMdIfChanged(
+                            package,
+                            formData.Edit,
+                            Request.ContentEncoding,
+                            commitChanges: false))
+                        {
+                            _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                        }
+                    }
+                    catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
+                    {
+                        // Thrown when ReadmeUrlHost is invalid.
+                        return Json(400, new[] { Strings.ReadMeUrlHostInvalid });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        // Thrown when readme max length exceeded, or unexpected file extension.
+                        return Json(400, new[] { ex.Message });
                     }
                 }
 
