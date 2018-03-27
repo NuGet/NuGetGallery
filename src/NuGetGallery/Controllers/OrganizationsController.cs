@@ -304,6 +304,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         [UIAuthorize]
         public virtual async Task<ActionResult> ConfirmDelete(string accountName)
         {

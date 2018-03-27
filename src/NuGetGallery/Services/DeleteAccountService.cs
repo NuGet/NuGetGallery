@@ -57,6 +57,7 @@ namespace NuGetGallery
             {
                 throw new ArgumentNullException(nameof(userToBeDeleted));
             }
+
             if (admin == null)
             {
                 throw new ArgumentNullException(nameof(admin));
@@ -225,7 +226,7 @@ namespace NuGetGallery
 
         private async Task RemovePackageOwnershipRequests(User user)
         {
-            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user);
+            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToList();
             foreach (var request in requests)
             {
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
