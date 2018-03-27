@@ -483,24 +483,9 @@ namespace NuGet.Services.Validation
             }
         }
 
-        public class TheConstructor : FactsBase
-        {
-            [Fact]
-            public void ThrowsWhenValidatorNameIsNotProperAlias()
-            {
-                const string notAValidatorAlias = "pew-pew";
-
-                _validatorProvider.Setup(vp => vp.IsValidator(notAValidatorAlias)).Returns(false);
-
-                var ex = Assert.Throws<ArgumentException>(() => CreateValidatorStateService(notAValidatorAlias));
-                Assert.Equal("validatorName", ex.ParamName);
-            }
-        }
-
         public abstract class FactsBase
         {
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
-            protected readonly Mock<IValidatorProvider> _validatorProvider;
             protected readonly Mock<ILogger<ValidatorStateService>> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly ValidatorStateService _target;
@@ -508,11 +493,7 @@ namespace NuGet.Services.Validation
             public FactsBase()
             {
                 _validationContext = new Mock<IValidationEntitiesContext>();
-                _validatorProvider = new Mock<IValidatorProvider>();
                 _logger = new Mock<ILogger<ValidatorStateService>>();
-
-                _validatorProvider.Setup(vp => vp.IsValidator(It.IsAny<string>())).Returns(true);
-                _validatorProvider.Setup(vp => vp.IsProcessor(It.IsAny<string>())).Returns(true);
 
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
@@ -527,7 +508,6 @@ namespace NuGet.Services.Validation
             protected ValidatorStateService CreateValidatorStateService(string validatorName)
                 => new ValidatorStateService(
                     _validationContext.Object,
-                    _validatorProvider.Object,
                     validatorName,
                     _logger.Object);
         }

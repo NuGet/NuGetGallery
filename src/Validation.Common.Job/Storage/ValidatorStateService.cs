@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
-using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Jobs.Validation.PackageSigning.Storage
 {
@@ -21,20 +20,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 
         public ValidatorStateService(
             IValidationEntitiesContext validationContext,
-            IValidatorProvider validatorProvider,
             string validatorName,
             ILogger<ValidatorStateService> logger)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            if (validatorProvider == null)
-            {
-                throw new ArgumentNullException(nameof(validatorProvider));
-            }
-            if (!validatorProvider.IsValidator(validatorName))
-            {
-                throw new ArgumentException($"\"{validatorName}\" is not a proper validator alias.", nameof(validatorName));
-            }
             _validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
         }
 

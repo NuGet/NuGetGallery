@@ -38,8 +38,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
     {
         private readonly CertificateIntegrationTestFixture _fixture;
         private readonly ITestOutputHelper _output;
-        private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
-        private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
+        private readonly PackageSigningStateService _packageSigningStateService;
+        private readonly Mock<ICertificateStore> _certificateStore;
+        private readonly Mock<IValidationEntitiesContext> _validationEntitiesContext;
+        private readonly SignaturePartsExtractor _signaturePartsExtractor;
         private readonly Mock<IProcessorPackageFileService> _packageFileService;
         private readonly Uri _nupkgUri;
         private readonly Mock<IEntityRepository<Certificate>> _certificates;
@@ -61,11 +63,39 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
             _output = output ?? throw new ArgumentNullException(nameof(output));
 
-            // These dependencies have their own dependencies on the database or blob storage, which don't have good
-            // integration test infrastructure in the jobs yet. Therefore, we'll mock them for now.
-            _packageSigningStateService = new Mock<IPackageSigningStateService>();
+            _validationEntitiesContext = new Mock<IValidationEntitiesContext>();
+            _validationEntitiesContext
+                .Setup(x => x.PackageSigningStates)
+                .Returns(DbSetMockFactory.Create<PackageSigningState>());
+            _validationEntitiesContext
+                .Setup(x => x.ParentCertificates)
+                .Returns(DbSetMockFactory.Create<ParentCertificate>());
+            _validationEntitiesContext
+                .Setup(x => x.EndCertificates)
+                .Returns(DbSetMockFactory.Create<EndCertificate>());
+            _validationEntitiesContext
+                .Setup(x => x.CertificateChainLinks)
+                .Returns(DbSetMockFactory.Create<CertificateChainLink>());
+            _validationEntitiesContext
+                .Setup(x => x.PackageSignatures)
+                .Returns(DbSetMockFactory.Create<PackageSignature>());
+            _validationEntitiesContext
+                .Setup(x => x.TrustedTimestamps)
+                .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
 
-            _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
+            var loggerFactory = new LoggerFactory();
+            loggerFactory.AddXunit(output);
+
+            _packageSigningStateService = new PackageSigningStateService(
+                _validationEntitiesContext.Object,
+                loggerFactory.CreateLogger<PackageSigningStateService>());
+
+            _certificateStore = new Mock<ICertificateStore>();
+            
+            _signaturePartsExtractor = new SignaturePartsExtractor(
+                _certificateStore.Object,
+                _validationEntitiesContext.Object,
+                loggerFactory.CreateLogger<SignaturePartsExtractor>());
 
             _packageFileService = new Mock<IProcessorPackageFileService>();
             _nupkgUri = new Uri("https://example-storage/TestProcessor/b777135f-1aac-4ec2-a3eb-1f64fe1880d5/nuget.versioning.4.3.0.nupkg");
@@ -98,8 +128,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _telemetryClient = new Mock<ITelemetryClient>();
             _telemetryService = new TelemetryService(_telemetryClient.Object);
 
-            var loggerFactory = new LoggerFactory();
-            loggerFactory.AddXunit(output);
             _logger = new RecordingLogger<SignatureValidator>(loggerFactory.CreateLogger<SignatureValidator>());
 
             // Initialize data.
@@ -113,10 +141,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             // Initialize the subject of testing.
             _target = new SignatureValidator(
-                _packageSigningStateService.Object,
+                _packageSigningStateService,
                 _minimalPackageSignatureVerifier,
                 _fullPackageSignatureVerifier,
-                _signaturePartsExtractor.Object,
+                _signaturePartsExtractor,
                 _packageFileService.Object,
                 _certificates.Object,
                 _telemetryService,
@@ -834,13 +862,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private void VerifyPackageSigningStatus(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
         {
             Assert.Equal(validationStatus, result.State);
-            _packageSigningStateService.Verify(
-                x => x.SetPackageSigningState(
-                    _packageKey,
-                    _message.PackageId,
-                    _message.PackageVersion,
-                    packageSigningStatus),
-                Times.Once);
+            var state = _validationEntitiesContext
+                .Object
+                .PackageSigningStates
+                .Where(x => x.PackageKey == _packageKey)
+                .SingleOrDefault();
+            Assert.Equal(state.PackageId, _message.PackageId);
+            Assert.Equal(state.PackageNormalizedVersion, _message.PackageVersion);
+            Assert.Equal(state.SigningStatus, packageSigningStatus);
         }
 
         private static void VerifyNU3008(SignatureValidatorResult result)

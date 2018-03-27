@@ -23,6 +23,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             var settings = new SignedPackageVerifierSettings(
                 allowUnsigned: true,
+                allowIllegal: false,
                 allowUntrusted: false, // Invalid format of the signature uses this flag to determine success.
                 allowUntrustedSelfIssuedCertificate: true,
                 allowIgnoreTimestamp: true,
@@ -48,6 +49,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             var settings = new SignedPackageVerifierSettings(
                 allowUnsigned: false,
+                allowIllegal: false,
                 allowUntrusted: false,
                 allowUntrustedSelfIssuedCertificate: false,
                 allowIgnoreTimestamp: false,

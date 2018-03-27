@@ -79,10 +79,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 .As<IValidatorStateService>();
 
             containerBuilder
-                .RegisterType<PackageSigningStateService>()
-                .As<IPackageSigningStateService>();
-
-            containerBuilder
                 .RegisterType<ScopedMessageHandler<SignatureValidationMessage>>()
                 .Keyed<IMessageHandler<SignatureValidationMessage>>(validateSignatureBindingKey);
 
