@@ -32,6 +32,11 @@ namespace NuGetGallery
             IsDescriptionTruncated = wasTruncated;
 
             CanDisplayPrivateMetadata = CanPerformAction(currentUser, package, ActionsRequiringPermissions.DisplayPrivatePackageMetadata);
+            if (CanDisplayPrivateMetadata)
+            {
+                PushedBy = GetPushedBy(package, currentUser);
+            }
+
             CanEdit = CanPerformAction(currentUser, package, ActionsRequiringPermissions.EditPackage);
             CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
             CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
@@ -82,6 +87,7 @@ namespace NuGetGallery
         }
 
         public bool CanDisplayPrivateMetadata { get; set; }
+        public string PushedBy { get; set; }
         public bool CanEdit { get; set; }
         public bool CanUnlistOrRelist { get; set; }
         public bool CanManageOwners { get; set; }
@@ -90,6 +96,26 @@ namespace NuGetGallery
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {
             return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+        }
+
+        private static string GetPushedBy(Package package, User currentUser)
+        {
+            var userPushedBy = package.User;
+
+            // If the user is a member of any organizations that are package owners, only show the user if the current user is a member of the same organization
+            var organizationsThatUserPushedByBelongsTo =
+                (package.PackageRegistration?.Owners ?? Enumerable.Empty<User>())
+                    .OfType<Organization>()
+                    .Where(organization => ActionsRequiringPermissions.ViewAccount.CheckPermissions(userPushedBy, organization) == PermissionsCheckResult.Allowed);
+            if (organizationsThatUserPushedByBelongsTo.Any())
+            {
+                return organizationsThatUserPushedByBelongsTo.Any(organization => ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, organization) == PermissionsCheckResult.Allowed) ?
+                    userPushedBy?.Username :
+                    organizationsThatUserPushedByBelongsTo.First().Username;
+            }
+
+            // Otherwise, show the user
+            return userPushedBy?.Username;
         }
     }
 }

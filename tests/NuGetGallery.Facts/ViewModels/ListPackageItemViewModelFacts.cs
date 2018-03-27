@@ -1,8 +1,10 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -445,6 +447,93 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
         static PackageRegistration CreatePackageRegistration(int key)
         {
             return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
+        }
+
+        public class ThePushedByField
+        {
+            public enum UserPackageOwnerState
+            {
+                HasNoUserPackageOwner,
+                HasUserPackageOwner,
+                CurrentUserIsUserPackageOwner
+            }
+
+            public enum OrganizationPackageOwnerState
+            {
+                HasNoOrganizationPackageOwner,
+                HasOrganizationPackageOwner,
+                CurrentUserIsMemberOfOrganizationPackageOwner
+            }
+
+            public static IEnumerable<object[]> Data
+            {
+                get
+                {
+                    foreach (var userPackageOwnerState in Enum.GetValues(typeof(UserPackageOwnerState)).Cast<UserPackageOwnerState>())
+                    {
+                        foreach (var organizationPackageOwnerState in Enum.GetValues(typeof(OrganizationPackageOwnerState)).Cast<OrganizationPackageOwnerState>())
+                        {
+                            var key = 0;
+                            var currentUser = new User("currentUser") { Key = key++ };
+                            var owners = new List<User>();
+
+                            User packageOwner = null;
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                packageOwner = userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ? currentUser : new User("packageOwner") { Key = key++ };
+                                owners.Add(packageOwner);
+                            }
+
+                            Organization organizationOwner = new Organization("organizationOwner") { Key = key++ };
+                            User organizationMember = null;
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.HasNoOrganizationPackageOwner)
+                            {
+                                organizationMember = organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ? currentUser : new User("organizationMember") { Key = key++ };
+                                owners.Add(organizationMember);
+                            }
+
+                            var canViewPrivateMetadata =
+                                userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ||
+                                organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner;
+
+                            var packageRegistration = new PackageRegistration { Owners = owners };
+
+                            var packageWithoutUser = new Package { PackageRegistration = packageRegistration };
+                            yield return MemberDataHelper.AsData(packageWithoutUser, currentUser, null);
+
+                            var userThatIsNotOwner = new User("notAnOwner") { Key = key++ };
+                            var packageWithUserThatIsNotOwner = new Package { PackageRegistration = packageRegistration, User = userThatIsNotOwner };
+                            yield return MemberDataHelper.AsData(packageWithUserThatIsNotOwner, currentUser, canViewPrivateMetadata ? userThatIsNotOwner.Username : null);
+
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                var packageWithUserUser = new Package { PackageRegistration = packageRegistration, User = packageOwner };
+                                yield return MemberDataHelper.AsData(packageWithUserUser, currentUser, canViewPrivateMetadata ? packageWithUserUser.User.Username : null);
+                            }
+
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner)
+                            {
+                                var packageWithOrganizationUser = new Package { PackageRegistration = packageRegistration, User = organizationOwner };
+
+                                string expected = canViewPrivateMetadata ? 
+                                    (organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ? 
+                                        organizationMember.Username : 
+                                        organizationOwner.Username) : 
+                                    null;
+
+                                yield return MemberDataHelper.AsData(packageWithOrganizationUser, currentUser, expected);
+                            }
+                        }
+                    }
+                }
+            }
+
+            public void ReturnsExpectedUser(Package package, User currentUser, string expected)
+            {
+                var model = new ListPackageItemViewModel(package, currentUser);
+
+                Assert.Equal(expected, model.PushedBy);
+            }
         }
     }
 }
