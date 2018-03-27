@@ -6,33 +6,51 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var packageManagers = new PackageManagerViewModel[]
+    PackageManagerViewModel[] packageManagers;
+
+    if (Model.IsDotnetToolPackageType)
     {
-        new PackageManagerViewModel()
-        {
-            Id = "package-manager",
-            Name = "Package Manager",
-            CommandPrefix = "PM> ",
-            InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
-        },
+        packageManagers = new PackageManagerViewModel[] {
 
-        new PackageManagerViewModel()
+            new PackageManagerViewModel()
+            {
+                Id = "dotnet-cli",
+                Name = ".NET CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version)
+            }
+        };
+    }
+    else
+    {
+        packageManagers = new PackageManagerViewModel[]
         {
-            Id = "dotnet-cli",
-            Name = ".NET CLI",
-            CommandPrefix = "> ",
-            InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
-        },
+            new PackageManagerViewModel()
+            {
+                Id = "package-manager",
+                Name = "Package Manager",
+                CommandPrefix = "PM> ",
+                InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
+            },
 
-        new ThirdPartyPackageManagerViewModel()
-        {
-            Id = "paket-cli",
-            Name = "Paket CLI",
-            CommandPrefix = "> ",
-            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
-            ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
-        },
-    };
+            new PackageManagerViewModel()
+            {
+                Id = "dotnet-cli",
+                Name = ".NET CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
+            },
+
+            new ThirdPartyPackageManagerViewModel()
+            {
+                Id = "paket-cli",
+                Name = "Paket CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+                ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
+            }
+        };
+    }
 }
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
@@ -96,13 +114,21 @@
                 </button>
             </div>
         </div>
+        @if (Model.IsDotnetToolPackageType)
+        {
+            @ViewHelpers.AlertInfo(
+                    @<text>
+                        @(Model.Id) is a .NET tool package that lets you install a tool in the .NET environment.
+                    </text>
+                      );
+        }
         @if (thirdPartyPackageManager != null)
         {
             @ViewHelpers.AlertWarning(
-                @<text>
-                    The NuGet Team does not provide support for this client.
-                    Please contact its <a href="@thirdPartyPackageManager.ContactUrl">maintainers</a> for support.
-                </text>)
+                        @<text>
+                            The NuGet Team does not provide support for this client.
+                            Please contact its <a href="@thirdPartyPackageManager.ContactUrl">maintainers</a> for support.
+                        </text>)
         }
     </div>
 }
