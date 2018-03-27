@@ -13,7 +13,11 @@
             <div class="text-center ms-font-xxl">
                 <a href="@Url.User(@Model.User)">@Model.AccountName</a>
             </div>
-            @if ((TempData["RequestFailedMessage"] != null))
+            @if(!@Model.User.Confirmed)
+            {
+                @ViewHelpers.AlertDanger(@<text><b class="keywords">You cannot request to delete your account until you <a href="@Url.ConfirmationRequired()">confirm</a> your email address.</b> <br /></text>)
+            }
+            else if ((TempData["RequestFailedMessage"] != null))
             {
                 var message = (string)TempData["RequestFailedMessage"];
                 @ViewHelpers.AlertDanger(@<p><b class="keywords">@message</b> <br /></p>)
