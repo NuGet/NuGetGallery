@@ -9,7 +9,7 @@
         <div class="col-md-12">
 
             <div class="clearfix">
-                <h1 class="pull-left">Organizations</h1>
+                <h1 class="pull-left"><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Organizations</h1>
                 @if (Model.Organizations.Any())
                 {
                     <form class="form-section-title pull-right" action="@Url.AddOrganization()">

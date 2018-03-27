@@ -1325,18 +1325,57 @@ namespace NuGetGallery
 
         public class TheTransformToOrganizationAccountMethod
         {
+            private TestableUserService _service = new TestableUserService();
+
+            [Fact]
+            public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
+            {
+                Assert.True(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant") { Credentials = new Credential[0] }));
+            }
+
+            public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
+            {
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
+                Assert.True(await InvokeTransformUserToOrganization(3));
+            }
+
+            public async Task WhenAdminHasSupportedTenant_TransformsAccountWithPolicy()
+            {
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(true);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
+                Assert.True(await InvokeTransformUserToOrganization(3, subscribesToPolicy: true));
+            }
+
             [Theory]
             [InlineData(0)]
             [InlineData(-1)]
             public async Task WhenSqlResultIsZeroOrLess_ReturnsFalse(int affectedRecords)
             {
-                Assert.False(await InvokeTransformUserToOrganization(affectedRecords));
-            }
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
 
-            [Fact]
-            public async Task WhenAdminHasNoTenant_ReturnsFalse()
-            {
-                Assert.False(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant")));
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
+                Assert.False(await InvokeTransformUserToOrganization(affectedRecords));
             }
 
             [Theory]
@@ -1344,13 +1383,21 @@ namespace NuGetGallery
             [InlineData(3)]
             public async Task WhenSqlResultIsPositive_ReturnsTrue(int affectedRecords)
             {
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
                 Assert.True(await InvokeTransformUserToOrganization(affectedRecords));
             }
 
-            private Task<bool> InvokeTransformUserToOrganization(int affectedRecords, User admin = null)
+            private Task<bool> InvokeTransformUserToOrganization(int affectedRecords, User admin = null, bool subscribesToPolicy = false)
             {
                 // Arrange
-                var service = new TestableUserService();
                 var account = new User("Account");
                 admin = admin ?? new User("Admin")
                 {
@@ -1363,16 +1410,19 @@ namespace NuGetGallery
                     }
                 };
 
-                service.MockDatabase
+                _service.MockDatabase
                     .Setup(db => db.ExecuteSqlResourceAsync(It.IsAny<string>(), It.IsAny<object[]>()))
                     .Returns(Task.FromResult(affectedRecords));
 
-                service.MockSecurityPolicyService
-                    .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true))
-                    .Returns(Task.FromResult(true));
-
                 // Act
-                return service.TransformUserToOrganization(account, admin, "token");
+                var result = _service.TransformUserToOrganization(account, admin, "token");
+
+                _service.MockSecurityPolicyService
+                    .Verify(
+                        sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), true), 
+                        subscribesToPolicy ? Times.Once() : Times.Never());
+
+                return result;
             }
         }
         
@@ -1421,38 +1471,61 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenAdminHasNoTenant_ThrowsEntityException()
+            public async Task WhenAdminHasNoTenant_ReturnsNewOrgWithoutPolicy()
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
-                var adminUsername = "adminWithNoTenant";
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization(admin: new User(adminUsername)));
-                Assert.Equal(String.Format(CultureInfo.CurrentCulture, Strings.Organizations_AdminAccountDoesNotHaveTenant, adminUsername), exception.Message);
+                var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = new Credential[0] });
 
-                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
-                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
+                AssertNewOrganizationReturned(org, subscribedToPolicy: false);
             }
 
             [Fact]
-            public async Task WhenSubscribingToPolicyFails_ThrowsUserSafeException()
+            public async Task WhenAdminHasUnsupportedTenant_ReturnsNewOrgWithoutPolicy()
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(false);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
+                var org = await InvokeAddOrganization();
+
+                AssertNewOrganizationReturned(org, subscribedToPolicy: false);
+            }
+
+            [Fact]
+            public async Task WhenSubscribingToPolicyFails_ReturnsNewOrgWithoutPolicy()
+            {
+                _service.MockEntitiesContext
+                    .Setup(x => x.Users)
+                    .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(true);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
 
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(false));
 
-                var exception = await Assert.ThrowsAsync<EntityException>(() => InvokeAddOrganization());
-                Assert.Equal(Strings.DefaultUserSafeExceptionMessage, exception.Message);
+                var org = await InvokeAddOrganization();
 
-                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Once());
-                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
+                AssertNewOrganizationReturned(org, subscribedToPolicy: true);
             }
 
             [Fact]
@@ -1462,28 +1535,22 @@ namespace NuGetGallery
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
 
+                var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
+                mockLoginDiscontinuationConfiguration
+                    .Setup(x => x.IsTenantIdPolicySupportedForOrganization(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(true);
+
+                _service.MockConfigObjectService
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(mockLoginDiscontinuationConfiguration.Object);
+
                 _service.MockSecurityPolicyService
                     .Setup(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false))
                     .Returns(Task.FromResult(true));
 
                 var org = await InvokeAddOrganization();
 
-                Assert.Equal(OrgName, org.Username);
-                Assert.Equal(OrgEmail, org.UnconfirmedEmailAddress);
-                Assert.Equal(OrgCreatedUtc, org.CreatedUtc);
-                Assert.True(org.EmailAllowed);
-                Assert.True(org.NotifyPackagePushed);
-                Assert.True(!string.IsNullOrEmpty(org.EmailConfirmationToken));
-
-                // Both the organization and the admin must have a membership to each other.
-                Func<Membership, bool> hasMembership = m => m.Member.Username == AdminName && m.Organization.Username == OrgName && m.IsAdmin;
-                Assert.True(
-                    org.Members.Any(
-                        m => hasMembership(m) && m.Member.Organizations.Any(hasMembership)));
-
-                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
-                _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Once());
-                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
+                AssertNewOrganizationReturned(org, subscribedToPolicy: true);
             }
 
             private Task<Organization> InvokeAddOrganization(string orgName = OrgName, string orgEmail = OrgEmail, User admin = null)
@@ -1506,6 +1573,28 @@ namespace NuGetGallery
 
                 // Act
                 return _service.AddOrganizationAsync(orgName, orgEmail, admin);
+            }
+
+            private void AssertNewOrganizationReturned(Organization org, bool subscribedToPolicy)
+            {
+                Assert.Equal(OrgName, org.Username);
+                Assert.Equal(OrgEmail, org.UnconfirmedEmailAddress);
+                Assert.Equal(OrgCreatedUtc, org.CreatedUtc);
+                Assert.True(org.EmailAllowed);
+                Assert.True(org.NotifyPackagePushed);
+                Assert.True(!string.IsNullOrEmpty(org.EmailConfirmationToken));
+
+                // Both the organization and the admin must have a membership to each other.
+                Func<Membership, bool> hasMembership = m => m.Member.Username == AdminName && m.Organization.Username == OrgName && m.IsAdmin;
+                Assert.True(
+                    org.Members.Any(
+                        m => hasMembership(m) && m.Member.Organizations.Any(hasMembership)));
+
+                _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
+                _service.MockSecurityPolicyService.Verify(
+                    sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), 
+                    subscribedToPolicy ? Times.Once() : Times.Never());
+                _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
             }
         }
         public class TheRejectTransformUserToOrganizationRequestMethod

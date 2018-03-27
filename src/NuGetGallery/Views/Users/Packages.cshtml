@@ -11,7 +11,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
 
             <div class="clearfix">
-                <h1 class="pull-left">Manage Packages</h1>
+                <h1 class="pull-left"><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Manage Packages</h1>
                 <div class="text-center ms-font-xxl">
                     <span class="form-section-data">
                         <select id="ownerFilter" class="form-control pull-right hidden" aria-label="Filter on package owner"
@@ -105,15 +105,20 @@
                             <img class="package-icon img-responsive" aria-hidden="true"
                                  data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
                         </td>
-                        <td class="align-middle package-id">
+                        <td class="align-middle package-id text-nowrap">
                             <a title="View Package" data-bind="attr: { href: PackageUrl }">
                                 <span data-bind="text: Id"></span>
                             </a>
                         </td>
                         <td class="align-middle">
                             <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <!-- ko if: $index() < 2 -->
                                 <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
-                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: TrimmedUsername"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                                <!-- /ko -->
+                                <!-- ko if: $index() === 2 -->
+                                <span class="ms-noWrap" data-bind="text: '+' + ($index() - 1)"></span>
+                                <!-- /ko -->
                             </span>
                         </td>
                         <td class="align-middle text-nowrap">
@@ -286,10 +291,10 @@
 
         return new
         {
-            p.Id,
+            Id = p.Id.Abbreviate(40),
             Owners = GetSerializableOwners(p.Owners),
             p.TotalDownloadCount,
-            LatestVersion = p.FullVersion.Abbreviate(25),
+            LatestVersion = p.FullVersion.Abbreviate(15),
             PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
             PackageUrl = packageUrlTemplate.Resolve(p),
             EditUrl = editUrlTemplate.Resolve(p),
@@ -370,6 +375,7 @@
         return new
         {
             user.Username,
+            TrimmedUsername = user.Username.Abbreviate(15),
             ProfileUrl = userUrlTemplate.Resolve(user),
             IsOrganization = user is Organization
         };

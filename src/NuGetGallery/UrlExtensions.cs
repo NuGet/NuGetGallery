@@ -803,7 +803,7 @@ namespace NuGetGallery
         public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "AddMember",
+                RouteName.OrganizationMemberAddAjax,
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -1206,7 +1206,7 @@ namespace NuGetGallery
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(url, "Transform", "Users", relativeUrl);
+            return GetActionLink(url, RouteName.TransformToOrganization, "Users", relativeUrl);
         }
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
@@ -1216,7 +1216,7 @@ namespace NuGetGallery
 
         public static string RejectTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return url.HandleTransformAccount("RejectTransform", accountToTransform, relativeUrl);
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationRejection, accountToTransform, relativeUrl);
         }
 
         private static string HandleTransformAccount(this UrlHelper url, string routeName, User accountToTransform, bool relativeUrl = true)
@@ -1252,7 +1252,7 @@ namespace NuGetGallery
         {
             return GetActionLink(
                 url,
-                "CancelTransform",
+                RouteName.TransformToOrganizationCancellation,
                 "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
