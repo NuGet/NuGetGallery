@@ -118,7 +118,7 @@ namespace NuGetGallery
 
             return
                 string.Equals(x.EmailDomain, y.EmailDomain, StringComparison.OrdinalIgnoreCase) &&
-                string.Equals(x.TenantId, y.TenantId, StringComparison.Ordinal);
+                string.Equals(x.TenantId, y.TenantId, StringComparison.OrdinalIgnoreCase);
         }
 
         public int GetHashCode(OrganizationTenantPair obj)

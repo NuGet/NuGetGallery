@@ -51,8 +51,8 @@ namespace NuGetGallery.Services
             var exceptions = isOnExceptionList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
             var shouldTransforms = isOnTransformList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
             var orgTenantPairs = isOnTenantPairList ? 
-                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), _tenant) } : 
-                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase), _incorrectTenant) };
+                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), ToUppercaseIfWrongCase(_tenant, isWrongCase)) } : 
+                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase), ToUppercaseIfWrongCase(_incorrectTenant, isWrongCase)) };
 
             return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
         }
