@@ -19,13 +19,13 @@ namespace NuGetGallery.Authentication
 
     public class ExternalLoginSessionDetails
     {
-        public string UsedEmail { get; }
+        public string EmailUsed { get; }
 
         public bool WasMultiFactorAuthenticated { get; }
 
         public ExternalLoginSessionDetails(string email, bool usedMultiFactorAuthentication)
         {
-            UsedEmail = email;
+            EmailUsed = email;
             WasMultiFactorAuthenticated = usedMultiFactorAuthentication;
         }
     }

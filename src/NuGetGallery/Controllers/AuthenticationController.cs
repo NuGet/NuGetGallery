@@ -525,7 +525,7 @@ namespace NuGetGallery
                     return ChallengeAuthentication(
                         Url.LinkExternalAccount(returnUrl), 
                         result.Authenticator.Name, 
-                        new AuthenticationPolicy() { Email = result.LoginDetails.UsedEmail, EnforceMfa = true });
+                        new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
                 }
 
                 // Create session

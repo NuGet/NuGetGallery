@@ -10,16 +10,16 @@ namespace NuGetGallery.Authentication.Providers
     {
         public string Email { get; set; }
 
-        public bool EnforceMfa { get; set; }
+        public bool EnforceMultiFactorAuthentication { get; set; }
 
-        private static string ENFORCE_MFA_TOKEN = "enforce_mfa";
-        private static string EMAIL_TOKEN = "email";
+        private static string _enforceMutliFactorAuthenticationToken = "enforce_mfa";
+        private static string _emailToken = "email";
 
         public IDictionary<string, string> GetProperties()
         {
             var dictionary = new Dictionary<string, string>();
-            dictionary.Add(EMAIL_TOKEN, Email);
-            dictionary.Add(ENFORCE_MFA_TOKEN, EnforceMfa.ToString());
+            dictionary.Add(_emailToken, Email);
+            dictionary.Add(_enforceMutliFactorAuthenticationToken, EnforceMultiFactorAuthentication.ToString());
 
             return dictionary;
         }
@@ -27,13 +27,13 @@ namespace NuGetGallery.Authentication.Providers
         public static bool TryGetPolicyFromProperties(IDictionary<string, string> properties, out AuthenticationPolicy policy)
         {
             if (properties != null
-                && properties.TryGetValue(EMAIL_TOKEN, out string email)
-                && properties.TryGetValue(ENFORCE_MFA_TOKEN, out string enforceMfaValue))
+                && properties.TryGetValue(_emailToken, out string email)
+                && properties.TryGetValue(_enforceMutliFactorAuthenticationToken, out string enforceMfaValue))
             {
                 policy = new AuthenticationPolicy()
                 {
                     Email = email,
-                    EnforceMfa = Convert.ToBoolean(enforceMfaValue)
+                    EnforceMultiFactorAuthentication = Convert.ToBoolean(enforceMfaValue)
                 };
 
                 return true;

@@ -24,6 +24,11 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public const string Email = "preferred_username";
             public const string Name = "name";
             public const string Issuer = "iss";
+
+            /// <summary>
+            /// ACR is the Authentication Class Reference token, which is the claim that is returned by OpenId upon usage of multi-factor during authentication.
+            /// More details: http://openid.net/specs/openid-connect-eap-acr-values-1_0.html
+            /// </summary>
             public const string ACR = "http://schemas.microsoft.com/claims/authnclassreference";
         }
 
@@ -40,10 +45,19 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         private static HashSet<string> ERROR_MESSAGE_LIST = new HashSet<string> { "access_denied", "consent_required" };
 
+        /// <summary>
+        /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
+        /// for authentication to the common endpoint.
+        /// </summary>
         public static class ACR_VALUES
         {
             public static readonly string DEFAULT = "urn:microsoft:policies:default";
             public static readonly string MFA = "urn:microsoft:policies:mfa";
+
+            /// <summary>
+            /// Combination of MFA and DEFAULT values sent as id_token to the authentication uses the user set policy
+            /// for multi-factor authentication and returns the <see cref="V2Claims.ACR"/> token with the used policy.
+            /// </summary>
             public static readonly string ANY = MFA + " " + DEFAULT;
         }
 
@@ -184,9 +198,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             return Task.FromResult(0);
         }
 
-        // Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication.
+        /// <summary>
+        /// Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication.
+        /// </summary>
+        /// <param name="notification">The properties used for authentication</param>
+        /// <returns>awaitable Task</returns>
         private Task RedirectToIdentityProvider(RedirectToIdentityProviderNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
+
             var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
             // AcrValues token control the multi-factor authentication, when supplied with any(which could be default or mfa), the user set policy for 2FA
@@ -194,7 +213,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             // an already logged in user directly to the multi-factor auth flow.
             if (AuthenticationPolicy.TryGetPolicyFromProperties(authenticationProperties.Dictionary, out AuthenticationPolicy policy))
             {
-                notification.ProtocolMessage.AcrValues = policy.EnforceMfa ? ACR_VALUES.MFA : ACR_VALUES.ANY;
+                notification.ProtocolMessage.AcrValues = policy.EnforceMultiFactorAuthentication ? ACR_VALUES.MFA : ACR_VALUES.ANY;
                 notification.ProtocolMessage.LoginHint = policy.Email;
             }
             else
