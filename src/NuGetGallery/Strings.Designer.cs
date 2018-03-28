@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot request to delete your account until you confirm your email address..
+        /// </summary>
+        public static string AccountDelete_UserNotConfirmed {
+            get {
+                return ResourceManager.GetString("AccountDelete_UserNotConfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
         ///If you wish to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>

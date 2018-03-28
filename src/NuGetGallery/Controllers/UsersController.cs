@@ -301,6 +301,12 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
+            if (!user.Confirmed)
+            {
+                TempData["RequestFailedMessage"] = Strings.AccountDelete_UserNotConfirmed;
+                return RedirectToAction("DeleteRequest");
+            }
+
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (!isSupportRequestCreated)
             {

@@ -830,4 +830,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_Success" xml:space="preserve">
     <value>You are now a member of organization '{0}'.</value>
   </data>
+  <data name="AccountDelete_UserNotConfirmed" xml:space="preserve">
+    <value>You cannot request to delete your account until you confirm your email address.</value>
+  </data>
 </root>
