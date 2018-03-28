@@ -9,7 +9,7 @@ title #{Jobs.validation.packagesigning.validatecertificate.Title}
 
 start /w Validation.PackageSigning.ValidateCertificate.exe ^
     -Configuration #{Jobs.validation.packagesigning.validatecertificate.Configuration} ^
-	-InstrumentationKey "#{Jobs.validation.packagesigning.validatecertificate.InstrumentationKey}"
+    -InstrumentationKey "#{Jobs.validation.packagesigning.validatecertificate.InstrumentationKey}"
 
 echo "Finished #{Jobs.validation.packagesigning.validatecertificate.Title}"
 

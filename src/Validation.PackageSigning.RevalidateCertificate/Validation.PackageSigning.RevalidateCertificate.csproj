@@ -4,17 +4,18 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>NuGet.Jobs.Validation.PackageSigning</RootNamespace>
-    <AssemblyName>NuGet.Jobs.Validation.PackageSigning</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <ProjectGuid>{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Validation.PackageSigning.RevalidateCertificate</RootNamespace>
+    <AssemblyName>Validation.PackageSigning.RevalidateCertificate</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
     <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -24,6 +25,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
@@ -34,27 +36,51 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Security" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Configuration\CertificateStoreConfiguration.cs" />
-    <Compile Include="Extensions\CryptographicAttributeObjectCollectionExtensions.cs" />
-    <Compile Include="Extensions\PackageSignatureExtensions.cs" />
-    <Compile Include="Extensions\X509Certificate2Extensions.cs" />
-    <Compile Include="Storage\CertificateStore.cs" />
-    <Compile Include="Storage\ICertificateStore.cs" />
-    <Compile Include="Messages\CertificateValidationMessage.cs" />
-    <Compile Include="Messages\CertificateValidationMessageSerializer.cs" />
-    <Compile Include="Messages\SignatureValidationMessage.cs" />
-    <Compile Include="Messages\SignatureValidationMessageSerializer.cs" />
+    <Compile Include="ValidateCertificateEnqueuer.cs" />
+    <Compile Include="ICertificateRevalidator.cs" />
+    <Compile Include="IValidateCertificateEnqueuer.cs" />
+    <Compile Include="RevalidationConfiguration.cs" />
+    <Compile Include="CertificateRevalidator.cs" />
+    <Compile Include="TelemetryService.cs" />
+    <Compile Include="ITelemetryService.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\AssemblyInfo.*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Scripts\Functions.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="Scripts\Validation.PackageSigning.RevalidateCertificate.cmd" />
+    <None Include="Settings\dev.json" />
+    <None Include="Settings\int.json" />
+    <None Include="Settings\prod.json" />
+    <None Include="Validation.PackageSigning.RevalidateCertificate.nuspec" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
-      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Project>{FA87D075-A934-4443-8D0B-5DB32640B6D7}</Project>
       <Name>Validation.Common.Job</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
+      <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
+      <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

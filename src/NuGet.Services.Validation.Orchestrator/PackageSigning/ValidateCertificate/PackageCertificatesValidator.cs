@@ -244,7 +244,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         private void PromoteSignature(IValidationRequest request, PackageSignature signature)
         {
 
-            var newSignatureStatus = (IsValidSignatureOutOfGracePeriod(request, signature))
+            var newSignatureStatus = signature.IsPromotable()
                                         ? PackageSignatureStatus.Valid
                                         : PackageSignatureStatus.InGracePeriod;
 
