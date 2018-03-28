@@ -297,7 +297,7 @@ namespace NuGetGallery
             {
                 Packages = listPackageItems,
                 Organization = account,
-                AccountName = currentUser.Username
+                AccountName = account.Username
             };
 
             return View(model);

@@ -29,65 +29,7 @@
                 <p>
                     Before deleting your organization, you must transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
                 </p>
-                <div class="form-group">
-                    <div class="row user-package-list align-left">
-                        <div class="col-md-12 align-left ">
-                            <div class="panel-collapse collapse in" id="packages-Packages" aria-expanded="true">
-                                <div class="list-packages" role="list">
-                                    <table class="table align-left">
-                                        <thead>
-                                            <tr class="manage-package-headings">
-                                                <th class="hidden-xs"></th>
-                                                <th class="hidden-xs"></th>
-                                                <th>Package ID</th>
-                                                <th>Owners</th>
-                                                <th>Downloads</th>
-                                                <th>Latest Version</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach (var package in @Model.Packages)
-                                            {
-                                                <tr class="manage-package-listing">
-                                                    <td class="align-middle ">
-                                                        @if (package.HasSingleOrganizationOwner)
-                                                        {
-                                                            <i class="ms-Icon ms-Icon--StatusErrorFull red-check" title="You must transfer ownership of this package before you can delete your organization."></i>
-                                                        }
-                                                        else
-                                                        {
-                                                            <i class="ms-Icon ms-Icon--CompletedSolid green-check" title="You do not need to transfer ownership of this package before you can delete your organization"></i>
-                                                        }
-                                                    </td>
-                                                    <td class="align-middle hidden-xs">
-                                                        <img class="package-icon img-responsive" aria-hidden="true" alt="Package Icon"
-                                                             src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                                             @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")) />
-                                                    </td>
-                                                    <td class="align-middle package-id"><a href="@Url.Package(package.Id)">@Html.BreakWord(package.Id)</a></td>
-                                                    <td class="align-middle">
-                                                        @foreach (var owner in package.Owners)
-                                                        {
-                                                            @ViewHelpers.UserLinkWithIcon(Url, owner);
-                                                        }
-                                                    </td>
-                                                    <td class="align-middle text-nowrap">@package.TotalDownloadCount.ToNuGetNumberString()</td>
-                                                    <td class="align-middle text-nowrap">@package.FullVersion.Abbreviate(25)</td>
-                                                    <td class="text-right align-middle package-controls">
-                                                        <a href="@Url.ManagePackageOwners(package)" class="btn" title="Manage Owners" aria-label="Manage Owners for Package @package.Id">
-                                                            <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", new DeleteAccountPackagesListViewModel(Model.Organization, Model.Packages))
             }
             else
             {
