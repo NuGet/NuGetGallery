@@ -1,7 +1,7 @@
 ﻿@model DeleteAccountPackagesListViewModel
 @{ 
-    var hasSingleOwnerMessage = Model.IsOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account delete the package will not have any owners.";
-    var hasMultipleOwnersMessage = Model.IsOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account delete the package will still have at least one owner.";
+    var hasSingleOwnerMessage = Model.IsOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account deletion, this package will not have any owners.";
+    var hasMultipleOwnersMessage = Model.IsOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account deletion, this package will still have at least one owner.";
 }
 
 <div class="row user-package-list align-left">

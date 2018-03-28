@@ -23,7 +23,7 @@ namespace NuGetGallery
         /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
         /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
         /// <returns></returns>
-        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unsignOrphanPackages, bool commitAsTransaction);
+        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction);
 
         /// <summary>
         /// Will clean-up the data related with an organization account.
