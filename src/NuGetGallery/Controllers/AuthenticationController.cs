@@ -598,6 +598,25 @@ namespace NuGetGallery
             }
         }
 
+        internal bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
+        {
+            if (result?.Authenticator == null || result.Authentication == null)
+            {
+                return false;
+            }
+
+            // Enforce multi-factor authentication only if:
+            // 1. The authenticator supports multi-factor authentication, otherwise no use.
+            // 2. The user has enabled multi-factor authentication for their account.
+            // 3. The user authenticated with the personal microsoft account. AAD 2FA policy is controlled by the tenant admins.
+            // 4. The user did not use the multi-factor authentication for the session, obviously.
+            return result.Authenticator.SupportsMultiFactorAuthentication()
+                && result.Authentication.User.EnableMultiFactorAuthentication
+                && !result.LoginDetails.WasMultiFactorAuthenticated
+                && result.Authentication.CredentialUsed.IsExternal()
+                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
+        }
+
         private string FormatEmailAddressForAssistance(string email)
         {
             var emailParts = email.Split('@');
@@ -757,25 +776,6 @@ namespace NuGetGallery
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
             return View(viewName, existingModel);
-        }
-
-        private bool ShouldEnforceMultiFactorAuthentication(AuthenticateExternalLoginResult result)
-        {
-            if (result?.Authenticator == null || result.Authentication == null)
-            {
-                return false;
-            }
-
-            // Enforce multi-factor authentication only if:
-            // 1. The authenticator supports multi-factor authentication, otherwise no use.
-            // 2. The user has enabled multi-factor authentication for their account.
-            // 3. The user authenticated with the personal microsoft account. AAD 2FA policy is controlled by the tenant admins.
-            // 4. The user did not use the multi-factor authentication for the session, obviously.
-            return result.Authenticator.SupportsMultiFactorAuthentication()
-                && result.Authentication.User.EnableMultiFactorAuthentication
-                && !result.LoginDetails.WasMultiFactorAuthenticated
-                && result.Authentication.CredentialUsed.IsExternal()
-                && (CredentialTypes.IsMicrosoftAccount(result.Authentication.CredentialUsed.Type));
         }
     }
 }

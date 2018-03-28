@@ -43,7 +43,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
-        private static HashSet<string> ERROR_MESSAGE_LIST = new HashSet<string> { "access_denied", "consent_required" };
+        private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
 
         /// <summary>
         /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
@@ -184,7 +184,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
-            if (ERROR_MESSAGE_LIST.Contains(notification.Exception.Message))
+            if (_errorMessageList.Contains(notification.Exception.Message))
             {
                 // For every 'Challenge' sent to the external providers, we store the 'State'
                 // with the redirect uri where we intend to return after successful authentication.
