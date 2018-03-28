@@ -130,15 +130,15 @@ namespace NuGetGallery
                 state: null);
         }
 
-        public string GetSharedReadSignature(DateTimeOffset? endOfAccess)
+        public string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess)
         {
             var accessPolicy = new SharedAccessBlobPolicy
             {
                 SharedAccessExpiryTime = endOfAccess,
-                Permissions = SharedAccessBlobPermissions.Read
+                Permissions = permissions,
             };
 
-            var signature = this._blob.GetSharedAccessSignature(accessPolicy);
+            var signature = _blob.GetSharedAccessSignature(accessPolicy);
 
             return signature;
         }

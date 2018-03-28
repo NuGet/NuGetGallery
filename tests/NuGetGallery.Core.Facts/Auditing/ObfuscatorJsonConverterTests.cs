@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json;
@@ -68,14 +69,14 @@ namespace NuGetGallery.Auditing
             Assert.Equal<string>(string.Empty, result["Authors"].ToString());
             Assert.Equal<string>("-1", result["UserKey"].ToString());
             Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", result["NotSupportedTypeRandom"].ToString());
+            Assert.Equal<string>("2.5", Convert.ToString(result["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
 
             Assert.Equal<string>("ObfuscatedUserName", result["OtherData"]["UserName"].ToString());
             Assert.Equal<string>("1.1.1.0", result["OtherData"]["IP"].ToString());
             Assert.Equal<string>(string.Empty, result["OtherData"]["Authors"].ToString());
             Assert.Equal<string>("-1", result["OtherData"]["UserKey"].ToString());
             Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", result["OtherData"]["NotSupportedTypeRandom"].ToString());
+            Assert.Equal<string>("2.5", Convert.ToString(result["OtherData"]["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
         }
 
         public class Data

@@ -63,13 +63,13 @@ namespace NuGetGallery
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmail(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendNewAccountEmail(account, confirmationUrl);
         }
 
         protected override void SendEmailChangedConfirmationNotice(User account)
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNotice(new MailAddress(account.UnconfirmedEmailAddress, account.Username), confirmationUrl);
+            MessageService.SendEmailChangeConfirmationNotice(account, confirmationUrl);
         }
 
         protected override User GetAccount(string accountName)
@@ -92,7 +92,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("Transform")]
+        [ActionName(RouteName.TransformToOrganization)]
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
@@ -116,7 +116,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ValidateAntiForgeryToken]
-        [ActionName("Transform")]
+        [ActionName(RouteName.TransformToOrganization)]
         public virtual async Task<ActionResult> TransformToOrganization(TransformAccountViewModel transformViewModel)
         {
             var accountToTransform = GetCurrentUser();
@@ -128,27 +128,42 @@ namespace NuGetGallery
                     Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
                 return View(transformViewModel);
             }
-            
+
             if (!UserService.CanTransformUserToOrganization(accountToTransform, adminUser, out var errorReason))
             {
                 ModelState.AddModelError(string.Empty, errorReason);
                 return View(transformViewModel);
             }
 
+            // Get the user from the previous organization migration request (if there was one) so we can notify them that their request has been cancelled.
+            var existingTransformRequestUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
+
             await UserService.RequestTransformToOrganizationAccount(accountToTransform, adminUser);
+
+            if (existingTransformRequestUser != null)
+            {
+                MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, existingTransformRequestUser);
+            }
+
+            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
+            var confirmUrl = Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false);
+            var rejectUrl = Url.RejectTransformAccount(accountToTransform, relativeUrl: false);
+            MessageService.SendOrganizationTransformRequest(accountToTransform, adminUser, Url.User(accountToTransform, relativeUrl: false), confirmUrl, rejectUrl);
+
+            var cancelUrl = Url.CancelTransformAccount(accountToTransform, relativeUrl: false);
+            MessageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
 
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
 
             TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
-            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
             return Redirect(Url.LogOn(returnUrl));
         }
-
+        
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
-        [ActionName("ConfirmTransform")]
+        [ActionName(RouteName.TransformToOrganizationConfirmation)]
         public virtual async Task<ActionResult> ConfirmTransformToOrganization(string accountNameToTransform, string token)
         {
             var adminUser = GetCurrentUser();
@@ -173,15 +188,74 @@ namespace NuGetGallery
                 return TransformToOrganizationFailed(errorReason);
             }
 
+            MessageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
+
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 
             return Redirect(Url.ManageMyOrganization(accountNameToTransform));
         }
 
+        [HttpGet]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ActionName(RouteName.TransformToOrganizationRejection)]
+        public virtual async Task<ActionResult> RejectTransformToOrganization(string accountNameToTransform, string token)
+        {
+            var adminUser = GetCurrentUser();
+
+            string message;
+            var accountToTransform = UserService.FindByUsername(accountNameToTransform);
+            if (accountToTransform == null)
+            {
+                message = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_OrganizationAccountDoesNotExist, accountNameToTransform);
+            }
+            else
+            {
+                if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
+                {
+                    MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+
+                    message = String.Format(CultureInfo.CurrentCulture,
+                        Strings.TransformAccount_Rejected, accountNameToTransform);
+                }
+                else
+                {
+                    message = Strings.TransformAccount_FailedMissingRequestToCancel;
+                }
+            }
+
+            TempData["Message"] = message;
+
+            return RedirectToAction(actionName: "Home", controllerName: "Pages");
+        }
+
+        [HttpGet]
+        [UIAuthorize(allowDiscontinuedLogins: true)]
+        [ActionName(RouteName.TransformToOrganizationCancellation)]
+        public virtual async Task<ActionResult> CancelTransformToOrganization(string token)
+        {
+            var accountToTransform = GetCurrentUser();
+            var adminUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
+            
+            if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
+            {
+                MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+
+                TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_Cancelled);
+            }
+            else
+            {
+                TempData["ErrorMessage"] = Strings.TransformAccount_FailedMissingRequestToCancel;
+            }
+
+            return RedirectToAction(actionName: "Home", controllerName: "Pages");
+        }
+
         private ActionResult TransformToOrganizationFailed(string errorMessage)
         {
-            return View("TransformFailed", new TransformAccountFailedViewModel(errorMessage));
+            return View("TransformToOrganizationFailed", new TransformAccountFailedViewModel(errorMessage));
         }
 
         [HttpGet]
@@ -532,7 +606,7 @@ namespace NuGetGallery
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
-            var model = new UserProfileModel(user, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            var model = new UserProfileModel(user, currentUser, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
 
             return View(model);
         }

@@ -23,14 +23,19 @@ namespace NuGetGallery
             PackageArchiveReader nugetPackage,
             bool commitChanges)
         {
+            var shouldBeIncluded = ShouldCuratePackage(galleryPackage, nugetPackage);
+            if (!shouldBeIncluded)
+            {
+                return;
+            }
+
             var curatedFeed = CuratedFeedService.GetFeedByName("webmatrix", includePackages: true);
             if (curatedFeed == null)
             {
                 return;
             }
 
-            var shouldBeIncluded = ShouldCuratePackage(curatedFeed, galleryPackage, nugetPackage);
-            if (shouldBeIncluded)
+            if (DependenciesAreCurated(galleryPackage, curatedFeed))
             {
                 await CuratedFeedService.CreatedCuratedPackageAsync(
                     curatedFeed,
@@ -42,7 +47,6 @@ namespace NuGetGallery
         }
 
         internal static bool ShouldCuratePackage(
-            CuratedFeed curatedFeed,
             Package galleryPackage,
             PackageArchiveReader packageArchiveReader)
         {
@@ -64,10 +68,7 @@ namespace NuGetGallery
 
                     // OR: Must not contain PowerShell or T4
                     DoesNotContainUnsupportedFiles(packageArchiveReader)
-                ) &&
-
-                // Dependencies on the gallery must be curated
-                DependenciesAreCurated(galleryPackage, curatedFeed);
+                );
         }
 
         private static bool ContainsAspNetWebPagesTag(Package galleryPackage)

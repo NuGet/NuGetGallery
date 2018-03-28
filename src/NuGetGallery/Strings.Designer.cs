@@ -143,6 +143,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; for join this organization with that token..
+        /// </summary>
+        public static string AddMember_MissingRequest {
+            get {
+                return ResourceManager.GetString("AddMember_MissingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details..
+        /// </summary>
+        public static string AddMember_PolicyFailure {
+            get {
+                return ResourceManager.GetString("AddMember_PolicyFailure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You are now a member of organization &apos;{0}&apos;..
+        /// </summary>
+        public static string AddMember_Success {
+            get {
+                return ResourceManager.GetString("AddMember_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has not linked their account to an AAD credential matching this organization..
         /// </summary>
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
@@ -452,6 +479,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The pending organization member was deleted..
+        /// </summary>
+        public static string CancelMemberRequest_Success {
+            get {
+                return ResourceManager.GetString("CancelMemberRequest_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; to join this organization..
+        /// </summary>
+        public static string CancelMembershipRequest_MissingRequest {
+            get {
+                return ResourceManager.GetString("CancelMembershipRequest_MissingRequest", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Enqueuing unavailable: the gallery is currently in read only mode, with limited service. Please try again later..
         /// </summary>
         public static string CannotEnqueueDueToReadOnly {
@@ -632,7 +677,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organization member was deleted..
+        ///   Looks up a localized string similar to The organization member was deleted..
         /// </summary>
         public static string DeleteMember_Success {
             get {
@@ -1040,15 +1085,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
-        /// </summary>
-        public static string Organizations_NotInDomainWhitelist {
-            get {
-                return ResourceManager.GetString("Organizations_NotInDomainWhitelist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Organization accounts cannot create credentials..
         /// </summary>
         public static string OrganizationsCannotCreateCredentials {
@@ -1261,6 +1297,15 @@ namespace NuGetGallery {
         public static string ReadMeUrlHostInvalid {
             get {
                 return ResourceManager.GetString("ReadMeUrlHostInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no request for user &apos;{0}&apos; for join this organization with that token..
+        /// </summary>
+        public static string RejectMembershipRequest_NotFound {
+            get {
+                return ResourceManager.GetString("RejectMembershipRequest_NotFound", resourceCulture);
             }
         }
         
@@ -1625,6 +1670,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request for your account has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Cancelled {
+            get {
+                return ResourceManager.GetString("TransformAccount_Cancelled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An unexpected error occurred while transforming this account. Contact support for assistance..
         /// </summary>
         public static string TransformAccount_Failed {
@@ -1634,11 +1688,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The transform request you are attempting to cancel was not found..
+        /// </summary>
+        public static string TransformAccount_FailedMissingRequestToCancel {
+            get {
+                return ResourceManager.GetString("TransformAccount_FailedMissingRequestToCancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization account &apos;{0}&apos; does not exist..
         /// </summary>
         public static string TransformAccount_OrganizationAccountDoesNotExist {
             get {
                 return ResourceManager.GetString("TransformAccount_OrganizationAccountDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The transform request for you to become an admin of &apos;{0}&apos; has been successfully cancelled..
+        /// </summary>
+        public static string TransformAccount_Rejected {
+            get {
+                return ResourceManager.GetString("TransformAccount_Rejected", resourceCulture);
             }
         }
         

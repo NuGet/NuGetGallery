@@ -1041,19 +1041,32 @@ img.reserved-indicator-icon {
 .manage-members-listing tbody:first-child {
   border-style: hidden;
 }
-.manage-members-listing {
+.members-list {
+  margin-top: 15px;
+}
+.members-list .manage-members-listing {
   margin-bottom: 0;
 }
-.manage-members-listing .heading-left {
+.members-list .manage-members-listing .heading-left {
   padding-left: 5px;
 }
-.manage-members-listing .heading-right {
+.members-list .manage-members-listing .heading-right {
   padding-right: 5px;
 }
-.manage-members-listing .icon-left {
+.members-list .manage-members-listing .icon-left {
   padding-left: 25px;
 }
-.manage-members-listing .member-icon {
+.members-list .manage-members-listing .icon-right {
+  padding-right: 20px;
+}
+.members-list .manage-members-listing .role-description {
+  margin-top: 15px;
+  margin-bottom: 25px;
+}
+.members-list .manage-members-listing .alert {
+  margin-bottom: 5px;
+}
+.members-list .manage-members-listing .row-center {
   vertical-align: middle;
 }
 .page-manage-owners h2 .ms-Icon {
@@ -1137,8 +1150,21 @@ img.reserved-indicator-icon {
   color: #df001e;
 }
 .page-profile .profile-title {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
   margin-top: 50px;
   margin-bottom: 20px;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+          align-items: flex-end;
 }
 .page-profile .profile-title h1 {
   display: inline;
@@ -1149,6 +1175,9 @@ img.reserved-indicator-icon {
   margin-left: 16px;
   font-size: 14px;
   color: #068918;
+}
+.page-profile .profile-title .breadcrumb-manage {
+  margin-bottom: 24px;
 }
 .page-profile .profile-details img {
   margin-top: 50px;

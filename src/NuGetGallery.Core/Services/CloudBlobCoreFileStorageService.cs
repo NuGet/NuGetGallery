@@ -300,7 +300,39 @@ namespace NuGetGallery
             await blob.SetPropertiesAsync();
         }
 
+        public async Task<Uri> GetPriviledgedFileUriAsync(
+            string folderName,
+            string fileName,
+            FileUriPermissions permissions,
+            DateTimeOffset endOfAccess)
+        {
+            var blob = await GetBlobForUriAsync(folderName, fileName, endOfAccess);
+
+            return new Uri(
+                blob.Uri,
+                blob.GetSharedAccessSignature(MapFileUriPermissions(permissions), endOfAccess));
+        }
+
         public async Task<Uri> GetFileReadUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
+        {
+            var blob = await GetBlobForUriAsync(folderName, fileName, endOfAccess);
+
+            if (IsPublicContainer(folderName))
+            {
+                return blob.Uri;
+            }
+
+            return new Uri(
+                blob.Uri,
+                blob.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess));
+        }
+
+        private static SharedAccessBlobPermissions MapFileUriPermissions(FileUriPermissions permissions)
+        {
+            return (SharedAccessBlobPermissions)permissions;
+        }
+
+        private async Task<ISimpleCloudBlob> GetBlobForUriAsync(string folderName, string fileName, DateTimeOffset? endOfAccess)
         {
             folderName = folderName ?? throw new ArgumentNullException(nameof(folderName));
             fileName = fileName ?? throw new ArgumentNullException(nameof(fileName));
@@ -308,20 +340,15 @@ namespace NuGetGallery
             {
                 throw new ArgumentOutOfRangeException(nameof(endOfAccess), $"{nameof(endOfAccess)} is in the past");
             }
-            bool isPublicFolder = IsPublicContainer(folderName);
-            if (!isPublicFolder && endOfAccess == null)
+
+            if (!IsPublicContainer(folderName) && endOfAccess == null)
             {
                 throw new ArgumentNullException(nameof(endOfAccess), $"{nameof(endOfAccess)} must not be null for non-public containers");
             }
 
             ICloudBlobContainer container = await GetContainerAsync(folderName);
-            var blob = container.GetBlobReference(fileName);
-            if (isPublicFolder)
-            {
-                return blob.Uri;
-            }
 
-            return new Uri(blob.Uri, blob.GetSharedReadSignature(endOfAccess));
+            return container.GetBlobReference(fileName);
         }
 
         protected async Task<ICloudBlobContainer> GetContainerAsync(string folderName)

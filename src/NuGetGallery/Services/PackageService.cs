@@ -220,11 +220,7 @@ namespace NuGetGallery
 
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            var packages = GetPackagesForOwners(new[] { user.Key }, includeUnlisted);
-
-            return includeVersions
-                ? packages
-                : GetLatestPackageForEachRegistration(packages.ToList());
+            return GetPackagesForOwners(new [] { user.Key }, includeUnlisted, includeVersions);
         }
 
         /// <summary>
@@ -238,6 +234,11 @@ namespace NuGetGallery
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
+        }
+
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
 
@@ -271,69 +272,6 @@ namespace NuGetGallery
                 .Include(p => p.PackageRegistration)
                 .Include(p => p.PackageRegistration.Owners)
                 .ToList();
-        }
-
-        private IEnumerable<Package> GetLatestPackageForEachRegistration(IReadOnlyCollection<Package> packages)
-        {
-            // This method uses First() and FirstOrDefault() instead of Single() or SingleOrDefault() to get the latest package, 
-            // in case there are multiple latest due to concurrency issue
-            // see: https://github.com/NuGet/NuGetGallery/issues/2514
-            foreach (var packagesByRegistration in packages.GroupBy(p => p.PackageRegistration.Id))
-            {
-                // Return latest stable SemVer2 version if available
-                var latest = packagesByRegistration.Where(p => p.IsLatestStableSemVer2).FirstOrDefault();
-                if (latest != null)
-                {
-                    yield return latest;
-                    continue;
-                }
-
-                // Return latest stable non-SemVer2 version if available
-                latest = packagesByRegistration.Where(p => p.IsLatestStable).FirstOrDefault();
-                if (latest != null)
-                {
-                    yield return latest;
-                    continue;
-                }
-
-                // Return latest pre-release SemVer2 version if available
-                latest = packagesByRegistration.Where(p => p.IsLatestSemVer2).FirstOrDefault();
-                if (latest != null)
-                {
-                    yield return latest;
-                    continue;
-                }
-
-                // Return latest pre-release non-SemVer2 version if available
-                latest = packagesByRegistration.Where(p => p.IsLatest).FirstOrDefault();
-                if (latest != null)
-                {
-                    yield return latest;
-                    continue;
-                }
-
-                // Like DisplayPackage we should prefer to show you information from the latest stable version,
-                // but show you the latest version (potentially latest UNLISTED version) otherwise.
-                yield return packagesByRegistration.OrderByDescending(p => NuGetVersion.Parse(p.Version)).First();
-            }
-        }
-
-        /// <summary>
-        /// Merge packages by owner, including organization owners that the user belongs to and including versions.
-        /// </summary>
-        private IEnumerable<Package> GetPackagesForOwners(IReadOnlyCollection<int> ownerKeys, bool includeUnlisted)
-        {
-            IQueryable<Package> packageVersions = _packageRepository.GetAll()
-                    .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)))
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners);
-
-            if (!includeUnlisted)
-            {
-                packageVersions = packageVersions.Where(p => p.Listed);
-            }
-
-            return packageVersions;
         }
 
         /// <summary>

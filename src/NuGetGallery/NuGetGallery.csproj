@@ -1071,6 +1071,7 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
+    <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="WebRole.cs" />
     <Content Include="bin\NuGetGallery.dll.config">
       <SubType>Designer</SubType>
@@ -2039,8 +2040,8 @@
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
     <Content Include="Views\Users\Organizations.cshtml" />
-    <Content Include="Views\Users\TransformFailed.cshtml" />
-    <Content Include="Views\Users\Transform.cshtml" />
+    <Content Include="Views\Users\TransformToOrganizationFailed.cshtml" />
+    <Content Include="Views\Users\TransformToOrganization.cshtml" />
     <Content Include="Views\Packages\_ValidationIssue.cshtml" />
     <Content Include="Views\Organizations\ManageOrganization.cshtml" />
     <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />
@@ -2057,6 +2058,7 @@
     <Content Include="Views\Shared\_AutocompleteTemplate.cshtml" />
     <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
+    <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />
