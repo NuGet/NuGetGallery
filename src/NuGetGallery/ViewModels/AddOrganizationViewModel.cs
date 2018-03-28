@@ -10,12 +10,13 @@ namespace NuGetGallery
         [Required]
         [StringLength(64)]
         [Display(Name = "Organization Name")]
+        [RegularExpression(Constants.UsernameValidationRegex, ErrorMessage = Constants.UsernameValidationErrorMessage)]
         public string OrganizationName { get; set; }
 
         [Required]
         [StringLength(255)]
         [Display(Name = "Organization Email Address")]
-        [RegularExpression(Constants.EmailValidationRegex, ErrorMessage = "This doesn't appear to be a valid email address.")]
+        [RegularExpression(Constants.EmailValidationRegex, ErrorMessage = Constants.EmailValidationErrorMessage)]
         public string OrganizationEmailAddress { get; set; }
     }
 }

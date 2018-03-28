@@ -70,6 +70,14 @@ namespace NuGetGallery
         internal const string EmailValidationRegexSecondPart = @"[A-Za-z0-9]+[\w\.-]*[A-Za-z0-9]*\.[A-Za-z0-9][A-Za-z\.]*[A-Za-z]";
         public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
 
+        public const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
+
+        public const string UsernameValidationRegex =
+            @"[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]";
+
+        public const string UsernameValidationErrorMessage =
+            "User names must start and end with a letter or number, and may only contain letters, numbers, underscores, periods, and hyphens in between.";
+
         internal const string ApiKeyHeaderName = "X-NuGet-ApiKey";
         // X-NuGet-Client-Version header was deprecated and replaced with X-NuGet-Protocol-Version header
         // It stays here for backwards compatibility
