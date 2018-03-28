@@ -2041,8 +2041,8 @@
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
     <Content Include="Views\Users\Organizations.cshtml" />
-    <Content Include="Views\Users\TransformFailed.cshtml" />
-    <Content Include="Views\Users\Transform.cshtml" />
+    <Content Include="Views\Users\TransformToOrganizationFailed.cshtml" />
+    <Content Include="Views\Users\TransformToOrganization.cshtml" />
     <Content Include="Views\Packages\_ValidationIssue.cshtml" />
     <Content Include="Views\Organizations\ManageOrganization.cshtml" />
     <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />

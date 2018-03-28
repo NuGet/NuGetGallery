@@ -1150,8 +1150,21 @@ img.reserved-indicator-icon {
   color: #df001e;
 }
 .page-profile .profile-title {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
   margin-top: 50px;
   margin-bottom: 20px;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: end;
+  -webkit-align-items: flex-end;
+  -ms-flex-align: end;
+          align-items: flex-end;
 }
 .page-profile .profile-title h1 {
   display: inline;
@@ -1162,6 +1175,9 @@ img.reserved-indicator-icon {
   margin-left: 16px;
   font-size: 14px;
   color: #068918;
+}
+.page-profile .profile-title .breadcrumb-manage {
+  margin-bottom: 24px;
 }
 .page-profile .profile-details img {
   margin-top: 50px;
