@@ -10,7 +10,7 @@
 
     if (Model.IsDotnetToolPackageType)
     {
-        packageManagers = new PackageManagerViewModel[] 
+        packageManagers = new PackageManagerViewModel[]
         {
             new PackageManagerViewModel()
             {
@@ -43,15 +43,12 @@
                 InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
             },
 
-            new ThirdPartyPackageManagerViewModel()
+            new ThirdPartyPackageManagerViewModel("https://fsprojects.github.io/Paket/contact.html")
             {
                 Id = "paket-cli",
                 Name = "Paket CLI",
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
-                ContactUrl = "https://fsprojects.github.io/Paket/contact.html",
-                AlertLevel = AlertLevel.Warning,
-                AlertMessage = string.Format("The NuGet Team does not provide support for this client. Please contact its <a href=\"{0}\">maintainers</a> for support.", "https://fsprojects.github.io/Paket/contact.html")
             }
         };
     }
@@ -125,13 +122,13 @@
             case AlertLevel.Info:
                 @ViewHelpers.AlertInfo(
                     @<text>
-                        @(packageManager.AlertMessage)
+                        @Html.Raw(packageManager.AlertMessage)
                     </text>);
                 break;
             case AlertLevel.Warning:
                 @ViewHelpers.AlertWarning(
                     @<text>
-                        @(packageManager.AlertMessage)
+                        @Html.Raw(packageManager.AlertMessage)
                     </text>);
                 break;
             default:
@@ -272,7 +269,7 @@
             if (Model.CanDisplayPrivateMetadata)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
+                        @<text>f
                         This package is unlisted and hidden from package listings.
 
                         You can see the package because you are one of its owners. To list the package again,

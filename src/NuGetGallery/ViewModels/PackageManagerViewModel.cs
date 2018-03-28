@@ -36,7 +36,7 @@ namespace NuGetGallery
         /// <summary>
         /// The level with which the above message will be displayed.
         /// </summary>
-        public AlertLevel AlertLevel { get; set; } = AlertLevel.None;
+        public AlertLevel AlertLevel { get; set; }
 
         
     }
