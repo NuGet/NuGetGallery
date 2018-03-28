@@ -117,5 +117,7 @@ namespace NuGet.Jobs
         public const string MailFrom = "MailFrom";
         public const string SmtpUri = "SmtpUri";
 
+        // Arguments specific to Stats.AggregateCdnDownloadsInGallery
+        public static string BatchSleepSeconds = "BatchSleepSeconds";
     }
 }
