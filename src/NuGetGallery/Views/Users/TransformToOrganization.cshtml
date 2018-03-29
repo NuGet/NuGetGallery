@@ -20,6 +20,12 @@
                 <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
             </div>
 
+            @ViewHelpers.AlertWarning(@<text>
+                <span>
+                    Transforming your account into an organization is an irreversible process. Once you have transformed your account into an organization, there is no turning back.
+                    If the adminstrator account you specify is not one you own, you will lose all ownership of your packages and will need to work with the administrator account to regain ownership.
+                </span></text>)
+
             @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
             {
                 @Html.AntiForgeryToken()
