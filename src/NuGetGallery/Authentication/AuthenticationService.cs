@@ -623,7 +623,7 @@ namespace NuGetGallery.Authentication
                     ExternalIdentity = externalIdentity,
                     Authenticator = authenticator,
                     Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId),
-                    LoginDetails = new ExternalLoginSessionDetails(userInfo.Email, userInfo.MultiFactorAuthenticated)
+                    LoginDetails = new ExternalLoginSessionDetails(userInfo.Email, userInfo.UsedMultiFactorAuthentication)
                 };
             }
             catch (Exception ex)

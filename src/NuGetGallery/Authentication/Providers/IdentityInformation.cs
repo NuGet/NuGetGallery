@@ -15,7 +15,7 @@ namespace NuGetGallery.Authentication.Providers
 
         public string AuthenticationType { get; private set; }
 
-        public bool MultiFactorAuthenticated { get; set; }
+        public bool UsedMultiFactorAuthentication { get; set; }
 
         public IdentityInformation(string identifier, string name, string email, string authenticationType, string tenantId = null, bool usedMultiFactorAuth = false)
         {
@@ -24,7 +24,7 @@ namespace NuGetGallery.Authentication.Providers
             Email = email;
             AuthenticationType = authenticationType;
             TenantId = tenantId;
-            MultiFactorAuthenticated = usedMultiFactorAuth;
+            UsedMultiFactorAuthentication = usedMultiFactorAuth;
         }
     }
 }

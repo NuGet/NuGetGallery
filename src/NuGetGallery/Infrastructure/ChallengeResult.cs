@@ -16,7 +16,7 @@ namespace NuGetGallery
         {
             LoginProvider = provider;
             RedirectUri = redirectUri;
-            Properties = properties;
+            Properties = properties ?? new Dictionary<string, string>();
         }
 
         public string LoginProvider { get; set; }
