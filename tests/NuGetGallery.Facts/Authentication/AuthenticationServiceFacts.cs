@@ -1424,7 +1424,7 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 var mock = new Mock<Authenticator>() { CallBase = true };
                 var expected = new ViewResult();
-                mock.Setup(a => a.Challenge("http://microsoft.com")).Returns(expected);
+                mock.Setup(a => a.Challenge("http://microsoft.com", null)).Returns(expected);
                 service.Authenticators.Add("test", mock.Object);
 
                 // Act/Assert
@@ -1438,7 +1438,7 @@ namespace NuGetGallery.Authentication
                 var service = Get<AuthenticationService>();
                 var mock = new Mock<Authenticator>() { CallBase = true };
                 var expected = new ViewResult();
-                mock.Setup(a => a.Challenge("http://microsoft.com")).Returns(expected);
+                mock.Setup(a => a.Challenge("http://microsoft.com", null)).Returns(expected);
                 mock.Object.BaseConfig.Enabled = true;
                 service.Authenticators.Add("test", mock.Object);
 

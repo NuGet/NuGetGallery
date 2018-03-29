@@ -33,7 +33,7 @@ namespace NuGetGallery
             }
 
             var emailClaim = claimsIdentity.FindFirst(emailClaimType);
-            return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null);
+            return new IdentityInformation(identifierClaim.Value, nameClaim.Value, emailClaim?.Value, authType, tenantId: null, usedMultiFactorAuth: false);
         }
 
         public static bool HasDiscontinuedLoginClaims(ClaimsIdentity identity)
