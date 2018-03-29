@@ -212,7 +212,7 @@ namespace NuGet.Services.Search.Client
             return false;
         }
 
-        class WeightedRandomComparer
+        public class WeightedRandomComparer
             : IComparer<int>
         {
             public WeightedRandomComparer()
@@ -223,7 +223,7 @@ namespace NuGet.Services.Search.Client
             {
                 var totalWeight = x + y;
                 var randomNumber = ThreadSafeRandom.Next(0, totalWeight);
-               
+
                 if (randomNumber < x)
                 {
                     return 1;

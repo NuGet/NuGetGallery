@@ -9,7 +9,7 @@ namespace NuGet.Services.Search.Client
     /// A thread safe random implementation 
     /// https://blogs.msdn.microsoft.com/pfxteam/2009/02/19/getting-random-numbers-in-a-thread-safe-way/
     /// </summary>
-    static class ThreadSafeRandom
+    public static class ThreadSafeRandom
     {
         private static Random _global = new Random();
         [ThreadStatic]
