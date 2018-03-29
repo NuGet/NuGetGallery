@@ -15,7 +15,7 @@ namespace NgTests
     {
         [Theory]
         [Description("The azure compressed factory should compress the content.")]
-        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
+        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure")]
         public void AzureCompressedFactory(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
@@ -43,7 +43,7 @@ namespace NgTests
 
         [Theory]
         [Description("The azure compressed factory will be null if the UseCompressedStorage is false.")]
-        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
+        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure")]
         public void AzureCompressedFactoryNull(string storageBaseAddress,
                                             string storageAccountName,
                                             string storageKeyValue,
@@ -69,7 +69,7 @@ namespace NgTests
 
         [Theory]
         [Description("The regular azure factory should not compress the content if.")]
-        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath", "azure")]
+        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath", "azure")]
         public void AzureFactory(string storageBaseAddress,
                                  string storageAccountName,
                                  string storageKeyValue,
@@ -96,7 +96,7 @@ namespace NgTests
 
         [Theory]
         [Description("The SemVer 2.0.0 Azure factory should compress the content.")]
-        [InlineData("http://localhost/reg", "testAccount", "ZiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==", "testContainer", "testStoragePath")]
+        [InlineData("http://localhost/reg", "testAccount", "DummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==", "testContainer", "testStoragePath")]
         public void AzureSemVer2Factory(string storageBaseAddress,
                                         string storageAccountName,
                                         string storageKeyValue,
@@ -131,21 +131,21 @@ namespace NgTests
 
                 { Arguments.StorageBaseAddress, "http://localhost/reg" },
                 { Arguments.StorageAccountName, "testAccount" },
-                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageKeyValue, "ADummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.StorageContainer, "testContainer" },
                 { Arguments.StoragePath, "testStoragePath" },
 
                 { Arguments.UseCompressedStorage, "true" },
                 { Arguments.CompressedStorageBaseAddress, "http://localhost/reg-gz" },
                 { Arguments.CompressedStorageAccountName, "testAccount-gz" },
-                { Arguments.CompressedStorageKeyValue, "BiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.CompressedStorageKeyValue, "BDummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.CompressedStorageContainer, "testContainer-gz" },
                 { Arguments.CompressedStoragePath, "testStoragePath-gz" },
 
                 { Arguments.UseSemVer2Storage, "true" },
                 { Arguments.SemVer2StorageBaseAddress, "http://localhost/reg-gz-semver2" },
                 { Arguments.SemVer2StorageAccountName, "testAccount-semver2" },
-                { Arguments.SemVer2StorageKeyValue, "CiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.SemVer2StorageKeyValue, "CDummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.SemVer2StorageContainer, "testContainer-semver2" },
                 { Arguments.SemVer2StoragePath, "testStoragePath-semver2" },
             };
@@ -185,7 +185,7 @@ namespace NgTests
 
                 { Arguments.StorageBaseAddress, "http://localhost/reg" },
                 { Arguments.StorageAccountName, "testAccount" },
-                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageKeyValue, "ADummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.StorageContainer, "testContainer" },
                 { Arguments.StoragePath, "testStoragePath" },
 
@@ -194,7 +194,7 @@ namespace NgTests
                 { Arguments.UseSemVer2Storage, "true" },
                 { Arguments.SemVer2StorageBaseAddress, "http://localhost/reg-gz-semver2" },
                 { Arguments.SemVer2StorageAccountName, "testAccount-semver2" },
-                { Arguments.SemVer2StorageKeyValue, "CiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.SemVer2StorageKeyValue, "CDummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.SemVer2StorageContainer, "testContainer-semver2" },
                 { Arguments.SemVer2StoragePath, "testStoragePath-semver2" },
             };
@@ -224,14 +224,14 @@ namespace NgTests
 
                 { Arguments.StorageBaseAddress, "http://localhost/reg" },
                 { Arguments.StorageAccountName, "testAccount" },
-                { Arguments.StorageKeyValue, "AiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.StorageKeyValue, "ADummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.StorageContainer, "testContainer" },
                 { Arguments.StoragePath, "testStoragePath" },
 
                 { Arguments.UseCompressedStorage, "true" },
                 { Arguments.CompressedStorageBaseAddress, "http://localhost/reg-gz" },
                 { Arguments.CompressedStorageAccountName, "testAccount-gz" },
-                { Arguments.CompressedStorageKeyValue, "BiWrbTMNTApZxLeWB7a0yN52gJj+ZlGE0ipRi9PaTcn9AU4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAhfkGpw==" },
+                { Arguments.CompressedStorageKeyValue, "BDummyDUMMYpZxLeDumMyyN52gJj+ZlGE0ipRi9PaTcn9A4epwvsngE5rLSMk9TwpazxUtzeyBnFeWFAdummyw==" },
                 { Arguments.CompressedStorageContainer, "testContainer-gz" },
                 { Arguments.CompressedStoragePath, "testStoragePath-gz" },
 
