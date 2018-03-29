@@ -215,10 +215,6 @@ namespace NuGet.Services.Search.Client
         public class WeightedRandomComparer
             : IComparer<int>
         {
-            public WeightedRandomComparer()
-            {
-            }
-
             public int Compare(int x, int y)
             {
                 var totalWeight = x + y;
