@@ -137,7 +137,7 @@
     </div>
 }
 
-                    <section role="main" class="container main-container page-package-details">
+<section role="main" class="container main-container page-package-details">
     <div class="row">
         <aside class="col-sm-1">
             <h3>
@@ -153,7 +153,7 @@
                     <small class="text-nowrap">@Model.FullVersion</small>
 
                     @if (Model.IsVerified.HasValue && Model.IsVerified.Value)
-                {
+                    {
                         <img class="reserved-indicator"
                              src="~/Content/gallery/img/reserved-indicator.svg"
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-25x25.png"))
@@ -162,7 +162,7 @@
                 </h1>
 
                 @if (!Model.Deleted && !StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))
-            {
+                {
                     <div class="ms-fontSize-xl">
                         @Html.BreakWord(Model.Title)
                     </div>
@@ -170,24 +170,19 @@
             </div>
 
             @if (!Model.Deleted && !String.IsNullOrWhiteSpace(Model.Description))
-        {
+            {
                 <p>@Html.PreFormattedText(Model.Description)</p>
             }
 
-        @if (Model.Validating)
-        {
-            @ViewHelpers.AlertWarning(
+            @if (Model.Validating)
+            {
+                @ViewHelpers.AlertWarning(
                     @<text>
-
-                    <strong>This package has not been published yet.</strong> It will appear in search results and
-
-                    will be available for install/restore after both validation and indexing are complete. Package
-
-                    validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
-
-                </text>
-
-            )
+                        <strong>This package has not been published yet.</strong> It will appear in search results and
+                        will be available for install/restore after both validation and indexing are complete. Package
+                        validation and indexing may take up to an hour. <a href="https://aka.ms/NuGetPackageValidation">Read more</a>.
+                    </text>
+                )
 
                 if (Model.ValidatingTooLong)
                 {
@@ -199,116 +194,100 @@
                 }
         }
 
-        @if (Model.FailedValidation)
-        {
-            foreach (var issue in Model.ValidationIssues)
+            @if (Model.FailedValidation)
+            {
+                foreach (var issue in Model.ValidationIssues)
+                {
+                    @ViewHelpers.AlertDanger(
+                        @<text>
+                            @Html.Partial("_ValidationIssue", issue)
+                        </text>)
+                }
+            }
+
+            @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-                        @<text>
-                        @Html.Partial("_ValidationIssue", issue)
-                    </text>)
-                }
-        }
-
-        @if (Model.Deleted)
-        {
-            @ViewHelpers.AlertDanger(
                     @<text>
-
-                    <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
                         for install/restore.
                     </text>
                 )
             }
 
-        @if (Model.Prerelease)
-        {
-            @ViewHelpers.AlertInfo(
-                    @<text>
-                    This is a prerelease version of @(Model.Id).
-
-                </text>
-
-            )
-            }
-
-        @if (Model.HasNewerPrerelease)
-        {
-            @ViewHelpers.AlertInfo(
-                    @<text>
-                    There is a newer prerelease version of this package available.
-
-                    <br /> See the version list below for details.
-
-                </text>
-
-            )
-            }
-
-        @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
-        {
-            @ViewHelpers.AlertWarning(
-                    @<text>
-
-                    <strong>This package has not been indexed yet.</strong> It will appear in search results
-
-                    and will be available for install/restore after indexing is complete.
-
-                </text>
-
-            )
-            }
-
-        @if (Model.IsSemVer2)
-        {
-            @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
-            }
-
-        @if (!Model.Listed && Model.Available)
-        {
-            if (Model.CanDisplayPrivateMetadata)
+            @if (Model.Prerelease)
             {
-                @ViewHelpers.AlertWarning(
-                        @<text>f
-                        This package is unlisted and hidden from package listings.
-
-                        You can see the package because you are one of its owners. To list the package again,
-
-                        <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        This is a prerelease version of @(Model.Id).
                     </text>
-
                 )
-                }
-            else
+            }
+
+            @if (Model.HasNewerPrerelease)
+            {
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
+            }
+
+            @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
             {
                 @ViewHelpers.AlertWarning(
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is complete.
+                    </text>
+                )
+            }
+
+            @if (Model.IsSemVer2)
+            {
+                @ViewHelpers.AlertIsSemVer2Package(Model.HasSemVer2Version, Model.HasSemVer2Dependency)
+            }
+
+            @if (!Model.Listed && Model.Available)
+            {
+                if (Model.CanDisplayPrivateMetadata)
+                {
+                    @ViewHelpers.AlertWarning(
                         @<text>
-                        The owner has unlisted this package.
-
-                        This could mean that the package is deprecated or shouldn't be used anymore.
-                    </text>
-
-                )
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                        </text>
+                    )
                 }
-        }
+                else
+                {
+                    @ViewHelpers.AlertWarning(
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated or shouldn't be used anymore.
+                        </text>
+                    )
+                }
+            }
 
-        @if (!Model.Deleted && !String.IsNullOrEmpty(Model.MinClientVersion))
-        {
+            @if (!Model.Deleted && !String.IsNullOrEmpty(Model.MinClientVersion))
+            {
                 <p>Requires NuGet @Model.MinClientVersion or higher.</p>
             }
 
-        @if (Model.Available)
-        {
+            @if (Model.Available)
+            {
                 <div class="install-tabs">
                     <ul class="nav nav-tabs" role="tablist">
                         @{ var firstPackageManager = true; }
                         @foreach (var packageManager in packageManagers)
-        {
-            @CommandTab(packageManager, active: firstPackageManager)
+                        {
+                            @CommandTab(packageManager, active: firstPackageManager)
 
                             firstPackageManager = false;
-        }
+                        }
                     </ul>
                     <div class="tab-content">
                         @{ firstPackageManager = true; }
