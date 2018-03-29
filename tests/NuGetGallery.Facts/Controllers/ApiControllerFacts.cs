@@ -149,7 +149,7 @@ namespace NuGetGallery
             get
             {
                 yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, PermissionsCheckResult.Unknown, scopesAreValid: false), HttpStatusCode.Forbidden, Strings.ApiKeyNotAuthorized);
-                
+
                 foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
                 {
                     if (result == PermissionsCheckResult.Allowed)
