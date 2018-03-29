@@ -1457,6 +1457,12 @@ namespace NuGetGallery
                 return Json(400, new[] { message });
             }
 
+            if (!owner.Confirmed)
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerUnconfirmed, formData.Owner);
+                return Json(400, new[] { message });
+            }
+
             Package package;
             using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
