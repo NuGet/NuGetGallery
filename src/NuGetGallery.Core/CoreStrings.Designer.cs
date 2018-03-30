@@ -124,6 +124,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains duplicate metadata elements: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_DuplicateMetadataElements {
+            get {
+                return ResourceManager.GetString("Manifest_DuplicateMetadataElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
         public static string Manifest_IdTooLong {

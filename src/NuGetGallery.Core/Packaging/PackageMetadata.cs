@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
@@ -156,6 +158,19 @@ namespace NuGetGallery.Packaging
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
         {
+            if (strict)
+            {
+                var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+
+                var duplicates = strictNuspecReader.GetDuplicateMetadataElementNames();
+                if (duplicates.Any())
+                {
+                    throw new PackagingException(string.Format(
+                        CoreStrings.Manifest_DuplicateMetadataElements,
+                        string.Join("', '", duplicates)));
+                }
+            }
+
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
@@ -163,6 +178,23 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion()
            );
+        }
+
+        private class StrictNuspecReader : NuspecReader
+        {
+            public StrictNuspecReader(XDocument xml) : base(xml)
+            {
+            }
+
+            public IReadOnlyList<string> GetDuplicateMetadataElementNames()
+            {
+                return MetadataNode
+                    .Elements()
+                    .GroupBy(element => element.Name.LocalName)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .ToList();
+            }
         }
     }
 }

@@ -189,4 +189,8 @@
   <data name="PackageIsMissingRequiredData" xml:space="preserve">
     <value>The package is missing required data.</value>
   </data>
+  <data name="Manifest_DuplicateMetadataElements" xml:space="preserve">
+    <value>The package manifest contains duplicate metadata elements: '{0}'</value>
+    <comment>{0} is a comma-delimited list of duplicate metadata element names.</comment>
+  </data>
 </root>
