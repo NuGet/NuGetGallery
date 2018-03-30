@@ -734,6 +734,7 @@
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
+    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\IdentityInformation.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
