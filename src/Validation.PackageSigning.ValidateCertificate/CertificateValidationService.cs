@@ -60,6 +60,13 @@ namespace Validation.PackageSigning.ValidateCertificate
                     validation.EndCertificate.Thumbprint,
                     result.Status);
             }
+            else
+            {
+                _logger.LogInformation(
+                    "Updating certificate {CertificateThumbprint} to status {NewStatus}",
+                    validation.EndCertificate.Thumbprint,
+                    result.Status);
+            }
 
             try
             {
