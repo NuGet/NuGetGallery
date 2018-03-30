@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Xml;
 using Newtonsoft.Json.Linq;
 
@@ -90,12 +91,20 @@ namespace NuGet.Services.AzureManagement
                 // This contains the cscfg format configuration in XML format
                 var configuration = properties["configuration"].ToString();
 
-                var xmlConfig = new XmlDocument();
-                xmlConfig.LoadXml(configuration);
-                var instancesElement = xmlConfig.GetElementsByTagName("Instances")[0];
-                var instanceCount = int.Parse(instancesElement.Attributes["count"].InnerText);
+                using (var stringReader = new StringReader(configuration))
+                {
+                    using (var xmlReader = XmlReader.Create(stringReader))
+                    {
+                        var xmlConfig = new XmlDocument();
+                        xmlConfig.XmlResolver = null;
 
-                return new CloudServiceProperties(uri, instanceCount);
+                        xmlConfig.Load(xmlReader);
+                        var instancesElement = xmlConfig.GetElementsByTagName("Instances")[0];
+                        var instanceCount = int.Parse(instancesElement.Attributes["count"].InnerText);
+
+                        return new CloudServiceProperties(uri, instanceCount);
+                    }
+                }
             }
             catch (Exception e)
             {
