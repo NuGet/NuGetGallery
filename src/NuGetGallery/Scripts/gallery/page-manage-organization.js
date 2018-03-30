@@ -195,6 +195,11 @@
                 return self.AddMemberRole() == self.RoleNames()[0];
             });
             this.AddMember = function () {
+                if (!self.NewMemberUsername()) {
+                    self.Error("You must specify a user to add as a member.");
+                    return;
+                }
+
                 // Check if the member already exists.
                 var memberExists = false;
                 self.Members().forEach(function (member) {
