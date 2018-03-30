@@ -5,12 +5,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -21,8 +19,9 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
-            : base(authService, curatedFeedService, messageService, userService)
+            IUserService userService,
+            ITelemetryService telemetryService)
+            : base(authService, curatedFeedService, messageService, userService, telemetryService)
         {
         }
 
@@ -70,6 +69,7 @@ namespace NuGetGallery
             {
                 var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
                 SendNewAccountEmail(organization);
+                TelemetryService.TrackOrganizationAdded(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }
             catch (EntityException e)
@@ -274,7 +274,7 @@ namespace NuGetGallery
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
-            model.RequiresTenant = account.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
+            model.RequiresTenant = account.IsRestrictedToAadTenant();
         }
     }
 }

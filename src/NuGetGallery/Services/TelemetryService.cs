@@ -30,6 +30,11 @@ namespace NuGetGallery
             public const string PackageDelete = "PackageDelete";
             public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
             public const string PackageRevalidate = "PackageRevalidate";
+            public const string OrganizationTransformInitiated = "OrganizationTransformInitiated";
+            public const string OrganizationTransformCompleted = "OrganizationTransformCompleted";
+            public const string OrganizationTransformDeclined = "OrganizationTransformDeclined";
+            public const string OrganizationTransformCancelled = "OrganizationTransformCancelled";
+            public const string OrganizationAdded = "OrganizationAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -79,6 +84,10 @@ namespace NuGetGallery
 
         // Package delete properties
         public const string IsHardDelete = "IsHardDelete";
+
+        // Organization properties
+        public const string OrganizationKey = "OrganizationKey";
+        public const string OrganizationHasAadRestriction = "HasAadRestriction";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -419,6 +428,58 @@ namespace NuGetGallery
                 properties.Add(ReportPackageReason, details.ReportPackageReason?.ToString());
                 properties.Add(PackageDeleteDecision, details.PackageDeleteDecision?.ToString());
             });
+        }
+
+        private void TrackMetricForOrganization(
+            string metricName,
+            User user,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            TrackMetric(metricName, 1, properties =>
+            {
+                properties.Add(OrganizationKey, user.Key.ToString());
+                addProperties?.Invoke(properties);
+            });
+        }
+
+        private void TrackMetricForOrganization(
+            string metricName,
+            Organization organization)
+        {
+            TrackMetricForOrganization(metricName, organization, properties =>
+            {
+                properties.Add(OrganizationHasAadRestriction, organization.IsRestrictedToAadTenant().ToString());
+            });
+        }
+
+        public void TrackOrganizationTransformInitiated(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformInitiated, user);
+        }
+
+        public void TrackOrganizationTransformCompleted(Organization organization)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformCompleted, organization);
+        }
+
+        public void TrackOrganizationTransformDeclined(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformDeclined, user);
+        }
+
+        public void TrackOrganizationTransformCancelled(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformCancelled, user);
+        }
+
+        public void TrackOrganizationAdded(Organization organization)
+        {
+            TrackMetricForOrganization(Events.OrganizationAdded, organization);
         }
 
         /// <summary>

@@ -48,6 +48,31 @@ namespace NuGetGallery
         void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success);
 
         /// <summary>
+        /// A telemetry event emitted when a user requests transformation of their account into an organization.
+        /// </summary>
+        void TrackOrganizationTransformInitiated(User user);
+
+        /// <summary>
+        /// A telemetry event emitted when a user completes transformation of their account into an organization.
+        /// </summary>
+        void TrackOrganizationTransformCompleted(Organization organization);
+
+        /// <summary>
+        /// A telemetry event emitted when a user's request to transform their account into an organization is declined.
+        /// </summary>
+        void TrackOrganizationTransformDeclined(User user);
+
+        /// <summary>
+        /// A telemetry event emitted when a user cancels their request to transform their account into an organization.
+        /// </summary>
+        void TrackOrganizationTransformCancelled(User user);
+
+        /// <summary>
+        /// A telemetry event emitted when a user adds a new organization to their account.
+        /// </summary>
+        void TrackOrganizationAdded(Organization organization);
+
+        /// <summary>
         /// Create a trace for an exception. These are informational for support requests.
         /// </summary>
         void TraceException(Exception exception);

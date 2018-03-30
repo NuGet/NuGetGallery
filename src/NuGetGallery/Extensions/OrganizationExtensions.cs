@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGetGallery.Security;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -44,6 +46,11 @@ namespace NuGetGallery
             }
 
             return distinctUsers;
+        }
+
+        public static bool IsRestrictedToAadTenant(this Organization organization)
+        {
+            return organization.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }
