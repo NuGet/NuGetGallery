@@ -15,29 +15,28 @@
 <section role="main" class="container main-container page-transform-account">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center"><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Transform Account</h1>
-            <div class="text-center ms-font-xxl current-username">
-                <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
-            </div>
+            <h1><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Transform Account</h1>
 
-            @ViewHelpers.AlertWarning(@<text>
-                <span>
-                    This is an irreversible process. Once you transform this account to an organization:
-                </span>
-                <ul class="transform-alert-text transform-alert-list">
-                    <li>
-                        You will no longer be able sign in to @CurrentUser.Username.
-                    </li>
-                    <li>
-                        All permissions to manage @CurrentUser.Username and the packages it owns will be transferred to the administrator you choose here.
-                    </li>
-                    <li>
-                        Existing scoped API keys for this account will be transferred to the administrator. Full access API keys (legacy API keys without expiry) will not be transferred and will be deleted.
-                    </li>
-                </ul>
-                <p>
-                    <b>Note:</b> If you want to continue to manage @CurrentUser.Username and its packages, you should create an individual account on NuGet.org before transforming it to an organization so that you can add your new account as an administrator during the transform process.
-                </p></text>)
+            <div class="transform-alert">
+                @ViewHelpers.AlertWarning(@<text>
+                    <span>
+                        This is an irreversible process. Once you transform this account to an organization:
+                    </span>
+                    <ul class="transform-alert-list">
+                        <li>
+                            You will no longer be able sign in to @CurrentUser.Username.
+                        </li>
+                        <li>
+                            All permissions to manage @CurrentUser.Username and the packages it owns will be transferred to the administrator you choose here.
+                        </li>
+                        <li>
+                            Existing scoped API keys for this account will be transferred to the administrator. Full access API keys (legacy API keys without expiry) will not be transferred and will be deleted.
+                        </li>
+                    </ul>
+                    <p>
+                        <b>Note:</b> If you want to continue to manage @CurrentUser.Username and its packages, you should create an individual account on NuGet.org before transforming it to an organization so that you can add your new account as an administrator during the transform process.
+                    </p></text>)
+            </div>
 
             @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
             {

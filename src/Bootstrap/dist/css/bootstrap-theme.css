@@ -1485,13 +1485,11 @@ img.reserved-indicator-icon {
 .page-status .table tbody + tbody {
   border: none;
 }
-.page-transform-account .current-username {
+.page-transform-account .transform-alert {
   margin-bottom: 33px;
 }
-.page-transform-account .transform-alert-list {
+.page-transform-account .transform-alert .transform-alert-list {
   margin-top: 15px;
-}
-.page-transform-account .transform-alert-text {
   margin-bottom: 15px;
 }
 .page-transform-account .center-box {
