@@ -15,13 +15,16 @@ namespace NuGetGallery.Authentication.Providers
 
         public string AuthenticationType { get; private set; }
 
-        public IdentityInformation(string identifier, string name, string email, string authenticationType, string tenantId = null)
+        public bool UsedMultiFactorAuthentication { get; set; }
+
+        public IdentityInformation(string identifier, string name, string email, string authenticationType, string tenantId = null, bool usedMultiFactorAuth = false)
         {
             Identifier = identifier;
             Name = name;
             Email = email;
             AuthenticationType = authenticationType;
             TenantId = tenantId;
+            UsedMultiFactorAuthentication = usedMultiFactorAuth;
         }
     }
 }
