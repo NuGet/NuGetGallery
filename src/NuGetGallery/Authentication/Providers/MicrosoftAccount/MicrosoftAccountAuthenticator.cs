@@ -34,9 +34,9 @@ namespace NuGetGallery.Authentication.Providers.MicrosoftAccount
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl)
+        public override ActionResult Challenge(string redirectUrl, AuthenticationPolicy policy = null)
         {
-            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
+            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, policy?.GetProperties());
         }
 
         public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
