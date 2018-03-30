@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -146,6 +147,38 @@ namespace NuGetGallery.SearchClient
 
             Assert.False(result.IsSuccessStatusCode);
             Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
+        }
+
+        [Theory]
+        [InlineData("https://dummy1/", 0, 62)]
+        [InlineData("https://dummy1/", 100, 62)]
+        [InlineData("https://dummy1/", 62, 62)]
+        [InlineData("https://dummy1/", 0, 0)]
+        public void WeightedRandomComparerTest(string dummyUrl, int dummyUrlHealthIndex, int otherHealthIndex)
+        {
+            var comparer = new RetryingHttpClientWrapper.WeightedRandomComparer();
+
+            List<Uri> urls = new List<Uri>()
+            {
+                new Uri(dummyUrl),
+                new Uri ("https://dumm2/")
+            };
+
+            //The Assert is very loose verification 
+            //In the presence of the bug the line below will be infinite loop
+            var orderList = urls.OrderByDescending((u) =>
+            {
+                if (u.AbsoluteUri == dummyUrl)
+                {
+                    return dummyUrlHealthIndex;
+                }
+                else
+                {
+                    return otherHealthIndex;
+                }
+            }, comparer).ToList();
+
+            Assert.True(orderList.Select(u => u.AbsoluteUri).Contains(dummyUrl));
         }
     }
 }
