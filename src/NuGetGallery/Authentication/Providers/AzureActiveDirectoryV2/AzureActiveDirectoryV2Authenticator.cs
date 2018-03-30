@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
+using Microsoft.Owin.Security;
 using Microsoft.Owin.Security.Notifications;
 using Microsoft.Owin.Security.OpenIdConnect;
 using NuGetGallery.Configuration;
@@ -22,6 +24,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             public const string Email = "preferred_username";
             public const string Name = "name";
             public const string Issuer = "iss";
+
+            /// <summary>
+            /// ACR is the Authentication Class Reference token, which is the claim that is returned by OpenId upon usage of multi-factor during authentication.
+            /// More details: http://openid.net/specs/openid-connect-eap-acr-values-1_0.html
+            /// </summary>
+            public const string ACR = "http://schemas.microsoft.com/claims/authnclassreference";
         }
 
         public static class AuthenticationType
@@ -35,7 +43,23 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
-        private static readonly string ACCESS_DENIED = "access_denied";
+        private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
+
+        /// <summary>
+        /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
+        /// for authentication to the common endpoint.
+        /// </summary>
+        public static class ACR_VALUES
+        {
+            public static readonly string DEFAULT = "urn:microsoft:policies:default";
+            public static readonly string MFA = "urn:microsoft:policies:mfa";
+
+            /// <summary>
+            /// Combination of MFA and DEFAULT values sent as id_token to the authentication uses the user set policy
+            /// for multi-factor authentication and returns the <see cref="V2Claims.ACR"/> token with the used policy.
+            /// </summary>
+            public static readonly string ANY = MFA + " " + DEFAULT;
+        }
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
@@ -58,7 +82,8 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 TokenValidationParameters = new System.IdentityModel.Tokens.TokenValidationParameters() { ValidateIssuer = false },
                 Notifications = new OpenIdConnectAuthenticationNotifications
                 {
-                    AuthenticationFailed = AuthenticationFailed
+                    AuthenticationFailed = AuthenticationFailed,
+                    RedirectToIdentityProvider = RedirectToIdentityProvider
                 }
             };
 
@@ -79,9 +104,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl)
+        public override ActionResult Challenge(string redirectUrl, AuthenticationPolicy policy)
         {
-            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
+            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, policy?.GetProperties());
         }
 
         public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
@@ -142,7 +167,16 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
                 throw new ArgumentException($"External Authentication is missing required claim: '{V2Claims.Email}'");
             }
 
-            return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId);
+            var acrClaim = claimsIdentity.FindFirst(V2Claims.ACR);
+            var multiFactorAuthenticated = acrClaim?.Value.Equals(ACR_VALUES.MFA, StringComparison.OrdinalIgnoreCase) ?? false;
+
+            return new IdentityInformation(identifier, nameClaim?.Value, emailClaim.Value, authenticationType, tenantId, multiFactorAuthenticated);
+        }
+
+        public override bool SupportsMultiFactorAuthentication()
+        {
+            // AADv2 supports multi-factor authentication by the use of OpenIdConnect protocol with ACR_VALUES.
+            return true;
         }
 
         // The OpenIdConnect.<AuthenticateCoreAsync> throws OpenIdConnectProtocolException upon denial of access permissions by the user, 
@@ -150,25 +184,50 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
-            if (notification.Exception.Message == ACCESS_DENIED)
+            if (_errorMessageList.Contains(notification.Exception.Message))
             {
                 // For every 'Challenge' sent to the external providers, we store the 'State'
                 // with the redirect uri where we intend to return after successful authentication.
                 // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
-                var authenticationPropertiesEncodedString = notification
-                    .ProtocolMessage
-                    .State
-                    .Split('=');
-                var authenticationProperties = notification
-                    .Options
-                    .StateDataFormat
-                    .Unprotect(authenticationPropertiesEncodedString[1]);
+                var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
                 notification.HandleResponse();
                 notification.Response.Redirect(authenticationProperties.RedirectUri);
             }
 
             return Task.FromResult(0);
+        }
+
+        /// <summary>
+        /// Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication.
+        /// </summary>
+        /// <param name="notification">The properties used for authentication</param>
+        /// <returns>awaitable Task</returns>
+        private Task RedirectToIdentityProvider(RedirectToIdentityProviderNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
+        {
+
+            var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
+
+            // AcrValues token control the multi-factor authentication, when supplied with any(which could be default or mfa), the user set policy for 2FA
+            // is enforced. When explicitly set to mfa, the authentication is enforced with multi-factor auth. The LoginHint token, is useful for redirecting
+            // an already logged in user directly to the multi-factor auth flow.
+            if (AuthenticationPolicy.TryGetPolicyFromProperties(authenticationProperties.Dictionary, out AuthenticationPolicy policy))
+            {
+                notification.ProtocolMessage.AcrValues = policy.EnforceMultiFactorAuthentication ? ACR_VALUES.MFA : ACR_VALUES.ANY;
+                notification.ProtocolMessage.LoginHint = policy.Email;
+            }
+            else
+            {
+                notification.ProtocolMessage.AcrValues = ACR_VALUES.ANY;
+            }
+
+            return Task.FromResult(0);
+        }
+
+        private AuthenticationProperties GetAuthenticationPropertiesFromProtocolMessage(OpenIdConnectMessage message, OpenIdConnectAuthenticationOptions options)
+        {
+            var authenticationPropertiesEncodedString = message.State.Split('=');
+            return options.StateDataFormat.Unprotect(authenticationPropertiesEncodedString[1]);
         }
     }
 }

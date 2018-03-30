@@ -484,7 +484,7 @@ namespace NuGetGallery.Authentication
             return true;
         }
 
-        public virtual ActionResult Challenge(string providerName, string redirectUrl)
+        public virtual ActionResult Challenge(string providerName, string redirectUrl, AuthenticationPolicy policy = null)
         {
             Authenticator provider;
 
@@ -504,7 +504,7 @@ namespace NuGetGallery.Authentication
                     providerName));
             }
 
-            return provider.Challenge(redirectUrl);
+            return provider.Challenge(redirectUrl, policy);
         }
 
         public virtual async Task AddCredential(User user, Credential credential)
@@ -622,7 +622,8 @@ namespace NuGetGallery.Authentication
                     Authentication = null,
                     ExternalIdentity = externalIdentity,
                     Authenticator = authenticator,
-                    Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId)
+                    Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId),
+                    LoginDetails = new ExternalLoginSessionDetails(userInfo.Email, userInfo.UsedMultiFactorAuthentication)
                 };
             }
             catch (Exception ex)
