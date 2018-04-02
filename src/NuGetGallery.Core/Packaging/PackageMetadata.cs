@@ -13,6 +13,33 @@ namespace NuGetGallery.Packaging
 {
     public class PackageMetadata
     {
+        /// <summary>
+        /// These are properties generated in the V3 pipeline (feed2catalog job) and could collide if the .nuspec
+        /// itself also contains these properties.
+        /// </summary>
+        private static readonly HashSet<string> RestrictedMetadataElements = new HashSet<string>
+        {
+            "created",
+            "dependencyGroups", // Not to be confused with the valid element "dependencies" with a sub-element "group".
+            "isPrerelease",
+            "lastEdited",
+            "listed",
+            "packageEntries",
+            "packageHash",
+            "packageHashAlgorithm",
+            "packageSize",
+            "published",
+            "supportedFrameworks",
+            "verbatimVersion",
+        };
+
+        private static readonly HashSet<string> BooleanMetadataElements = new HashSet<string>
+        {
+            "developmentDependency",
+            "requireLicenseAcceptance",
+            "serviceable",
+        };
+
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
@@ -171,8 +198,35 @@ namespace NuGetGallery.Packaging
                 }
             }
 
+            var metadata = nuspecReader
+                .GetMetadata()
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            // Reject invalid metadata element names. Today this only rejects element names that collide with
+            // properties generated downstream.
+            var metadataKeys = new HashSet<string>(metadata.Keys);
+            metadataKeys.IntersectWith(RestrictedMetadataElements);
+            if (metadataKeys.Any())
+            {
+                throw new PackagingException(string.Format(
+                    CoreStrings.Manifest_InvalidMetadataElements,
+                    string.Join("', '", metadataKeys.OrderBy(x => x))));
+            }
+
+            // Reject non-boolean values for boolean metadata.
+            foreach (var booleanName in BooleanMetadataElements)
+            {
+                if (metadata.TryGetValue(booleanName, out var unparsedBoolean)
+                    && !bool.TryParse(unparsedBoolean, out var parsedBoolean))
+                {
+                    throw new PackagingException(string.Format(
+                        CoreStrings.Manifest_InvalidBooleanMetadata,
+                        booleanName));
+                }
+            }
+
             return new PackageMetadata(
-                nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                metadata,
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
