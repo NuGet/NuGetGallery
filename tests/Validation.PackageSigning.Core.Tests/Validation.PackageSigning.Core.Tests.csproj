@@ -35,6 +35,7 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PackageSignatureExtensionsFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Storage\CertificateStoreTests.cs" />
     <Compile Include="Storage\ValidatorStatusExtensionsFacts.cs" />
@@ -87,5 +88,6 @@
   <ItemGroup>
     <EmbeddedResource Include="TestData\verisign-ca-root.cer" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

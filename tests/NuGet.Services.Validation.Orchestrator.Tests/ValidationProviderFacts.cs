@@ -85,7 +85,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             /// </summary>
             [Theory]
             [InlineData("VcsValidator", false)]
-            [InlineData("PackageSigningValidator", false)]
+            [InlineData("PackageSigningValidator", true)]
             [InlineData("PackageCertificatesValidator", false)]
             public void KnownValidatorsDoNotChangeNames(string validatorName, bool isProcessor)
             {

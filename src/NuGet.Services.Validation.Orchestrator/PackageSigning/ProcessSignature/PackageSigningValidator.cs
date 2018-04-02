@@ -6,26 +6,29 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
 namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
 {
-    public class PackageSigningValidator : BaseValidator, IValidator
+    public class PackageSigningValidator : IProcessor
     {
         private readonly IValidatorStateService _validatorStateService;
         private readonly IProcessSignatureEnqueuer _signatureVerificationEnqueuer;
+        private readonly ISimpleCloudBlobProvider _blobProvider;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<PackageSigningValidator> _logger;
 
         public PackageSigningValidator(
             IValidatorStateService validatorStateService,
             IProcessSignatureEnqueuer signatureVerificationEnqueuer,
+            ISimpleCloudBlobProvider blobProvider,
             ITelemetryService telemetryService,
             ILogger<PackageSigningValidator> logger)
         {
             _validatorStateService = validatorStateService ?? throw new ArgumentNullException(nameof(validatorStateService));
             _signatureVerificationEnqueuer = signatureVerificationEnqueuer ?? throw new ArgumentNullException(nameof(signatureVerificationEnqueuer));
+            _blobProvider = blobProvider ?? throw new ArgumentNullException(nameof(blobProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -42,6 +45,25 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             var validatorStatus = await StartInternalAsync(request);
 
             return validatorStatus.ToValidationResult();
+        }
+
+        public async Task CleanUpAsync(IValidationRequest request)
+        {
+            var validatorStatus = await _validatorStateService.GetStatusAsync(request);
+
+            if (validatorStatus.NupkgUrl == null)
+            {
+                return;
+            }
+
+            _logger.LogInformation(
+                "Cleaning up the .nupkg URL for validation ID {ValidationId} ({PackageId} {PackageVersion}).",
+                request.ValidationId,
+                request.PackageId,
+                request.PackageVersion);
+
+            var blob = _blobProvider.GetBlobFromUrl(validatorStatus.NupkgUrl);
+            await blob.DeleteIfExistsAsync();
         }
 
         private async Task<ValidatorStatus> StartInternalAsync(IValidationRequest request)

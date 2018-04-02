@@ -75,12 +75,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             return new SignedPackageArchive(
                 await GetSignedPackageStreamAsync(reference, resourceName, certificate, output),
-                new MemoryStream());
+                Stream.Null);
         }
-        
+
         public async Task<byte[]> GenerateSignedPackageBytesAsync(
-            string resourceName,
-            X509Certificate2 certificate,
+            Stream inputPackageStream,
+            SignPackageRequest request,
             Uri timestampUri,
             ITestOutputHelper output)
         {
@@ -92,16 +92,29 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             {
                 await SigningUtility.SignAsync(
                     new SigningOptions(
-                        inputPackageStream: new Lazy<Stream>(() => TestResources.GetResourceStream(resourceName)),
+                        inputPackageStream: new Lazy<Stream>(() => inputPackageStream),
                         outputPackageStream: new Lazy<Stream>(() => outputPackageStream),
                         overwrite: true,
                         signatureProvider: signatureProvider,
                         logger: testLogger),
-                    new AuthorSignPackageRequest(certificate, HashAlgorithmName.SHA256),
+                    request,
                     CancellationToken.None);
 
                 return outputPackageStream.ToArray();
             }
+        }
+
+        public Task<byte[]> GenerateSignedPackageBytesAsync(
+            string resourceName,
+            X509Certificate2 certificate,
+            Uri timestampUri,
+            ITestOutputHelper output)
+        {
+            return GenerateSignedPackageBytesAsync(
+                TestResources.GetResourceStream(resourceName),
+                new AuthorSignPackageRequest(certificate, HashAlgorithmName.SHA256),
+                timestampUri,
+                output);
         }
 
         /// <summary>

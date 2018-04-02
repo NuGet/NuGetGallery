@@ -11,9 +11,10 @@ using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.PackageSigning.Telemetry;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Storage;
-using NuGet.Services.Validation.PackageSigning;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
 using NuGetGallery;
 
@@ -31,6 +32,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<IEntityRepository<Certificate>, EntityRepository<Certificate>>();
 
+            services.AddTransient<ITelemetryService, TelemetryService>();
+
             services.AddTransient<ICertificateStore>(p =>
             {
                 var config = p.GetRequiredService<IOptionsSnapshot<CertificateStoreConfiguration>>().Value;
@@ -42,6 +45,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 return new CertificateStore(storage, LoggerFactory.CreateLogger<CertificateStore>());
             });
 
+            services.AddTransient<IProcessorPackageFileService, ProcessorPackageFileService>(p => new ProcessorPackageFileService(
+                p.GetRequiredService<ICoreFileStorageService>(),
+                typeof(PackageSigningValidator),
+                p.GetRequiredService<ILogger<ProcessorPackageFileService>>()));
+
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
@@ -52,7 +60,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 PackageSignatureVerifierFactory.CreateMinimal(),
                 PackageSignatureVerifierFactory.CreateFull(),
                 p.GetRequiredService<ISignaturePartsExtractor>(),
+                p.GetRequiredService<IProcessorPackageFileService>(),
                 p.GetRequiredService<IEntityRepository<Certificate>>(),
+                p.GetRequiredService<ITelemetryService>(),
                 p.GetRequiredService<ILogger<SignatureValidator>>()));
         }
 

@@ -64,7 +64,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         private async Task<bool> HandleAsync(SignatureValidationMessage message, CancellationToken cancellationToken)
         {
-            using (_logger.BeginScope("Handling signature validation message for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
+            using (_logger.BeginScope("Handling signature validation message for package {PackageId} {PackageVersion}, validation {ValidationId}",
                 message.PackageId,
                 message.PackageVersion,
                 message.ValidationId))
@@ -111,12 +111,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
                 // Validate package
                 using (var packageStream = await _packageDownloader.DownloadAsync(message.NupkgUri, cancellationToken))
-                using (var packageWriteStream = new MemoryStream()) // Unused, but to be careful we don't pass the original stream.
-                using (var package = new SignedPackageArchive(packageStream, packageWriteStream))
                 {
                     var result = await _signatureValidator.ValidateAsync(
                         validation.PackageKey,
-                        package,
+                        packageStream,
                         message,
                         cancellationToken);
 
@@ -135,6 +133,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                                 Data = issue.Serialize(),
                             });
                         }
+                    }
+
+                    // Save the .nupkg URL if the resulting state is successful.
+                    if (validation.State == ValidationStatus.Succeeded
+                        && result.NupkgUri != null)
+                    {
+                        validation.NupkgUrl = result.NupkgUri.AbsoluteUri;
                     }
                 }
 

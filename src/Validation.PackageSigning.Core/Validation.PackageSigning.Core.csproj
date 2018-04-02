@@ -41,6 +41,7 @@
   <ItemGroup>
     <Compile Include="Configuration\CertificateStoreConfiguration.cs" />
     <Compile Include="Extensions\CryptographicAttributeObjectCollectionExtensions.cs" />
+    <Compile Include="Extensions\PackageSignatureExtensions.cs" />
     <Compile Include="Extensions\X509Certificate2Extensions.cs" />
     <Compile Include="Storage\CertificateStore.cs" />
     <Compile Include="Storage\ICertificateStore.cs" />

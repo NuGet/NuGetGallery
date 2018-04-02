@@ -33,7 +33,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 
             if (!typeof(IValidator).IsAssignableFrom(validatorType))
             {
-                throw new ArgumentException($"The validator type {validatorType} must extend {nameof(IValidator)}", nameof(validatorType));
+                throw new ArgumentException($"The validator type {validatorType} must implement {nameof(IValidator)}.", nameof(validatorType));
             }
 
             _validatorName = validatorType.Name;

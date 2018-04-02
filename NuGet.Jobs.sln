@@ -115,6 +115,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SnapshotAzureBlob", "src\Sn
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.ProcessSignature.Tests", "tests\Validation.PackageSigning.ProcessSignature.Tests\Validation.PackageSigning.ProcessSignature.Tests.csproj", "{26435822-8938-48C9-96FD-0DCCF8F7CE00}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.RevalidateCertificate", "src\Validation.PackageSigning.RevalidateCertificate\Validation.PackageSigning.RevalidateCertificate.csproj", "{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.PackageSigning.RevalidateCertificate.Tests", "tests\Validation.PackageSigning.RevalidateCertificate.Tests\Validation.PackageSigning.RevalidateCertificate.Tests.csproj", "{64095857-E9E3-4D9C-8769-7E558CD757CB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.Stats.AggregateCdnDownloadsInGallery", "tests\Tests.Stats.AggregateCdnDownloadsInGallery\Tests.Stats.AggregateCdnDownloadsInGallery.csproj", "{136411AF-B9FA-438D-B790-9FB78A5F7F54}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -295,6 +301,18 @@ Global
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64095857-E9E3-4D9C-8769-7E558CD757CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64095857-E9E3-4D9C-8769-7E558CD757CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64095857-E9E3-4D9C-8769-7E558CD757CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64095857-E9E3-4D9C-8769-7E558CD757CB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{136411AF-B9FA-438D-B790-9FB78A5F7F54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{136411AF-B9FA-438D-B790-9FB78A5F7F54}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{136411AF-B9FA-438D-B790-9FB78A5F7F54}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{136411AF-B9FA-438D-B790-9FB78A5F7F54}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -343,6 +361,9 @@ Global
 		{DD043977-6BCD-475A-BEE2-8C34309EC622} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{ED2D370C-D921-433A-A0B9-A601F936EDD3} = {FA5644B5-4F08-43F6-86B3-039374312A47}
 		{26435822-8938-48C9-96FD-0DCCF8F7CE00} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{EA32E1E5-7E7D-44E6-B496-43E1FEDE9400} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
+		{64095857-E9E3-4D9C-8769-7E558CD757CB} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{136411AF-B9FA-438D-B790-9FB78A5F7F54} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}

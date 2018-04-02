@@ -108,7 +108,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.19.1</Version>
+      <Version>2.22.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

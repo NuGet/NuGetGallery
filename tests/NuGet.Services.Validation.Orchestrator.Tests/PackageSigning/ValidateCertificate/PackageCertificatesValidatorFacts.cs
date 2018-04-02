@@ -522,9 +522,9 @@ namespace NuGet.Services.Validation.PackageSigning
                     endCertificates: new[] { signature.EndCertificate, timestampCertificate });
 
                 // Act & Assert
-                var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+                var ex = await Assert.ThrowsAsync<ArgumentException>(() => _target.GetResultAsync(_validationRequest.Object));
 
-                Assert.Equal($"ValidationId {ValidationId} has valid signature with a timestamp whose end certificate is revoked", ex.Message);
+                Assert.Equal($"Package signature {signature.Key} is valid but has a timestamp whose end certificate is revoked\r\nParameter name: signature", ex.Message);
             }
         }
 

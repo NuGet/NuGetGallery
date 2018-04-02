@@ -8,9 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
+using NuGetGallery;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.PackageSigning
 {
@@ -31,6 +34,10 @@ namespace NuGet.Services.Validation.PackageSigning
                 ValidationStatus.NotStarted,
                 ValidationStatus.Succeeded,
             };
+
+            public TheGetStatusMethod(ITestOutputHelper output) : base(output)
+            {
+            }
 
             [Theory]
             [MemberData(nameof(PossibleValidationStatuses))]
@@ -106,6 +113,10 @@ namespace NuGet.Services.Validation.PackageSigning
                 ValidationStatus.Incomplete,
                 ValidationStatus.Succeeded,
             };
+
+            public TheStartValidationAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+            }
 
             [Theory]
             [MemberData(nameof(StartedValidationStatuses))]
@@ -204,21 +215,68 @@ namespace NuGet.Services.Validation.PackageSigning
             public static IEnumerable<object[]> StartedValidationStatuses => startedValidationStatuses.Select(s => new object[] { s });
         }
 
+        public class TheCleanUpAsyncMethod : FactsBase
+        {
+            private readonly ValidatorStatus _validatorStatus;
+            private readonly Mock<ISimpleCloudBlob> _blob;
+
+            public TheCleanUpAsyncMethod(ITestOutputHelper output) : base(output)
+            {
+                _validatorStatus = new ValidatorStatus();
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .ReturnsAsync(() => _validatorStatus);
+
+                _blob = new Mock<ISimpleCloudBlob>(MockBehavior.Strict);
+                _blobProvider
+                    .Setup(x => x.GetBlobFromUrl(It.IsAny<string>()))
+                    .Returns(() => _blob.Object);
+            }
+
+            [Fact]
+            public async Task DeletesNothingWhenThereIsNoNupkgUrl()
+            {
+                await _target.CleanUpAsync(_validationRequest.Object);
+
+                _validatorStateService.Verify(x => x.GetStatusAsync(_validationRequest.Object), Times.Once);
+                _blobProvider.Verify(x => x.GetBlobFromUrl (It.IsAny<string>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task DeletesTheBlobWhenThereIsNupkgUrl()
+            {
+                var nupkgUrl = "http://example/packages/nuget.versioning.4.6.0.nupkg";
+                _validatorStatus.NupkgUrl = nupkgUrl;
+                _blob
+                    .Setup(x => x.DeleteIfExistsAsync())
+                    .Returns(Task.CompletedTask);
+
+                await _target.CleanUpAsync(_validationRequest.Object);
+
+                _validatorStateService.Verify(x => x.GetStatusAsync(_validationRequest.Object), Times.Once);
+                _blobProvider.Verify(x => x.GetBlobFromUrl(nupkgUrl), Times.Once);
+                _blob.Verify(x => x.DeleteIfExistsAsync(), Times.Once);
+            }
+        }
+
         public abstract class FactsBase
         {
             protected readonly Mock<IValidatorStateService> _validatorStateService;
             protected readonly Mock<IProcessSignatureEnqueuer> _packageSignatureVerifier;
+            protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
             protected readonly Mock<ITelemetryService> _telemetryService;
-            protected readonly Mock<ILogger<PackageSigningValidator>> _logger;
+            protected readonly ILogger<PackageSigningValidator> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly PackageSigningValidator _target;
 
-            public FactsBase()
+            public FactsBase(ITestOutputHelper output)
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _packageSignatureVerifier = new Mock<IProcessSignatureEnqueuer>();
+                _blobProvider = new Mock<ISimpleCloudBlobProvider>();
                 _telemetryService = new Mock<ITelemetryService>();
-                _logger = new Mock<ILogger<PackageSigningValidator>>();
+                var loggerFactory = new LoggerFactory().AddXunit(output);
+                _logger = loggerFactory.CreateLogger<PackageSigningValidator>();
 
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
@@ -228,10 +286,11 @@ namespace NuGet.Services.Validation.PackageSigning
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
                 _target = new PackageSigningValidator(
-                        _validatorStateService.Object,
-                        _packageSignatureVerifier.Object,
-                        _telemetryService.Object,
-                        _logger.Object);
+                    _validatorStateService.Object,
+                    _packageSignatureVerifier.Object,
+                    _blobProvider.Object,
+                    _telemetryService.Object,
+                    _logger);
             }
         }
     }

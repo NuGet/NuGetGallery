@@ -47,6 +47,7 @@
     <Compile Include="SignatureValidationMessageHandlerFacts.cs" />
     <Compile Include="Support\SubjectAndThumbprint.cs" />
     <Compile Include="Support\TestResources.cs" />
+    <Compile Include="Telemetry\TelemetryServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions">
@@ -93,9 +94,9 @@
     <EmbeddedResource Include="TestData\TestUnsigned.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\TestSigned.leaf-1.1.0.0.nupkg" />
     <EmbeddedResource Include="TestData\TestSigned.leaf-2.2.0.0.nupkg" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="TestData\Zip64Package.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg" />
+    <EmbeddedResource Include="TestData\TestRepoSigned.leaf-1.1.0.0.nupkg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

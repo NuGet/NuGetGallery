@@ -41,8 +41,10 @@
   <ItemGroup>
     <Compile Include="CommonTelemetryServiceFacts.cs" />
     <Compile Include="CsprojNuspecConsistencyFacts.cs" />
+    <Compile Include="FileStreamUtilityFacts.cs" />
     <Compile Include="LoggerDiagnosticSourceFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\ProcessorPackageFileServiceFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Moq">
@@ -64,6 +66,9 @@
       <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

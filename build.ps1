@@ -109,6 +109,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Stats.CollectAzureChinaCDNLogs\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.PackageSigning.ProcessSignature\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.PackageSigning.ValidateCertificate\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\Validation.PackageSigning.RevalidateCertificate\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGet.Jobs.Common\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs"
             
@@ -137,6 +138,13 @@ Invoke-BuildStep 'Prepare NuGetCDNRedirect Package' { Prepare-NuGetCDNRedirect }
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating artifacts' {
+        # We need a few projects to be published for sharing the common bits with other repos.
+        # We need symbols published for those, too. All other packages are deployment ones and
+        # don't need to be shared, hence no need for symbols for them
+        $ProjectsWithSymbols =
+            "src/NuGet.Jobs.Common/NuGet.Jobs.Common.csproj",
+            "src/Validation.Common.Job/Validation.Common.Job.csproj"
+
         $Projects = `
             "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
             "src/Stats.AggregateCdnDownloadsInGallery/Stats.AggregateCdnDownloadsInGallery.csproj", `
@@ -159,11 +167,12 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.CollectAzureChinaCDNLogs/Stats.CollectAzureChinaCDNLogs.csproj", `
             "src/Validation.PackageSigning.ProcessSignature/Validation.PackageSigning.ProcessSignature.csproj", `
             "src/Validation.PackageSigning.ValidateCertificate/Validation.PackageSigning.ValidateCertificate.csproj", `
-            "src/NuGet.Jobs.Common/NuGet.Jobs.Common.csproj", `
-            "src/Validation.Common.Job/Validation.Common.Job.csproj"
+            "src/Validation.PackageSigning.RevalidateCertificate/Validation.PackageSigning.RevalidateCertificate.csproj" `
+            + $ProjectsWithSymbols
 
         Foreach ($Project in $Projects) {
-            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion"
+            $Symbols = $ProjectsWithSymbols -contains $Project;
+            New-Package (Join-Path $PSScriptRoot "$Project") -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -MSBuildVersion "$msBuildVersion" -Symbols:$Symbols
         }
     } `
     -ev +BuildErrors

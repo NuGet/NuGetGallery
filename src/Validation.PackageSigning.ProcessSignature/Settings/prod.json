@@ -14,8 +14,11 @@
     "ContainerName": "certificates",
     "DataStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetprod0;AccountKey=$$Prod-NuGetProd0Storage-Key$$"
   },
+  "ValidationStorage": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"
+  },
 
-  "PackageDownloadTimeout": "10:00",
+  "PackageDownloadTimeout": "00:10:00",
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",

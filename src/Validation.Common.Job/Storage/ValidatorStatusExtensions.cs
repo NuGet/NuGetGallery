@@ -36,7 +36,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                 .Select(x => new SerializedValidationIssue(x.IssueCode, x.Data))
                 .ToList();
 
-            return new ValidationResult(validatorStatus.State, issues);
+            return new ValidationResult(validatorStatus.State, issues, validatorStatus.NupkgUrl);
         }
     }
 }

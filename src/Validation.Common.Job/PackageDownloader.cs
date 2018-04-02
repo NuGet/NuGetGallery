@@ -14,8 +14,6 @@ namespace NuGet.Jobs.Validation
 {
     public class PackageDownloader : IPackageDownloader
     {
-        private const int BufferSize = 8192;
-
         private readonly HttpClient _httpClient;
         private readonly ICommonTelemetryService _telemetryService;
         private readonly ILogger<PackageDownloader> _logger;
@@ -56,15 +54,9 @@ namespace NuGet.Jobs.Validation
 
                     using (var networkStream = await response.Content.ReadAsStreamAsync())
                     {
-                        packageStream = new FileStream(
-                                            Path.GetTempFileName(),
-                                            FileMode.Create,
-                                            FileAccess.ReadWrite,
-                                            FileShare.None,
-                                            BufferSize,
-                                            FileOptions.DeleteOnClose | FileOptions.Asynchronous);
+                        packageStream = FileStreamUtility.GetTemporaryFile();
 
-                        await networkStream.CopyToAsync(packageStream, BufferSize, cancellationToken);
+                        await networkStream.CopyToAsync(packageStream, FileStreamUtility.BufferSize, cancellationToken);
                     }
                 }
 
