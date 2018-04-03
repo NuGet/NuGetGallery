@@ -157,6 +157,34 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhenMemberIsOrganization_ThrowEntityException(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.OrganizationOwner,
+                        fakes.Organization
+                    }.AsQueryable());
+
+                fakes.User.EmailAddress = string.Empty;
+                fakes.User.UnconfirmedEmailAddress = "unconfirmed@email.com";
+
+                // Act
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.OrganizationOwner, fakes.Organization.Username, isAdmin);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture, Strings.AddMember_UserIsOrganization, fakes.Organization.Username), e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
             [InlineData(true)]
             [InlineData(false)]
             public async Task WhenSecurityPolicyEvaluationFails_ReturnsSuccess(bool isAdmin)
@@ -270,7 +298,7 @@ namespace NuGetGallery
 
                 Fakes.Organization.MemberRequests.Add(new MembershipRequest
                 {
-                    NewMember = Fakes.OrganizationCollaborator,
+                    NewMember = Fakes.User,
                     ConfirmationToken = "token",
                     IsAdmin = isAdmin
                 });
@@ -283,6 +311,73 @@ namespace NuGetGallery
 
                 Assert.Equal(string.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_MissingRequest, Fakes.User.Username),
+                    e.Message);
+
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhereMemberUnconfirmed_ThrowsEntityException(bool isAdmin)
+            {
+                // Arrange
+                UserService.MockSecurityPolicyService
+                    .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, Fakes.Organization, Fakes.User))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("error")));
+
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.User,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
+                });
+
+                Fakes.User.EmailAddress = string.Empty;
+                Fakes.User.UnconfirmedEmailAddress = "unconfirmed@email.com";
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.User.Username, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserNotConfirmed, Fakes.User.Username),
+                    e.Message);
+
+                UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WhereMemberIsOrganization_ThrowsEntityException(bool isAdmin)
+            {
+                // Arrange
+                UserService.MockSecurityPolicyService
+                    .Setup(s => s.EvaluateOrganizationPoliciesAsync(SecurityPolicyAction.JoinOrganization, Fakes.Organization, Fakes.OrganizationOwner))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("error")));
+
+                var token = "token";
+
+                Fakes.Organization.MemberRequests.Add(new MembershipRequest
+                {
+                    NewMember = Fakes.OrganizationOwner,
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
+                });
+
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await UserService.AddMemberAsync(Fakes.Organization, Fakes.OrganizationOwner.Username, token);
+                });
+
+                Assert.Equal(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserIsOrganization, Fakes.OrganizationOwner.Username),
                     e.Message);
 
                 UserService.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
