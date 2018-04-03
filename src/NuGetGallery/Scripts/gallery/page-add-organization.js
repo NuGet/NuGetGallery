@@ -60,16 +60,10 @@
     });
 
     function UpdateOrganizationNameText() {
-        UpdateOrganizationNameTextWithValue(_organizationNameBox.val());
-    }
-
-    function UpdateOrganizationNameTextWithValue(name) {
+        var nameInForm = _organizationNameBox.val();
+        var name = nameInForm ? nameInForm : "your_name_here";
         _organizationNameText.text(_organizationNameTextTemplate.replace("%7Busername%7D", name));
     }
 
-    if (_organizationNameBox.val()) {
-        UpdateOrganizationNameText();
-    } else {
-        UpdateOrganizationNameTextWithValue("your_name_here");
-    }
+    UpdateOrganizationNameText();
 });
