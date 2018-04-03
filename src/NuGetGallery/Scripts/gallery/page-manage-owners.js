@@ -34,7 +34,7 @@
             if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
                 || owner.pending()) {
                 return true;
-            };
+            }
 
             if (this.owners().length < 2) {
                 return false;
@@ -73,7 +73,7 @@
             if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()) {
                 // If user is an admin, removing any user will not remove their ability to manage package owners.
                 return false;
-            };
+            }
 
             var numUsersGrantingCurrentUserAccess = 0;
 
@@ -100,19 +100,6 @@
             viewModel.message("");
 
             var newUsername = viewModel.newOwnerUsername();
-            if (!newUsername) {
-                viewModel.message(strings_InvalidUsername);
-                return;
-            }
-
-            var existingOwner = ko.utils.arrayFirst(
-                viewModel.owners(),
-                function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
-
-            if (existingOwner) {
-                viewModel.message(window.nuget.formatString(strings_AlreadyPending, newUsername));
-                return;
-            }
 
             $.ajax({
                 url: getAddPackageOwnerConfirmationUrl + '?id=' + viewModel.package.id + '&username=' + newUsername,
@@ -134,6 +121,20 @@
 
         addOwner: function () {
             var newUsername = viewModel.newOwnerUsername();
+            if (!newUsername) {
+                viewModel.message(strings_InvalidUsername);
+                return;
+            }
+
+            var existingOwner = ko.utils.arrayFirst(
+                viewModel.owners(),
+                function (owner) { return owner.name().toUpperCase() === newUsername.toUpperCase(); });
+
+            if (existingOwner) {
+                viewModel.message(window.nuget.formatString(strings_AlreadyPending, newUsername));
+                return;
+            }
+
             var message = viewModel.newOwnerMessage();
 
             var ownerInputModel =
