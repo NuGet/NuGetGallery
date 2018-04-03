@@ -4,13 +4,42 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Packaging
 {
     public class PackageMetadata
     {
+        /// <summary>
+        /// These are properties generated in the V3 pipeline (feed2catalog job) and could collide if the .nuspec
+        /// itself also contains these properties.
+        /// </summary>
+        private static readonly HashSet<string> RestrictedMetadataElements = new HashSet<string>
+        {
+            "created",
+            "dependencyGroups", // Not to be confused with the valid element "dependencies" with a sub-element "group".
+            "isPrerelease",
+            "lastEdited",
+            "listed",
+            "packageEntries",
+            "packageHash",
+            "packageHashAlgorithm",
+            "packageSize",
+            "published",
+            "supportedFrameworks",
+            "verbatimVersion",
+        };
+
+        private static readonly HashSet<string> BooleanMetadataElements = new HashSet<string>
+        {
+            "developmentDependency",
+            "requireLicenseAcceptance",
+            "serviceable",
+        };
+
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
@@ -156,13 +185,70 @@ namespace NuGetGallery.Packaging
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
         {
+            if (strict)
+            {
+                var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+
+                var duplicates = strictNuspecReader.GetDuplicateMetadataElementNames();
+                if (duplicates.Any())
+                {
+                    throw new PackagingException(string.Format(
+                        CoreStrings.Manifest_DuplicateMetadataElements,
+                        string.Join("', '", duplicates)));
+                }
+            }
+
+            var metadata = nuspecReader
+                .GetMetadata()
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+            // Reject invalid metadata element names. Today this only rejects element names that collide with
+            // properties generated downstream.
+            var metadataKeys = new HashSet<string>(metadata.Keys);
+            metadataKeys.IntersectWith(RestrictedMetadataElements);
+            if (metadataKeys.Any())
+            {
+                throw new PackagingException(string.Format(
+                    CoreStrings.Manifest_InvalidMetadataElements,
+                    string.Join("', '", metadataKeys.OrderBy(x => x))));
+            }
+
+            // Reject non-boolean values for boolean metadata.
+            foreach (var booleanName in BooleanMetadataElements)
+            {
+                if (metadata.TryGetValue(booleanName, out var unparsedBoolean)
+                    && !bool.TryParse(unparsedBoolean, out var parsedBoolean))
+                {
+                    throw new PackagingException(string.Format(
+                        CoreStrings.Manifest_InvalidBooleanMetadata,
+                        booleanName));
+                }
+            }
+
             return new PackageMetadata(
-                nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
+                metadata,
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion()
            );
+        }
+
+        private class StrictNuspecReader : NuspecReader
+        {
+            public StrictNuspecReader(XDocument xml) : base(xml)
+            {
+            }
+
+            public IReadOnlyList<string> GetDuplicateMetadataElementNames()
+            {
+                return MetadataNode
+                    .Elements()
+                    .GroupBy(element => element.Name.LocalName)
+                    .Where(group => group.Count() > 1)
+                    .Select(group => group.Key)
+                    .ToList();
+            }
         }
     }
 }
