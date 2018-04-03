@@ -58,7 +58,6 @@
     <Compile Include="IValidationSetProcessor.cs" />
     <Compile Include="IValidationSetProvider.cs" />
     <Compile Include="IValidationStorageService.cs" />
-    <Compile Include="IValidatorProvider.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="MessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />

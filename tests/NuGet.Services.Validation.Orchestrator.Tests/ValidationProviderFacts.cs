@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 using Xunit.Abstractions;
@@ -97,32 +98,34 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public void CanGetValidator()
             {
                 var validator = new TestValidator();
+                var validatorType = validator.GetType();
 
                 ServiceProviderMock
-                    .Setup(sp => sp.GetService(validator.GetType()))
+                    .Setup(sp => sp.GetService(validatorType))
                     .Returns(() => validator);
 
-                var result = Target.GetValidator(validator.GetType().Name);
+                var result = Target.GetValidator(ValidatorUtility.GetValidatorName(validatorType));
 
                 ServiceProviderMock
-                    .Verify(sp => sp.GetService(validator.GetType()), Times.Once);
-                Assert.IsType(validator.GetType(), result);
+                    .Verify(sp => sp.GetService(validatorType), Times.Once);
+                Assert.IsType(validatorType, result);
             }
 
             [Fact]
             public void CanGetProcessor()
             {
                 var processor = new TestProcessor();
+                var processorType = processor.GetType();
 
                 ServiceProviderMock
-                    .Setup(sp => sp.GetService(processor.GetType()))
+                    .Setup(sp => sp.GetService(processorType))
                     .Returns(() => processor);
                 
-                var result = Target.GetValidator(processor.GetType().Name);
+                var result = Target.GetValidator(ValidatorUtility.GetValidatorName(processorType));
 
                 ServiceProviderMock
-                    .Verify(sp => sp.GetService(processor.GetType()), Times.Once);
-                Assert.IsType(processor.GetType(), result);
+                    .Verify(sp => sp.GetService(processorType), Times.Once);
+                Assert.IsType(processorType, result);
             }
 
             [Fact]
@@ -156,6 +159,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public ValidatorProvider Target { get; }
         }
 
+        [ValidatorName("TestValidator")]
         public class TestValidator : IValidator
         {
             public Task CleanUpAsync(IValidationRequest request)
@@ -174,6 +178,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             }
         }
 
+        [ValidatorName("TestProcessor")]
         public class TestProcessor : IProcessor
         {
             public Task CleanUpAsync(IValidationRequest request)

@@ -8,12 +8,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
+using Error = NuGet.Services.Validation.Orchestrator.Error;
 
 namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 {
+    [ValidatorName(ValidatorName.PackageCertificate)]
     public class PackageCertificatesValidator : BaseValidator, IValidator
     {
         private static readonly TimeSpan DefaultCertificateRevalidationThresholdTime = TimeSpan.FromDays(1);

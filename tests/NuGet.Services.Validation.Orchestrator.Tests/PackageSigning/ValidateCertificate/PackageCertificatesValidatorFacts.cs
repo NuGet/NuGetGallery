@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
 using Validation.PackageSigning.Helpers;
@@ -1171,6 +1173,7 @@ namespace NuGet.Services.Validation.PackageSigning
         public abstract class FactsBase
         {
             protected readonly Mock<IValidationEntitiesContext> _validationContext;
+            protected readonly Mock<IValidatorProvider> _validatorProvider;
             protected readonly Mock<IValidateCertificateEnqueuer> _certificateVerifier;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly Mock<ILogger<PackageCertificatesValidator>> _logger;
@@ -1180,9 +1183,13 @@ namespace NuGet.Services.Validation.PackageSigning
             public FactsBase()
             {
                 _validationContext = new Mock<IValidationEntitiesContext>();
+                _validatorProvider = new Mock<IValidatorProvider>();
                 _certificateVerifier = new Mock<IValidateCertificateEnqueuer>();
                 _telemetryService = new Mock<ITelemetryService>();
                 _logger = new Mock<ILogger<PackageCertificatesValidator>>();
+
+                _validatorProvider.Setup(vp => vp.IsValidator(It.IsAny<string>())).Returns(true);
+                _validatorProvider.Setup(vp => vp.IsProcessor(It.IsAny<string>())).Returns(true);
 
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
@@ -1194,7 +1201,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var validatorStateServiceLogger = new Mock<ILogger<ValidatorStateService>>();
                 var validatorStateService = new ValidatorStateService(
                     _validationContext.Object,
-                    typeof(PackageCertificatesValidator),
+                    _validatorProvider.Object,
+                    ValidatorName.PackageCertificate,
                     validatorStateServiceLogger.Object);
 
                 _target = new PackageCertificatesValidator(
