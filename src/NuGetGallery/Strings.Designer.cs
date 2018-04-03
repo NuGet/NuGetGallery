@@ -415,6 +415,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified API key is scoped to an owner that is unconfirmed. You must confirm the owner that this API key is scoped to before you can use it..
+        /// </summary>
+        public static string ApiKeyOwnerUnconfirmed {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerUnconfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An API key must be provided in the &apos;X-NuGet-ApiKey&apos; header to use this service.
         /// </summary>
         public static string ApiKeyRequired {
@@ -928,6 +937,15 @@ namespace NuGetGallery {
         public static string ManagePackageOwners_RemovingSelf {
             get {
                 return ResourceManager.GetString("ManagePackageOwners_RemovingSelf", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Your organization must be confirmed before you can change its membership..
+        /// </summary>
+        public static string Member_OrganizationUnconfirmed {
+            get {
+                return ResourceManager.GetString("Member_OrganizationUnconfirmed", resourceCulture);
             }
         }
         
@@ -2017,6 +2035,15 @@ namespace NuGetGallery {
         public static string VerifyPackage_OwnerInvalid {
             get {
                 return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is unconfirmed and cannot be the owner of the package..
+        /// </summary>
+        public static string VerifyPackage_OwnerUnconfirmed {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerUnconfirmed", resourceCulture);
             }
         }
         
