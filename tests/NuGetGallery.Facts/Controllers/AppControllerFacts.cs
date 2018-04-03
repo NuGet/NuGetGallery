@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
 using System.Web.Mvc;
 using NuGetGallery.Framework;
 using Xunit;
@@ -35,7 +36,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<TestableAppController>();
 
                 // Act
-                var output = controller.Json(400, null, JsonRequestBehavior.AllowGet);
+                var output = controller.Json(HttpStatusCode.BadRequest, null, JsonRequestBehavior.AllowGet);
 
                 // Assert
                 Assert.Equal(JsonRequestBehavior.AllowGet, output.JsonRequestBehavior);
@@ -48,7 +49,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<TestableAppController>();
 
                 // Act
-                var output = controller.Json(400, null);
+                var output = controller.Json(HttpStatusCode.BadRequest, null);
 
                 // Assert
                 Assert.Equal(JsonRequestBehavior.DenyGet, output.JsonRequestBehavior);
