@@ -7,7 +7,11 @@
 
     var _emailBox = $("#" + emailBoxGroupId + " > input");
     var _gravatar = $("#" + gravatarId);
-    var _template = "https://secure.gravatar.com/avatar/{email}?s=512&r=g&d=retro";
+    var _gravatarTemplate = "https://secure.gravatar.com/avatar/{email}?s=512&r=g&d=retro";
+
+    var _organizationNameBox = $("#" + organizationNameTextGroupId + " > input");
+    var _organizationNameText = $("#" + organizationNameTextId);
+    var _organizationNameTextTemplate = _organizationNameText.text();
 
     // When the email in the form changes, update the Gravatar displayed as the logo.
     // If the user is continuing to type, wait until they are done before updating the Gravatar.
@@ -36,7 +40,7 @@
 
         var email = _emailBox.val();
         if (email.match(emailValidationRegex)) {
-            src = _template.replace("{email}", MD5(email));
+            src = _gravatarTemplate.replace("{email}", MD5(email));
         }
 
         _gravatar.attr("src", src);
@@ -45,5 +49,27 @@
     // Immediately fetch the image if the email box is filled in initially.
     if (_emailBox.val()) {
         UpdateGravatar();
+    }
+
+    // When the username in the form changes, update the text to contain the name.
+    _organizationNameBox.on("keyup", function (e) {
+        UpdateOrganizationNameText();
+    });
+    _organizationNameBox.on("blur", function (e) {
+        UpdateOrganizationNameText();
+    });
+
+    function UpdateOrganizationNameText() {
+        UpdateOrganizationNameTextWithValue(_organizationNameBox.val());
+    }
+
+    function UpdateOrganizationNameTextWithValue(name) {
+        _organizationNameText.text(_organizationNameTextTemplate.replace("%7Busername%7D", name));
+    }
+
+    if (_organizationNameBox.val()) {
+        UpdateOrganizationNameText();
+    } else {
+        UpdateOrganizationNameTextWithValue("your_name_here");
     }
 });

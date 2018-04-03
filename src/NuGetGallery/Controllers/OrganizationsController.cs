@@ -75,10 +75,9 @@ namespace NuGetGallery
             catch (EntityException e)
             {
                 errorMessage = e.Message;
+                TempData["AddOrganizationErrorMessage"] = errorMessage;
+                return View(model);
             }
-
-            TempData["ErrorMessage"] = errorMessage;
-            return View(model);
         }
 
         [HttpGet]
