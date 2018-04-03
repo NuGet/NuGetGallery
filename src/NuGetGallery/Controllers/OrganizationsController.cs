@@ -64,8 +64,6 @@ namespace NuGetGallery
             var organizationEmailAddress = model.OrganizationEmailAddress;
             var adminUser = GetCurrentUser();
 
-            string errorMessage;
-
             try
             {
                 var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
@@ -74,8 +72,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                errorMessage = e.Message;
-                TempData["AddOrganizationErrorMessage"] = errorMessage;
+                TempData["AddOrganizationErrorMessage"] = e.Message;
                 return View(model);
             }
         }
