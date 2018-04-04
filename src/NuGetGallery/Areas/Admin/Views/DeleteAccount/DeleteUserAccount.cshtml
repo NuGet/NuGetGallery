@@ -9,10 +9,9 @@
 <section role="main" class="container main-container page-delete-account">
     <div class="form-group">
         <div class="form-group">
-            <h1 class="text-center">Delete Account</h1>
-            <div class="text-center ms-font-xxl">
-                <a href="@Url.User(@Model.User)">@Model.AccountName</a>
-            </div>
+            <h1>
+                @ViewHelpers.Breadcrumb(@<text><a href="@Url.User(@Model.User)">@Model.AccountName</a></text>, @<text>Delete Account</text>)
+            </h1>
 
             @ViewHelpers.AlertDanger(@<text>
                 <b class="keywords">Once the account is deleted, it cannot be undone!</b> <br />
