@@ -410,30 +410,25 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr>
                                     <td>
-                                        @if (packageVersion.IsCurrent(Model))
-                                        {
-                                            <a href="@Url.Package(packageVersion)">
-                                                <b>
-                                                    @packageVersion.FullVersion
-                                                    @if (packageVersion.IsCurrent(Model))
-                                                    {
-                                                        @:(current version)
-                                                    }
-                                                </b>
-                                            </a>
-                                        }
-                                        else
-                                        {
-                                            <a href="@Url.Package(packageVersion)">
-                                                @packageVersion.FullVersion
-                                            </a>
-                                        }
+                                        <a href="@Url.Package(packageVersion)">
+                                            <b>
+                                                @packageVersion.FullVersion.Abbreviate(15)
+                                                @if (packageVersion.IsCurrent(Model))
+                                                {
+                                                    @:(current version)
+                                                }
+                                            </b>
+                                        </a>
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount.ToNuGetNumberString()
                                     </td>
                                     <td>
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
+                                        @if (packageVersion.PushedBy != null)
+                                        {
+                                            <span>by @packageVersion.PushedBy.Abbreviate(15)</span>
+                                        }
                                     </td>
                                     @if (packageVersion.CanDisplayPrivateMetadata)
                                     {
