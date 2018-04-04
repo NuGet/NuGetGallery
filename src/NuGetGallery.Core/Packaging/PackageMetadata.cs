@@ -13,6 +13,33 @@ namespace NuGetGallery.Packaging
 {
     public class PackageMetadata
     {
+        /// <summary>
+        /// These are properties generated in the V3 pipeline (feed2catalog job) and could collide if the .nuspec
+        /// itself also contains these properties.
+        /// </summary>
+        private static readonly HashSet<string> RestrictedMetadataElements = new HashSet<string>
+        {
+            "created",
+            "dependencyGroups", // Not to be confused with the valid element "dependencies" with a sub-element "group".
+            "isPrerelease",
+            "lastEdited",
+            "listed",
+            "packageEntries",
+            "packageHash",
+            "packageHashAlgorithm",
+            "packageSize",
+            "published",
+            "supportedFrameworks",
+            "verbatimVersion",
+        };
+
+        private static readonly HashSet<string> BooleanMetadataElements = new HashSet<string>
+        {
+            "developmentDependency",
+            "requireLicenseAcceptance",
+            "serviceable",
+        };
+
         private readonly Dictionary<string, string> _metadata;
         private readonly IReadOnlyCollection<PackageDependencyGroup> _dependencyGroups;
         private readonly IReadOnlyCollection<FrameworkSpecificGroup> _frameworkReferenceGroups;
@@ -158,16 +185,46 @@ namespace NuGetGallery.Packaging
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
         {
+            var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+            var metadataLookup = strictNuspecReader.GetMetadataLookup();
+
             if (strict)
             {
-                var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+                var duplicates = metadataLookup
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
 
-                var duplicates = strictNuspecReader.GetDuplicateMetadataElementNames();
                 if (duplicates.Any())
                 {
                     throw new PackagingException(string.Format(
                         CoreStrings.Manifest_DuplicateMetadataElements,
                         string.Join("', '", duplicates)));
+                }
+            }
+
+            // Reject invalid metadata element names. Today this only rejects element names that collide with
+            // properties generated downstream.
+            var metadataKeys = new HashSet<string>(metadataLookup.Select(g => g.Key));
+            metadataKeys.IntersectWith(RestrictedMetadataElements);
+            if (metadataKeys.Any())
+            {
+                throw new PackagingException(string.Format(
+                    CoreStrings.Manifest_InvalidMetadataElements,
+                    string.Join("', '", metadataKeys.OrderBy(x => x))));
+            }
+
+            // Reject non-boolean values for boolean metadata.
+            foreach (var booleanName in BooleanMetadataElements)
+            {
+                foreach (var unparsedBoolean in metadataLookup[booleanName])
+                {
+                    if (!bool.TryParse(unparsedBoolean, out var parsedBoolean))
+                    {
+                        throw new PackagingException(string.Format(
+                            CoreStrings.Manifest_InvalidBooleanMetadata,
+                            booleanName));
+                    }
                 }
             }
 
@@ -186,14 +243,11 @@ namespace NuGetGallery.Packaging
             {
             }
 
-            public IReadOnlyList<string> GetDuplicateMetadataElementNames()
+            public ILookup<string, string> GetMetadataLookup()
             {
                 return MetadataNode
                     .Elements()
-                    .GroupBy(element => element.Name.LocalName)
-                    .Where(group => group.Count() > 1)
-                    .Select(group => group.Key)
-                    .ToList();
+                    .ToLookup(e => e.Name.LocalName, e => e.Value);
             }
         }
     }
