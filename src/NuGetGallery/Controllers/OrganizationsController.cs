@@ -101,7 +101,12 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -121,7 +126,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -195,7 +200,7 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
             try
@@ -206,7 +211,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -221,7 +226,12 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -233,7 +243,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -251,7 +261,12 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
                     != PermissionsCheckResult.Allowed))
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -262,7 +277,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 

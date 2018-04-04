@@ -830,4 +830,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_Success" xml:space="preserve">
     <value>You are now a member of organization '{0}'.</value>
   </data>
+  <data name="VerifyPackage_OwnerUnconfirmed" xml:space="preserve">
+    <value>User '{0}' is unconfirmed and cannot be the owner of the package.</value>
+  </data>
+  <data name="ApiKeyOwnerUnconfirmed" xml:space="preserve">
+    <value>The specified API key is scoped to an owner that is unconfirmed. You must confirm the owner that this API key is scoped to before you can use it.</value>
+  </data>
+  <data name="Member_OrganizationUnconfirmed" xml:space="preserve">
+    <value>Your organization must be confirmed before you can change its membership.</value>
+  </data>
 </root>
