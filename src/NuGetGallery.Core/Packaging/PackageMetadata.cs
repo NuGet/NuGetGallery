@@ -185,11 +185,16 @@ namespace NuGetGallery.Packaging
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
         {
+            var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+            var metadataLookup = strictNuspecReader.GetMetadataLookup();
+
             if (strict)
             {
-                var strictNuspecReader = new StrictNuspecReader(nuspecReader.Xml);
+                var duplicates = metadataLookup
+                    .Where(g => g.Count() > 1)
+                    .Select(g => g.Key)
+                    .ToList();
 
-                var duplicates = strictNuspecReader.GetDuplicateMetadataElementNames();
                 if (duplicates.Any())
                 {
                     throw new PackagingException(string.Format(
@@ -198,13 +203,9 @@ namespace NuGetGallery.Packaging
                 }
             }
 
-            var metadata = nuspecReader
-                .GetMetadata()
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-
             // Reject invalid metadata element names. Today this only rejects element names that collide with
             // properties generated downstream.
-            var metadataKeys = new HashSet<string>(metadata.Keys);
+            var metadataKeys = new HashSet<string>(metadataLookup.Select(g => g.Key));
             metadataKeys.IntersectWith(RestrictedMetadataElements);
             if (metadataKeys.Any())
             {
@@ -216,17 +217,19 @@ namespace NuGetGallery.Packaging
             // Reject non-boolean values for boolean metadata.
             foreach (var booleanName in BooleanMetadataElements)
             {
-                if (metadata.TryGetValue(booleanName, out var unparsedBoolean)
-                    && !bool.TryParse(unparsedBoolean, out var parsedBoolean))
+                foreach (var unparsedBoolean in metadataLookup[booleanName])
                 {
-                    throw new PackagingException(string.Format(
-                        CoreStrings.Manifest_InvalidBooleanMetadata,
-                        booleanName));
+                    if (!bool.TryParse(unparsedBoolean, out var parsedBoolean))
+                    {
+                        throw new PackagingException(string.Format(
+                            CoreStrings.Manifest_InvalidBooleanMetadata,
+                            booleanName));
+                    }
                 }
             }
 
             return new PackageMetadata(
-                metadata,
+                nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
@@ -240,14 +243,11 @@ namespace NuGetGallery.Packaging
             {
             }
 
-            public IReadOnlyList<string> GetDuplicateMetadataElementNames()
+            public ILookup<string, string> GetMetadataLookup()
             {
                 return MetadataNode
                     .Elements()
-                    .GroupBy(element => element.Name.LocalName)
-                    .Where(group => group.Count() > 1)
-                    .Select(group => group.Key)
-                    .ToList();
+                    .ToLookup(e => e.Name.LocalName, e => e.Value);
             }
         }
     }
