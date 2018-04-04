@@ -11,7 +11,7 @@
 <section role="main" class="container main-container">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">
+            <h1>
                 @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text><a href="@Url.ManageMyOrganizations()">Organizations</a></text>, @<text>Add</text>)
             </h1>
             <p class="text-center">
