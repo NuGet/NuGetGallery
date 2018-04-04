@@ -72,7 +72,7 @@ namespace NuGet.Jobs
         public const string AzureCdnAccountNumber = "AzureCdnAccountNumber";
         public const string AzureCdnPlatform = "AzureCdnPlatform";
 
-        //Arguments shared by CollectAzureCdnLogs and ParseAzureCdnLogs
+        //Arguments shared by CollectAzureCdnLogs, ParseAzureCdnLogs, Search.GenerateAuxiliaryData
         public const string AzureCdnCloudStorageAccount = "AzureCdnCloudStorageAccount";
         public const string AzureCdnCloudStorageContainerName = "AzureCdnCloudStorageContainerName";
 

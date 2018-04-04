@@ -84,13 +84,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlobStorageExporter.cs" />
+    <Compile Include="Exporter.cs" />
+    <Compile Include="ExporterException.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="NestedJArrayExporter.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RankingsExporter.cs" />
     <Compile Include="SqlExporter.cs" />
-    <Compile Include="SqlExporterException.cs" />
     <Compile Include="VerifiedPackagesExporter.cs" />
   </ItemGroup>
   <ItemGroup>

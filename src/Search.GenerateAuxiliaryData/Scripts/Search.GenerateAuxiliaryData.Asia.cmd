@@ -14,7 +14,10 @@ cd bin
 	-PrimaryDestination #{Jobs.Asia.search.generateauxiliarydata.Storage.Primary} ^
 	-PackageDatabase "#{Jobs.search.generateauxiliarydata.PackageDatabase}" ^
 	-StatisticsDatabase "#{Jobs.search.generateauxiliarydata.StatisticsDatabase}" ^
-	-verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} ^
+	-AzureCdnCloudStorageAccount "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageAccount}"
+	-AzureCdnCloudStorageContainerName "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageContainerName}"
+	-verbose true ^
+	-Sleep #{Jobs.search.generateauxiliarydata.Sleep} ^
 	-InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
 
 	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
