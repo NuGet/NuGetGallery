@@ -839,4 +839,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="Member_OrganizationUnconfirmed" xml:space="preserve">
     <value>Your organization must be confirmed before you can change its membership.</value>
   </data>
+  <data name="AddMember_UserIsOrganization" xml:space="preserve">
+    <value>User '{0}' is an organization and cannot be a member of another organization.</value>
+  </data>
 </root>
