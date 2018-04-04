@@ -15,10 +15,7 @@
 <section role="main" class="container main-container page-transform-account">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">Transform Account</h1>
-            <div class="text-center ms-font-xxl">
-                <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
-            </div>
+            <h1>@ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Transform Account</text>)</h1>
 
             @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
             {
