@@ -23,7 +23,7 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @if (!Model.CanManage)
             {
-                @ViewHelpers.AlertInfo(@<text>You are a collaborator of this organization and cannot manage it.</text>);
+                @ViewHelpers.AlertInfo(@<text>You are a collaborator of this organization. Only administrators can make changes.</text>);
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
