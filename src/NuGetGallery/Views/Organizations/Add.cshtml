@@ -12,9 +12,7 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">
-                <a href="@Url.ManageMyOrganizations()">Organizations</a>
-                &gt;
-                Add New
+                @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text><a href="@Url.ManageMyOrganizations()">Organizations</a></text>, @<text>Add</text>)
             </h1>
             <p class="text-center">
                 Organizations allow you to manage and publish packages as a team or a group.
