@@ -1155,7 +1155,6 @@ img.reserved-indicator-icon {
   display: -ms-flexbox;
   display:         flex;
   margin-top: 50px;
-  margin-bottom: 20px;
 
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
@@ -1176,6 +1175,13 @@ img.reserved-indicator-icon {
   margin-left: 16px;
   font-size: 14px;
   color: #068918;
+}
+.page-profile .profile-title .organization-subtitle-divider {
+  color: #dbdbdb;
+}
+.page-profile .profile-title-divider {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .page-profile .profile-details img {
   margin-top: 50px;
