@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Versioning;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -343,6 +344,95 @@ namespace NuGetGallery.ViewModels
             }
             package.PackageRegistration.Packages = new[] { package };
             return package;
+        }
+
+        public class ThePushedByField
+        {
+            public enum UserPackageOwnerState
+            {
+                HasNoUserPackageOwner,
+                HasUserPackageOwner,
+                CurrentUserIsUserPackageOwner
+            }
+
+            public enum OrganizationPackageOwnerState
+            {
+                HasNoOrganizationPackageOwner,
+                HasOrganizationPackageOwner,
+                CurrentUserIsMemberOfOrganizationPackageOwner
+            }
+
+            public static IEnumerable<object[]> Data
+            {
+                get
+                {
+                    foreach (var userPackageOwnerState in Enum.GetValues(typeof(UserPackageOwnerState)).Cast<UserPackageOwnerState>())
+                    {
+                        foreach (var organizationPackageOwnerState in Enum.GetValues(typeof(OrganizationPackageOwnerState)).Cast<OrganizationPackageOwnerState>())
+                        {
+                            var key = 0;
+                            var currentUser = new User("currentUser") { Key = key++ };
+                            var owners = new List<User>();
+
+                            User packageOwner = null;
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                packageOwner = userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ? currentUser : new User("packageOwner") { Key = key++ };
+                                owners.Add(packageOwner);
+                            }
+
+                            Organization organizationOwner = new Organization("organizationOwner") { Key = key++ };
+                            User organizationMember = null;
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.HasNoOrganizationPackageOwner)
+                            {
+                                organizationMember = organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ? currentUser : new User("organizationMember") { Key = key++ };
+                                owners.Add(organizationMember);
+                            }
+
+                            var canViewPrivateMetadata =
+                                userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ||
+                                organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner;
+
+                            var packageRegistration = new PackageRegistration { Owners = owners };
+
+                            var packageWithoutUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                            yield return MemberDataHelper.AsData(packageWithoutUser, currentUser, null);
+
+                            var userThatIsNotOwner = new User("notAnOwner") { Key = key++ };
+                            var packageWithUserThatIsNotOwner = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = userThatIsNotOwner };
+                            yield return MemberDataHelper.AsData(packageWithUserThatIsNotOwner, currentUser, canViewPrivateMetadata ? userThatIsNotOwner.Username : null);
+
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                var packageWithUserUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = packageOwner };
+                                yield return MemberDataHelper.AsData(packageWithUserUser, currentUser, canViewPrivateMetadata ? packageWithUserUser.User.Username : null);
+                            }
+
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner)
+                            {
+                                var packageWithOrganizationUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = organizationOwner };
+
+                                string expected = canViewPrivateMetadata ?
+                                    (organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ?
+                                        organizationMember.Username :
+                                        organizationOwner.Username) :
+                                    null;
+
+                                yield return MemberDataHelper.AsData(packageWithOrganizationUser, currentUser, expected);
+                            }
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Data))]
+            public void ReturnsExpectedUser(Package package, User currentUser, string expected)
+            {
+                var model = new DisplayPackageViewModel(package, currentUser, new[] { package }.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+                Assert.Equal(expected, model.PushedBy);
+            }
         }
     }
 }

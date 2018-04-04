@@ -19,7 +19,7 @@ namespace NuGetGallery.Authentication
                 {
                     foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
                     {
-                        foreach (var user in new[] { null, new User("test") { Key = 1 } })
+                        foreach (var user in new[] { null, new User("testUnconfirmed") { Key = 1 }, new User("testConfirmed") { Key = 2, EmailAddress = "something@confirmed.com" } })
                         {
                             foreach (var scopesAreValid in new[] { false, true })
                             {
@@ -27,7 +27,7 @@ namespace NuGetGallery.Authentication
                                     scopesAreValid, 
                                     result, 
                                     user, 
-                                    scopesAreValid && result == PermissionsCheckResult.Allowed);
+                                    scopesAreValid && result == PermissionsCheckResult.Allowed && (user?.Confirmed ?? false));
                             }
                         }
                     }
