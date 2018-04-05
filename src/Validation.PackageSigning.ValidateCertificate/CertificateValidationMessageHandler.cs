@@ -134,7 +134,7 @@ namespace Validation.PackageSigning.ValidateCertificate
                     _logger.LogWarning(
                         "Failed to save certificate validation result " +
                         "(certificate: {CertificateThumbprint} validation: {ValidationId}), " +
-                        "failing validation",
+                        "retrying validation...",
                         validation.EndCertificate.Thumbprint,
                         validation.ValidationId);
 
