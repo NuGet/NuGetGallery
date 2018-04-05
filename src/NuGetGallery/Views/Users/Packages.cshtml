@@ -9,18 +9,18 @@
 <section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-
-            <div class="clearfix">
-                <div class="pull-left">
-                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Packages</text>)
+            <div class="breadcrumb-menu">
+                <div>
+                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, false, @<text>Packages</text>)
                 </div>
-                <div class="text-center ms-font-xxl">
-                    <span class="form-section-data">
-                        <select id="ownerFilter" class="form-control pull-right hidden" aria-label="Filter on package owner"
+                <div class="ms-font-xxl">
+                    <span>
+                        <select id="ownerFilter" class="form-control hidden" aria-label="Filter on package owner"
                                 data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
                     </span>
                 </div>
             </div>
+            <hr class="breadcrumb-divider"/>
 
             @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
                 @<text>

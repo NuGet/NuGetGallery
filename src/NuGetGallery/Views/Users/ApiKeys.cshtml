@@ -12,7 +12,7 @@
     </form>
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>API keys</text>)
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows

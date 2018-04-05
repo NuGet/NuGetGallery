@@ -10,7 +10,7 @@
 <section role="main" class="container main-container page-account-settings">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Account settings</text>)
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Account settings</text>)
 
             @Html.Partial("_AccountConfirmationNotices", Model)
 

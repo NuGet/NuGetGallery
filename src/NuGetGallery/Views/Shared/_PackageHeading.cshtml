@@ -12,6 +12,7 @@
     @ViewHelpers.BreadcrumbWithProfile(
         Url,
         CurrentUser,
+        true,
         new Func<MvcHtmlString, HelperResult>[]
         {
             @<text><a href="@Url.ManageMyPackages()">Packages</a></text>
@@ -19,5 +20,5 @@
 }
 else
 {
-    @ViewHelpers.Breadcrumb(segments)
+    @ViewHelpers.Breadcrumb(true, segments)
 }

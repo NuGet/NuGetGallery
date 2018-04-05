@@ -560,27 +560,31 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     }
 }
 
-@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, params Func<MvcHtmlString, HelperResult>[] segments)
+@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
     var newSegments = new Func<MvcHtmlString, HelperResult>[] 
     { 
-        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-xl" aria-hidden="true"></i></a></text> 
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
     }.Concat(segments).ToArray();
 
-    @Breadcrumb(newSegments);
+    @Breadcrumb(showDivider, newSegments);
 }
 
-@helper Breadcrumb(params Func<MvcHtmlString, HelperResult>[] segments)
+@helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    <h1 class="ms-font-xxl">
+    <h1 class="ms-font-xl breadcrumb-title">
         @for (int i = 0; i < segments.Length; i++)
         {
-            @segments[i](MvcHtmlString.Empty)
+            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
 
             if (i < segments.Length - 1)
             {
-                <i class="ms-Icon ms-Icon--ChevronRight ms-font-l" aria-hidden="true"></i>
+                <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
             }
         }
     </h1>
+    if (showDivider)
+    {
+        <hr class="breadcrumb-divider" />
+    }
 }

@@ -7,18 +7,20 @@
 <section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="col-md-12">
-
-            <div class="clearfix">
-                <div class="pull-left">
-                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Organizations</text>)
+            <div class="breadcrumb-menu">
+                <div>
+                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, false, @<text>Organizations</text>)
                 </div>
-                @if (Model.Organizations.Any())
-                {
-                    <form class="form-section-title pull-right" action="@Url.AddOrganization()">
-                        <input type="submit" class="btn btn-primary" value="Add new" />
-                    </form>
-                }
+                <div>
+                    @if (Model.Organizations.Any())
+                    {
+                        <form action="@Url.AddOrganization()">
+                            <input type="submit" class="btn btn-primary" value="Add new" />
+                        </form>
+                    }
+                </div>
             </div>
+            <hr class="breadcrumb-divider"/>
 
             @if (Model.Organizations.Any())
             {
