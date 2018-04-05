@@ -96,29 +96,6 @@
             $("#newOwnerUserName").focus();
         },
 
-        confirmAddOwner: function () {
-            viewModel.message("");
-
-            var newUsername = viewModel.newOwnerUsername();
-
-            $.ajax({
-                url: getAddPackageOwnerConfirmationUrl + '?id=' + viewModel.package.id + '&username=' + newUsername,
-                cache: false,
-                dataType: 'json',
-                type: 'GET',
-                success: function (data) {
-                    if (data.success) {
-                        viewModel.confirmation(data.confirmation);
-                        viewModel.policyMessage(data.policyMessage);
-                    }
-                    else {
-                        viewModel.message(data.message);
-                    }
-                }
-            })
-            .error(failHandler);
-        },
-
         addOwner: function () {
             var newUsername = viewModel.newOwnerUsername();
             if (!newUsername) {
