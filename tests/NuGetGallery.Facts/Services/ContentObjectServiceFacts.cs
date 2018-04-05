@@ -34,8 +34,9 @@ namespace NuGetGallery.Services
                 var exceptions = new[] { "exception@example.com" };
                 var shouldTransforms = new[] { "transfomer@example.com" };
                 var orgTenantPairs = new[] { new OrganizationTenantPair("example.com", "tenantId") };
+                var orgsEnabledForAll = true;
 
-                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
+                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs, orgsEnabledForAll);
                 var configString = JsonConvert.SerializeObject(config);
 
                 GetMock<IContentService>()
@@ -46,13 +47,14 @@ namespace NuGetGallery.Services
 
                 // Act
                 await service.Refresh();
-                var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
+                var loginDiscontinuationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
 
                 // Assert
-                Assert.True(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
-                Assert.True(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
-                Assert.True(loginDiscontinuationAndMigrationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
-                Assert.True(loginDiscontinuationAndMigrationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs));
+                Assert.True(loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
+                Assert.True(loginDiscontinuationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
+                Assert.True(loginDiscontinuationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
+                Assert.True(loginDiscontinuationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs));
+                Assert.Equal(orgsEnabledForAll, loginDiscontinuationConfiguration.OrganizationsEnabledForAll);
             }
         }
     }

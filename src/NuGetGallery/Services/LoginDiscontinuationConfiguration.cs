@@ -17,13 +17,15 @@ namespace NuGetGallery
         internal HashSet<string> ExceptionsForEmailAddresses { get; }
         internal HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
         internal HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
+        internal bool OrganizationsEnabledForAll { get; }
 
         public LoginDiscontinuationConfiguration()
             : this(Enumerable.Empty<string>(), 
                   Enumerable.Empty<string>(), 
                   Enumerable.Empty<string>(), 
                   Enumerable.Empty<string>(),
-                  Enumerable.Empty<OrganizationTenantPair>())
+                  Enumerable.Empty<OrganizationTenantPair>(),
+                  organizationsEnabledForAll: false)
         {
         }
 
@@ -33,13 +35,15 @@ namespace NuGetGallery
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses,
             IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
-            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants)
+            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
+            bool organizationsEnabledForAll)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
+            OrganizationsEnabledForAll = organizationsEnabledForAll;
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -69,6 +73,13 @@ namespace NuGetGallery
                 DiscontinuedForEmailAddresses.Contains(email.Address);
         }
 
+        public bool AreOrganizationsSupportedForUser(User user)
+        {
+            return OrganizationsEnabledForAll || 
+                (user != null && 
+                    (user.Organizations.Any() || IsUserOnWhitelist(user)));
+        }
+
         public bool ShouldUserTransformIntoOrganization(User user)
         {
             if (user == null)
@@ -90,6 +101,7 @@ namespace NuGetGallery
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
         bool IsUserOnWhitelist(User user);
+        bool AreOrganizationsSupportedForUser(User user);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }

@@ -1112,6 +1112,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotSupportedForAccount {
+            get {
+                return ResourceManager.GetString("Organizations_NotSupportedForAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Organization accounts cannot create credentials..
         /// </summary>
         public static string OrganizationsCannotCreateCredentials {
