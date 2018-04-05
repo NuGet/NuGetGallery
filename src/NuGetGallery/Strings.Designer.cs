@@ -179,6 +179,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is an organization and cannot be a member of another organization..
+        /// </summary>
+        public static string AddMember_UserIsOrganization {
+            get {
+                return ResourceManager.GetString("AddMember_UserIsOrganization", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; has not confirmed their email..
         /// </summary>
         public static string AddMember_UserNotConfirmed {

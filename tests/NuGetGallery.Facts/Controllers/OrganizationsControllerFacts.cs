@@ -350,7 +350,7 @@ namespace NuGetGallery
                 var result = await controller.Add(Model);
 
                 ResultAssert.IsView<AddOrganizationViewModel>(result);
-                Assert.Equal(message, controller.TempData["ErrorMessage"]);
+                Assert.Equal(message, controller.TempData["AddOrganizationErrorMessage"]);
             }
 
             [Fact]
