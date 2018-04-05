@@ -11,9 +11,9 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
 
             <div class="clearfix">
-                <h1 class="pull-left">
+                <div class="pull-left">
                     @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Packages</text>)
-                </h1>
+                </div>
                 <div class="text-center ms-font-xxl">
                     <span class="form-section-data">
                         <select id="ownerFilter" class="form-control pull-right hidden" aria-label="Filter on package owner"

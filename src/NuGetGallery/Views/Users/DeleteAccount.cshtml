@@ -9,9 +9,7 @@
 <section role="main" class="container main-container page-delete-account">
     <div class="form-group">
         <div class="form-group package-controls">
-            <h1>
-                @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Delete account</text>)
-            </h1>
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Delete account</text>)
             @if ((TempData["RequestFailedMessage"] != null))
             {
                 var message = (string)TempData["RequestFailedMessage"];

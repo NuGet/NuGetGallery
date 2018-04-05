@@ -14,10 +14,10 @@ namespace NuGetGallery
             {
                 if (string.IsNullOrEmpty(Version))
                 {
-                    return Id.Abbreviate(25);
+                    return Id.Abbreviate(35);
                 } else
                 {
-                    return $"{Id.Abbreviate(15)} {Version.Abbreviate(10)}";
+                    return $"{Id.Abbreviate(25)} {Version.Abbreviate(10)}";
                 }
             }
         }

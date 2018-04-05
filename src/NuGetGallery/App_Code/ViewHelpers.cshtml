@@ -564,7 +564,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 {
     var newSegments = new Func<MvcHtmlString, HelperResult>[] 
     { 
-        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a></text> 
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-xl" aria-hidden="true"></i></a></text> 
     }.Concat(segments).ToArray();
 
     @Breadcrumb(newSegments);
@@ -572,13 +572,15 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper Breadcrumb(params Func<MvcHtmlString, HelperResult>[] segments)
 {
-    for (int i = 0; i < segments.Length; i++)
-    {
-        @segments[i](MvcHtmlString.Empty)
-
-        if (i < segments.Length - 1)
+    <h1 class="ms-font-xxl">
+        @for (int i = 0; i < segments.Length; i++)
         {
-            <i class="ms-Icon ms-Icon--ChevronRight ms-font-xxl" aria-hidden="true"></i>
+            @segments[i](MvcHtmlString.Empty)
+
+            if (i < segments.Length - 1)
+            {
+                <i class="ms-Icon ms-Icon--ChevronRight ms-font-l" aria-hidden="true"></i>
+            }
         }
-    }
+    </h1>
 }

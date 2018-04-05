@@ -13,13 +13,11 @@
     </form>
     <div class="row">
         <div class="col-md-12">
-            <h1>
-                @ViewHelpers.BreadcrumbWithProfile(
-                    Url, 
-                    CurrentUser,
-                    @<text><a href="@Url.ManageMyOrganizations()">Organizations</a></text>,
-                    @<text>@Model.AccountName</text>)
-            </h1>
+            @ViewHelpers.BreadcrumbWithProfile(
+                Url, 
+                CurrentUser,
+                @<text><a href="@Url.ManageMyOrganizations()">Organizations</a></text>,
+                @<text>@Model.AccountName</text>)
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">

@@ -9,9 +9,9 @@
         <div class="col-md-12">
 
             <div class="clearfix">
-                <h1 class="pull-left">
+                <div class="pull-left">
                     @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, @<text>Organizations</text>)
-                </h1>
+                </div>
                 @if (Model.Organizations.Any())
                 {
                     <form class="form-section-title pull-right" action="@Url.AddOrganization()">
