@@ -37,7 +37,7 @@
                     @Model.Username&nbsp;
                     @if (Model.CanViewAccount)
                     {
-                        <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
+                        <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
                     }
                 </h1>
                 <span>
