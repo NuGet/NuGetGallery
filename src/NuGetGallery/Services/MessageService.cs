@@ -460,18 +460,12 @@ The {Config.GalleryOwner.DisplayName} Team");
             }
         }
 
-        public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage)
+        public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl)
         {
-            if (!string.IsNullOrEmpty(policyMessage))
-            {
-                policyMessage = Environment.NewLine + policyMessage + Environment.NewLine;
-            }
-
             var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership update for '{package.Id}'";
 
             var body = $@"User '{newOwner.Username}' is now an owner of the package ['{package.Id}']({packageUrl}).
 
-{policyMessage}
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team";
 
