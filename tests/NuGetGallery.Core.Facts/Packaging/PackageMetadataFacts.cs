@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Versioning;
@@ -13,53 +15,115 @@ namespace NuGetGallery.Packaging
 {
     public class PackageMetadataFacts
     {
+        private static IEnumerable<string> TextValues = new[]
+        {
+            string.Empty,
+            " \t ",
+            "some value",
+            "\tfoo\r\n",
+            "&#60;",
+            "<inner>foo</inner>",
+            "<inner />",
+        };
+        private static IEnumerable<string> BooleanNames = new[]
+        {
+            "developmentDependency",
+            "requireLicenseAcceptance",
+            "serviceable",
+        };
+        private static IEnumerable<string> RestrictedNames = new[]
+        {
+            "created",
+            "dependencyGroups",
+            "isPrerelease",
+            "lastEdited",
+            "listed",
+            "packageEntries",
+            "packageHash",
+            "packageHashAlgorithm",
+            "packageSize",
+            "published",
+            "supportedFrameworks",
+            "verbatimVersion",
+        };
+
+        public static IEnumerable<object[]> BooleanNameData => BooleanNames
+            .Select(n => new object[] { n });
+
+        public static IEnumerable<object[]> RestrictedNameData = RestrictedNames
+            .Select(n => new object[] { n });
+
+        public static IEnumerable<object[]> BooleanNameAndValueData => BooleanNames
+            .SelectMany(n => TextValues.Select(v => new object[] { n, v }));
+
+        public static IEnumerable<object[]> RestrictedNameAndValueData = RestrictedNames
+            .SelectMany(n => TextValues.Select(v => new object[] { n, v }));
+
+        public static IEnumerable<object[]> UnofficialNameAndValueData = new[] { "foo" }
+            .SelectMany(n => TextValues.Select(v => new object[] { n, v }));
+
         [Theory]
-        [InlineData("developmentDependency")]
-        [InlineData("requireLicenseAcceptance")]
-        [InlineData("serviceable")]
-        public void RejectsInvalidBooleanValue(string metadataName)
+        [MemberData(nameof(BooleanNameAndValueData))]
+        public void RejectsInvalidBooleanValue(string name, string value)
         {
             // Arrange
-            var packageStream = CreateTestPackageStreamWithMetadataElementName(metadataName);
+            var packageStream = CreateTestPackageStreamWithMetadataElementName(name, value);
             var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
             var nuspec = nupkg.GetNuspecReader();
 
             // Act & Assert
             var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec, strict: false));
-            Assert.Equal($"The package manifest contains an invalid boolean value for metadata element: '{metadataName}'. The value should be 'true' or 'false'.", ex.Message);
+            Assert.Equal($"The package manifest contains an invalid boolean value for metadata element: '{name}'. The value should be 'true' or 'false'.", ex.Message);
         }
 
         [Theory]
-        [InlineData("created")]
-        [InlineData("dependencyGroups")]
-        [InlineData("isPrerelease")]
-        [InlineData("lastEdited")]
-        [InlineData("listed")]
-        [InlineData("packageEntries")]
-        [InlineData("packageHash")]
-        [InlineData("packageHashAlgorithm")]
-        [InlineData("packageSize")]
-        [InlineData("published")]
-        [InlineData("supportedFrameworks")]
-        [InlineData("verbatimVersion")]
-        public void RejectsRestrictedElementNames(string metadataName)
+        [MemberData(nameof(BooleanNameData))]
+        public void RejectsEmptyBooleanValue(string name)
         {
             // Arrange
-            var packageStream = CreateTestPackageStreamWithMetadataElementName(metadataName);
+            var packageStream = CreateTestPackageStreamWithMetadataElementNameAndEmptyValue(name);
             var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
             var nuspec = nupkg.GetNuspecReader();
 
             // Act & Assert
             var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec, strict: false));
-            Assert.Equal($"The package manifest contains invalid metadata elements: '{metadataName}'", ex.Message);
+            Assert.Equal($"The package manifest contains an invalid boolean value for metadata element: '{name}'. The value should be 'true' or 'false'.", ex.Message);
         }
 
-        [Fact]
-        public void AllowsUnrestrictedButUnofficialElementNames()
+        [Theory]
+        [MemberData(nameof(RestrictedNameAndValueData))]
+        public void RejectsRestrictedElementNames(string name, string value)
         {
             // Arrange
-            var name = "foo";
-            var packageStream = CreateTestPackageStreamWithMetadataElementName(name);
+            var packageStream = CreateTestPackageStreamWithMetadataElementName(name, value);
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act & Assert
+            var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec, strict: false));
+            Assert.Equal($"The package manifest contains invalid metadata elements: '{name}'", ex.Message);
+        }
+
+        [Theory]
+        [MemberData(nameof(RestrictedNameData))]
+        public void RejectsRestrictedElementNamesWithEmptyValue(string name)
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithMetadataElementNameAndEmptyValue(name);
+            var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
+            var nuspec = nupkg.GetNuspecReader();
+
+            // Act & Assert
+            var ex = Assert.Throws<PackagingException>(() => PackageMetadata.FromNuspecReader(nuspec, strict: false));
+            Assert.Equal($"The package manifest contains invalid metadata elements: '{name}'", ex.Message);
+        }
+
+        [Theory]
+        [MemberData(nameof(UnofficialNameAndValueData))]
+        public void AllowsUnrestrictedButUnofficialElementNames(string name, string value)
+        {
+            // Arrange
+            var packageStream = CreateTestPackageStreamWithMetadataElementName(name, value);
             var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false);
             var nuspec = nupkg.GetNuspecReader();
 
@@ -71,7 +135,6 @@ namespace NuGetGallery.Packaging
             // Assert
             Assert.Equal("TestPackage", packageMetadata.Id);
             Assert.Equal(NuGetVersion.Parse("0.0.0.1"), packageMetadata.Version);
-            Assert.Equal("some value", packageMetadata.GetValueFromMetadata(name));
         }
 
         [Fact]
@@ -252,14 +315,26 @@ namespace NuGetGallery.Packaging
                     </package>");
         }
 
-        private static Stream CreateTestPackageStreamWithMetadataElementName(string metadataName)
+        private static Stream CreateTestPackageStreamWithMetadataElementName(string metadataName, string value = "some value")
         {
             return CreateTestPackageStream($@"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>TestPackage</id>
                         <version>0.0.0.1</version>
-                        <{metadataName}>some value</{metadataName}>
+                        <{metadataName}>{value}</{metadataName}>
+                      </metadata>
+                    </package>");
+        }
+
+        private static Stream CreateTestPackageStreamWithMetadataElementNameAndEmptyValue(string metadataName)
+        {
+            return CreateTestPackageStream($@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>TestPackage</id>
+                        <version>0.0.0.1</version>
+                        <{metadataName} />
                       </metadata>
                     </package>");
         }

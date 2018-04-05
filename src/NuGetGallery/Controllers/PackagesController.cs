@@ -141,7 +141,7 @@ namespace NuGetGallery
             AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
             if (progress == null)
             {
-                return Json(404, null, JsonRequestBehavior.AllowGet);
+                return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
             }
 
             return Json(progress, JsonRequestBehavior.AllowGet);
@@ -223,20 +223,20 @@ namespace NuGetGallery
             {
                 if (existingUploadFile != null)
                 {
-                    return Json(409, new[] { Strings.UploadPackage_UploadInProgress });
+                    return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_UploadInProgress });
                 }
             }
 
             if (uploadFile == null)
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                return Json(400, new[] { Strings.UploadFileIsRequired });
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
                 ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
-                return Json(400, new[] { Strings.UploadFileMustBeNuGetPackage });
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
             PackageRegistration existingPackageRegistration;
@@ -261,7 +261,7 @@ namespace NuGetGallery
                            Strings.PackageEntryFromTheFuture,
                            entryInTheFuture.Name));
 
-                        return Json(400, new[] {
+                        return Json(HttpStatusCode.BadRequest, new[] {
                             string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name) });
                     }
                 }
@@ -285,7 +285,7 @@ namespace NuGetGallery
 
                     ModelState.AddModelError(String.Empty, message);
 
-                    return Json(400, new[] { message });
+                    return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
                 finally
                 {
@@ -303,7 +303,7 @@ namespace NuGetGallery
                         ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
 
-                    return Json(400, errorStrings);
+                    return Json(HttpStatusCode.BadRequest, errorStrings);
                 }
 
                 // Check min client version
@@ -316,7 +316,7 @@ namespace NuGetGallery
                             Strings.UploadPackage_MinClientVersionOutOfRange,
                             nuspec.GetMinClientVersion()));
 
-                    return Json(400, new[] {
+                    return Json(HttpStatusCode.BadRequest, new[] {
                         string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_MinClientVersionOutOfRange, nuspec.GetMinClientVersion()) });
                 }
 
@@ -333,7 +333,7 @@ namespace NuGetGallery
                     var version = nuspec.GetVersion().ToNormalizedString();
                     _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
-                    return Json(409, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
+                    return Json(HttpStatusCode.Conflict, new string[] { string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict) });
                 }
 
                 // For existing package id verify if it is owned by the current user
@@ -345,12 +345,12 @@ namespace NuGetGallery
                         ModelState.AddModelError(
                           string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
 
-                        return Json(409, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
+                        return Json(HttpStatusCode.Conflict, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
                     }
 
                     if (existingPackageRegistration.IsLocked)
                     {
-                        return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, existingPackageRegistration.Id) });
+                        return Json(HttpStatusCode.Forbidden, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, existingPackageRegistration.Id) });
                     }
                 }
 
@@ -384,7 +384,7 @@ namespace NuGetGallery
                         string.Empty,
                         message);
 
-                    return Json(409, new[] { message });
+                    return Json(HttpStatusCode.Conflict, new[] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
@@ -396,13 +396,13 @@ namespace NuGetGallery
                 if (uploadedFile == null)
                 {
                     ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
-                    return Json(400, new[] { Strings.UploadFileIsRequired });
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
                 }
 
                 var package = await SafeCreatePackage(currentUser, uploadedFile);
                 if (package == null)
                 {
-                    return Json(400, new[] { Strings.UploadFileIsRequired });
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
                 }
 
                 try
@@ -415,7 +415,7 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(400, new[] { ex.GetUserSafeMessage() });
+                    return Json(HttpStatusCode.BadRequest, new[] { ex.GetUserSafeMessage() });
                 }
             }
 
@@ -1227,23 +1227,23 @@ namespace NuGetGallery
             var package = _packageService.FindPackageByIdAndVersion(id, version);
             if (package == null)
             {
-                return Json(404, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
+                return Json(HttpStatusCode.NotFound, new[] { string.Format(Strings.PackageWithIdAndVersionNotFound, id, version) });
             }
 
             if (ActionsRequiringPermissions.EditPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
-                return Json(403, new[] { Strings.Unauthorized });
+                return Json(HttpStatusCode.Forbidden, new[] { Strings.Unauthorized });
             }
 
             if (package.PackageRegistration.IsLocked)
             {
-                return Json(403, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id) });
+                return Json(HttpStatusCode.Forbidden, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id) });
             }
 
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-                return Json(400, errorMessages);
+                return Json(HttpStatusCode.BadRequest, errorMessages);
             }
 
             if (formData.Edit != null)
@@ -1443,7 +1443,7 @@ namespace NuGetGallery
             if (!ModelState.IsValid)
             {
                 var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-                return Json(400, errorMessages);
+                return Json(HttpStatusCode.BadRequest, errorMessages);
             }
 
             var currentUser = GetCurrentUser();
@@ -1454,7 +1454,13 @@ namespace NuGetGallery
             if (owner == null)
             {
                 var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
-                return Json(400, new[] { message });
+                return Json(HttpStatusCode.BadRequest, new[] { message });
+            }
+
+            if (!owner.Confirmed)
+            {
+                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerUnconfirmed, formData.Owner);
+                return Json(HttpStatusCode.BadRequest, new[] { message });
             }
 
             Package package;
@@ -1462,14 +1468,14 @@ namespace NuGetGallery
             {
                 if (uploadFile == null)
                 {
-                    return Json(400, new[] { Strings.VerifyPackage_UploadNotFound });
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UploadNotFound });
                 }
 
                 var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
                 if (nugetPackage == null)
                 {
                     // Send the user back
-                    return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
                 Debug.Assert(nugetPackage != null);
@@ -1486,7 +1492,7 @@ namespace NuGetGallery
                         && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
                         && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                     {
-                        return Json(400, new[] { Strings.VerifyPackage_PackageFileModified });
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_PackageFileModified });
                     }
                 }
 
@@ -1514,7 +1520,7 @@ namespace NuGetGallery
                             var message = string.Format(CultureInfo.CurrentCulture,
                                 Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
                                 currentUser.Username, owner.Username);
-                            return Json(400, new[] { message });
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
                         else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
                         {
@@ -1523,11 +1529,11 @@ namespace NuGetGallery
                             _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
 
                             var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                            return Json(409, new string[] { message });
+                            return Json(HttpStatusCode.Conflict, new string[] { message });
                         }
 
                         // An unknown error occurred.
-                        return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
                 }
                 else
@@ -1541,7 +1547,7 @@ namespace NuGetGallery
                             var message = string.Format(CultureInfo.CurrentCulture,
                                 Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
                                 currentUser.Username, owner.Username);
-                            return Json(400, new[] { message });
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
 
                         if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
@@ -1550,11 +1556,11 @@ namespace NuGetGallery
                             var message = string.Format(CultureInfo.CurrentCulture,
                                 Strings.VerifyPackage_OwnerInvalid,
                                 owner.Username, existingPackageRegistration.Id);
-                            return Json(400, new[] { message });
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
 
                         // An unknown error occurred.
-                        return Json(400, new[] { Strings.VerifyPackage_UnexpectedError });
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
                 }
 
@@ -1574,7 +1580,7 @@ namespace NuGetGallery
                 {
                     _telemetryService.TraceException(ex);
 
-                    return Json(400, new[] { ex.Message });
+                    return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                 }
 
                 if (formData.Edit != null)
@@ -1610,7 +1616,7 @@ namespace NuGetGallery
                         break;
                     case PackageCommitResult.Conflict:
                         TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                        return Json(409, new[] { Strings.UploadPackage_IdVersionConflict });
+                        return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
                     default:
                         throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
                 }
@@ -1704,7 +1710,7 @@ namespace NuGetGallery
         {
             if (formData == null || !_readMeService.HasReadMeSource(formData))
             {
-                return Json(400, new[] { Strings.PreviewReadMe_ReadMeMissing });
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.PreviewReadMe_ReadMeMissing });
             }
 
             try
@@ -1714,7 +1720,7 @@ namespace NuGetGallery
             }
             catch (Exception ex)
             {
-                return Json(400, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
+                return Json(HttpStatusCode.BadRequest, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PreviewReadMe_ConversionFailed, ex.Message) });
             }
         }
 
