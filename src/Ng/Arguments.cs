@@ -49,6 +49,7 @@ namespace Ng
 
         public const string StorageSuffix = "storageSuffix";
         public const string StorageOperationMaxExecutionTimeInSeconds = "storageOperationMaxExecutionTimeInSeconds";
+        public const string HttpClientTimeoutInSeconds = "httpClientTimeoutInSeconds";
 
         #endregion
 

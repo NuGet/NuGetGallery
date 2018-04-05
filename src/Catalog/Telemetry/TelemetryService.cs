@@ -13,11 +13,12 @@ namespace NuGet.Services.Metadata.Catalog
     {
         private readonly TelemetryClient _telemetryClient;
 
-        private const string HttpDurationSeconds = "HttpDurationSeconds";
+        private const string HttpHeaderDurationSeconds = "HttpHeaderDurationSeconds";
         private const string Method = "Method";
         private const string Uri = "Uri";
-        private const string StatusCode = "StatusCode";
         private const string Success = "Success";
+        private const string StatusCode = "StatusCode";
+        private const string ContentLength = "ContentLength";
 
         private const string CatalogIndexReadDurationSeconds = "CatalogIndexReadDurationSeconds";
 
@@ -28,7 +29,13 @@ namespace NuGet.Services.Metadata.Catalog
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
-        public void TrackHttpDuration(TimeSpan duration, HttpMethod method, Uri uri, HttpStatusCode statusCode, bool success)
+        public void TrackHttpHeaderDuration(
+            TimeSpan duration,
+            HttpMethod method,
+            Uri uri,
+            bool success,
+            HttpStatusCode? statusCode,
+            long? contentLength)
         {
             if (method == null)
             {
@@ -41,14 +48,15 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             _telemetryClient.TrackMetric(
-                HttpDurationSeconds,
+                HttpHeaderDurationSeconds,
                 duration.TotalSeconds,
                 new Dictionary<string, string>
                 {
                     { Method, method.ToString() },
                     { Uri, uri.AbsoluteUri },
-                    { StatusCode, ((int)statusCode).ToString() },
+                    { StatusCode, ((int?)statusCode)?.ToString() },
                     { Success, success.ToString() },
+                    { ContentLength, contentLength?.ToString() }
                 });
         }
 

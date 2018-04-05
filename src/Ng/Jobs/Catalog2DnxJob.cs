@@ -42,6 +42,7 @@ namespace Ng.Jobs
                    + $"[-{Arguments.ValidateCertificate} true|false]]] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>]"
+                   + $"[-{Arguments.HttpClientTimeoutInSeconds} <seconds>]"
                    + $"[-{Arguments.StorageSuffix} <suffix for the targeted storage if different than default>]";
         }
 
@@ -51,14 +52,19 @@ namespace Ng.Jobs
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
+            var httpClientTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.HttpClientTimeoutInSeconds);
+            var httpClientTimeout = httpClientTimeoutInSeconds.HasValue ? (TimeSpan?)TimeSpan.FromSeconds(httpClientTimeoutInSeconds.Value) : null;
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
+            Logger.LogInformation("HTTP client timeout: {Timeout}", httpClientTimeout);
 
             _collector = new DnxCatalogCollector(
                 new Uri(source),
                 storageFactory,
                 TelemetryService,
-                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose))
+                Logger,
+                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
+                httpClientTimeout)
             {
                 ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress)
             };

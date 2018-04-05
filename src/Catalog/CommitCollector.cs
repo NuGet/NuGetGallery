@@ -14,8 +14,12 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public abstract class CommitCollector : CollectorBase
     {
-        public CommitCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
-            : base(index, telemetryService, handlerFunc)
+        public CommitCollector(
+            Uri index,
+            ITelemetryService telemetryService,
+            Func<HttpMessageHandler> handlerFunc = null,
+            TimeSpan? httpClientTimeout = null)
+            : base(index, telemetryService, handlerFunc, httpClientTimeout)
         {
         }
 

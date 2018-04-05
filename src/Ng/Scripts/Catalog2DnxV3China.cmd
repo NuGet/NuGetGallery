@@ -1,5 +1,5 @@
 @echo OFF
-	
+
 cd Ng
 
 :Top
@@ -7,7 +7,8 @@ echo "Starting job - #{Jobs.ngcatalog2dnxChina.Title}"
 
 title #{Jobs.ngcatalog2dnxChina.Title}
 
-start /w Ng.exe catalog2dnx -source #{Jobs.ngcatalog2dnx.Catalog.Source} ^
+start /w Ng.exe catalog2dnx ^
+    -source #{Jobs.ngcatalog2dnx.Catalog.Source} ^
     -contentBaseAddress #{Jobs.China.ngcatalog2dnx.ContentBaseAddress} ^
     -storageBaseAddress #{Jobs.China.ngcatalog2dnx.StorageBaseAddress} ^
     -storageType azure ^
@@ -21,7 +22,8 @@ start /w Ng.exe catalog2dnx -source #{Jobs.ngcatalog2dnx.Catalog.Source} ^
     -verbose true ^
     -interval #{Jobs.ngcatalog2dnx.Interval} ^
     -storageSuffix #{Jobs.Common.China.StorageSuffix} ^
-    -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout}
+    -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout} ^
+    -httpClientTimeoutInSeconds #{Jobs.ngcatalog2dnx.HttpClientTimeoutInSeconds}
 
 echo "Finished #{Jobs.ngcatalog2dnxChina.Title}"
 
