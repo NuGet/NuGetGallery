@@ -560,16 +560,6 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     }
 }
 
-@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
-{
-    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
-    { 
-        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
-    }.Concat(segments).ToArray();
-
-    @Breadcrumb(showDivider, newSegments);
-}
-
 @helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
 {
     <h1 class="ms-font-xl breadcrumb-title">
@@ -587,4 +577,34 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
     {
         <hr class="breadcrumb-divider" />
     }
+}
+
+@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
+    { 
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
+    }.Concat(segments).ToArray();
+
+    @Breadcrumb(showDivider, newSegments);
+}
+
+@helper PackagesBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyPackages()">Packages</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+}
+
+@helper OrganizationsBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyOrganizations()">Organizations</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }

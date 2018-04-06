@@ -13,11 +13,10 @@
     </form>
     <div class="row">
         <div class="col-md-12">
-            @ViewHelpers.BreadcrumbWithProfile(
+            @ViewHelpers.OrganizationsBreadcrumb(
                 Url, 
                 CurrentUser,
                 true,
-                @<text><a href="@Url.ManageMyOrganizations()">Organizations</a></text>,
                 @<text>@Model.AccountName</text>)
         </div>
 

@@ -9,14 +9,11 @@
 
 @if (Model.ShowProfileBreadcrumb)
 {
-    @ViewHelpers.BreadcrumbWithProfile(
+    @ViewHelpers.PackagesBreadcrumb(
         Url,
         CurrentUser,
         true,
-        new Func<MvcHtmlString, HelperResult>[]
-        {
-            @<text><a href="@Url.ManageMyPackages()">Packages</a></text>
-        }.Concat(segments).ToArray())
+        segments)
 }
 else
 {

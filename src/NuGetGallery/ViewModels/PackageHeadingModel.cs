@@ -1,4 +1,7 @@
-﻿using NuGetGallery.Helpers;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
@@ -15,7 +18,8 @@ namespace NuGetGallery
                 if (string.IsNullOrEmpty(Version))
                 {
                     return Id.Abbreviate(35);
-                } else
+                }
+                else
                 {
                     return $"{Id.Abbreviate(25)} {Version.Abbreviate(10)}";
                 }
@@ -40,7 +44,7 @@ namespace NuGetGallery
         }
 
         public PackageHeadingModel(ListPackageItemViewModel packageViewModel, string pageHeading, bool linkIdOnly = false)
-            : this(packageViewModel.Id, packageViewModel.Version, pageHeading)
+            : this(packageViewModel.Id, packageViewModel.Version, pageHeading, linkIdOnly)
         {
             ShowProfileBreadcrumb = packageViewModel.CanSeeBreadcrumbWithProfile;
         }
