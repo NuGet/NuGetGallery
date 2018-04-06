@@ -914,11 +914,6 @@ namespace NuGetGallery
             return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
         }
 
-        public static string GetAddPackageOwnerConfirmation(this UrlHelper url, bool relativeUrl = true)
-        {
-            return GetActionLink(url, "GetAddPackageOwnerConfirmation", "JsonApi", relativeUrl);
-        }
-
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
         {
             return GetActionLink(url, "GetPackageOwners", "JsonApi", relativeUrl);
