@@ -86,8 +86,8 @@ namespace NuGetGallery
         public const string IsHardDelete = "IsHardDelete";
 
         // Organization properties
-        public const string OrganizationKey = "OrganizationKey";
-        public const string OrganizationHasAadRestriction = "HasAadRestriction";
+        public const string OrganizationAccountKey = "OrganizationAccountKey";
+        public const string OrganizationIsRestrictedToOrganizationTenantPolicy = "OrganizationIsRestrictedToOrganizationTenantPolicy";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -442,18 +442,12 @@ namespace NuGetGallery
 
             TrackMetric(metricName, 1, properties =>
             {
-                properties.Add(OrganizationKey, user.Key.ToString());
+                properties.Add(OrganizationAccountKey, user.Key.ToString());
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(OrganizationIsRestrictedToOrganizationTenantPolicy, user.IsRestrictedToOrganizationTenantPolicy().ToString());
                 addProperties?.Invoke(properties);
-            });
-        }
-
-        private void TrackMetricForOrganization(
-            string metricName,
-            Organization organization)
-        {
-            TrackMetricForOrganization(metricName, organization, properties =>
-            {
-                properties.Add(OrganizationHasAadRestriction, organization.IsRestrictedToAadTenant().ToString());
             });
         }
 

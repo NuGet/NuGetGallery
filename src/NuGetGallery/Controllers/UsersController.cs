@@ -220,7 +220,7 @@ namespace NuGetGallery
                 {
                     MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
 
-                    TelemetryService.TrackOrganizationTransformDeclined(accountToTransform as Organization);
+                    TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
 
                     message = String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Rejected, accountNameToTransform);
@@ -248,7 +248,7 @@ namespace NuGetGallery
             {
                 MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
 
-                TelemetryService.TrackOrganizationTransformCancelled(accountToTransform as Organization);
+                TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
 
                 TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_Cancelled);

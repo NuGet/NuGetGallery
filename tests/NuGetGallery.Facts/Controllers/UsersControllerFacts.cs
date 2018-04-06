@@ -2620,7 +2620,7 @@ namespace NuGetGallery
 
                 GetMock<ITelemetryService>()
                     .Verify(
-                        t => t.TrackOrganizationTransformDeclined(It.IsAny<Organization>()));
+                        t => t.TrackOrganizationTransformDeclined(It.IsAny<User>()));
             }
 
             private UsersController CreateController(string accountToTransform, bool success = true)
@@ -2700,7 +2700,7 @@ namespace NuGetGallery
 
                 GetMock<ITelemetryService>()
                     .Verify(
-                        t => t.TrackOrganizationTransformCancelled(It.IsAny<Organization>()));
+                        t => t.TrackOrganizationTransformCancelled(It.IsAny<User>()));
             }
 
             private UsersController CreateController(bool success = true)

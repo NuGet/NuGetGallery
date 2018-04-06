@@ -285,7 +285,7 @@ namespace NuGetGallery
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
-            model.RequiresTenant = account.IsRestrictedToAadTenant();
+            model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
         }
     }
 }
