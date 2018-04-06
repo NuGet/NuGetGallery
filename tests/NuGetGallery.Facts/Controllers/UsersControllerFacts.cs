@@ -2502,7 +2502,7 @@ namespace NuGetGallery
 
                 GetMock<ITelemetryService>()
                     .Verify(
-                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()));
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<User>()));
             }
 
             private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
