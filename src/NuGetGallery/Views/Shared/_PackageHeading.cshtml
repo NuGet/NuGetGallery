@@ -1,12 +1,21 @@
 ﻿@model PackageHeadingModel
-<h1 class="text-center package-title-text">@Model.PageHeading</h1>
-<div class="text-center ms-font-xxl">
-    @if (Model.LinkIdOnly)
+@{ 
+    var segments = new Func<MvcHtmlString, HelperResult>[]
     {
-        <a href="@Url.Package(Model.Id)">@Model.PackageDisplay</a>
-    }
-    else
-    {
-        <a href="@Url.Package(Model.Id, Model.Version)">@Model.PackageDisplay</a>
-    }
-</div>
+        @<text><a href="@(Model.LinkIdOnly ? Url.Package(Model.Id) : Url.Package(Model.Id, Model.Version))">@Model.PackageDisplay</a></text>,
+        @<text>@Model.PageHeading</text>
+    };
+}
+
+@if (Model.ShowProfileBreadcrumb)
+{
+    @ViewHelpers.PackagesBreadcrumb(
+        Url,
+        CurrentUser,
+        true,
+        segments)
+}
+else
+{
+    @ViewHelpers.Breadcrumb(true, segments)
+}

@@ -230,6 +230,13 @@
                     data: data,
                     success: function (data) {
                         self.Error(null);
+
+                        // Remove any duplicates of this user in the UI.
+                        // This can happen if a user makes multiple add requests before a response is received.
+                        self.Members.remove(function (member) {
+                            return member.Username.toLocaleLowerCase() === data.Username.toLocaleLowerCase();
+                        });
+
                         self.Members.push(new OrganizationMemberViewModel(self, data));
                         self.NewMemberUsername(null);
                     },

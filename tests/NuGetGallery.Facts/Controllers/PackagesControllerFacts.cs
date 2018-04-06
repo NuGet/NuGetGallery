@@ -897,8 +897,7 @@ namespace NuGetGallery
                     request.RequestingOwner,
                     request.NewOwner,
                     request.PackageRegistration,
-                    It.IsAny<string>(), // The method that creates this URL correctly is not set up for these tests, so we cannot assert the expected value.
-                    string.Empty);
+                    It.IsAny<string>()); // The method that creates this URL correctly is not set up for these tests, so we cannot assert the expected value.
             }
 
             private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
