@@ -19,5 +19,14 @@ namespace NuGet.Jobs.Validation
                 BufferSize,
                 FileOptions.DeleteOnClose | FileOptions.Asynchronous);
         }
+
+        public static FileStream OpenTemporaryFile(string fileName)
+            => new FileStream(
+                fileName,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.None,
+                BufferSize,
+                FileOptions.DeleteOnClose | FileOptions.Asynchronous);
     }
 }
