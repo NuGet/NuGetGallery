@@ -9,14 +9,12 @@
     @ViewHelpers.AjaxAntiForgeryToken(Html)
 
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-        @Html.Partial("_PackageHeading", new PackageHeadingModel
-                   {
-                       PageHeading = "Manage Owners for Package",
-                       PackageDisplay = Model.Id,
-                       Id = Model.Id,
-                       Version = Model.Version,
-                       LinkIdOnly = true
-                   })
+        @Html.Partial(
+            "_PackageHeading", 
+            new PackageHeadingModel(
+                Model, 
+                "Manage owners",
+                linkIdOnly: true))
 
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
             @ViewHelpers.AlertDanger(
