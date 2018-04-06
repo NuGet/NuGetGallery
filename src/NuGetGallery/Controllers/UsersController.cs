@@ -192,7 +192,7 @@ namespace NuGetGallery
 
             MessageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
 
-            TelemetryService.TrackOrganizationTransformCompleted(accountToTransform as Organization);
+            TelemetryService.TrackOrganizationTransformCompleted(accountToTransform);
 
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);

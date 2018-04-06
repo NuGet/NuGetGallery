@@ -456,9 +456,9 @@ namespace NuGetGallery
             TrackMetricForOrganization(Events.OrganizationTransformInitiated, user);
         }
 
-        public void TrackOrganizationTransformCompleted(Organization organization)
+        public void TrackOrganizationTransformCompleted(User user)
         {
-            TrackMetricForOrganization(Events.OrganizationTransformCompleted, organization);
+            TrackMetricForOrganization(Events.OrganizationTransformCompleted, user);
         }
 
         public void TrackOrganizationTransformDeclined(User user)

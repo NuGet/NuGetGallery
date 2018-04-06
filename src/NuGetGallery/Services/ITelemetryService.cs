@@ -55,7 +55,7 @@ namespace NuGetGallery
         /// <summary>
         /// A telemetry event emitted when a user completes transformation of their account into an organization.
         /// </summary>
-        void TrackOrganizationTransformCompleted(Organization organization);
+        void TrackOrganizationTransformCompleted(User user);
 
         /// <summary>
         /// A telemetry event emitted when a user's request to transform their account into an organization is declined.
