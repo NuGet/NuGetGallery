@@ -70,35 +70,58 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var destinationStorage = _storageFactory.Create(id);
             var destinationUri = destinationStorage.GetUri(DnxMaker.GetRelativeAddressNupkg(id, version));
 
-            if (await destinationStorage.AreSyncronized(sourceUri, destinationUri))
+            var isNupkgSynchronized = await destinationStorage.AreSynchronized(sourceUri, destinationUri);
+            if (isNupkgSynchronized
+                && await _dnxMaker.HasPackageInIndex(destinationStorage, id, version, cancellationToken))
             {
                 _logger.LogInformation("No changes detected: {Id}/{Version}", id, version);
                 return;
             }
 
-            var packageDownloader = new PackageDownloader(client, _logger);
-            var requestUri = Utilities.GetNugetCacheBustingUri(sourceUri);
-
-            using (var stream = await packageDownloader.DownloadAsync(requestUri, cancellationToken))
+            if (isNupkgSynchronized)
             {
-                if (stream == null)
-                {
-                    _logger.LogWarning("Package {Id}/{Version} not found.", id, version);
-                    return;
-                }
+                _logger.LogInformation(
+                    "The .nuspec and .nupkg for {Id}/{Version} are already uploaded. Updating just the index.json.",
+                    id,
+                    version);
 
-                var nuspec = GetNuspec(stream, id);
-                if (nuspec == null)
-                {
-                    _logger.LogWarning("No .nuspec available for {Id}/{Version}. Skipping.", id, version);
-                    return;
-                }
-
-                stream.Position = 0;
-
-                await _dnxMaker.AddPackage(stream, nuspec, id, version, cancellationToken);
-                _logger.LogInformation("Commit: {Id}/{Version}", id, version);
+                await _dnxMaker.AddPackageToIndex(
+                    id,
+                    version,
+                    cancellationToken);
             }
+            else
+            {
+                var packageDownloader = new PackageDownloader(client, _logger);
+                var requestUri = Utilities.GetNugetCacheBustingUri(sourceUri);
+
+                using (var stream = await packageDownloader.DownloadAsync(requestUri, cancellationToken))
+                {
+                    if (stream == null)
+                    {
+                        _logger.LogWarning("Package {Id}/{Version} not found.", id, version);
+                        return;
+                    }
+
+                    var nuspec = GetNuspec(stream, id);
+                    if (nuspec == null)
+                    {
+                        _logger.LogWarning("No .nuspec available for {Id}/{Version}. Skipping.", id, version);
+                        return;
+                    }
+
+                    stream.Position = 0;
+
+                    await _dnxMaker.AddPackage(
+                        stream,
+                        nuspec,
+                        id,
+                        version,
+                        cancellationToken);
+                }
+            }
+
+            _logger.LogInformation("Commit: {Id}/{Version}", id, version);
         }
 
         private async Task ProcessPackageDeleteAsync(string id, string version, CancellationToken cancellationToken)

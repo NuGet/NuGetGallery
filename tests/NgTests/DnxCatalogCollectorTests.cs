@@ -257,6 +257,11 @@ namespace NgTests
             });
             _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
 
+            await _catalogToDnxStorage.Save(
+                new Uri("http://tempuri.org/listedpackage/index.json"),
+                new StringStorageContent("{\"versions\":[\"1.0.1\"]}"),
+                CancellationToken.None);
+
             // Setup collector
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
@@ -306,7 +311,7 @@ namespace NgTests
             var package1Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
             Assert.NotNull(package1Index.Key);
             Assert.Contains("\"1.0.0\"", package1Index.Value.GetContentString());
-            Assert.DoesNotContain("\"1.0.1\"", package1Index.Value.GetContentString());
+            Assert.Contains("\"1.0.1\"", package1Index.Value.GetContentString());
 
             var package1Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.nuspec"));
             var package1Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg"));
@@ -332,6 +337,68 @@ namespace NgTests
             Assert.Null(otherPackageIndex.Key);
             Assert.Null(otherPackageNuspec.Key);
             Assert.Null(otherPackageNupkg.Key);
+        }
+
+        [Fact]
+        public async Task ProcessesPackagesThatAreAlreadySynchronizedButNotInIndex()
+        {
+            // Arrange
+            _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
+            {
+                new Uri("http://tempuri.org/packages/listedpackage.1.0.1.nupkg"),
+            });
+            _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
+            _mockServer = new MockServerHttpClientHandler();
+            _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
+
+            // Setup collector
+            _target = new DnxCatalogCollector(
+                new Uri("http://tempuri.org/index.json"),
+                _catalogToDnxStorageFactory,
+                new Mock<ITelemetryService>().Object,
+                new Mock<ILogger>().Object,
+                () => _mockServer)
+            {
+                ContentBaseAddress = new Uri("http://tempuri.org/packages/")
+            };
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+            await _mockServer.AddStorage(catalogStorage);
+
+            _mockServer.SetAction(
+                "/packages/listedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
+            _mockServer.SetAction(
+                "/packages/listedpackage.1.0.1.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
+            _mockServer.SetAction(
+                "/packages/unlistedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
+            _mockServer.SetAction(
+                "/packages/otherpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
+
+            // Setup collector
+            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            // Act
+            await _target.Run(front, back, CancellationToken.None);
+
+            // Assert
+            Assert.Equal(7, _catalogToDnxStorage.Content.Count);
+            
+            // There is no need to save the .nuspec and .nupokg since they are already synchronized.
+            Assert.Empty(_mockServer.Requests.Where(x => x.RequestUri.AbsoluteUri.Contains("listedpackage.1.0.1.nupkg")));
+            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.AbsoluteUri.Contains("/listedpackage/1.0.1")));
+            var index = Assert.Single(_catalogToDnxStorage.Content.Where(x => x.Key.AbsoluteUri.Contains("/listedpackage/index.json")));
+            var content = index.Value.GetContentString();
+            Assert.Equal(@"{
+  ""versions"": [
+    ""1.0.0"",
+    ""1.0.1""
+  ]
+}", content);
         }
 
         [Theory]
@@ -546,8 +613,8 @@ namespace NgTests
         [Description("Test the dnxmaker save and delete scenarios.")]
         public async Task DnxMakerTestVersion(string version)
         {
-            string id = "testid";
             // Arrange
+            string id = "testid";
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
             DnxMaker maker = new DnxMaker(catalogToDnxStorageFactory);
@@ -591,8 +658,8 @@ namespace NgTests
         [Description("Test the dnxmaker save and delete scenarios.")]
         public async Task DnxMakerFailsTestVersion(string version)
         {
-            string id = "testid";
             // Arrange
+            string id = "testid";
             var catalogToDnxStorage = new MemoryStorage();
             var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
             DnxMaker maker = new DnxMaker(catalogToDnxStorageFactory);
@@ -649,7 +716,7 @@ namespace NgTests
                 _synchronizedUris = synchronizedUris;
             }
 
-            public override Task<bool> AreSyncronized(Uri firstResourceUri, Uri secondResourceUri)
+            public override Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
             {
                 return Task.FromResult(_synchronizedUris.Contains(firstResourceUri));
             }

@@ -25,32 +25,58 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         public DnxMaker(StorageFactory storageFactory)
         {
-            if (storageFactory == null)
-            {
-                throw new ArgumentNullException(nameof(storageFactory));
-            }
-
-            _storageFactory = storageFactory;
+            _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
         }
 
-        public async Task<DnxEntry> AddPackage(Stream nupkgStream, string nuspec, string id, string version, CancellationToken cancellationToken)
+        public Task AddPackageToIndex(
+            string id,
+            string version,
+            CancellationToken cancellationToken)
         {
-            Storage storage = _storageFactory.Create(id);
+            var storage = _storageFactory.Create(id);
+
+            return AddPackageToIndex(storage, id, version, cancellationToken);
+        }
+
+        public async Task<DnxEntry> AddPackage(
+            Stream nupkgStream,
+            string nuspec,
+            string id,
+            string version,
+            CancellationToken cancellationToken)
+        {
+            var storage = _storageFactory.Create(id);
 
             var nuspecUri = await SaveNuspec(storage, id, version, nuspec, cancellationToken);
             var nupkgUri = await SaveNupkg(nupkgStream, storage, id, version, cancellationToken);
-            await UpdateMetadata(storage, versions => versions.Add(NuGetVersion.Parse(version)), cancellationToken);
+            await AddPackageToIndex(storage, id, version, cancellationToken);
 
             return new DnxEntry { Nupkg = nupkgUri, Nuspec = nuspecUri };
         }
 
+        private Task AddPackageToIndex(
+            Storage storage,
+            string id,
+            string version,
+            CancellationToken cancellationToken)
+        {
+            return UpdateMetadata(storage, versions => versions.Add(NuGetVersion.Parse(version)), cancellationToken);
+        }
+
         public async Task DeletePackage(string id, string version, CancellationToken cancellationToken)
         {
-            Storage storage = _storageFactory.Create(id);
+            var storage = _storageFactory.Create(id);
 
             await UpdateMetadata(storage, versions => versions.Remove(NuGetVersion.Parse(version)), cancellationToken);
             await DeleteNuspec(storage, id, version, cancellationToken);
             await DeleteNupkg(storage, id, version, cancellationToken);
+        }
+
+        public async Task<bool> HasPackageInIndex(Storage storage, string id, string version, CancellationToken cancellationToken)
+        {
+            var versionsContext = await GetVersionsAsync(storage, cancellationToken);
+            var parsedVersion = NuGetVersion.Parse(version);
+            return versionsContext.Versions.Contains(parsedVersion);
         }
 
         private async Task<Uri> SaveNuspec(Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
@@ -61,11 +87,13 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return nuspecUri;
         }
 
-        async Task UpdateMetadata(Storage storage, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
+        private async Task UpdateMetadata(Storage storage, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
         {
-            string relativeAddress = "index.json";
-            var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
-            HashSet<NuGetVersion> versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
+            var versionsContext = await GetVersionsAsync(storage, cancellationToken);
+            var relativeAddress = versionsContext.RelativeAddress;
+            var resourceUri = versionsContext.ResourceUri;
+            var versions = versionsContext.Versions;
+
             updateAction(versions);
             List<NuGetVersion> result = new List<NuGetVersion>(versions);
 
@@ -83,6 +111,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     await storage.Delete(resourceUri, cancellationToken);
                 }
             }
+        }
+
+        private async Task<VersionsResult> GetVersionsAsync(Storage storage, CancellationToken cancellationToken)
+        {
+            var relativeAddress = "index.json";
+            var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
+            var versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
+
+            return new VersionsResult(relativeAddress, resourceUri, versions);
         }
 
         private static HashSet<NuGetVersion> GetVersions(string json)
@@ -146,6 +183,20 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         public static string GetRelativeAddressNupkg(string id, string version)
         {
             return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.{NuGetVersion.Parse(version).ToNormalizedString()}.nupkg";
+        }
+
+        private class VersionsResult
+        {
+            public VersionsResult(string relativeAddress, Uri resourceUri, HashSet<NuGetVersion> versions)
+            {
+                RelativeAddress = relativeAddress;
+                ResourceUri = resourceUri;
+                Versions = versions;
+            }
+
+            public string RelativeAddress { get; }
+            public Uri ResourceUri { get; }
+            public HashSet<NuGetVersion> Versions { get; }
         }
     }
 }
