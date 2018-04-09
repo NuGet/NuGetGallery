@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
@@ -39,8 +38,9 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICredentialBuilder credentialBuilder,
             IDeleteAccountService deleteAccountService,
-            ISupportRequestService supportRequestService)
-            : base(authService, feedsQuery, messageService, userService)
+            ISupportRequestService supportRequestService,
+            ITelemetryService telemetryService)
+            : base(authService, feedsQuery, messageService, userService, telemetryService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
@@ -153,6 +153,8 @@ namespace NuGetGallery
             var cancelUrl = Url.CancelTransformAccount(accountToTransform, relativeUrl: false);
             MessageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
 
+            TelemetryService.TrackOrganizationTransformInitiated(accountToTransform);
+
             // sign out pending organization and prompt for admin sign in
             OwinContext.Authentication.SignOut();
 
@@ -190,6 +192,8 @@ namespace NuGetGallery
 
             MessageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
 
+            TelemetryService.TrackOrganizationTransformCompleted(accountToTransform);
+
             TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 
@@ -216,6 +220,8 @@ namespace NuGetGallery
                 {
                     MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
 
+                    TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
+
                     message = String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Rejected, accountNameToTransform);
                 }
@@ -240,7 +246,9 @@ namespace NuGetGallery
             
             if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
             {
-                MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+                MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
+
+                TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
 
                 TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.TransformAccount_Cancelled);

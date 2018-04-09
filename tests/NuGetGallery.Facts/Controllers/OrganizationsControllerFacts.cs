@@ -316,7 +316,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreateAction : TestContainer
+        public class TheAddAction : TestContainer
         {
             private const string OrgName = "TestOrg";
             private const string OrgEmail = "TestOrg@testorg.com";
@@ -328,7 +328,7 @@ namespace NuGetGallery
 
             private Fakes Fakes;
 
-            public TheCreateAction()
+            public TheAddAction()
             {
                 Fakes = Get<Fakes>();
                 Admin = Fakes.User;
@@ -350,7 +350,13 @@ namespace NuGetGallery
                 var result = await controller.Add(Model);
 
                 ResultAssert.IsView<AddOrganizationViewModel>(result);
+                
                 Assert.Equal(message, controller.TempData["AddOrganizationErrorMessage"]);
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationAdded(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -383,6 +389,10 @@ namespace NuGetGallery
                         org, 
                         It.Is<string>(s => s.Contains(token))), 
                     Times.Once());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationAdded(It.IsAny<Organization>()));
             }
         }
 
