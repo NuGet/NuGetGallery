@@ -443,8 +443,6 @@ namespace NuGetGallery
             TrackMetric(metricName, 1, properties =>
             {
                 properties.Add(OrganizationAccountKey, user.Key.ToString());
-                properties.Add(ClientVersion, GetClientVersion());
-                properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(OrganizationIsRestrictedToOrganizationTenantPolicy, user.IsRestrictedToOrganizationTenantPolicy().ToString());
                 addProperties?.Invoke(properties);
