@@ -854,12 +854,12 @@ namespace NuGetGallery
             return credentialViewModel;
         }
 
-        private static IDictionary<string, IActionRequiringEntityPermissions> AllowedActionToActionRequiringEntityPermissions = new Dictionary<string, IActionRequiringEntityPermissions>
+        private static IDictionary<string, IActionRequiringEntityPermissions[]> AllowedActionToActionRequiringEntityPermissions = new Dictionary<string, IActionRequiringEntityPermissions[]>
         {
-            { NuGetScopes.PackagePush, ActionsRequiringPermissions.UploadNewPackageId },
-            { NuGetScopes.PackagePushVersion, ActionsRequiringPermissions.UploadNewPackageVersion },
-            { NuGetScopes.PackageUnlist, ActionsRequiringPermissions.UnlistOrRelistPackage },
-            { NuGetScopes.PackageVerify, ActionsRequiringPermissions.VerifyPackage },
+            { NuGetScopes.PackagePush, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
+            { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
+            { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
+            { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
         };
         
         private bool VerifyScopes(IEnumerable<Scope> scopes)
@@ -884,7 +884,7 @@ namespace NuGetGallery
                 {
                     if (scope.AllowsActions(allowedAction))
                     {
-                        actions.Add(AllowedActionToActionRequiringEntityPermissions[allowedAction]);
+                        actions.AddRange(AllowedActionToActionRequiringEntityPermissions[allowedAction]);
                     }
                 }
 
