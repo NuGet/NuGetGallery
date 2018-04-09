@@ -1186,10 +1186,10 @@ img.reserved-indicator-icon {
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
           justify-content: space-between;
-  -webkit-box-align: end;
-  -webkit-align-items: flex-end;
-  -ms-flex-align: end;
-          align-items: flex-end;
+  -webkit-box-align: baseline;
+  -webkit-align-items: baseline;
+  -ms-flex-align: baseline;
+          align-items: baseline;
 }
 .page-profile .profile-title h1 {
   margin-top: 0;
