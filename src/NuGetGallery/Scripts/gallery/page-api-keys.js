@@ -125,26 +125,70 @@
             this.PackageOwnerName = ko.pureComputed(function () {
                 return self.PackageOwner() && self.PackageOwner().Owner;
             }, this);
+            this.PackageOwner.subscribe(function (newOwner) {
+                // When the package owner scope is changed, update the selected action scopes to those that are allowed on behalf of the new package owner.
+                var isPushNewSelected = function () {
+                    return self.PushScope() === initialData.PackagePushScope;
+                };
+                var isPushExistingSelected = function () {
+                    return self.PushScope() === initialData.PackagePushVersionScope;
+                };
+                var isUnlistSelected = function () {
+                    return self.UnlistScopeChecked();
+                };
 
-            // Do not default to push new scope if disabled (organization collaborator)
+                // If either push new or push existing is selected and that action is not allowed on behalf of the new owner,
+                // swap the scope to the other push action if it is allowed or deselect it.
+                if (!newOwner.CanPushNew && isPushNewSelected()) {
+                    self.PushScope(newOwner.CanPushExisting ? initialData.PackagePushVersionScope : null);
+                } else if (!newOwner.CanPushExisting && isPushExistingSelected()) {
+                    self.PushScope(newOwner.CanPushNew ? initialData.PackagePushScope : null);
+                }
+
+                // If unlist is selected and that action is not allowed on behalf of the new owner, deselect it.
+                if (!newOwner.CanUnlist && isUnlistSelected()) {
+                    self.UnlistScopeChecked(false);
+                }
+
+                // If after this process, no actions are selected, select one that is allowed.
+                if (!isPushNewSelected() && !isPushExistingSelected() && !isUnlistSelected()) {
+                    if (newOwner.CanPushNew) {
+                        self.PushScope(initialData.PackagePushScope);
+                    } else if (newOwner.CanPushExisting) {
+                        self.PushScope(initialData.PackagePushVersionScope);
+                    } else if (newOwner.CanUnlist) {
+                        self.UnlistScopeChecked(true);
+                    }
+                }
+
+                // If either push new or push existing are selected, enable the textbox that determines if they are selectable.
+                self.PushEnabled(isPushNewSelected() || isPushExistingSelected());
+            });
+
+            this.PushEnabled = ko.observable(false);
+
+            this.PushAnyEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && (self.PackageOwner().CanPushNew || self.PackageOwner().CanPushExisting);
+            }, this);
+            
             this.PushNewEnabled = ko.pureComputed(function () {
                 return self.PackageOwner() && self.PackageOwner().CanPushNew;
             }, this);
-            this.PushNewEnabled.subscribe(function (newValue) {
-                var defaultPushId = newValue
-                    ? self.PackagePushId()
-                    : self.PackagePushVersionId();
-                // If Create is expanded, update push scope when owner changes
-                var defaultScope = $("#" + defaultPushId).val();
-                if (defaultScope) {
-                    self.PushScope(defaultScope);
-                }
-            });
+
+            this.PushExistingEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanPushExisting;
+            }, this);
+
+            this.UnlistEnabled = ko.pureComputed(function () {
+                return self.PackageOwner() && self.PackageOwner().CanUnlist;
+            }, this);
 
             this.ExpiresIn = ko.observable();
-            this.PushEnabled = ko.observable(false);
-            this.PushScope = ko.observable(initialData.PackagePushScope);
-            this.UnlistScope = ko.observableArray();
+            this.PushScope = ko.observable();
+            this.UnlistScopeChecked = ko.observable(false);
+            this.UnlistScope = ko.pureComputed(function () {
+                return self.UnlistScopeChecked() ? initialData.PackageUnlistScope : null;
+            }, this);
             this.PendingGlobPattern = ko.observable();
             this.PendingPackages = ko.observableArray();
 
@@ -180,9 +224,7 @@
                 return this.Packages().slice(3);
             }, this);
             this.SelectPackagesEnabled = ko.pureComputed(function () {
-                return this.Scopes().length > 0 ||
-                    this.PushEnabled() ||
-                    this.UnlistScope().length > 0;
+                return this.Scopes().length > 0 || this.PendingScopes().length > 0;
             }, this);
             this.FormId = ComputedId("form");
             this.RemainingPackagesId = ComputedId("remaining-packages");
@@ -223,10 +265,12 @@
             }, this);
             this.PendingScopes = ko.pureComputed(function () {
                 var scopes = [];
-                if (this.PushEnabled()) {
+                if (this.PushEnabled() && this.PushScope()) {
                     scopes.push(this.PushScope());
                 }
-                scopes.push.apply(scopes, this.UnlistScope());
+                if (this.UnlistEnabled() && this.UnlistScope()) {
+                    scopes.push(this.UnlistScope());
+                }
                 return scopes;
             }, this);
             this.PendingSubjects = ko.pureComputed(function () {
@@ -343,7 +387,6 @@
 
                 // Execute scopes and subjects validation.
                 this.PendingGlobPattern.valueHasMutated();
-                this.UnlistScope.valueHasMutated();
 
                 return !formError &&
                        !this.ScopesError() &&
@@ -359,8 +402,8 @@
                 self.PendingDescription(self.Description());
                 self.ExpiresIn($("#" + self.ExpiresInId() + " option:last-child").val());
                 self.PushEnabled(false);
-                self.PushScope(initialData.PackagePushScope);
-                self.UnlistScope.removeAll();
+                self.PushScope(null);
+                self.UnlistScopeChecked(false);
                 self.PendingGlobPattern(self.GlobPattern());
                 this._SetPackageSelection(self._packages);
 

@@ -21,9 +21,19 @@ namespace NuGetGallery
             AccountOnBehalfOfPermissionsRequirement = accountOnBehalfOfPermissionsRequirement;
         }
 
+        public bool IsAllowedOnBehalfOfAccount(User currentUser, User account)
+        {
+            return PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentUser, account);
+        }
+
+        public bool IsAllowedOnBehalfOfAccount(IPrincipal currentPrincipal, User account)
+        {
+            return PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentPrincipal, account);
+        }
+
         public PermissionsCheckResult CheckPermissions(User currentUser, User account, TEntity entity)
         {
-            if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentUser, account))
+            if (!IsAllowedOnBehalfOfAccount(currentUser, account))
             {
                 return PermissionsCheckResult.AccountFailure;
             }
@@ -33,7 +43,7 @@ namespace NuGetGallery
 
         public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, TEntity entity)
         {
-            if (!PermissionsHelpers.IsRequirementSatisfied(AccountOnBehalfOfPermissionsRequirement, currentPrincipal, account))
+            if (!IsAllowedOnBehalfOfAccount(currentPrincipal, account))
             {
                 return PermissionsCheckResult.AccountFailure;
             }

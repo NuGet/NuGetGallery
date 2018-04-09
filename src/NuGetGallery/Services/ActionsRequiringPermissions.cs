@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringReservedNamespacePermissions UploadNewPackageId =
             new ActionRequiringReservedNamespacePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringPackagePermissions UnlistOrRelistPackage =
             new ActionRequiringPackagePermissions(
-                RequireOwnerOrOrganizationMember,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
@@ -77,7 +77,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringPackagePermissions ReportPackageAsOwner =
             new ActionRequiringPackagePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
