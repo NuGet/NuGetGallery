@@ -486,6 +486,8 @@ namespace NuGetGallery
                 var firstPackageOwner = model.PackageOwners.First();
                 Assert.True(firstPackageOwner.Owner == currentUser.Username);
                 Assert.True(firstPackageOwner.CanPushNew);
+                Assert.True(firstPackageOwner.CanPushExisting);
+                Assert.True(firstPackageOwner.CanUnlist);
             }
             
             [Theory]
@@ -497,8 +499,11 @@ namespace NuGetGallery
                 var organization = TestUtility.FakeOrganization;
 
                 var model = GetModelForApiKeys(currentUser);
-                
-                Assert.Equal(1, model.PackageOwners.Count(o => o.Owner == organization.Username && o.CanPushNew == isAdmin));
+
+                var owner = model.PackageOwners.Single(o => o.Owner == organization.Username);
+                Assert.True(owner.CanPushNew);
+                Assert.True(owner.CanPushExisting);
+                Assert.True(owner.CanUnlist);
             }
 
             public static IEnumerable<object[]> OrganizationIsNotInPackageOwnersIfNotMember_Data

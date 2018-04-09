@@ -29,7 +29,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringReservedNamespacePermissions UploadNewPackageId =
             new ActionRequiringReservedNamespacePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
@@ -61,7 +61,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringPackagePermissions UnlistOrRelistPackage =
             new ActionRequiringPackagePermissions(
-                RequireOwnerOrOrganizationMember,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
@@ -73,11 +73,19 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
-        /// The action of reporting an existing package ID as the owner of the package..
+        /// The action of reporting an existing package ID as the owner of the package.
         /// </summary>
         public static ActionRequiringPackagePermissions ReportPackageAsOwner =
             new ActionRequiringPackagePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
+
+        /// <summary>
+        /// The action of seeing a breadcrumb linking the user back to their profile when performing actions on a package.
+        /// </summary>
+        public static ActionRequiringPackagePermissions ShowProfileBreadcrumb =
+            new ActionRequiringPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>

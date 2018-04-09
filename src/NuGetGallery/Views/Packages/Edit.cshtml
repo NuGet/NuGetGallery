@@ -15,14 +15,13 @@
 <section role="main" class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_PackageHeading", new PackageHeadingModel
-            {
-                PageHeading = "Edit Package",
-                PackageDisplay = Model.PackageId,
-                Id = Model.PackageId,
-                Version = Model.Version,
-                LinkIdOnly = true
-            })
+            @Html.Partial(
+                "_PackageHeading", 
+                new PackageHeadingModel(
+                    CurrentUser,
+                    Model.PackageVersions.First(), 
+                    "Edit",
+                    linkIdOnly: true))
 
             @if (Model.IsLocked)
             {
