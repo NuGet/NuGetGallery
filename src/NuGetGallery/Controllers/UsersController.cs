@@ -372,10 +372,10 @@ namespace NuGetGallery
         [UIAuthorize]
         public virtual ActionResult ApiKeys()
         {
-            var user = GetCurrentUser();
+            var currentUser = GetCurrentUser();
 
             // Get API keys
-            if (!GetCredentialGroups(user).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
+            if (!GetCredentialGroups(currentUser).TryGetValue(CredentialKind.Token, out List<CredentialViewModel> credentials))
             {
                 credentials = new List<CredentialViewModel>();
             }
@@ -385,30 +385,32 @@ namespace NuGetGallery
                 .ToList();
 
             // Get package owners (user's self or organizations)
-            var owners = user.Organizations
-                .Select(o => CreateApiKeyOwnerViewModel(
-                    o.Organization,
-                    // todo: move logic for canPushNew to PermissionsService
-                    canPushNew: o.IsAdmin)
-                    ).ToList();
-            owners.Insert(0, CreateApiKeyOwnerViewModel(user, canPushNew: true));
+            var owners = new List<ApiKeyOwnerViewModel>
+            {
+                CreateApiKeyOwnerViewModel(currentUser, currentUser)
+            };
+
+            owners.AddRange(currentUser.Organizations
+                .Select(o => CreateApiKeyOwnerViewModel(currentUser, o.Organization)));
 
             var model = new ApiKeyListViewModel
             {
                 ApiKeys = apiKeys,
                 ExpirationInDaysForApiKeyV1 = _config.ExpirationInDaysForApiKeyV1,
-                PackageOwners = owners,
+                PackageOwners = owners.Where(o => o.CanPushNew || o.CanPushExisting || o.CanUnlist).ToList(),
             };
 
             return View("ApiKeys", model);
         }
 
-        private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User user, bool canPushNew)
+        private ApiKeyOwnerViewModel CreateApiKeyOwnerViewModel(User currentUser, User account)
         {
             return new ApiKeyOwnerViewModel(
-                user.Username,
-                canPushNew,
-                packageIds: _packageService.FindPackageRegistrationsByOwner(user)
+                account.Username,
+                ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
+                ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
+                ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
+                packageIds: _packageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
                                 .ToList());

@@ -13,11 +13,11 @@
     </form>
     <div class="row">
         <div class="col-md-12">
-            <h1>
-                <a href="@Url.ManageMyOrganizations()">Organizations</a>
-                &gt;
-                @Model.AccountName
-            </h1>
+            @ViewHelpers.OrganizationsBreadcrumb(
+                Url, 
+                CurrentUser,
+                true,
+                @<text>@Model.AccountName</text>)
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">

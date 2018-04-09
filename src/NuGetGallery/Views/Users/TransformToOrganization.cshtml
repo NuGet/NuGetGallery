@@ -15,7 +15,7 @@
 <section role="main" class="container main-container page-transform-account">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Transform Account</h1>
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Transform account</text>)
 
             <div class="transform-alert">
                 @ViewHelpers.AlertWarning(@<text>
