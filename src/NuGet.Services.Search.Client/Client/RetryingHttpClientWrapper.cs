@@ -16,13 +16,12 @@ namespace NuGet.Services.Search.Client
         private readonly HttpClient _httpClient;
         private readonly IEndpointHealthIndicatorStore _endpointHealthIndicatorStore;
 
-        private static readonly Random Random = new Random((int) DateTime.UtcNow.Ticks);
         private static readonly int PeriodToDelayAlternateRequest = 3000;
         private static readonly IComparer<int> HealthComparer;
 
         static RetryingHttpClientWrapper()
         {
-            HealthComparer = new WeightedRandomComparer(Random);
+            HealthComparer = new WeightedRandomComparer();
         }
 
         public RetryingHttpClientWrapper(HttpClient httpClient)
@@ -212,27 +211,27 @@ namespace NuGet.Services.Search.Client
 
             return false;
         }
-        
-        class WeightedRandomComparer
+
+        public class WeightedRandomComparer
             : IComparer<int>
         {
-            private readonly Random _random;
-
-            public WeightedRandomComparer(Random random)
-            {
-                _random = random;
-            }
-
             public int Compare(int x, int y)
             {
                 var totalWeight = x + y;
-                var randomNumber = _random.Next(0, totalWeight);
+                var randomNumber = ThreadSafeRandom.Next(0, totalWeight);
 
                 if (randomNumber < x)
                 {
                     return 1;
                 }
-                return -1;
+                else if (randomNumber > x)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
             }
         }
     }

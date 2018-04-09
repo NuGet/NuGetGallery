@@ -758,10 +758,9 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Id = "CoolStuff" };
                 var messageService = TestableMessageService.Create(GetConfigurationService());
                 var packageUrl = "packageUrl";
-                var policyMessage = "policyMessage";
 
                 // Act
-                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, packageUrl, policyMessage);
+                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, packageUrl);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -776,7 +775,6 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryNoReplyAddress.Address, "noreply@example.com");
                 Assert.Contains($"Package ownership update for '{package.Id}'", message.Subject);
                 Assert.Contains($"User '{newUser.Username}' is now an owner of the package ['{package.Id}']({packageUrl}).", message.Body);
-                Assert.Contains(policyMessage, message.Body);
             }
 
             [Theory]
@@ -794,7 +792,7 @@ namespace NuGetGallery
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
                 // Act
-                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl", "policyMessage");
+                messageService.SendPackageOwnerAddedNotice(toUser, newUser, package, "packageUrl");
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);

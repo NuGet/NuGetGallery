@@ -10,14 +10,12 @@
 <section role="main" class="container main-container page-report-abuse">
     <div class="row report-form">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_PackageHeading", new PackageHeadingModel
-            {
-                PageHeading = "Report Abuse by",
-                PackageDisplay = Model.PackageId + " " + Model.PackageVersion,
-                Id = Model.PackageId,
-                Version = Model.PackageVersion,
-                LinkIdOnly = false
-            })
+            @Html.Partial(
+                "_PackageHeading", 
+                new PackageHeadingModel(
+                    Model.PackageId, 
+                    Model.PackageVersion, 
+                    "Report abuse"))
 
             @ViewHelpers.AlertWarning(isAlertRole: true, htmlContent:
                 @<text>
