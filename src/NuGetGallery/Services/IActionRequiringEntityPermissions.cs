@@ -6,7 +6,7 @@ using System.Security.Principal;
 
 namespace NuGetGallery
 {
-    public interface IActionRequiringEntityPermissions<TEntity>
+    public interface IActionRequiringEntityPermissions
     {
         /// <summary>
         /// Determines whether <paramref name="currentUser"/> can perform this action on an arbitrary <see cref="TEntity"/> on behalf of <paramref name="account"/>.
@@ -19,7 +19,10 @@ namespace NuGetGallery
         /// </summary>
         /// <returns>True if and only if <paramref name="currentPrincipal"/> can perform this action on an arbitrary <see cref="TEntity"/> on behalf of <paramref name="account"/>.</returns>
         bool IsAllowedOnBehalfOfAccount(IPrincipal currentPrincipal, User account);
+    }
 
+    public interface IActionRequiringEntityPermissions<TEntity> : IActionRequiringEntityPermissions
+    {
         /// <summary>
         /// Determines whether <paramref name="currentUser"/> can perform this action on <paramref name="entity"/> on behalf of <paramref name="account"/>.
         /// </summary>
