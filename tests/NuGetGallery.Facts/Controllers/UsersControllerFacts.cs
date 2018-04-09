@@ -2282,6 +2282,29 @@ namespace NuGetGallery
                 Assert.NotNull(result);
                 Assert.Equal(1, controller.ModelState[string.Empty].Errors.Count);
                 Assert.Equal("error", controller.ModelState[string.Empty].Errors.First().ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequest(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<IMessageService>()
+                    .Verify(
+                        m => m.SendOrganizationTransformInitiatedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformInitiated(It.IsAny<User>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2304,6 +2327,29 @@ namespace NuGetGallery
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),
                     controller.ModelState[string.Empty].Errors.First().ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m => 
+                        m.SendOrganizationTransformRequest(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<IMessageService>()
+                    .Verify(m => 
+                        m.SendOrganizationTransformInitiatedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformInitiated(It.IsAny<User>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2321,6 +2367,24 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.IsType<RedirectResult>(result);
+
+                GetMock<IMessageService>()
+                    .Verify(m => m.SendOrganizationTransformRequest(
+                        It.IsAny<User>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>()));
+
+                GetMock<IMessageService>()
+                    .Verify(m => m.SendOrganizationTransformInitiatedNotice(
+                        It.IsAny<User>(), 
+                        It.IsAny<User>(), 
+                        It.IsAny<string>()));
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformInitiated(It.IsAny<User>()));
             }
         }
         
@@ -2344,6 +2408,18 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
                     model.ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestAcceptedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2363,6 +2439,18 @@ namespace NuGetGallery
                 Assert.Equal(
                     "error",
                     model.ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestAcceptedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2383,6 +2471,18 @@ namespace NuGetGallery
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Failed, "account"),
                     model.ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestAcceptedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2398,6 +2498,16 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.False(controller.TempData.ContainsKey("TransformError"));
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestAcceptedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()));
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCompleted(It.IsAny<User>()));
             }
 
             private UsersController CreateController(string accountToTransform, string canTransformErrorReason = "", bool success = true)
@@ -2450,6 +2560,18 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"), 
                     controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestRejectedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformDeclined(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2465,6 +2587,18 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(Strings.TransformAccount_FailedMissingRequestToCancel, controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestRejectedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformDeclined(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2482,6 +2616,16 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Rejected, accountToTransform), 
                     controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestRejectedNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()));
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformDeclined(It.IsAny<User>()));
             }
 
             private UsersController CreateController(string accountToTransform, bool success = true)
@@ -2524,6 +2668,18 @@ namespace NuGetGallery
                 Assert.Equal(
                     Strings.TransformAccount_FailedMissingRequestToCancel,
                     controller.TempData["ErrorMessage"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestCancelledNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCancelled(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -2540,6 +2696,16 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Cancelled),
                     controller.TempData["Message"]);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestCancelledNotice(
+                            It.IsAny<User>(),
+                            It.IsAny<User>()));
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformCancelled(It.IsAny<User>()));
             }
 
             private UsersController CreateController(bool success = true)
