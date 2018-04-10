@@ -139,7 +139,6 @@ namespace NuGetGallery.Controllers
                 {
                     private static IEnumerable<InvokePackageOwnerModificationRequest> _addRequests = new InvokePackageOwnerModificationRequest[]
                     {
-                        new InvokePackageOwnerModificationRequest(GetAddPackageOwnerConfirmation),
                         new InvokePackageOwnerModificationRequest(AddPackageOwner),
                     };
 
@@ -336,31 +335,6 @@ namespace NuGetGallery.Controllers
                         Assert.Equal(string.Format(Strings.AddOwner_AlreadyOwner, userToAdd.Username), data.message);
                     }
 
-                    public class TheGetAddPackageOwnerConfirmationMethod : TestContainer
-                    {
-                        public static IEnumerable<object[]> AllCanManagePackageOwnersPairedWithCanBeAdded_Data => TheAddPackageOwnerMethods.AllCanManagePackageOwnersPairedWithCanBeAdded_Data;
-
-                        [Theory]
-                        [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
-                        public void ReturnsConfirmation(Func<Fakes, User> getCurrentUser, Func<Fakes, User> getUserToAdd)
-                        {
-                            // Arrange
-                            var fakes = Get<Fakes>();
-                            var currentUser = getCurrentUser(fakes);
-                            var userToAdd = getUserToAdd(fakes);
-                            var controller = GetController<JsonApiController>();
-                            controller.SetCurrentUser(currentUser);
-
-                            // Act
-                            var result = controller.GetAddPackageOwnerConfirmation(fakes.Package.Id, userToAdd.Username);
-                            dynamic data = ((JsonResult)result).Data;
-
-                            // Assert
-                            Assert.True(data.success);
-                            Assert.Equal($"Please confirm if you would like to proceed adding '{userToAdd.Username}' as a co-owner of this package.", data.confirmation);
-                        }
-                    }
-
                     public class TheAddPackageOwnerMethod : TestContainer
                     {
                         public static IEnumerable<object[]> AllCanManagePackageOwnersPairedWithCanBeAdded_Data = TheAddPackageOwnerMethods.AllCanManagePackageOwnersPairedWithCanBeAdded_Data;
@@ -379,23 +353,59 @@ namespace NuGetGallery.Controllers
                             controller.SetCurrentUser(currentUser);
 
                             var packageOwnershipManagementServiceMock = GetMock<IPackageOwnershipManagementService>();
-                            packageOwnershipManagementServiceMock
-                                .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, currentUser, userToAdd))
-                                .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
-                                .Verifiable();
-
                             var messageServiceMock = GetMock<IMessageService>();
-                            messageServiceMock
-                                .Setup(m => m.SendPackageOwnerRequest(
-                                    currentUser,
-                                    userToAdd,
-                                    fakes.Package,
-                                    TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
-                                    TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code",
-                                    TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code",
-                                    "Hello World! Html Encoded &lt;3",
-                                    ""))
-                                .Verifiable();
+
+                            var pending = !(ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, userToAdd) == PermissionsCheckResult.Allowed);
+
+                            if (pending)
+                            {
+                                packageOwnershipManagementServiceMock
+                                    .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, currentUser, userToAdd))
+                                    .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
+                                    .Verifiable();
+                                
+                                messageServiceMock
+                                    .Setup(m => m.SendPackageOwnerRequest(
+                                        currentUser,
+                                        userToAdd,
+                                        fakes.Package,
+                                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
+                                        TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code",
+                                        TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code",
+                                        "Hello World! Html Encoded &lt;3",
+                                        ""))
+                                    .Verifiable();
+
+                                foreach (var owner in fakes.Package.Owners)
+                                {
+                                    messageServiceMock
+                                        .Setup(m => m.SendPackageOwnerRequestInitiatedNotice(
+                                            currentUser,
+                                            owner,
+                                            userToAdd,
+                                            fakes.Package,
+                                            It.IsAny<string>()))
+                                        .Verifiable();
+                                }
+                            }
+                            else
+                            {
+                                packageOwnershipManagementServiceMock
+                                    .Setup(p => p.AddPackageOwnerAsync(fakes.Package, userToAdd))
+                                    .Returns(Task.CompletedTask)
+                                    .Verifiable();
+
+                                foreach (var owner in fakes.Package.Owners)
+                                {
+                                    messageServiceMock
+                                        .Setup(m => m.SendPackageOwnerAddedNotice(
+                                            owner,
+                                            userToAdd,
+                                            fakes.Package,
+                                            It.IsAny<string>()))
+                                        .Verifiable();
+                                }
+                            }
 
                             JsonResult result = await controller.AddPackageOwner(fakes.Package.Id, userToAdd.Username, "Hello World! Html Encoded <3");
                             dynamic data = result.Data;
@@ -403,8 +413,8 @@ namespace NuGetGallery.Controllers
 
                             Assert.True(data.success);
                             Assert.Equal(userToAdd.Username, model.Name);
-                            Assert.True(model.Pending);
-                            
+                            Assert.Equal(pending, model.Pending);
+
                             packageOwnershipManagementServiceMock.Verify();
                             messageServiceMock.Verify();
                         }
@@ -567,11 +577,6 @@ namespace NuGetGallery.Controllers
 
                 public delegate Task<ActionResult> InvokePackageOwnerModificationRequest(JsonApiController jsonApiController, string packageId, string username);
 
-                private static Task<ActionResult> GetAddPackageOwnerConfirmation(JsonApiController jsonApiController, string packageId, string username)
-                {
-                    return Task.Run(() => jsonApiController.GetAddPackageOwnerConfirmation(packageId, username));
-                }
-
                 private static async Task<ActionResult> AddPackageOwner(JsonApiController jsonApiController, string packageId, string username)
                 {
                     return await jsonApiController.AddPackageOwner(packageId, username, "message");
@@ -584,7 +589,6 @@ namespace NuGetGallery.Controllers
 
                 private static IEnumerable<InvokePackageOwnerModificationRequest> _requests = new InvokePackageOwnerModificationRequest[]
                 {
-                    new InvokePackageOwnerModificationRequest(GetAddPackageOwnerConfirmation),
                     new InvokePackageOwnerModificationRequest(AddPackageOwner),
                     new InvokePackageOwnerModificationRequest(RemovePackageOwner),
                 };

@@ -124,11 +124,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains duplicate metadata elements: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_DuplicateMetadataElements {
+            get {
+                return ResourceManager.GetString("Manifest_DuplicateMetadataElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
         public static string Manifest_IdTooLong {
             get {
                 return ResourceManager.GetString("Manifest_IdTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid boolean value for metadata element: &apos;{0}&apos;. The value should be &apos;true&apos; or &apos;false&apos;..
+        /// </summary>
+        public static string Manifest_InvalidBooleanMetadata {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidBooleanMetadata", resourceCulture);
             }
         }
         
@@ -156,6 +174,15 @@ namespace NuGetGallery {
         public static string Manifest_InvalidId {
             get {
                 return ResourceManager.GetString("Manifest_InvalidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains invalid metadata elements: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_InvalidMetadataElements {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidMetadataElements", resourceCulture);
             }
         }
         

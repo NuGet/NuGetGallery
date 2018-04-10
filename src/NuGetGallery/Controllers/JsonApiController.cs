@@ -104,26 +104,6 @@ namespace NuGetGallery
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [HttpGet]
-        public virtual ActionResult GetAddPackageOwnerConfirmation(string id, string username)
-        {
-            ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
-            {
-                return Json(new
-                {
-                    success = true,
-                    confirmation = string.Format(CultureInfo.CurrentCulture, Strings.AddOwnerConfirmation, username),
-                    policyMessage = string.Empty
-                },
-                JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                return Json(new { success = false, message = model.Error }, JsonRequestBehavior.AllowGet);
-            }
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
@@ -131,27 +111,50 @@ namespace NuGetGallery
             ManagePackageOwnerModel model;
             if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
             {
-                var encodedMessage = HttpUtility.HtmlEncode(message);
-
-                var ownerRequest = await _packageOwnershipManagementService.AddPackageOwnershipRequestAsync(
-                    model.Package, model.CurrentUser, model.User);
-
-                var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
-                    model.Package.Id,
-                    model.User.Username,
-                    ownerRequest.ConfirmationCode,
-                    relativeUrl: false);
-
-                var rejectionUrl = Url.RejectPendingOwnershipRequest(
-                    model.Package.Id,
-                    model.User.Username,
-                    ownerRequest.ConfirmationCode,
-                    relativeUrl: false);
-
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
 
-                _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
-                    confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
+                if (model.CurrentUserCanAcceptOnBehalfOfUser)
+                {
+                    await _packageOwnershipManagementService.AddPackageOwnerAsync(model.Package, model.User);
+
+                    foreach (var owner in model.Package.Owners)
+                    {
+                        _messageService.SendPackageOwnerAddedNotice(owner, model.User, model.Package, packageUrl);
+                    }
+                }
+                else
+                {
+                    var encodedMessage = HttpUtility.HtmlEncode(message);
+
+                    var ownerRequest = await _packageOwnershipManagementService.AddPackageOwnershipRequestAsync(
+                        model.Package, model.CurrentUser, model.User);
+
+                    var confirmationUrl = Url.ConfirmPendingOwnershipRequest(
+                        model.Package.Id,
+                        model.User.Username,
+                        ownerRequest.ConfirmationCode,
+                        relativeUrl: false);
+
+                    var rejectionUrl = Url.RejectPendingOwnershipRequest(
+                        model.Package.Id,
+                        model.User.Username,
+                        ownerRequest.ConfirmationCode,
+                        relativeUrl: false);
+
+                    var cancellationUrl = Url.CancelPendingOwnershipRequest(
+                        model.Package.Id,
+                        model.CurrentUser.Username,
+                        model.User.Username,
+                        relativeUrl: false);
+
+                    _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
+                        confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
+
+                    foreach (var owner in model.Package.Owners)
+                    {
+                        _messageService.SendPackageOwnerRequestInitiatedNotice(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                    }
+                }
 
                 return Json(new
                 {
@@ -161,7 +164,7 @@ namespace NuGetGallery
                         model.CurrentUser,
                         model.Package,
                         Url,
-                        isPending: true,
+                        isPending: !model.CurrentUserCanAcceptOnBehalfOfUser,
                         isNamespaceOwner: false)
                 });
             }
@@ -281,11 +284,14 @@ namespace NuGetGallery
                 Package = package;
                 User = user;
                 CurrentUser = currentUser;
+                CurrentUserCanAcceptOnBehalfOfUser = 
+                    ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
             }
 
             public PackageRegistration Package { get; }
             public User User { get; }
             public User CurrentUser { get; }
+            public bool CurrentUserCanAcceptOnBehalfOfUser { get; }
             public string Error { get; }
         }
     }

@@ -559,3 +559,52 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         </div>
     }
 }
+
+@helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    <h1 class="ms-font-xl breadcrumb-title">
+        @for (int i = 0; i < segments.Length; i++)
+        {
+            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+
+            if (i < segments.Length - 1)
+            {
+                <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+            }
+        }
+    </h1>
+    if (showDivider)
+    {
+        <hr class="breadcrumb-divider" />
+    }
+}
+
+@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
+    { 
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
+    }.Concat(segments).ToArray();
+
+    @Breadcrumb(showDivider, newSegments);
+}
+
+@helper PackagesBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyPackages()">Packages</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+}
+
+@helper OrganizationsBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyOrganizations()">Organizations</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+}

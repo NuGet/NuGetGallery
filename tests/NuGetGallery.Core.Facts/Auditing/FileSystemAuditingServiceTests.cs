@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -118,7 +119,7 @@ namespace NuGetGallery.Auditing
                 Assert.NotNull(json["Actor"]["AuthenticationType"]);
                 Assert.Equal("MachineUser", json["Actor"]["AuthenticationType"].Value<string>());
                 Assert.NotNull(json["Actor"]["TimestampUtc"]);
-                Assert.InRange(DateTime.Parse(json["Actor"]["TimestampUtc"].Value<string>()), DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
+                Assert.InRange(DateTime.Parse(json["Actor"]["TimestampUtc"].Value<string>(), CultureInfo.InvariantCulture), DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(1));
                 Assert.NotNull(json["Actor"]["OnBehalfOf"]);
                 Assert.NotNull(json["Actor"]["OnBehalfOf"]["MachineName"]);
                 Assert.Equal("a", json["Actor"]["OnBehalfOf"]["MachineName"].Value<string>());
@@ -129,7 +130,7 @@ namespace NuGetGallery.Auditing
                 Assert.NotNull(json["Actor"]["OnBehalfOf"]["AuthenticationType"]);
                 Assert.Equal("d", json["Actor"]["OnBehalfOf"]["AuthenticationType"].Value<string>());
                 Assert.NotNull(json["Actor"]["OnBehalfOf"]["TimestampUtc"]);
-                Assert.Equal(DateTime.MinValue, DateTime.Parse(json["Actor"]["OnBehalfOf"]["TimestampUtc"].Value<string>()));
+                Assert.Equal(DateTime.MinValue, DateTime.Parse(json["Actor"]["OnBehalfOf"]["TimestampUtc"].Value<string>(), CultureInfo.InvariantCulture));
                 Assert.Equal(JTokenType.Null, json["Actor"]["OnBehalfOf"]["OnBehalfOf"].Type);
             }
         }

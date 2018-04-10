@@ -79,6 +79,7 @@
     <Compile Include="Client\SearchClient.cs" />
     <Compile Include="Client\ServiceDiscovery.cs" />
     <Compile Include="Client\ServiceDiscoveryClient.cs" />
+    <Compile Include="Client\ThreadSafeRandom.cs" />
     <Compile Include="Correlation\CorrelatingHttpClientHandler.cs" />
     <Compile Include="Correlation\WebApiCorrelationHandler.cs" />
     <Compile Include="Models\SearchResults.cs" />

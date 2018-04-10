@@ -803,7 +803,52 @@ namespace NuGetGallery
         public static string AddOrganizationMember(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "AddMember",
+                RouteName.OrganizationMemberAddAjax,
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", accountName }
+                });
+        }
+
+        public static string AcceptOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
+        {
+            return url.AcceptOrganizationMembershipRequest(request.Organization.Username, request.ConfirmationToken, relativeUrl);
+        }
+
+        public static string RejectOrganizationMembershipRequest(this UrlHelper url, MembershipRequest request, bool relativeUrl = true)
+        {
+            return url.RejectOrganizationMembershipRequest(request.Organization.Username, request.ConfirmationToken, relativeUrl);
+        }
+
+        public static string AcceptOrganizationMembershipRequest(this UrlHelper url, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleOrganizationMembershipRequest("ConfirmMemberRequest", organizationUsername, confirmationToken, relativeUrl);
+        }
+
+        public static string RejectOrganizationMembershipRequest(this UrlHelper url, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleOrganizationMembershipRequest("RejectMemberRequest", organizationUsername, confirmationToken, relativeUrl);
+        }
+
+        private static string HandleOrganizationMembershipRequest(this UrlHelper url, string routeName, string organizationUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                routeName,
+                "Organizations",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "accountName", organizationUsername },
+                    { "confirmationToken", confirmationToken }
+                });
+        }
+
+        public static string CancelOrganizationMembershipRequest(this UrlHelper url, string accountName, bool relativeUrl = true)
+        {
+            return GetActionLink(url,
+                "CancelMemberRequest",
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
@@ -867,11 +912,6 @@ namespace NuGetGallery
         public static string ManagePackageOwners(this UrlHelper url, IPackageVersionModel package, bool relativeUrl = true)
         {
             return url.ManagePackageOwnersTemplate(relativeUrl).Resolve(package);
-        }
-
-        public static string GetAddPackageOwnerConfirmation(this UrlHelper url, bool relativeUrl = true)
-        {
-            return GetActionLink(url, "GetAddPackageOwnerConfirmation", "JsonApi", relativeUrl);
         }
 
         public static string GetPackageOwners(this UrlHelper url, bool relativeUrl = true)
@@ -1161,18 +1201,57 @@ namespace NuGetGallery
 
         public static string TransformAccount(this UrlHelper url, bool relativeUrl = true)
         {
-            return GetActionLink(url, "Transform", "Users", relativeUrl);
+            return GetActionLink(url, RouteName.TransformToOrganization, "Users", relativeUrl);
         }
 
         public static string ConfirmTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
         {
-            return GetRouteLink(
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransform, relativeUrl);
+        }
+
+        public static string RejectTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationRejection, accountToTransform, relativeUrl);
+        }
+
+        private static string HandleTransformAccount(this UrlHelper url, string routeName, User accountToTransform, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount(routeName, accountToTransform.Username, accountToTransform.OrganizationMigrationRequest.ConfirmationToken, relativeUrl);
+        }
+
+        public static string ConfirmTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount(RouteName.TransformToOrganizationConfirmation, accountToTransformUsername, confirmationToken, relativeUrl);
+        }
+
+        public static string RejectTransformAccount(this UrlHelper url, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return url.HandleTransformAccount("RejectTransform", accountToTransformUsername, confirmationToken, relativeUrl);
+        }
+
+        private static string HandleTransformAccount(this UrlHelper url, string routeName, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
+        {
+            return GetActionLink(
                 url,
-                RouteName.TransformToOrganizationConfirmation,
+                routeName,
+                "Users",
                 relativeUrl,
                 routeValues: new RouteValueDictionary
                 {
-                    { "accountNameToTransform", accountToTransform.Username },
+                    { "accountNameToTransform", accountToTransformUsername },
+                    { "token", confirmationToken }
+                });
+        }
+
+        public static string CancelTransformAccount(this UrlHelper url, User accountToTransform, bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                RouteName.TransformToOrganizationCancellation,
+                "Users",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
                     { "token", accountToTransform.OrganizationMigrationRequest.ConfirmationToken }
                 });
         }

@@ -15,9 +15,27 @@
 <section role="main" class="container main-container page-transform-account">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">Transform Account</h1>
-            <div class="text-center ms-font-xxl">
-                <a href="@Url.User(CurrentUser)">@CurrentUser.Username</a>
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Transform account</text>)
+
+            <div class="transform-alert">
+                @ViewHelpers.AlertWarning(@<text>
+                    <span>
+                        This is an irreversible process. Once you transform this account to an organization:
+                    </span>
+                    <ul class="transform-alert-list">
+                        <li>
+                            You will no longer be able sign in to @CurrentUser.Username.
+                        </li>
+                        <li>
+                            All permissions to manage @CurrentUser.Username and the packages it owns will be transferred to the administrator you choose here.
+                        </li>
+                        <li>
+                            Existing scoped API keys for this account will be transferred to the administrator. Full access API keys (legacy API keys without expiry) <b>will not be transferred and will be deleted.</b>
+                        </li>
+                    </ul>
+                    <p>
+                        <b>Note:</b> If you want to continue to manage @CurrentUser.Username and its packages, you should create an individual account on NuGet.org before transforming it to an organization so that you can add your new account as an administrator during the transform process.
+                    </p></text>)
             </div>
 
             @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
@@ -41,7 +59,7 @@
                             <a href="#" id="transform-tooltip" data-toggle="tooltip" title="Please enter a username for the organization administrator.">
                                 <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
                             </a>
-                            @Html.ShowTextBoxFor(m => m.AdminUsername)
+                            @Html.ShowTextBoxFor(m => m.AdminUsername, placeholder: "Add existing NuGet.org user")
                             @Html.ShowValidationMessagesFor(m => m.AdminUsername)
                         </div>
                         <div class="form-group has-error">
@@ -56,17 +74,6 @@
                             @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, Constants.GravatarImageSizeLarge, responsive: true)
                         </div>
                     </aside>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-12">
-                        <p>
-                            Administrators have full control over their organizations, including the ability to add and remove other members.
-                        </p>
-                        <p>
-                            Existing API keys owned by this account will be transferred to the administrator on transformation. Full access legacy API keys will not be transferred.
-                        </p>
-                    </div>
                 </div>
 
                 <div class="row form-group">
