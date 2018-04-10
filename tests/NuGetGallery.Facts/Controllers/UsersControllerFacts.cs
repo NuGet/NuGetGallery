@@ -595,32 +595,24 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(WhenScopeOwnerDoesNotMatch_ReturnsBadRequest_Data))]
-            public Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
+            public async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange 
                 var fakes = new Fakes();
                 var currentUser = getCurrentUser(fakes);
                 var userInOwnerScope = fakes.ShaUser;
 
-                return WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(currentUser, userInOwnerScope);
-            }
-
-            private async Task WhenScopeOwnerDoesNotMatch_ReturnsBadRequest(User currentUser, User userInOwnerScope)
-            {
-                // Arrange 
-                var user = currentUser;
-                var otherUser = userInOwnerScope;
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(otherUser.Username))
-                    .Returns(otherUser);
+                    .Setup(u => u.FindByUsername(userInOwnerScope.Username))
+                    .Returns(userInOwnerScope);
 
                 var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
+                controller.SetCurrentUser(currentUser);
 
                 // Act
                 var result = await controller.GenerateApiKey(
                     description: "theApiKey",
-                    owner: otherUser.Username,
+                    owner: userInOwnerScope.Username,
                     scopes: new[] { NuGetScopes.PackagePush },
                     subjects: new[] { "*" },
                     expirationInDays: null);
@@ -630,12 +622,27 @@ namespace NuGetGallery
                 Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
             }
 
+            public static IEnumerable<object[]> WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data
+            {
+                get
+                {
+                    foreach (var isAdmin in new[] { false, true })
+                    {
+                        foreach (var scope in new[] {
+                            NuGetScopes.All,
+                            NuGetScopes.PackagePush,
+                            NuGetScopes.PackagePushVersion,
+                            NuGetScopes.PackageUnlist,
+                            NuGetScopes.PackageVerify })
+                        {
+                            yield return MemberDataHelper.AsData(isAdmin, scope);
+                        }
+                    }
+                }
+            }
+            
             [Theory]
-            [InlineData(true, NuGetScopes.PackagePush)]
-            [InlineData(true, NuGetScopes.PackagePushVersion)]
-            [InlineData(true, NuGetScopes.PackageUnlist)]
-            [InlineData(false, NuGetScopes.PackagePushVersion)]
-            [InlineData(false, NuGetScopes.PackageUnlist)]
+            [MemberData(nameof(WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data))]
             public async Task WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess(bool isAdmin, string scope)
             {
                 // Arrange 
@@ -671,57 +678,6 @@ namespace NuGetGallery
                 // Assert
                 var apiKey = user.Credentials.FirstOrDefault(x => x.Type == CredentialTypes.ApiKey.V4);
                 Assert.NotNull(apiKey);
-            }
-
-            [Theory]
-            [InlineData(false, NuGetScopes.PackagePush)]
-            public async Task WhenScopeOwnerMatchesOrganizationWithoutPermission_ReturnsFailure(bool isAdmin, string scope)
-            {
-                // Arrange 
-                var fakes = new Fakes();
-                var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
-                var orgUser = fakes.Organization;
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(orgUser.Username))
-                    .Returns(orgUser);
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Arrange & Act
-                var result = await controller.GenerateApiKey(
-                    description: "theApiKey",
-                    owner: orgUser.Username,
-                    scopes: new[] { scope },
-                    subjects: new[] { "*" },
-                    expirationInDays: null);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                Assert.True(string.Compare((string)result.Data, Strings.ApiKeyScopesNotAllowed) == 0);
-            }
-
-            private async Task<JsonResult> GenerateApiKeyForOrganization(bool isAdmin, string scope)
-            {
-                // Arrange 
-                var fakes = new Fakes();
-                var user = fakes.User;
-                var orgUser = fakes.Organization;
-                orgUser.Organizations.First().IsAdmin = isAdmin;
-                GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(orgUser.Username))
-                    .Returns(orgUser);
-
-                var controller = GetController<UsersController>();
-                controller.SetCurrentUser(user);
-
-                // Act
-                return await controller.GenerateApiKey(
-                    description: "theApiKey",
-                    owner: orgUser.Username,
-                    scopes: new[] { scope },
-                    subjects: new[] { "*" },
-                    expirationInDays: null);
             }
 
             [InlineData(180, 180)]

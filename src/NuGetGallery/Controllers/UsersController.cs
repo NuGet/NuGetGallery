@@ -777,10 +777,9 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.UserNotFound);
             }
-
-            // todo: move validation logic to PermissionsService
+            
             var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
-            if (!VerifyScopes(scopeOwner, resolvedScopes))
+            if (!VerifyScopes(resolvedScopes))
             {
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.ApiKeyScopesNotAllowed);
@@ -855,29 +854,57 @@ namespace NuGetGallery
             return credentialViewModel;
         }
 
-        // todo: integrate verification logic into PermissionsService.
-        private bool VerifyScopes(User scopeOwner, IEnumerable<Scope> scopes)
+        private static IDictionary<string, IActionRequiringEntityPermissions[]> AllowedActionToActionRequiringEntityPermissionsMap = new Dictionary<string, IActionRequiringEntityPermissions[]>
         {
-            var currentUser = GetCurrentUser();
-
-            // scoped to the user
-            if (currentUser.MatchesUser(scopeOwner))
+            { NuGetScopes.PackagePush, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
+            { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
+            { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
+            { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
+        };
+        
+        private bool VerifyScopes(IEnumerable<Scope> scopes)
+        {
+            if (!scopes.Any())
             {
-                return true;
+                // All API keys must have at least one scope.
+                return false;
             }
-            // scoped to the user's organization
-            else
+
+            foreach (var scope in scopes)
             {
-                var organization = currentUser.Organizations
-                    .Where(o => o.Organization.MatchesUser(scopeOwner))
-                    .FirstOrDefault();
-                if (organization != null)
+                if (string.IsNullOrEmpty(scope.AllowedAction))
                 {
-                    return organization.IsAdmin || !scopes.Any(s => s.AllowsActions(NuGetScopes.PackagePush));
+                    // All scopes must have an allowed action.
+                    return false;
+                }
+                
+                // Get the list of actions allowed by this scope.
+                var actions = new List<IActionRequiringEntityPermissions>();
+                foreach (var allowedAction in AllowedActionToActionRequiringEntityPermissionsMap.Keys)
+                {
+                    if (scope.AllowsActions(allowedAction))
+                    {
+                        actions.AddRange(AllowedActionToActionRequiringEntityPermissionsMap[allowedAction]);
+                    }
+                }
+
+                if (!actions.Any())
+                {
+                    // A scope should allow at least one action.
+                    return false;
+                }
+
+                foreach (var action in actions)
+                {
+                    if (!action.IsAllowedOnBehalfOfAccount(GetCurrentUser(), scope.Owner))
+                    {
+                        // The user must be able to perform the actions allowed by the scope on behalf of the scope's owner.
+                        return false;
+                    }
                 }
             }
 
-            return false;
+            return true;
         }
 
         private IList<Scope> BuildScopes(User scopeOwner, string[] scopes, string[] subjects)
