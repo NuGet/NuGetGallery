@@ -854,7 +854,7 @@ namespace NuGetGallery
             return credentialViewModel;
         }
 
-        private static IDictionary<string, IActionRequiringEntityPermissions[]> AllowedActionToActionRequiringEntityPermissions = new Dictionary<string, IActionRequiringEntityPermissions[]>
+        private static IDictionary<string, IActionRequiringEntityPermissions[]> AllowedActionToActionRequiringEntityPermissionsMap = new Dictionary<string, IActionRequiringEntityPermissions[]>
         {
             { NuGetScopes.PackagePush, new IActionRequiringEntityPermissions[] { ActionsRequiringPermissions.UploadNewPackageId, ActionsRequiringPermissions.UploadNewPackageVersion } },
             { NuGetScopes.PackagePushVersion, new [] { ActionsRequiringPermissions.UploadNewPackageVersion } },
@@ -880,7 +880,7 @@ namespace NuGetGallery
                 
                 // Get the list of actions allowed by this scope.
                 var actions = new List<IActionRequiringEntityPermissions>();
-                foreach (var allowedAction in AllowedActionToActionRequiringEntityPermissions.Keys)
+                foreach (var allowedAction in AllowedActionToActionRequiringEntityPermissionsMap.Keys)
                 {
                     if (scope.AllowsActions(allowedAction))
                     {
