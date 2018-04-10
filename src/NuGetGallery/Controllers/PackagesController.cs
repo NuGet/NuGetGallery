@@ -1268,12 +1268,12 @@ namespace NuGetGallery
                 catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
                 {
                     // Thrown when ReadmeUrlHost is invalid.
-                    return Json(400, new[] { Strings.ReadMeUrlHostInvalid });
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
                 }
                 catch (InvalidOperationException ex)
                 {
                     // Thrown when readme max length exceeded, or unexpected file extension.
-                    return Json(400, new[] { ex.Message });
+                    return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                 }
             }
 
@@ -1612,12 +1612,12 @@ namespace NuGetGallery
                     catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
                     {
                         // Thrown when ReadmeUrlHost is invalid.
-                        return Json(400, new[] { Strings.ReadMeUrlHostInvalid });
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
                     }
                     catch (InvalidOperationException ex)
                     {
                         // Thrown when readme max length exceeded, or unexpected file extension.
-                        return Json(400, new[] { ex.Message });
+                        return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
                 }
 
