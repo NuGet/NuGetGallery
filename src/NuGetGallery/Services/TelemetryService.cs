@@ -30,6 +30,11 @@ namespace NuGetGallery
             public const string PackageDelete = "PackageDelete";
             public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
             public const string PackageRevalidate = "PackageRevalidate";
+            public const string OrganizationTransformInitiated = "OrganizationTransformInitiated";
+            public const string OrganizationTransformCompleted = "OrganizationTransformCompleted";
+            public const string OrganizationTransformDeclined = "OrganizationTransformDeclined";
+            public const string OrganizationTransformCancelled = "OrganizationTransformCancelled";
+            public const string OrganizationAdded = "OrganizationAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -79,6 +84,10 @@ namespace NuGetGallery
 
         // Package delete properties
         public const string IsHardDelete = "IsHardDelete";
+
+        // Organization properties
+        public const string OrganizationAccountKey = "OrganizationAccountKey";
+        public const string OrganizationIsRestrictedToOrganizationTenantPolicy = "OrganizationIsRestrictedToOrganizationTenantPolicy";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -419,6 +428,50 @@ namespace NuGetGallery
                 properties.Add(ReportPackageReason, details.ReportPackageReason?.ToString());
                 properties.Add(PackageDeleteDecision, details.PackageDeleteDecision?.ToString());
             });
+        }
+
+        private void TrackMetricForOrganization(
+            string metricName,
+            User user,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            TrackMetric(metricName, 1, properties =>
+            {
+                properties.Add(OrganizationAccountKey, user.Key.ToString());
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(OrganizationIsRestrictedToOrganizationTenantPolicy, user.IsRestrictedToOrganizationTenantPolicy().ToString());
+                addProperties?.Invoke(properties);
+            });
+        }
+
+        public void TrackOrganizationTransformInitiated(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformInitiated, user);
+        }
+
+        public void TrackOrganizationTransformCompleted(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformCompleted, user);
+        }
+
+        public void TrackOrganizationTransformDeclined(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformDeclined, user);
+        }
+
+        public void TrackOrganizationTransformCancelled(User user)
+        {
+            TrackMetricForOrganization(Events.OrganizationTransformCancelled, user);
+        }
+
+        public void TrackOrganizationAdded(Organization organization)
+        {
+            TrackMetricForOrganization(Events.OrganizationAdded, organization);
         }
 
         /// <summary>

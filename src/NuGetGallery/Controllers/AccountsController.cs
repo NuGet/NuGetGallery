@@ -33,16 +33,20 @@ namespace NuGetGallery
 
         public IUserService UserService { get; }
 
+        public ITelemetryService TelemetryService { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
+            IUserService userService,
+            ITelemetryService telemetryService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public abstract string AccountAction { get; }
