@@ -884,7 +884,7 @@ namespace NuGetGallery
                 {
                     if (scope.AllowsActions(allowedAction))
                     {
-                        actions.AddRange(AllowedActionToActionRequiringEntityPermissions[allowedAction]);
+                        actions.AddRange(AllowedActionToActionRequiringEntityPermissionsMap[allowedAction]);
                     }
                 }
 
