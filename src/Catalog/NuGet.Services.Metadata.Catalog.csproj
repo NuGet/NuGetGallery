@@ -144,6 +144,7 @@
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />
     <Compile Include="Helpers\FeedHelpers.cs" />

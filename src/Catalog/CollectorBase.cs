@@ -13,12 +13,18 @@ namespace NuGet.Services.Metadata.Catalog
     public abstract class CollectorBase
     {
         protected readonly ITelemetryService _telemetryService;
-        Func<HttpMessageHandler> _handlerFunc;
+        private readonly Func<HttpMessageHandler> _handlerFunc;
+        private readonly TimeSpan? _httpClientTimeout;
 
-        public CollectorBase(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
+        public CollectorBase(
+            Uri index,
+            ITelemetryService telemetryService,
+            Func<HttpMessageHandler> handlerFunc = null,
+            TimeSpan? httpClientTimeout = null)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _handlerFunc = handlerFunc;
+            _httpClientTimeout = httpClientTimeout;
             Index = index ?? throw new ArgumentNullException(nameof(index));
             ServicePointManager.DefaultConnectionLimit = 4;
             ServicePointManager.MaxServicePointIdleTime = 10000;
@@ -55,6 +61,11 @@ namespace NuGet.Services.Metadata.Catalog
 
             using (CollectorHttpClient client = new CollectorHttpClient(handler))
             {
+                if (_httpClientTimeout.HasValue)
+                {
+                    client.Timeout = _httpClientTimeout.Value;
+                }
+
                 result = await Fetch(client, front, back, cancellationToken);
                 RequestCount = client.RequestCount;
             }

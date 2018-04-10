@@ -315,7 +315,7 @@ namespace NuGet.Services.BasicSearch
                     _logger.LogInformation(LogMessages.SearcherManagerNotInitialized);
                     _searchTelemetryClient.TrackMetric(SearchTelemetryClient.MetricName.SearcherManagerNotInitialized, 1);
 
-                    context.Response.StatusCode = (int)HttpStatusCode.OK;
+                    context.Response.StatusCode = (int)HttpStatusCode.ServiceUnavailable;
                     await context.Response.WriteAsync("UNINITIALIZED");
                 }
                 else

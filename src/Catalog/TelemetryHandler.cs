@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,16 +23,30 @@ namespace NuGet.Services.Metadata.Catalog
         {
             var sw = Stopwatch.StartNew();
 
-            var response = await base.SendAsync(request, cancellationToken);
+            bool success = false;
+            HttpStatusCode? statusCode = null;
+            long? contentLength = null;
 
-            _telemetryService.TrackHttpDuration(
-                sw.Elapsed,
-                request.Method,
-                request.RequestUri,
-                response.StatusCode,
-                response.IsSuccessStatusCode);
+            try
+            {
+                var response = await base.SendAsync(request, cancellationToken);
 
-            return response;
+                success = response.IsSuccessStatusCode;
+                statusCode = response.StatusCode;
+                contentLength = response.Content?.Headers?.ContentLength;
+
+                return response;
+            }
+            finally
+            {
+                _telemetryService.TrackHttpHeaderDuration(
+                    sw.Elapsed,
+                    request.Method,
+                    request.RequestUri,
+                    success,
+                    statusCode,
+                    contentLength);
+            }
         }
     }
 }

@@ -283,7 +283,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return new Uri(_directory.Uri, name);
         }
 
-        public override async Task<bool> AreSyncronized(Uri firstResourceUri, Uri secondResourceUri)
+        public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
         {
             var destination = _directory.GetBlockBlobReference(GetName(secondResourceUri));
             var source = new CloudBlockBlob(firstResourceUri);

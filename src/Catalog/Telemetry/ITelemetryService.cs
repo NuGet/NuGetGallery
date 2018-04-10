@@ -10,7 +10,19 @@ namespace NuGet.Services.Metadata.Catalog
     public interface ITelemetryService
     {
         void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri);
+
         void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri);
-        void TrackHttpDuration(TimeSpan duration, HttpMethod method, Uri uri, HttpStatusCode statusCode, bool success);
+
+        /// <summary>
+        /// Tracks the duration to fetch the HTTP response headers. Note that this duration does not include the time
+        /// it takes to fetch response body. In other words, this metric is not interesting for bandwidth analysis.
+        /// </summary>
+        void TrackHttpHeaderDuration(
+            TimeSpan duration,
+            HttpMethod method,
+            Uri uri,
+            bool success,
+            HttpStatusCode? statusCode,
+            long? contentLength);
     }
 }

@@ -176,7 +176,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         /// <param name="firstResourceUri">The first uri.</param>
         /// <param name="secondResourceUri">The second uri.</param>
         /// <returns>Default returns false.</returns>
-        public virtual Task<bool> AreSyncronized(Uri firstResourceUri, Uri secondResourceUri)
+        public virtual Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
         {
             return Task.FromResult(false);
         }
