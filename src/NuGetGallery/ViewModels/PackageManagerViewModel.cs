@@ -27,5 +27,22 @@ namespace NuGetGallery
         /// A string that represents the command used to install a specific package.
         /// </summary>
         public string InstallPackageCommand { get; set; }
+
+        /// <summary>
+        /// The alert message that contains clarifications about the command/scenario
+        /// </summary>
+        public string AlertMessage { get; set; }
+
+        /// <summary>
+        /// The level with which the above message will be displayed.
+        /// </summary>
+        public AlertLevel AlertLevel { get; set; }
+    }
+
+    public enum AlertLevel
+    {
+        None,
+        Info,
+        Warning
     }
 }

@@ -43,6 +43,7 @@ namespace NuGetGallery
             LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
+            IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
             _packageStatus = package.PackageStatusKey;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
@@ -71,6 +72,7 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
+        public bool IsDotnetToolPackageType { get; set; }
         public bool FailedValidation => _packageStatus == PackageStatus.FailedValidation;
         public bool Available => _packageStatus == PackageStatus.Available;
         public bool Validating => _packageStatus == PackageStatus.Validating;

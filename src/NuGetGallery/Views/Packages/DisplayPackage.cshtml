@@ -6,34 +6,54 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var packageManagers = new PackageManagerViewModel[]
+    PackageManagerViewModel[] packageManagers;
+
+    if (Model.IsDotnetToolPackageType)
     {
-        new PackageManagerViewModel()
+        packageManagers = new PackageManagerViewModel[]
         {
-            Id = "package-manager",
-            Name = "Package Manager",
-            CommandPrefix = "PM> ",
-            InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
-        },
+            new PackageManagerViewModel()
+            {
+                Id = "dotnet-cli",
+                Name = ".NET CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
+                AlertLevel = AlertLevel.Info,
+                AlertMessage = string.Format("This package contains a <a href=\"{0}\">.NET Core Global Tool</a> you can call from the shell/command line.", "https://aka.ms/global-tools"),
+            }
+        };
+    }
+    else
+    {
+        packageManagers = new PackageManagerViewModel[]
+        {
+            new PackageManagerViewModel()
+            {
+                Id = "package-manager",
+                Name = "Package Manager",
+                CommandPrefix = "PM> ",
+                InstallPackageCommand = string.Format("Install-Package {0} -Version {1}", Model.Id, Model.Version)
+            },
 
-        new PackageManagerViewModel()
-        {
-            Id = "dotnet-cli",
-            Name = ".NET CLI",
-            CommandPrefix = "> ",
-            InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
-        },
+            new PackageManagerViewModel()
+            {
+                Id = "dotnet-cli",
+                Name = ".NET CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("dotnet add package {0} --version {1}", Model.Id, Model.Version)
+            },
 
-        new ThirdPartyPackageManagerViewModel()
-        {
-            Id = "paket-cli",
-            Name = "Paket CLI",
-            CommandPrefix = "> ",
-            InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
-            ContactUrl = "https://fsprojects.github.io/Paket/contact.html"
-        },
-    };
+            new ThirdPartyPackageManagerViewModel("https://fsprojects.github.io/Paket/contact.html")
+            {
+                Id = "paket-cli",
+                Name = "Paket CLI",
+                CommandPrefix = "> ",
+                InstallPackageCommand = string.Format("paket add {0} --version {1}", Model.Id, Model.Version),
+            }
+        };
+    }
 }
+
 @section SocialMeta {
     @if (!String.IsNullOrWhiteSpace(ViewBag.FacebookAppID))
     {
@@ -96,13 +116,23 @@
                 </button>
             </div>
         </div>
-        @if (thirdPartyPackageManager != null)
+
+        @switch (packageManager.AlertLevel)
         {
-            @ViewHelpers.AlertWarning(
-                @<text>
-                    The NuGet Team does not provide support for this client.
-                    Please contact its <a href="@thirdPartyPackageManager.ContactUrl">maintainers</a> for support.
-                </text>)
+            case AlertLevel.Info:
+                @ViewHelpers.AlertInfo(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            case AlertLevel.Warning:
+                @ViewHelpers.AlertWarning(
+                    @<text>
+                        @Html.Raw(packageManager.AlertMessage)
+                    </text>);
+                break;
+            default:
+                break;
         }
     </div>
 }
