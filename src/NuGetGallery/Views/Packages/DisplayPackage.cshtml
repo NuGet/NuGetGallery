@@ -109,7 +109,7 @@
 
 <section role="main" class="container main-container page-package-details">
     <div class="row">
-        <aside class="col-sm-1">
+        <aside aria-label="Package icon" class="col-sm-1">
             <h3>
                 <img class="package-icon img-responsive" aria-hidden="true" alt=""
                      src="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
@@ -480,7 +480,7 @@
                 }
             </div>
         </article>
-        <aside class="col-sm-3 package-details-info">
+        <aside aria-label="Package details info" class="col-sm-3 package-details-info">
             <h2>Info</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
