@@ -276,23 +276,8 @@ namespace NuGetGallery
             {
                 return HttpNotFound("User not found.");
             }
-
-            var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, currentUser))
-                 .ToList();
-
-            bool hasPendingRequest = _supportRequestService.GetIssues().Where((issue) => (issue.UserKey.HasValue && issue.UserKey.Value == currentUser.Key) && 
-                                                                                 string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
-                                                                                 issue.Key != IssueStatusKeys.Resolved).Any();
-
-            var model = new DeleteAccountViewModel()
-            {
-                Packages = listPackageItems,
-                User = currentUser,
-                AccountName = currentUser.Username,
-                HasPendingRequests = hasPendingRequest
-            };
+            
+            var model = new DeleteAccountViewModel(currentUser, currentUser, _packageService, _supportRequestService);
 
             return View("DeleteAccount", model);
         }
@@ -331,16 +316,7 @@ namespace NuGetGallery
                 return HttpNotFound("User not found.");
             }
 
-            var listPackageItems = _packageService
-                 .FindPackagesByAnyMatchingOwner(user, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, currentUser))
-                 .ToList();
-            var model = new DeleteUserAccountViewModel
-            {
-                Packages = listPackageItems,
-                User = user,
-                AccountName = user.Username,
-            };
+            var model = new DeleteAccountViewModel(user, currentUser, _packageService, _supportRequestService);
             return View("DeleteUserAccount", model);
         }
 

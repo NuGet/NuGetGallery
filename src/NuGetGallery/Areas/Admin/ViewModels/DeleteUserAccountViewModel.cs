@@ -5,12 +5,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class DeleteUserAccountViewModel : DeleteAccountViewModel
+    public class DeleteUserAccountViewModel
     {
         public DeleteUserAccountViewModel()
         {
+            // This constructor exists so that we can have a form that uses this model.
             ShouldUnlist = true;
         }
+
+        public DeleteUserAccountViewModel(DeleteAccountViewModel model)
+            : this()
+        {
+            AccountName = model.AccountName;
+            HasOrphanPackages = model.HasOrphanPackages;
+        }
+
+        public string AccountName { get; set; }
 
         [Required(ErrorMessage = "Please sign using your name.")]
         [StringLength(1000)]
@@ -19,6 +29,8 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
         [Display(Name = "Unlist the packages with no other owners.")]
         public bool ShouldUnlist { get; set; }
+
+        public bool HasOrphanPackages { get; set; }
     }
 
 }

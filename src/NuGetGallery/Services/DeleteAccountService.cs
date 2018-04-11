@@ -100,17 +100,6 @@ namespace NuGetGallery
                     AccountName = userToBeDeleted.Username
                 };
             }
-            else if (userToBeDeleted.Organizations.Any())
-            {
-                return new DeleteUserAccountStatus()
-                {
-                    Success = false,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
-                        userToBeDeleted.Username),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
 
             try
             {
@@ -165,6 +154,7 @@ namespace NuGetGallery
             var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
 
             await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
+            await RemoveMemberships(userToBeDeleted);
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
@@ -222,6 +212,36 @@ namespace NuGetGallery
                 }
                 await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, admin, user, commitAsTransaction:false);
             }
+        }
+
+        private async Task RemovePackageOwnershipRequests(User user)
+        {
+            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToList();
+            foreach (var request in requests)
+            {
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
+            }
+        }
+
+        private async Task RemoveMemberships(User user)
+        {
+            foreach (var membership in user.Organizations.ToList())
+            {
+                user.Organizations.Remove(membership);
+            }
+
+            foreach (var membershipRequest in user.OrganizationRequests.ToList())
+            {
+                user.OrganizationRequests.Remove(membershipRequest);
+            }
+
+            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToList())
+            {
+                user.OrganizationMigrationRequests.Remove(transformationRequest);
+                transformationRequest.NewOrganization.OrganizationMigrationRequest = null;
+            }
+
+            await _entitiesContext.SaveChangesAsync();
         }
 
         private async Task RemoveUserDataInUserTable(User user)
