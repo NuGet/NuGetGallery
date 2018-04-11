@@ -897,8 +897,7 @@ namespace NuGetGallery
                     request.RequestingOwner,
                     request.NewOwner,
                     request.PackageRegistration,
-                    It.IsAny<string>(), // The method that creates this URL correctly is not set up for these tests, so we cannot assert the expected value.
-                    string.Empty);
+                    It.IsAny<string>()); // The method that creates this URL correctly is not set up for these tests, so we cannot assert the expected value.
             }
 
             private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
@@ -2520,12 +2519,6 @@ namespace NuGetGallery
                         TestUtility.FakeAdminUser,
                         Owner
                     };
-
-                    yield return new object[]
-                    {
-                        TestUtility.FakeOrganizationCollaborator,
-                        TestUtility.FakeOrganization
-                    };
                 }
             }
 
@@ -2542,6 +2535,12 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
                         TestUtility.FakeOrganization
                     };
                 }
@@ -2780,12 +2779,6 @@ namespace NuGetGallery
                         TestUtility.FakeAdminUser,
                         null
                     };
-
-                    yield return new object[]
-                    {
-                        TestUtility.FakeOrganizationCollaborator,
-                        TestUtility.FakeOrganization
-                    };
                 }
             }
 
@@ -2802,6 +2795,12 @@ namespace NuGetGallery
                     yield return new object[]
                     {
                         TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
                         TestUtility.FakeOrganization
                     };
                 }
@@ -3295,7 +3294,7 @@ namespace NuGetGallery
                     yield return MemberDataHelper.AsData(TestUtility.FakeUser, new[] { TestUtility.FakeUser });
                     yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, new[] { TestUtility.FakeAdminUser });
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, new[] { TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization });
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, new[] { TestUtility.FakeOrganizationCollaborator });
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, new[] { TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization });
                 }
             }
 
@@ -3341,7 +3340,7 @@ namespace NuGetGallery
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeUser, new[] { TestUtility.FakeOrganizationAdmin });
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization, new[] { TestUtility.FakeOrganization });
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeUser, new[] { TestUtility.FakeOrganizationCollaborator });
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, new[] { TestUtility.FakeOrganizationCollaborator });
+                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, new[] { TestUtility.FakeOrganization });
                 }
             }
 
@@ -4233,12 +4232,6 @@ namespace NuGetGallery
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeUser, null, TestUtility.FakeOrganization);
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, TestUtility.FakeUser, TestUtility.FakeOrganization, TestUtility.FakeOrganization);
                     
-                    // Organization collaborator on behalf of its organization.
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, null, null);
-                    // Organization collaborator who owns the package/reserved namespace on behalf of its organization.
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, null, TestUtility.FakeOrganizationCollaborator);
-                    // Organization collaborator whose organization owns the reserved namespace on behalf of its organization.
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization, null, TestUtility.FakeOrganization);
                     // Organization collaborator whose organization owns the package/reserved namespace on behalf of an unrelated user.
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeUser, TestUtility.FakeOrganization, null);
                     yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, TestUtility.FakeUser, null, TestUtility.FakeOrganization);

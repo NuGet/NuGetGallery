@@ -10,5 +10,11 @@
   ],
   "ForceTransformationToOrganizationForEmailAddresses": [
     "organization@cannotUsePassword.com"
+  ],
+  "EnabledOrganizationAadTenants": [
+    {
+      "EmailDomain": "tenantOnly.com",
+      "TenantId":  "tenantID"
+    }
   ]
 }

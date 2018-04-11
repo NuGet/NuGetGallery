@@ -8,5 +8,7 @@ namespace NuGetGallery
     public class OrganizationAccountViewModel : AccountViewModel
     {
         public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
+
+        public bool RequiresTenant { get; set; }
     }
 }

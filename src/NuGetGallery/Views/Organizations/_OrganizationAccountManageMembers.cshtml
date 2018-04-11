@@ -27,6 +27,10 @@
 <script type="text/html" id="manage-members">
     <div class="col-md-12 manage-members-listing">
         <div class="panel-collapse collapse in" aria-expanded="true">
+            @if (Model.RequiresTenant)
+            {
+                @ViewHelpers.AlertInfo(@<text>Membership to this organization is restricted to users from the AAD tenant determined by its email address.</text>)
+            }
             @if (Model.CanManage)
             {
                 <div class="input-group col-xs-12">
@@ -38,7 +42,7 @@
                         </select>
                     </div>
                     <div class="text-center align-middle col-xs-1">
-                        <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember, enable: NewMemberUsername">Add</button>
+                        <button class="btn" type="submit" title="Add new member" aria-label="Add new member" data-bind="click: AddMember">Add</button>
                     </div>
                 </div>
                 <div class="icon-left icon-right" data-bind="template: 'error-container'"></div>
@@ -76,9 +80,9 @@
                         <!-- ko if: IsCurrentUser || @(Model.CanManage ? "true" : "false") -->
                         <td class="text-center align-middle heading-right row-center col-xs-1">
                             <span>
-                                <a class="btn" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
+                                <button class="btn-link" data-bind="click: DeleteMember, attr: { 'aria-label': 'Delete Member' }">
                                     <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
-                                </a>
+                                </button>
                             </span>
                         </td>
                         <!-- /ko -->

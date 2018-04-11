@@ -17,6 +17,7 @@ namespace NuGetGallery.ViewModels
                 // Arrange
                 var controller = GetController<UsersController>();
                 var user = new User("theUser");
+                var currentUser = new User("theCurrentUser");
                 var packages = new List<ListPackageItemViewModel>
                 {
                     CreatePackageItemViewModel("1.0.0"),
@@ -24,7 +25,7 @@ namespace NuGetGallery.ViewModels
                 };
 
                 // Act
-                var profile = new UserProfileModel(user, packages, 0, 10, controller.Url);
+                var profile = new UserProfileModel(user, currentUser, packages, 0, 10, controller.Url);
 
                 // Assert
                 long expected = (long)int.MaxValue * 2;

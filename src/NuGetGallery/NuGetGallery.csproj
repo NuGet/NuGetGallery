@@ -734,6 +734,7 @@
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
+    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\IdentityInformation.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
@@ -2040,8 +2041,8 @@
     <Content Include="Views\Packages\_VerifyForm.cshtml" />
     <Content Include="Views\Packages\_VerifyMetadata.cshtml" />
     <Content Include="Views\Users\Organizations.cshtml" />
-    <Content Include="Views\Users\TransformFailed.cshtml" />
-    <Content Include="Views\Users\Transform.cshtml" />
+    <Content Include="Views\Users\TransformToOrganizationFailed.cshtml" />
+    <Content Include="Views\Users\TransformToOrganization.cshtml" />
     <Content Include="Views\Packages\_ValidationIssue.cshtml" />
     <Content Include="Views\Organizations\ManageOrganization.cshtml" />
     <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />
@@ -2163,9 +2164,7 @@
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

@@ -2,12 +2,16 @@
 
   .profile-title {
     margin-top: (@padding-large-vertical * 5);
-    margin-bottom: (@padding-large-vertical * 2);
+
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
 
     h1 {
-      display: inline;
       font-size: 2.285em;
       font-weight: 300;
+      margin-top: 0px;
+      margin-bottom: 0px;
     }
 
     .verified {
@@ -15,6 +19,15 @@
       color: @verified-color;
       font-size: 14px;
     }
+
+    .organization-subtitle-divider {
+      color: @gray-lighter;
+    }
+  }
+
+  .profile-title-divider {
+    margin-top: 10px;
+    margin-bottom: 10px;
   }
 
   .profile-details {

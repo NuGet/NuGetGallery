@@ -162,6 +162,12 @@ namespace NuGetGallery
                 .HasOptional(u => u.OrganizationMigrationRequest)
                 .WithRequired(m => m.NewOrganization);
 
+            modelBuilder.Entity<User>()
+                .HasMany(u => u.OrganizationMigrationRequests)
+                .WithRequired(m => m.AdminUser)
+                .HasForeignKey(m => m.AdminUserKey)
+                .WillCascadeOnDelete(true); // Migration request will be deleted with the Admin account.
+
             modelBuilder.Entity<Organization>()
                 .HasMany(o => o.Members)
                 .WithRequired(m => m.Organization)

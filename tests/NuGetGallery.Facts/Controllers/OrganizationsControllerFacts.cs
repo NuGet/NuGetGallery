@@ -316,7 +316,7 @@ namespace NuGetGallery
             }
         }
 
-        public class TheCreateAction : TestContainer
+        public class TheAddAction : TestContainer
         {
             private const string OrgName = "TestOrg";
             private const string OrgEmail = "TestOrg@testorg.com";
@@ -328,7 +328,7 @@ namespace NuGetGallery
 
             private Fakes Fakes;
 
-            public TheCreateAction()
+            public TheAddAction()
             {
                 Fakes = Get<Fakes>();
                 Admin = Fakes.User;
@@ -350,7 +350,13 @@ namespace NuGetGallery
                 var result = await controller.Add(Model);
 
                 ResultAssert.IsView<AddOrganizationViewModel>(result);
-                Assert.Equal(message, controller.TempData["ErrorMessage"]);
+                
+                Assert.Equal(message, controller.TempData["AddOrganizationErrorMessage"]);
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationAdded(It.IsAny<Organization>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -383,6 +389,10 @@ namespace NuGetGallery
                         org, 
                         It.Is<string>(s => s.Contains(token))), 
                     Times.Once());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationAdded(It.IsAny<Organization>()));
             }
         }
 
@@ -429,6 +439,25 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.Unauthorized, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenOrganizationIsNotConfirmed_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                account.EmailAddress = null;
+
+                // Act
+                var result = await InvokeAddMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Member_OrganizationUnconfirmed, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
@@ -811,6 +840,25 @@ namespace NuGetGallery
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
+            [Fact]
+            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                account.EmailAddress = null;
+
+                // Act
+                var result = await InvokeUpdateMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Member_OrganizationUnconfirmed, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            }
+
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
@@ -937,6 +985,26 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
                 Assert.Equal(Strings.Unauthorized, result.Data);
+
+                GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess()
+            {
+                // Arrange
+                var controller = GetController();
+                var account = GetAccount(controller);
+                account.EmailAddress = null;
+
+                // Act
+                var result = await InvokeDeleteMember(controller, account);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                Assert.IsType<JsonResult>(result);
+                Assert.Equal(Strings.Member_OrganizationUnconfirmed, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
