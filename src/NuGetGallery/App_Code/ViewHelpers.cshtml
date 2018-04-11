@@ -1,4 +1,5 @@
 ﻿@using System.Web.Mvc
+@using System.Web.Routing
 @using System.Web.Mvc.Html
 @using Microsoft.Web.Helpers
 @using NuGetGallery
@@ -6,286 +7,291 @@
 @using NuGetGallery.Configuration
 @using NuGetGallery.Cookies
 
+
 @helper GetColumnClasses(string screenSize, int? columns)
-{
-    const int TotalColumns = 12;
-    if (!columns.HasValue)
     {
-        return;
-    }
+        const int TotalColumns = 12;
+        if (!columns.HasValue)
+        {
+            return;
+        }
 
-    var offset = (TotalColumns - columns.Value) / 2;
-    var columnsClass = "col-" + screenSize + "-" + columns.Value;
-    var offsetClass = offset == 0 ? string.Empty : " col-" + screenSize + "-offset-" + offset;
+        var offset = (TotalColumns - columns.Value) / 2;
+        var columnsClass = "col-" + screenSize + "-" + columns.Value;
+        var offsetClass = offset == 0 ? string.Empty : " col-" + screenSize + "-offset-" + offset;
 
-    @(columnsClass + " " + offsetClass)
+        @(columnsClass + " " + offsetClass)
 }
 
 @helper GetColumnClasses(dynamic viewBag)
-{
-    int? smPageColumns = 12;
-    if (viewBag.SmPageColumns != null)
     {
-        smPageColumns = (int)viewBag.SmPageColumns;
-    }
+        int? smPageColumns = 12;
+        if (viewBag.SmPageColumns != null)
+        {
+            smPageColumns = (int)viewBag.SmPageColumns;
+        }
 
-    int? mdPageColumns = null;
-    if (viewBag.MdPageColumns != null)
-    {
-        mdPageColumns = (int)viewBag.MdPageColumns;
-    }
+        int? mdPageColumns = null;
+        if (viewBag.MdPageColumns != null)
+        {
+            mdPageColumns = (int)viewBag.MdPageColumns;
+        }
 
-    @(GetColumnClasses("sm", smPageColumns) + " " + GetColumnClasses("md", mdPageColumns))
+        @(GetColumnClasses("sm", smPageColumns) + " " + GetColumnClasses("md", mdPageColumns))
 }
 
 @helper Alert(Func<MvcHtmlString, HelperResult> htmlContent, string subclass, string icon, bool isAlertRole = false)
-{
-    <div class="icon-text alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text>   }>
-        <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
-        @htmlContent(MvcHtmlString.Empty)
-    </div>
+    {
+        <div class="icon-text alert alert-@subclass" @if (isAlertRole) { <text> role="alert" aria-live="assertive" </text> }>
+            <i class="ms-Icon ms-Icon--@icon" aria-hidden="true"></i>
+            @htmlContent(MvcHtmlString.Empty)
+        </div>
 }
 
 @helper AlertInfo(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
-{
-    @Alert(htmlContent, "info", "Info", isAlertRole)
+    {
+        @Alert(htmlContent, "info", "Info", isAlertRole)
 }
 
 @helper AlertWarning(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
-{
-    @Alert(htmlContent, "warning", "Warning", isAlertRole)
+    {
+        @Alert(htmlContent, "warning", "Warning", isAlertRole)
 }
 
 @helper AlertDanger(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = true)
-{
-    @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
+    {
+        @Alert(htmlContent, "danger", "ErrorBadge", isAlertRole)
 }
 
 @helper AlertIsSemVer2Package(bool hasSemVer2Version, bool hasSemVer2Dependency)
-{
-    string warningHeader = null;
-    if (hasSemVer2Version)
     {
-        warningHeader = "This package has a SemVer 2.0.0 package version.";
-    }
-    else if (hasSemVer2Dependency)
-    {
-        warningHeader = "This package is considered a SemVer 2.0.0 package as it has a package dependency on SemVer 2.0.0 package(s).";
-    }
+        string warningHeader = null;
+        if (hasSemVer2Version)
+        {
+            warningHeader = "This package has a SemVer 2.0.0 package version.";
+        }
+        else if (hasSemVer2Dependency)
+        {
+            warningHeader = "This package is considered a SemVer 2.0.0 package as it has a package dependency on SemVer 2.0.0 package(s).";
+        }
 
-    if (warningHeader != null)
-    {
-        @AlertWarning(
-            @<text>
-                @warningHeader<br />
-                <em>
-                    This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual
-                    Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.
-                    <a href="https://go.microsoft.com/fwlink/?linkid=852248" alt="Read more">Read more</a><br />
-                </em>
-            </text>
-        )
-    }
+        if (warningHeader != null)
+        {
+            @AlertWarning(
+                            @<text>
+                                @warningHeader<br />
+                                <em>
+                                    This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual
+                                    Studio 2017 (version 15.3) and above or NuGet client 4.3.0 and above.
+                                    <a href="https://go.microsoft.com/fwlink/?linkid=852248" alt="Read more">Read more</a><br />
+                                </em>
+                            </text>
+                                                       )
+        }
 }
 
 @helper AlertPackageEditRecommendation()
-{
-    @AlertWarning(
-    @<text>
-        Editing package metadata is not supported.<br/>
-        <em>
-            To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
-            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-        </em>
-    </text>
-        )
+    {
+        @AlertWarning(
+                    @<text>
+                        Editing package metadata is not supported.<br />
+                        <em>
+                            To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
+                            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+                        </em>
+                    </text>
+                                                      )
 }
 
 @helper AlertPasswordDeprecation()
-{
-    @AlertWarning(
-    @<text>
-        NuGet.org password login is deprecated. Please use a Microsoft account to sign into NuGet gallery.
-    </text>
-    )
+    {
+        @AlertWarning(
+                    @<text>
+                        NuGet.org password login is deprecated. Please use a Microsoft account to sign into NuGet gallery.
+                    </text>
+                                                  )
 }
 
 @helper AlertPackageVerifyRecommendation()
-{
-    @AlertWarning(
-    @<text>
-        Please verify the package metadata below.<br/>
-        <em>
-            To make changes, we recommend you cancel the upload, make the edits in the nuspec, and upload a new package.
-            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-        </em>
-    </text>
-        )
+    {
+        @AlertWarning(
+                    @<text>
+                        Please verify the package metadata below.<br />
+                        <em>
+                            To make changes, we recommend you cancel the upload, make the edits in the nuspec, and upload a new package.
+                            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+                        </em>
+                    </text>
+                                                      )
 }
 
 @helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
-{
-    <section role="main" class="container main-container">
-        <div class="row page-error">
-            <div class="col-sm-12 ms-fontWeight-light">
-                <p class="oops">Oops!</p>
-                <p class="error-title">Error @errorNumber - @errorName</p>
-                <div class="error-text">
-                    <div class="text-main">
-                        @errorTextMain(MvcHtmlString.Empty)
-                    </div>
-                    @if (errorTextSub != null)
-                    {
-                        <div class="text-subtext">
-                            @errorTextSub(MvcHtmlString.Empty)
+    {
+        <section role="main" class="container main-container">
+            <div class="row page-error">
+                <div class="col-sm-12 ms-fontWeight-light">
+                    <p class="oops">Oops!</p>
+                    <p class="error-title">Error @errorNumber - @errorName</p>
+                    <div class="error-text">
+                        <div class="text-main">
+                            @errorTextMain(MvcHtmlString.Empty)
                         </div>
-                    }
-                </div>
+                        @if (errorTextSub != null)
+                        {
+                            <div class="text-subtext">
+                                @errorTextSub(MvcHtmlString.Empty)
+                            </div>
+                        }
+                    </div>
 
-                <p class="error-action">Get me out of here! <a href="@url.Home()">Go home</a></p>
-                <p class="error-action">Wondering if NuGet is down? <a href="https://status.nuget.org/">Check our status</a></p>
-                <p class="error-action">Looking for a package? <a href="@url.PackageList()">Try searching</a></p>
-                <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
-                <p class="error-action">Pretty sure we messed up? <a href="https://github.com/NuGet/NuGetGallery/issues">File a bug</a></p>
-                <p class="error-action">Can't get enough NuGet? <a href="https://twitter.com/nuget">Follow us</a></p>
+                    <p class="error-action">Get me out of here! <a href="@url.Home()">Go home</a></p>
+                    <p class="error-action">Wondering if NuGet is down? <a href="https://status.nuget.org/">Check our status</a></p>
+                    <p class="error-action">Looking for a package? <a href="@url.PackageList()">Try searching</a></p>
+                    <p class="error-action">Package you're looking for doesn't exist? <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package">Make one</a></p>
+                    <p class="error-action">Pretty sure we messed up? <a href="https://github.com/NuGet/NuGetGallery/issues">File a bug</a></p>
+                    <p class="error-action">Can't get enough NuGet? <a href="https://twitter.com/nuget">Follow us</a></p>
+                </div>
             </div>
-        </div>
-    </section>
+        </section>
 }
 
 @helper PreviousNextPager(IPreviousNextPager pager)
-{
-    if (pager.HasNextPage || pager.HasPreviousPage)
     {
-        <ul class="pager">
-            <li class="previous">
-                @if (pager.HasPreviousPage)
-                {
-                    <a href="@pager.PreviousPageUrl" title="Go to the previous page.">Previous</a>
-                }
-                else
-                {
-                    <text>Previous</text>
-                }
-            </li>
-            <li class="next">
-                @if (pager.HasNextPage)
-                {
-                    <a href="@pager.NextPageUrl" title="Go to the next page.">Next</a>
-                }
-                else
-                {
-                    <text>Next</text>
-                }
-            </li>
-        </ul>
-    }
+        if (pager.HasNextPage || pager.HasPreviousPage)
+        {
+            <ul class="pager">
+                <li class="previous">
+                    @if (pager.HasPreviousPage)
+                    {
+                        <a href="@pager.PreviousPageUrl" title="Go to the previous page.">Previous</a>
+                    }
+                    else
+                    {
+                        <text>Previous</text>
+                    }
+                </li>
+                <li class="next">
+                    @if (pager.HasNextPage)
+                    {
+                        <a href="@pager.NextPageUrl" title="Go to the next page.">Next</a>
+                    }
+                    else
+                    {
+                        <text>Next</text>
+                    }
+                </li>
+            </ul>
+        }
 }
 
 @helper ImageFallback(string url)
-{
-    <text>onerror="this.src='@url'; this.onerror = null;"</text>
+    {
+        <text>onerror="this.src='@url'; this.onerror = null;"</text>
 }
 
 @helper Option(string value, string label, string currentValue)
-{
-    <option value="@value" @if (value == currentValue)
-                           {
-                               <text>selected="selected"</text>
-                           }>@label</option>
+    {
+        <option value="@value" @if (value == currentValue) { <text> selected="selected" </text> }>
+            @label
+        </option>
 }
 
 @helper UploadSequence(int currentStep)
-{
-    <ol class="sequence">
-        @SequenceStep(1, "Upload", currentStep)
-        @SequenceStep(2, "Verify Details", currentStep)
-    </ol>
-    <div class="clear-fix"><!--Sad Panda--></div>
+    {
+        <ol class="sequence">
+            @SequenceStep(1, "Upload", currentStep)
+            @SequenceStep(2, "Verify Details", currentStep)
+        </ol>
+        <div class="clear-fix"><!--Sad Panda--></div>
 }
 
 @helper SequenceStep(int step, string caption, int currentStep)
-{
-    if (currentStep > step)
     {
-        <li class="past">@caption</li>
-    }
-    else if (currentStep == step)
-    {
-        <li class="current">@caption</li>
-    }
-    else
-    {
-        <li>@caption</li>
-    }
+        if (currentStep > step)
+        {
+            <li class="past">@caption</li>
+        }
+        else if (currentStep == step)
+        {
+            <li class="current">@caption</li>
+        }
+        else
+        {
+            <li>@caption</li>
+        }
 }
 
 @helper GravatarImage(string email, string username, int size)
-{
-    @GravatarImage(email, username, size, responsive: false);
+    {
+        @GravatarImage(email, username, size, responsive: false);
 }
 
 @helper GravatarImage(string email, string username, int size, bool responsive)
-{
-    var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
+    {
+        var classAttribute = responsive ? "owner-image img-responsive" : "owner-image";
 
-    // Load a higher resolution image than the element requires, to improve high DPI display.
-    var imageSize = size * 2;
-    var elementSize = size;
+        // Load a higher resolution image than the element requires, to improve high DPI display.
+        var imageSize = size * 2;
+        var elementSize = size;
 
-    @GravatarHelper.Image(
-        email,
-        imageSize,
-        attributes: new
-        {
-            width = elementSize,
-            height = elementSize,
-            title = username,
-            @class = classAttribute
-        });
+        @GravatarHelper.Image(
+                          email,
+                          imageSize,
+                          attributes: new
+                          {
+                              width = elementSize,
+                              height = elementSize,
+                              title = username,
+                              @class = classAttribute
+                          });
 }
 
-@helper UserLinkWithIcon(UrlHelper url, User user) {
-    <span class="ms-noWrap">
-        @if (user is Organization)
+@helper UserLinkWithIcon(UrlHelper url, User user)
+    {
+        <span class="ms-noWrap">
+            @if (user is Organization)
+            {
+                <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+            }
+            <a href="@url.User(user.Username)">@user.Username</a>
+        </span>
+}
+
+@helper WriteMeta(string name, string val)
+    {
+        if (!String.IsNullOrEmpty(val))
         {
-            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+            <meta name="deployment-@name" content="@val" />
         }
-        <a href="@url.User(user.Username)">@user.Username</a>
-    </span>
 }
 
-@helper WriteMeta(string name, string val) {
-    if(!String.IsNullOrEmpty(val)) {
-        <meta name="deployment-@name" content="@val" />
-    }
-}
+@helper ReleaseMeta()
+    {
+        // Get Version info
+        var ver = ApplicationVersionHelper.GetVersion();
 
-@helper ReleaseMeta() {
-    // Get Version info
-    var ver = ApplicationVersionHelper.GetVersion();
-
-    if(ver.Present) {
-        WriteMeta("branch", ver.Branch);
-        WriteMeta("commit", ver.ShortCommit);
-        WriteMeta("time", ver.BuildDateUtc == DateTime.MinValue ? null : ver.BuildDateUtc.ToString("O"));
-    }
+        if (ver.Present)
+        {
+            WriteMeta("branch", ver.Branch);
+            WriteMeta("commit", ver.ShortCommit);
+            WriteMeta("time", ver.BuildDateUtc == DateTime.MinValue ? null : ver.BuildDateUtc.ToString("O"));
+        }
 }
 
 @helper InstrumentationScript()
-{
-    // Get instrumentation key
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
-    var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
-
-    if (!string.IsNullOrEmpty(iKey))
     {
-        var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-        if (cookieService.CanWriteNonEssentialCookies(Request))
+        // Get instrumentation key
+        var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+        var iKey = config == null ? string.Empty : config.Current.AppInsightsInstrumentationKey;
+        var samplingPct = config == null ? 100 : config.Current.AppInsightsSamplingPercentage;
+
+        if (!string.IsNullOrEmpty(iKey))
         {
-            <!-- Telemetry -->
-            <script type="text/javascript">
+            var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
+            if (cookieService.CanWriteNonEssentialCookies(Request))
+            {
+                <!-- Telemetry -->
+                <script type="text/javascript">
                 var appInsights = window.appInsights || function (config) {
                     function s(config) {
                         t[config] = function () {
@@ -307,90 +313,95 @@
 
                 window.appInsights = appInsights;
                 appInsights.trackPageView();
-            </script>
+                </script>
+            }
         }
-    }
 }
 
 @helper ReleaseTag()
-{
-    // Get Version info and gallery brand name
-    var ver = ApplicationVersionHelper.GetVersion();
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    string brand = config == null ? "" : config.Current.Brand;
+    {
+        // Get Version info and gallery brand name
+        var ver = ApplicationVersionHelper.GetVersion();
+        var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+        string brand = config == null ? "" : config.Current.Brand;
 
-<!--
-@if (ver.Present)
-{
-    @:This is the @brand version @ver.Version.
-    if(!String.IsNullOrEmpty(ver.ShortCommit)) {
-        @:Deployed from @ver.ShortCommit Link: @(ver.CommitUri != null ? ver.CommitUri.AbsoluteUri.Replace("git://github.com", "https://github.com") : "")
-    }
+        <!--
+        @if (ver.Present)
+        {
+            @:This is the @brand version @ver.Version.
+            if(!String.IsNullOrEmpty(ver.ShortCommit)) {
+                @:Deployed from @ver.ShortCommit Link: @(ver.CommitUri != null ? ver.CommitUri.AbsoluteUri.Replace("git://github.com", "https://github.com") : "")
+            }
 
-    if(!String.IsNullOrEmpty(ver.Branch)) {
-        @:Built on @ver.Branch Link: @(ver.BranchUri != null ? ver.BranchUri.AbsoluteUri : "")
-    }
+            if(!String.IsNullOrEmpty(ver.Branch)) {
+                @:Built on @ver.Branch Link: @(ver.BranchUri != null ? ver.BranchUri.AbsoluteUri : "")
+            }
 
-    if(ver.BuildDateUtc != DateTime.MinValue) {
-        @:Built on @ver.BuildDateUtc.ToString("O")
-    }
-} else {
-    @:This is the @brand
-}
-    You are on @HostMachine.Name.
--->
-@* A little quick-n-dirty code to display the current machine *@
-@* In Azure, we want the Instance ID. The Machine Name is total garbage *@
+            if(ver.BuildDateUtc != DateTime.MinValue) {
+                @:Built on @ver.BuildDateUtc.ToString("O")
+            }
+        } else {
+            @:This is the @brand
+        }
+            You are on @HostMachine.Name.
+        -->
+        @* A little quick-n-dirty code to display the current machine *@
+        @* In Azure, we want the Instance ID. The Machine Name is total garbage *@
 }
 
 @helper AnalyticsScript()
-{
-    var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
-    if(config != null) {
-        var propertyId = config.Current.GoogleAnalyticsPropertyId;
-        if (!string.IsNullOrEmpty(propertyId))
+    {
+        var config = DependencyResolver.Current.GetService<IGalleryConfigurationService>();
+        if (config != null)
         {
-            var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
-            if (cookieService.CanWriteNonEssentialCookies(Request))
+            var propertyId = config.Current.GoogleAnalyticsPropertyId;
+            if (!string.IsNullOrEmpty(propertyId))
             {
-                <script>
+                var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
+                if (cookieService.CanWriteNonEssentialCookies(Request))
+                {
+                    var obfuscatedRequest = ObfuscationHelper.ObfuscateRequestUrl(new HttpContextWrapper(HttpContext.Current), RouteTable.Routes);
+                    <script>
                     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
                     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
                     m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
                     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
                     ga('create', '@propertyId', 'auto');
+                    ga('set', 'anonymizeIp', true);
+                    ga('set', 'page', '@obfuscatedRequest');
+                    ga('set', 'title', '');
                     ga('send', 'pageview');
-                </script>
+                    </script>
+                }
             }
         }
-    }
 }
 
 @helper AccordionBar(
-    string groupName,
-    WebViewPage page,
-    string title,
-    string subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null
-)
-{
-Func<AccordionHelper, HelperResult> titleTemplate = null;
-if (!string.IsNullOrEmpty(title))
-{
-    titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
-    }
-
-    Func<AccordionHelper, HelperResult> subtitleTemplate = null;
-    if (!string.IsNullOrEmpty(subtitle))
+                string groupName,
+                WebViewPage page,
+                string title,
+                string subtitle = null,
+                bool enabled = true,
+                string formModelStatePrefix = null,
+                Func<AccordionHelper, HelperResult> actions = null,
+                Func<AccordionHelper, HelperResult> content = null
+            )
     {
-        subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
-    }
+        Func<AccordionHelper, HelperResult> titleTemplate = null;
+        if (!string.IsNullOrEmpty(title))
+        {
+            titleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@title</text>);
+}
 
-    @AccordionBar(groupName,
+Func<AccordionHelper, HelperResult> subtitleTemplate = null;
+if (!string.IsNullOrEmpty(subtitle))
+{
+subtitleTemplate = new Func<AccordionHelper, HelperResult>(@<text>@subtitle</text>);
+}
+
+@AccordionBar(groupName,
         page,
         titleTemplate,
         subtitleTemplate,
@@ -401,58 +412,58 @@ if (!string.IsNullOrEmpty(title))
 }
 
 @helper AccordionBar(
-    string groupName,
-    WebViewPage page,
-    Func<AccordionHelper, HelperResult> title,
-    Func<AccordionHelper, HelperResult> subtitle = null,
-    bool enabled = true,
-    string formModelStatePrefix = null,
-    Func<AccordionHelper, HelperResult> actions = null,
-    Func<AccordionHelper, HelperResult> content = null,
-    bool expanded = false
-)
-{
-    @* Calculate Accordion Index *@
-string dataKey = "___AccordionCounter_" + groupName;
-int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
-int id = lastId + 1;
-HttpContext.Current.Items[dataKey] = id;
-string name = groupName + "-" + id.ToString();
-string actionsId = name + "-actions"; 
+                string groupName,
+                WebViewPage page,
+                Func<AccordionHelper, HelperResult> title,
+                Func<AccordionHelper, HelperResult> subtitle = null,
+                bool enabled = true,
+                string formModelStatePrefix = null,
+                Func<AccordionHelper, HelperResult> actions = null,
+                Func<AccordionHelper, HelperResult> content = null,
+                bool expanded = false
+            )
+    {
+        @* Calculate Accordion Index *@
+        string dataKey = "___AccordionCounter_" + groupName;
+        int lastId = (int)(HttpContext.Current.Items[dataKey] ?? 0);
+        int id = lastId + 1;
+        HttpContext.Current.Items[dataKey] = id;
+        string name = groupName + "-" + id.ToString();
+        string actionsId = name + "-actions";
 
-var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
-    <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
-        <div class="accordion-item-header">
-            @if (actions != null)
+        var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
+        <li id="@hlp.ItemId" class="accordion-item @(enabled ? "accordion-item-enabled" : "accordion-item-disabled")">
+            <div class="accordion-item-header">
+                @if (actions != null)
+                {
+                    <div class="accordion-item-actions" id="@actionsId">
+                        @actions(hlp)
+                    </div>
+                }
+                <span class="accordion-item-title">
+                    @title(hlp)
+                </span>
+                @if (subtitle != null)
+                {
+                    <span class="accordion-item-subtitle">
+                        @subtitle(hlp)
+                    </span>
+                }
+            </div>
+            @if (content != null)
             {
-                <div class="accordion-item-actions" id="@actionsId" >
-                    @actions(hlp)
+                <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
+                    @content(hlp)
                 </div>
             }
-            <span class="accordion-item-title">
-                @title(hlp)
-            </span>
-            @if (subtitle != null)
-            {
-                <span class="accordion-item-subtitle">
-                    @subtitle(hlp)
-                </span>
-            }
-        </div>
-        @if (content != null)
-        {
-            <div id="@hlp.ContentDropDownId" class="accordion-item-content @(!expanded ? hlp.ContentHiddenClass : string.Empty)">
-                @content(hlp)
-            </div>
-        }
-    </li>
+        </li>
 }
 
 @helper AjaxAntiForgeryToken(System.Web.Mvc.HtmlHelper html)
-{
-    <form id="AntiForgeryForm">
-        @html.AntiForgeryToken()
-    </form>
+    {
+        <form id="AntiForgeryForm">
+            @html.AntiForgeryToken()
+        </form>
 }
 
 @functions
@@ -474,137 +485,137 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 }
 
 @helper SectionsScript(WebViewPage viewPage)
-{
-    var viewSections = GetSections(viewPage.ViewBag);
-    if (viewSections != null)
     {
-        <script type="text/javascript">
+        var viewSections = GetSections(viewPage.ViewBag);
+        if (viewSections != null)
+        {
+            <script type="text/javascript">
             var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
             for (var i in sections) {
                 var containerId = sections[i] + "-container";
                 window.nuget.configureExpanderHeading(containerId);
             }
-        </script>
-    }
+            </script>
+        }
 }
 
 @helper Section(
-        WebViewPage viewPage,
-        string id,
-        string title,
-        Func<MvcHtmlString, HelperResult> content,
-        bool expanded = true,
-        string expandedIcon = "ChevronDown",
-        string collapsedIcon = "ChevronRight",
-        string disabledIcon = "Lock",
-        bool disabled = false)
-{
-    @Section(viewPage,
-        id,
-        @<text>@title</text>,
-        @<text></text>,
-        content,
-        expanded,
-        expandedIcon,
-        collapsedIcon);
-}
-
-@helper Section(
-            WebViewPage viewPage,
-            string id,
-            Func<MvcHtmlString, HelperResult> title,
-            Func<MvcHtmlString, HelperResult> data,
-            Func<MvcHtmlString, HelperResult> content,
-            bool expanded = false,
-            string expandedIcon = "ChevronDown",
-            string collapsedIcon = "ChevronRight",
-            string disabledIcon = "Lock",
-            bool disabled = false)
-{
-    if (!disabled)
+                    WebViewPage viewPage,
+                    string id,
+                    string title,
+                    Func<MvcHtmlString, HelperResult> content,
+                    bool expanded = true,
+                    string expandedIcon = "ChevronDown",
+                    string collapsedIcon = "ChevronRight",
+                    string disabledIcon = "Lock",
+                    bool disabled = false)
     {
-        AddSection(viewPage.ViewBag, id);
-    }
+        @Section(viewPage,
+                          id,
+                        @<text>@title</text>,
+                                                    @<text></text>,
+                                                                                  content,
+                                                                                  expanded,
+                                                                                  expandedIcon,
+                                                                                  collapsedIcon);
+}
 
-    <div class="clearfix">
-        <div class="form-section-title">
-            <h2>
-                @if (!disabled)
-                {
-                    <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-                        aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
-                        <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-                            aria-hidden="@(expanded ? "false" : "true")"></i>
+@helper Section(
+                        WebViewPage viewPage,
+                        string id,
+                        Func<MvcHtmlString, HelperResult> title,
+                        Func<MvcHtmlString, HelperResult> data,
+                        Func<MvcHtmlString, HelperResult> content,
+                        bool expanded = false,
+                        string expandedIcon = "ChevronDown",
+                        string collapsedIcon = "ChevronRight",
+                        string disabledIcon = "Lock",
+                        bool disabled = false)
+    {
+        if (!disabled)
+        {
+            AddSection(viewPage.ViewBag, id);
+        }
+
+        <div class="clearfix">
+            <div class="form-section-title">
+                <h2>
+                    @if (!disabled)
+                    {
+                        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+                           aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
+                            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+                               aria-hidden="@(expanded ? "false" : "true")"></i>
+                            <span>@title(MvcHtmlString.Empty)</span>
+                        </a>
+                    }
+                    else
+                    {
+                        <i class="ms-Icon ms-Icon--@disabledIcon" aria-hidden="true"></i>
                         <span>@title(MvcHtmlString.Empty)</span>
-                    </a>
-                }
-                else
-                {
-                    <i class="ms-Icon ms-Icon--@disabledIcon" aria-hidden="true"></i>
-                    <span>@title(MvcHtmlString.Empty)</span>
-                }
-            </h2>
-        </div>
-        <div class="form-section-data">
-            @data(MvcHtmlString.Empty)
-        </div>
-    </div>
-    if (!disabled)
-    {
-        <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
-                aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
-            <div class="panel-body">
-                @content(MvcHtmlString.Empty)
+                    }
+                </h2>
+            </div>
+            <div class="form-section-data">
+                @data(MvcHtmlString.Empty)
             </div>
         </div>
-    }
+        if (!disabled)
+        {
+            <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+                 aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
+                <div class="panel-body">
+                    @content(MvcHtmlString.Empty)
+                </div>
+            </div>
+        }
 }
 
 @helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
-{
-    <h1 class="ms-font-xl breadcrumb-title">
-        @for (int i = 0; i < segments.Length; i++)
-        {
-            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
-
-            if (i < segments.Length - 1)
-            {
-                <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
-            }
-        }
-    </h1>
-    if (showDivider)
     {
-        <hr class="breadcrumb-divider" />
-    }
+        <h1 class="ms-font-xl breadcrumb-title">
+            @for (int i = 0; i < segments.Length; i++)
+            {
+                <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+
+                if (i < segments.Length - 1)
+                {
+                    <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+                }
+            }
+        </h1>
+        if (showDivider)
+        {
+            <hr class="breadcrumb-divider" />
+        }
 }
 
 @helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
-{
-    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
-    { 
-        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
-    }.Concat(segments).ToArray();
+    {
+        var newSegments = new Func<MvcHtmlString, HelperResult>[]
+        {
+@<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text>
+                                }.Concat(segments).ToArray();
 
-    @Breadcrumb(showDivider, newSegments);
+                @Breadcrumb(showDivider, newSegments);
 }
 
 @helper PackagesBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
-{
-    var newSegments = new Func<MvcHtmlString, HelperResult>[]
     {
-        @<text><a href="@url.ManageMyPackages()">Packages</a></text>
-    }.Concat(segments).ToArray();
+        var newSegments = new Func<MvcHtmlString, HelperResult>[]
+        {
+@<text><a href="@url.ManageMyPackages()">Packages</a></text>
+                                }.Concat(segments).ToArray();
 
-    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+                @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }
 
 @helper OrganizationsBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
-{
-    var newSegments = new Func<MvcHtmlString, HelperResult>[]
     {
-        @<text><a href="@url.ManageMyOrganizations()">Organizations</a></text>
-    }.Concat(segments).ToArray();
+        var newSegments = new Func<MvcHtmlString, HelperResult>[]
+        {
+@<text><a href="@url.ManageMyOrganizations()">Organizations</a></text>
+                                }.Concat(segments).ToArray();
 
-    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+                @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }
