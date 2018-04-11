@@ -280,88 +280,89 @@
     window.nuget = nuget;
 
     initializeJQueryValidator();
-})();
 
-$(function () {
-    // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
-    $.each($('*[data-datetime]'), function () {
-        var $el = $(this);
-        var formats = window.nuget.getDateFormats($el.data().datetime);
-        if (!formats) {
-            return;
-        }
+    $(function () {
+        // Use moment.js to format attributes with the "datetime" attribute to "X time ago".
+        $.each($('*[data-datetime]'), function () {
+            var $el = $(this);
+            var formats = window.nuget.getDateFormats($el.data().datetime);
+            if (!formats) {
+                return;
+            }
 
-        if (!$el.attr('title')) {
-            $el.attr('title', formats.title);
-        }
+            if (!$el.attr('title')) {
+                $el.attr('title', formats.title);
+            }
 
-        if (formats.text) {
-            $el.text(formats.text);
-        }
-    });
+            if (formats.text) {
+                $el.text(formats.text);
+            }
+        });
 
-    // Handle confirm pop-ups.
-    $('*[data-confirm]').delegate('', 'click', function (e) {
-        window.nuget.confirmEvent($(this).data().confirm, e);
-    });
+        // Handle confirm pop-ups.
+        $('*[data-confirm]').delegate('', 'click', function (e) {
+            window.nuget.confirmEvent($(this).data().confirm, e);
+        });
 
-    // Select the first input that has an error.
-    $('.has-error')
-        .find('input,textarea,select')
-        .filter(':visible:first')
-        .focus();
+        // Select the first input that has an error.
+        $('.has-error')
+            .find('input,textarea,select')
+            .filter(':visible:first')
+            .focus();
 
-    // Handle Google analytics tracking event on specific links.
-    $.each($('a[data-track]'), function () {
-        $(this).click(function (e) {
-            var href = $(this).attr('href');
-            var category = $(this).data().track;
-            if (window.nuget.isGaAvailable() && href && category) {
-                if (e.altKey || e.ctrlKey || e.metaKey) {
-                    ga('send', 'event', category, 'click', href);
-                } else {
-                    e.preventDefault();
-                    ga('send', 'event', category, 'click', href, {
-                        'transport': 'beacon',
-                        'hitCallback': window.nuget.createFunctionWithTimeout(function () {
-                            document.location = href;
-                        })
-                    });
+        // Handle Google analytics tracking event on specific links.
+        $.each($('a[data-track]'), function () {
+            $(this).click(function (e) {
+                var href = $(this).attr('href');
+                var category = $(this).data().track;
+                if (window.nuget.isGaAvailable() && href && category) {
+                    if (e.altKey || e.ctrlKey || e.metaKey) {
+                        ga('send', 'event', category, 'click', href);
+                    } else {
+                        e.preventDefault();
+                        ga('send', 'event', category, 'click', href, {
+                            'transport': 'beacon',
+                            'hitCallback': window.nuget.createFunctionWithTimeout(function () {
+                                document.location = href;
+                            })
+                        });
+                    }
                 }
+            });
+        });
+
+        // Show elements that require ClickOnce
+        (function () {
+            var userAgent = window.navigator.userAgent.toUpperCase();
+            var hasNativeDotNet = userAgent.indexOf('.NET CLR 3.5') >= 0;
+            if (hasNativeDotNet) {
+                $('.no-clickonce').removeClass('no-clickonce');
+            }
+        })();
+
+        // Don't close the dropdown on click events inside of the dropdown.
+        $(document).on('click', '.dropdown-menu', function (e) {
+            e.stopPropagation();
+        });
+
+        $(document).on('keydown', function (e) {
+            var code = (e.keyCode || e.which);
+            var isValidInputCharacter =
+                ((code >= 48 && code <= 57)           // numbers 0-9
+                    || (code >= 64 && code <= 90)     // letters a-z
+                    || (code >= 96 && code <= 111)    // numpad
+                    || (code >= 186 && code <= 192)   // ; = , - . / `
+                    || (code >= 219 && code <= 222))  // [\ ] '
+                && !e.altKey && !e.ctrlKey && !e.metaKey;
+
+            if (isValidInputCharacter && document.activeElement == document.body) {
+                var searchbox = $("#search");
+                searchbox.focus();
+                var currInput = searchbox.val();
+                searchbox.val("");
+                searchbox.val(currInput);
             }
         });
     });
+}());
 
-    // Show elements that require ClickOnce
-    (function () {
-        var userAgent = window.navigator.userAgent.toUpperCase();
-        var hasNativeDotNet = userAgent.indexOf('.NET CLR 3.5') >= 0;
-        if (hasNativeDotNet) {
-            $('.no-clickonce').removeClass('no-clickonce');
-        }
-    })();
-
-    // Don't close the dropdown on click events inside of the dropdown.
-    $(document).on('click', '.dropdown-menu', function (e) {
-        e.stopPropagation();
-    });
-
-    $(document).on('keydown', function (e) {
-        var code = (e.keyCode || e.which);
-        var isValidInputCharacter =
-            ((code >= 48 && code <= 57)           // numbers 0-9
-                || (code >= 64 && code <= 90)     // letters a-z
-                || (code >= 96 && code <= 111)    // numpad
-                || (code >= 186 && code <= 192)   // ; = , - . / `
-                || (code >= 219 && code <= 222))  // [\ ] '
-            && !e.altKey && !e.ctrlKey && !e.metaKey;
-
-        if (isValidInputCharacter && document.activeElement == document.body) {
-            var searchbox = $("#search");
-            searchbox.focus();
-            var currInput = searchbox.val();
-            searchbox.val("");
-            searchbox.val(currInput);
-        }
-    });
-});

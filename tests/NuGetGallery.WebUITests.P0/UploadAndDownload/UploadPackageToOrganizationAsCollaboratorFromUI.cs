@@ -11,12 +11,17 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     /// </summary>
     public class UploadPackageToOrganizationAsCollaboratorFromUI : UploadPackageFromUI
     {
+        private static string Owner = EnvironmentSettings.TestOrganizationCollaboratorAccountName;
+
+        private string _id = UploadHelper.GetUniquePackageId(nameof(UploadPackageToOrganizationAsCollaboratorFromUI));
+
         public override IEnumerable<UploadHelper.PackageToUpload> PackagesToUpload => new[]
         {
+            // Upload new registration
+            new UploadHelper.PackageToUpload(id: _id, version: "1.0.0", owner: Owner),
+            
             // Upload new version of existing registration
-            new UploadHelper.PackageToUpload(
-                    id: Constants.TestOrganizationCollaboratorPackageId,
-                    owner: EnvironmentSettings.TestOrganizationCollaboratorAccountName)
+            new UploadHelper.PackageToUpload(id: _id, version: "2.0.0", owner: Owner)
         };
     }
 }
