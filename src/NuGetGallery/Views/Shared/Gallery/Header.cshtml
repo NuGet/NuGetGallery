@@ -91,7 +91,7 @@
                     </ul>
                     @if (ShowAuthInHeader)
                     {
-                        <ul class="nav navbar-nav navbar-right navbar-separated" role="@(User.Identity.IsAuthenticated ? "menu" : "tablist")">
+                        <ul class="nav navbar-nav navbar-right navbar-separated" role="tablist">
                             @if (!User.Identity.IsAuthenticated)
                             {
                                 var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
@@ -99,9 +99,8 @@
                             }
                             else
                             {
-                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown"
-                                    aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
-                                    <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
+                                <li class="@(ViewBag.Tab == User.Identity.Name ? "active" : string.Empty) dropdown" role="presentation">
+                                    <a href="#" aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="tab" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                         <div>
                                             @if (ShowWarningBanner)
                                             {
