@@ -36,9 +36,8 @@
 
 @helper DisplayNavigationItem(string tab, string url, bool bold = false, string title = null)
 {
-    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)"
-        aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" role="presentation">
-        <a role="menuitem" href="@url" title="@title">
+    <li class="@(ViewBag.Tab == tab ? "active" : string.Empty)" role="presentation">
+        <a role="tab" aria-selected="@(ViewBag.Tab == tab ? "true" : "false")" href="@url" title="@title">
             @if (bold)
             {
                 @:<b>
@@ -56,7 +55,7 @@
     <div class="container">
         <div class="row">
             <div class="col-sm-12 text-center">
-                <a href="#skippedToContent" class="showOnFocus" title="Skip To Content" role="navigation">Skip To Content</a>
+                <a href="#skippedToContent" class="showOnFocus" title="Skip To Content">Skip To Content</a>
             </div>
         </div>
         <div class="row">
@@ -75,7 +74,7 @@
                     </a>
                 </div>
                 <div id="navbar" class="navbar-collapse collapse" role="menubar">
-                    <ul class="nav navbar-nav" role="menu">
+                    <ul class="nav navbar-nav" role="tablist">
                         @DisplayNavigationItem("Packages", Url.PackageList())
                         @DisplayNavigationItem("Upload", Url.UploadPackage())
                         @if (StatisticsHelper.IsStatisticsPageAvailable)
@@ -92,7 +91,7 @@
                     </ul>
                     @if (ShowAuthInHeader)
                     {
-                        <ul class="nav navbar-nav navbar-right navbar-seperated" role="menu">
+                        <ul class="nav navbar-nav navbar-right navbar-separated" role="@(User.Identity.IsAuthenticated ? "menu" : "tablist")">
                             @if (!User.Identity.IsAuthenticated)
                             {
                                 var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;

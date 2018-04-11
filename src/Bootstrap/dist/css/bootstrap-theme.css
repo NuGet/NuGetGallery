@@ -93,13 +93,13 @@ body h3 {
 .navbar-logo {
   margin: 8px 20px 0 0;
 }
-.navbar-seperated .seperator {
+.navbar-separated .seperator {
   display: block;
   padding: 11px 0;
   font-weight: 100;
   color: #fff;
 }
-.navbar-seperated .seperator > span::after {
+.navbar-separated .seperator > span::after {
   content: " | ";
 }
 .dropdown-menu {
