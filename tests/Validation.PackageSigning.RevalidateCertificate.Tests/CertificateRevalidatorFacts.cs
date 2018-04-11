@@ -55,6 +55,26 @@ namespace Validation.PackageSigning.RevalidateCertificate.Tests
                 Assert.Equal(PackageSignatureStatus.InGracePeriod, signature2.Status);
             }
 
+            [Theory]
+            [InlineData(PackageSignatureType.Repository)]
+            [InlineData((PackageSignatureType)0)]
+            public async Task DoesNotPromoteNonAuthorSignatures(PackageSignatureType type)
+            {
+                // Arrange - make signature nonpromotable due to repository type.
+                var signature = PromotableSignature;
+
+                signature.Type = type;
+
+                _context.Mock(packageSignatures: new[] { signature });
+
+                // Act & Assert
+                await _target.PromoteSignaturesAsync();
+
+                _context.Verify(c => c.SaveChangesAsync(), Times.Never);
+
+                Assert.Equal(PackageSignatureStatus.InGracePeriod, signature.Status);
+            }
+
             [Fact]
             public async Task PromotesSignaturesIfPossible()
             {
@@ -371,7 +391,9 @@ namespace Validation.PackageSigning.RevalidateCertificate.Tests
                                 StatusUpdateTime = DateTime.UtcNow,
                             }
                         }
-                    }
+                    },
+
+                    Type = PackageSignatureType.Author,
                 };
 
             protected EndCertificate StaleCertificate =>

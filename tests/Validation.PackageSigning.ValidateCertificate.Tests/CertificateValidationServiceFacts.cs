@@ -100,8 +100,18 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                                                 statusFlags: X509ChainStatusFlags.ExplicitDistrust);
 
                 var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
-                var signature1 = new PackageSignature { Key = 123, Status = PackageSignatureStatus.Valid };
-                var signature2 = new PackageSignature { Key = 456, Status = PackageSignatureStatus.Valid };
+                var signature1 = new PackageSignature
+                {
+                    Key = 123,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
+                var signature2 = new PackageSignature
+                {
+                    Key = 456,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
                 var timestamp = new TrustedTimestamp { Value = DateTime.UtcNow };
 
                 signingState.PackageSignatures = new[] { signature1, signature2 };
@@ -144,6 +154,60 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                 _context.Verify(c => c.SaveChangesAsync(), Times.Once);
             }
 
+            [Theory]
+            [InlineData(PackageSignatureType.Repository)]
+            [InlineData((PackageSignatureType)0)]
+            public async Task RevokedResultDoesNotInvalidateDependentNonAuthorSignaturesSignatures(PackageSignatureType type)
+            {
+                // Arrange
+                var revocationTime = DateTime.UtcNow;
+
+                var verificationResult = new CertificateVerificationResult(
+                                                status: EndCertificateStatus.Revoked,
+                                                statusFlags: X509ChainStatusFlags.Revoked,
+                                                revocationTime: revocationTime);
+
+                var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
+                var signature2 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid, Type = type };
+                var timestamp2 = new TrustedTimestamp { Value = revocationTime.AddDays(1), Status = TrustedTimestampStatus.Valid };
+
+                signingState.PackageSignatures = new[] { signature2 };
+                signature2.PackageSigningState = signingState;
+                signature2.EndCertificate = _certificate1;
+                signature2.TrustedTimestamps = new[] { timestamp2 };
+                timestamp2.PackageSignature = signature2;
+                timestamp2.EndCertificate = _certificate2;
+                _certificate1.Use = EndCertificateUse.CodeSigning;
+                _certificate2.Use = EndCertificateUse.Timestamping;
+                _certificate1.PackageSignatures = new[] { signature2 };
+                _certificate2.TrustedTimestamps = new[] { timestamp2 };
+
+                _context.Mock(
+                    packageSigningStates: new[] { signingState },
+                    packageSignatures: new[] { signature2 },
+                    trustedTimestamps: new[] { timestamp2 },
+                    endCertificates: new[] { _certificate1, _certificate2 });
+
+                var result = await _target.TrySaveResultAsync(_certificateValidation1, verificationResult);
+
+                Assert.True(result);
+
+                Assert.Equal(EndCertificateStatus.Revoked, _certificateValidation1.Status);
+
+                Assert.Equal(EndCertificateStatus.Revoked, _certificate1.Status);
+                Assert.Equal(0, _certificate1.ValidationFailures);
+                Assert.Equal(revocationTime, _certificate1.RevocationTime);
+
+                Assert.Equal(PackageSignatureStatus.Valid, signature2.Status);
+
+                Assert.Equal(PackageSigningStatus.Valid, signingState.SigningStatus);
+
+                _telemetryService.Verify(a => a.TrackUnableToValidateCertificateEvent(It.IsAny<EndCertificate>()), Times.Never);
+                _telemetryService.Verify(a => a.TrackPackageSignatureShouldBeInvalidatedEvent(It.IsAny<PackageSignature>()), Times.Never);
+                _telemetryService.Verify(a => a.TrackUnableToValidateCertificateEvent(It.IsAny<EndCertificate>()), Times.Never);
+                _context.Verify(c => c.SaveChangesAsync(), Times.Once);
+            }
+
             [Fact]
             public async Task RevokedResultInvalidatesDependentSignatures()
             {
@@ -158,9 +222,24 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                                                 revocationTime: revocationTime);
 
                 var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
-                var signature1 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid };
-                var signature2 = new PackageSignature { Key = 23, Status = PackageSignatureStatus.Valid };
-                var signature3 = new PackageSignature { Key = 34, Status = PackageSignatureStatus.Valid };
+                var signature1 = new PackageSignature
+                {
+                    Key = 12,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
+                var signature2 = new PackageSignature
+                {
+                    Key = 23,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
+                var signature3 = new PackageSignature
+                {
+                    Key = 34,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
                 var timestamp1 = new TrustedTimestamp { Value = revocationTime.AddDays(-1), Status = TrustedTimestampStatus.Valid };
                 var timestamp2 = new TrustedTimestamp { Value = revocationTime.AddDays(1), Status = TrustedTimestampStatus.Valid };
                 var timestamp3 = new TrustedTimestamp { Value = revocationTime.AddDays(-1), Status = TrustedTimestampStatus.Valid };
@@ -223,7 +302,12 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                                                 revocationTime: DateTime.UtcNow);
 
                 var signingState = new PackageSigningState { SigningStatus = PackageSigningStatus.Valid };
-                var signature1 = new PackageSignature { Key = 12, Status = PackageSignatureStatus.Valid };
+                var signature1 = new PackageSignature
+                {
+                    Key = 12,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
                 var timestamp1 = new TrustedTimestamp { Value = DateTime.UtcNow, Status = TrustedTimestampStatus.Valid };
 
                 signingState.PackageSignatures = new[] { signature1 };
@@ -260,7 +344,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                                                 status: EndCertificateStatus.Unknown,
                                                 statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
-                var signature = new PackageSignature { Status = PackageSignatureStatus.Valid };
+                var signature = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
                 var timestamp = new TrustedTimestamp { Value = DateTime.UtcNow };
 
                 signature.EndCertificate = _certificate1;
@@ -290,7 +378,11 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                                                 status: EndCertificateStatus.Unknown,
                                                 statusFlags: X509ChainStatusFlags.RevocationStatusUnknown);
 
-                var signature = new PackageSignature { Status = PackageSignatureStatus.Valid };
+                var signature = new PackageSignature
+                {
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
                 var timestamp = new TrustedTimestamp { Value = DateTime.UtcNow };
 
                 signature.EndCertificate = _certificate1;

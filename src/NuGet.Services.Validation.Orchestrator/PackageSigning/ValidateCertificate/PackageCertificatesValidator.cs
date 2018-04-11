@@ -236,6 +236,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
                         .PackageSignatures
                         .Include(s => s.EndCertificate)
                         .Include(s => s.TrustedTimestamps.Select(t => t.EndCertificate))
+                        .Where(s => s.Type == PackageSignatureType.Author)
                         .SingleAsync(s => s.PackageKey == request.PackageKey);
         }
 
