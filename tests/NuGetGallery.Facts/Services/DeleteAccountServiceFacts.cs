@@ -48,32 +48,6 @@ namespace NuGetGallery.Services
             }
 
             [Fact]
-            public async Task WhenAccountIsOrganizationMember_DoesNotDelete()
-            {
-                // Arrange
-                var fakes = new Fakes();
-                var account = fakes.OrganizationCollaborator;
-                var testableService = new DeleteAccountTestService(account, fakes.Package);
-                var deleteAccountService = testableService.GetDeleteAccountService();
-
-                // Act
-                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
-                    account,
-                    fakes.Admin,
-                    "signature",
-                    unlistOrphanPackages: true,
-                    commitAsTransaction: false);
-
-                // Assert
-                Assert.False(result.Success);
-
-                var expected = string.Format(CultureInfo.CurrentCulture,
-                    Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
-                    account.Username);
-                Assert.Equal(expected, result.Description);
-            }
-
-            [Fact]
             public async Task NullUser()
             {
                 //Arange

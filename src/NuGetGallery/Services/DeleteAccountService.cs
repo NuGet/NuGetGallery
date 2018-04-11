@@ -154,6 +154,7 @@ namespace NuGetGallery
             var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
 
             await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
+            await RemovePackageOwnershipRequests(userToBeDeleted);
             await RemoveMemberships(userToBeDeleted);
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemoveSecurityPolicies(userToBeDeleted);
@@ -216,7 +217,7 @@ namespace NuGetGallery
 
         private async Task RemovePackageOwnershipRequests(User user)
         {
-            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToList();
+            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToArray();
             foreach (var request in requests)
             {
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
@@ -225,17 +226,17 @@ namespace NuGetGallery
 
         private async Task RemoveMemberships(User user)
         {
-            foreach (var membership in user.Organizations.ToList())
+            foreach (var membership in user.Organizations.ToArray())
             {
                 user.Organizations.Remove(membership);
             }
 
-            foreach (var membershipRequest in user.OrganizationRequests.ToList())
+            foreach (var membershipRequest in user.OrganizationRequests.ToArray())
             {
                 user.OrganizationRequests.Remove(membershipRequest);
             }
 
-            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToList())
+            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToArray())
             {
                 user.OrganizationMigrationRequests.Remove(transformationRequest);
                 transformationRequest.NewOrganization.OrganizationMigrationRequest = null;

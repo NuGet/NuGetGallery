@@ -2010,6 +2010,7 @@ namespace NuGetGallery
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.IsDeleted = false;
+                controller.SetCurrentUser(fakes.Admin);
 
                 PackageRegistration packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(testUser);
@@ -2034,13 +2035,16 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
+                GetMock<ISupportRequestService>()
+                    .Setup(x => x.GetIssues(null, null, null, null))
+                    .Returns(new Issue[0]);
 
                 // act
-                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+                var model = ResultAssert.IsView<DeleteAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
+                Assert.Equal(1, model.Packages.Count());
             }
         }
 
