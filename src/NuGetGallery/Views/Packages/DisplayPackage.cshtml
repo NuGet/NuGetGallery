@@ -19,7 +19,7 @@
                 CommandPrefix = "> ",
                 InstallPackageCommand = string.Format("dotnet tool install --global {0} --version {1}", Model.Id, Model.Version),
                 AlertLevel = AlertLevel.Info,
-                AlertMessage = "This is a package that lets you install a tool in the .NET environment."
+                AlertMessage = string.Format("This package contains a <a href=\"{0}\">.NET Core Global Tool</a> you can call from the shell/command line.", "https://aka.ms/global-tools"),
             }
         };
     }
