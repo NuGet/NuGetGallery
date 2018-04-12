@@ -22,10 +22,10 @@
                     </a>
                 </h2>
                 <div class="collapse in" id="upload-package-form" aria-expanded="true">
-                    <form id="cancel-form">
+                    <form aria-hidden="true" id="cancel-form">
                         @Html.AntiForgeryToken()
                     </form>
-                    <form id="uploadForm" enctype="multipart/form-data">
+                    <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
                         @Html.ValidationSummary(true)
