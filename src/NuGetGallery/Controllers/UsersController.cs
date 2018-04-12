@@ -973,6 +973,12 @@ namespace NuGetGallery
             {
                 await AuthenticationService.RemoveCredential(user, cred);
 
+                if (cred.IsPassword())
+                {
+                    // Clear the password login claim, to remove warnings.
+                    OwinContext.RemoveClaim(NuGetClaims.PasswordLogin);
+                }
+
                 // Notify the user of the change
                 MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
 

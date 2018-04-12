@@ -15,6 +15,7 @@ using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.WebPages;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGetGallery.Helpers;
@@ -479,6 +480,30 @@ namespace NuGetGallery
             }
 
             return user;
+        }
+
+        /// <summary>
+        /// This method will remove the claim from the OwinContext and update the cookie with the updated claims
+        /// </summary>
+        /// <returns>True if successfully removed the claim from context, false otherwise</returns>
+        public static bool RemoveClaim(this IOwinContext self, string claimType)
+        {
+            if (self.Request.User == null ||
+                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
+            {
+                return false;
+            }
+
+            // Clean up the claim upon password removal
+            var identity = self.Authentication?.User?.Identity;
+            if (identity != null && identity.TryRemoveClaim(claimType))
+            {
+                // Update the cookies for the claim
+                self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
+                return true;
+            }
+
+            return false;
         }
 
         private static User LoadUser(IOwinContext context)

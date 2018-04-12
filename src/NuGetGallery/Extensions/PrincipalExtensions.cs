@@ -156,7 +156,25 @@ namespace NuGetGallery
 
             return !self.IsScopedAuthentication() || self.HasExplicitScopeAction(requestedActions);
         }
-        
+
+        /// <summary>
+        /// Try to remove the claim from the identity
+        /// </summary>
+        /// <param name="identity">IIdentity from which the claim is to be removed</param>
+        /// <param name="claimType">The claim type to be removed</param>
+        /// <returns>True if successfully able to remove the claim, false otherwise</returns>
+        public static bool TryRemoveClaim(this IIdentity identity, string claimType)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            var claim = claimsIdentity?.FindFirst(claimType);
+            if (claim != null)
+            {
+                return claimsIdentity.TryRemoveClaim(claim);
+            }
+
+            return false;
+        }
+
         private static string GetScopeClaim(IIdentity self)
         {
             if (self == null)
