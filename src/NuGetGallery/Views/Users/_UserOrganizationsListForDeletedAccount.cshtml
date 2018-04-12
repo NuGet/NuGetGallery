@@ -1,5 +1,12 @@
 ﻿@model IEnumerable<ManageOrganizationsItemViewModel>
 
+@if (!Model.Any())
+{
+    <p>This account is not a member of any organizations.</p>
+
+    return;
+}
+
 <div class="row user-package-list align-left">
     <div class="col-md-12 align-left ">
         <div class="panel-collapse collapse in" id="organizations-list" aria-expanded="true">

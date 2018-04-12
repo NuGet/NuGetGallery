@@ -1,5 +1,12 @@
 ﻿@model ManagePackagesListViewModel
 
+@if (!Model.Packages.Any())
+{
+    <p>This account owns no packages.</p>
+
+    return;
+}
+
 <div class="row user-package-list align-left">
     <div class="col-md-12 align-left ">
         <div class="panel-collapse collapse in" id="packages-@Model.Name" aria-expanded="true">

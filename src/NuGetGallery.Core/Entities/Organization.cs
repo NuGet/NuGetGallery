@@ -25,6 +25,7 @@ namespace NuGetGallery
         public Organization(string name) : base(name)
         {
             Members = new List<Membership>();
+            MemberRequests = new List<MembershipRequest>();
 
             _administrators = new Lazy<IEnumerable<User>>(
                 () => Members.Where(m => m.IsAdmin).Select(m => m.Member).ToList());
