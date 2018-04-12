@@ -50,8 +50,43 @@
                 } else {
                     error.insertAfter(element);
                 }
+            },
+            showErrors: function (errorMap, errorList) {
+                this.defaultShowErrors();
+
+                var i;
+                for (i = 0; this.errorList[i]; i++) {
+                    removeInvalidAriaDescribedBy(this.errorList[i].element);
+                }
+
+                for (i = 0; this.successList[i]; i++) {
+                    removeInvalidAriaDescribedBy(this.successList[i]);
+                }
             }
         });
+    }
+
+    function removeInvalidAriaDescribedBy(element) {
+        var describedBy = element.getAttribute("aria-describedby");
+        if (!describedBy) {
+            return;
+        }
+
+        var ids = describedBy.split(" ")
+            .filter(function (describedById) {
+                if (!describedById) {
+                    return false;
+                }
+
+                var describedByElement = $("#" + describedById);
+                return describedByElement && describedByElement.text();
+            });
+
+        if (ids.length) {
+            element.setAttribute("aria-describedby", ids.join(" "));
+        } else {
+            element.removeAttribute("aria-describedby");
+        }
     }
 
     nuget.parseNumber = function (unparsedValue) {
