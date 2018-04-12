@@ -27,7 +27,7 @@ namespace NuGetGallery.Helpers
             }
 
             [Fact]
-            public void NullContext()
+            public void WithNullContextReturnsEmptyString()
             {
                 // Assert + Assert
                 var result = ObfuscationHelper.ObfuscateRequestUrl(null, _currentRoutes);
@@ -35,7 +35,7 @@ namespace NuGetGallery.Helpers
             }
 
             [Fact]
-            public void NullRoutes()
+            public void WithNullRoutesReturnsEmptyString()
             {
                 //Arrange 
                 var context = GetMockedHttpContext();

@@ -11,17 +11,13 @@ namespace NuGetGallery.Helpers
     {
         public static string ObfuscateRequestUrl(HttpContextBase httpContext, RouteCollection routes)
         {
-            if (httpContext == null || httpContext.Request == null || httpContext.Request.Url == null || routes == null)
+            if (httpContext?.Request?.Url == null || routes == null)
             {
                 return string.Empty;
             }
 
             var route = routes.GetRouteData(httpContext)?.Route as Route;
-            if (route == null)
-            {
-                return string.Empty;
-            }
-            return route.ObfuscateUrlPath(httpContext.Request.Url.AbsolutePath.TrimStart('/'));
+            return route == null ? string.Empty : route.ObfuscateUrlPath(httpContext.Request.Url.AbsolutePath.TrimStart('/'));
         }
     }
 }
