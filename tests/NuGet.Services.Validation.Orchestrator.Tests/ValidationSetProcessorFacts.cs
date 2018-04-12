@@ -297,7 +297,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             UseDefaultValidatorProvider();
             var validator = AddValidation("validation1", TimeSpan.FromDays(1));
-            
+
+
             IValidationRequest validationRequest = null;
             validator
                 .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
@@ -308,10 +309,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(ValidationResult.Incomplete);
 
             var processor = CreateProcessor();
+            var expectedEndOfAccessLower = DateTimeOffset.UtcNow.Add(Configuration.TimeoutValidationSetAfter);
+
             await processor.ProcessValidationsAsync(ValidationSet, Package);
+
+            var expectedEndOfAccessUpper = DateTimeOffset.UtcNow.Add(Configuration.TimeoutValidationSetAfter);
 
             validator
                 .Verify(v => v.GetResultAsync(It.IsAny<IValidationRequest>()), Times.AtLeastOnce());
+            PackageFileServiceMock
+                .Verify(s =>
+                    s.GetPackageForValidationSetReadUriAsync(
+                        ValidationSet,
+                        It.Is<DateTimeOffset>(actualEndOfAccess => actualEndOfAccess >= expectedEndOfAccessLower && actualEndOfAccess <= expectedEndOfAccessUpper)),
+                    Times.Once);
             Assert.NotNull(validationRequest);
             Assert.Contains(ValidationSet.ValidationTrackingId.ToString(), validationRequest.NupkgUrl);
             Assert.Contains(ValidationContainerName, validationRequest.NupkgUrl);
@@ -354,7 +365,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 Validations = new List<ValidationConfigurationItem>
                 {
-                }
+                },
+                TimeoutValidationSetAfter = TimeSpan.FromDays(5),
             };
             ConfigurationAccessorMock
                 .SetupGet(ca => ca.Value)
