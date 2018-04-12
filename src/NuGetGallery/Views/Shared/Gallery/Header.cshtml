@@ -91,7 +91,7 @@
                     </ul>
                     @if (ShowAuthInHeader)
                     {
-                        <ul class="nav navbar-nav navbar-right navbar-separated" role="tablist">
+                        <ul class="nav navbar-nav navbar-right" role="tablist">
                             @if (!User.Identity.IsAuthenticated)
                             {
                                 var returnUrl = ViewData.ContainsKey(Constants.ReturnUrlViewDataKey) ? (string)ViewData[Constants.ReturnUrlViewDataKey] : Request.RawUrl;
