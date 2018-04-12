@@ -54,6 +54,9 @@
             showErrors: function (errorMap, errorList) {
                 this.defaultShowErrors();
 
+                // By default, showErrors adds an aria-describedby attribute to every field that it validates, even if it finds no issues.
+                // This is a problem, because the aria-describedby attribute will then link to an empty element.
+                // This code removes the aria-describedby if the describing element is missing or empty.
                 var i;
                 for (i = 0; this.errorList[i]; i++) {
                     removeInvalidAriaDescribedBy(this.errorList[i].element);
