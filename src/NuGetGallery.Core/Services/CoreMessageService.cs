@@ -9,7 +9,7 @@ using AnglicanGeek.MarkdownMailer;
 
 namespace NuGetGallery.Services
 {
-    public class CoreMessageService : ICoreMessageService
+    public class CoreMessageService : ICoreMessageService<Package>
     {
         protected CoreMessageService()
         {

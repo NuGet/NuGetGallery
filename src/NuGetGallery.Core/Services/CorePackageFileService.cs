@@ -10,7 +10,7 @@ using NuGet.Versioning;
 
 namespace NuGetGallery
 {
-    public class CorePackageFileService : ICorePackageFileService
+    public class CorePackageFileService : ICorePackageFileService<Package>
     {
         private readonly ICoreFileStorageService _fileStorageService;
 

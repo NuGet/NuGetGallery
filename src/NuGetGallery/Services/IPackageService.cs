@@ -14,7 +14,7 @@ namespace NuGetGallery
     /// only used by the NuGet gallery, as opposed to the <see cref="CorePackageService"/> which is intended for other
     /// components.
     /// </summary>
-    public interface IPackageService : ICorePackageService
+    public interface IPackageService : ICorePackageService<Package>
     {
         PackageRegistration FindPackageRegistrationById(string id);
 
