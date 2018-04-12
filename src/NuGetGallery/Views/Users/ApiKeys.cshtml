@@ -7,9 +7,7 @@
 }
 
 <section role="main" class="container main-container page-api-keys">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)

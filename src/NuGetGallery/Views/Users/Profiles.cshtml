@@ -6,7 +6,7 @@
 }
 
 <section role="main" class="container main-container page-profile">
-    <section role="main" class="row">
+    <div class="row">
         <aside class="col-md-3 col-md-push-9 profile-details">
             @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, Constants.GravatarImageSizeLarge, responsive: true)
             <div class="statistics">
@@ -67,5 +67,5 @@
 
             @ViewHelpers.PreviousNextPager(Model.Pager)
         </article>
-    </section>
+    </div>
 </section>
