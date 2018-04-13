@@ -1123,7 +1123,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                     }
                 };
                 controller.SetCurrentUser(new User()
@@ -1159,7 +1159,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new2",
@@ -1200,7 +1200,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",
@@ -1249,7 +1249,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = false,
+                        DisablePasswordLogin = false,
                     }
                 };
 
@@ -1277,7 +1277,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",

@@ -645,7 +645,7 @@ namespace NuGetGallery
             }
             else
             {
-                if (!model.ChangePassword.EnablePasswordLogin)
+                if (model.ChangePassword.DisablePasswordLogin)
                 {
                     return await RemovePassword();
                 }
@@ -999,7 +999,7 @@ namespace NuGetGallery
                 .Sum(p => p.Value.Count);
 
             model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
-            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+            model.ChangePassword.DisablePasswordLogin = !model.HasPassword;
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)

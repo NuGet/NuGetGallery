@@ -10,8 +10,8 @@ namespace NuGetGallery
     public class ChangePasswordViewModel
     {
         [Required]
-        [Display(Name = "Enable Password Login")]
-        public bool EnablePasswordLogin { get; set; }
+        [Display(Name = "Disable Password Login")]
+        public bool DisablePasswordLogin { get; set; }
 
         [Required]
         [Display(Name = "Current Password")]
