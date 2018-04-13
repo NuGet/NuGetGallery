@@ -845,4 +845,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="Organizations_NotSupportedForAccount" xml:space="preserve">
     <value>Account '{0}' does not support organizations.</value>
   </data>
+  <data name="MultiFactorAuth_OrganizationCannotUpdate" xml:space="preserve">
+    <value>Organizations cannot enable/disable multi-factor authentication for the account.</value>
+  </data>
+  <data name="MultiFactorAuth_Updated" xml:space="preserve">
+    <value>Multi-factor authentication setting is updated.</value>
+  </data>
+  <data name="MutliFactorAuth_LoginUpdate" xml:space="preserve">
+    <value>We noticed you used multi-factor authentication for login. We have enabled your account to use multi-factor authentication going forward.</value>
+  </data>
 </root>

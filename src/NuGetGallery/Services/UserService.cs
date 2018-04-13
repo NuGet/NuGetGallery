@@ -376,6 +376,16 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
+        public async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
+        {
+            // Add auditing
+
+            user.EnableMultiFactorAuthentication = enableMultiFactor;
+            await UserRepository.CommitChangesAsync();
+
+            // add telemetry
+        }
+
         public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)
         {
             var results = await UserRepository.GetAll()

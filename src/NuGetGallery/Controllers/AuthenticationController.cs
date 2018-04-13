@@ -530,6 +530,16 @@ namespace NuGetGallery
 
                 // Create session
                 await _authService.CreateSessionAsync(OwinContext, result.Authentication);
+
+                // Update the 2FA if used during login but user does not have it set on their account.
+                if (result.LoginDetails.WasMultiFactorAuthenticated 
+                    && !result.Authentication.User.EnableMultiFactorAuthentication)
+                {
+                    await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
+
+                    TempData["Message"] = Strings.MutliFactorAuth_LoginUpdate;
+                }
+
                 return SafeRedirect(returnUrl);
             }
             else

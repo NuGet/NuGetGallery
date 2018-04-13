@@ -1013,11 +1013,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Organizations cannot enable/disable multi-factor authentication for the account..
+        /// </summary>
+        public static string MultiFactorAuth_OrganizationCannotUpdate {
+            get {
+                return ResourceManager.GetString("MultiFactorAuth_OrganizationCannotUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multi-factor authentication setting is updated..
+        /// </summary>
+        public static string MultiFactorAuth_Updated {
+            get {
+                return ResourceManager.GetString("MultiFactorAuth_Updated", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
         /// </summary>
         public static string MultipleMatchingCredentials {
             get {
                 return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We noticed you used multi-factor authentication for login. We have enabled your account to use multi-factor authentication going forward..
+        /// </summary>
+        public static string MutliFactorAuth_LoginUpdate {
+            get {
+                return ResourceManager.GetString("MutliFactorAuth_LoginUpdate", resourceCulture);
             }
         }
         

@@ -186,6 +186,24 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(TAccountViewModel model)
+        {
+            var account = GetAccount(model.AccountName);
+
+            if (model.IsOrganization)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, Strings.MultiFactorAuth_OrganizationCannotUpdate);
+            }
+
+            await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor: model.EnableMultiFactorAuthentication);
+
+            TempData["Message"] = Strings.MultiFactorAuth_Updated;
+            return RedirectToAction(AccountAction);
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(TAccountViewModel model)
         {
             var account = GetAccount(model.AccountName);
@@ -304,10 +322,11 @@ namespace NuGetGallery
                 .Select(f => f.Name)
                 .ToList();
 
-            model.HasPassword = account.Credentials.Any(c => c.Type.StartsWith(CredentialTypes.Password.Prefix));
+            model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;
             model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(account.EmailAddress);
             model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(account.UnconfirmedEmailAddress);
+            model.EnableMultiFactorAuthentication = account.EnableMultiFactorAuthentication;
 
             model.ChangeEmail = new ChangeEmailViewModel();
 
