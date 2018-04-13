@@ -202,3 +202,4 @@ Results.*.xml
 /tests/packages
 /tests/CatalogMetadataTests/CatalogMetadataTests.nuget.props
 *.lock.json
+/src/V3PerPackage/Settings.json
