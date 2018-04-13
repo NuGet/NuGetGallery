@@ -9,15 +9,11 @@
         <div class="col-md-12">
             <div class="breadcrumb-menu">
                 <div>
-                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, false, @<text>Organizations</text>)
-                </div>
-                <div>
-                    @if (Model.Organizations.Any())
-                    {
-                        <form action="@Url.AddOrganization()">
-                            <input type="submit" class="btn btn-primary" value="Add new" />
-                        </form>
-                    }
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false, 
+                        @<text>Organizations&nbsp;<span aria-hidden="true" class="ms-font-xxl organizations-divider">|</span>&nbsp;<a href="@Url.AddOrganization()">Add new</a></text>)
                 </div>
             </div>
             <hr class="breadcrumb-divider"/>

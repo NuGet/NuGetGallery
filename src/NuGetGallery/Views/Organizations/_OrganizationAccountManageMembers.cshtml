@@ -51,7 +51,7 @@
                 <div data-bind="template: 'error-container'"></div>
             }
             <div class="member-item" data-bind="foreach: Members">
-                <hr />
+                <hr data-bind="visible: $index()" />
                 <div class="row">
                     <div class="col-xs-1 hidden-xs">
                         <img data-bind="attr: { src: GravatarUrl, title: Username }" class="owner-image" alt="gravatar"

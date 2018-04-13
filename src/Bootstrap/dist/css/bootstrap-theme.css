@@ -1129,6 +1129,9 @@ img.reserved-indicator-icon {
 .page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
   text-decoration: none;
 }
+.page-manage-packages .organizations-divider {
+  color: #dbdbdb;
+}
 .page-manage-packages h1 {
   margin-bottom: 0;
 }
