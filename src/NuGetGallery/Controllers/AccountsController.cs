@@ -258,14 +258,12 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
-            if (string.IsNullOrWhiteSpace(account.UnconfirmedEmailAddress))
+            if (!string.IsNullOrWhiteSpace(account.UnconfirmedEmailAddress))
             {
-                return RedirectToAction(AccountAction);
+                await UserService.CancelChangeEmailAddress(account);
+
+                TempData["Message"] = Messages.EmailUpdateCancelled;
             }
-
-            await UserService.CancelChangeEmailAddress(account);
-
-            TempData["Message"] = Messages.EmailUpdateCancelled;
 
             return RedirectToAction(AccountAction);
         }

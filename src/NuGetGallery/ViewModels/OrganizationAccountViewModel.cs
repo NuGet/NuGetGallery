@@ -10,5 +10,7 @@ namespace NuGetGallery
         public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
 
         public bool RequiresTenant { get; set; }
+
+        public bool CanManageMemberships { get; set; }
     }
 }
