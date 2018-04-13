@@ -33,10 +33,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
                            var propertyType = p.PropertyType;
                            var propertyValue = p.GetValue(_config.Current);
 
-                           if (propertyValue != null && p.Name.ToLowerInvariant().Contains("connectionstring"))
+                           var sensitiveNames = new[]
                            {
+                               "connectionstring",
+                               "accesskey",
+                               "secretkey"
+                           };
+
+                           if (propertyValue != null && sensitiveNames.Any(x=> p.Name.ToLowerInvariant().Contains(x)))
                                propertyValue = new string('*', 10);
-                           }
 
                            return Tuple.Create(propertyType, propertyValue);
                        });

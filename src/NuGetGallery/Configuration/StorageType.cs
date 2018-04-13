@@ -6,6 +6,7 @@ namespace NuGetGallery.Configuration
     {
         NotSpecified = 0,
         FileSystem,
-        AzureStorage
+        AzureStorage,
+        AwsS3Storage
     }
 }
