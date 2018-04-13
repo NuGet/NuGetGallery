@@ -19,9 +19,28 @@
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @{ 
+                var membership = (Model.Account as Organization).GetMembershipOfUser(CurrentUser);
+                if (membership == null)
+                {
+                    <p>You are not a member of this organization.</p>
+                }
+                else
+                {
+                    if (membership.IsAdmin)
+                    {
+                        <p>You are an administrator of this organization.</p>
+                    }
+                    else
+                    {
+                        <p>You are a collaborator of this organization.</p>
+                    }
+                }
+            }
+
             @if (!Model.CanManage)
             {
-                @ViewHelpers.AlertInfo(@<text>You are a collaborator of this organization. Only administrators can make changes.</text>);
+                @ViewHelpers.AlertInfo(@<text>You must be an administrator of this organization to make changes to its email settings and profile picture.</text>)
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
