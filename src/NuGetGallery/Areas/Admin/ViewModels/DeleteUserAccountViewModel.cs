@@ -7,9 +7,11 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class DeleteUserAccountViewModel
     {
+        /// <summary>
+        /// This constructor exists so that we can have a form that uses this model.
+        /// </summary>
         public DeleteUserAccountViewModel()
         {
-            // This constructor exists so that we can have a form that uses this model.
             ShouldUnlist = true;
         }
 
