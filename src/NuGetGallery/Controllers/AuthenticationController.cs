@@ -166,7 +166,7 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-            
+
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
@@ -523,8 +523,8 @@ namespace NuGetGallery
                 {
                     // Invoke the authentication again enforcing multi-factor authentication for the same provider.
                     return ChallengeAuthentication(
-                        Url.LinkExternalAccount(returnUrl), 
-                        result.Authenticator.Name, 
+                        Url.LinkExternalAccount(returnUrl),
+                        result.Authenticator.Name,
                         new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
                 }
 
@@ -532,7 +532,8 @@ namespace NuGetGallery
                 await _authService.CreateSessionAsync(OwinContext, result.Authentication);
 
                 // Update the 2FA if used during login but user does not have it set on their account.
-                if (result.LoginDetails.WasMultiFactorAuthenticated 
+                if (result?.LoginDetails != null
+                    && result.LoginDetails.WasMultiFactorAuthenticated
                     && !result.Authentication.User.EnableMultiFactorAuthentication)
                 {
                     await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);

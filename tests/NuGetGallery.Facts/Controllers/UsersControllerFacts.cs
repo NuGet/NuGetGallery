@@ -1249,7 +1249,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        DisablePasswordLogin = false,
+                        DisablePasswordLogin = true,
                     }
                 };
 
