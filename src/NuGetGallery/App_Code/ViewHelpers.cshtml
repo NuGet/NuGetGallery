@@ -455,7 +455,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper AjaxAntiForgeryToken(System.Web.Mvc.HtmlHelper html)
 {
-    <form id="AntiForgeryForm">
+    <form aria-hidden="true" id="AntiForgeryForm">
         @html.AntiForgeryToken()
     </form>
 }
@@ -537,7 +537,7 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
                 @if (!disabled)
                 {
                     <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-                        aria-expanded="@expanded" aria-controls="@id-container" id="show-@id-container">
+                        aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
                         <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
                             aria-hidden="@(expanded ? "false" : "true")"></i>
                         <span>@title(MvcHtmlString.Empty)</span>
