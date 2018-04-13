@@ -214,12 +214,16 @@ namespace NuGetGallery
                     IsAdmin = request.IsAdmin
                 };
                 organization.Members.Add(membership);
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.AddOrganizationMember, membership));
             }
             else
             {
                 // If the user is already a member, update the existing membership.
                 // If the request grants admin but this member is not an admin, grant admin to the member.
                 membership.IsAdmin = membership.IsAdmin || request.IsAdmin;
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.UpdateOrganizationMember, membership));
             }
 
             await EntitiesContext.SaveChangesAsync();
@@ -247,6 +251,9 @@ namespace NuGetGallery
                 }
 
                 membership.IsAdmin = isAdmin;
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.UpdateOrganizationMember, membership));
+
                 await EntitiesContext.SaveChangesAsync();
             }
 
@@ -273,6 +280,9 @@ namespace NuGetGallery
             }
 
             organization.Members.Remove(membership);
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.RemoveOrganizationMember, membership));
+
             await EntitiesContext.SaveChangesAsync();
 
             return memberToRemove;
@@ -492,7 +502,9 @@ namespace NuGetGallery
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
-            
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization));
+
             return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
         }
 
@@ -537,6 +549,8 @@ namespace NuGetGallery
             OrganizationRepository.InsertOnCommit(organization);
 
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(organization, adminUser, commitChanges: false);
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.AddOrganization));
 
             await EntitiesContext.SaveChangesAsync();
 

@@ -17,6 +17,8 @@ namespace NuGetGallery.Auditing
         public CredentialAuditRecord[] Credentials { get; }
         public CredentialAuditRecord[] AffectedCredential { get; }
         public string AffectedEmailAddress { get; }
+        public string AffectedMemberUsername { get; }
+        public bool AffectedMemberIsAdmin { get; }
 
         /// <summary>
         /// Subset of user policies affected by the action (subscription / unsubscription).
@@ -24,16 +26,6 @@ namespace NuGetGallery.Auditing
         public AuditedUserSecurityPolicy[] AffectedPolicies { get; }
 
         public UserAuditRecord(User user, AuditedUserAction action)
-            : this(user, action, Enumerable.Empty<Credential>())
-        {
-        }
-
-        public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
-            : this(user, action, SingleEnumerable(affected))
-        {
-        }
-
-        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected)
             : base(action)
         {
             if (user == null)
@@ -45,25 +37,40 @@ namespace NuGetGallery.Auditing
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
             Roles = user.Roles.Select(r => r.Name).ToArray();
+
             Credentials = user.Credentials.Where(CredentialTypes.IsSupportedCredential)
                                           .Select(c => new CredentialAuditRecord(c, removed: false)).ToArray();
 
-            if (affected != null)
-            {
-                AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, action == AuditedUserAction.RemoveCredential)).ToArray();
-            }
-
-            Action = action;
+            AffectedCredential = new CredentialAuditRecord[0];
+            AffectedPolicies = new AuditedUserSecurityPolicy[0];
         }
-        
+
+        public UserAuditRecord(User user, AuditedUserAction action, Credential affected)
+            : this(user, action, new[] { affected })
+        {
+        }
+
+        public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<Credential> affected)
+            : this(user, action)
+        {
+            AffectedCredential = affected.Select(c => new CredentialAuditRecord(c, action == AuditedUserAction.RemoveCredential)).ToArray();
+        }
+
         public UserAuditRecord(User user, AuditedUserAction action, string affectedEmailAddress)
-            : this(user, action, Enumerable.Empty<Credential>())
+            : this(user, action)
         {
             AffectedEmailAddress = affectedEmailAddress;
         }
 
+        public UserAuditRecord(User user, AuditedUserAction action, Membership affectedMembership)
+            : this(user, action)
+        {
+            AffectedMemberUsername = affectedMembership.Member.Username;
+            AffectedMemberIsAdmin = affectedMembership.IsAdmin;
+        }
+
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> affectedPolicies)
-            : this(user, action, Enumerable.Empty<Credential>())
+            : this(user, action)
         {
             if (affectedPolicies == null || affectedPolicies.Count() == 0)
             {
@@ -76,11 +83,6 @@ namespace NuGetGallery.Auditing
         public override string GetPath()
         {
             return Username.ToLowerInvariant();
-        }
-
-        private static IEnumerable<Credential> SingleEnumerable(Credential affected)
-        {
-            yield return affected;
         }
     }
 }
