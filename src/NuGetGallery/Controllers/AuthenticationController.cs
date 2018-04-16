@@ -531,10 +531,11 @@ namespace NuGetGallery
                 // Create session
                 await _authService.CreateSessionAsync(OwinContext, result.Authentication);
 
-                // Update the 2FA if used during login but user does not have it set on their account.
+                // Update the 2FA if used during login but user does not have it set on their account. Only for personal microsoft accounts.
                 if (result?.LoginDetails != null
                     && result.LoginDetails.WasMultiFactorAuthenticated
-                    && !result.Authentication.User.EnableMultiFactorAuthentication)
+                    && !result.Authentication.User.EnableMultiFactorAuthentication
+                    && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                 {
                     await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
 

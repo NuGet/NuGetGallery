@@ -186,16 +186,11 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(TAccountViewModel model)
+        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(string accountName, bool enableMultiFactor)
         {
-            var account = GetAccount(model.AccountName);
+            var account = GetAccount(accountName);
 
-            if (model.IsOrganization)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest, Strings.MultiFactorAuth_OrganizationCannotUpdate);
-            }
-
-            await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor: model.EnableMultiFactorAuthentication);
+            await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor);
 
             TempData["Message"] = Strings.MultiFactorAuth_Updated;
             return RedirectToAction(AccountAction);

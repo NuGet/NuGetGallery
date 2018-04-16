@@ -78,6 +78,7 @@ namespace NuGetGallery
         public const string ConfirmAccount = "ConfirmAccount";
         public const string SigninAssistance = "SigninAssistance";
         public const string ChangeEmailSubscription = "ChangeEmailSubscription";
+        public const string ChangeMultiFactorAuthentication = "ChangeMultiFactorAuthentication";
         public const string ErrorReadOnly = "ErrorReadOnly";
         public const string Error500 = "Error500";
         public const string Error404 = "Error404";

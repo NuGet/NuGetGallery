@@ -288,6 +288,11 @@ namespace NuGetGallery
                 new { controller = "Users", action = "ChangeEmailSubscription" });
 
             routes.MapRoute(
+                RouteName.ChangeMultiFactorAuthentication,
+                "account/changeMultiFactorAuthentication",
+                new { controller = "Accounts", action = "ChangeMultiFactorAuthentication" });
+
+            routes.MapRoute(
                 RouteName.AdminDeleteAccount,
                 "account/delete/{accountName}",
                 new { controller = "Users", action = "Delete" },
