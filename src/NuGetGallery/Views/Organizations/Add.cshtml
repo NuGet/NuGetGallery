@@ -17,7 +17,7 @@
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.OrganizationsBreadcrumb(Url, CurrentUser, true, @<text>Add</text>)
-            <p class="text-center">
+            <p>
                 Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439">Learn more.</a>
             </p>
             @if (errorMessage != null)
@@ -41,15 +41,15 @@
                         <div class="form-group @Html.HasErrorFor(m => m.OrganizationName)" id="@organizationNameTextGroupId">
                             @Html.ShowLabelFor(m => m.OrganizationName)
                             @Html.ShowTextBoxFor(m => m.OrganizationName)
-                            @Html.ShowValidationMessagesFor(m => m.OrganizationName)
                             <span class="ms-font-s">This will be your organization account on <i id="@organizationNameTextId">@Url.User("{username}", relativeUrl: false)</i>.</span>
+                            @Html.ShowValidationMessagesFor(m => m.OrganizationName)
                         </div>
 
                         <div class="form-group @Html.HasErrorFor(m => m.OrganizationEmailAddress)" id="@emailBoxGroupId">
                             @Html.ShowLabelFor(m => m.OrganizationEmailAddress)
                             @Html.ShowTextBoxFor(m => m.OrganizationEmailAddress)
-                            @Html.ShowValidationMessagesFor(m => m.OrganizationEmailAddress)
                             <span class="ms-font-s">Users can contact your organization at this email address.</span>
+                            @Html.ShowValidationMessagesFor(m => m.OrganizationEmailAddress)
                         </div>
 
                         <div class="form-group row">
