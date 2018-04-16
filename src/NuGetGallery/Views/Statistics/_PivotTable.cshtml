@@ -23,7 +23,7 @@
 
 <script type="text/html" id="report-template">
     <div class="row">
-        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12 page-subheading">
+        <div data-bind="if: $data && LastUpdatedUtc" class="last-updated col-xs-12">
             <span data-bind="text: 'Statistics last updated at ' + moment(LastUpdatedUtc).format('YYYY-MM-DD HH:mm:ss') + ' UTC.'"></span>
         </div>
     </div>

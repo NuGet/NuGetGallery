@@ -8,9 +8,7 @@
 }
 
 <section role="main" class="container main-container page-manage-organizations">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="col-md-12">
             @ViewHelpers.OrganizationsBreadcrumb(
