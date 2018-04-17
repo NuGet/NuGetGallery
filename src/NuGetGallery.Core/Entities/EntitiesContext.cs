@@ -254,7 +254,7 @@ namespace NuGetGallery
                 .HasForeignKey(pt => pt.PackageKey);
 
             modelBuilder.Entity<Package>()
-                .HasOptional(p => p.UserCertificate);
+                .HasOptional(p => p.Certificate);
 
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);

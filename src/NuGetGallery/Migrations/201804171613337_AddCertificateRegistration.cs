@@ -24,10 +24,10 @@ namespace NuGetGallery.Migrations
             
             AddColumn("dbo.Certificates", "Sha1Thumbprint", c => c.String(maxLength: 40, unicode: false));
             AddColumn("dbo.PackageRegistrations", "RequiredSignerKey", c => c.Int());
-            AddColumn("dbo.Packages", "UserCertificateKey", c => c.Int());
+            AddColumn("dbo.Packages", "CertificateKey", c => c.Int());
             CreateIndex("dbo.PackageRegistrations", "RequiredSignerKey");
-            CreateIndex("dbo.Packages", "UserCertificateKey");
-            AddForeignKey("dbo.Packages", "UserCertificateKey", "dbo.UserCertificates", "Key");
+            CreateIndex("dbo.Packages", "CertificateKey");
+            AddForeignKey("dbo.Packages", "CertificateKey", "dbo.Certificates", "Key");
             AddForeignKey("dbo.PackageRegistrations", "RequiredSignerKey", "dbo.Users", "Key");
         }
         
@@ -36,12 +36,12 @@ namespace NuGetGallery.Migrations
             DropForeignKey("dbo.UserCertificates", "CertificateKey", "dbo.Certificates");
             DropForeignKey("dbo.UserCertificates", "UserKey", "dbo.Users");
             DropForeignKey("dbo.PackageRegistrations", "RequiredSignerKey", "dbo.Users");
-            DropForeignKey("dbo.Packages", "UserCertificateKey", "dbo.UserCertificates");
-            DropIndex("dbo.Packages", new[] { "UserCertificateKey" });
+            DropForeignKey("dbo.Packages", "CertificateKey", "dbo.Certificates");
+            DropIndex("dbo.Packages", new[] { "CertificateKey" });
             DropIndex("dbo.PackageRegistrations", new[] { "RequiredSignerKey" });
             DropIndex("dbo.UserCertificates", new[] { "UserKey" });
             DropIndex("dbo.UserCertificates", new[] { "CertificateKey" });
-            DropColumn("dbo.Packages", "UserCertificateKey");
+            DropColumn("dbo.Packages", "CertificateKey");
             DropColumn("dbo.PackageRegistrations", "RequiredSignerKey");
             DropColumn("dbo.Certificates", "Sha1Thumbprint");
             DropTable("dbo.UserCertificates");

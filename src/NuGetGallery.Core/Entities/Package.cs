@@ -227,11 +227,11 @@ namespace NuGetGallery
         /// <summary>
         /// Gets or sets the foreign key of the certificate used to sign the package.
         /// </summary>
-        public int? UserCertificateKey { get; set; }
+        public int? CertificateKey { get; set; }
 
         /// <summary>
         /// Gets or sets the certificate used to sign the package.
         /// </summary>
-        public virtual UserCertificate UserCertificate { get; set; }
+        public virtual Certificate Certificate { get; set; }
     }
 }
