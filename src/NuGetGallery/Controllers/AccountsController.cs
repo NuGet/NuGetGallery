@@ -29,6 +29,8 @@ namespace NuGetGallery
 
         public ICuratedFeedService CuratedFeedService { get; }
 
+        public IPackageService PackageService { get; }
+
         public IMessageService MessageService { get; }
 
         public IUserService UserService { get; }
@@ -36,11 +38,13 @@ namespace NuGetGallery
         public AccountsController(
             AuthenticationService authenticationService,
             ICuratedFeedService curatedFeedService,
+            IPackageService packageService,
             IMessageService messageService,
             IUserService userService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
+            PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
@@ -265,6 +269,30 @@ namespace NuGetGallery
 
             return RedirectToAction(AccountAction);
         }
+        
+        [HttpGet]
+        [UIAuthorize]
+        public virtual ActionResult DeleteRequest(string accountName = null)
+        {
+            var accountToDelete = GetAccount(accountName);
+
+            if (accountToDelete == null || accountToDelete.IsDeleted)
+            {
+                return HttpNotFound("User not found.");
+            }
+
+            if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), accountToDelete)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+            }
+
+            return View("DeleteAccount", GetDeleteAccountViewModel(accountToDelete));
+        }
+
+        protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
+        
+        public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
 
         protected virtual TUser GetAccount(string accountName)
         {

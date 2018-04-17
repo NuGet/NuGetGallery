@@ -5,20 +5,29 @@ using System.ComponentModel.DataAnnotations;
 
 namespace NuGetGallery.Areas.Admin.ViewModels
 {
-    public class DeleteUserAccountViewModel : DeleteAccountViewModel
+    public class DeleteAccountAsAdminViewModel
     {
-        public DeleteUserAccountViewModel()
+        public DeleteAccountAsAdminViewModel()
         {
             ShouldUnlist = true;
         }
+
+        public DeleteAccountAsAdminViewModel(IDeleteAccountViewModel model)
+        {
+            AccountName = model.AccountName;
+            HasOrphanPackages = model.HasOrphanPackages;
+        }
+
+        public string AccountName { get; set; }
 
         [Required(ErrorMessage = "Please sign using your name.")]
         [StringLength(1000)]
         [Display(Name = "Signature")]
         public string Signature { get; set; }
 
-        [Display(Name = "Unlist the packages with no other owners.")]
+        [Display(Name = "Unlist any orphaned packages.")]
         public bool ShouldUnlist { get; set; }
-    }
 
+        public bool HasOrphanPackages { get; set; }
+    }
 }

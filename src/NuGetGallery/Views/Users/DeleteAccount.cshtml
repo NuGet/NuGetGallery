@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery
-@model NuGetGallery.DeleteAccountViewModel
+@model NuGetGallery.DeleteUserViewModel
 @{
     ViewBag.Title = "Delete Account " + Model.AccountName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -11,7 +11,7 @@
         <div class="form-group package-controls">
             <h1 class="text-center">Delete Account</h1>
             <div class="text-center ms-font-xxl">
-                <a href="@Url.User(@Model.User)">@Model.AccountName</a>
+                <a href="@Url.User(@Model.Account)">@Model.AccountName</a>
             </div>
             @if ((TempData["RequestFailedMessage"] != null))
             {
@@ -51,7 +51,7 @@
                         If you choose to proceed without fixing this issue, someone from the NuGet team may reach out and work with you to find a resolution.
                     </p>
                     <div class="form-group">
-                        @Html.Partial("_UserPackagesListForDeletedAccount", new DeleteAccountPackagesListViewModel(Model.User, Model.Packages))
+                        @Html.Partial("_UserPackagesListForDeletedAccount", Model)
                     </div>
                     <div class="form-group danger-zone">
                         <text>

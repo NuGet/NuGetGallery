@@ -17,8 +17,6 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
-        public IPackageService PackageService { get; }
-
         public IDeleteAccountService DeleteAccountService { get; }
 
         public OrganizationsController(
@@ -28,9 +26,8 @@ namespace NuGetGallery
             IUserService userService,
             IPackageService packageService,
             IDeleteAccountService deleteAccountService)
-            : base(authService, curatedFeedService, messageService, userService)
+            : base(authService, curatedFeedService, packageService, messageService, userService)
         {
-            PackageService = packageService;
             DeleteAccountService = deleteAccountService;
         }
 
@@ -274,39 +271,15 @@ namespace NuGetGallery
             }
         }
 
-        [HttpGet]
-        [UIAuthorize]
-        public virtual ActionResult Delete(string accountName)
+        protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)
         {
-            var account = GetAccount(accountName);
-            var currentUser = GetCurrentUser();
-
-            if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
-                    != PermissionsCheckResult.Allowed)
-            {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
-            }
-
-            var listPackageItems = PackageService
-                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, currentUser))
-                 .ToList();
-
-            var model = new DeleteOrganizationViewModel()
-            {
-                Packages = listPackageItems,
-                Organization = account,
-                AccountName = account.Username
-            };
-
-            return View(model);
+            return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         [UIAuthorize]
-        public virtual async Task<ActionResult> ConfirmDelete(string accountName)
+        public override async Task<ActionResult> RequestAccountDeletion(string accountName = null)
         {
             var account = GetAccount(accountName);
             var currentUser = GetCurrentUser();
@@ -317,24 +290,21 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound);
             }
-
-            var listPackageItems = PackageService
-                 .FindPackagesByAnyMatchingOwner(account, includeUnlisted: true)
-                 .Select(p => new ListPackageItemViewModel(p, currentUser))
-                 .ToList();
-
-            var model = new DeleteOrganizationViewModel()
-            {
-                Packages = listPackageItems,
-                Organization = account,
-                AccountName = currentUser.Username
-            };
+            
+            var model = GetDeleteAccountViewModel(account);
 
             if (model.HasOrphanPackages)
             {
                 TempData["ErrorMessage"] = "You cannot delete your organization unless you transfer ownership of all of its packages to another account.";
 
-                return RedirectToAction(nameof(Delete));
+                return RedirectToAction(nameof(DeleteRequest));
+            }
+
+            if (model.Account.Members.Count() > 1)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your organization unless you remove all other members.";
+
+                return RedirectToAction(nameof(DeleteRequest));
             }
 
             var result = await DeleteAccountService.DeleteGalleryOrganizationAccountAsync(account, currentUser, true);

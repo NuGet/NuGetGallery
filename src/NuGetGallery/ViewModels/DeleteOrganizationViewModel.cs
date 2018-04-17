@@ -1,33 +1,26 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace NuGetGallery
 {
-    public class DeleteOrganizationViewModel
+    public class DeleteOrganizationViewModel : DeleteAccountViewModel<Organization>
     {
-        private Lazy<bool> _hasOrphanPackages;
-
-        public DeleteOrganizationViewModel()
+        public DeleteOrganizationViewModel(
+            Organization organizationToDelete, 
+            User currentUser, 
+            IPackageService packageService)
+            : base(organizationToDelete, currentUser, packageService, p => p.HasSingleOrganizationOwner)
         {
-            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(p => p.HasSingleOrganizationOwner));
+            AdditionalMembers = organizationToDelete.Members
+                .Where(m => !m.Member.MatchesUser(currentUser))
+                .Select(m => new OrganizationMemberViewModel(m));
         }
+        
+        public IEnumerable<OrganizationMemberViewModel> AdditionalMembers { get; set; }
 
-        public List<ListPackageItemViewModel> Packages { get; set; }
-
-        public Organization Organization { get; set; }
-
-        public string AccountName { get; set; }
-
-        public bool HasOrphanPackages
-        {
-            get
-            {
-                return Packages == null ? false : _hasOrphanPackages.Value;
-            }
-        }
+        public bool HasAdditionalMembers => AdditionalMembers.Any();
     }
 }

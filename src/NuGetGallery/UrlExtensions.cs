@@ -884,7 +884,7 @@ namespace NuGetGallery
         public static string DeleteOrganization(this UrlHelper url, string accountName, bool relativeUrl = true)
         {
             return GetActionLink(url,
-                "Delete",
+                "DeleteRequest",
                 "Organizations",
                 relativeUrl,
                 routeValues: new RouteValueDictionary

@@ -22,7 +22,6 @@ namespace NuGetGallery
         /// <param name="signature">The admin signature.</param>
         /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
         /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        /// <returns></returns>
         Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction);
 
         /// <summary>
@@ -35,7 +34,6 @@ namespace NuGetGallery
         /// <param name="userToBeDeleted">The user to be deleted.</param>
         /// <param name="requestingUser">The user that requested the delete action.</param>
         /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        /// <returns></returns>
         Task<DeleteUserAccountStatus> DeleteGalleryOrganizationAccountAsync(Organization organizationToBeDeleted, User requestingUser, bool commitAsTransaction);
     }
 }

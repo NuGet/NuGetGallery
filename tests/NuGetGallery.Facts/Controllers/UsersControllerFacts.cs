@@ -2075,11 +2075,11 @@ namespace NuGetGallery
                     .Returns(userPackages);
 
                 // act
-                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+                var model = ResultAssert.IsView<DeleteUserViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
+                Assert.Equal(1, model.Packages.Count());
             }
         }
 
@@ -2141,13 +2141,13 @@ namespace NuGetGallery
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
-                var model = (DeleteAccountViewModel)result.Model;
+                var model = (DeleteUserViewModel)result.Model;
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
-                Assert.Equal<bool>(true, model.HasOrphanPackages);
-                Assert.Equal<bool>(withPendingIssues, model.HasPendingRequests);
+                Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
 

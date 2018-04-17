@@ -1,7 +1,8 @@
-﻿@model DeleteAccountPackagesListViewModel
-@{ 
-    var hasSingleOwnerMessage = Model.IsOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account deletion, this package will not have any owners.";
-    var hasMultipleOwnersMessage = Model.IsOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account deletion, this package will still have at least one owner.";
+﻿@model DeleteAccountViewModel
+@{
+    var isOrganization = Model.User is Organization;
+    var hasSingleOwnerMessage = isOrganization ? "You must transfer ownership of this package before you can delete your organization." : "After account deletion, this package will not have any owners.";
+    var hasMultipleOwnersMessage = isOrganization ? "You do not need to transfer ownership of this package before you can delete your organization." : "After account deletion, this package will still have at least one owner.";
 }
 
 <div class="row user-package-list align-left">
@@ -17,7 +18,7 @@
                             <th>Owners</th>
                             <th>Downloads</th>
                             <th>Latest Version</th>
-                            <th></th>
+                            <th class="hidden-xs"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -25,7 +26,7 @@
                     {
                         <tr class="manage-package-listing">
                             <td class="align-middle ">
-                                @if (Model.IsOrganization ? package.HasSingleOrganizationOwner : package.HasSingleUserOwner)
+                                @if (isOrganization ? package.HasSingleOrganizationOwner : package.HasSingleUserOwner)
                                 {
                                     <i class="ms-Icon ms-Icon--StatusErrorFull red-check" title="@hasSingleOwnerMessage"></i>
                                 }

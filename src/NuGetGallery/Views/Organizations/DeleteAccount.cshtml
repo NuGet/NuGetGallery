@@ -1,5 +1,4 @@
-﻿@using NuGetGallery
-@model NuGetGallery.DeleteOrganizationViewModel
+﻿@model DeleteOrganizationViewModel
 @{
     ViewBag.Title = "Delete Organization " + Model.AccountName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -11,11 +10,11 @@
         <div class="form-group package-controls">
             <h1 class="text-center">Delete Organization</h1>
             <div class="text-center ms-font-xxl">
-                <a href="@Url.User(@Model.Organization)">@Model.AccountName</a>
+                <a href="@Url.User(@Model.Account)">@Model.AccountName</a>
             </div>
             @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
-            Once your organization is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
-            </text>)
+                Once your organization is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+                </text>)
             <p>
                 When your organization is deleted we will<br />
                 <ul>
@@ -24,18 +23,29 @@
                     <li>Not delete the NuGet packages associated with the organization.</li>
                 </ul>
             </p>
-            @if (Model.HasOrphanPackages)
+            @if (Model.HasOrphanPackages || Model.HasAdditionalMembers)
             {
-                <p>
-                    Before deleting your organization, you must transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
-                </p>
-                @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", new DeleteAccountPackagesListViewModel(Model.Organization, Model.Packages))
+                if (Model.HasOrphanPackages)
+                {
+                    <p>
+                        Before deleting your organization, you must transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
+                    </p>
+                    @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", Model)
+                }
+
+                if (Model.HasAdditionalMembers)
+                {
+                    <p>
+                        Before deleting your organization, you must remove any other members from it using the <a href="@Url.ManageMyOrganization(Model.AccountName)">manage organization</a> page.
+                    </p>
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model)
+                }
             }
             else
             {
                 <div class="form-group danger-zone">
                     <text>
-                        @using (Html.BeginForm("ConfirmDelete", "Organizations", FormMethod.Post, new { id = "delete-organization" }))
+                        @using (Html.BeginForm("RequestAccountDeletion", "Organizations", FormMethod.Post, new { id = "delete-organization" }))
                         {
                             @Html.AntiForgeryToken()
                             <p>
