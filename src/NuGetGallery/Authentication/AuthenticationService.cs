@@ -268,9 +268,9 @@ namespace NuGetGallery.Authentication
                 ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.ExternalLogin);
             }
 
-            if (!user.User.EnableMultiFactorAuthentication)
+            if (user.User.EnableMultiFactorAuthentication)
             {
-                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.DisabledMultiFactorAuthentication);
+                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.EnabledMultiFactorAuthentication);
             }
 
             return claims.ToArray();

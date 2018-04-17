@@ -538,7 +538,7 @@ namespace NuGetGallery
                     && CredentialTypes.IsMicrosoftAccount(result.Credential.Type))
                 {
                     await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
-
+                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
                     TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
                 }
 

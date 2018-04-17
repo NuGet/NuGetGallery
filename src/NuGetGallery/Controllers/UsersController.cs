@@ -692,8 +692,13 @@ namespace NuGetGallery
 
                 if (enableMultiFactor)
                 {
-                    // Remove the claim from login to remove warning indicators.
-                    OwinContext.RemoveClaim(NuGetClaims.DisabledMultiFactorAuthentication);
+                    // Add the claim to remove the warning indicators for 2FA.
+                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+                }
+                else
+                {
+                    // Remove the claim from login to show warning indicators for 2FA.
+                    OwinContext.RemoveClaim(NuGetClaims.EnabledMultiFactorAuthentication);
                 }
             }
 

@@ -483,21 +483,46 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// This method will add the claim to the OwinContext with default value and update the cookie with the updated claims
+        /// </summary>
+        /// <returns>True if successfully adds the claim to the context, false otherwise</returns>
+        public static bool AddClaim(this IOwinContext self, string claimType)
+        {
+            var responseGrantIdentity = self.Authentication?.AuthenticationResponseGrant?.Identity;
+            var authenticatedUserIdentity = self.Authentication?.User?.Identity;
+            var identity = responseGrantIdentity ?? authenticatedUserIdentity;
+            if (identity == null || !identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            if (identity.TryAddClaim(claimType))
+            {
+                // Update the cookies for the newly added claim
+                self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// This method will remove the claim from the OwinContext and update the cookie with the updated claims
         /// </summary>
         /// <returns>True if successfully removed the claim from context, false otherwise</returns>
         public static bool RemoveClaim(this IOwinContext self, string claimType)
         {
-            if (self.Request.User == null ||
-                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
+            var responseGrantIdentity = self.Authentication?.AuthenticationResponseGrant?.Identity;
+            var authenticatedUserIdentity = self.Authentication?.User?.Identity;
+            var identity = responseGrantIdentity ?? authenticatedUserIdentity;
+            if (identity == null || !identity.IsAuthenticated)
             {
                 return false;
             }
 
-            var identity = self.Authentication?.User?.Identity;
-            if (identity != null && identity.TryRemoveClaim(claimType))
+            if (identity.TryRemoveClaim(claimType))
             {
-                // Update the cookies for the claim
+                // Update the cookies for the removed claim
                 self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
                 return true;
             }

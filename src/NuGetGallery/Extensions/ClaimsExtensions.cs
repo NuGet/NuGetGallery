@@ -58,5 +58,10 @@ namespace NuGetGallery
                 .Equals(BooleanClaimDefault, StringComparison.OrdinalIgnoreCase)
                 ?? false;
         }
+
+        public static Claim CreateBooleanClaim(string claimType)
+        {
+            return new Claim(claimType, BooleanClaimDefault);
+        }
     }
 }

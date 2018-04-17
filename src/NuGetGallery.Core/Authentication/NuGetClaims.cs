@@ -40,6 +40,6 @@ namespace NuGetGallery.Authentication
         /// <summary>
         /// The claim url for the claim that stores whether or not the usre has enabled multi-factor authentication.
         /// </summary>
-        public const string DisabledMultiFactorAuthentication = ClaimsDomain + "disabledmultifactorauthentication";
+        public const string EnabledMultiFactorAuthentication = ClaimsDomain + "enabledmultifactorauthentication";
     }
 }

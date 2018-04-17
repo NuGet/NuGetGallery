@@ -102,7 +102,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="self">Current user principal.</param>
         /// <returns>True if user has multi-factor authentication enabled, false otherwise.</returns>
-        public static bool HasMultiFactorAuthenticationDisabled(this IPrincipal self)
+        public static bool HasMultiFactorAuthenticationEnabled(this IPrincipal self)
         {
             if (self == null || self.Identity == null)
             {
@@ -110,7 +110,7 @@ namespace NuGetGallery
             }
 
             var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.DisabledMultiFactorAuthentication);
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication);
         }
 
         /// <summary>
@@ -186,6 +186,25 @@ namespace NuGetGallery
             if (claim != null)
             {
                 return claimsIdentity.TryRemoveClaim(claim);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Try to add a new default claim to the identity. It will not replace an existing claim.
+        /// </summary>
+        /// <param name="identity">IIdentity from which the claim is to be removed</param>
+        /// <param name="claimType">The claim type to be added</param>
+        /// <returns>True if successfully able to add the claim, false otherwise</returns>
+        public static bool TryAddClaim(this IIdentity identity, string claimType)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            var existingClaim = claimsIdentity?.FindFirst(claimType);
+            if (existingClaim == null)
+            {
+                claimsIdentity.AddClaim(ClaimsExtensions.CreateBooleanClaim(claimType));
+                return true;
             }
 
             return false;
