@@ -3,12 +3,10 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using NuGet.Services.Configuration;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing.IndexDirectoryProvider
@@ -32,12 +30,7 @@ namespace NuGet.Indexing.IndexDirectoryProvider
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Reload(config);
         }
 
@@ -72,13 +65,15 @@ namespace NuGet.Indexing.IndexDirectoryProvider
             _storageAccountConnectionString = newStorageAccountConnectionString;
             _indexContainerName = newIndexContainerName;
 
-            _logger.LogInformation(
-                "Recognized index configuration change. Reloading index with new settings. Storage Account Name = {StorageAccountName}, Container = {IndexContainerName}",
-                _storageAccountConnectionString, _indexContainerName);
-
-            var stopwatch = Stopwatch.StartNew();
+            _logger.LogInformation("Recognized index configuration change.");
 
             var storageAccount = CloudStorageAccount.Parse(_storageAccountConnectionString);
+
+            _logger.LogInformation(
+                "Reloading index with new settings. Storage Account Name = {StorageAccountName}, Container = {IndexContainerName}",
+                storageAccount, _indexContainerName);
+
+            var stopwatch = Stopwatch.StartNew();
 
             var sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName);
             _directory = new RAMDirectory(sourceDirectory); // Copy the directory from Azure storage to RAM.

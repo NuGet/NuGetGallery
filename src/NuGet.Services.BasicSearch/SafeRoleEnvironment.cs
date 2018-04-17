@@ -52,6 +52,16 @@ namespace NuGet.Services.BasicSearch
             return RoleEnvironment.GetConfigurationSettingValue(configurationSettingName);
         }
 
+        public static string GetDeploymentId()
+        {
+            if (IsAvailable)
+            {
+                return RoleEnvironment.DeploymentId;
+            }
+
+            return string.Empty;
+        }
+
         /// <summary>
         /// Loads and returns the latest available version of the service runtime assembly.
         /// </summary>

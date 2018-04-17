@@ -53,6 +53,7 @@ namespace NuGet.Services.BasicSearch
 
             // Add telemetry initializers
             TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryInitializer());
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
