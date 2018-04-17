@@ -51,7 +51,6 @@ namespace NuGetGallery
             OrganizationRequests = new List<MembershipRequest>();
             Roles = new List<Role>();
             Username = username;
-            UserCertificates = new List<UserCertificate>();
         }
 
         /// <summary>
@@ -131,11 +130,6 @@ namespace NuGetGallery
         public virtual ICollection<Credential> Credentials { get; set; }
 
         public virtual ICollection<UserSecurityPolicy> SecurityPolicies { get; set; }
-
-        /// <summary>
-        /// Gets or sets the collection of user certificates.
-        /// </summary>
-        public virtual ICollection<UserCertificate> UserCertificates { get; set; }
 
         public void ConfirmEmailAddress()
         {

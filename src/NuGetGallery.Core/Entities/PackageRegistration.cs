@@ -26,18 +26,6 @@ namespace NuGetGallery
 
         public bool IsLocked { get; set; }
 
-        /// <summary>
-        /// Gets or sets the foreign key of the required signer for new package version submissions.
-        /// </summary>
-        /// <remarks>If <c>null</c>, any owner may submit new package versions.</remarks>
-        public int? RequiredSignerKey { get; set; }
-
-        /// <summary>
-        /// Gets or sets the required signer for new package version submissions.
-        /// </summary>
-        /// <remarks>If <c>null</c>, any owner may submit new package versions.</remarks>
-        public virtual User RequiredSigner { get; set; }
-
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
