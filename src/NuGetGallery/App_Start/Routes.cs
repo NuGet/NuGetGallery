@@ -290,7 +290,7 @@ namespace NuGetGallery
             routes.MapRoute(
                 RouteName.ChangeMultiFactorAuthentication,
                 "account/changeMultiFactorAuthentication",
-                new { controller = "Accounts", action = "ChangeMultiFactorAuthentication" });
+                new { controller = "Users", action = "ChangeMultiFactorAuthentication" });
 
             routes.MapRoute(
                 RouteName.AdminDeleteAccount,

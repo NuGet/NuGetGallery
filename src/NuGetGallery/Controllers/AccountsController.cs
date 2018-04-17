@@ -186,19 +186,6 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(string accountName, bool enableMultiFactor)
-        {
-            var account = GetAccount(accountName);
-
-            await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor);
-
-            TempData["Message"] = Strings.MultiFactorAuth_Updated;
-            return RedirectToAction(AccountAction);
-        }
-
-        [HttpPost]
-        [UIAuthorize]
-        [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeEmail(TAccountViewModel model)
         {
             var account = GetAccount(model.AccountName);

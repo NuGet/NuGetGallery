@@ -1013,11 +1013,11 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Organizations cannot enable/disable multi-factor authentication for the account..
+        ///   Looks up a localized string similar to The account name is invalid..
         /// </summary>
-        public static string MultiFactorAuth_OrganizationCannotUpdate {
+        public static string MultiFactorAuth_InvalidAccount {
             get {
-                return ResourceManager.GetString("MultiFactorAuth_OrganizationCannotUpdate", resourceCulture);
+                return ResourceManager.GetString("MultiFactorAuth_InvalidAccount", resourceCulture);
             }
         }
         
@@ -1042,9 +1042,9 @@ namespace NuGetGallery {
         /// <summary>
         ///   Looks up a localized string similar to We noticed you used multi-factor authentication for login. We have enabled your account to use multi-factor authentication going forward..
         /// </summary>
-        public static string MutliFactorAuth_LoginUpdate {
+        public static string MultiFactorAuth_LoginUpdate {
             get {
-                return ResourceManager.GetString("MutliFactorAuth_LoginUpdate", resourceCulture);
+                return ResourceManager.GetString("MultiFactorAuth_LoginUpdate", resourceCulture);
             }
         }
         

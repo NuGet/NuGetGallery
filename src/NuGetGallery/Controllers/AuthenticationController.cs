@@ -539,7 +539,7 @@ namespace NuGetGallery
                 {
                     await _userService.ChangeMultiFactorAuthentication(result.Authentication.User, enableMultiFactor: true);
 
-                    TempData["Message"] = Strings.MutliFactorAuth_LoginUpdate;
+                    TempData["Message"] = Strings.MultiFactorAuth_LoginUpdate;
                 }
 
                 return SafeRedirect(returnUrl);
