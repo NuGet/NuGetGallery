@@ -686,7 +686,9 @@ namespace NuGetGallery
             else
             {
                 await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor);
-                TempData["Message"] = Strings.MultiFactorAuth_Updated;
+                TempData["Message"] = string.Format(
+                    enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
+                    _config.Brand);
             }
 
             return RedirectToAction(AccountAction);

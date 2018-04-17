@@ -848,10 +848,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="MultiFactorAuth_InvalidAccount" xml:space="preserve">
     <value>The account name is invalid.</value>
   </data>
-  <data name="MultiFactorAuth_Updated" xml:space="preserve">
-    <value>Multi-factor authentication setting is updated.</value>
+  <data name="MultiFactorAuth_Enabled" xml:space="preserve">
+    <value>Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}.</value>
   </data>
   <data name="MultiFactorAuth_LoginUpdate" xml:space="preserve">
     <value>We noticed you used multi-factor authentication for login. We have enabled your account to use multi-factor authentication going forward.</value>
+  </data>
+  <data name="MultiFactorAuth_Disabled" xml:space="preserve">
+    <value>Two-factor authentication has been disabled for your account. Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting.</value>
   </data>
 </root>
