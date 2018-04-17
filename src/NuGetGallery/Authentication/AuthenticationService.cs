@@ -236,7 +236,7 @@ namespace NuGetGallery.Authentication
         public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetDiscontinuedLoginClaims(user));
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetUserLoginClaims(user));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
@@ -247,7 +247,7 @@ namespace NuGetGallery.Authentication
                 new UserAuditRecord(user.User, AuditedUserAction.Login, user.CredentialUsed));
         }
 
-        private async Task<Claim[]> GetDiscontinuedLoginClaims(AuthenticatedUser user)
+        private async Task<Claim[]> GetUserLoginClaims(AuthenticatedUser user)
         {
             await _contentObjectService.Refresh();
 
@@ -266,6 +266,11 @@ namespace NuGetGallery.Authentication
             if (user.User.HasExternalCredential())
             {
                 ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.ExternalLogin);
+            }
+
+            if (!user.User.EnableMultiFactorAuthentication)
+            {
+                ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.DisabledMultiFactorAuthentication);
             }
 
             return claims.ToArray();

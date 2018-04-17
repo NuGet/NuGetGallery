@@ -1,5 +1,5 @@
 ﻿@{
-    var ShowWarningBanner = Config.Current.DeprecateNuGetPasswordLogins && User.HasPasswordLogin();
+    var ShowWarningIndicator = Config.Current.DeprecateNuGetPasswordLogins && (User.HasPasswordLogin() || User.HasMultiFactorAuthenticationDisabled());
     var ShowPasswordDeprecationBanner = TempData.ContainsKey("ShowPasswordDeprecationWarning")
         && Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])
         && Request.IsAuthenticated
@@ -104,7 +104,7 @@
                                     aria-selected="@(ViewBag.Tab == User.Identity.Name ? "true" : "false")" role="presentation">
                                     <a href="#" role="menuitem" id="account-dropdown" class="dropdown-toggle" title="Open profile dropdown" data-toggle="dropdown">
                                         <div>
-                                            @if (ShowWarningBanner)
+                                            @if (ShowWarningIndicator)
                                             {
                                                 <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
                                             }
@@ -133,7 +133,7 @@
                                         <li role="presentation">
                                             <a href="@Url.AccountSettings()" role="menuitem">
                                                 Account Settings
-                                                @if (ShowWarningBanner)
+                                                @if (ShowWarningIndicator)
                                                 {
                                                     <span class="ms-Icon ms-Icon--Warning warning-icon" aria-hidden="true"></span>
                                                 }

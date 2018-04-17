@@ -689,6 +689,12 @@ namespace NuGetGallery
                 TempData["Message"] = string.Format(
                     enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
                     _config.Brand);
+
+                if (enableMultiFactor)
+                {
+                    // Remove the claim from login to remove warning indicators.
+                    OwinContext.RemoveClaim(NuGetClaims.DisabledMultiFactorAuthentication);
+                }
             }
 
             return RedirectToAction(AccountAction);

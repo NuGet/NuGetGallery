@@ -494,7 +494,6 @@ namespace NuGetGallery
                 return false;
             }
 
-            // Clean up the claim upon password removal
             var identity = self.Authentication?.User?.Identity;
             if (identity != null && identity.TryRemoveClaim(claimType))
             {

@@ -98,6 +98,22 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Determine if the current user has multi-factor authentication enabled.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user has multi-factor authentication enabled, false otherwise.</returns>
+        public static bool HasMultiFactorAuthenticationDisabled(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.DisabledMultiFactorAuthentication);
+        }
+
+        /// <summary>
         /// Determine if the current user has an associated external credential.
         /// </summary>
         /// <param name="self">Current user principal.</param>

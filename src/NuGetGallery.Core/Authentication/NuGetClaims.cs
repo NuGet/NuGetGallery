@@ -36,5 +36,10 @@ namespace NuGetGallery.Authentication
         /// The claim url for the claim that stores whether or not the user has an external login.
         /// </summary>
         public const string ExternalLogin = ClaimsDomain + "externallogin";
+
+        /// <summary>
+        /// The claim url for the claim that stores whether or not the usre has enabled multi-factor authentication.
+        /// </summary>
+        public const string DisabledMultiFactorAuthentication = ClaimsDomain + "disabledmultifactorauthentication";
     }
 }
