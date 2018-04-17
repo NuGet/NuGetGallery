@@ -232,9 +232,6 @@ namespace NuGetGallery
                            .MapLeftKey("PackageRegistrationKey")
                            .MapRightKey("UserKey"));
 
-            modelBuilder.Entity<PackageRegistration>()
-                .HasOptional(pr => pr.RequiredSigner);
-
             modelBuilder.Entity<Package>()
                 .HasKey(p => p.Key);
 
@@ -252,10 +249,7 @@ namespace NuGetGallery
                 .HasMany<PackageType>(p => p.PackageTypes)
                 .WithRequired(pt => pt.Package)
                 .HasForeignKey(pt => pt.PackageKey);
-
-            modelBuilder.Entity<Package>()
-                .HasOptional(p => p.Certificate);
-
+            
             modelBuilder.Entity<PackageHistory>()
                 .HasKey(pm => pm.Key);
 
@@ -338,27 +332,6 @@ namespace NuGetGallery
                             IsUnique = true,
                         }
                     }));
-
-            modelBuilder.Entity<Certificate>()
-                .Property(c => c.Sha1Thumbprint)
-                .HasMaxLength(40)
-                .HasColumnType("varchar")
-                .IsOptional();
-
-            modelBuilder.Entity<UserCertificate>()
-                .HasKey(uc => uc.Key);
-
-            modelBuilder.Entity<User>()
-                .HasMany(u => u.UserCertificates)
-                .WithRequired(uc => uc.User)
-                .HasForeignKey(uc => uc.UserKey)
-                .WillCascadeOnDelete(true); // Deleting a User entity will also delete related UserCertificate entities.
-
-            modelBuilder.Entity<Certificate>()
-                .HasMany(c => c.UserCertificates)
-                .WithRequired(uc => uc.Certificate)
-                .HasForeignKey(uc => uc.CertificateKey)
-                .WillCascadeOnDelete(true); // Deleting a Certificate entity will also delete related UserCertificate entities.
         }
 #pragma warning restore 618
     }
