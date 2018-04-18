@@ -49,7 +49,7 @@
                         "You must be an administrator to make changes to it.";
                 }
 
-                @ViewHelpers.AlertInfo(@<text>@membershipString </text>)
+                @ViewHelpers.AlertInfo(@<text>@membershipString @permissionsString</text>)
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
