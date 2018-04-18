@@ -73,7 +73,7 @@ namespace NuGet.Services.V3PerPackage
                     packageContexts.Add(new PerPackageContext(batchContext, packageId, packageVersion));
                 }
             }
-            while (messages.Count < batchSize && lastMessage != null && lastDequeueCount <= 1);
+            while (messages.Count < batchSize && lastMessage != null && lastDequeueCount < 10);
 
             if (packageContexts.Count == 0)
             {

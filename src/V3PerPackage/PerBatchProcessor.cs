@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,6 +28,7 @@ namespace NuGet.Services.V3PerPackage
         private readonly ILoggerFactory _loggerFactory;
         private readonly TelemetryClient _telemetryClient;
         private readonly StringLocker _stringLocker;
+        private readonly HttpClient _httpClient;
         private readonly ILogger<PerBatchProcessor> _logger;
 
         public PerBatchProcessor(
@@ -34,17 +36,26 @@ namespace NuGet.Services.V3PerPackage
             ILoggerFactory loggerFactory,
             TelemetryClient telemetryClient,
             StringLocker stringLocker,
+            HttpClient httpClient,
             ILogger<PerBatchProcessor> logger)
         {
             _httpMessageHandler = httpMessageHandler;
             _loggerFactory = loggerFactory;
             _telemetryClient = telemetryClient;
             _stringLocker = stringLocker;
+            _httpClient = httpClient;
             _logger = logger;
         }
 
         public async Task<bool> ProcessAsync(PerBatchContext context, IReadOnlyList<PerPackageContext> packageContexts)
         {
+            packageContexts = await GetExistingPackagesAsync(packageContexts);
+
+            if (!packageContexts.Any())
+            {
+                return true;
+            }
+
             var catalogIndexUri = await ExecuteFeedToCatalogAsync(context, packageContexts);
 
             await ExecuteCatalog2DnxAsync(context, packageContexts, catalogIndexUri);
@@ -54,6 +65,42 @@ namespace NuGet.Services.V3PerPackage
             await ExecuteCatalog2LuceneAsync(context, catalogIndexUri);
 
             return true;
+        }
+
+        private async Task<IReadOnlyList<PerPackageContext>> GetExistingPackagesAsync(IReadOnlyList<PerPackageContext> packageContexts)
+        {
+            var tasks = packageContexts
+                .Select(x => new { Context = x, Task = DoesPackageExistAsync(x) })
+                .ToList();
+
+            await Task.WhenAll(tasks.Select(x => x.Task));
+
+            return tasks
+                .Where(x => x.Task.Result)
+                .Select(x => x.Context)
+                .ToList();
+        }
+
+        private async Task<bool> DoesPackageExistAsync(PerPackageContext packageContext)
+        {
+            // Note that if the package for some reason exists in V2 (database) but is missing from the packages
+            // container, this will skip the package. We need the .nupkg to generate V3 artifacts so there's not much
+            // else we can do.
+            using (var request = new HttpRequestMessage(HttpMethod.Head, packageContext.PackageUri))
+            using (var response = await _httpClient.SendAsync(request))
+            {
+                var exists = response.StatusCode != HttpStatusCode.NotFound;
+
+                if (!exists)
+                {
+                    _logger.LogInformation(
+                        "Package {Id}/{Version} no longer exists.",
+                        packageContext.PackageId,
+                        packageContext.PackageVersion);
+                }
+
+                return exists;
+            }
         }
 
         public async Task CleanUpAsync(PerBatchContext context, IReadOnlyList<PerPackageContext> packageContexts)

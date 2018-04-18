@@ -144,6 +144,7 @@ namespace NuGet.Services.V3PerPackage
 
             serviceCollection.AddSingleton(new ControlledDisposeHttpClientHandler());
             serviceCollection.AddTransient<HttpMessageHandler>(x => x.GetRequiredService<ControlledDisposeHttpClientHandler>());
+            serviceCollection.AddSingleton(x => new HttpClient(x.GetRequiredService<HttpMessageHandler>()));
             serviceCollection.AddTransient<Func<HttpMessageHandler>>(x => () => x.GetRequiredService<HttpMessageHandler>());
             serviceCollection.AddTransient<PerBatchProcessor>();
             serviceCollection.AddTransient<ITelemetryService, TelemetryService>();
