@@ -23,8 +23,7 @@ namespace NuGetGallery
         /// Removes a User from the gallery.
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="commitAsTransaction">True if the changes will commited as a transaction.</param>
-        /// <returns></returns>
-        Task<DeleteUserAccountStatus> SelfDeleteGalleryUserAccountAsync(User userToBeDeleted, bool commitAsTransaction);
+        /// <returns>The delete account action status.</returns>
+        Task<DeleteUserAccountStatus> SelfDeleteGalleryUserAccountAsync(User userToBeDeleted);
     }
 }

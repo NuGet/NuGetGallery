@@ -2181,7 +2181,7 @@ namespace NuGetGallery
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(stub => stub.SelfDeleteGalleryUserAccountAsync(testUser, true))
+                    .Setup(stub => stub.SelfDeleteGalleryUserAccountAsync(testUser))
                     .Returns(Task<DeleteUserAccountStatus>.FromResult(new DeleteUserAccountStatus()
                     {
                         AccountName = userName,

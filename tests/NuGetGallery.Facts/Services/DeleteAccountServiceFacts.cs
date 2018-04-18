@@ -197,7 +197,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 //Act
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.SelfDeleteGalleryUserAccountAsync(null, commitAsTransaction: false));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.SelfDeleteGalleryUserAccountAsync(null));
             }
 
             [Fact]
@@ -209,7 +209,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 //Act
-                var status = await deleteAccountService.SelfDeleteGalleryUserAccountAsync(testUser, commitAsTransaction: true);
+                var status = await deleteAccountService.SelfDeleteGalleryUserAccountAsync(testUser);
 
                 //Assert
                 Assert.True(status.Success);

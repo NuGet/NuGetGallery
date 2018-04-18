@@ -164,7 +164,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<DeleteUserAccountStatus> SelfDeleteGalleryUserAccountAsync(User userToBeDeleted, bool commitAsTransaction)
+        public async Task<DeleteUserAccountStatus> SelfDeleteGalleryUserAccountAsync(User userToBeDeleted)
         {
             if (userToBeDeleted == null)
             {
