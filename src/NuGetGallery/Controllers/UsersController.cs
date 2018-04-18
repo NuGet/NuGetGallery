@@ -280,7 +280,7 @@ namespace NuGetGallery
                 return RedirectToAction("DeleteRequest");
             }
 
-            MessageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
+            MessageService.SendAccountDeleteNotice(user);
 
             return RedirectToAction("DeleteRequest");
         }

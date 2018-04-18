@@ -682,7 +682,7 @@ Note: This package has not been published yet. It will appear in search results 
             }
         }
 
-        public void SendAccountDeleteNotice(MailAddress mailAddress, string account)
+        public void SendAccountDeleteNotice(User user)
         {
             string body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.
 {2}When your account will be deleted, we will:{2}
@@ -698,7 +698,7 @@ Thanks,
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                account,
+                user,
                 Config.GalleryOwner.DisplayName,
                 Environment.NewLine);
 
@@ -708,7 +708,7 @@ Thanks,
                 mailMessage.Body = body;
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
-                mailMessage.To.Add(mailAddress.Address);
+                mailMessage.To.Add(user.ToMailAddress());
                 SendMessage(mailMessage);
             }
         }
