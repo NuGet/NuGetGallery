@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class UserAccountViewModel : AccountViewModel
+    public class UserAccountViewModel : AccountViewModel<User>
     {
         public ChangePasswordViewModel ChangePassword { get; set; }
 

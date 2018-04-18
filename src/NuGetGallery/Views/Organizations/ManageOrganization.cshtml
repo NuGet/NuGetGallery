@@ -19,9 +19,42 @@
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @if (!Model.CanManage)
-            {
-                @ViewHelpers.AlertInfo(@<text>You are a collaborator of this organization. Only administrators can make changes.</text>);
+            @{
+                string membershipString;
+
+                var membership = Model.Account.GetMembershipOfUser(CurrentUser);
+                if (membership == null)
+                {
+                    membershipString = "You are not a member of this organization.";
+                }
+                else
+                {
+                    membershipString = membership.IsAdmin ?
+                        "You are an administrator of this organization." :
+                        "You are a collaborator of this organization.";
+                }
+
+                var permissionsString = "";
+                if (Model.CanManage)
+                {
+                    if (!Model.CanManageMemberships)
+                    {
+                        permissionsString = "You must be an administrator to change its members.";
+                    }
+                }
+                else
+                {
+                    permissionsString = Model.CanManageMemberships ?
+                        "You must be an administrator to make changes to its email settings and profile picture." :
+                        "You must be an administrator to make changes to it.";
+                }
+
+                if (!string.IsNullOrEmpty(permissionsString))
+                {
+                    permissionsString = " " + permissionsString;
+                }
+
+                @ViewHelpers.AlertInfo(@<text>@membershipString@permissionsString</text>)
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
