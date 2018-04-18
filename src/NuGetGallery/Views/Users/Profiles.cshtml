@@ -35,7 +35,7 @@
             <div class="profile-title">
                 <h1>
                     @Model.Username&nbsp;
-                    @if (Model.CanViewAccount)
+                    @if (Model.CanViewAccount && (Model.UserIsOrganization || CurrentUser.MatchesUser(Model.User)))
                     {
                         <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
                     }
@@ -51,7 +51,7 @@
                             <i class="ms-Icon ms-Icon--Group ms-font-xl" aria-hidden="true">&nbsp;</i>
                             <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
                         }
-                        else if (!Model.UserIsOrganization && Model.User.Organizations.Any())
+                        else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
                         {
                             var organizations = Model.User.Organizations.Count();
                             <span>member of<a href="@Url.ManageMyOrganizations()" aria-label="Manage my organizations"><span class="ms-font-xxl">&nbsp;@organizations organization@(organizations != 1 ? "s" : "")</span></a></span>
