@@ -96,7 +96,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 //Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(new User("TestUser"),null , "Signature", unlistOrphanPackages: true, commitAsTransaction: false));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(new User("TestUser"), null, "Signature", unlistOrphanPackages: true, commitAsTransaction: false));
             }
 
             /// <summary>
@@ -117,7 +117,7 @@ namespace NuGetGallery.Services
                 var signature = "Hello";
                 var result = await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
-                                                userToExecuteTheDelete: testUser,
+                                                admin: testUser,
                                                 signature: signature,
                                                 unlistOrphanPackages: true,
                                                 commitAsTransaction: false);
@@ -148,7 +148,7 @@ namespace NuGetGallery.Services
                 var signature = "Hello";
                 await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
-                                                userToExecuteTheDelete: testUser,
+                                                admin: testUser,
                                                 signature: signature,
                                                 unlistOrphanPackages: true,
                                                 commitAsTransaction: false);
@@ -186,6 +186,51 @@ namespace NuGetGallery.Services
             }
         }
 
+        public class TheSelfDeleteGalleryUserAccountAsyncMethod
+        {
+            [Fact]
+            public async Task NullUser()
+            {
+                //Arange
+                var testUser = CreateTestData();
+                var testableService = new DeleteAccountTestService(testUser);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                //Act
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.SelfDeleteGalleryUserAccountAsync(null, commitAsTransaction: false));
+            }
+
+            [Fact]
+            public async Task TheUserCanSelfDelete()
+            {
+                //Arange
+                var testUser = CreateTestData();
+                var testableService = new DeleteAccountTestService(testUser);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                //Act
+                var status = await deleteAccountService.SelfDeleteGalleryUserAccountAsync(testUser, commitAsTransaction: true);
+
+                //Assert
+                Assert.True(status.Success);
+                Assert.Null(testableService.User);
+                Assert.Equal(1, testableService.AuditService.Records.Count);
+                var deleteAccountAuditRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
+                Assert.NotNull(deleteAccountAuditRecord);
+                Assert.Equal(string.Empty, deleteAccountAuditRecord.AdminUsername);
+                Assert.Equal(testUser.Username, deleteAccountAuditRecord.Username);
+                Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteAccountAuditRecord.Status);
+            }
+
+            private static User CreateTestData()
+            {
+                User testUser = new User();
+                testUser.Username = "TestsUser";
+                testUser.UnconfirmedEmailAddress = "user@test.com";
+                return testUser;
+            }
+        }
+
         public class DeleteAccountTestService
         {
             private const string SubscriptionName = "SecPolicySubscription";
@@ -199,6 +244,13 @@ namespace NuGetGallery.Services
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<Issue> SupportRequests = new List<Issue>();
             public FakeAuditingService AuditService;
+
+            public DeleteAccountTestService(User user)
+            {
+                _user = user;
+
+                AuditService = new FakeAuditingService();
+            }
 
             public DeleteAccountTestService(User user, PackageRegistration userPackagesRegistration)
             {
@@ -253,6 +305,11 @@ namespace NuGetGallery.Services
                     Records.Add(record);
                     return Task.FromResult(true);
                 }
+            }
+
+            public User User
+            {
+                get { return _user; }
             }
 
             private class TestableAuthService : AuthenticationService
@@ -312,6 +369,8 @@ namespace NuGetGallery.Services
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(m => m.CommitChangesAsync())
                               .Returns(Task.CompletedTask);
+                userRepository.Setup(m => m.DeleteOnCommit(_user))
+                              .Callback(()=>_user = null);
                 return userRepository;
             }
 

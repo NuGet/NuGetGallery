@@ -312,11 +312,8 @@ namespace NuGetGallery
             if (!user.Confirmed)
             {
                 // execute the delete request
-                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteGalleryUserAccountAsync(
+                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.SelfDeleteGalleryUserAccountAsync(
                     userToBeDeleted: user,
-                    userToExecuteTheDelete: user,
-                    signature: user.Username,
-                    unsignOrphanPackages: true,
                     commitAsTransaction: true);
                 OwinContext.Authentication.SignOut();
                 if (!accountDeleteStatus.Success)
