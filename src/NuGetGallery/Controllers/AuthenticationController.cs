@@ -691,7 +691,7 @@ namespace NuGetGallery
 
             return new LoginUserDetails {
                 AuthenticatedUser = new AuthenticatedUser(user.User, result.Credential),
-                UsedMultiFactorAuthentication = result.LoginDetails.WasMultiFactorAuthenticated
+                UsedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false
             };
         }
 
