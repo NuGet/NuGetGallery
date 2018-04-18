@@ -35,6 +35,8 @@ namespace NuGetGallery
 
         void TrackNewUserRegistrationEvent(User user, Credential identity);
 
+        void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth);
+
         void TrackNewCredentialCreated(User user, Credential credential);
 
         /// <summary>
