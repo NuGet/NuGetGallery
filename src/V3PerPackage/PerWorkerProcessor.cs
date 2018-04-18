@@ -50,7 +50,6 @@ namespace NuGet.Services.V3PerPackage
             var messages = new List<StorageQueueMessage<PackageMessage>>();
             var packageContexts = new List<PerPackageContext>();
             StorageQueueMessage<PackageMessage> lastMessage;
-            int lastDequeueCount = 0;
             do
             {
                 lastMessage = await _queue.GetNextAsync(CancellationToken.None);
@@ -68,12 +67,11 @@ namespace NuGet.Services.V3PerPackage
                         continue;
                     }
 
-                    lastDequeueCount = GetDequeueCount(lastMessage);
                     messages.Add(lastMessage);
                     packageContexts.Add(new PerPackageContext(batchContext, packageId, packageVersion));
                 }
             }
-            while (messages.Count < batchSize && lastMessage != null && lastDequeueCount < 10);
+            while (messages.Count < batchSize && lastMessage != null && lastMessage.DequeueCount < 10);
 
             if (packageContexts.Count == 0)
             {
@@ -97,22 +95,6 @@ namespace NuGet.Services.V3PerPackage
             }
 
             return true;
-        }
-
-        private static int GetDequeueCount(StorageQueueMessage<PackageMessage> lastMessage)
-        {
-            // This is a hack since dequeue count is not available on the public API.
-            var storageQueueMessage = lastMessage
-                .GetType()
-                .GetProperty("Message", BindingFlags.Instance | BindingFlags.NonPublic)?
-                .GetValue(lastMessage);
-
-            var cloudQueueMessage = storageQueueMessage?
-                .GetType()
-                .GetProperty("Message", BindingFlags.Instance | BindingFlags.NonPublic)
-                .GetValue(storageQueueMessage) as CloudQueueMessage;
-
-            return cloudQueueMessage?.DequeueCount ?? 1;
         }
 
         private async Task<bool> ProcessPackagesAsync(PerBatchContext batchContext, List<PerPackageContext> packageContexts)
