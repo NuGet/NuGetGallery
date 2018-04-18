@@ -166,7 +166,7 @@ namespace NuGetGallery
 
         internal bool HardDeleteUser(User userToBeDeleted)
         {
-            // If the userToBeDeleted does not have the email confirmed the user will be removed from the data base.
+            // If the userToBeDeleted does not have the email confirmed the user will be removed from the database.
             return !userToBeDeleted.Confirmed;
         }
 
