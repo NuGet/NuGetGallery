@@ -17,7 +17,7 @@
         </div>
         <div class="row">
             <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-                if (Model.External.ExistingUserCanBeLinked)
+                @if (Model.External.ExistingUserCanBeLinked)
                 {
                     <p class="text-center">
                         We found an account with this email address. Sign in with your NuGet.org password to link with this Microsoft account.

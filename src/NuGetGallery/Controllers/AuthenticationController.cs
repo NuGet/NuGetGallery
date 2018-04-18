@@ -166,7 +166,7 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-
+            bool usedMultiFactorAuthentication = false;
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
@@ -180,11 +180,14 @@ namespace NuGetGallery
                 }
 
                 // Link with an external account
-                authenticatedUser = await AssociateCredential(authenticatedUser);
+                var loginUserDetails = await AssociateCredential(authenticatedUser);
+                authenticatedUser = loginUserDetails?.AuthenticatedUser;
                 if (authenticatedUser == null)
                 {
                     return ExternalLinkExpired();
                 }
+
+                usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
             }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
@@ -197,7 +200,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+            await _authService.CreateSessionAsync(OwinContext, authenticatedUser, usedMultiFactorAuthentication);
 
             TempData["ShowPasswordDeprecationWarning"] = true;
             return SafeRedirect(returnUrl);
@@ -265,6 +268,7 @@ namespace NuGetGallery
             }
 
             AuthenticatedUser user;
+            var usedMultiFactorAuthentication = false;
             try
             {
                 if (linkingAccount)
@@ -275,6 +279,7 @@ namespace NuGetGallery
                         return ExternalLinkExpired();
                     }
 
+                    usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
@@ -316,7 +321,7 @@ namespace NuGetGallery
             }
 
             // Create session
-            await _authService.CreateSessionAsync(OwinContext, user);
+            await _authService.CreateSessionAsync(OwinContext, user, usedMultiFactorAuthentication);
             return RedirectFromRegister(returnUrl);
         }
 
@@ -473,7 +478,8 @@ namespace NuGetGallery
 
                 // Authenticate with the new credential after successful replacement
                 var authenticatedUser = await _authService.Authenticate(newCredential);
-                await _authService.CreateSessionAsync(OwinContext, authenticatedUser);
+                var usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
+                await _authService.CreateSessionAsync(OwinContext, authenticatedUser, usedMultiFactorAuthentication);
 
                 // Get email address of the new credential for updating success message
                 var newEmailAddress = GetEmailAddressFromExternalLoginResult(result, out string errorReason);
@@ -662,7 +668,7 @@ namespace NuGetGallery
             return RedirectToAction(actionName: "Thanks", controllerName: "Users");
         }
 
-        private async Task<AuthenticatedUser> AssociateCredential(AuthenticatedUser user)
+        private async Task<LoginUserDetails> AssociateCredential(AuthenticatedUser user)
         {
             var result = await _authService.ReadExternalLoginCredential(OwinContext);
             if (result.ExternalIdentity == null)
@@ -683,7 +689,10 @@ namespace NuGetGallery
             // Notify the user of the change
             _messageService.SendCredentialAddedNotice(user.User, _authService.DescribeCredential(result.Credential));
 
-            return new AuthenticatedUser(user.User, result.Credential);
+            return new LoginUserDetails {
+                AuthenticatedUser = new AuthenticatedUser(user.User, result.Credential),
+                UsedMultiFactorAuthentication = result.LoginDetails.WasMultiFactorAuthenticated
+            };
         }
 
         private List<AuthenticationProviderViewModel> GetProviders()
