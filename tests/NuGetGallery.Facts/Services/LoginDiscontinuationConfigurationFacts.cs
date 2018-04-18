@@ -33,12 +33,9 @@ namespace NuGetGallery.Services
                             {
                                 foreach (var isOnTenantPairList in new[] { true, false })
                                 {
-                                    foreach (var organizationsEnabledForAll in new[] { true, false })
+                                    foreach (var isWrongCase in new[] { true, false })
                                     {
-                                        foreach (var isWrongCase in new[] { true, false })
-                                        {
-                                            yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList, organizationsEnabledForAll, isWrongCase);
-                                        }
+                                        yield return MemberDataHelper.AsData(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList, isWrongCase);
                                     }
                                 }
                             }
@@ -48,7 +45,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool organizationsEnabledForAll, bool isWrongCase)
+        public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool isWrongCase)
         {
             var emails = isOnWhiteList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectEmail, isWrongCase) };
             var domains = isOnDomainList ? new[] { ToUppercaseIfWrongCase(_domain, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase) };
@@ -58,7 +55,7 @@ namespace NuGetGallery.Services
                 new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), ToUppercaseIfWrongCase(_tenant, isWrongCase)) } :
                 new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase), ToUppercaseIfWrongCase(_incorrectTenant, isWrongCase)) };
 
-            return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs, organizationsEnabledForAll);
+            return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
         }
 
         private static string ToUppercaseIfWrongCase(string input, bool isWrongCase)
@@ -152,7 +149,7 @@ namespace NuGetGallery.Services
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
 
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false, organizationsEnabledForAll: false, isWrongCase: isWrongCase);
+                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false, isWrongCase: isWrongCase);
 
                 // Act
                 var result = config.IsLoginDiscontinued(authUser);
@@ -169,7 +166,6 @@ namespace NuGetGallery.Services
             public bool IsOnExceptionList { get; }
             public bool IsOnTransformList { get; }
             public bool IsOnTenantPairList { get; }
-            public bool OrganizationsEnabledForAll { get; }
             public bool IsWrongCase { get; }
             
             public WhitelistMethodData(object[] data)
@@ -191,10 +187,7 @@ namespace NuGetGallery.Services
                 var isOnTenantPairList = boolData[4];
                 IsOnTenantPairList = isOnTenantPairList;
 
-                var organizationsEnabledForAll = boolData[5];
-                OrganizationsEnabledForAll = organizationsEnabledForAll;
-
-                var isWrongCase = boolData[6];
+                var isWrongCase = boolData[5];
                 IsWrongCase = isWrongCase;
             }
         }
@@ -248,7 +241,7 @@ namespace NuGetGallery.Services
 
             private ILoginDiscontinuationConfiguration GetConfiguration(WhitelistMethodData data)
             {
-                return CreateConfiguration(data.IsOnWhiteList, data.IsOnDomainList, data.IsOnExceptionList, data.IsOnTransformList, data.IsOnTenantPairList, data.OrganizationsEnabledForAll, data.IsWrongCase);
+                return CreateConfiguration(data.IsOnWhiteList, data.IsOnDomainList, data.IsOnExceptionList, data.IsOnTransformList, data.IsOnTenantPairList, data.IsWrongCase);
             }
         }
 
@@ -293,57 +286,6 @@ namespace NuGetGallery.Services
             protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
             {
                 return config.ShouldUserTransformIntoOrganization(user);
-            }
-        }
-
-        public class TheAreOrganizationsSupportedForUserMethodData : WhitelistMethodData
-        {
-            public bool HasOrganization { get; }
-
-            public TheAreOrganizationsSupportedForUserMethodData(object[] data, bool hasOrganization)
-                : base(data)
-            {
-                HasOrganization = hasOrganization;
-            }
-        }
-
-        public class TheAreOrganizationsSupportedForUserMethod : WhitelistBaseMethod
-        {
-            protected override User GetUser(WhitelistMethodData data)
-            {
-                var user = base.GetUser(data);
-                if ((data as TheAreOrganizationsSupportedForUserMethodData).HasOrganization)
-                {
-                    user.Organizations = new[] { new Membership() };
-                }
-
-                return user;
-            }
-
-            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data =>
-                PossibleListStates.SelectMany(data => 
-                    new[] { false, true }
-                        .Select(hasOrganization => 
-                            MemberDataHelper.AsData(
-                                new TheAreOrganizationsSupportedForUserMethodData(data, hasOrganization))));
-
-            public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
-            {
-                return data.OrganizationsEnabledForAll || 
-                    (data as TheAreOrganizationsSupportedForUserMethodData).HasOrganization || 
-                    new TheIsUserOnWhitelistMethod().GetExpectedValueForNonNull(data);
-            }
-
-            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data => WhitelistBaseMethodReturnsExpected_Data;
-
-            public override bool GetExpectedValueForNull(WhitelistMethodData data)
-            {
-                return data.OrganizationsEnabledForAll;
-            }
-
-            protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
-            {
-                return config.AreOrganizationsSupportedForUser(user);
             }
         }
     }
