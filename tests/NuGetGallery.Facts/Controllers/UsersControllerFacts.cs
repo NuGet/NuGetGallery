@@ -2157,17 +2157,14 @@ namespace NuGetGallery
             }
 
             /// <summary>
-            /// If the user does not have the email account confirmed it can delete the account.
+            /// If the user does not have the email account confirmed the user record is deleted without sending a support request.
             /// </summary>
-            /// <param name="successOnSentRequest"></param>
-            /// <returns></returns>
             [Fact]
-            public async Task RequestSelfDeleteAccountAsync()
+            public async Task WhenUserIsUnconfirmedDeletesAccount()
             {
                 // Arrange
                 string userName = "DeletedUser";
                 string emailAddress = $"{userName}@coldmail.com";
-                bool selfDeleteInvoked = false;
 
                 var controller = GetController<UsersController>();
 
@@ -2181,20 +2178,19 @@ namespace NuGetGallery
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(stub => stub.SelfDeleteGalleryUserAccountAsync(testUser))
-                    .Returns(Task<DeleteUserAccountStatus>.FromResult(new DeleteUserAccountStatus()
+                    .Setup(stub => stub.DeleteGalleryUserAccountAsync(testUser, It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
                     {
                         AccountName = userName,
-                        Description = "Test",
+                        Description = "Delete user",
                         Success = true
-                    })).Callback(()=> { selfDeleteInvoked = true; });
+                    }));
 
                 // act
                 var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.True(selfDeleteInvoked, "Self Deleted was not invoked as expected.");
             }
         }
 

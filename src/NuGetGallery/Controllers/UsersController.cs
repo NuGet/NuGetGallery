@@ -311,14 +311,19 @@ namespace NuGetGallery
 
             if (!user.Confirmed)
             {
-                // execute the delete request
-                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.SelfDeleteGalleryUserAccountAsync(userToBeDeleted: user);
-                OwinContext.Authentication.SignOut();
+                // Unconfirmed users can be deleted immediately without creating a support request.
+                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: user,
+                    userToExecuteTheDelete: user,
+                    signature: user.Username,
+                    unlistOrphanPackages: true,
+                    commitAsTransaction: true);
                 if (!accountDeleteStatus.Success)
                 {
-                    return Json(Strings.AccountSelfDelete_Fail);
+                    TempData["RequestFailedMessage"] = Strings.AccountSelfDelete_Fail;
+                    return RedirectToAction("DeleteRequest");
                 }
-                return SafeRedirect(null);
+                OwinContext.Authentication.SignOut();
+                return SafeRedirect(Url.Home(false));
             }
 
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
@@ -375,7 +380,12 @@ namespace NuGetGallery
             else
             {
                 var admin = GetCurrentUser();
-                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(user, admin, model.Signature, model.ShouldUnlist, commitAsTransaction: true);
+                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(
+                    userToBeDeleted: user,
+                    userToExecuteTheDelete: admin,
+                    signature: model.Signature,
+                    unlistOrphanPackages: model.ShouldUnlist,
+                    commitAsTransaction: true);
                 return View("DeleteUserAccountStatus", status);
             }
         }
