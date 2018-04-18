@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -15,7 +14,7 @@ namespace NuGetGallery
 {
     public class AccountsControllerFacts<TAccountsController, TUser, TAccountViewModel>
         where TUser : User
-        where TAccountViewModel : AccountViewModel
+        where TAccountViewModel : AccountViewModel<TUser>
         where TAccountsController : AccountsController<TUser, TAccountViewModel>
     {
         protected const string AllowedCurrentUsersDataName = "AllowedCurrentUsers_Data";

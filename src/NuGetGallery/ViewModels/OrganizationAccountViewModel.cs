@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class OrganizationAccountViewModel : AccountViewModel
+    public class OrganizationAccountViewModel : AccountViewModel<Organization>
     {
         public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
 

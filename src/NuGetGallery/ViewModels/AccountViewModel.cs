@@ -5,9 +5,9 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public abstract class AccountViewModel
+    public abstract class AccountViewModel<T> where T : User
     {
-        public User Account { get; set; }
+        public T Account { get; set; }
 
         public bool IsOrganization
         {

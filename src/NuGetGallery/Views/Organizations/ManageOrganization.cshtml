@@ -19,28 +19,37 @@
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @{ 
-                var membership = (Model.Account as Organization).GetMembershipOfUser(CurrentUser);
+            @if (!Model.CanManage || !Model.CanManageMemberships)
+            {
+                string membershipString;
+
+                var membership = Model.Account.GetMembershipOfUser(CurrentUser);
                 if (membership == null)
                 {
-                    <p>You are not a member of this organization.</p>
+                    membershipString = "You are not a member of this organization.";
                 }
                 else
                 {
-                    if (membership.IsAdmin)
-                    {
-                        <p>You are an administrator of this organization.</p>
-                    }
-                    else
-                    {
-                        <p>You are a collaborator of this organization.</p>
-                    }
+                    membershipString = membership.IsAdmin ?
+                        "You are an administrator of this organization." :
+                        "You are a collaborator of this organization.";
                 }
-            }
 
-            @if (!Model.CanManage)
-            {
-                @ViewHelpers.AlertInfo(@<text>You must be an administrator of this organization to make changes to its email settings and profile picture.</text>)
+                string permissionsString;
+                if (Model.CanManage)
+                {
+                    permissionsString = Model.CanManageMemberships ? 
+                        "" : // This should not be possible because of the if statement wrapping this code.
+                        "You must be an administrator to change its members.";
+                }
+                else
+                {
+                    permissionsString = Model.CanManageMemberships ?
+                        "You must be an administrator to make changes to its email settings and profile picture." :
+                        "You must be an administrator to make changes to it.";
+                }
+
+                @ViewHelpers.AlertInfo(@<text>@membershipString </text>)
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
