@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NuGet.Indexing;
 using Xunit;
@@ -51,8 +53,15 @@ namespace NuGet.IndexingTests.Extraction
             var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
 
             // Assert
-            Assert.Contains(MetadataConstants.SupportedFrameworksPropertyName, metadata.Keys);
-            Assert.Equal(expected.Split('|').OrderBy(f => f), metadata[MetadataConstants.SupportedFrameworksPropertyName].Split('|').OrderBy(f => f));
+            if (expected != null)
+            {
+                Assert.Contains(MetadataConstants.SupportedFrameworksPropertyName, metadata.Keys);
+                Assert.Equal(expected.Split('|').OrderBy(f => f), metadata[MetadataConstants.SupportedFrameworksPropertyName].Split('|').OrderBy(f => f));
+            }
+            else
+            {
+                Assert.DoesNotContain(MetadataConstants.SupportedFrameworksPropertyName, metadata.Keys);
+            }
         }
 
         [Theory, MemberData(nameof(AddsFlattenedDependenciesData))]
@@ -67,6 +76,31 @@ namespace NuGet.IndexingTests.Extraction
             // Assert
             Assert.Contains(MetadataConstants.FlattenedDependenciesPropertyName, metadata.Keys);
             Assert.Equal(expected, metadata[MetadataConstants.FlattenedDependenciesPropertyName]);
+        }
+
+        [Fact]
+        public void AllowsMissingVerbatimVersion()
+        {
+            // Arrange
+            // We add the invalid portable package entry folder name since this causes a failure which reads the ID and
+            // version from the generated .nuspec.
+            var catalogEntryJObject = JObject.FromObject(new
+            {
+                id = "NuGet.Versioning",
+                version = "4.6.0",
+                packageEntries = new object[]
+                {
+                    new { fullName = "lib/net45/something.dll" },
+                    new { fullName = "lib/portable-win-wpa8/something-else.dll" }, 
+                },
+            });
+
+            // Act
+            var metadata = CatalogPackageMetadataExtraction.MakePackageMetadata(catalogEntryJObject);
+
+            // Assert
+            Assert.Equal(new[] { "id", "listed", "version" }, metadata.Keys.OrderBy(x => x));
+            Assert.Equal("4.6.0", metadata["version"]);
         }
 
         public static IEnumerable<object[]> AddsListedData
@@ -96,9 +130,12 @@ namespace NuGet.IndexingTests.Extraction
                 yield return new object[] { new { verbatimVersion = "1.0.0+aThirdTime" }, true, "2" };
 
                 // dependencies
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -114,9 +151,12 @@ namespace NuGet.IndexingTests.Extraction
                     null
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0+semver2",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0+semver2",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -133,9 +173,12 @@ namespace NuGet.IndexingTests.Extraction
                 };
 
                 // dependencies show semver2
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -151,9 +194,12 @@ namespace NuGet.IndexingTests.Extraction
                     "2"
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -170,9 +216,12 @@ namespace NuGet.IndexingTests.Extraction
                 };
 
                 // semver2 in real ranges
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -188,9 +237,12 @@ namespace NuGet.IndexingTests.Extraction
                     "2"
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -206,9 +258,12 @@ namespace NuGet.IndexingTests.Extraction
                     "2"
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -224,9 +279,12 @@ namespace NuGet.IndexingTests.Extraction
                     "2"
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -242,9 +300,12 @@ namespace NuGet.IndexingTests.Extraction
                     "2"
                 };
 
-                yield return new object[] { new {
-                    verbatimVersion = "1.0.0",
-                    dependencyGroups = new object[]
+                yield return new object[]
+                {
+                    new
+                    {
+                        verbatimVersion = "1.0.0",
+                        dependencyGroups = new object[]
                         {
                             new
                             {
@@ -285,7 +346,14 @@ namespace NuGet.IndexingTests.Extraction
                 };
 
                 // a single framework assembly
-                yield return new object[] { new { frameworkAssemblyGroup = new { targetFramework = ".NETFramework4.0, .NETFramework4.5" } }, "net40|net45" };
+                yield return new object[]
+                {
+                    new
+                    {
+                        frameworkAssemblyGroup = new { targetFramework = ".NETFramework4.0, .NETFramework4.5" }
+                    },
+                    "net40|net45"
+                };
 
                 // package entries
                 yield return new object[] { WithPackageEntry("lib/net40/something.dll"), "net40" };
@@ -302,6 +370,20 @@ namespace NuGet.IndexingTests.Extraction
                         }
                     },
                     "net45|net40"
+                };
+
+                // invalid PCL TFM
+                yield return new object[]
+                {
+                    new
+                    {
+                        packageEntries = new object[]
+                        {
+                            new { fullName = "lib/net45/something.dll" },
+                            new { fullName = "lib/portable-win-wpa8/something-else.dll" }
+                        }
+                    },
+                    null
                 };
 
                 // a single package entry
@@ -527,11 +609,20 @@ namespace NuGet.IndexingTests.Extraction
 
         private static JObject CatalogEntry(object obj)
         {
-            var json = JsonConvert.SerializeObject(obj);
-            return JsonConvert.DeserializeObject<JObject>(json, new JsonSerializerSettings
+            var json = JObject.FromObject(obj);
+
+            // Add required properties if they are missing.
+            if (json[MetadataConstants.IdPropertyName] == null)
             {
-                DateParseHandling = DateParseHandling.DateTimeOffset
-            });
+                json[MetadataConstants.IdPropertyName] = "NuGet.Versioning";
+            }
+
+            if (json[MetadataConstants.VerbatimVersionPropertyName] == null)
+            {
+                json[MetadataConstants.VerbatimVersionPropertyName] = "4.6.2";
+            }
+
+            return json;
         }
     }
 }
