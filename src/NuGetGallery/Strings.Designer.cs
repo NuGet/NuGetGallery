@@ -1051,7 +1051,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We noticed you used multi-factor authentication for login. We have enabled your account to use multi-factor authentication going forward..
+        ///   Looks up a localized string similar to We noticed you used two-factor authentication for login. We have enabled your account to use two-factor authentication going forward..
         /// </summary>
         public static string MultiFactorAuth_LoginUpdate {
             get {

@@ -249,7 +249,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -281,7 +281,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(authResult);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -312,7 +312,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(authResult);
                 var controller = GetController<AuthenticationController>();
                 GetMock<AuthenticationService>()
-                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(a => a.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -365,7 +365,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()));
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
                 GetMock<AuthenticationService>()
                     .Verify(x => x.RemoveCredential(user, passwordCredential));
@@ -404,7 +404,7 @@ namespace NuGetGallery.Controllers
                     "theReturnUrl", linkingAccount: true);
 
                 // Assert
-                GetMock<AuthenticationService>().Verify(a => a.CreateSessionAsync(controller.OwinContext, authUser), Times.Never());
+                GetMock<AuthenticationService>().Verify(a => a.CreateSessionAsync(controller.OwinContext, authUser, false), Times.Never());
                 ResultAssert.IsView(result, viewName: SignInViewNuGetName);
                 Assert.False(controller.ModelState.IsValid);
                 Assert.Equal(Strings.AccountIsLinkedToAnotherExternalAccount, controller.ModelState[SignInViewName].Errors[0].ErrorMessage);
@@ -463,7 +463,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.AddCredential(authUser.User, externalCredential));
 
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser));
+                    .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
                 GetMock<IMessageService>()
                     .Verify(x => x.SendCredentialAddedNotice(authUser.User, credentialViewModel));
@@ -501,7 +501,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 VerifyExternalLinkExpiredResult(controller, result);
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>()), Times.Never());
+                    .Verify(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>(), false), Times.Never());
             }
 
             [Fact]
@@ -530,7 +530,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, It.IsAny<AuthenticatedUser>()))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, It.IsAny<AuthenticatedUser>(), false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
                 GetMock<AuthenticationService>()
@@ -609,7 +609,7 @@ namespace NuGetGallery.Controllers
                 else
                 {
                     GetMock<AuthenticationService>()
-                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, It.IsAny<AuthenticatedUser>()))
+                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, It.IsAny<AuthenticatedUser>(), false))
                        .Returns(Task.FromResult(0))
                        .Verifiable();
                 }
@@ -704,7 +704,7 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(authUser);
 
                 authenticationService
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -752,7 +752,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -785,7 +785,7 @@ namespace NuGetGallery.Controllers
                 var controller = GetController<AuthenticationController>();
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Verifiable();
                 GetMock<AuthenticationService>()
                     .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
@@ -805,7 +805,7 @@ namespace NuGetGallery.Controllers
                 // Assert
                 VerifyExternalLinkExpiredResult(controller, result);
                 GetMock<AuthenticationService>()
-                    .Verify(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>()), Times.Never());
+                    .Verify(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), It.IsAny<AuthenticatedUser>(), false), Times.Never());
                 GetMock<AuthenticationService>()
                     .Verify(x => x.Register("theUsername", "theEmailAddress", It.IsAny<Credential>()), Times.Never());
             }
@@ -830,7 +830,7 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred))
                     .CompletesWith(authUser);
                 authenticationServiceMock
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.FromResult(0))
                     .Verifiable();
 
@@ -910,7 +910,7 @@ namespace NuGetGallery.Controllers
                 else
                 {
                     GetMock<AuthenticationService>()
-                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                        .Returns(Task.FromResult(0))
                        .Verifiable();
                 }
@@ -1059,7 +1059,7 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 serviceMock
-                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser))
+                    .Setup(x => x.CreateSessionAsync(It.IsAny<IOwinContext>(), authUser, false))
                     .Completes()
                     .Verifiable();
 
@@ -1229,7 +1229,7 @@ namespace NuGetGallery.Controllers
                     });
 
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                     .Returns(Task.CompletedTask);
 
                 // Act
@@ -1319,7 +1319,7 @@ namespace NuGetGallery.Controllers
                 else
                 {
                     GetMock<AuthenticationService>()
-                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser))
+                       .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
                        .Returns(Task.FromResult(0))
                        .Verifiable();
                 }

@@ -114,6 +114,52 @@ namespace NuGetGallery
         }
 
         /// <summary>
+        /// Determine if the current user was multi-factor authenticated
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user was multi-factor authenticated, false otherwise.</returns>
+        public static bool WasMultiFactorAuthenticated(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.WasMultiFactorAuthenticated);
+        }
+
+        /// <summary>
+        /// Determine if the current user logged in with personal microsoft account
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        public static bool WasMicrosoftAccountUsedForSignin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.LoggedInWithMicrosoftAccount(identity);
+        }
+
+        /// <summary>
+        /// Determine if the current user logged in with azure active directory account
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        public static bool WasAzureActiveDirectoryAccountUsedForSignin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.LoggedInWithAzureActiveDirectory(identity);
+        }
+
+        /// <summary>
         /// Determine if the current user has an associated external credential.
         /// </summary>
         /// <param name="self">Current user principal.</param>
