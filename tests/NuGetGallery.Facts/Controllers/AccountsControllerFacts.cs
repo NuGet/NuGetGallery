@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -13,16 +14,16 @@ namespace NuGetGallery
 {
     public class AccountsControllerFacts<TAccountsController, TUser, TAccountViewModel>
         where TUser : User
-        where TAccountViewModel : AccountViewModel
+        where TAccountViewModel : AccountViewModel<TUser>
         where TAccountsController : AccountsController<TUser, TAccountViewModel>
     {
+        protected const string AllowedCurrentUsersDataName = "AllowedCurrentUsers_Data";
+
         public abstract class AccountsControllerTestContainer : TestContainer
         {
             public Fakes Fakes = new Fakes();
 
             private const string AccountEnvironmentKey = "nuget.account";
-
-            protected abstract User GetCurrentUser(TAccountsController controller);
 
             public TAccountsController GetController()
             {
@@ -52,35 +53,35 @@ namespace NuGetGallery
 
         public abstract class TheAccountBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public void WillGetCuratedFeedsManagedByTheCurrentUser()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public void WillGetCuratedFeedsManagedByTheCurrentUser(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController<TAccountsController>();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 // Act
-                InvokeAccountInternal(controller);
+                InvokeAccountInternal(controller, getCurrentUser);
 
                 // Assert
                 GetMock<ICuratedFeedService>()
                     .Verify(query => query.GetFeedsForManager(account.Key));
             }
 
-            [Fact]
-            public void WillReturnTheAccountViewModelWithTheCuratedFeeds()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public void WillReturnTheAccountViewModelWithTheCuratedFeeds(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController<TAccountsController>();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
                 GetMock<ICuratedFeedService>()
                     .Setup(stub => stub.GetFeedsForManager(account.Key))
                     .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
 
                 // Act
-                var result = InvokeAccountInternal(controller);
+                var result = InvokeAccountInternal(controller, getCurrentUser);
 
                 // Assert
                 var model = ResultAssert.IsView<TAccountViewModel>(result, viewName: controller.AccountAction);
@@ -89,9 +90,10 @@ namespace NuGetGallery
 
             protected abstract ActionResult InvokeAccount(TAccountsController controller);
 
-            private ActionResult InvokeAccountInternal(TAccountsController controller)
+            private ActionResult InvokeAccountInternal(TAccountsController controller, Func<Fakes, User> getCurrentUser)
             {
                 var account = GetAccount(controller);
+                controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
@@ -102,23 +104,25 @@ namespace NuGetGallery
 
         public abstract class TheCancelChangeEmailBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public virtual async Task WhenAlreadyConfirmed_RedirectsToAccount()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenAlreadyConfirmed_RedirectsToAccount(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeCancelChangeEmail(controller, account);
+                var result = await InvokeCancelChangeEmail(controller, account, getCurrentUser);
 
                 // Assert
                 GetMock<IUserService>().Verify(u => u.CancelChangeEmailAddress(It.IsAny<User>()), Times.Never);
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
             }
 
-            [Fact]
-            public virtual async Task WhenUnconfirmed_CancelsEmailChangeRequest()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenUnconfirmed_CancelsEmailChangeRequest(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -128,10 +132,10 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeCancelChangeEmail(controller, account);
+                var result = await InvokeCancelChangeEmail(controller, account, getCurrentUser);
 
                 // Assert
-                GetMock<IUserService>().Verify(u => u.CancelChangeEmailAddress(It.IsAny<User>()), Times.Once);
+                GetMock<IUserService>().Verify(u => u.CancelChangeEmailAddress(account), Times.Once);
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
                 Assert.Equal(controller.Messages.EmailUpdateCancelled, controller.TempData["Message"]);
             }
@@ -139,15 +143,16 @@ namespace NuGetGallery
             protected virtual Task<ActionResult> InvokeCancelChangeEmail(
                 TAccountsController controller,
                 TUser account,
+                Func<Fakes, User> getCurrentUser,
                 TAccountViewModel model = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
-                userService.Setup(u => u.CancelChangeEmailAddress(It.IsAny<User>()))
+                userService.Setup(u => u.CancelChangeEmailAddress(account))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -161,19 +166,19 @@ namespace NuGetGallery
 
         public abstract class TheChangeEmailBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public virtual async Task WhenServiceThrowsEntityException_ShowsModelStateError()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenServiceThrowsEntityException_ShowsModelStateError(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                var currentUser = GetCurrentUser(controller);
 
                 var model = CreateViewModel(account);
                 model.ChangeEmail.NewEmail = "account2@example.com";
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account, model,
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser, model,
                     exception: new EntityException("e.g., Another user already has that email"));
 
                 // Assert
@@ -182,8 +187,9 @@ namespace NuGetGallery
                 Assert.Equal("ChangeEmail.NewEmail", controller.ModelState.Keys.Single());
             }
 
-            [Fact]
-            public virtual async Task WhenNewEmailIsInvalid_DoesNotSaveChanges()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenNewEmailIsInvalid_DoesNotSaveChanges(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -193,15 +199,16 @@ namespace NuGetGallery
                 controller.ModelState.AddModelError("ChangeEmail.NewEmail", "Invalid format");
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account, model);
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser, model);
 
                 // Assert
                 GetMock<IUserService>().Verify(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
                 Assert.False(controller.ModelState.IsValid);
             }
 
-            [Fact]
-            public virtual async Task WhenNewEmailIsSame_RedirectsWithoutChange()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenNewEmailIsSame_RedirectsWithoutChange(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -210,15 +217,16 @@ namespace NuGetGallery
                 model.ChangeEmail.NewEmail = account.EmailAddress;
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account, model);
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser, model);
 
                 // Assert
                 GetMock<IUserService>().Verify(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
             }
 
-            [Fact]
-            public virtual async Task WhenNewEmailIsDifferentAndWasConfirmed_SavesChanges()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenNewEmailIsDifferentAndWasConfirmed_SavesChanges(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -227,7 +235,7 @@ namespace NuGetGallery
                 model.ChangeEmail.NewEmail = "account2@example.com";
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account, model);
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser, model);
 
                 // Assert
                 GetMock<IUserService>().Verify(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
@@ -238,8 +246,9 @@ namespace NuGetGallery
                     Times.Once);
             }
 
-            [Fact]
-            public virtual async Task WhenNewEmailIsDifferentAndWasUnconfirmed_SavesChanges()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenNewEmailIsDifferentAndWasUnconfirmed_SavesChanges(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -251,7 +260,7 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account, model);
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser, model);
 
                 // Assert
                 GetMock<IUserService>().Verify(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()), Times.Once);
@@ -273,11 +282,12 @@ namespace NuGetGallery
             protected virtual Task<ActionResult> InvokeChangeEmail(
                 TAccountsController controller,
                 TUser account,
+                Func<Fakes, User> getCurrentUser,
                 TAccountViewModel model = null,
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var messageService = GetMock<IMessageService>();
                 messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()))
@@ -313,33 +323,45 @@ namespace NuGetGallery
 
         public abstract class TheChangeEmailSubscriptionBaseAction : AccountsControllerTestContainer
         {
+            public static IEnumerable<object[]> UpdatesEmailPreferences_DefaultData
+            {
+                get
+                {
+                    foreach (var emailAllowed in new[] { false, true })
+                    {
+                        foreach (var notifyPackagePushed in new[] { false, true })
+                        {
+                            yield return MemberDataHelper.AsData(emailAllowed, notifyPackagePushed);
+                        }
+                    }
+                }
+            }
+
             [Theory]
-            [InlineData(true, true)]
-            [InlineData(true, false)]
-            [InlineData(false, true)]
-            [InlineData(false, false)]
-            public virtual async Task UpdatesEmailPreferences(bool emailAllowed, bool notifyPackagePushed)
+            [MemberData("UpdatesEmailPreferences_Data")]
+            public virtual async Task UpdatesEmailPreferences(Func<Fakes, User> getCurrentUser, bool emailAllowed, bool notifyPackagePushed)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeChangeEmailSubscription(controller, emailAllowed, notifyPackagePushed);
+                var result = await InvokeChangeEmailSubscription(controller, getCurrentUser, emailAllowed, notifyPackagePushed);
 
                 // Assert
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
                 GetMock<IUserService>().Verify(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed));
             }
 
-            [Fact]
-            public virtual async Task DisplaysMessageOnUpdate()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task DisplaysMessageOnUpdate(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
 
                 // Act
-                var result = await InvokeChangeEmailSubscription(controller);
+                var result = await InvokeChangeEmailSubscription(controller, getCurrentUser);
 
                 // Assert
                 Assert.Equal(controller.Messages.EmailPreferencesUpdated, controller.TempData["Message"]);
@@ -347,11 +369,12 @@ namespace NuGetGallery
 
             protected virtual async Task<ActionResult> InvokeChangeEmailSubscription(
                 TAccountsController controller,
+                Func<Fakes, User> getCurrentUser,
                 bool emailAllowed = true,
                 bool notifyPackagePushed = true)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var account = GetAccount(controller);
                 account.Username = "aUsername";
@@ -380,16 +403,16 @@ namespace NuGetGallery
 
         public abstract class TheConfirmationRequiredBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public virtual void WhenAccountAlreadyConfirmed()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual void WhenAccountAlreadyConfirmed(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 // Act
-                var result = InvokeConfirmationRequired(controller, account);
+                var result = InvokeConfirmationRequired(controller, account, getCurrentUser);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -398,19 +421,19 @@ namespace NuGetGallery
                 Assert.Null(model.UnconfirmedEmailAddress);
             }
 
-            [Fact]
-            public virtual void WhenAccountIsNotConfirmed()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual void WhenAccountIsNotConfirmed(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.UnconfirmedEmailAddress = account.EmailAddress;
                 account.EmailAddress = null;
 
                 // Act
-                var result = InvokeConfirmationRequired(controller, account);
+                var result = InvokeConfirmationRequired(controller, account, getCurrentUser);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -421,9 +444,11 @@ namespace NuGetGallery
 
             protected virtual ActionResult InvokeConfirmationRequired(
                 TAccountsController controller,
-                TUser account)
+                TUser account,
+                Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
+                controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
@@ -435,16 +460,16 @@ namespace NuGetGallery
 
         public abstract class TheConfirmationRequiredPostBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public virtual void WhenAlreadyConfirmed_DoesNotSendEmail()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual void WhenAlreadyConfirmed_DoesNotSendEmail(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 // Act
-                var result = InvokeConfirmationRequiredPost(controller, account);
+                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser);
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
@@ -454,13 +479,13 @@ namespace NuGetGallery
                 Assert.False(model.SentEmail);
             }
 
-            [Fact]
-            public virtual void WhenIsNotConfirmed_SendsEmail()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual void WhenIsNotConfirmed_SendsEmail(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.EmailConfirmationToken = "confirmation";
                 account.UnconfirmedEmailAddress = account.EmailAddress;
@@ -470,7 +495,7 @@ namespace NuGetGallery
                 var confirmationUrl = (account is Organization)
                     ? TestUtility.GallerySiteRootHttps + $"organization/{account.Username}/Confirm?token=confirmation"
                     : TestUtility.GallerySiteRootHttps + $"account/confirm/{account.Username}/confirmation";
-                var result = InvokeConfirmationRequiredPost(controller, account, confirmationUrl);
+                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser, confirmationUrl);
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
@@ -483,9 +508,11 @@ namespace NuGetGallery
             protected virtual ActionResult InvokeConfirmationRequiredPost(
                 TAccountsController controller,
                 TUser account,
+                Func<Fakes, User> getCurrentUser,
                 string confirmationUrl = null)
             {
                 // Arrange
+                controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);
@@ -503,36 +530,36 @@ namespace NuGetGallery
 
         public abstract class TheConfirmBaseAction : AccountsControllerTestContainer
         {
-            [Fact]
-            public virtual async Task ClearsReturnUrlFromViewData()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task ClearsReturnUrlFromViewData(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
                 controller.ViewData[Constants.ReturnUrlViewDataKey] = "https://localhost/returnUrl";
 
                 Assert.NotNull(controller.ViewData[Constants.ReturnUrlViewDataKey]);
 
                 // Act
-                var result = await InvokeConfirm(controller, account, token);
+                var result = await InvokeConfirm(controller, account, getCurrentUser, token);
 
                 // Assert
                 Assert.Null(controller.ViewData[Constants.ReturnUrlViewDataKey]);
             }
 
-            [Fact]
-            public virtual async Task WhenAlreadyConfirmed_DoesNotConfirmEmailAddress()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenAlreadyConfirmed_DoesNotConfirmEmailAddress(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 // Act
-                var result = await InvokeConfirm(controller, account, token);
+                var result = await InvokeConfirm(controller, account, getCurrentUser, token);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -551,20 +578,20 @@ namespace NuGetGallery
                         Times.Never);
             }
 
-            [Fact]
-            public virtual async Task WhenIsNotConfirmedAndNoExistingEmail_ConfirmsEmailAddress()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenIsNotConfirmedAndNoExistingEmail_ConfirmsEmailAddress(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.UnconfirmedEmailAddress = "account2@example.com";
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeConfirm(controller, account, token);
+                var result = await InvokeConfirm(controller, account, getCurrentUser, token);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -583,19 +610,19 @@ namespace NuGetGallery
                         Times.Never);
             }
 
-            [Fact]
-            public virtual async Task WhenIsNotConfirmedAndHasExistingEmail_ConfirmsEmailAddress()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WhenIsNotConfirmedAndHasExistingEmail_ConfirmsEmailAddress(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.UnconfirmedEmailAddress = "account2@example.com";
 
                 // Act
-                var result = await InvokeConfirm(controller, account, token);
+                var result = await InvokeConfirm(controller, account, getCurrentUser, token);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -614,38 +641,38 @@ namespace NuGetGallery
                         Times.Once);
             }
 
-            [Fact]
-            public async Task WhenIsNotConfirmedAndTokenDoesNotMatch_ShowsError()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public async Task WhenIsNotConfirmedAndTokenDoesNotMatch_ShowsError(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.UnconfirmedEmailAddress = "account2@example.com";
 
                 // Act
-                var result = await InvokeConfirm(controller, account, "wrongToken");
+                var result = await InvokeConfirm(controller, account, getCurrentUser, "wrongToken");
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SuccessfulConfirmation);
             }
 
-            [Fact]
-            public async Task WhenIsNotConfirmedAndEntityExceptionThrown_ShowsErrorForDuplicateEmail()
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
+            public async Task WhenIsNotConfirmedAndEntityExceptionThrown_ShowsErrorForDuplicateEmail(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
                 var token = account.EmailConfirmationToken = "token";
-                controller.SetCurrentUser(GetCurrentUser(controller));
 
                 account.UnconfirmedEmailAddress = "account2@example.com";
 
                 // Act
-                var result = await InvokeConfirm(controller, account, token,
+                var result = await InvokeConfirm(controller, account, getCurrentUser, token,
                     exception: new EntityException("msg"));
 
                 // Assert
@@ -657,10 +684,12 @@ namespace NuGetGallery
             protected virtual Task<ActionResult> InvokeConfirm(
                 TAccountsController controller,
                 TUser account,
+                Func<Fakes, User> getCurrentUser,
                 string token = "token",
                 EntityException exception = null)
             {
                 // Arrange
+                controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
                     .Returns(account as User);

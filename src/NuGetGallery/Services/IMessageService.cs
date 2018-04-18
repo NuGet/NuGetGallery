@@ -20,7 +20,7 @@ namespace NuGetGallery
         void SendPackageOwnerRequestInitiatedNotice(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
         void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package);
         void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package);
-        void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl, string policyMessage);
+        void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl);
         void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package);
         void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel);
         void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel);

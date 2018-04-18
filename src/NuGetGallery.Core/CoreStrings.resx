@@ -189,4 +189,16 @@
   <data name="PackageIsMissingRequiredData" xml:space="preserve">
     <value>The package is missing required data.</value>
   </data>
+  <data name="Manifest_DuplicateMetadataElements" xml:space="preserve">
+    <value>The package manifest contains duplicate metadata elements: '{0}'</value>
+    <comment>{0} is a comma-delimited list of duplicate metadata element names.</comment>
+  </data>
+  <data name="Manifest_InvalidBooleanMetadata" xml:space="preserve">
+    <value>The package manifest contains an invalid boolean value for metadata element: '{0}'. The value should be 'true' or 'false'.</value>
+    <comment>{0} is the name of the invalid boolean metadata element.</comment>
+  </data>
+  <data name="Manifest_InvalidMetadataElements" xml:space="preserve">
+    <value>The package manifest contains invalid metadata elements: '{0}'</value>
+    <comment>{0} is a comma-delimited list of invalid metadata element names.</comment>
+  </data>
 </root>

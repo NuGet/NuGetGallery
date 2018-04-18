@@ -6,22 +6,30 @@
 
     var gravatarId = "gravatar-image";
     var emailBoxGroupId = "email-box-group";
+
+    var organizationNameTextGroupId = "organization-name";
+    var organizationNameTextId = "organization-name-text";
+
+    var errorMessage = TempData["AddOrganizationErrorMessage"];
 }
 
 <section role="main" class="container main-container">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">
-                <a href="@Url.ManageMyOrganizations()">Organizations</a>
-                &gt;
-                Add New
-            </h1>
-            <p class="text-center">
-                Organizations allow you to manage and publish packages as a team or a group.
+            @ViewHelpers.OrganizationsBreadcrumb(Url, CurrentUser, true, @<text>Add</text>)
+            <p>
+                Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439">Learn more.</a>
             </p>
+            @if (errorMessage != null)
+            {
+                @ViewHelpers.AlertDanger(@<text>@errorMessage</text>)
+            }
             <div>
                 <aside class="col-sm-3 col-sm-push-9">
                     @Html.Label("Logo")
+                    <a href="#" id="transform-tooltip" data-toggle="tooltip" title="We use the email address for your organization and gravatar.com to get the logo.">
+                        <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
+                    </a>
                     <img src="@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")" class="owner-image img-responsive" height="332" id="gravatar-image" width="332" alt="gravatar" title="Organization logo">
                 </aside>
 
@@ -30,18 +38,18 @@
                     {
                         @Html.AntiForgeryToken()
 
-                        <div class="form-group @Html.HasErrorFor(m => m.OrganizationName)">
+                        <div class="form-group @Html.HasErrorFor(m => m.OrganizationName)" id="@organizationNameTextGroupId">
                             @Html.ShowLabelFor(m => m.OrganizationName)
                             @Html.ShowTextBoxFor(m => m.OrganizationName)
+                            <span class="ms-font-s">This will be your organization account on <i id="@organizationNameTextId">@Url.User("{username}", relativeUrl: false)</i>.</span>
                             @Html.ShowValidationMessagesFor(m => m.OrganizationName)
-                            <span>This will be your organization account on <i>@Url.User("your_name_here", relativeUrl: false).</i></span>
                         </div>
 
                         <div class="form-group @Html.HasErrorFor(m => m.OrganizationEmailAddress)" id="@emailBoxGroupId">
                             @Html.ShowLabelFor(m => m.OrganizationEmailAddress)
                             @Html.ShowTextBoxFor(m => m.OrganizationEmailAddress)
+                            <span class="ms-font-s">Users can contact your organization at this email address.</span>
                             @Html.ShowValidationMessagesFor(m => m.OrganizationEmailAddress)
-                            <span>Users can contact you at this email address.</span>
                         </div>
 
                         <div class="form-group row">
@@ -63,6 +71,8 @@
     <script type="text/javascript">
         var gravatarId = "@gravatarId";
         var emailBoxGroupId = "@emailBoxGroupId";
+        var organizationNameTextGroupId = "@organizationNameTextGroupId";
+        var organizationNameTextId = "@organizationNameTextId";
         var defaultImage = "@Html.Raw(@Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))";
         var emailValidationRegex = new RegExp("@Html.Raw(@Constants.EmailValidationRegex)");
     </script>

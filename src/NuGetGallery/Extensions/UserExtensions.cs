@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using NuGetGallery.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -137,6 +138,11 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
+        }
+
+        public static bool IsRestrictedToOrganizationTenantPolicy(this User user)
+        {
+            return user.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

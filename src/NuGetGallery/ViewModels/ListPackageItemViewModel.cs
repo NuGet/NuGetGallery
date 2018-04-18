@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Principal;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -36,6 +35,7 @@ namespace NuGetGallery
             CanUnlistOrRelist = CanPerformAction(currentUser, package, ActionsRequiringPermissions.UnlistOrRelistPackage);
             CanManageOwners = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ManagePackageOwnership);
             CanReportAsOwner = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ReportPackageAsOwner);
+            CanSeeBreadcrumbWithProfile = CanPerformAction(currentUser, package, ActionsRequiringPermissions.ShowProfileBreadcrumb);
         }
 
         public string Authors { get; set; }
@@ -88,6 +88,7 @@ namespace NuGetGallery
         public bool CanUnlistOrRelist { get; set; }
         public bool CanManageOwners { get; set; }
         public bool CanReportAsOwner { get; set; }
+        public bool CanSeeBreadcrumbWithProfile { get; set; }
 
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {

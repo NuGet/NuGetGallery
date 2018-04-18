@@ -228,6 +228,7 @@ namespace NuGetGallery
                 .GetAll()
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
+                .Include(p => p.User)
                 .Where(p => p.PackageRegistration.Id == id);
         }
 

@@ -7,12 +7,10 @@
 }
 
 <section role="main" class="container main-container page-api-keys">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">API Keys</h1>
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
@@ -299,7 +297,7 @@
                     <li>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" data-bind="checked: PushEnabled" />
+                                <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" />
                                 Push
                             </label>
                         </div>
@@ -320,7 +318,7 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                               data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
                                     </div>
                                     <label data-bind="attr: { for: PackagePushVersionId }">
@@ -334,7 +332,7 @@
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" value="@NuGetScopes.PackageUnlist"
-                                       data-bind="checked: UnlistScope" />
+                                       data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
                                 @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
                             </label>
                         </div>
@@ -463,6 +461,8 @@
                          ApiKeys = Model.ApiKeys,
                          PackageOwners = Model.PackageOwners,
                          PackagePushScope = NuGetScopes.PackagePush,
+                         PackagePushVersionScope = NuGetScopes.PackagePushVersion,
+                         PackageUnlistScope = NuGetScopes.PackageUnlist,
                          RemoveUrl = Url.RemoveCredential(),
                          RegenerateUrl = Url.RegenerateCredential(),
                          EditUrl = Url.EditCredential(),

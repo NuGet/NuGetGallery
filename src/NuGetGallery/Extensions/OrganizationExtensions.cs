@@ -10,7 +10,7 @@ namespace NuGetGallery
     {
         public static Membership GetMembershipOfUser(this Organization organization, User member)
         {
-            return organization.Members.FirstOrDefault(m => m.Member.MatchesUser(member));
+            return organization?.Members?.FirstOrDefault(m => m.Member.MatchesUser(member));
         }
 
         /// <summary>
