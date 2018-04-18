@@ -32,7 +32,7 @@
                     @ViewHelpers.AlertInfo(@<text>Membership to this organization is restricted to users from the AAD tenant determined by its email address.</text>)
                 }
             </div>
-            @if (Model.CanManage)
+            @if (Model.CanManageMemberships)
             {
                 <div class="input-group col-xs-12">
                     <div class="row">
@@ -71,7 +71,7 @@
                         </div>
                     </div>
                     <div class="col-xs-3">
-                        @if (Model.CanManage)
+                        @if (Model.CanManageMemberships)
                         {
                             <select class="form-control" aria-label="Change member role"
                                     data-bind="value: SelectedRole, options: OrganizationViewModel.RoleNames, event: { change: ToggleIsAdmin }">
@@ -82,7 +82,7 @@
                             <span data-bind="text: SelectedRole()"></span>
                         }
                     </div>
-                    <!-- ko if: IsCurrentUser || @(Model.CanManage ? "true" : "false") -->
+                    <!-- ko if: IsCurrentUser || @(Model.CanManageMemberships ? "true" : "false") -->
                     <div class="col-xs-1 text-right member-column">
                         <div>
                             <span>
