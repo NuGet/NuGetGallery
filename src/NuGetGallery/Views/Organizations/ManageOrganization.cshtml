@@ -19,8 +19,7 @@
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @if (!Model.CanManage || !Model.CanManageMemberships)
-            {
+            @{
                 string membershipString;
 
                 var membership = Model.Account.GetMembershipOfUser(CurrentUser);
@@ -35,12 +34,13 @@
                         "You are a collaborator of this organization.";
                 }
 
-                string permissionsString;
+                var permissionsString = "";
                 if (Model.CanManage)
                 {
-                    permissionsString = Model.CanManageMemberships ? 
-                        "" : // This should not be possible because of the if statement wrapping this code.
-                        "You must be an administrator to change its members.";
+                    if (!Model.CanManageMemberships)
+                    {
+                        permissionsString = "You must be an administrator to change its members.";
+                    }
                 }
                 else
                 {
@@ -49,7 +49,12 @@
                         "You must be an administrator to make changes to it.";
                 }
 
-                @ViewHelpers.AlertInfo(@<text>@membershipString @permissionsString</text>)
+                if (!string.IsNullOrEmpty(permissionsString))
+                {
+                    permissionsString = " " + permissionsString;
+                }
+
+                @ViewHelpers.AlertInfo(@<text>@membershipString@permissionsString</text>)
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
