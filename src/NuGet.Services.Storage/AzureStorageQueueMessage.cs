@@ -10,13 +10,13 @@ namespace NuGet.Services.Storage
         internal CloudQueueMessage Message { get; }
 
         internal AzureStorageQueueMessage(CloudQueueMessage message)
-            : base(message.AsString)
+            : base(message.AsString, message.DequeueCount)
         {
             Message = message;
         }
 
-        internal AzureStorageQueueMessage(string contents)
-            : base(contents)
+        internal AzureStorageQueueMessage(string contents, int dequeueCount)
+            : base(contents, dequeueCount)
         {
             Message = new CloudQueueMessage(contents);
         }

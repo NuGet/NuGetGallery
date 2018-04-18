@@ -6,20 +6,24 @@ namespace NuGet.Services.Storage
     public class StorageQueueMessage
     {
         public string Contents { get; }
+        public int DequeueCount { get; }
 
-        public StorageQueueMessage(string contents)
+        public StorageQueueMessage(string contents, int dequeueCount)
         {
             Contents = contents;
+            DequeueCount = dequeueCount;
         }
     }
 
     public class StorageQueueMessage<T>
     {
         public T Contents { get; }
+        public int DequeueCount { get; }
 
-        public StorageQueueMessage(T contents)
+        public StorageQueueMessage(T contents, int dequeueCount)
         {
             Contents = contents;
+            DequeueCount = dequeueCount;
         }
     }
 }

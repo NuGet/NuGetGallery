@@ -35,7 +35,7 @@ namespace NuGet.Services.Storage
 
         public async Task AddAsync(string contents, CancellationToken token)
         {
-            var azureMessage = new AzureStorageQueueMessage(contents);
+            var azureMessage = new AzureStorageQueueMessage(contents, dequeueCount: 0);
             await (await _queueTask.Value).AddMessageAsync(azureMessage.Message, token);
         }
 

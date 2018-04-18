@@ -50,7 +50,7 @@ namespace NuGet.Services.Storage
             }
             else
             {
-                return new StorageQueueMessage(_messageSerializer.Serialize(message.Contents));
+                return new StorageQueueMessage(_messageSerializer.Serialize(message.Contents), message.DequeueCount);
             }
         }
 

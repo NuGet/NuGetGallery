@@ -11,7 +11,7 @@ namespace NuGet.Services.Storage
         internal StorageQueueMessage Message { get; }
 
         public DeserializedStorageQueueMessage(T contents, StorageQueueMessage message)
-            : base(contents)
+            : base(contents, message.DequeueCount)
         {
             Message = message;
         }
