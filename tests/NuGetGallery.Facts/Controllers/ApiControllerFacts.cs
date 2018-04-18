@@ -21,7 +21,6 @@ using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -153,6 +152,14 @@ namespace NuGetGallery
 
                 foreach (var result in Enum.GetValues(typeof(PermissionsCheckResult)).Cast<PermissionsCheckResult>())
                 {
+                    if (result == PermissionsCheckResult.Allowed)
+                    {
+                        yield return MemberDataHelper.AsData(
+                            new ApiScopeEvaluationResult(new User("testOwner") { Key = 94443 }, result, scopesAreValid: true), 
+                            HttpStatusCode.Forbidden, 
+                            Strings.ApiKeyOwnerUnconfirmed);
+                    }
+
                     if (result == PermissionsCheckResult.Allowed || result == PermissionsCheckResult.Unknown)
                     {
                         continue;
@@ -351,7 +358,7 @@ namespace NuGetGallery
                 var version = "1.0.42";
                 var nuGetPackage = TestPackage.CreateTestPackageStream(id, version);
 
-                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var user = new User() { EmailAddress = "confirmed1@email.com" };
 
                 var packageRegistration = new PackageRegistration
                 {
@@ -361,7 +368,7 @@ namespace NuGetGallery
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(new User());
+                controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -379,7 +386,7 @@ namespace NuGetGallery
             public async Task WillReturnConflictIfCommittingPackageReturnsConflict()
             {
                 // Arrange
-                var user = new User { EmailAddress = "confirmed@email.com" };
+                var user = new User { EmailAddress = "confirmed1@email.com" };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
                 controller
@@ -388,7 +395,7 @@ namespace NuGetGallery
                     .ReturnsAsync(PackageCommitResult.Conflict);
 
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-                controller.SetCurrentUser(new User());
+                controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -439,12 +446,12 @@ namespace NuGetGallery
                 var packageId = "theId";
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
 
-                var currentUser = new User("currentUser") { Key = 1, EmailAddress = "confirmed@email.com" };
+                var currentUser = new User("currentUser") { Key = 1, EmailAddress = "currentUser@confirmed.com" };
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(currentUser);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                var owner = new User("owner") { Key = 2 };
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
 
                 Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
                     x => x.Evaluate(
@@ -559,7 +566,7 @@ namespace NuGetGallery
                 var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
-                var owner = new User("owner") { Key = 2 };
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
 
                 Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
                     x => x.Evaluate(
@@ -730,7 +737,7 @@ namespace NuGetGallery
                 const string PackageId = "theId";
                 var nuGetPackage = TestPackage.CreateTestPackageStream(PackageId, "1.0.42");
 
-                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var user = new User() { EmailAddress = "confirmed1@email.com" };
                 var packageRegistration = new PackageRegistration
                 {
                     Id = PackageId,
@@ -739,7 +746,7 @@ namespace NuGetGallery
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(new User());
+                controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(PackageId)).Returns(packageRegistration);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
@@ -849,7 +856,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 const string PackageId = "theId";
-                var owner = new User { Key = 1 };
+                var owner = new User { Key = 1, EmailAddress = "owner@confirmed.com" };
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
@@ -1180,7 +1187,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 const string PackageId = "theId";
-                var owner = new User { Key = 1 };
+                var owner = new User { Key = 1, EmailAddress = "owner@confirmed.com" };
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration
@@ -1229,6 +1236,7 @@ namespace NuGetGallery
                 }
 
                 var user = Get<Fakes>().CreateUser(Username);
+                user.EmailAddress = "confirmed@email.com";
                 user.Key = UserKey;
                 user.Credentials.Add(credential);
 

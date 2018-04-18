@@ -734,6 +734,7 @@
     <Compile Include="Authentication\PasswordAuthenticationResult.cs" />
     <Compile Include="Authentication\NuGetScopes.cs" />
     <Compile Include="Authentication\PasswordResetResult.cs" />
+    <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
     <Compile Include="Authentication\Providers\IdentityInformation.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
@@ -801,6 +802,7 @@
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\ObfuscationHelper.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
@@ -2163,9 +2165,7 @@
     <Content Include="packages.config">
       <SubType>Designer</SubType>
     </Content>
-    <Content Include="Scripts\statsgraphs.js" />
     <Content Include="Scripts\nugetgallery.js" />
-    <Content Include="Scripts\stats.js" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

@@ -96,6 +96,12 @@ namespace NuGetGallery
                     Strings.AddMember_UserNotConfirmed, memberName));
             }
 
+            if (member is Organization)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserIsOrganization, memberName));
+            }
+
             // Ensure that the new member meets the AAD tenant policy for this organization.
             var policyResult = await SecurityPolicyService.EvaluateOrganizationPoliciesAsync(
                 SecurityPolicyAction.JoinOrganization, organization, member);
@@ -182,6 +188,12 @@ namespace NuGetGallery
             {
                 throw new EntityException(string.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_UserNotConfirmed, memberName));
+            }
+
+            if (member is Organization)
+            {
+                throw new EntityException(string.Format(CultureInfo.CurrentCulture,
+                    Strings.AddMember_UserIsOrganization, memberName));
             }
 
             var membership = FindMembershipByUsername(organization, memberName);
@@ -442,6 +454,11 @@ namespace NuGetGallery
             {
                 errorReason = Strings.TransformAccount_AccountHasMemberships;
             }
+            else if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(accountToTransform))
+            {
+                errorReason = String.Format(CultureInfo.CurrentCulture,
+                    Strings.Organizations_NotSupportedForAccount, accountToTransform.Username);
+            }
 
             return errorReason == null;
         }
@@ -481,6 +498,12 @@ namespace NuGetGallery
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
         {
+            if (!ContentObjectService.LoginDiscontinuationConfiguration.AreOrganizationsSupportedForUser(adminUser))
+            {
+                throw new EntityException(String.Format(CultureInfo.CurrentCulture,
+                    Strings.Organizations_NotSupportedForAccount, adminUser.Username));
+            }
+
             var existingUserWithIdentity = EntitiesContext.Users
                 .FirstOrDefault(u => u.Username == username || u.EmailAddress == emailAddress);
             if (existingUserWithIdentity != null)

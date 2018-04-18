@@ -195,6 +195,11 @@
                 return self.AddMemberRole() == self.RoleNames()[0];
             });
             this.AddMember = function () {
+                if (!self.NewMemberUsername()) {
+                    self.Error("You must specify a user to add as a member.");
+                    return;
+                }
+
                 // Check if the member already exists.
                 var memberExists = false;
                 self.Members().forEach(function (member) {
@@ -225,6 +230,13 @@
                     data: data,
                     success: function (data) {
                         self.Error(null);
+
+                        // Remove any duplicates of this user in the UI.
+                        // This can happen if a user makes multiple add requests before a response is received.
+                        self.Members.remove(function (member) {
+                            return member.Username.toLocaleLowerCase() === data.Username.toLocaleLowerCase();
+                        });
+
                         self.Members.push(new OrganizationMemberViewModel(self, data));
                         self.NewMemberUsername(null);
                     },

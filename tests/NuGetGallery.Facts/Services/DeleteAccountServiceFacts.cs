@@ -117,7 +117,7 @@ namespace NuGetGallery.Services
                 var signature = "Hello";
                 var result = await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
-                                                admin: testUser,
+                                                userToExecuteTheDelete: testUser,
                                                 signature: signature,
                                                 unlistOrphanPackages: true,
                                                 commitAsTransaction: false);
@@ -148,7 +148,7 @@ namespace NuGetGallery.Services
                 var signature = "Hello";
                 await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
-                                                admin: testUser,
+                                                userToExecuteTheDelete: testUser,
                                                 signature: signature,
                                                 unlistOrphanPackages: true,
                                                 commitAsTransaction: false);

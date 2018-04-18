@@ -92,19 +92,15 @@ namespace NuGetGallery.FunctionalTests.Commandline
         {
             var apiKey = EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
 
-            // Cannot push new package ID as organization
-            await _clientSdkHelper.UploadNewPackage(
-                UploadHelper.GetUniquePackageId(nameof(UploadAndUnlistPackagesAsOrganizationCollaborator)), 
-                success: false, 
-                apiKey: apiKey);
+            // Can push new package ID as organization
+            var id = UploadHelper.GetUniquePackageId(nameof(UploadAndUnlistPackagesAsOrganizationCollaborator));
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0", apiKey: apiKey);
 
             // Can push new version of an existing package as organization
-            var id = Constants.TestOrganizationCollaboratorPackageId;
-            var version = UploadHelper.GetUniquePackageVersion();
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, version, apiKey: apiKey);
+            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0", apiKey: apiKey);
 
             // Can unlist versions of an existing package as organization
-            await _clientSdkHelper.UnlistPackageAndVerify(id, version, apiKey);
+            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0", apiKey);
         }
 
         [Fact]

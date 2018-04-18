@@ -5,12 +5,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -21,8 +19,9 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
-            : base(authService, curatedFeedService, messageService, userService)
+            IUserService userService,
+            ITelemetryService telemetryService)
+            : base(authService, curatedFeedService, messageService, userService, telemetryService)
         {
         }
 
@@ -64,21 +63,18 @@ namespace NuGetGallery
             var organizationEmailAddress = model.OrganizationEmailAddress;
             var adminUser = GetCurrentUser();
 
-            string errorMessage;
-
             try
             {
                 var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
                 SendNewAccountEmail(organization);
+                TelemetryService.TrackOrganizationAdded(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }
             catch (EntityException e)
             {
-                errorMessage = e.Message;
+                TempData["AddOrganizationErrorMessage"] = e.Message;
+                return View(model);
             }
-
-            TempData["ErrorMessage"] = errorMessage;
-            return View(model);
         }
 
         [HttpGet]
@@ -101,7 +97,12 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -121,7 +122,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -195,7 +196,7 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
             try
@@ -206,7 +207,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -221,7 +222,12 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -233,7 +239,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -251,7 +257,12 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
                     != PermissionsCheckResult.Allowed))
             {
-                return Json((int)HttpStatusCode.Forbidden, Strings.Unauthorized);
+                return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
+            }
+
+            if (!account.Confirmed)
+            {
+                return Json(HttpStatusCode.BadRequest, Strings.Member_OrganizationUnconfirmed);
             }
 
             try
@@ -262,7 +273,7 @@ namespace NuGetGallery
             }
             catch (EntityException e)
             {
-                return Json((int)HttpStatusCode.BadRequest, e.Message);
+                return Json(HttpStatusCode.BadRequest, e.Message);
             }
         }
 
@@ -274,7 +285,7 @@ namespace NuGetGallery
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
-            model.RequiresTenant = account.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
+            model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
         }
     }
 }

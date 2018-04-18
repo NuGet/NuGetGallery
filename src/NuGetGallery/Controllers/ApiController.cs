@@ -775,8 +775,11 @@ namespace NuGetGallery
                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
+            
+            var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ? 
+                Strings.ApiKeyOwnerUnconfirmed : Strings.ApiKeyNotAuthorized;
 
-            return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, Strings.ApiKeyNotAuthorized);
+            return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, message);
         }
 
         private ApiScopeEvaluationResult EvaluateApiScope(IActionRequiringEntityPermissions<PackageRegistration> action, PackageRegistration packageRegistration, params string[] requestedActions)

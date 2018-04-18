@@ -7,6 +7,7 @@
  */
 
 (function(root, factory) {
+  'use strict';
   if (typeof define === 'function' && define.amd) {
     // AMD
     define([], factory);
@@ -18,6 +19,7 @@
     root.$clamp = factory();
   }
 }(this, function() {
+  'use strict';
   /**
    * Clamps a text node.
    * @param {HTMLElement} element. Element containing the text node to clamp.

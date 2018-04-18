@@ -9,14 +9,12 @@
 <section role="main" class="container main-container page-contact-owners">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_PackageHeading", new PackageHeadingModel
-                   {
-                       PageHeading = "Contact the Owners of",
-                       PackageDisplay = Model.PackageId + " " + Model.PackageVersion,
-                       Id = Model.PackageId,
-                       Version = Model.PackageVersion,
-                       LinkIdOnly = false
-                   })
+            @Html.Partial(
+                "_PackageHeading", 
+                new PackageHeadingModel(
+                    Model.PackageId, 
+                    Model.PackageVersion,
+                    "Contact owners"))
             @if (Model.Owners.Any())
             {
                 @ViewHelpers.AlertInfo(

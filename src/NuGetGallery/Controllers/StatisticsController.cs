@@ -191,17 +191,17 @@ namespace NuGetGallery
         {
             if (_statisticsService == NullStatisticsService.Instance)
             {
-                return Json(404, new[] {new object() }, JsonRequestBehavior.AllowGet);
+                return Json(HttpStatusCode.NotFound, new[] {new object() }, JsonRequestBehavior.AllowGet);
             }
 
             var packageStatisticsReport = await GetPackageDownloadsByVersionReport(id, groupby);
 
             if (packageStatisticsReport == null)
             {
-                return Json(404, new[] { Strings.PackageWithIdDoesNotExist }, JsonRequestBehavior.AllowGet);
+                return Json(HttpStatusCode.NotFound, new[] { Strings.PackageWithIdDoesNotExist }, JsonRequestBehavior.AllowGet);
             }
 
-            return Json(200, packageStatisticsReport, JsonRequestBehavior.AllowGet);
+            return Json(HttpStatusCode.OK, packageStatisticsReport, JsonRequestBehavior.AllowGet);
         }
 
         //

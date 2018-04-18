@@ -124,21 +124,21 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot request to delete your account until you confirm your email address..
-        /// </summary>
-        public static string AccountDelete_UserNotConfirmed {
-            get {
-                return ResourceManager.GetString("AccountDelete_UserNotConfirmed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
         ///If you wish to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
         public static string AccountIsLinkedToAnotherExternalAccount {
             get {
                 return ResourceManager.GetString("AccountIsLinkedToAnotherExternalAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account. Please contact support for assistance..
+        /// </summary>
+        public static string AccountSelfDelete_Fail {
+            get {
+                return ResourceManager.GetString("AccountSelfDelete_Fail", resourceCulture);
             }
         }
         
@@ -184,6 +184,15 @@ namespace NuGetGallery {
         public static string AddMember_UserDoesNotMeetOrganizationPolicy {
             get {
                 return ResourceManager.GetString("AddMember_UserDoesNotMeetOrganizationPolicy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is an organization and cannot be a member of another organization..
+        /// </summary>
+        public static string AddMember_UserIsOrganization {
+            get {
+                return ResourceManager.GetString("AddMember_UserIsOrganization", resourceCulture);
             }
         }
         
@@ -420,6 +429,15 @@ namespace NuGetGallery {
         public static string ApiKeyOwnerRequired {
             get {
                 return ResourceManager.GetString("ApiKeyOwnerRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified API key is scoped to an owner that is unconfirmed. You must confirm the owner that this API key is scoped to before you can use it..
+        /// </summary>
+        public static string ApiKeyOwnerUnconfirmed {
+            get {
+                return ResourceManager.GetString("ApiKeyOwnerUnconfirmed", resourceCulture);
             }
         }
         
@@ -941,6 +959,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Your organization must be confirmed before you can change its membership..
+        /// </summary>
+        public static string Member_OrganizationUnconfirmed {
+            get {
+                return ResourceManager.GetString("Member_OrganizationUnconfirmed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Please enter a message..
         /// </summary>
         public static string MessageIsRequired {
@@ -1090,6 +1117,15 @@ namespace NuGetGallery {
         public static string Organizations_AdminAccountDoesNotHaveTenant {
             get {
                 return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotSupportedForAccount {
+            get {
+                return ResourceManager.GetString("Organizations_NotSupportedForAccount", resourceCulture);
             }
         }
         
@@ -2026,6 +2062,15 @@ namespace NuGetGallery {
         public static string VerifyPackage_OwnerInvalid {
             get {
                 return ResourceManager.GetString("VerifyPackage_OwnerInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User &apos;{0}&apos; is unconfirmed and cannot be the owner of the package..
+        /// </summary>
+        public static string VerifyPackage_OwnerUnconfirmed {
+            get {
+                return ResourceManager.GetString("VerifyPackage_OwnerUnconfirmed", resourceCulture);
             }
         }
         

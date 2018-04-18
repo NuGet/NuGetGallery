@@ -12,7 +12,11 @@ namespace NuGetGallery
 
         public ManageOrganizationsViewModel(User currentUser, IPackageService packageService)
         {
-            Organizations = currentUser.Organizations.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
+            var organizations = currentUser.Organizations.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
+            var pendingMemberships = currentUser.OrganizationRequests.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
+            var pendingTransformations = currentUser.OrganizationMigrationRequests.Select(m => new ManageOrganizationsItemViewModel(m, packageService));
+
+            Organizations = organizations.Concat(pendingMemberships).Concat(pendingTransformations);
         }
     }
 }

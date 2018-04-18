@@ -8,6 +8,7 @@ using System.Linq;
 using Moq;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
+using NuGetGallery.Security;
 using Xunit;
 
 using TrackAction = System.Action<NuGetGallery.TelemetryService>;
@@ -115,6 +116,26 @@ namespace NuGetGallery
                             "4.5.0",
                             ReportPackageReason.ReleasedInPublicByAccident,
                             success: true))
+                    };
+
+                    yield return new object[] { "OrganizationTransformInitiated",
+                        (TrackAction)(s => s.TrackOrganizationTransformInitiated(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationTransformCompleted",
+                        (TrackAction)(s => s.TrackOrganizationTransformCompleted(fakes.Organization))
+                    };
+
+                    yield return new object[] { "OrganizationTransformDeclined",
+                        (TrackAction)(s => s.TrackOrganizationTransformDeclined(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationTransformCancelled",
+                        (TrackAction)(s => s.TrackOrganizationTransformCancelled(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationAdded",
+                        (TrackAction)(s => s.TrackOrganizationAdded(fakes.Organization))
                     };
                 }
             }
@@ -287,6 +308,61 @@ namespace NuGetGallery
                         packageVersion: null,
                         reason: ReportPackageReason.ReleasedInPublicByAccident,
                         success: true));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformInitiatedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformInitiated(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformCompletedThrowsIfNullOrganization()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformCompleted(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformDeclinedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformDeclined(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformCancelledThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformCancelled(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationAddedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationAdded(null));
             }
         }
 
