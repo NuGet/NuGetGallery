@@ -9,6 +9,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
@@ -488,9 +489,7 @@ namespace NuGetGallery
         /// <returns>True if successfully adds the claim to the context, false otherwise</returns>
         public static bool AddClaim(this IOwinContext self, string claimType)
         {
-            var responseGrantIdentity = self.Authentication?.AuthenticationResponseGrant?.Identity;
-            var authenticatedUserIdentity = self.Authentication?.User?.Identity;
-            var identity = responseGrantIdentity ?? authenticatedUserIdentity;
+            var identity = GetIdentity(self);
             if (identity == null || !identity.IsAuthenticated)
             {
                 return false;
@@ -512,9 +511,7 @@ namespace NuGetGallery
         /// <returns>True if successfully removed the claim from context, false otherwise</returns>
         public static bool RemoveClaim(this IOwinContext self, string claimType)
         {
-            var responseGrantIdentity = self.Authentication?.AuthenticationResponseGrant?.Identity;
-            var authenticatedUserIdentity = self.Authentication?.User?.Identity;
-            var identity = responseGrantIdentity ?? authenticatedUserIdentity;
+            var identity = GetIdentity(self);
             if (identity == null || !identity.IsAuthenticated)
             {
                 return false;
@@ -528,6 +525,13 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        private static IIdentity GetIdentity(IOwinContext context)
+        {
+            var responseGrantIdentity = context.Authentication?.AuthenticationResponseGrant?.Identity;
+            var authenticatedUserIdentity = context.Authentication?.User?.Identity;
+            return responseGrantIdentity ?? authenticatedUserIdentity;
         }
 
         private static User LoadUser(IOwinContext context)
