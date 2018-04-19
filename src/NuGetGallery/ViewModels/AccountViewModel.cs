@@ -30,8 +30,6 @@ namespace NuGetGallery
 
         public bool HasPassword { get; set; }
 
-        public bool EnableMultiFactorAuthentication { get; set; }
-
         public string CurrentEmailAddress { get; set; }
 
         public bool HasUnconfirmedEmailAddress { get; set; }

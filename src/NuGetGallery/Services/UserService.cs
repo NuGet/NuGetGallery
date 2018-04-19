@@ -380,7 +380,7 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
         }
 
-        public async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
+        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
         {
             user.EnableMultiFactorAuthentication = enableMultiFactor;
             await UserRepository.CommitChangesAsync();

@@ -305,7 +305,6 @@ namespace NuGetGallery
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;
             model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(account.EmailAddress);
             model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(account.UnconfirmedEmailAddress);
-            model.EnableMultiFactorAuthentication = account.EnableMultiFactorAuthentication;
 
             model.ChangeEmail = new ChangeEmailViewModel();
 

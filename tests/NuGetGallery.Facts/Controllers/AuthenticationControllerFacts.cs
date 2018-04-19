@@ -1282,6 +1282,57 @@ namespace NuGetGallery.Controllers
             [Theory]
             [InlineData("MicrosoftAccount", true)]
             [InlineData("AzureActiveDirectory", false)]
+            public async Task ShouldUpdateMultiFactorSettingForMicrosoftAccounts(string credType, bool enabled2FA)
+            {
+                // Arrange
+                var email = "test@email.com";
+                var cred = new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog");
+                var user = Get<Fakes>().CreateUser("test", cred);
+                user.EnableMultiFactorAuthentication = false;
+                var authServiceMock = GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                var userServiceMock = GetMock<IUserService>();
+                var authUser = new AuthenticatedUser(user, cred);
+
+                authServiceMock
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = cred,
+                        Authentication = authUser,
+                        Authenticator = new AzureActiveDirectoryV2Authenticator(),
+                        LoginDetails = new ExternalLoginSessionDetails(email, usedMultiFactorAuthentication: true)
+                    });
+
+                authServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, It.IsAny<bool>()))
+                    .Returns(Task.CompletedTask);
+
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(authUser.User, true))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                var returnUrl = "theReturnUrl";
+
+                // Act
+                var result = await controller.LinkExternalAccount(returnUrl);
+
+                // Assert
+                authServiceMock.VerifyAll();
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(authUser.User, true), enabled2FA ? Times.Once() : Times.Never());
+                if (enabled2FA)
+                {
+                    Assert.Equal(Strings.MultiFactorAuth_LoginUpdate, controller.TempData["Message"]);
+                }
+
+                ResultAssert.IsSafeRedirectTo(result, returnUrl);
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount", true)]
+            [InlineData("AzureActiveDirectory", false)]
             public async Task GivenAssociatedLocalAdminUser_ItChallengesWhenNotUsingRequiredExternalProvider(string providerUsedForLogin, bool shouldChallenge)
             {
                 // Arrange
