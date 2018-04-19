@@ -1374,22 +1374,6 @@ namespace NuGetGallery
 
         public class TheChangeMultiFactorAuthenticationAction : TestContainer
         {
-            [Fact]
-            public async Task InvalidAccountName_RedirectsBackWithAnErrorMessage()
-            {
-                // Arrange
-                var fakes = Get<Fakes>();
-                var user = fakes.CreateUser("user1");
-
-                var controller = GetController<UsersController>();
-
-                // Act
-                await controller.ChangeMultiFactorAuthentication(true);
-
-                // Assert
-                Assert.Equal(Strings.MultiFactorAuth_InvalidAccount, controller.TempData["ErrorMessage"]);
-            }
-
             [Theory]
             [InlineData(true)]
             [InlineData(false)]

@@ -842,9 +842,6 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AddMember_UserIsOrganization" xml:space="preserve">
     <value>User '{0}' is an organization and cannot be a member of another organization.</value>
   </data>
-  <data name="MultiFactorAuth_InvalidAccount" xml:space="preserve">
-    <value>The account name is invalid.</value>
-  </data>
   <data name="MultiFactorAuth_Enabled" xml:space="preserve">
     <value>Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}.</value>
   </data>

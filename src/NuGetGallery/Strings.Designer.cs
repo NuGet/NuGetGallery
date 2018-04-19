@@ -1011,15 +1011,6 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("MissingRequiredConfigurationValue", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The account name is invalid..
-        /// </summary>
-        public static string MultiFactorAuth_InvalidAccount {
-            get {
-                return ResourceManager.GetString("MultiFactorAuth_InvalidAccount", resourceCulture);
-            }
-        }
 
         /// <summary>
         ///   Looks up a localized string similar to Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}..

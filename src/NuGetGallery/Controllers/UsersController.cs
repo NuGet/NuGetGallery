@@ -677,29 +677,23 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
         {
-            var account = GetCurrentUser();
+            var user = GetCurrentUser();
 
-            if (account == null)
+            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor);
+
+            TempData["Message"] = string.Format(
+                enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
+                _config.Brand);
+
+            if (enableMultiFactor)
             {
-                TempData["ErrorMessage"] = Strings.MultiFactorAuth_InvalidAccount;
+                // Add the claim to remove the warning indicators for 2FA.
+                OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
             }
             else
             {
-                await UserService.ChangeMultiFactorAuthentication(account, enableMultiFactor);
-                TempData["Message"] = string.Format(
-                    enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
-                    _config.Brand);
-
-                if (enableMultiFactor)
-                {
-                    // Add the claim to remove the warning indicators for 2FA.
-                    OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
-                }
-                else
-                {
-                    // Remove the claim from login to show warning indicators for 2FA.
-                    OwinContext.RemoveClaim(NuGetClaims.EnabledMultiFactorAuthentication);
-                }
+                // Remove the claim from login to show warning indicators for 2FA.
+                OwinContext.RemoveClaim(NuGetClaims.EnabledMultiFactorAuthentication);
             }
 
             return RedirectToAction(AccountAction);
