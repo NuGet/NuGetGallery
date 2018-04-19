@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -1369,6 +1369,56 @@ namespace NuGetGallery
                     .Select(e => e.ErrorMessage)
                     .ToArray();
                 Assert.Equal(errorMessages, new[] { Strings.UserIsNotYetConfirmed });
+            }
+        }
+
+        public class TheChangeMultiFactorAuthenticationAction : TestContainer
+        {
+            [Fact]
+            public async Task InvalidAccountName_RedirectsBackWithAnErrorMessage()
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+
+                var controller = GetController<UsersController>();
+
+                // Act
+                await controller.ChangeMultiFactorAuthentication(true);
+
+                // Assert
+                Assert.Equal(Strings.MultiFactorAuth_InvalidAccount, controller.TempData["ErrorMessage"]);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task SettingsAreUpdated_RedirectsBackWithMessage(bool enable2FA)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+                user.EnableMultiFactorAuthentication = !enable2FA;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var userServiceMock = GetMock<IUserService>();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
+
+                // Assert
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA));
+                Assert.NotNull(controller.TempData["Message"]);
+                var identity = controller.OwinContext.Authentication.User.Identity as ClaimsIdentity;
+                Assert.NotNull(identity);
+                Assert.Equal(enable2FA, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
         }
 

@@ -1142,6 +1142,26 @@ namespace NuGetGallery
             }
         }
 
+        public class TheChangeMultiFactorAuthenticationMethod
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task UpdatesMultiFactorSettings(bool enable2FA)
+            {
+                // Arrange
+                var user = new User();
+                var service = new TestableUserService();
+
+                // Act
+                await service.ChangeMultiFactorAuthentication(user, enable2FA);
+
+                // Assert
+                Assert.Equal(user.EnableMultiFactorAuthentication, enable2FA);
+                service.MockUserRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                service.MockTelemetryService.Verify(x => x.TrackUserChangedMultiFactorAuthentication(user, enable2FA), Times.Once);
+            }
+        }
 
         public class TheUpdateProfileMethod
         {
