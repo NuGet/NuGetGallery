@@ -233,7 +233,11 @@ namespace NuGetGallery
                            .MapRightKey("UserKey"));
 
             modelBuilder.Entity<PackageRegistration>()
-                .HasOptional(pr => pr.RequiredSigner);
+                .HasMany(pr => pr.RequiredSigners)
+                .WithMany()
+                .Map(c => c.ToTable("PackageRegistrationRequiredSigners")
+                           .MapLeftKey("PackageRegistrationKey")
+                           .MapRightKey("UserKey"));
 
             modelBuilder.Entity<Package>()
                 .HasKey(p => p.Key);
