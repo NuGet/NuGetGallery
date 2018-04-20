@@ -66,6 +66,11 @@ namespace NuGetGallery
             return Json(obj, jsonRequestBehavior);
         }
 
+        protected internal JsonResult Json(HttpStatusCode statusCode)
+        {
+            return Json(statusCode, obj: new { }, jsonRequestBehavior: JsonRequestBehavior.DenyGet);
+        }
+
         protected internal JsonResult Json(HttpStatusCode statusCode, object obj)
         {
             return Json(statusCode, obj, JsonRequestBehavior.DenyGet);

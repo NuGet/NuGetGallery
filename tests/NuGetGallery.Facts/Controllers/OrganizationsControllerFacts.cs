@@ -4,15 +4,17 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
-using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery
@@ -1372,6 +1374,537 @@ namespace NuGetGallery
                 var result = await Invoke(controller, username);
                 ResultAssert.IsRedirectToRoute(result, new { action = nameof(OrganizationsController.DeleteRequest) });
                 Assert.Equal(errorMessage, controller.TempData["ErrorMessage"]);
+            }
+        }
+
+        public class TheGetCertificateAction : AccountsControllerTestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly Mock<IUserService> _userService;
+            private readonly OrganizationsController _controller;
+            private readonly Organization _organization;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheGetCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _userService = GetMock<IUserService>();
+                _controller = GetController<OrganizationsController>();
+                _organization = new Organization()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _user = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 3,
+                    Sha1Thumbprint = "c",
+                    Thumbprint = "d"
+                };
+
+                _organization.Members.Add(new Membership()
+                {
+                    MemberKey = _user.Key,
+                    Member = _user,
+                    OrganizationKey = _organization.Key,
+                    Organization = _organization,
+                    IsAdmin = true
+                });
+
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
+                    .Returns(_organization);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void GetCertificate_WhenThumbprintIsInvalid_ReturnsBadRequest(string thumbprint)
+            {
+                var response = _controller.GetCertificate(_organization.Username, thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenOrganizationIsNotFound_ReturnsNotFound()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificate(
+                    accountName: "nonexistent",
+                    thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.NotFound, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenCurrentUserLacksPermission_ReturnsForbidden()
+            {
+                var nonmember = new User()
+                {
+                    Key = 4,
+                    Username = "e"
+                };
+
+                _controller.SetCurrentUser(nonmember);
+
+                var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenOrganizationHasNoCertificates_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(Enumerable.Empty<Certificate>());
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Empty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void GetCertificate_WhenOrganizationHasCertificate_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.True(viewModel.CanDelete);
+                Assert.Equal($"/organization/{_organization.Username}/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+        }
+
+        public class TheGetCertificatesAction : AccountsControllerTestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly Mock<IUserService> _userService;
+            private readonly OrganizationsController _controller;
+            private readonly Organization _organization;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheGetCertificatesAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _userService = GetMock<IUserService>();
+                _controller = GetController<OrganizationsController>();
+                _organization = new Organization()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _user = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 3,
+                    Sha1Thumbprint = "c",
+                    Thumbprint = "d"
+                };
+
+                _organization.Members.Add(new Membership()
+                {
+                    MemberKey = _user.Key,
+                    Member = _user,
+                    OrganizationKey = _organization.Key,
+                    Organization = _organization,
+                    IsAdmin = true
+                });
+
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
+                    .Returns(_organization);
+            }
+
+            [Fact]
+            public void GetCertificates_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.GetCertificates(_organization.Username);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificates_WhenOrganizationIsNotFound_ReturnsNotFound()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificates(accountName: "nonexistent");
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.NotFound, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificates_WhenCurrentUserLacksPermission_ReturnsForbidden()
+            {
+                var nonmember = new User()
+                {
+                    Key = 4,
+                    Username = "e"
+                };
+
+                _controller.SetCurrentUser(nonmember);
+
+                var response = _controller.GetCertificates(_organization.Username);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificates_WhenOrganizationHasNoCertificates_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(Enumerable.Empty<Certificate>());
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificates(_organization.Username);
+
+                Assert.NotNull(response);
+                Assert.Empty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void GetCertificates_WhenOrganizationHasCertificate_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificates(_organization.Username);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.True(viewModel.CanDelete);
+                Assert.Equal($"/organization/{_organization.Username}/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+        }
+
+        public class TheAddCertificateAction : AccountsControllerTestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly Mock<ISecurityPolicyService> _securityPolicyService;
+            private readonly Mock<IUserService> _userService;
+            private readonly OrganizationsController _controller;
+            private readonly Mock<IPackageService> _packageService;
+            private readonly Organization _organization;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheAddCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _securityPolicyService = GetMock<ISecurityPolicyService>();
+                _userService = GetMock<IUserService>();
+                _packageService = GetMock<IPackageService>();
+                _controller = GetController<OrganizationsController>();
+                _organization = new Organization()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _user = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 3,
+                    Sha1Thumbprint = "c",
+                    Thumbprint = "d"
+                };
+
+                _organization.Members.Add(new Membership()
+                {
+                    MemberKey = _user.Key,
+                    Member = _user,
+                    OrganizationKey = _organization.Key,
+                    Organization = _organization,
+                    IsAdmin = true
+                });
+
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
+                    .Returns(_organization);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var uploadFile = new StubHttpPostedFile(contentLength: 0, fileName: "a.cer", inputStream: Stream.Null);
+                var response = _controller.AddCertificate(_organization.Username, uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenOrganizationIsNotFound_ReturnsNotFound()
+            {
+                var uploadFile = GetUploadFile();
+
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(accountName: "nonexistent", uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.NotFound, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenCurrentUserLacksPermission_ReturnsForbidden()
+            {
+                var uploadFile = GetUploadFile();
+                var nonmember = new User()
+                {
+                    Key = 4,
+                    Username = "e"
+                };
+
+                _controller.SetCurrentUser(nonmember);
+
+                var response = _controller.AddCertificate(_organization.Username, uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUploadFileIsNull_ReturnsBadRequest()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(_organization.Username, uploadFile: null);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUploadFileIsValid_ReturnsCreated()
+            {
+                var uploadFile = GetUploadFile();
+
+                _certificateService.Setup(x => x.AddCertificateAsync(
+                        It.Is<HttpPostedFileBase>(file => ReferenceEquals(file, uploadFile))))
+                    .ReturnsAsync(_certificate);
+                _certificateService.Setup(x => x.ActivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _organization)))
+                    .Returns(Task.CompletedTask);
+
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(_organization.Username, uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Created, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUserIsSubscribedToAutomaticallyOverwriteRequiredSignerPolicy_ReturnsCreated()
+            {
+                var uploadFile = GetUploadFile();
+
+                _certificateService.Setup(x => x.AddCertificateAsync(
+                        It.Is<HttpPostedFileBase>(file => ReferenceEquals(file, uploadFile))))
+                    .ReturnsAsync(_certificate);
+                _certificateService.Setup(x => x.ActivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _organization)))
+                    .Returns(Task.CompletedTask);
+                _certificateService.Setup(x => x.GetCertificates(
+                        It.Is<User>(user => user == _organization)))
+                    .Returns(new[] { _certificate });
+                _securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(user => user == _organization),
+                        It.Is<string>(policyName => policyName == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+                _packageService.Setup(x => x.SetRequiredSignerAsync(It.Is<User>(user => user == _user)))
+                    .Returns(Task.CompletedTask);
+
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(_organization.Username, uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Created, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+                _securityPolicyService.VerifyAll();
+                _packageService.Verify(x => x.SetRequiredSignerAsync(_organization), Times.Once);
+            }
+
+            private static StubHttpPostedFile GetUploadFile()
+            {
+                var bytes = Encoding.UTF8.GetBytes("certificate");
+                var stream = new MemoryStream(bytes);
+
+                return new StubHttpPostedFile((int)stream.Length, "certificate.cer", stream);
+            }
+        }
+
+        public class TheDeleteCertificateAction : AccountsControllerTestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly Mock<IUserService> _userService;
+            private readonly OrganizationsController _controller;
+            private readonly Organization _organization;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheDeleteCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _userService = GetMock<IUserService>();
+                _controller = GetController<OrganizationsController>();
+                _organization = new Organization()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _user = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 3,
+                    Sha1Thumbprint = "c",
+                    Thumbprint = "d"
+                };
+
+                _organization.Members.Add(new Membership()
+                {
+                    MemberKey = _user.Key,
+                    Member = _user,
+                    OrganizationKey = _organization.Key,
+                    Organization = _organization,
+                    IsAdmin = true
+                });
+
+                _userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _organization.Username)))
+                    .Returns(_organization);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void DeleteCertificate_WhenThumbprintIsInvalid_ReturnsBadRequest(string thumbprint)
+            {
+                var response = _controller.DeleteCertificate(_organization.Username, thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.DeleteCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenOrganizationIsNotFound_ReturnsNotFound()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.DeleteCertificate(accountName: "nonexistent", thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.NotFound, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenCurrentUserLacksPermission_ReturnsForbidden()
+            {
+                var nonmember = new User()
+                {
+                    Key = 4,
+                    Username = "e"
+                };
+
+                _controller.SetCurrentUser(nonmember);
+
+                var response = _controller.DeleteCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WithValidThumbprint_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.DeactivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _organization)))
+                    .Returns(Task.CompletedTask);
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.DeleteCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
             }
         }
     }

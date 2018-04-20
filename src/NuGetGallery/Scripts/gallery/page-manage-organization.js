@@ -258,7 +258,8 @@
 
         // Set up the data binding.
         var manageOrganizationViewModel = new ManageOrganizationViewModel(initialData);
-        ko.applyBindings(manageOrganizationViewModel, document.body);
+        var manageOrganizationMembersContainer = $('#manage-organization-members-container');
+        ko.applyBindings(manageOrganizationViewModel, manageOrganizationMembersContainer[0]);
 
         // Set up the Add Member textbox to submit upon pressing enter.
         var newMemberTextbox = $("#new-member-textbox");

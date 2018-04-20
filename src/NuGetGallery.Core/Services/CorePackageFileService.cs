@@ -182,7 +182,7 @@ namespace NuGetGallery
             {
                 await _fileStorageService.SaveFileAsync(CoreConstants.PackageBackupsFolderName, fileName, packageFile);
             }
-            catch (InvalidOperationException)
+            catch (FileAlreadyExistsException)
             {
                 // If the package file already exists, swallow the exception since we know the content is the same.
                 return;

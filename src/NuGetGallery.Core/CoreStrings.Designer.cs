@@ -61,6 +61,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument cannot be null or empty..
+        /// </summary>
+        public static string ArgumentCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ArgumentCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The certificate does not exist..
+        /// </summary>
+        public static string CertificateNotFound {
+            get {
+                return ResourceManager.GetString("CertificateNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The thumbprint is expected to be a SHA-256 thumbprint, which is exactly 64 characters in length.  Did the hash algorithm change?.
+        /// </summary>
+        public static string CertificateThumbprintHashAlgorithmChanged {
+            get {
+                return ResourceManager.GetString("CertificateThumbprintHashAlgorithmChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to write audit record: &apos;{0}&apos;. Record already exists..
         /// </summary>
         public static string CloudAuditingService_DuplicateAuditRecord {
@@ -273,6 +300,15 @@ namespace NuGetGallery {
         public static string PackageMetadata_VersionStringInvalid {
             get {
                 return ResourceManager.GetString("PackageMetadata_VersionStringInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package does not exist..
+        /// </summary>
+        public static string PackageNotFound {
+            get {
+                return ResourceManager.GetString("PackageNotFound", resourceCulture);
             }
         }
         
