@@ -5,10 +5,12 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class OrganizationAccountViewModel : AccountViewModel
+    public class OrganizationAccountViewModel : AccountViewModel<Organization>
     {
         public IEnumerable<OrganizationMemberViewModel> Members { get; set; }
 
         public bool RequiresTenant { get; set; }
+
+        public bool CanManageMemberships { get; set; }
     }
 }

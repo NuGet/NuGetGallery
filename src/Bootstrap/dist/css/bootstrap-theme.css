@@ -87,20 +87,8 @@ body h3 {
   height: auto;
   padding-bottom: 75px;
 }
-.main-container .page-subheading {
-  color: #777;
-}
 .navbar-logo {
   margin: 8px 20px 0 0;
-}
-.navbar-seperated .seperator {
-  display: block;
-  padding: 11px 0;
-  font-weight: 100;
-  color: #fff;
-}
-.navbar-seperated .seperator > span::after {
-  content: " | ";
 }
 .dropdown-menu {
   padding-top: 20px;
@@ -1067,32 +1055,26 @@ img.reserved-indicator-icon {
 .manage-members-listing tbody:first-child {
   border-style: hidden;
 }
-.members-list {
-  margin-top: 15px;
-}
 .members-list .manage-members-listing {
   margin-bottom: 0;
 }
-.members-list .manage-members-listing .heading-left {
-  padding-left: 5px;
-}
-.members-list .manage-members-listing .heading-right {
-  padding-right: 5px;
-}
-.members-list .manage-members-listing .icon-left {
-  padding-left: 25px;
-}
-.members-list .manage-members-listing .icon-right {
-  padding-right: 20px;
+.members-list .manage-members-listing .alert-container .alert {
+  margin-top: 0;
 }
 .members-list .manage-members-listing .role-description {
-  margin-top: 15px;
+  margin-top: 25px;
   margin-bottom: 25px;
 }
-.members-list .manage-members-listing .alert {
-  margin-bottom: 5px;
+.members-list .manage-members-listing .member-item hr {
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
-.members-list .manage-members-listing .row-center {
+.members-list .manage-members-listing .member-item .member-column {
+  display: table;
+  height: 36px;
+}
+.members-list .manage-members-listing .member-item .member-column div {
+  display: table-cell;
   vertical-align: middle;
 }
 .page-manage-owners h2 .ms-Icon {
@@ -1135,12 +1117,18 @@ img.reserved-indicator-icon {
 .page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
   text-decoration: none;
 }
+.page-manage-packages .organizations-divider {
+  color: #dbdbdb;
+}
 .page-manage-packages h1 {
   margin-bottom: 0;
 }
 .page-manage-packages h2 {
   margin-top: 0;
   margin-bottom: 10px;
+}
+.page-manage-packages .organizations-empty {
+  margin-top: 60px;
 }
 .page-manage-packages .subtitle {
   margin-top: 33px;
