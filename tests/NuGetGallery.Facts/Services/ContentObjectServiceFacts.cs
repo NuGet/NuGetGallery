@@ -34,9 +34,8 @@ namespace NuGetGallery.Services
                 var exceptions = new[] { "exception@example.com" };
                 var shouldTransforms = new[] { "transfomer@example.com" };
                 var orgTenantPairs = new[] { new OrganizationTenantPair("example.com", "tenantId") };
-                var orgsEnabledForAll = true;
 
-                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs, orgsEnabledForAll);
+                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
                 var configString = JsonConvert.SerializeObject(config);
 
                 GetMock<IContentService>()
@@ -54,7 +53,6 @@ namespace NuGetGallery.Services
                 Assert.True(loginDiscontinuationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
                 Assert.True(loginDiscontinuationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
                 Assert.True(loginDiscontinuationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs));
-                Assert.Equal(orgsEnabledForAll, loginDiscontinuationConfiguration.OrganizationsEnabledForAll);
             }
         }
     }

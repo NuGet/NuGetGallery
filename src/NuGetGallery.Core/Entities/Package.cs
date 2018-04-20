@@ -223,5 +223,15 @@ namespace NuGetGallery
         /// The package status key, referring to the <see cref="PackageStatus"/> enum.
         /// </summary>
         public PackageStatus PackageStatusKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the foreign key of the certificate used to sign the package.
+        /// </summary>
+        public int? CertificateKey { get; set; }
+
+        /// <summary>
+        /// Gets or sets the certificate used to sign the package.
+        /// </summary>
+        public virtual Certificate Certificate { get; set; }
     }
 }

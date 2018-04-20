@@ -834,6 +834,10 @@
     <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.Designer.cs">
       <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.cs" />
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.Designer.cs">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1976,6 +1980,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.resx">
       <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201804171613337_AddCertificateRegistration.resx">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
