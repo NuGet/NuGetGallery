@@ -7,23 +7,23 @@
 <section role="main" class="container main-container page-manage-packages">
     <div class="row">
         <div class="col-md-12">
-
-            <div class="clearfix">
-                <h1 class="pull-left"><a href="@Url.User(CurrentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact" aria-hidden="true"></i></a> &gt; Organizations</h1>
-                @if (Model.Organizations.Any())
-                {
-                    <form class="form-section-title pull-right" action="@Url.AddOrganization()">
-                        <input type="submit" class="btn btn-primary" value="Add new" />
-                    </form>
-                }
+            <div class="breadcrumb-menu">
+                <div>
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false, 
+                        @<text>Organizations&nbsp;<span aria-hidden="true" class="ms-font-xxl organizations-divider">|</span>&nbsp;<a href="@Url.AddOrganization()">Add new</a></text>)
+                </div>
             </div>
+            <hr class="breadcrumb-divider"/>
 
             @if (Model.Organizations.Any())
             {
                 var orgCount = Model.Organizations.Count();
                 var orgCountString = orgCount > 1 ? orgCount + " organizations" : orgCount + " organization";
 
-                <div class="subtitle">
+                <div>
                     <p>You have @(orgCountString).</p>
                 </div>
                 <table class="table user-package-list">
@@ -45,7 +45,7 @@
                                     <img src="@GravatarHelper.Url(organization.EmailAddress, 256)" class="package-icon img-responsive" aria-hidden="true" alt="" />
                                 </td>
                                 <td class="align-middle package-id">
-                                    <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)" >
+                                    <a title="View Organization Profile" href="@Url.User(organization.OrganizationName)">
                                         @organization.OrganizationName
                                     </a>
                                     @if (organization.IsPendingRequest)
@@ -89,8 +89,8 @@
             }
             else
             {
-                <div class="subtitle text-center">
-                    <img width="260" height="150" alt="Learn to use packages"
+                <div class="organizations-empty text-center">
+                    <img width="260" height="150" alt="You are not a member of any organizations"
                          src="~/Content/gallery/img/manage-organizations.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/manage-organizations-260x150.png")) />
                 </div>
@@ -101,6 +101,9 @@
                     <form action="@Url.AddOrganization()">
                         <input type="submit" class="btn btn-primary" value="Add new organization" />
                     </form>
+                </div>
+                <div class="subtitle text-center">
+                    <a href="@Url.TransformAccount()">Transform your account into an organization</a>
                 </div>
             }
         </div>

@@ -87,20 +87,8 @@ body h3 {
   height: auto;
   padding-bottom: 75px;
 }
-.main-container .page-subheading {
-  color: #777;
-}
 .navbar-logo {
   margin: 8px 20px 0 0;
-}
-.navbar-seperated .seperator {
-  display: block;
-  padding: 11px 0;
-  font-weight: 100;
-  color: #fff;
-}
-.navbar-seperated .seperator > span::after {
-  content: " | ";
 }
 .dropdown-menu {
   padding-top: 20px;
@@ -303,6 +291,32 @@ img.reserved-indicator-icon {
   height: 2em;
   line-height: 2em;
   color: #e3ebf1;
+}
+.breadcrumb-title {
+  margin-bottom: 0;
+}
+.breadcrumb-divider {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
+.breadcrumb-menu {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  margin-top: 33px;
+
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+}
+.breadcrumb-menu h1 {
+  margin-top: 0;
 }
 .modal-backdrop.in {
   position: fixed;
@@ -1041,32 +1055,26 @@ img.reserved-indicator-icon {
 .manage-members-listing tbody:first-child {
   border-style: hidden;
 }
-.members-list {
-  margin-top: 15px;
-}
 .members-list .manage-members-listing {
   margin-bottom: 0;
 }
-.members-list .manage-members-listing .heading-left {
-  padding-left: 5px;
-}
-.members-list .manage-members-listing .heading-right {
-  padding-right: 5px;
-}
-.members-list .manage-members-listing .icon-left {
-  padding-left: 25px;
-}
-.members-list .manage-members-listing .icon-right {
-  padding-right: 20px;
+.members-list .manage-members-listing .alert-container .alert {
+  margin-top: 0;
 }
 .members-list .manage-members-listing .role-description {
-  margin-top: 15px;
+  margin-top: 25px;
   margin-bottom: 25px;
 }
-.members-list .manage-members-listing .alert {
-  margin-bottom: 5px;
+.members-list .manage-members-listing .member-item hr {
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
-.members-list .manage-members-listing .row-center {
+.members-list .manage-members-listing .member-item .member-column {
+  display: table;
+  height: 36px;
+}
+.members-list .manage-members-listing .member-item .member-column div {
+  display: table-cell;
   vertical-align: middle;
 }
 .page-manage-owners h2 .ms-Icon {
@@ -1109,6 +1117,9 @@ img.reserved-indicator-icon {
 .page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
   text-decoration: none;
 }
+.page-manage-packages .organizations-divider {
+  color: #dbdbdb;
+}
 .page-manage-packages h1 {
   margin-bottom: 0;
 }
@@ -1116,8 +1127,11 @@ img.reserved-indicator-icon {
   margin-top: 0;
   margin-bottom: 10px;
 }
+.page-manage-packages .organizations-empty {
+  margin-top: 60px;
+}
 .page-manage-packages .subtitle {
-  margin-top: 24px;
+  margin-top: 33px;
 }
 .page-manage-packages .form-section-title {
   margin-top: 40px;
@@ -1155,19 +1169,19 @@ img.reserved-indicator-icon {
   display: -ms-flexbox;
   display:         flex;
   margin-top: 50px;
-  margin-bottom: 20px;
 
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
           justify-content: space-between;
-  -webkit-box-align: end;
-  -webkit-align-items: flex-end;
-  -ms-flex-align: end;
-          align-items: flex-end;
+  -webkit-box-align: baseline;
+  -webkit-align-items: baseline;
+  -ms-flex-align: baseline;
+          align-items: baseline;
 }
 .page-profile .profile-title h1 {
-  display: inline;
+  margin-top: 0;
+  margin-bottom: 0;
   font-size: 2.285em;
   font-weight: 300;
 }
@@ -1176,8 +1190,12 @@ img.reserved-indicator-icon {
   font-size: 14px;
   color: #068918;
 }
-.page-profile .profile-title .breadcrumb-manage {
-  margin-bottom: 24px;
+.page-profile .profile-title .organization-subtitle-divider {
+  color: #dbdbdb;
+}
+.page-profile .profile-title-divider {
+  margin-top: 10px;
+  margin-bottom: 10px;
 }
 .page-profile .profile-details img {
   margin-top: 50px;
@@ -1484,6 +1502,13 @@ img.reserved-indicator-icon {
 }
 .page-status .table tbody + tbody {
   border: none;
+}
+.page-transform-account .transform-alert {
+  margin-bottom: 33px;
+}
+.page-transform-account .transform-alert .transform-alert-list {
+  margin-top: 15px;
+  margin-bottom: 15px;
 }
 .page-transform-account .center-box {
   display: -webkit-box;

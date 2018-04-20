@@ -4,6 +4,7 @@
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace NuGetGallery.Services
@@ -43,15 +44,15 @@ namespace NuGetGallery.Services
                 }
             }
         }
-        
+
         public static ILoginDiscontinuationConfiguration CreateConfiguration(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool isWrongCase)
         {
             var emails = isOnWhiteList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectEmail, isWrongCase) };
             var domains = isOnDomainList ? new[] { ToUppercaseIfWrongCase(_domain, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase) };
             var exceptions = isOnExceptionList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
             var shouldTransforms = isOnTransformList ? new[] { ToUppercaseIfWrongCase(_email, isWrongCase) } : new[] { ToUppercaseIfWrongCase(_incorrectException, isWrongCase) };
-            var orgTenantPairs = isOnTenantPairList ? 
-                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), ToUppercaseIfWrongCase(_tenant, isWrongCase)) } : 
+            var orgTenantPairs = isOnTenantPairList ?
+                new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_domain, isWrongCase), ToUppercaseIfWrongCase(_tenant, isWrongCase)) } :
                 new[] { new OrganizationTenantPair(ToUppercaseIfWrongCase(_incorrectDomain, isWrongCase), ToUppercaseIfWrongCase(_incorrectTenant, isWrongCase)) };
 
             return new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
@@ -97,7 +98,7 @@ namespace NuGetGallery.Services
             [MemberData(nameof(IfPasswordLoginReturnsTrueIfOnWhitelists_Data))]
             public void IfPasswordLoginReturnsTrueIfOnWhitelists(string credentialPasswordType, bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isWrongCase)
             {
-                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase, 
+                TestIsLoginDiscontinued(credentialPasswordType, isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isWrongCase,
                     expectedResult: (isOnWhiteList || isOnDomainList) && !isOnExceptionList);
             }
 
@@ -147,7 +148,7 @@ namespace NuGetGallery.Services
                 var credential = new Credential(credentialType, "value");
                 var user = new User("test") { EmailAddress = _email, Credentials = new[] { credential } };
                 var authUser = new AuthenticatedUser(user, credential);
-                
+
                 var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList: false, isWrongCase: isWrongCase);
 
                 // Act
@@ -158,35 +159,133 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheWhitelistMethods
+        public class WhitelistMethodData
         {
-            public static IEnumerable<object[]> PossibleListStates => PossibleListStates;
-
-            public void ReturnsAsExpected(bool isOnWhiteList, bool isOnDomainList, bool isOnExceptionList, bool isOnTransformList, bool isOnTenantPairList, bool isWrongCase)
+            public bool IsOnWhiteList { get; }
+            public bool IsOnDomainList { get; }
+            public bool IsOnExceptionList { get; }
+            public bool IsOnTransformList { get; }
+            public bool IsOnTenantPairList { get; }
+            public bool IsWrongCase { get; }
+            
+            public WhitelistMethodData(object[] data)
             {
-                // Arrange
-                var user = new User("test") { EmailAddress = _email };
-                
-                var config = CreateConfiguration(isOnWhiteList, isOnDomainList, isOnExceptionList, isOnTransformList, isOnTenantPairList, isWrongCase);
+                var boolData = data.Cast<bool>().ToArray();
 
-                // Act
-                var areOrganizationsSupported = config.IsUserOnWhitelist(user);
-                var shouldTransform = config.ShouldUserTransformIntoOrganization(user);
+                var isOnWhiteList = boolData[0];
+                IsOnWhiteList = isOnWhiteList;
 
-                // Assert
-                Assert.Equal(isOnWhiteList || isOnDomainList, areOrganizationsSupported);
-                Assert.Equal(isOnTransformList, shouldTransform);
+                var isOnDomainList = boolData[1];
+                IsOnDomainList = isOnDomainList;
+
+                var isOnExceptionList = boolData[2];
+                IsOnExceptionList = isOnExceptionList;
+
+                var isOnTransformList = boolData[3];
+                IsOnTransformList = isOnTransformList;
+
+                var isOnTenantPairList = boolData[4];
+                IsOnTenantPairList = isOnTenantPairList;
+
+                var isWrongCase = boolData[5];
+                IsWrongCase = isWrongCase;
+            }
+        }
+
+        public static IEnumerable<object[]> WhitelistBaseMethodReturnsExpected_Data =>
+            PossibleListStates.Select(data =>
+                MemberDataHelper.AsData(
+                    new WhitelistMethodData(data)));
+
+        public abstract class WhitelistBaseMethod
+        {
+            protected virtual User GetUser(WhitelistMethodData data)
+            {
+                return new User("test") { EmailAddress = _email };
             }
 
-            public void ReturnsFalseWhenNull()
+            protected abstract bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user);
+
+            public abstract bool GetExpectedValueForNonNull(WhitelistMethodData data);
+
+            [Theory]
+            [MemberData("ReturnsAsExpectedWhenNonNull_Data")]
+            public void ReturnsExpectedWhenNonNull(WhitelistMethodData data)
             {
-                var config = new LoginDiscontinuationConfiguration();
+                // Arrange
+                var user = GetUser(data);
+                var config = GetConfiguration(data);
 
-                var areOrganizationsSupported = config.IsUserOnWhitelist(null);
-                var shouldTransform = config.ShouldUserTransformIntoOrganization(null);
+                // Act
+                var whitelistValue = GetWhitelistValue(config, user);
 
-                Assert.False(areOrganizationsSupported);
-                Assert.False(shouldTransform);
+                // Assert
+                Assert.Equal(GetExpectedValueForNonNull(data), whitelistValue);
+            }
+
+            public abstract bool GetExpectedValueForNull(WhitelistMethodData data);
+
+            [Theory]
+            [MemberData("ReturnsFalseWhenNull_Data")]
+            public void ReturnsExpectedWhenNull(WhitelistMethodData data)
+            {
+                // Arrange
+                var config = GetConfiguration(data);
+
+                // Act
+                var whitelistValue = GetWhitelistValue(config, null);
+
+                // Assert
+                Assert.Equal(GetExpectedValueForNull(data), whitelistValue);
+            }
+
+            private ILoginDiscontinuationConfiguration GetConfiguration(WhitelistMethodData data)
+            {
+                return CreateConfiguration(data.IsOnWhiteList, data.IsOnDomainList, data.IsOnExceptionList, data.IsOnTransformList, data.IsOnTenantPairList, data.IsWrongCase);
+            }
+        }
+
+        public class TheIsUserOnWhitelistMethod : WhitelistBaseMethod
+        {
+            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+
+            public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
+            {
+                return data.IsOnWhiteList || data.IsOnDomainList;
+            }
+
+            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+
+            public override bool GetExpectedValueForNull(WhitelistMethodData data)
+            {
+                return false;
+            }
+
+            protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
+            {
+                return config.IsUserOnWhitelist(user);
+            }
+        }
+
+        public class TheShouldUserTransformIntoOrganizationMethod : WhitelistBaseMethod
+        {
+            public static IEnumerable<object[]> ReturnsAsExpectedWhenNonNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+
+            public override bool GetExpectedValueForNonNull(WhitelistMethodData data)
+            {
+                return data.IsOnTransformList;
+            }
+
+            public static IEnumerable<object[]> ReturnsFalseWhenNull_Data => WhitelistBaseMethodReturnsExpected_Data;
+
+            public override bool GetExpectedValueForNull(WhitelistMethodData data)
+            {
+                return false;
+            }
+
+            protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
+            {
+                return config.ShouldUserTransformIntoOrganization(user);
             }
         }
     }

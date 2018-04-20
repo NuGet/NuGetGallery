@@ -9,14 +9,12 @@
 <section role="main" class="container main-container page-delete-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_PackageHeading", new PackageHeadingModel
-                   {
-                       PageHeading = "Manage Package Listing",
-                       PackageDisplay = Model.Id,
-                       Id = Model.Id,
-                       Version = Model.Version,
-                       LinkIdOnly = false
-                   })
+            @Html.Partial(
+                "_PackageHeading", 
+                new PackageHeadingModel(
+                    Model, 
+                    "Delete",
+                    linkIdOnly: true))
 
              @if (Model.IsLocked && !User.IsAdministrator())
              {
@@ -57,7 +55,7 @@
                                        new
                                        {
                                            @class = "form-control",
-                                           title = "Selection A Version...",
+                                           title = "Select a version",
                                            id = "input-select-version"
                                        })
                     </div>

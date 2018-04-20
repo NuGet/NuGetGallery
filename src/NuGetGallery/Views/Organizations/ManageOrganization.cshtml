@@ -8,19 +8,55 @@
 }
 
 <section role="main" class="container main-container page-manage-organizations">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="col-md-12">
-            <h1>
-                <a href="@Url.ManageMyOrganizations()">Organizations</a>
-                &gt;
-                @Model.AccountName
-            </h1>
+            @ViewHelpers.OrganizationsBreadcrumb(
+                Url, 
+                CurrentUser,
+                true,
+                @<text>@Model.AccountName</text>)
         </div>
 
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @{
+                string membershipString;
+
+                var membership = Model.Account.GetMembershipOfUser(CurrentUser);
+                if (membership == null)
+                {
+                    membershipString = "You are not a member of this organization.";
+                }
+                else
+                {
+                    membershipString = membership.IsAdmin ?
+                        "You are an administrator of this organization." :
+                        "You are a collaborator of this organization.";
+                }
+
+                var permissionsString = "";
+                if (Model.CanManage)
+                {
+                    if (!Model.CanManageMemberships)
+                    {
+                        permissionsString = "You must be an administrator to change its members.";
+                    }
+                }
+                else
+                {
+                    permissionsString = Model.CanManageMemberships ?
+                        "You must be an administrator to make changes to its email settings and profile picture." :
+                        "You must be an administrator to make changes to it.";
+                }
+
+                if (!string.IsNullOrEmpty(permissionsString))
+                {
+                    permissionsString = " " + permissionsString;
+                }
+
+                @ViewHelpers.AlertInfo(@<text>@membershipString@permissionsString</text>)
+            }
+
             @Html.Partial("_AccountConfirmationNotices", Model)
 
             @Html.Partial("_AccountChangeEmail", Model)

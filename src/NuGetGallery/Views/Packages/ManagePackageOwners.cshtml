@@ -9,14 +9,12 @@
     @ViewHelpers.AjaxAntiForgeryToken(Html)
 
     <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-        @Html.Partial("_PackageHeading", new PackageHeadingModel
-                   {
-                       PageHeading = "Manage Owners for Package",
-                       PackageDisplay = Model.Id,
-                       Id = Model.Id,
-                       Version = Model.Version,
-                       LinkIdOnly = true
-                   })
+        @Html.Partial(
+            "_PackageHeading", 
+            new PackageHeadingModel(
+                Model, 
+                "Manage owners",
+                linkIdOnly: true))
 
         <div style="display: none" id="manage-owners-alert" data-bind="visible: message">
             @ViewHelpers.AlertDanger(
@@ -39,7 +37,7 @@
                     <div class="col-md-1">
                         <img width="@Constants.GravatarElementSize"
                              height="@Constants.GravatarElementSize"
-                             data-bind="attr:{src: imageUrl}" />
+                             data-bind="attr: { src: imageUrl, 'aria-label': 'Profile picture for ' + name() }" />
                     </div>
                     <div class="col-md-8 ms-font-xl">
                         <span>
@@ -52,7 +50,7 @@
                         </span>
                     </div>
                     <!-- ko if: $parent.IsAllowedToRemove($data) -->
-                    <div class="col-md-3 remove-owner">
+                    <div class="col-md-3 text-right remove-owner">
                         <a class="icon-link" 
                            href="#" 
                            title="Remove as owner of @Model.Id" 
@@ -63,7 +61,7 @@
                     </div>
                     <!-- /ko -->
                     <!-- ko ifnot: $parent.IsAllowedToRemove($data) -->
-                    <div class="col-md-3 remove-owner-disabled">
+                    <div class="col-md-3 text-right remove-owner-disabled">
                         <a class="icon-link"
                            title="Cannot remove the only owner or reserved namespace restrictions apply.">
                             <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
@@ -108,29 +106,7 @@
                     </div>
 
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Id" data-bind="click: confirmAddOwner" />
-                    </div>
-                </div>
-
-                <div style="display: none" data-bind="visible: confirmation">
-                    <h2>Confirm</h2>
-
-                    <p data-bind="text: confirmation"></p>
-
-                    <div style="display: none" data-bind="visible: policyMessage">
-                        @ViewHelpers.AlertWarning(
-                            @<text>
-                                <span data-bind="html: policyMessage" role="alert" aria-live="polite"></span>
-                            </text>)
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6">
-                            <input type="submit" class="btn btn-primary form-control" value="Confirm" title="Confirm adding the user as an owner to @Model.Id" data-bind="click: addOwner" />
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <a href="#" class="btn btn-default form-control text-right" title="Cancel changes and reload the page." role="button" data-bind="click: cancelAddOwnerConfirmation">Cancel</a>
-                        </div>
+                        <input type="submit" class="btn btn-primary form-control" value="Add" title="Add the user as an owner to @Model.Id" data-bind="click: addOwner" />
                     </div>
                 </div>
             }
@@ -144,7 +120,6 @@
         var isUserAnAdmin = "@Model.IsCurrentUserAnAdmin";
         var packageUrl = "@Url.Package(Model.Id)";
         var getPackageOwnersUrl = "@Url.GetPackageOwners()";
-        var getAddPackageOwnerConfirmationUrl = "@Url.GetAddPackageOwnerConfirmation()";
         var addPackageOwnerUrl = "@Url.AddPackageOwner()";
         var removePackageOwnerUrl = "@Url.RemovePackageOwner()";
 

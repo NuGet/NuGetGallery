@@ -15,14 +15,13 @@
 <section role="main" class="container main-container page-edit-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @Html.Partial("_PackageHeading", new PackageHeadingModel
-            {
-                PageHeading = "Edit Package",
-                PackageDisplay = Model.PackageId,
-                Id = Model.PackageId,
-                Version = Model.Version,
-                LinkIdOnly = true
-            })
+            @Html.Partial(
+                "_PackageHeading", 
+                new PackageHeadingModel(
+                    CurrentUser,
+                    Model.PackageVersions.First(), 
+                    "Edit",
+                    linkIdOnly: true))
 
             @if (Model.IsLocked)
             {
@@ -47,10 +46,10 @@
                         </a>
                     </h2>
                     <div class="collapse in" id="select-package-version-form" aria-expanded="true">
-                        <form id="cancel-form">
+                        <form aria-hidden="true" id="cancel-form">
                             @Html.AntiForgeryToken()
                         </form>
-                        <form id="select-version-form" enctype="multipart/form-data">
+                        <form aria-label="Select package version to edit" id="select-version-form" enctype="multipart/form-data">
                             @Html.AntiForgeryToken()
 
                             @Html.ValidationSummary(true)
@@ -61,7 +60,7 @@
                                                   new
                                                   {
                                                       @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                                                      @title = "Select A Version...",
+                                                      @title = "Select a version",
                                                       @id = "input-select-version"
                                                   })
                                 </label>

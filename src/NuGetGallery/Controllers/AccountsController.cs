@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
@@ -14,7 +13,7 @@ namespace NuGetGallery
 {
     public abstract class AccountsController<TUser, TAccountViewModel> : AppController
         where TUser : User
-        where TAccountViewModel : AccountViewModel
+        where TAccountViewModel : AccountViewModel<TUser>
     {
         public class ViewMessages
         {
@@ -33,16 +32,20 @@ namespace NuGetGallery
 
         public IUserService UserService { get; }
 
+        public ITelemetryService TelemetryService { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
+            IUserService userService,
+            ITelemetryService telemetryService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public abstract string AccountAction { get; }
@@ -254,14 +257,12 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
 
-            if (string.IsNullOrWhiteSpace(account.UnconfirmedEmailAddress))
+            if (!string.IsNullOrWhiteSpace(account.UnconfirmedEmailAddress))
             {
-                return RedirectToAction(AccountAction);
+                await UserService.CancelChangeEmailAddress(account);
+
+                TempData["Message"] = Messages.EmailUpdateCancelled;
             }
-
-            await UserService.CancelChangeEmailAddress(account);
-
-            TempData["Message"] = Messages.EmailUpdateCancelled;
 
             return RedirectToAction(AccountAction);
         }

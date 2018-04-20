@@ -5,12 +5,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
-using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -21,8 +19,9 @@ namespace NuGetGallery
             AuthenticationService authService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
-            IUserService userService)
-            : base(authService, curatedFeedService, messageService, userService)
+            IUserService userService,
+            ITelemetryService telemetryService)
+            : base(authService, curatedFeedService, messageService, userService, telemetryService)
         {
         }
 
@@ -64,21 +63,18 @@ namespace NuGetGallery
             var organizationEmailAddress = model.OrganizationEmailAddress;
             var adminUser = GetCurrentUser();
 
-            string errorMessage;
-
             try
             {
                 var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
                 SendNewAccountEmail(organization);
+                TelemetryService.TrackOrganizationAdded(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }
             catch (EntityException e)
             {
-                errorMessage = e.Message;
+                TempData["AddOrganizationErrorMessage"] = e.Message;
+                return View(model);
             }
-
-            TempData["ErrorMessage"] = errorMessage;
-            return View(model);
         }
 
         [HttpGet]
@@ -98,7 +94,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -197,7 +193,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -223,7 +219,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -258,7 +254,7 @@ namespace NuGetGallery
 
             if (account == null || 
                 (currentUser.Username != memberName && 
-                ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                ActionsRequiringPermissions.ManageMembership.CheckPermissions(currentUser, account)
                     != PermissionsCheckResult.Allowed))
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -289,7 +285,11 @@ namespace NuGetGallery
                 account.Members.Select(m => new OrganizationMemberViewModel(m))
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
-            model.RequiresTenant = account.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
+            model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
+
+            model.CanManageMemberships = 
+                ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account) == 
+                PermissionsCheckResult.Allowed;
         }
     }
 }

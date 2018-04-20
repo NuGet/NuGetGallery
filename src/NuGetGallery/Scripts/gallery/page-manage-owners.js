@@ -34,7 +34,7 @@
             if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
                 || owner.pending()) {
                 return true;
-            };
+            }
 
             if (this.owners().length < 2) {
                 return false;
@@ -73,7 +73,7 @@
             if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()) {
                 // If user is an admin, removing any user will not remove their ability to manage package owners.
                 return false;
-            };
+            }
 
             var numUsersGrantingCurrentUserAccess = 0;
 
@@ -96,9 +96,7 @@
             $("#newOwnerUserName").focus();
         },
 
-        confirmAddOwner: function () {
-            viewModel.message("");
-
+        addOwner: function () {
             var newUsername = viewModel.newOwnerUsername();
             if (!newUsername) {
                 viewModel.message(strings_InvalidUsername);
@@ -107,33 +105,13 @@
 
             var existingOwner = ko.utils.arrayFirst(
                 viewModel.owners(),
-                function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
+                function (owner) { return owner.name().toUpperCase() === newUsername.toUpperCase(); });
 
             if (existingOwner) {
                 viewModel.message(window.nuget.formatString(strings_AlreadyPending, newUsername));
                 return;
             }
 
-            $.ajax({
-                url: getAddPackageOwnerConfirmationUrl + '?id=' + viewModel.package.id + '&username=' + newUsername,
-                cache: false,
-                dataType: 'json',
-                type: 'GET',
-                success: function (data) {
-                    if (data.success) {
-                        viewModel.confirmation(data.confirmation);
-                        viewModel.policyMessage(data.policyMessage);
-                    }
-                    else {
-                        viewModel.message(data.message);
-                    }
-                }
-            })
-            .error(failHandler);
-        },
-
-        addOwner: function () {
-            var newUsername = viewModel.newOwnerUsername();
             var message = viewModel.newOwnerMessage();
 
             var ownerInputModel =

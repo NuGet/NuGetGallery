@@ -211,6 +211,7 @@
     <Compile Include="Entities\Role.cs" />
     <Compile Include="Entities\Scope.cs" />
     <Compile Include="Entities\SuspendDbExecutionStrategy.cs" />
+    <Compile Include="Entities\UserCertificate.cs" />
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />

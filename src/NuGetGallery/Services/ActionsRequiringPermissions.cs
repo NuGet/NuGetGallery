@@ -10,10 +10,14 @@ namespace NuGetGallery
     {
         private const PermissionsRequirement RequireOwnerOrSiteAdmin = 
             PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
+        private const PermissionsRequirement RequireOwnerOrSiteAdminOrOrganizationAdmin =
+            PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin | PermissionsRequirement.OrganizationAdmin;
         private const PermissionsRequirement RequireOwnerOrOrganizationAdmin = 
             PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
-        private const PermissionsRequirement RequireOwnerOrOrganizationMember = 
+        private const PermissionsRequirement RequireOwnerOrOrganizationMember =
             PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
+        private const PermissionsRequirement RequireOwnerOrSiteAdminOrOrganizationMember =
+            PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The action of seeing private metadata about a package.
@@ -29,7 +33,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringReservedNamespacePermissions UploadNewPackageId =
             new ActionRequiringReservedNamespacePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
@@ -61,7 +65,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringPackagePermissions UnlistOrRelistPackage =
             new ActionRequiringPackagePermissions(
-                RequireOwnerOrOrganizationMember,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
@@ -73,11 +77,19 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: RequireOwnerOrSiteAdmin);
 
         /// <summary>
-        /// The action of reporting an existing package ID as the owner of the package..
+        /// The action of reporting an existing package ID as the owner of the package.
         /// </summary>
         public static ActionRequiringPackagePermissions ReportPackageAsOwner =
             new ActionRequiringPackagePermissions(
-                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
+
+        /// <summary>
+        /// The action of seeing a breadcrumb linking the user back to their profile when performing actions on a package.
+        /// </summary>
+        public static ActionRequiringPackagePermissions ShowProfileBreadcrumb =
+            new ActionRequiringPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
@@ -88,6 +100,13 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
+        /// The action of viewing (read-only) a user or organization account.
+        /// </summary>
+        public static ActionRequiringAccountPermissions ViewAccount =
+            new ActionRequiringAccountPermissions(
+                accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationMember);
+
+        /// <summary>
         /// The action of managing a user or organization account. This includes confirming an account,
         /// changing the email address, changing email subscriptions, modifying sign-in credentials, etc.
         /// </summary>
@@ -96,10 +115,10 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
-        /// The action of viewing (read-only) a user or organization account.
+        /// The action of managing an organization's memberships.
         /// </summary>
-        public static ActionRequiringAccountPermissions ViewAccount =
+        public static ActionRequiringAccountPermissions ManageMembership =
             new ActionRequiringAccountPermissions(
-                accountPermissionsRequirement: RequireOwnerOrOrganizationMember);
+                accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationAdmin);
     }
 }
