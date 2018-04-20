@@ -265,7 +265,7 @@ namespace NuGetGallery
                     .Refresh());
             }
 
-            Func<MailSender> mailSenderFacotry = () =>
+            Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;
                     if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
@@ -302,7 +302,7 @@ namespace NuGetGallery
                     }
                 };
 
-            builder.Register(c => mailSenderFacotry())
+            builder.Register(c => mailSenderFactory())
                 .AsSelf()
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();
