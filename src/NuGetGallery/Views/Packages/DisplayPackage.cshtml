@@ -481,6 +481,17 @@
             </div>
         </article>
         <aside class="col-sm-3 package-details-info">
+            <h2>Related</h2>
+            <ul class="list-unstyled">
+                @foreach (var recommendation in Model.Recommendations)
+                {
+                    <li>
+                        <img width="36" height="36" src="@recommendation.IconUrl" />
+                        <a href="@recommendation.Url">@recommendation.Id</a>
+                    </li>
+                }
+            </ul>
+
             <h2>Info</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
