@@ -483,11 +483,13 @@
         <aside class="col-sm-3 package-details-info">
             <h2>Related</h2>
             <ul class="list-unstyled">
-                @foreach (var recommendation in Model.Recommendations)
+                @foreach (var recommendation in Model.RecommendedPackages)
                 {
                     <li>
-                        <img width="36" height="36" src="@recommendation.IconUrl" />
-                        <a href="@recommendation.Url">@recommendation.Id</a>
+                        <a href="@recommendation.GalleryPageUrl">
+                            <img width="36" height="36" src="@recommendation.IconUrl" />
+                            @recommendation.Id
+                        </a>
                     </li>
                 }
             </ul>

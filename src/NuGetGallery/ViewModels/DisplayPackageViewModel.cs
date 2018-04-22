@@ -59,6 +59,7 @@ namespace NuGetGallery
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
+        public IEnumerable<RecommendedPackageViewModel> RecommendedPackages { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }

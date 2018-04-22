@@ -84,6 +84,7 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IPackageRecommendationService _packageRecommendationService;
 
         public PackagesController(
             IPackageService packageService,
@@ -106,7 +107,8 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
             IValidationService validationService,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IPackageRecommendationService packageRecommendationService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -129,6 +131,7 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
+            _packageRecommendationService = packageRecommendationService;
         }
 
         [HttpGet]
@@ -465,6 +468,7 @@ namespace NuGetGallery
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
+            model.RecommendedPackages = await _packageRecommendationService.GetRecommendedPackagesAsync(package);
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
