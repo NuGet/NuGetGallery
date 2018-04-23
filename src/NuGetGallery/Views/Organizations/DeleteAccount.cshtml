@@ -8,15 +8,18 @@
 <section role="main" class="container main-container page-delete-account">
     <div class="form-group">
         <div class="form-group package-controls">
-            <h1 class="text-center">Delete Organization</h1>
-            <div class="text-center ms-font-xxl">
-                <a href="@Url.User(@Model.Account)">@Model.AccountName</a>
-            </div>
-            @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
-                Once your organization is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+            @ViewHelpers.OrganizationsBreadcrumb(
+                Url, 
+                CurrentUser, 
+                true, 
+                @<text><a href="@Url.ManageMyOrganization(Model.AccountName)">@Model.AccountName</a></text>, 
+                @<text>Delete</text>)
+
+            @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong>
+                Once your organization is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a>
                 </text>)
             <p>
-                When your organization is deleted we will<br />
+                When your organization is deleted we will:<br />
                 <ul>
                     <li>Remove your organization from ownership of any packages.</li>
                     <li>Remove your organization from ownership of any ID prefix reservations and delete any ID prefix reservations that your organization was the only owner of.</li>
@@ -53,7 +56,7 @@
                             </p>
                             <div class="row form-group">
                                 <div class="col-sm-6">
-                                    <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-organization" value="Delete organization." />
+                                    <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-organization" value="Delete organization" />
                                 </div>
                                 <div class="col-sm-6">
                                     <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-organization">Cancel</a>
