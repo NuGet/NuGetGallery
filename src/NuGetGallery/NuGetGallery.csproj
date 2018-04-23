@@ -472,11 +472,6 @@
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
     </Reference>
-    <Reference Include="ODataNullPropagationVisitor, Version=0.5.4237.2641, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\packages\ODataNullPropagationVisitor.0.5.4237.2641\lib\net40\ODataNullPropagationVisitor.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Owin, Version=1.0.0.0, Culture=neutral, PublicKeyToken=f0ebd12fd5e55cc5, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Owin.1.0\lib\net40\Owin.dll</HintPath>
@@ -832,6 +827,10 @@
     <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.cs" />
     <Compile Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.Designer.cs">
       <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.cs" />
+    <Compile Include="Migrations\201804171613337_AddCertificateRegistration.Designer.cs">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1972,6 +1971,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201803202317063_AddEnableMultiFactorAuthentication.resx">
       <DependentUpon>201803202317063_AddEnableMultiFactorAuthentication.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201804171613337_AddCertificateRegistration.resx">
+      <DependentUpon>201804171613337_AddCertificateRegistration.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

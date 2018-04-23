@@ -5,17 +5,18 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
+    public abstract class AccountViewModel<T> : AccountViewModel where T : User
+    {
+        public T Account { get; set; }
+
+        public override User User => Account;
+    }
+
     public abstract class AccountViewModel
     {
-        public User Account { get; set; }
+        public virtual User User { get; }
 
-        public bool IsOrganization
-        {
-            get
-            {
-                return Account is Organization;
-            }
-        }
+        public bool IsOrganization => User is Organization;
 
         public string AccountName { get; set; }
 

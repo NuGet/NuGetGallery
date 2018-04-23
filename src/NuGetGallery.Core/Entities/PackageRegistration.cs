@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -14,6 +15,7 @@ namespace NuGetGallery
             Owners = new HashSet<User>();
             Packages = new HashSet<Package>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
+            RequiredSigners = new HashSet<User>();
         }
 
         [StringLength(CoreConstants.MaxPackageIdLength)]
@@ -29,6 +31,11 @@ namespace NuGetGallery
         public virtual ICollection<User> Owners { get; set; }
         public virtual ICollection<Package> Packages { get; set; }
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
+
+        /// <summary>
+        /// Gets or sets required signers for this package registration.
+        /// </summary>
+        public virtual ICollection<User> RequiredSigners { get; set; }
 
         public int Key { get; set; }
     }
