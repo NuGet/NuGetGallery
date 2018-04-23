@@ -24,17 +24,22 @@ namespace NuGetGallery
         : AccountsControllerFacts<UsersController, User, UserAccountViewModel>
     {
         public static readonly int CredentialKey = 123;
-        
+
+        private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
+
         public class TheAccountAction : TheAccountBaseAction
         {
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
+            }
+
             protected override ActionResult InvokeAccount(UsersController controller)
             {
                 return controller.Account();
-            }
-
-            protected override User GetCurrentUser(UsersController controller)
-            {
-                return GetAccount(controller);
             }
             
             [Fact]
@@ -42,8 +47,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var credentialBuilder = new CredentialBuilder();
-                var fakes = Get<Fakes>();
-                var user = fakes.CreateUser(
+                var user = Fakes.CreateUser(
                     "test",
                     credentialBuilder.CreatePasswordCredential("hunter2"),
                     TestCredentialHelper.CreateV1ApiKey(Guid.NewGuid(), Fakes.ExpirationForApiKeyV1),
@@ -71,7 +75,6 @@ namespace NuGetGallery
             {
                 // Arrange
                 var credentialBuilder = new CredentialBuilder();
-                var fakes = Get<Fakes>();
 
                 var credentials = new List<Credential>
                 {
@@ -84,7 +87,7 @@ namespace NuGetGallery
                     new Credential() { Type = "unsupported" }
                 };
 
-                var user = fakes.CreateUser("test", credentials.ToArray());
+                var user = Fakes.CreateUser("test", credentials.ToArray());
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
@@ -110,9 +113,12 @@ namespace NuGetGallery
 
         public class TheCancelChangeEmailAction : TheCancelChangeEmailBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
 
             // Note general account tests are in the base class. User-specific tests are below.
@@ -120,9 +126,12 @@ namespace NuGetGallery
 
         public class TheChangeEmailAction : TheChangeEmailBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
 
             // Note general account tests are in the base class. User-specific tests are below.
@@ -166,9 +175,12 @@ namespace NuGetGallery
 
         public class TheConfirmationRequiredAction : TheConfirmationRequiredBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
 
             // Note general account tests are in the base class. User-specific tests are below.
@@ -176,9 +188,12 @@ namespace NuGetGallery
 
         public class TheConfirmationRequiredPostAction : TheConfirmationRequiredPostBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
 
             // Note general account tests are in the base class. User-specific tests are below.
@@ -186,10 +201,15 @@ namespace NuGetGallery
 
         public class TheChangeEmailSubscriptionAction : TheChangeEmailSubscriptionBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
+
+            public static IEnumerable<object[]> UpdatesEmailPreferences_Data => MemberDataHelper.Combine(AllowedCurrentUsers_Data, UpdatesEmailPreferences_DefaultData);
 
             // Note general account tests are in the base class. User-specific tests are below.
         }
@@ -448,9 +468,12 @@ namespace NuGetGallery
         
         public class TheConfirmAction : TheConfirmBaseAction
         {
-            protected override User GetCurrentUser(UsersController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return GetAccount(controller);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                }
             }
 
             // Note general account tests are in the base class. User-specific tests are below.
@@ -2158,6 +2181,43 @@ namespace NuGetGallery
                 Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
                 Assert.Equal<bool>(!successOnSentRequest, tempData);
+            }
+
+            /// <summary>
+            /// If the user does not have the email account confirmed the user record is deleted without sending a support request.
+            /// </summary>
+            [Fact]
+            public async Task WhenUserIsUnconfirmedDeletesAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+                string emailAddress = $"{userName}@coldmail.com";
+
+                var controller = GetController<UsersController>();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.UnconfirmedEmailAddress = emailAddress;
+                controller.SetCurrentUser(testUser);
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName))
+                    .Returns(testUser);
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(stub => stub.DeleteGalleryUserAccountAsync(testUser, It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
+                    {
+                        AccountName = userName,
+                        Description = "Delete user",
+                        Success = true
+                    }));
+
+                // act
+                var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
+
+                // Assert
+                Assert.NotNull(result);
             }
         }
 
