@@ -440,12 +440,12 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr>
                                     <td>
-                                        <a href="@Url.Package(packageVersion)">
+                                        <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             <b>
-                                                @packageVersion.FullVersion.Abbreviate(15)
+                                                @packageVersion.FullVersion.Abbreviate(30)
                                                 @if (packageVersion.IsCurrent(Model))
                                                 {
-                                                    @:(current version)
+                                                    @:(current)
                                                 }
                                             </b>
                                         </a>
@@ -457,7 +457,9 @@
                                         <span data-datetime="@packageVersion.LastUpdated.ToString("O")">@packageVersion.LastUpdated.ToNuGetShortDateString()</span>
                                         @if (packageVersion.PushedBy != null)
                                         {
-                                            <span>by @packageVersion.PushedBy.Abbreviate(15)</span>
+                                            <text>
+                                                by <span title="@packageVersion.PushedBy">@packageVersion.PushedBy.Abbreviate(15)</span>
+                                            </text>
                                         }
                                     </td>
                                     @if (packageVersion.CanDisplayPrivateMetadata)
