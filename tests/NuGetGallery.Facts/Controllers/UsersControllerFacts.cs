@@ -2227,6 +2227,43 @@ namespace NuGetGallery
                         stub => stub.SendAccountDeleteNotice(testUser), 
                         successOnSentRequest ? Times.Once() : Times.Never());
             }
+
+            /// <summary>
+            /// If the user does not have the email account confirmed the user record is deleted without sending a support request.
+            /// </summary>
+            [Fact]
+            public async Task WhenUserIsUnconfirmedDeletesAccount()
+            {
+                // Arrange
+                string userName = "DeletedUser";
+                string emailAddress = $"{userName}@coldmail.com";
+
+                var controller = GetController<UsersController>();
+
+                var fakes = Get<Fakes>();
+                var testUser = fakes.CreateUser(userName);
+                testUser.UnconfirmedEmailAddress = emailAddress;
+                controller.SetCurrentUser(testUser);
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(userName))
+                    .Returns(testUser);
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(stub => stub.DeleteGalleryUserAccountAsync(testUser, It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
+                    {
+                        AccountName = userName,
+                        Description = "Delete user",
+                        Success = true
+                    }));
+
+                // act
+                var result = await controller.RequestAccountDeletion() as NuGetGallery.SafeRedirectResult;
+
+                // Assert
+                Assert.NotNull(result);
+            }
         }
 
         public class TheTransformToOrganizationActionBase : TestContainer

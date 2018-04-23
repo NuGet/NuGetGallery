@@ -148,6 +148,7 @@ namespace NuGetGallery
             {
                 stylesBundle
                     .Include("~/Content/" + filename)
+                    .Include("~/Content/Branding/" + filename)
                     .Include("~/Branding/Content/" + filename);
             }
 

@@ -845,4 +845,7 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="Organizations_NotSupportedForAccount" xml:space="preserve">
     <value>Account '{0}' does not support organizations.</value>
   </data>
+  <data name="AccountSelfDelete_Fail" xml:space="preserve">
+    <value>An exception was encoutered while trying to delete the account. Please contact support for assistance.</value>
+  </data>
 </root>

@@ -18,11 +18,16 @@ namespace NuGetGallery
         /// 5. The user data will be cleaned.
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="admin">The admin that will perform the delete action.</param>
-        /// <param name="signature">The admin signature.</param>
-        /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
-        /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction);
+        /// <param name="userToExecuteTheDelete">The user deleting the account.</param>
+        /// <param name="signature">The signature of the user deleting the account.</param>
+        /// <param name="unlistOrphanPackages:">If deleting the account creates any orphaned packages, whether or not those packages will be unlisted.</param>
+        /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
+        /// <returns></returns>
+        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+            User userToExecuteTheDelete,
+            string signature,
+            bool unlistOrphanPackages,
+            bool commitAsTransaction);
 
         /// <summary>
         /// Will clean-up the data related with an organization account.
@@ -33,7 +38,10 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
         /// <param name="requestingUser">The user that requested the delete action.</param>
-        /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        Task<DeleteUserAccountStatus> DeleteGalleryOrganizationAccountAsync(Organization organizationToBeDeleted, User requestingUser, bool commitAsTransaction);
+        /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
+        Task<DeleteUserAccountStatus> DeleteGalleryOrganizationAccountAsync(
+            Organization organizationToBeDeleted, 
+            User requestingUser, 
+            bool commitAsTransaction);
     }
 }

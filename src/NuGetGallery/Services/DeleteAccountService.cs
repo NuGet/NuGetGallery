@@ -50,17 +50,21 @@ namespace NuGetGallery
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
-        
-        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction)
+
+        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+            User userToExecuteTheDelete,
+            string signature,
+            bool unlistOrphanPackages,
+            bool commitAsTransaction)
         {
             if (userToBeDeleted == null)
             {
                 throw new ArgumentNullException(nameof(userToBeDeleted));
             }
 
-            if (admin == null)
+            if (userToExecuteTheDelete == null)
             {
-                throw new ArgumentNullException(nameof(admin));
+                throw new ArgumentNullException(nameof(userToExecuteTheDelete));
             }
 
             if (userToBeDeleted.IsDeleted)
@@ -100,23 +104,34 @@ namespace NuGetGallery
             }
             
             return await RunAccountDeletionTask(
-                () => DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages),
+                () => DeleteGalleryUserAccountImplAsync(
+                    userToBeDeleted, 
+                    userToExecuteTheDelete, 
+                    signature, 
+                    unlistOrphanPackages),
                 userToBeDeleted,
-                admin,
+                userToExecuteTheDelete,
                 commitAsTransaction);
         }
 
-        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
+        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, string signature, bool unlistOrphanPackages)
         {
-            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
-
-            await RemovePackageOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
+            await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, unlistOrphanPackages);
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemoveSecurityPolicies(userToBeDeleted);
-            await RemovePackageOwnershipRequests(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
-            await RemoveUserDataInUserTable(userToBeDeleted);
-            await InsertDeleteAccount(userToBeDeleted, admin, signature);
+            await RemovePackageOwnershipRequests(userToBeDeleted);
+
+            if (!userToBeDeleted.Confirmed)
+            {
+                // Unconfirmed users should be hard-deleted.
+                await RemoveUser(userToBeDeleted);
+            }
+            else
+            {
+                await RemoveUserDataInUserTable(userToBeDeleted);
+                await InsertDeleteAccount(userToBeDeleted, userToExecuteTheDelete, signature);
+            }
         }
 
         public async Task<DeleteUserAccountStatus> DeleteGalleryOrganizationAccountAsync(Organization organizationToBeDeleted, User requestingUser, bool commitAsTransaction)
@@ -152,16 +167,13 @@ namespace NuGetGallery
 
         private async Task DeleteGalleryOrganizationAccountImplAsync(Organization organizationToBeDeleted, User requestingUser)
         {
-            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(organizationToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
-
-            await RemovePackageOwnership(organizationToBeDeleted, requestingUser, ownedPackages);
+            await RemovePackageOwnership(organizationToBeDeleted, requestingUser);
             await RemoveReservedNamespaces(organizationToBeDeleted);
             await RemoveSecurityPolicies(organizationToBeDeleted);
             await RemoveUserCredentials(organizationToBeDeleted);
             await RemovePackageOwnershipRequests(organizationToBeDeleted);
             await RemoveMemberships(organizationToBeDeleted);
-            await RemoveUserDataInUserTable(organizationToBeDeleted);
-            await InsertDeleteAccount(organizationToBeDeleted, requestingUser, signature: AccountDelete.NonAdminSignature);
+            await RemoveOrganization(organizationToBeDeleted);
         }
 
         private async Task InsertDeleteAccount(User user, User admin, string signature)
@@ -204,9 +216,9 @@ namespace NuGetGallery
             }
         }
 
-        private async Task RemovePackageOwnership(User user, User requestingUser, bool unlistOrphanPackages, List<Package> packages)
+        private async Task RemovePackageOwnership(User user, User requestingUser, bool unlistOrphanPackages)
         {
-            foreach (var package in packages)
+            foreach (var package in GetPackagesOwnedByUser(user))
             {
                 if (unlistOrphanPackages && _packageService.GetPackageUserAccountOwners(package).Count() <= 1)
                 {
@@ -216,12 +228,17 @@ namespace NuGetGallery
             }
         }
 
-        private async Task RemovePackageOwnership(Organization organization, User requestingUser, List<Package> packages)
+        private async Task RemovePackageOwnership(Organization organization, User requestingUser)
         {
-            foreach (var package in packages)
+            foreach (var package in GetPackagesOwnedByUser(organization))
             {
                 await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, organization, commitAsTransaction: false);
             }
+        }
+
+        private List<Package> GetPackagesOwnedByUser(User user)
+        {
+            return _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true, includeVersions: true).ToList();
         }
 
         private async Task RemovePackageOwnershipRequests(User user)
@@ -257,6 +274,18 @@ namespace NuGetGallery
         private async Task RemoveSupportRequests(User user)
         {
             await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
+        }
+
+        private async Task RemoveUser(User user)
+        {
+            _userRepository.DeleteOnCommit(user);
+            await _userRepository.CommitChangesAsync();
+        }
+
+        private async Task RemoveOrganization(Organization organization)
+        {
+            _entitiesContext.DeleteOnCommit(organization);
+            await _entitiesContext.SaveChangesAsync();
         }
 
         private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
