@@ -94,7 +94,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -193,7 +193,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -219,7 +219,7 @@ namespace NuGetGallery
             var account = GetAccount(accountName);
 
             if (account == null
-                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                || ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -254,7 +254,7 @@ namespace NuGetGallery
 
             if (account == null || 
                 (currentUser.Username != memberName && 
-                ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                ActionsRequiringPermissions.ManageMembership.CheckPermissions(currentUser, account)
                     != PermissionsCheckResult.Allowed))
             {
                 return Json(HttpStatusCode.Forbidden, Strings.Unauthorized);
@@ -286,6 +286,10 @@ namespace NuGetGallery
                 .Concat(account.MemberRequests.Select(m => new OrganizationMemberViewModel(m)));
 
             model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
+
+            model.CanManageMemberships = 
+                ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account) == 
+                PermissionsCheckResult.Allowed;
         }
     }
 }

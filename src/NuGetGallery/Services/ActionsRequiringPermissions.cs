@@ -10,10 +10,14 @@ namespace NuGetGallery
     {
         private const PermissionsRequirement RequireOwnerOrSiteAdmin = 
             PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin;
+        private const PermissionsRequirement RequireOwnerOrSiteAdminOrOrganizationAdmin =
+            PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin | PermissionsRequirement.OrganizationAdmin;
         private const PermissionsRequirement RequireOwnerOrOrganizationAdmin = 
             PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin;
-        private const PermissionsRequirement RequireOwnerOrOrganizationMember = 
+        private const PermissionsRequirement RequireOwnerOrOrganizationMember =
             PermissionsRequirement.Owner | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
+        private const PermissionsRequirement RequireOwnerOrSiteAdminOrOrganizationMember =
+            PermissionsRequirement.Owner | PermissionsRequirement.SiteAdmin | PermissionsRequirement.OrganizationAdmin | PermissionsRequirement.OrganizationCollaborator;
 
         /// <summary>
         /// The action of seeing private metadata about a package.
@@ -96,6 +100,13 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
+        /// The action of viewing (read-only) a user or organization account.
+        /// </summary>
+        public static ActionRequiringAccountPermissions ViewAccount =
+            new ActionRequiringAccountPermissions(
+                accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationMember);
+
+        /// <summary>
         /// The action of managing a user or organization account. This includes confirming an account,
         /// changing the email address, changing email subscriptions, modifying sign-in credentials, etc.
         /// </summary>
@@ -104,10 +115,10 @@ namespace NuGetGallery
                 accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
-        /// The action of viewing (read-only) a user or organization account.
+        /// The action of managing an organization's memberships.
         /// </summary>
-        public static ActionRequiringAccountPermissions ViewAccount =
+        public static ActionRequiringAccountPermissions ManageMembership =
             new ActionRequiringAccountPermissions(
-                accountPermissionsRequirement: RequireOwnerOrOrganizationMember);
+                accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationAdmin);
     }
 }

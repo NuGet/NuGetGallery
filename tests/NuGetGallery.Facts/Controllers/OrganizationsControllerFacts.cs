@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -16,6 +16,11 @@ namespace NuGetGallery
     public class OrganizationsControllerFacts
         : AccountsControllerFacts<OrganizationsController, Organization, OrganizationAccountViewModel>
     {
+        private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
+        private static Func<Fakes, User> _getFakesSiteAdmin = (Fakes fakes) => fakes.Admin;
+        private static Func<Fakes, User> _getFakesOrganizationAdmin = (Fakes fakes) => fakes.OrganizationAdmin;
+        private static Func<Fakes, User> _getFakesOrganizationCollaborator = (Fakes fakes) => fakes.OrganizationCollaborator;
+
         public class TheAccountAction : TheAccountBaseAction
         {
             protected override ActionResult InvokeAccount(OrganizationsController controller)
@@ -24,81 +29,78 @@ namespace NuGetGallery
                 return controller.ManageOrganization(accountName);
             }
 
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public void WhenCurrentUserIsCollaborator_ReturnsReadOnly()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsPartialPermissions_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin, false, true);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator, false, false);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsPartialPermissions_Data))]
+            public void WithNonOrganizationAdmin_ReturnsPartialPermissions(Func<Fakes, User> getCurrentUser, bool canManage, bool canManageMemberships)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 // Act
                 var result = InvokeAccount(controller);
 
                 // Assert
                 var model = ResultAssert.IsView<OrganizationAccountViewModel>(result, "ManageOrganization");
-                Assert.False(model.CanManage);
-            }
-
-            [Fact]
-            public void WhenCurrentUserIsNotMember_ReturnsForbidden()
-            {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
-
-                // Act
-                var result = InvokeAccount(controller) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                Assert.Equal(canManage, model.CanManage);
+                Assert.Equal(canManageMemberships, model.CanManageMemberships);
             }
         }
 
         public class TheCancelChangeEmailAction : TheCancelChangeEmailBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public async Task WhenCurrentUserIsCollaborator_ReturnsForbidden()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = await InvokeCancelChangeEmail(controller, account) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsNotMember_ReturnsForbidden()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = await InvokeCancelChangeEmail(controller, account) as HttpStatusCodeResult;
+                var result = await InvokeCancelChangeEmail(controller, account, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -108,39 +110,36 @@ namespace NuGetGallery
 
         public class TheChangeEmailAction : TheChangeEmailBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public async Task WhenCurrentUserIsCollaborator_ReturnsForbidden()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = await InvokeChangeEmail(controller, account) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsNotMember_ReturnsForbidden()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = await InvokeChangeEmail(controller, account) as HttpStatusCodeResult;
+                var result = await InvokeChangeEmail(controller, account, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -150,37 +149,37 @@ namespace NuGetGallery
 
         public class TheChangeEmailSubscriptionAction : TheChangeEmailSubscriptionBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
+
+            public static IEnumerable<object[]> UpdatesEmailPreferences_Data => MemberDataHelper.Combine(AllowedCurrentUsers_Data, UpdatesEmailPreferences_DefaultData);
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public async Task WhenCurrentUserIsCollaborator_ReturnsForbidden()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = await InvokeChangeEmailSubscription(controller) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsNotMember_ReturnsForbidden()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = await InvokeChangeEmailSubscription(controller) as HttpStatusCodeResult;
+                var result = await InvokeChangeEmailSubscription(controller, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -190,39 +189,36 @@ namespace NuGetGallery
 
         public class TheConfirmationRequiredAction : TheConfirmationRequiredBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public void WhenUserIsCollaborator_ReturnsForbidden()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = InvokeConfirmationRequired(controller, account) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public void WhenUserIsNotMember_ReturnsForbidden()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public void WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = InvokeConfirmationRequired(controller, account) as HttpStatusCodeResult;
+                var result = InvokeConfirmationRequired(controller, account, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -232,39 +228,36 @@ namespace NuGetGallery
 
         public class TheConfirmationRequiredPostAction : TheConfirmationRequiredPostBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public void WhenUserIsCollaborator_ReturnsForbidden()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = InvokeConfirmationRequiredPost(controller, account) as HttpStatusCodeResult;
-
-                // Assert
-                Assert.NotNull(result);
-                Assert.Equal((int)HttpStatusCode.Forbidden, result.StatusCode);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public void WhenUserIsNotMember_ReturnsForbidden()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public void WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = InvokeConfirmationRequiredPost(controller, account) as HttpStatusCodeResult;
+                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);
@@ -274,40 +267,36 @@ namespace NuGetGallery
 
         public class TheConfirmAction : TheConfirmBaseAction
         {
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            [Fact]
-            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
             {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
-
-                // Act
-                var result = await InvokeConfirm(controller, account);
-
-                // Assert
-                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
-                Assert.True(model.WrongUsername);
-                Assert.False(model.SuccessfulConfirmation);
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
             }
 
-            [Fact]
-            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
 
                 // Act
-                var result = await InvokeConfirm(controller, account);
+                var result = await InvokeConfirm(controller, account, getCurrentUser);
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
@@ -400,21 +389,38 @@ namespace NuGetGallery
         {
             private const string defaultMemberName = "member";
 
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
-            [Fact]
-            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            public static IEnumerable<object[]> AllowedCurrentUsers_IsAdmin_Data => MemberDataHelper.Combine(
+                AllowedCurrentUsers_Data, 
+                new[] { MemberDataHelper.AsData(false), MemberDataHelper.AsData(true) });
+
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = await InvokeAddMember(controller, account);
+                var result = await InvokeAddMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
@@ -424,27 +430,9 @@ namespace NuGetGallery
                 GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsNotMember_ReturnsNonSuccess()
-            {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
-
-                // Act
-                var result = await InvokeAddMember(controller, account);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, result.Data);
-
-                GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task WhenOrganizationIsNotConfirmed_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenOrganizationIsNotConfirmed_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -452,7 +440,7 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeAddMember(controller, account);
+                var result = await InvokeAddMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -463,16 +451,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenEntityException_ReturnsNonSuccess(bool isAdmin)
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task WhenEntityException_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser, bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeAddMember(controller, account, isAdmin: isAdmin,
+                var result = await InvokeAddMember(controller, account, getCurrentUser, isAdmin: isAdmin,
                     exception: new EntityException("error"));
 
                 // Assert
@@ -484,16 +471,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenMembershipRequestCreated_ReturnsSuccess(bool isAdmin)
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task WhenMembershipRequestCreated_ReturnsSuccess(Func<Fakes, User> getCurrentUser, bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeAddMember(controller, account, isAdmin: isAdmin);
+                var result = await InvokeAddMember(controller, account, getCurrentUser, isAdmin: isAdmin);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -526,12 +512,13 @@ namespace NuGetGallery
             private Task<JsonResult> InvokeAddMember(
                 OrganizationsController controller,
                 Organization account,
+                Func<Fakes, User> getCurrentUser,
                 string memberName = defaultMemberName,
                 bool isAdmin = false,
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
@@ -561,11 +548,6 @@ namespace NuGetGallery
         public class TheConfirmMemberAction : AccountsControllerTestContainer
         {
             private const string defaultConfirmationToken = "token";
-
-            protected override User GetCurrentUser(OrganizationsController controller)
-            {
-                return controller.GetCurrentUser() ?? Fakes.User;
-            }
 
             [Theory]
             [InlineData(true)]
@@ -624,12 +606,12 @@ namespace NuGetGallery
                 var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin);
 
                 // Assert
-                ResultAssert.IsRedirectTo(result, 
+                ResultAssert.IsRedirectTo(result,
                     controller.Url.ManageMyOrganization(account.Username));
 
 
                 Assert.Equal(String.Format(CultureInfo.CurrentCulture,
-                    Strings.AddMember_Success, account.Username), 
+                    Strings.AddMember_Success, account.Username),
                     controller.TempData["Message"]);
 
                 GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
@@ -647,7 +629,7 @@ namespace NuGetGallery
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(Fakes.User);
 
                 var currentUser = controller.GetCurrentUser();
 
@@ -681,11 +663,6 @@ namespace NuGetGallery
         public class TheRejectMemberAction : AccountsControllerTestContainer
         {
             private const string defaultConfirmationToken = "token";
-
-            protected override User GetCurrentUser(OrganizationsController controller)
-            {
-                return controller.GetCurrentUser() ?? Fakes.User;
-            }
 
             [Theory]
             [InlineData(true)]
@@ -762,7 +739,7 @@ namespace NuGetGallery
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(Fakes.User);
 
                 var currentUser = controller.GetCurrentUser();
 
@@ -797,21 +774,38 @@ namespace NuGetGallery
         {
             private const string defaultMemberName = "member";
 
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
-            [Fact]
-            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            public static IEnumerable<object[]> AllowedCurrentUsers_IsAdmin_Data => MemberDataHelper.Combine(
+                AllowedCurrentUsers_Data,
+                new[] { MemberDataHelper.AsData(false), MemberDataHelper.AsData(true) });
+
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = await InvokeUpdateMember(controller, account);
+                var result = await InvokeUpdateMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
@@ -821,27 +815,9 @@ namespace NuGetGallery
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
-            {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
-
-                // Act
-                var result = await InvokeUpdateMember(controller, account);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, result.Data);
-
-                GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -849,7 +825,7 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeUpdateMember(controller, account);
+                var result = await InvokeUpdateMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -860,16 +836,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenEntityException_ReturnsNonSuccess(bool isAdmin)
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task WhenEntityException_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser, bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeUpdateMember(controller, account, isAdmin: isAdmin,
+                var result = await InvokeUpdateMember(controller, account, getCurrentUser, isAdmin: isAdmin,
                     exception: new EntityException("error"));
 
                 // Assert
@@ -881,16 +856,15 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenMembershipCreated_ReturnsSuccess(bool isAdmin)
+            [MemberData(nameof(AllowedCurrentUsers_IsAdmin_Data))]
+            public async Task WhenMembershipCreated_ReturnsSuccess(Func<Fakes, User> getCurrentUser, bool isAdmin)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeUpdateMember(controller, account, isAdmin: isAdmin);
+                var result = await InvokeUpdateMember(controller, account, getCurrentUser, isAdmin: isAdmin);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -910,12 +884,13 @@ namespace NuGetGallery
             private Task<JsonResult> InvokeUpdateMember(
                 OrganizationsController controller,
                 Organization account,
+                Func<Fakes, User> getCurrentUser,
                 string memberName = defaultMemberName,
                 bool isAdmin = false,
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
@@ -945,21 +920,34 @@ namespace NuGetGallery
         {
             private const string defaultMemberName = "member";
 
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
-            [Fact]
-            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = await InvokeDeleteMember(controller, account);
+                var result = await InvokeDeleteMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
@@ -970,28 +958,9 @@ namespace NuGetGallery
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
-            {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
-
-                // Act
-                var result = await InvokeDeleteMember(controller, account);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, result.Data);
-
-                GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenOrganizationIsUnconfirmed_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -999,7 +968,7 @@ namespace NuGetGallery
                 account.EmailAddress = null;
 
                 // Act
-                var result = await InvokeDeleteMember(controller, account);
+                var result = await InvokeDeleteMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -1010,15 +979,16 @@ namespace NuGetGallery
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenEntityException_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenEntityException_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeDeleteMember(controller, account, exception: new EntityException("error"));
+                var result = await InvokeDeleteMember(controller, account, getCurrentUser, exception: new EntityException("error"));
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -1029,15 +999,16 @@ namespace NuGetGallery
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenDeletingAsAdmin_ReturnsSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenDeletingAsAdmin_ReturnsSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeDeleteMember(controller, account);
+                var result = await InvokeDeleteMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -1056,16 +1027,17 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                var collaborator = Fakes.OrganizationCollaborator;
+                Func<Fakes, User> getCollaborator = (Fakes fakes) => fakes.OrganizationCollaborator;
+                var collaborator = getCollaborator(Fakes);
                 controller.SetCurrentUser(collaborator);
 
                 // Act
-                var result = await InvokeDeleteMember(controller, account, memberName: collaborator.Username);
+                var result = await InvokeDeleteMember(controller, account, getCollaborator, memberName: collaborator.Username);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
                 Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.DeleteMember_Success, ((JsonResult)result).Data);
+                Assert.Equal(Strings.DeleteMember_Success, (result).Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, collaborator.Username), Times.Once);
             }
@@ -1073,11 +1045,12 @@ namespace NuGetGallery
             private Task<JsonResult> InvokeDeleteMember(
                 OrganizationsController controller,
                 Organization account,
+                Func<Fakes, User> getCurrentUser,
                 string memberName = defaultMemberName,
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
@@ -1101,21 +1074,34 @@ namespace NuGetGallery
         {
             private const string defaultMemberName = "member";
 
-            protected override User GetCurrentUser(OrganizationsController controller)
+            public static IEnumerable<object[]> AllowedCurrentUsers_Data
             {
-                return controller.GetCurrentUser() ?? Fakes.OrganizationAdmin;
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationAdmin);
+                }
             }
 
-            [Fact]
-            public async Task WhenUserIsCollaborator_ReturnsNonSuccess()
+            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(_getFakesUser);
+                    yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.OrganizationCollaborator);
 
                 // Act
-                var result = await InvokeCancelMemberRequestMember(controller, account);
+                var result = await InvokeCancelMemberRequestMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
@@ -1126,35 +1112,16 @@ namespace NuGetGallery
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenUserIsNotMember_ReturnsNonSuccess()
-            {
-                // Arrange
-                var controller = GetController();
-                var account = GetAccount(controller);
-                controller.SetCurrentUser(Fakes.User);
-
-                // Act
-                var result = await InvokeCancelMemberRequestMember(controller, account);
-
-                // Assert
-                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
-                Assert.IsType<JsonResult>(result);
-                Assert.Equal(Strings.Unauthorized, result.Data);
-
-                GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
-            }
-
-            [Fact]
-            public async Task WhenEntityException_ReturnsNonSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenEntityException_ReturnsNonSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeCancelMemberRequestMember(controller, account, exception: new EntityException("error"));
+                var result = await InvokeCancelMemberRequestMember(controller, account, getCurrentUser, exception: new EntityException("error"));
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
@@ -1165,15 +1132,16 @@ namespace NuGetGallery
                 GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNotice(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
             }
 
-            [Fact]
-            public async Task WhenSuccess_ReturnsSuccess()
+            [Theory]
+            [MemberData(nameof(AllowedCurrentUsers_Data))]
+            public async Task WhenSuccess_ReturnsSuccess(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = await InvokeCancelMemberRequestMember(controller, account);
+                var result = await InvokeCancelMemberRequestMember(controller, account, getCurrentUser);
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -1187,11 +1155,12 @@ namespace NuGetGallery
             private Task<JsonResult> InvokeCancelMemberRequestMember(
                 OrganizationsController controller,
                 Organization account,
+                Func<Fakes, User> getCurrentUser,
                 string memberName = defaultMemberName,
                 EntityException exception = null)
             {
                 // Arrange
-                controller.SetCurrentUser(GetCurrentUser(controller));
+                controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
                 userService.Setup(u => u.FindByUsername(account.Username))
