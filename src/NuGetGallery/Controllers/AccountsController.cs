@@ -285,7 +285,7 @@ namespace NuGetGallery
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), accountToDelete)
                     != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return new HttpNotFoundResult();
             }
 
             return View("DeleteAccount", GetDeleteAccountViewModel(accountToDelete));

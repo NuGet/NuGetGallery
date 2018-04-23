@@ -282,15 +282,16 @@ namespace NuGetGallery
             }
 
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
-            if (!isSupportRequestCreated)
+            if (await _supportRequestService.TryAddDeleteSupportRequestAsync(user))
+            {
+                MessageService.SendAccountDeleteNotice(user);
+            }
+            else
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-                return RedirectToAction("DeleteRequest");
             }
 
-            MessageService.SendAccountDeleteNotice(user);
-
-            return RedirectToAction("DeleteRequest");
+            return RedirectToAction(nameof(DeleteRequest));
         }
 
         [HttpGet]

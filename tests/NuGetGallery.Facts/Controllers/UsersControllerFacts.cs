@@ -2092,19 +2092,12 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public void DeleteAccountRequestView(bool withPendingIssues)
+            public void ShowsViewWithCorrectData(bool withPendingIssues)
             {
                 // Arrange
-                string userName = "DeletedUser";
-                string emailAddress = $"{userName}@coldmail.com";
-                int userKey = 1;
-
                 var controller = GetController<UsersController>();
                 var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.EmailAddress = emailAddress;
-                testUser.Key = userKey;
-                testUser.IsDeleted = false;
+                var testUser = fakes.User;
 
                 controller.SetCurrentUser(testUser);
                 PackageRegistration packageRegistration = new PackageRegistration();
@@ -2126,15 +2119,15 @@ namespace NuGetGallery
                     issues.Add(new Issue()
                     {
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
-                        OwnerEmail = emailAddress,
-                        CreatedBy = userName,
-                        UserKey = userKey,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = testUser.Username,
+                        UserKey = testUser.Key,
                         IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(testUser.Username))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2145,10 +2138,10 @@ namespace NuGetGallery
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
-                var model = (DeleteUserViewModel)result.Model;
+                var model = ResultAssert.IsView<DeleteUserViewModel>(result, "DeleteAccount");
 
                 // Assert
-                Assert.Equal(userName, model.AccountName);
+                Assert.Equal(testUser.Username, model.AccountName);
                 Assert.Equal(1, model.Packages.Count());
                 Assert.Equal(true, model.HasOrphanPackages);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);

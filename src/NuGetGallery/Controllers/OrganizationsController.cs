@@ -284,6 +284,11 @@ namespace NuGetGallery
 
         protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)
         {
+            return GetDeleteOrganizationViewModel(account);
+        }
+
+        private DeleteOrganizationViewModel GetDeleteOrganizationViewModel(Organization account)
+        {
             return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService);
         }
 
@@ -299,10 +304,10 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.NotFound);
+                return new HttpNotFoundResult();
             }
-            
-            var model = GetDeleteAccountViewModel(account);
+
+            var model = GetDeleteOrganizationViewModel(account);
 
             if (model.HasOrphanPackages)
             {
@@ -311,7 +316,7 @@ namespace NuGetGallery
                 return RedirectToAction(nameof(DeleteRequest));
             }
 
-            if (model.Account.Members.Count() > 1)
+            if (model.HasAdditionalMembers)
             {
                 TempData["ErrorMessage"] = "You cannot delete your organization unless you remove all other members.";
 
@@ -322,7 +327,7 @@ namespace NuGetGallery
 
             if (result.Success)
             {
-                TempData["Message"] = $"Your organization '{accountName}' was successfully deleted!";
+                TempData["Message"] = $"Your organization, '{accountName}', was successfully deleted!";
 
                 return RedirectToAction("Organizations", "Users");
             }
@@ -330,7 +335,7 @@ namespace NuGetGallery
             {
                 TempData["ErrorMessage"] = $"There was an issue deleting your organization '{accountName}'. Please contact support for assistance.";
 
-                return RedirectToAction("Delete");
+                return RedirectToAction(nameof(DeleteRequest));
             }
         }
 

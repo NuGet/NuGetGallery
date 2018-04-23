@@ -4,10 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -1177,6 +1181,197 @@ namespace NuGetGallery
 
                 // Act
                 return controller.CancelMemberRequest(account.Username, memberName);
+            }
+        }
+
+        public abstract class TheDeleteOrganizationBaseAction : TestContainer
+        {
+            public static IEnumerable<object[]> IfNotAdministrator_ReturnsNotFound_Data
+            {
+                get
+                {
+                    yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.User));
+                    yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.Admin));
+                    yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.OrganizationCollaborator));
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(IfNotAdministrator_ReturnsNotFound_Data))]
+            public async Task IfNotAdministrator_ReturnsNotFound(Func<Fakes, User> getCurrentUser)
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.Organization;
+
+                controller.SetCurrentUser(getCurrentUser(fakes));
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(testOrganization.Username))
+                    .Returns(testOrganization);
+
+                // Act
+                var result = await Invoke(controller, testOrganization.Username);
+
+                // Assert
+                ResultAssert.IsNotFound(result);
+            }
+
+            protected abstract Task<ActionResult> Invoke(OrganizationsController controller, string username);
+        }
+
+        public class TheDeleteAccountRequestAction : TheDeleteOrganizationBaseAction
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task IfAdministrator_ShowsViewWithCorrectData(bool withAdditionalMembers)
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.Organization;
+
+                controller.SetCurrentUser(fakes.OrganizationAdmin);
+                PackageRegistration packageRegistration = new PackageRegistration();
+                packageRegistration.Owners.Add(testOrganization);
+
+                if (!withAdditionalMembers)
+                {
+                    testOrganization.Members.Remove(fakes.OrganizationCollaborator.Organizations.Single());
+                }
+
+                Package userPackage = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1,
+                    Version = "1.0.0",
+                    PackageRegistration = packageRegistration
+                };
+                packageRegistration.Packages.Add(userPackage);
+
+                List<Package> userPackages = new List<Package>() { userPackage };
+
+                GetMock<IUserService>()
+                    .Setup(stub => stub.FindByUsername(testOrganization.Username))
+                    .Returns(testOrganization);
+                GetMock<IPackageService>()
+                    .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testOrganization, It.IsAny<bool>(), false))
+                    .Returns(userPackages);
+
+                // act
+                var result = await Invoke(controller, testOrganization.Username);
+
+                // Assert
+                var model = ResultAssert.IsView<DeleteOrganizationViewModel>(result, "DeleteAccount");
+                Assert.Equal(testOrganization.Username, model.AccountName);
+                Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Equal(withAdditionalMembers, model.HasAdditionalMembers);
+            }
+
+            protected override Task<ActionResult> Invoke(OrganizationsController controller, string username)
+            {
+                return Task.FromResult(controller.DeleteRequest(username));
+            }
+        }
+
+        public class TheRequestAccountDeletionMethod : TheDeleteOrganizationBaseAction
+        {
+            [Fact]
+            public async Task IfOrphanedPackages_RedirectsToDeleteRequest()
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.OrganizationOwner;
+                controller.SetCurrentUser(fakes.OrganizationOwnerAdmin);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.FindPackagesByAnyMatchingOwner(testOrganization, true, false))
+                    .Returns(new[] { new Package { Version = "1.0.0", PackageRegistration = new PackageRegistration { Owners = new[] { testOrganization } } } });
+
+                // Act & Assert
+                await RedirectsToDeleteRequest(
+                    controller, 
+                    testOrganization.Username,
+                    "You cannot delete your organization unless you transfer ownership of all of its packages to another account.");
+            }
+
+            [Fact]
+            public async Task IfAdditionalMembers_RedirectsToDeleteRequest()
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.Organization;
+                controller.SetCurrentUser(fakes.OrganizationAdmin);
+
+                // Act & Assert
+                await RedirectsToDeleteRequest(
+                    controller,
+                    testOrganization.Username,
+                    "You cannot delete your organization unless you remove all other members.");
+            }
+
+            [Fact]
+            public async Task IfDeleteFails_RedirectsToDeleteRequest()
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.Organization;
+                var currentUser = fakes.OrganizationAdmin;
+                controller.SetCurrentUser(currentUser);
+
+                testOrganization.Members.Remove(fakes.OrganizationCollaborator.Organizations.Single());
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(x => x.DeleteGalleryOrganizationAccountAsync(testOrganization, currentUser, true))
+                    .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = false }));
+
+                // Act & Assert
+                await RedirectsToDeleteRequest(
+                    controller,
+                    testOrganization.Username,
+                    $"There was an issue deleting your organization '{testOrganization.Username}'. Please contact support for assistance.");
+            }
+
+            [Fact]
+            public async Task IfDeleteSucceeds_RedirectsToManageOrganizations()
+            {
+                // Arrange
+                var controller = GetController<OrganizationsController>();
+                var fakes = Get<Fakes>();
+                var testOrganization = fakes.Organization;
+                var currentUser = fakes.OrganizationAdmin;
+                controller.SetCurrentUser(currentUser);
+
+                testOrganization.Members.Remove(fakes.OrganizationCollaborator.Organizations.Single());
+
+                GetMock<IDeleteAccountService>()
+                    .Setup(x => x.DeleteGalleryOrganizationAccountAsync(testOrganization, currentUser, true))
+                    .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = true }));
+
+                // Act
+                var result = await Invoke(controller, testOrganization.Username);
+
+                // Assert
+                ResultAssert.IsRedirectToRoute(result, new { action = nameof(UsersController.Organizations), controller = "Users" });
+                Assert.Equal($"Your organization, '{testOrganization.Username}', was successfully deleted!", controller.TempData["Message"]);
+            }
+
+            protected override async Task<ActionResult> Invoke(OrganizationsController controller, string username)
+            {
+                return await controller.RequestAccountDeletion(username);
+            }
+
+            private async Task RedirectsToDeleteRequest(OrganizationsController controller, string username, string errorMessage)
+            {
+                var result = await Invoke(controller, username);
+                ResultAssert.IsRedirectToRoute(result, new { action = nameof(OrganizationsController.DeleteRequest) });
+                Assert.Equal(errorMessage, controller.TempData["ErrorMessage"]);
             }
         }
     }
