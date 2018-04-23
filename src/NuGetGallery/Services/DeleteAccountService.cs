@@ -60,20 +60,24 @@ namespace NuGetGallery
         /// 5. The user data will be cleaned.
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="admin">The admin that will perform the delete action.</param>
+        /// <param name="userToExecuteTheDelete">The user that will perform the delete action.</param>
         /// <param name="signature">The admin signature.</param>
         /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
         /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
         /// <returns></returns>
-        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool commitAsTransaction)
+        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+            User userToExecuteTheDelete,
+            string signature,
+            bool unlistOrphanPackages,
+            bool commitAsTransaction)
         {
             if (userToBeDeleted == null)
             {
                 throw new ArgumentNullException(nameof(userToBeDeleted));
             }
-            if (admin == null)
+            if (userToExecuteTheDelete == null)
             {
-                throw new ArgumentNullException(nameof(admin));
+                throw new ArgumentNullException(nameof(userToExecuteTheDelete));
             }
 
             if (userToBeDeleted.IsDeleted)
@@ -125,18 +129,18 @@ namespace NuGetGallery
                     using (var strategy = new SuspendDbExecutionStrategy())
                     using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
                     {
-                        await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
+                        await DeleteGalleryUserAccountImplAsync(userToBeDeleted, userToExecuteTheDelete, signature, unlistOrphanPackages, HardDeleteUser(userToBeDeleted));
                         transaction.Commit();
                     }
                 }
                 else
                 {
-                    await DeleteGalleryUserAccountImplAsync(userToBeDeleted, admin, signature, unlistOrphanPackages);
+                    await DeleteGalleryUserAccountImplAsync(userToBeDeleted, userToExecuteTheDelete, signature, unlistOrphanPackages, HardDeleteUser(userToBeDeleted));
                 }
                 await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
                     status: DeleteAccountAuditRecord.ActionStatus.Success,
                     action: AuditedDeleteAccountAction.DeleteAccount,
-                    adminUsername: admin.Username));
+                    adminUsername: userToExecuteTheDelete.Username));
                 return new DeleteUserAccountStatus()
                 {
                     Success = true,
@@ -160,7 +164,13 @@ namespace NuGetGallery
             }
         }
 
-        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages)
+        internal bool HardDeleteUser(User userToBeDeleted)
+        {
+            // If the userToBeDeleted does not have the email confirmed the user will be removed from the database.
+            return !userToBeDeleted.Confirmed;
+        }
+
+        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool hardDelete)
         {
             var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
 
@@ -168,8 +178,15 @@ namespace NuGetGallery
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
-            await RemoveUserDataInUserTable(userToBeDeleted);
-            await InsertDeleteAccount(userToBeDeleted, admin, signature);
+            if (hardDelete)
+            {
+                await RemoveUser(userToBeDeleted);
+            }
+            else
+            {
+                await RemoveUserDataInUserTable(userToBeDeleted);
+                await InsertDeleteAccount(userToBeDeleted, admin, signature);
+            }
         }
 
         private async Task InsertDeleteAccount(User user, User admin, string signature)
@@ -233,6 +250,12 @@ namespace NuGetGallery
         private async Task RemoveSupportRequests(User user)
         {
             await _supportRequestService.DeleteSupportRequestsAsync(user.Username);
+        }
+
+        private async Task RemoveUser(User user)
+        {
+            _userRepository.DeleteOnCommit(user);
+            await _userRepository.CommitChangesAsync();
         }
     }
 }
