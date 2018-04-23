@@ -134,6 +134,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An exception was encoutered while trying to delete the account. Please contact support for assistance..
+        /// </summary>
+        public static string AccountSelfDelete_Fail {
+            get {
+                return ResourceManager.GetString("AccountSelfDelete_Fail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User &apos;{0}&apos; is already a member of this organization..
         /// </summary>
         public static string AddMember_AlreadyAMember {
@@ -1108,6 +1117,15 @@ namespace NuGetGallery {
         public static string Organizations_AdminAccountDoesNotHaveTenant {
             get {
                 return ResourceManager.GetString("Organizations_AdminAccountDoesNotHaveTenant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Account &apos;{0}&apos; does not support organizations..
+        /// </summary>
+        public static string Organizations_NotSupportedForAccount {
+            get {
+                return ResourceManager.GetString("Organizations_NotSupportedForAccount", resourceCulture);
             }
         }
         
