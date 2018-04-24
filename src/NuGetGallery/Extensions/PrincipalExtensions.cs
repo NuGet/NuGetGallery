@@ -88,13 +88,7 @@ namespace NuGetGallery
         /// <returns>True if user has password credential, false otherwise.</returns>
         public static bool HasPasswordLogin(this IPrincipal self)
         {
-            if (self == null || self.Identity == null)
-            {
-                return false;
-            }
-
-            var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin);
+            return HasBooleanClaim(self, NuGetClaims.PasswordLogin);
         }
 
         /// <summary>
@@ -104,13 +98,7 @@ namespace NuGetGallery
         /// <returns>True if user has multi-factor authentication enabled, false otherwise.</returns>
         public static bool HasMultiFactorAuthenticationEnabled(this IPrincipal self)
         {
-            if (self == null || self.Identity == null)
-            {
-                return false;
-            }
-
-            var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication);
+            return HasBooleanClaim(self, NuGetClaims.EnabledMultiFactorAuthentication);
         }
 
         /// <summary>
@@ -120,13 +108,7 @@ namespace NuGetGallery
         /// <returns>True if user was multi-factor authenticated, false otherwise.</returns>
         public static bool WasMultiFactorAuthenticated(this IPrincipal self)
         {
-            if (self == null || self.Identity == null)
-            {
-                return false;
-            }
-
-            var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.WasMultiFactorAuthenticated);
+            return HasBooleanClaim(self, NuGetClaims.WasMultiFactorAuthenticated);
         }
 
         /// <summary>
@@ -166,13 +148,7 @@ namespace NuGetGallery
         /// <returns>True if user has password credential, false otherwise.</returns>
         public static bool HasExternalLogin(this IPrincipal self)
         {
-            if (self == null || self.Identity == null)
-            {
-                return false;
-            }
-
-            var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.ExternalLogin);
+            return HasBooleanClaim(self, NuGetClaims.ExternalLogin);
         }
 
         /// <summary>
@@ -270,6 +246,17 @@ namespace NuGetGallery
         private static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
+        }
+
+        private static bool HasBooleanClaim(IPrincipal self, string claimType)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, claimType);
         }
     }
 }

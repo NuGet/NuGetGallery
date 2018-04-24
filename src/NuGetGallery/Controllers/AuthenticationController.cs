@@ -166,7 +166,7 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-            bool usedMultiFactorAuthentication;
+            bool usedMultiFactorAuthentication = false;
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
