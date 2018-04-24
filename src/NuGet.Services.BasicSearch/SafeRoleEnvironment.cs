@@ -62,6 +62,11 @@ namespace NuGet.Services.BasicSearch
             return string.Empty;
         }
 
+        public static string GetLocalResourceRootPath(string name)
+        {
+            return RoleEnvironment.GetLocalResource(name).RootPath;
+        }
+
         /// <summary>
         /// Loads and returns the latest available version of the service runtime assembly.
         /// </summary>

@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,9 @@ using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing.IndexDirectoryProvider
 {
+    using IODirectory = System.IO.Directory;
+    using LuceneDirectory = Lucene.Net.Store.Directory;
+
     /// <summary>
     /// Maintains an index on the cloud. Provides a synchronizer and a reload method to refresh the index.
     /// </summary>
@@ -18,7 +22,7 @@ namespace NuGet.Indexing.IndexDirectoryProvider
     {
         private readonly FrameworkLogger _logger;
 
-        private Directory _directory;
+        private LuceneDirectory _directory;
         private string _indexContainerName;
         private string _storageAccountConnectionString;
         private AzureDirectorySynchronizer _synchronizer;
@@ -34,7 +38,7 @@ namespace NuGet.Indexing.IndexDirectoryProvider
             Reload(config);
         }
 
-        public Directory GetDirectory()
+        public LuceneDirectory GetDirectory()
         {
             return _directory;
         }
@@ -75,7 +79,24 @@ namespace NuGet.Indexing.IndexDirectoryProvider
 
             var stopwatch = Stopwatch.StartNew();
 
-            var sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName);
+            AzureDirectory sourceDirectory;
+
+            if (string.IsNullOrEmpty(config.AzureDirectoryCachePath))
+            {
+                sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName);
+            }
+            else
+            {
+                var azureDirectoryCachePath = Path.GetFullPath(Path.Combine(config.AzureDirectoryCachePath, _indexContainerName));
+
+                _logger.LogInformation("Using custom Azure Directory cache path: {AzureDirectoryCachePath}", azureDirectoryCachePath);
+
+                IODirectory.CreateDirectory(azureDirectoryCachePath);
+
+                var cacheDirectory = FSDirectory.Open(azureDirectoryCachePath);
+                sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName, cacheDirectory);
+            }
+
             _directory = new RAMDirectory(sourceDirectory); // Copy the directory from Azure storage to RAM.
 
             _synchronizer = new AzureDirectorySynchronizer(sourceDirectory, _directory);

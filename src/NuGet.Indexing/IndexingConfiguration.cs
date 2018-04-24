@@ -31,6 +31,22 @@ namespace NuGet.Indexing
         [DefaultValue("ng-search-index")]
         public string IndexContainer { get; set; }
 
+        /// <summary>
+        /// The path used to cache the indexes' Azure Directory. This value is overwritten at
+        /// runtime if <see cref="AzureDirectoryCacheLocalResourceName"/> is configured.
+        /// </summary>
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue("")]
+        public string AzureDirectoryCachePath { get; set; }
+
+        /// <summary>
+        /// If set, the root path of the Azure Local Storage resource will be used as the
+        /// <see cref="AzureDirectoryCachePath"/>.
+        /// </summary>
+        [ConfigurationKeyPrefix(SearchPrefix)]
+        [DefaultValue("")]
+        public string AzureDirectoryCacheLocalResourceName { get; set; }
+
         [ConfigurationKeyPrefix(LocalPrefix)]
         [ConfigurationKey("Data.Directory")]
         public string LocalDataDirectory { get; set; }
