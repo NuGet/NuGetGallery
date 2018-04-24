@@ -45,12 +45,16 @@
                     {
                         if (Model.UserIsOrganization)
                         {
+                            var administrators = (Model.User as Organization).Administrators.Count();
+                            var collaborators = (Model.User as Organization).Collaborators.Count();
+
                             <i class="ms-Icon ms-Icon--Group ms-font-xl" aria-hidden="true">&nbsp;</i>
-                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@((Model.User as Organization).Administrators.Count())</span>&nbsp;Administrators&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@((Model.User as Organization).Collaborators.Count())</span>&nbsp;Collaborators</a>
+                            <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
                         }
                         else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
                         {
-                            <span>member of<a href="@Url.ManageMyOrganizations()" aria-label="Manage my organizations"><span class="ms-font-xxl">&nbsp;@(Model.User.Organizations.Count()) organizations</span></a></span>
+                            var organizations = Model.User.Organizations.Count();
+                            <span>member of<a href="@Url.ManageMyOrganizations()" aria-label="Manage my organizations"><span class="ms-font-xxl">&nbsp;@organizations organization@(organizations != 1 ? "s" : "")</span></a></span>
                         }
                     }
                 </span>
