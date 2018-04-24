@@ -89,6 +89,14 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
                     };
 
+                    yield return new object[] { "UserMultiFactorAuthenticationEnabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: true))
+                    };
+
+                    yield return new object[] { "UserMultiFactorAuthenticationDisabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: false))
+                    };
+
                     yield return new object[] { "CredentialAdded",
                         (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
                     };

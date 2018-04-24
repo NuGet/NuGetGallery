@@ -301,7 +301,7 @@ namespace NuGetGallery
                 .Select(f => f.Name)
                 .ToList();
 
-            model.HasPassword = account.Credentials.Any(c => c.Type.StartsWith(CredentialTypes.Password.Prefix));
+            model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;
             model.HasConfirmedEmailAddress = !string.IsNullOrEmpty(account.EmailAddress);
             model.HasUnconfirmedEmailAddress = !string.IsNullOrEmpty(account.UnconfirmedEmailAddress);
