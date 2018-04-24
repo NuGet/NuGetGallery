@@ -113,6 +113,7 @@ namespace NuGetGallery.Services
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestData(ref registration);
+                var testUserOrganizations = testUser.Organizations.ToList();
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
@@ -138,6 +139,21 @@ namespace NuGetGallery.Services
                 Assert.Null(testUser.OrganizationMigrationRequest);
                 Assert.Empty(testUser.OrganizationMigrationRequests);
                 Assert.Empty(testUser.OrganizationRequests);
+
+                Assert.Empty(testUser.Organizations);
+                foreach (var testUserOrganization in testUserOrganizations)
+                {
+                    var notDeletedMembers = testUserOrganization.Organization.Members.Where(m => m.Member != testUser);
+                    if (!notDeletedMembers.Any())
+                    {
+                        Assert.Contains(testUserOrganization.Organization, testableService.DeletedOrganizations);
+                    }
+                    else
+                    {
+                        Assert.True(notDeletedMembers.Any(m => m.IsAdmin));
+                    }
+                }
+
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
             }
@@ -180,6 +196,17 @@ namespace NuGetGallery.Services
                 AddOrganizationRequests(testUser, false);
                 AddOrganizationRequests(testUser, true);
 
+                foreach (var isAdmin in new[] { false, true })
+                {
+                    foreach (var hasAdminMember in new[] { false, true })
+                    {
+                        foreach (var hasCollaboratorMember in new[] { false, true })
+                        {
+                            AddOrganization(testUser, isAdmin, hasAdminMember, hasCollaboratorMember);
+                        }
+                    }
+                }
+
                 registration = new PackageRegistration();
                 registration.Owners.Add(testUser);
 
@@ -219,6 +246,32 @@ namespace NuGetGallery.Services
                 testOrganization.MemberRequests.Add(request);
                 testUser.OrganizationRequests.Add(request);
             }
+
+            private static void AddOrganization(User testUser, bool isAdmin, bool hasAdminMember, bool hasCollaboratorMember)
+            {
+                var testOrganization = new Organization("testOrganization");
+
+                AddMemberToOrganization(testOrganization, testUser, isAdmin);
+
+                if (hasAdminMember)
+                {
+                    var adminUser = new User("testAdministrator");
+                    AddMemberToOrganization(testOrganization, adminUser, isAdmin);
+                }
+
+                if (hasCollaboratorMember)
+                {
+                    var collaboratorUser = new User("testCollaborator");
+                    AddMemberToOrganization(testOrganization, collaboratorUser, isAdmin);
+                }
+            }
+
+            private static void AddMemberToOrganization(Organization organization, User user, bool isAdmin)
+            {
+                var membership = new Membership { IsAdmin = isAdmin, Organization = organization, Member = user };
+                organization.Members.Add(membership);
+                user.Organizations.Add(membership);
+            }
         }
 
         public class DeleteAccountTestService
@@ -232,6 +285,7 @@ namespace NuGetGallery.Services
             private ICollection<Package> _userPackages;
 
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
+            public List<Organization> DeletedOrganizations = new List<Organization>();
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
@@ -343,6 +397,9 @@ namespace NuGetGallery.Services
                 var mockContext = new Mock<IEntitiesContext>();
                 var dbContext = new Mock<DbContext>();
                 mockContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+                mockContext
+                    .Setup(m => m.DeleteOnCommit(It.IsAny<Organization>()))
+                    .Callback<Organization>(organization => DeletedOrganizations.Add(organization));
                 return mockContext;
             }
 

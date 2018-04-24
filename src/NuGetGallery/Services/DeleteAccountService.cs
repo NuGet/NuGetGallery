@@ -230,7 +230,24 @@ namespace NuGetGallery
         {
             foreach (var membership in user.Organizations.ToArray())
             {
+                var organization = membership.Organization;
+                var collaborators = organization.Members.Where(m => !m.IsAdmin).ToList();
+                var memberCount = organization.Members.Count();
                 user.Organizations.Remove(membership);
+                
+                if (memberCount < 2)
+                {
+                    // This is the only member of the organization.
+                    // We should delete the entire organization.
+                }
+                else if (memberCount - 1 == collaborators.Count())
+                {
+                    // All other members of this organization are collaborators, so we should promote them to administrators.
+                    foreach (var collaborator in collaborators)
+                    {
+                        collaborator.IsAdmin = true;
+                    }
+                }
             }
 
             foreach (var membershipRequest in user.OrganizationRequests.ToArray())
