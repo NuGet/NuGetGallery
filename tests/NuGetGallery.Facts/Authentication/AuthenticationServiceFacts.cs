@@ -658,7 +658,7 @@ namespace NuGetGallery.Authentication
                     .Returns(passwordConfigMock.Object);
 
                 // Act
-                await Get<AuthenticationService>().CreateSessionAsync(context, authUser, WasMutliFactorAuthenticated: true);
+                await Get<AuthenticationService>().CreateSessionAsync(context, authUser, wasMultiFactorAuthenticated: true);
 
                 // Assert
                 var principal = context.Authentication.AuthenticationResponseGrant.Principal;

@@ -166,7 +166,7 @@ namespace NuGetGallery
             }
 
             var authenticatedUser = authenticationResult.AuthenticatedUser;
-            bool usedMultiFactorAuthentication = false;
+            bool usedMultiFactorAuthentication;
             if (linkingAccount)
             {
                 // Verify account has no other external accounts
@@ -537,7 +537,7 @@ namespace NuGetGallery
                 // Create session
                 await _authService.CreateSessionAsync(OwinContext,
                     result.Authentication,
-                    WasMutliFactorAuthenticated: result?.LoginDetails?.WasMultiFactorAuthenticated ?? false);
+                    wasMultiFactorAuthenticated: result?.LoginDetails?.WasMultiFactorAuthenticated ?? false);
 
                 // Update the 2FA if used during login but user does not have it set on their account. Only for personal microsoft accounts.
                 if (result?.LoginDetails != null

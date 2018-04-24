@@ -233,10 +233,15 @@ namespace NuGetGallery.Authentication
             }
         }
 
-        public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user, bool WasMutliFactorAuthenticated = false)
+        /// <summary>
+        /// Generate the new session for the logged in user. Also, set the appropriate claims for the user in this session.
+        /// The multi-factor authentication setting value can be obtained from external logins(in case of AADv2).
+        /// </summary>
+        /// <returns>Awaitable task</returns>
+        public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser user, bool wasMultiFactorAuthenticated = false)
         {
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetUserLoginClaims(user, WasMutliFactorAuthenticated));
+            ClaimsIdentity identity = CreateIdentity(user.User, AuthenticationTypes.LocalUser, await GetUserLoginClaims(user, wasMultiFactorAuthenticated));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);
