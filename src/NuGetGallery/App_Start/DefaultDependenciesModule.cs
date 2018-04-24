@@ -265,8 +265,7 @@ namespace NuGetGallery
                     .Refresh());
             }
 
-            var mailSenderThunk = new Lazy<IMailSender>(
-                () =>
+            Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;
                     if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
@@ -301,9 +300,9 @@ namespace NuGetGallery
 
                         return new MailSender(mailSenderConfiguration);
                     }
-                });
+                };
 
-            builder.Register(c => mailSenderThunk.Value)
+            builder.Register(c => mailSenderFactory())
                 .AsSelf()
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();

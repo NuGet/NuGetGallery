@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -27,9 +28,8 @@ namespace NuGetGallery
         private readonly object _refreshLock = new object();
         private bool _isRefreshing;
 
-        private readonly IDictionary<string, IDictionary<string, int>> _downloadCounts = new Dictionary<string, IDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
-        
-        public DateTime LastRefresh { get; protected set; }
+        private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, int>> _downloadCounts
+            = new ConcurrentDictionary<string, ConcurrentDictionary<string, int>>(StringComparer.OrdinalIgnoreCase);
 
         public CloudDownloadCountService(ITelemetryClient telemetryClient, string connectionString, bool readAccessGeoRedundant)
         {
@@ -38,7 +38,7 @@ namespace NuGetGallery
             _connectionString = connectionString;
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
-        
+
         public bool TryGetDownloadCountForPackageRegistration(string id, out int downloadCount)
         {
             if (string.IsNullOrEmpty(id))
@@ -46,11 +46,9 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(id));
             }
 
-            id = id.ToLowerInvariant();
-
-            if (_downloadCounts.ContainsKey(id))
+            if (_downloadCounts.TryGetValue(id, out var versions))
             {
-                downloadCount = _downloadCounts[id].Sum(kvp => kvp.Value);
+                downloadCount = CalculateSum(versions);
                 return true;
             }
 
@@ -70,16 +68,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(version));
             }
 
-            id = id.ToLowerInvariant();
-            version = version.ToLowerInvariant();
-
-            if (_downloadCounts.ContainsKey(id))
+            if (_downloadCounts.TryGetValue(id, out var versions)
+                && versions.TryGetValue(version, out downloadCount))
             {
-                if (_downloadCounts[id].ContainsKey(version))
-                {
-                    downloadCount = _downloadCounts[id][version];
-                    return true;
-                }
+                return true;
             }
 
             downloadCount = 0;
@@ -127,78 +119,102 @@ namespace NuGetGallery
                 finally
                 {
                     _isRefreshing = false;
-                    LastRefresh = DateTime.UtcNow;
                 }
             }
+        }
+
+        /// <summary>
+        /// This method is added for unit testing purposes.
+        /// </summary>
+        protected virtual int CalculateSum(ConcurrentDictionary<string, int> versions)
+        {
+            return versions.Sum(kvp => kvp.Value);
+        }
+
+        /// <summary>
+        /// This method is added for unit testing purposes. It can return a null stream if the blob does not exist
+        /// and assumes the caller will properly dispose of the returned stream.
+        /// </summary>
+        protected virtual Stream GetBlobStream()
+        {
+            var blob = GetBlobReference();
+            if (blob == null)
+            {
+                return null;
+            }
+
+            return blob.OpenRead();
         }
 
         private void RefreshCore()
         {
             try
             {
-                var blob = GetBlobReference();
-                if (blob == null)
-                {
-                    return;
-                }
-
                 // The data in downloads.v1.json will be an array of Package records - which has Id, Array of Versions and download count.
                 // Sample.json : [["AutofacContrib.NSubstitute",["2.4.3.700",406],["2.5.0",137]],["Assman.Core",["2.0.7",138]]....
-                using (var jsonReader = new JsonTextReader(new StreamReader(blob.OpenRead())))
+                using (var blobStream = GetBlobStream())
                 {
-                    try
+                    if (blobStream == null)
                     {
-                        jsonReader.Read();
+                        return;
+                    }
 
-                        while (jsonReader.Read())
+                    using (var jsonReader = new JsonTextReader(new StreamReader(blobStream)))
+                    {
+                        try
                         {
-                            try
+                            jsonReader.Read();
+
+                            while (jsonReader.Read())
                             {
-                                if (jsonReader.TokenType == JsonToken.StartArray)
+                                try
                                 {
-                                    JToken record = JToken.ReadFrom(jsonReader);
-                                    string id = record[0].ToString().ToLowerInvariant();
-
-                                    // The second entry in each record should be an array of versions, if not move on to next entry.
-                                    // This is a check to safe guard against invalid entries.
-                                    if (record.Count() == 2 && record[1].Type != JTokenType.Array)
+                                    if (jsonReader.TokenType == JsonToken.StartArray)
                                     {
-                                        continue;
-                                    }
+                                        JToken record = JToken.ReadFrom(jsonReader);
+                                        string id = record[0].ToString().ToLowerInvariant();
 
-                                    if (!_downloadCounts.ContainsKey(id))
-                                    {
-                                        _downloadCounts.Add(id, new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase));
-                                    }
-                                    var versions = _downloadCounts[id];
-
-                                    foreach (JToken token in record)
-                                    {
-                                        if (token != null && token.Count() == 2)
+                                        // The second entry in each record should be an array of versions, if not move on to next entry.
+                                        // This is a check to safe guard against invalid entries.
+                                        if (record.Count() == 2 && record[1].Type != JTokenType.Array)
                                         {
-                                            string version = token[0].ToString().ToLowerInvariant();
-                                            versions[version] = token[1].ToObject<int>();
+                                            continue;
+                                        }
+
+                                        var versions = _downloadCounts.GetOrAdd(
+                                            id,
+                                            _ => new ConcurrentDictionary<string, int>(StringComparer.OrdinalIgnoreCase));
+
+                                        foreach (JToken token in record)
+                                        {
+                                            if (token != null && token.Count() == 2)
+                                            {
+                                                var version = token[0].ToString();
+                                                var downloadCount = token[1].ToObject<int>();
+
+                                                versions.AddOrSet(version, downloadCount);
+                                            }
                                         }
                                     }
                                 }
-                            }
-                            catch (JsonReaderException ex)
-                            {
-                                _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                                catch (JsonReaderException ex)
                                 {
-                                    { "Origin", TelemetryOriginForRefreshMethod },
-                                    { "AdditionalInfo", "Invalid entry found in downloads.v1.json." }
-                                });
+                                    _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                                    {
+                                        { "Origin", TelemetryOriginForRefreshMethod },
+                                        { "AdditionalInfo", "Invalid entry found in downloads.v1.json." }
+                                    });
+                                }
                             }
                         }
-                    }
-                    catch (JsonReaderException ex)
-                    {
-                        _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                        catch (JsonReaderException ex)
                         {
-                            { "Origin", TelemetryOriginForRefreshMethod },
-                            { "AdditionalInfo", "Data present in downloads.v1.json is invalid. Couldn't get download data." }
-                        });
+                            _telemetryClient.TrackException(ex, new Dictionary<string, string>
+                            {
+                                { "Origin", TelemetryOriginForRefreshMethod },
+                                { "AdditionalInfo", "Data present in downloads.v1.json is invalid. Couldn't get download data." }
+                            });
+                        }
                     }
                 }
             }
