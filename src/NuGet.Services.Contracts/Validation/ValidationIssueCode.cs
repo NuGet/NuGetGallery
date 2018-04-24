@@ -53,6 +53,11 @@ namespace NuGet.Services.Validation
         AuthorCounterSignaturesNotSupported = 7,
 
         /// <summary>
+        /// A package that is configured to require signing is not signed.
+        /// </summary>
+        PackageIsNotSigned = 8,
+
+        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]
