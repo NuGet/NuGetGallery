@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -34,7 +35,17 @@ namespace NuGet.Services.KeyVault
             _secretReader = secretReader;
         }
 
-        public async Task<string> InjectAsync(string input)
+        public string GetSecretName(string input)
+        {
+            return GetSecretNames(input).SingleOrDefault();
+        }
+
+        public Task<string> InjectAsync(string input)
+        {
+            return InjectAsync(input, forceRefresh: false);
+        }
+
+        public async Task<string> InjectAsync(string input, bool forceRefresh)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -46,11 +57,25 @@ namespace NuGet.Services.KeyVault
 
             foreach (var secretName in secretNames)
             {
-                var secretValue = await _secretReader.GetSecretAsync(secretName);
+                var secretValue = await GetSecretAsync(secretName, forceRefresh);
                 output.Replace($"{_frame}{secretName}{_frame}", secretValue);
             }
 
             return output.ToString();
+        }
+
+        private async Task<string> GetSecretAsync(string secretName, bool forceRefresh = false)
+        {
+            if (forceRefresh)
+            {
+                var cachingSecretReader = _secretReader as ICachingSecretReader;
+                if (cachingSecretReader != null)
+                {
+                    cachingSecretReader.RefreshSecret(secretName);
+                }
+            }
+
+            return await _secretReader.GetSecretAsync(secretName);
         }
 
         private IEnumerable<string> GetSecretNames(string input)

@@ -7,6 +7,10 @@ namespace NuGet.Services.KeyVault
 {
     public interface ISecretInjector
     {
+        string GetSecretName(string input);
+
         Task<string> InjectAsync(string input);
+
+        Task<string> InjectAsync(string input, bool forceRefresh);
     }
 }

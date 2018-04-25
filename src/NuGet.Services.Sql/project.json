@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win": {}
+  }
+}

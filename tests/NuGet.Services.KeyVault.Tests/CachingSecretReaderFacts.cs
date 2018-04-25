@@ -2,75 +2,254 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
-using System.Threading;
-using System.Diagnostics;
 
 namespace NuGet.Services.KeyVault.Tests
 {
     public class CachingSecretReaderFacts
     {
-        [Fact]
-        public async Task WhenGetSecretIsCalledCacheIsUsed()
+        public class TheGetSecretAsyncMethod
         {
-            // Arrange
-            const string secret = "secret";
-            var mockSecretReader = new Mock<ISecretReader>();
-            mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>())).Returns(Task.FromResult(secret));
+            [Fact]
+            public async Task CacheIsUsedIfNotPastInterval()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
 
-            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, int.MaxValue);
+                // Act
+                var value1 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
+                var value2 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
 
-            // Act
-            var value1 = await cachingSecretReader.GetSecretAsync("secretname");
-            var value2 = await cachingSecretReader.GetSecretAsync("secretname");
+                // Assert
+                secretReader.MockSecretReader.Verify(x => x.GetSecretAsync(TestCachingSecretReader.SecretName), Times.Once);
+                Assert.Equal(TestCachingSecretReader.SecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
 
-            // Assert
-            mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Once);
-            Assert.Equal(secret, value1);
-            Assert.Equal(value1, value2);
+            [Fact]
+            public async Task CacheIsRefreshedIfPastInterval()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act
+                var value1 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
+                secretReader.SecretsOutdated = true;
+                var value2 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
+
+                // Assert
+                secretReader.MockSecretReader.Verify(x => x.GetSecretAsync(TestCachingSecretReader.SecretName), Times.Exactly(2));
+                Assert.Equal(TestCachingSecretReader.SecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
         }
 
-        [Fact]
-        public async Task WhenGetSecretIsCalledCacheIsRefreshedIfPastInterval()
+        public class TheGetCertificateSecretAsyncMethod
         {
-            // Arrange
-            const string secretName = "secretname";
-            const string firstSecret = "secret1";
-            const string secondSecret = "secret2";
-            const int refreshIntervalSec = 1;
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void ThrowsIfSecretNameIsNullOrEmpty(string secretName)
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
 
-            var mockSecretReader = new Mock<ISecretReader>();
+                // Act & Assert
+                Assert.ThrowsAsync<ArgumentException>(async () => await secretReader.GetCertificateSecretAsync(secretName, "password"));
+            }
 
-            mockSecretReader
-                .SetupSequence(x => x.GetSecretAsync(It.IsAny<string>()))
-                .Returns(Task.FromResult(firstSecret))
-                .Returns(Task.FromResult(secondSecret));
+            [Fact]
+            public void ThrowsIfPasswordIsNull()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
 
-            var cachingSecretReader = new CachingSecretReader(mockSecretReader.Object, refreshIntervalSec);
+                // Act & Assert
+                Assert.ThrowsAsync<ArgumentException>(async () => await secretReader.GetCertificateSecretAsync(TestCachingSecretReader.CertSecretName, null));
+            }
 
-            // Act
-            var firstValue1 = await cachingSecretReader.GetSecretAsync(secretName);
-            var firstValue2 = await cachingSecretReader.GetSecretAsync(secretName);
+            [Fact]
+            public async Task CacheIsUsedIfNotPastInterval()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
 
-            // Assert
-            mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Once);
-            Assert.Equal(firstSecret, firstValue1);
-            Assert.Equal(firstSecret, firstValue2);
+                // Act
+                var value1 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
+                var value2 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
 
-            // Arrange 2
-            // We are now x seconds later after refreshIntervalSec has passed.
-            await Task.Delay(TimeSpan.FromSeconds(refreshIntervalSec * 2));
+                // Assert
+                secretReader.MockSecretReader.Verify(x => x.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword),
+                    Times.Exactly(1));
+                Assert.Equal(TestCachingSecretReader.CertSecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
 
-            // Act 2
-            var secondValue1 = await cachingSecretReader.GetSecretAsync(secretName);
-            var secondValue2 = await cachingSecretReader.GetSecretAsync(secretName);
+            [Fact]
+            public async Task CacheIsRefreshedIfPastInterval()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
 
-            // Assert 2
-            mockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Exactly(2));
-            Assert.Equal(secondSecret, secondValue1);
-            Assert.Equal(secondSecret, secondValue2);
+                // Act
+                var value1 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
+
+                secretReader.SecretsOutdated = true;
+
+                var value2 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
+
+                // Assert
+                secretReader.MockSecretReader.Verify(x => x.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword),
+                    Times.Exactly(2));
+
+                Assert.Equal(TestCachingSecretReader.CertSecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
+        }
+
+        public class TheRefreshSecretMethod
+        {
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void ThrowsIfSecretNameIsNullOrEmpty(string secretName)
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act & Assert
+                Assert.Throws<ArgumentException>(() => secretReader.RefreshSecret(secretName));
+            }
+
+            [Fact]
+            public void ReturnsFalseIfSecretNotInCache()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act & Assert
+                Assert.False(secretReader.RefreshSecret("notasecret"));
+            }
+
+            [Fact]
+            public async Task WhenRefreshIsCalledCacheIsNotUsed()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act
+                var value1 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
+                var result = secretReader.RefreshSecret(TestCachingSecretReader.SecretName);
+                var value2 = await secretReader.GetSecretAsync(TestCachingSecretReader.SecretName);
+
+                // Assert
+                Assert.True(result);
+                secretReader.MockSecretReader.Verify(x => x.GetSecretAsync(TestCachingSecretReader.SecretName), Times.Exactly(2));
+                Assert.Equal(TestCachingSecretReader.SecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
+        }
+
+        public class TheRefreshCertificateSecretMethod
+        {
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void ThrowsIfSecretNameIsNullOrEmpty(string secretName)
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act & Assert
+                Assert.Throws<ArgumentException>(() => secretReader.RefreshCertificateSecret(secretName));
+            }
+
+            [Fact]
+            public void ReturnsFalseIfSecretNotInCache()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act & Assert
+                Assert.False(secretReader.RefreshCertificateSecret("notasecret"));
+            }
+
+            [Fact]
+            public async Task WhenRefreshIsCalledCacheIsNotUsed()
+            {
+                // Arrange
+                var secretReader = new TestCachingSecretReader();
+
+                // Act
+                var value1 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
+
+                var result = secretReader.RefreshCertificateSecret(TestCachingSecretReader.CertSecretName);
+
+                var value2 = await secretReader.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword);
+
+                // Assert
+                Assert.True(result);
+                secretReader.MockSecretReader.Verify(x => x.GetCertificateSecretAsync(
+                    TestCachingSecretReader.CertSecretName,
+                    TestCachingSecretReader.CertSecretPassword),
+                    Times.Exactly(2));
+                Assert.Equal(TestCachingSecretReader.CertSecretValue, value1);
+                Assert.Equal(value1, value2);
+            }
+        }
+
+        public class TestCachingSecretReader : CachingSecretReader
+        {
+            public const string SecretName = "secretname";
+            public const string SecretValue = "secret";
+
+            public const string CertSecretName = "certsecretname";
+            public const string CertSecretPassword = "certsecretpass";
+            public static readonly X509Certificate2 CertSecretValue = new Mock<X509Certificate2>().Object;
+
+            public bool SecretsOutdated { get; set; }
+
+            public Mock<ISecretReader> MockSecretReader { get; }
+
+            public TestCachingSecretReader()
+                : this(new Mock<ISecretReader>())
+            {
+            }
+
+            public TestCachingSecretReader(Mock<ISecretReader> mockReader)
+                : base(mockReader.Object, int.MaxValue)
+            {
+                MockSecretReader = mockReader ?? new Mock<ISecretReader>();
+
+                MockSecretReader.Setup(x => x.GetSecretAsync(SecretName))
+                    .Returns(Task.FromResult(SecretValue));
+                MockSecretReader.Setup(x => x.GetCertificateSecretAsync(CertSecretName, CertSecretPassword))
+                    .Returns(Task.FromResult(CertSecretValue));
+            }
+
+            protected override bool IsSecretOutdated<T>(ICachedSecret<T> secret)
+            {
+                return SecretsOutdated;
+            }
         }
     }
 }

@@ -38,6 +38,12 @@ namespace NuGet.Services.KeyVault
             return secret.Value;
         }
 
+        public async Task<X509Certificate2> GetCertificateSecretAsync(string secretName, string password)
+        {
+            var secret = await GetSecretAsync(secretName);
+            return new X509Certificate2(Convert.FromBase64String(secret), password);
+        }
+
         private KeyVaultClient InitializeClient()
         {
             _clientAssertionCertificate = new ClientAssertionCertificate(_configuration.ClientId, _configuration.Certificate);
