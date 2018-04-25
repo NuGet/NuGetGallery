@@ -57,6 +57,7 @@ namespace NuGet.Services.BasicSearch
         public string CertificateThumbprint { get; set; }
 
         [ConfigurationKeyPrefix(KeyVaultPrefix)]
+        [DefaultValue(true)]
         public bool ValidateCertificate { get; set; }
         #endregion
     }

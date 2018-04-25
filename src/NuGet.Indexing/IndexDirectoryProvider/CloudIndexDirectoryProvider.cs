@@ -3,16 +3,18 @@
 
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
+using System.IO;
 using Lucene.Net.Store;
 using Lucene.Net.Store.Azure;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using NuGet.Services.Configuration;
 using FrameworkLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace NuGet.Indexing.IndexDirectoryProvider
 {
+    using IODirectory = System.IO.Directory;
+    using LuceneDirectory = Lucene.Net.Store.Directory;
+
     /// <summary>
     /// Maintains an index on the cloud. Provides a synchronizer and a reload method to refresh the index.
     /// </summary>
@@ -20,7 +22,7 @@ namespace NuGet.Indexing.IndexDirectoryProvider
     {
         private readonly FrameworkLogger _logger;
 
-        private Directory _directory;
+        private LuceneDirectory _directory;
         private string _indexContainerName;
         private string _storageAccountConnectionString;
         private AzureDirectorySynchronizer _synchronizer;
@@ -32,16 +34,11 @@ namespace NuGet.Indexing.IndexDirectoryProvider
                 throw new ArgumentNullException(nameof(config));
             }
 
-            if (logger == null)
-            {
-                throw new ArgumentNullException(nameof(logger));
-            }
-
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Reload(config);
         }
 
-        public Directory GetDirectory()
+        public LuceneDirectory GetDirectory()
         {
             return _directory;
         }
@@ -72,15 +69,34 @@ namespace NuGet.Indexing.IndexDirectoryProvider
             _storageAccountConnectionString = newStorageAccountConnectionString;
             _indexContainerName = newIndexContainerName;
 
-            _logger.LogInformation(
-                "Recognized index configuration change. Reloading index with new settings. Storage Account Name = {StorageAccountName}, Container = {IndexContainerName}",
-                _storageAccountConnectionString, _indexContainerName);
-
-            var stopwatch = Stopwatch.StartNew();
+            _logger.LogInformation("Recognized index configuration change.");
 
             var storageAccount = CloudStorageAccount.Parse(_storageAccountConnectionString);
 
-            var sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName);
+            _logger.LogInformation(
+                "Reloading index with new settings. Storage Account Name = {StorageAccountName}, Container = {IndexContainerName}",
+                storageAccount, _indexContainerName);
+
+            var stopwatch = Stopwatch.StartNew();
+
+            AzureDirectory sourceDirectory;
+
+            if (string.IsNullOrEmpty(config.AzureDirectoryCachePath))
+            {
+                sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName);
+            }
+            else
+            {
+                var azureDirectoryCachePath = Path.GetFullPath(Path.Combine(config.AzureDirectoryCachePath, _indexContainerName));
+
+                _logger.LogInformation("Using custom Azure Directory cache path: {AzureDirectoryCachePath}", azureDirectoryCachePath);
+
+                IODirectory.CreateDirectory(azureDirectoryCachePath);
+
+                var cacheDirectory = FSDirectory.Open(azureDirectoryCachePath);
+                sourceDirectory = new AzureDirectory(storageAccount, _indexContainerName, cacheDirectory);
+            }
+
             _directory = new RAMDirectory(sourceDirectory); // Copy the directory from Azure storage to RAM.
 
             _synchronizer = new AzureDirectorySynchronizer(sourceDirectory, _directory);

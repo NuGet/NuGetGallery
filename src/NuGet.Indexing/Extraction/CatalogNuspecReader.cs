@@ -29,8 +29,9 @@ namespace NuGet.Indexing
             var package = new XElement("metadata");
             var metadata = new XElement("metadata");
 
-            // ID
+            // identity
             var id = new XElement("id", (string)catalogItem["id"]);
+            var version = new XElement("version", (string)(catalogItem["verbatimVersion"] ?? catalogItem["version"]));
 
             // dependencies
             var dependencies = new XElement("dependencies");
@@ -66,6 +67,7 @@ namespace NuGet.Indexing
             }
 
             metadata.Add(id);
+            metadata.Add(version);
             metadata.Add(dependencies);
             metadata.Add(frameworkAssemblies);
             package.Add(metadata);

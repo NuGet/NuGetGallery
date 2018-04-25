@@ -53,6 +53,7 @@ namespace NuGet.Services.BasicSearch
 
             // Add telemetry initializers
             TelemetryConfiguration.Active.TelemetryInitializers.Add(new MachineNameTelemetryInitializer());
+            TelemetryConfiguration.Active.TelemetryInitializers.Add(new DeploymentIdTelemetryInitializer());
 
             // Create telemetry sink
             _searchTelemetryClient = new SearchTelemetryClient();
@@ -89,6 +90,26 @@ namespace NuGet.Services.BasicSearch
             _logger = loggerFactory.CreateLogger<Startup>();
 
             _logger.LogInformation(LogMessages.AppStartup);
+
+            // Overwrite the index's Azure Directory cache path if configured ot use an Azure Local Storage resource.
+            if (!string.IsNullOrEmpty(config.AzureDirectoryCacheLocalResourceName))
+            {
+                if (!SafeRoleEnvironment.IsAvailable)
+                {
+                    _logger.LogWarning(
+                        "Cannot use Azure Local Resource {LocalResourceName} for caching when the RoleEnvironment is not available",
+                        config.AzureDirectoryCacheLocalResourceName);
+                }
+                else
+                {
+                    config.AzureDirectoryCachePath = SafeRoleEnvironment.GetLocalResourceRootPath(config.AzureDirectoryCacheLocalResourceName);
+
+                    _logger.LogInformation(
+                        "Set Azure Directory cache path to Azure Local Resource = {LocalResourceName}, Path = {LocalResourcePath}",
+                        config.AzureDirectoryCacheLocalResourceName,
+                        config.AzureDirectoryCachePath);
+                }
+            }
 
             // redirect all HTTP requests to HTTPS
             if (config.RequireSsl)

@@ -76,7 +76,7 @@ namespace Ng
                 var certificateThumbprint = arguments.GetOrThrow<string>(Arguments.CertificateThumbprint);
                 var storeName = arguments.GetOrDefault(Arguments.StoreName, StoreName.My);
                 var storeLocation = arguments.GetOrDefault(Arguments.StoreLocation, StoreLocation.LocalMachine);
-                var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, false);
+                var shouldValidateCert = arguments.GetOrDefault(Arguments.ValidateCertificate, true);
 
                 var keyVaultCertificate = CertificateUtility.FindCertificateByThumbprint(storeName, storeLocation, certificateThumbprint, shouldValidateCert);
                 var keyVaultConfig = new KeyVaultConfiguration(vaultName, clientId, keyVaultCertificate);

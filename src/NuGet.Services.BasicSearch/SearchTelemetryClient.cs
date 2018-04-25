@@ -13,14 +13,14 @@ namespace NuGet.Services.BasicSearch
 
         public static class MetricName
         {
-            public static readonly string SearchIndexReopenDuration = "SearchIndexReopenDuration";
-            public static readonly string SearchIndexReopenFailed = "SearchIndexReopenFailed";
-            public static readonly string SearcherManagerNotInitialized = "SearcherManagerNotInitialized";
+            public const string SearchIndexReopenDuration = "SearchIndexReopenDuration";
+            public const string SearchIndexReopenFailed = "SearchIndexReopenFailed";
+            public const string SearcherManagerNotInitialized = "SearcherManagerNotInitialized";
 
-            public static readonly string LuceneNumDocs = "LuceneNumDocs";
-            public static readonly string LuceneLoadLag = "LuceneLoadLag";
-            public static readonly string LuceneLastReopen = "LuceneLastReopen";
-            public static readonly string LuceneCommitTimestamp = "LuceneCommitTimestamp";
+            public const string LuceneNumDocs = "LuceneNumDocs";
+            public const string LuceneLoadLag = "LuceneLoadLag";
+            public const string LuceneLastReopen = "LuceneLastReopen";
+            public const string LuceneCommitTimestamp = "LuceneCommitTimestamp";
         }
 
         public SearchTelemetryClient()

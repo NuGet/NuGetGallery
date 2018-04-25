@@ -9,6 +9,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 
 namespace NuGet.Indexing
@@ -238,18 +239,14 @@ namespace NuGet.Indexing
                         .GetSupportedFrameworks()
                         .ToList();
                 }
-                catch (ArgumentException ex) when (ex.Message.ToLowerInvariant().StartsWith("invalid portable"))
+                catch (Exception ex) when (
+                    (ex is ArgumentException && ex.Message.ToLowerInvariant().StartsWith("invalid portable"))
+                    || ex is FrameworkException
+                    || ex is PackagingException)
                 {
-                    // ignoring ArgumentException that denotes invalid portable framework on purpose
-                    // - we don't want the job crashing whenever someone uploads an unsupported framework
-                    Trace.TraceError("CatalogPackageMetadataExtraction.AddSupportedFrameworks exception: " + ex.Message);
-                    return;
-                }
-                catch (FrameworkException ex)
-                {
-                    // ignoring FrameworkException on purpose - we don't want the job crashing
-                    // whenever someone uploads an unsupported framework
-                    Trace.TraceError("CatalogPackageMetadataExtraction.AddSupportedFrameworks exception: " + ex.Message);
+                    // Ignore exceptions indicating invalid frameworks. Since the package is already accepted, it's
+                    // better to have no supported frameworks than to block the pipeline.
+                    Trace.TraceWarning($"{nameof(CatalogPackageMetadataExtraction)}.{nameof(AddSupportedFrameworks)} exception: " + ex);
                     return;
                 }
 

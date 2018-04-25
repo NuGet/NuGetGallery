@@ -340,6 +340,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CorrelationIdMiddleware.cs" />
+    <Compile Include="DeploymentIdContextInitializer.cs" />
     <Compile Include="SearchConsoleMiddleware.cs" />
     <Compile Include="BasicSearchConfiguration.cs" />
     <Compile Include="SearchTelemetryClient.cs" />
