@@ -15,13 +15,29 @@ namespace NuGetGallery.Auditing
         public string UnconfirmedEmailAddress { get; }
         public string[] Roles { get; }
         public CredentialAuditRecord[] Credentials { get; }
+
+        /// <summary>
+        /// The credential affected by <see cref="AuditRecord{T}.Action"/>.
+        /// </summary>
         public CredentialAuditRecord[] AffectedCredential { get; }
+
+        /// <summary>
+        /// The email address affected by <see cref="AuditRecord{T}.Action"/>.
+        /// </summary>
         public string AffectedEmailAddress { get; }
+
+        /// <summary>
+        /// The username of the member affected by <see cref="AuditRecord{T}.Action"/>.
+        /// </summary>
         public string AffectedMemberUsername { get; }
+
+        /// <summary>
+        /// Whether or not the member affected by <see cref="AuditRecord{T}.Action"/> is an administrator or not.
+        /// </summary>
         public bool AffectedMemberIsAdmin { get; }
 
         /// <summary>
-        /// Subset of user policies affected by the action (subscription / unsubscription).
+        /// Subset of user policies affected by <see cref="AuditRecord{T}.Action"/>.
         /// </summary>
         public AuditedUserSecurityPolicy[] AffectedPolicies { get; }
 
