@@ -1581,7 +1581,9 @@ namespace NuGetGallery
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
-                    ar.Username == TransformedUsername));
+                    ar.Username == TransformedUsername &&
+                    ar.AffectedMemberUsername == AdminUsername &&
+                    ar.AffectedMemberIsAdmin == true));
             }
 
             public async Task WhenAdminHasSupportedTenant_TransformsAccountWithPolicy()
@@ -1599,7 +1601,9 @@ namespace NuGetGallery
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
-                    ar.Username == TransformedUsername));
+                    ar.Username == TransformedUsername &&
+                    ar.AffectedMemberUsername == AdminUsername &&
+                    ar.AffectedMemberIsAdmin == true));
             }
 
             [Theory]
@@ -1639,7 +1643,9 @@ namespace NuGetGallery
 
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.TransformOrganization &&
-                    ar.Username == TransformedUsername));
+                    ar.Username == TransformedUsername &&
+                    ar.AffectedMemberUsername == AdminUsername &&
+                    ar.AffectedMemberIsAdmin == true));
             }
 
             private Task<bool> InvokeTransformUserToOrganization(int affectedRecords, User admin = null, bool subscribesToPolicy = false)
@@ -1698,6 +1704,7 @@ namespace NuGetGallery
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
                 _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
                 _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
+                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
             [Fact]
@@ -1715,6 +1722,7 @@ namespace NuGetGallery
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Never());
                 _service.MockSecurityPolicyService.Verify(sp => sp.SubscribeAsync(It.IsAny<User>(), It.IsAny<IUserSecurityPolicySubscription>(), false), Times.Never());
                 _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never());
+                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
             [Fact]
@@ -1843,7 +1851,9 @@ namespace NuGetGallery
                     subscribedToPolicy ? Times.Once() : Times.Never());
                 Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
                     ar.Action == AuditedUserAction.AddOrganization &&
-                    ar.Username == org.Username));
+                    ar.Username == org.Username &&
+                    ar.AffectedMemberUsername == AdminName &&
+                    ar.AffectedMemberIsAdmin == true));
                 _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
             }
         }

@@ -509,10 +509,9 @@ namespace NuGetGallery
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
-
+            var result = await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
-
-            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
+            return result;
         }
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
