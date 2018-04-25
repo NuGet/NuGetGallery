@@ -90,7 +90,8 @@
 <script type="text/html" id="manage-packages">
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <table class="table">
+            <!-- ko if: VisiblePackagesCount -->
+            <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
@@ -155,6 +156,10 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisiblePackagesCount -->
+            <span>There are no packages that fit this criteria.</span>
+            <!-- /ko -->
         </div>
     </div>
 </script>
@@ -162,7 +167,8 @@
 <script type="text/html" id="manage-namespaces">
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <table class="table">
+            <!-- ko if: VisibleNamespacesCount -->
+            <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
                         <th class="hidden-xs"><span class="hidden">Reserved Namespace Icon</span></th>
@@ -193,6 +199,10 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisibleNamespacesCount -->
+            <span>There are no reserved namespaces that fit this criteria.</span>
+            <!-- /ko -->
         </div>
     </div>
 </script>
@@ -200,7 +210,8 @@
 <script type="text/html" id="manage-owner-requests">
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
-            <table class="table">
+            <!-- ko if: VisibleRequestsCount -->
+            <table class="table inner-table">
                 <thead>
                     <tr class="manage-package-headings">
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
@@ -249,6 +260,10 @@
                     </tr>
                 </tbody>
             </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisibleRequestsCount -->
+            <span>There are no requests that fit this criteria.</span>
+            <!-- /ko -->
         </div>
     </div>
 </script>
