@@ -370,6 +370,11 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+
+            builder.RegisterType<PackageRecommendationService>()
+                .AsSelf()
+                .As<IPackageRecommendationService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
