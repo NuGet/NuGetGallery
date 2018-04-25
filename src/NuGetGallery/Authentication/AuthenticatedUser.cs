@@ -5,6 +5,13 @@ using System;
 
 namespace NuGetGallery.Authentication
 {
+    public class LoginUserDetails
+    {
+        public AuthenticatedUser AuthenticatedUser { get; set; }
+
+        public bool UsedMultiFactorAuthentication { get; set; }
+    }
+
     public class AuthenticatedUser
     {
         public User User { get; private set; }
@@ -21,7 +28,7 @@ namespace NuGetGallery.Authentication
             {
                 throw new ArgumentNullException(nameof(cred));
             }
-            
+
             User = user;
             CredentialUsed = cred;
         }

@@ -29,20 +29,20 @@
         }
 
         // Set up the change password form.
-        var $enablePasswordLogin = $("#ChangePassword_EnablePasswordLogin[type=checkbox]");
+        var $disablePasswordLogin = $("#ChangePassword_DisablePasswordLogin[type=checkbox]");
         function setPasswordLoginReadonly() {
-            var enablePasswordLogin = $enablePasswordLogin[0];
-            if (!enablePasswordLogin) {
+            var disablePasswordLogin = $disablePasswordLogin[0];
+            if (!disablePasswordLogin) {
                 return;
             }
 
-            var disabled = !enablePasswordLogin.checked;
+            var disabled = disablePasswordLogin.checked;
             $("#ChangePassword_OldPassword").prop('disabled', disabled);
             $("#ChangePassword_NewPassword").prop('disabled', disabled);
             $("#ChangePassword_VerifyPassword").prop('disabled', disabled);
         }
         $("#show-change-password-container").click(setPasswordLoginReadonly);
-        $enablePasswordLogin.change(setPasswordLoginReadonly);
+        $disablePasswordLogin.change(setPasswordLoginReadonly);
         setPasswordLoginReadonly();
 
         // Set up the section expanders.

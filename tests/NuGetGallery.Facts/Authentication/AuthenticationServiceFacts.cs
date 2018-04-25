@@ -633,6 +633,80 @@ namespace NuGetGallery.Authentication
                 Assert.Equal(AuthenticationTypes.LocalUser, id.AuthenticationType);
             }
 
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("AzureActiveDirectory")]
+            public async Task GivenAUser_ItAddsUserLoginClaims(string credType)
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+                var credential = credentialBuilder.CreateExternalCredential(credType, "value1", "name1 <email1>", "TEST_TENANT1");
+                var passwordCredential = credentialBuilder.CreatePasswordCredential("secret_password");
+                var user = new User("testUser") { Credentials = new[] { credential, passwordCredential } };
+                user.EnableMultiFactorAuthentication = true;
+                var context = Fakes.CreateOwinContext();
+
+                var authUser = new AuthenticatedUser(user, credential);
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authUser))
+                    .Returns(false);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(passwordConfigMock.Object);
+
+                // Act
+                await Get<AuthenticationService>().CreateSessionAsync(context, authUser, wasMultiFactorAuthenticated: true);
+
+                // Assert
+                var principal = context.Authentication.AuthenticationResponseGrant.Principal;
+                var identity = principal.Identity as ClaimsIdentity;
+                Assert.NotNull(principal);
+                Assert.NotNull(identity);
+                Assert.Equal(user.Username, identity.Name);
+                Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
+                Assert.Equal(8, identity.Claims.Count());
+                Assert.False(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.DiscontinuedLogin));
+                Assert.True(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin));
+                Assert.True(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
+                Assert.True(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.WasMultiFactorAuthenticated));
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task AddsMultiFactorAuthenticationSettingAppropriately(bool wasMultiFactorAuthenticated)
+            {
+                // Arrange
+                var credentialBuilder = new CredentialBuilder();
+                var credential = credentialBuilder.CreateExternalCredential("foo", "value1", "name1 <email1>", "TEST_TENANT1");
+                var user = new User("testUser") { Credentials = new[] { credential } };
+                var context = Fakes.CreateOwinContext();
+
+                var authUser = new AuthenticatedUser(user, credential);
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsLoginDiscontinued(authUser))
+                    .Returns(false);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(passwordConfigMock.Object);
+
+                // Act
+                await Get<AuthenticationService>().CreateSessionAsync(context, authUser, wasMultiFactorAuthenticated);
+
+                // Assert
+                var principal = context.Authentication.AuthenticationResponseGrant.Principal;
+                var identity = principal.Identity as ClaimsIdentity;
+                Assert.NotNull(principal);
+                Assert.NotNull(identity);
+                Assert.Equal(wasMultiFactorAuthenticated, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.WasMultiFactorAuthenticated));
+            }
+
             [Fact]
             public async Task WritesAnAuditRecord()
             {

@@ -630,7 +630,7 @@ namespace NuGetGallery
             }
             else
             {
-                if (!model.ChangePassword.EnablePasswordLogin)
+                if (model.ChangePassword.DisablePasswordLogin)
                 {
                     return await RemovePassword();
                 }
@@ -655,6 +655,33 @@ namespace NuGetGallery
                 TempData["Message"] = Strings.PasswordChanged;
                 return RedirectToAction("Account");
             }
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
+        {
+            var user = GetCurrentUser();
+
+            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor);
+
+            TempData["Message"] = string.Format(
+                enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
+                _config.Brand);
+
+            if (enableMultiFactor)
+            {
+                // Add the claim to remove the warning indicators for 2FA.
+                OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+            }
+            else
+            {
+                // Remove the claim from login to show warning indicators for 2FA.
+                OwinContext.RemoveClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+            }
+
+            return RedirectToAction(AccountAction);
         }
 
         [HttpPost]
@@ -958,6 +985,12 @@ namespace NuGetGallery
             {
                 await AuthenticationService.RemoveCredential(user, cred);
 
+                if (cred.IsPassword())
+                {
+                    // Clear the password login claim, to remove warnings.
+                    OwinContext.RemoveClaim(NuGetClaims.PasswordLogin);
+                }
+
                 // Notify the user of the change
                 MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
 
@@ -978,7 +1011,7 @@ namespace NuGetGallery
                 .Sum(p => p.Value.Count);
 
             model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
-            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+            model.ChangePassword.DisablePasswordLogin = !model.HasPassword;
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)

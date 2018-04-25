@@ -36,6 +36,8 @@ namespace NuGetGallery
 
         public IDateTimeProvider DateTimeProvider { get; protected set; }
 
+        public ITelemetryService TelemetryService { get; protected set; }
+
         protected UserService() { }
 
         public UserService(
@@ -48,7 +50,8 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISecurityPolicyService securityPolicyService,
             IDateTimeProvider dateTimeProvider,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            ITelemetryService telemetryService)
             : this()
         {
             Config = config;
@@ -60,6 +63,7 @@ namespace NuGetGallery
             ContentObjectService = contentObjectService;
             SecurityPolicyService = securityPolicyService;
             DateTimeProvider = dateTimeProvider;
+            TelemetryService = telemetryService;
         }
 
         public async Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin)
@@ -374,6 +378,14 @@ namespace NuGetGallery
 
             user.CancelChangeEmailAddress();
             await UserRepository.CommitChangesAsync();
+        }
+
+        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
+        {
+            user.EnableMultiFactorAuthentication = enableMultiFactor;
+            await UserRepository.CommitChangesAsync();
+
+            TelemetryService.TrackUserChangedMultiFactorAuthentication(user, enableMultiFactor);
         }
 
         public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)

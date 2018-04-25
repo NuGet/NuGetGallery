@@ -142,6 +142,7 @@ namespace NuGetGallery.TestUtils
         public Mock<IDatabase> MockDatabase { get; protected set; }
         public Mock<IContentObjectService> MockConfigObjectService { get; protected set; }
         public Mock<IDateTimeProvider> MockDateTimeProvider { get; protected set; }
+        public Mock<ITelemetryService> MockTelemetryService { get; protected set; }
 
         public TestableUserService()
         {
@@ -154,6 +155,7 @@ namespace NuGetGallery.TestUtils
             ContentObjectService = (MockConfigObjectService = new Mock<IContentObjectService>()).Object;
             DateTimeProvider = (MockDateTimeProvider = new Mock<IDateTimeProvider>()).Object;
             Auditing = new TestAuditingService();
+            TelemetryService = (MockTelemetryService = new Mock<ITelemetryService>()).Object;
 
             // Set ConfirmEmailAddress to a default of true
             MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
@@ -183,6 +185,7 @@ namespace NuGetGallery.TestUtils
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             UserRepository = new EntityRepository<User>(FakeEntitiesContext);
             Auditing = new TestAuditingService();
+            TelemetryService = new TelemetryService();
         }
     }
 
