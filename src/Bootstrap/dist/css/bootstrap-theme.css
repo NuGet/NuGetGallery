@@ -1173,6 +1173,9 @@ img.reserved-indicator-icon {
   position: relative;
   top: 2px;
 }
+.page-manage-packages .inner-table {
+  margin-bottom: 0;
+}
 .page-delete-package h1 {
   margin-bottom: 0;
 }
