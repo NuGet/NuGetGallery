@@ -20,19 +20,20 @@ namespace NuGetGallery
 
         public async Task<IEnumerable<RecommendedPackageViewModel>> GetRecommendedPackagesAsync(Package package)
         {
-            int pageNumber;
-            string encodedId = GetHexString(Encoding.UTF8.GetBytes(package.Title));
-            string reportName = $"page{pageNumber}/{encodedId}.json";
-            var report = await _reportService.Load(reportName);
+            string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(package.Title));
+            string reportName = $"{encodedId}.json";
 
-            string targetId = report["Id"];
+            var report = await _reportService.Load(reportName);
+            var reportJson = JObject.Parse(report.Content);
+
+            string targetId = reportJson["Id"];
             Debug.Assert(targetId == package.Title);
 
-            return report["Recommendations"].Select(
-                r => GetViewModel(recommendationId: (string)r));
+            return reportJson["Recommendations"].Select(
+                item => CreateViewModel(recommendationId: (string)item));
         }
 
-        private static string GetHexString(byte[] bytes)
+        private static string GetHexadecimalString(byte[] bytes)
         {
             var sb = new StringBuilder(capacity: bytes.Length * 2);
             foreach (byte b in bytes)
@@ -42,12 +43,13 @@ namespace NuGetGallery
             return sb.ToString();
         }
 
-        private static RecommendedPackageViewModel GetViewModel(string recommendationId)
+        private static RecommendedPackageViewModel CreateViewModel(string recommendationId)
         {
+            string galleryPageUrl = $"https://www.nuget.org/packages/{recommendationId}";
             return new RecommendedPackageViewModel
             {
                 Id = recommendationId,
-                GalleryPageUrl = $"https://www.nuget.org/packages/{recommendationId}",
+                GalleryPageUrl = galleryPageUrl,
                 IconUrl = "" // TODO
             };
         }
