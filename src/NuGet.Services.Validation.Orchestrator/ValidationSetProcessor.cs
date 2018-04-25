@@ -92,7 +92,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     }
 
                     var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
+                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package);
                     var validationResult = await validator.GetResultAsync(validationRequest);
 
                     if (validationResult.Status != ValidationStatus.Incomplete)
@@ -186,7 +186,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     }
 
                     var validator = _validatorProvider.GetValidator(packageValidation.Type);
-                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package, validationConfiguration);
+                    var validationRequest = await CreateValidationRequest(packageValidation.PackageValidationSet, packageValidation, package);
                     var validationResult = await validator.GetResultAsync(validationRequest);
 
                     if (validationResult.Status == ValidationStatus.NotStarted)
@@ -254,12 +254,11 @@ namespace NuGet.Services.Validation.Orchestrator
         private async Task<IValidationRequest> CreateValidationRequest(
             PackageValidationSet packageValidationSet,
             PackageValidation packageValidation,
-            Package package,
-            ValidationConfigurationItem validationConfiguration)
+            Package package)
         {
             var nupkgUrl = await _packageFileService.GetPackageForValidationSetReadUriAsync(
                 packageValidationSet,
-                DateTimeOffset.UtcNow.Add(validationConfiguration.TrackAfter));
+                DateTimeOffset.UtcNow.Add(_validationConfiguration.TimeoutValidationSetAfter));
 
             var validationRequest = new ValidationRequest(
                 validationId: packageValidation.Key,
