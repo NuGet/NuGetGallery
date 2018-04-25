@@ -173,7 +173,17 @@ namespace NuGetGallery
             await RemoveUserCredentials(organizationToBeDeleted);
             await RemovePackageOwnershipRequests(organizationToBeDeleted);
             await RemoveMemberships(organizationToBeDeleted);
-            await RemoveOrganization(organizationToBeDeleted);
+
+            if (!organizationToBeDeleted.Confirmed)
+            {
+                // Unconfirmed organizations should be hard-deleted.
+                await RemoveOrganization(organizationToBeDeleted);
+            }
+            else
+            {
+                await RemoveUserDataInUserTable(organizationToBeDeleted);
+                await InsertDeleteAccount(organizationToBeDeleted, requestingUser, requestingUser.Username);
+            }
         }
 
         private async Task InsertDeleteAccount(User user, User admin, string signature)

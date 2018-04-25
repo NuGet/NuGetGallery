@@ -237,17 +237,8 @@ namespace NuGetGallery.Services
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryOrganizationAccountAsync(new Organization("TestOrganization"), null, commitAsTransaction: false));
             }
 
-            /// <summary>
-            /// One user with one package that has one namespace reserved and one security policy.
-            /// After the account deletion:
-            /// The user data(for example the email address) will be cleaned
-            /// The package will be unlisted.
-            /// The user will have the policies removed.
-            /// The namespace will be unassigned from the user.
-            /// The information about the deletion will be saved.
-            /// </summary>
             [Fact]
-            public async Task DeleteHappyUser()
+            public async Task DeleteConfirmedOrganization()
             {
                 // Arrange
                 var member = new User("testUser");
@@ -272,7 +263,58 @@ namespace NuGetGallery.Services
                 };
                 p.PackageRegistration = registration;
                 registration.Packages.Add(p);
-                
+
+                var testableService = new DeleteAccountTestService(organization, registration);
+                var deleteAccountService = testableService.GetDeleteAccountService();
+
+                // Act
+                var status = await deleteAccountService.
+                    DeleteGalleryOrganizationAccountAsync(
+                        organization,
+                        member,
+                        commitAsTransaction: false);
+
+                // Assert
+                Assert.True(status.Success);
+                Assert.Null(organization.EmailAddress);
+                Assert.Equal(0, registration.Owners.Count());
+                Assert.Equal(0, organization.SecurityPolicies.Count());
+                Assert.Equal(0, organization.ReservedNamespaces.Count());
+                Assert.Equal(1, testableService.DeletedAccounts.Count());
+                Assert.Equal(1, testableService.SupportRequests.Count);
+                Assert.Equal(0, testableService.PackageOwnerRequests.Count);
+                Assert.Equal(1, testableService.AuditService.Records.Count);
+                var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
+                Assert.True(deleteRecord != null);
+            }
+
+            [Fact]
+            public async Task DeleteUnconfirmedOrganization()
+            {
+                // Arrange
+                var member = new User("testUser");
+                var organization = new Organization("testOrganization");
+
+                var membership = new Membership() { Organization = organization, Member = member };
+                member.Organizations.Add(membership);
+                organization.Members.Add(membership);
+
+                var requestedMember = new User("testRequestedMember");
+                var memberRequest = new MembershipRequest() { Organization = organization, NewMember = requestedMember };
+                requestedMember.OrganizationRequests.Add(memberRequest);
+                organization.MemberRequests.Add(memberRequest);
+
+                PackageRegistration registration = new PackageRegistration();
+                registration.Owners.Add(organization);
+
+                Package p = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1
+                };
+                p.PackageRegistration = registration;
+                registration.Packages.Add(p);
+
                 var testableService = new DeleteAccountTestService(organization, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
