@@ -78,11 +78,16 @@ namespace NuGetGallery.Auditing
             AffectedEmailAddress = affectedEmailAddress;
         }
 
-        public UserAuditRecord(User user, AuditedUserAction action, Membership affectedMembership)
+        public UserAuditRecord(User user, AuditedUserAction action, User affectedMember, bool affectedMemberIsAdmin)
             : this(user, action)
         {
-            AffectedMemberUsername = affectedMembership.Member.Username;
-            AffectedMemberIsAdmin = affectedMembership.IsAdmin;
+            AffectedMemberUsername = affectedMember.Username;
+            AffectedMemberIsAdmin = affectedMemberIsAdmin;
+        }
+
+        public UserAuditRecord(User user, AuditedUserAction action, Membership affectedMembership)
+            : this(user, action, affectedMembership.Member, affectedMembership.IsAdmin)
+        {
         }
 
         public UserAuditRecord(User user, AuditedUserAction action, IEnumerable<UserSecurityPolicy> affectedPolicies)

@@ -1562,6 +1562,8 @@ namespace NuGetGallery
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
             {
                 Assert.True(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant") { Credentials = new Credential[0] }));
+
+                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
             public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
@@ -1615,6 +1617,8 @@ namespace NuGetGallery
                     .Returns(mockLoginDiscontinuationConfiguration.Object);
 
                 Assert.False(await InvokeTransformUserToOrganization(affectedRecords));
+
+                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
             [Theory]
