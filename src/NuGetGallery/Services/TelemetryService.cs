@@ -24,6 +24,8 @@ namespace NuGetGallery
             public const string CredentialAdded = "CredentialAdded";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
+            public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
+            public const string UserMultiFactorAuthenticationDisabled = "UserMultiFactorAuthenticationDisabled";
             public const string PackageReflow = "PackageReflow";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
@@ -196,6 +198,13 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(Events.NewUserRegistration, user, credential);
         }
 
+        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth)
+        {
+            TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
+                user,
+                credential: null);
+        }
+
         public void TrackNewCredentialCreated(User user, Credential credential)
         {
             TrackMetricForAccountActivity(Events.CredentialAdded, user, credential);
@@ -271,11 +280,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential == null)
-            {
-                throw new ArgumentNullException(nameof(credential));
-            }
-
             TrackMetric(eventName, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
@@ -312,7 +316,7 @@ namespace NuGetGallery
 
         private static string GetRegistrationMethod(Credential cred)
         {
-            return cred.Type;
+            return cred?.Type ?? "";
         }
 
         private static string GetApiKeyCreationDate(User user, IIdentity identity)

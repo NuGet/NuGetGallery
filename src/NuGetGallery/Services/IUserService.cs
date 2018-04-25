@@ -38,6 +38,8 @@ namespace NuGetGallery
 
         Task CancelChangeEmailAddress(User user);
 
+        Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor);
+
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
 
         bool CanTransformUserToOrganization(User accountToTransform, out string errorReason);

@@ -1020,13 +1020,42 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("MissingRequiredConfigurationValue", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}..
+        /// </summary>
+        public static string MultiFactorAuth_Enabled {
+            get {
+                return ResourceManager.GetString("MultiFactorAuth_Enabled", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Two-factor authentication has been disabled for your account.Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting..
+        /// </summary>
+        public static string MultiFactorAuth_Disabled
+        {
+            get
+            {
+                return ResourceManager.GetString("MultiFactorAuth_Disabled", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
         /// </summary>
         public static string MultipleMatchingCredentials {
             get {
                 return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to We noticed you used two-factor authentication for login. We have enabled your account to use two-factor authentication going forward..
+        /// </summary>
+        public static string MultiFactorAuth_LoginUpdate {
+            get {
+                return ResourceManager.GetString("MultiFactorAuth_LoginUpdate", resourceCulture);
             }
         }
         
