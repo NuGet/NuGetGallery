@@ -20,23 +20,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
 
         public ValidatorStateService(
             IValidationEntitiesContext validationContext,
-            Type validatorType,
+            string validatorName,
             ILogger<ValidatorStateService> logger)
         {
             _validationContext = validationContext ?? throw new ArgumentNullException(nameof(validationContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            if (validatorType == null)
-            {
-                throw new ArgumentNullException(nameof(validatorType));
-            }
-
-            if (!typeof(IValidator).IsAssignableFrom(validatorType))
-            {
-                throw new ArgumentException($"The validator type {validatorType} must implement {nameof(IValidator)}.", nameof(validatorType));
-            }
-
-            _validatorName = validatorType.Name;
+            _validatorName = validatorName ?? throw new ArgumentNullException(nameof(validatorName));
         }
 
         public async Task<ValidatorStatus> GetStatusAsync(IValidationRequest request)

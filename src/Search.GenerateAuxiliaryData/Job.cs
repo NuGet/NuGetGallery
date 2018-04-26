@@ -34,8 +34,11 @@ namespace Search.GenerateAuxiliaryData
         private const string ScriptVerifiedPackages = "SqlScripts.VerifiedPackages.sql";
         private const string OutputNameVerifiedPackages = "verifiedPackages.json";
 
-        private List<SqlExporter> _sqlExportScriptsToRun;
+        private const string StatisticsReportName = "downloads.v1.json";
+
+        private List<Exporter> _exportersToRun;
         private CloudBlobContainer _destContainer;
+        private CloudBlobContainer _statisticsContainer;
 
         public override void Init(IDictionary<string, string> jobArgsDictionary)
         {
@@ -45,6 +48,11 @@ namespace Search.GenerateAuxiliaryData
             var statisticsDatabaseConnString = new SqlConnectionStringBuilder(
                 JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase)).ToString();
 
+            var statisticsStorageAccount = CloudStorageAccount.Parse(
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount));
+
+            var statisticsReportsContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName);
+
             var destination = CloudStorageAccount.Parse(
                     JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination));
 
@@ -53,36 +61,38 @@ namespace Search.GenerateAuxiliaryData
                             ?? DefaultContainerName;
 
             _destContainer = destination.CreateCloudBlobClient().GetContainerReference(destinationContainerName);
+            _statisticsContainer = statisticsStorageAccount.CreateCloudBlobClient().GetContainerReference(statisticsReportsContainerName);
 
-            _sqlExportScriptsToRun = new List<SqlExporter> {
+            _exportersToRun = new List<Exporter> {
                 new VerifiedPackagesExporter(LoggerFactory.CreateLogger<VerifiedPackagesExporter>(), packageDatabaseConnString, _destContainer, ScriptVerifiedPackages, OutputNameVerifiedPackages),
                 new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptCuratedFeed, OutputNameCuratedFeed, Col0CuratedFeed, Col1CuratedFeed),
                 new NestedJArrayExporter(LoggerFactory.CreateLogger<NestedJArrayExporter>(), packageDatabaseConnString, _destContainer, ScriptOwners, OutputNameOwners, Col0Owners, Col1Owners),
-                new RankingsExporter(LoggerFactory.CreateLogger<RankingsExporter>(), statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, OutputNameRankings)
+                new RankingsExporter(LoggerFactory.CreateLogger<RankingsExporter>(), statisticsDatabaseConnString, _destContainer, ScriptRankingsTotal, OutputNameRankings),
+                new BlobStorageExporter(LoggerFactory.CreateLogger<BlobStorageExporter>(), _statisticsContainer, StatisticsReportName, _destContainer, StatisticsReportName)
             };
         }
 
         public override async Task Run()
         {
-            var failedSqlExporters = new List<string>();
+            var failedExporters = new List<string>();
 
-            foreach (SqlExporter exporter in _sqlExportScriptsToRun)
+            foreach (Exporter exporter in _exportersToRun)
             {
                 try
                 {
-                    await exporter.RunSqlExportAsync();
+                    await exporter.ExportAsync();
                 }
                 catch (Exception e)
                 {
                     var exporterName = exporter.GetType().Name;
                     Logger.LogError("SQL exporter '{ExporterName}' failed: {Exception}", exporterName, e);
-                    failedSqlExporters.Add(exporterName);
+                    failedExporters.Add(exporterName);
                 }
             }
             
-            if (failedSqlExporters.Any())
+            if (failedExporters.Any())
             {
-                throw new SqlExporterException($"{failedSqlExporters.Count()} tasks failed: {string.Join(", ", failedSqlExporters)}");
+                throw new ExporterException($"{failedExporters.Count()} tasks failed: {string.Join(", ", failedExporters)}");
             }
         }
     }

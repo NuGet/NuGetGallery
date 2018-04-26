@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -16,22 +15,18 @@ using Newtonsoft.Json.Linq;
 namespace Search.GenerateAuxiliaryData
 {
     // Public only to facilitate testing.
-    public abstract class SqlExporter
+    public abstract class SqlExporter : Exporter
     {
-        private ILogger<SqlExporter> _logger;
         private static Assembly _executingAssembly = Assembly.GetExecutingAssembly();
         private static string _assemblyName = _executingAssembly.GetName().Name;
         
         public string ConnectionString { get; }
-        public CloudBlobContainer DestinationContainer { get; }
-        public string Name { get; }
 
         public SqlExporter(ILogger<SqlExporter> logger, string defaultConnectionString, CloudBlobContainer defaultDestinationContainer, string defaultName)
+            : base(logger, defaultDestinationContainer, defaultName)
         {
             _logger = logger;
             ConnectionString = defaultConnectionString;
-            DestinationContainer = defaultDestinationContainer;
-            Name = defaultName;
         }
 
         protected static string GetEmbeddedSqlScript(string resourceName)
@@ -40,9 +35,9 @@ namespace Search.GenerateAuxiliaryData
             return new StreamReader(stream).ReadToEnd();
         }
 
-        public async Task RunSqlExportAsync()
+        public override async Task ExportAsync()
         {
-            _logger.LogInformation("Generating {ReportName} report from {ConnectionString}.", Name, TracableConnectionString(ConnectionString));
+            _logger.LogInformation("Generating {ReportName} report from {ConnectionString}.", _name, TracableConnectionString(ConnectionString));
 
             JContainer result;
             using (var connection = new SqlConnection(ConnectionString))
@@ -52,7 +47,7 @@ namespace Search.GenerateAuxiliaryData
                 result = GetResultOfQuery(connection);
             }
 
-            await WriteToBlobAsync(_logger, DestinationContainer, result.ToString(Formatting.None), Name);
+            await WriteToBlobAsync(_logger, _destinationContainer, result.ToString(Formatting.None), _name);
         }
 
         protected abstract JContainer GetResultOfQuery(SqlConnection connection);
@@ -75,7 +70,7 @@ namespace Search.GenerateAuxiliaryData
             return connStr.ToString();
         }
 
-        private static async Task WriteToBlobAsync(ILogger<SqlExporter> logger, CloudBlobContainer container, string content, string name)
+        private static async Task WriteToBlobAsync(ILogger<Exporter> logger, CloudBlobContainer container, string content, string name)
         {
             await container.CreateIfNotExistsAsync();
 

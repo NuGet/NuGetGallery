@@ -58,7 +58,6 @@
     <Compile Include="IValidationSetProcessor.cs" />
     <Compile Include="IValidationSetProvider.cs" />
     <Compile Include="IValidationStorageService.cs" />
-    <Compile Include="IValidatorProvider.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="MessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />
@@ -108,7 +107,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.22.0</Version>
+      <Version>2.23.0</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

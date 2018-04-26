@@ -10,13 +10,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 {
     public static class TestResources
     {
-        private const string ResourceNamespace = "Validation.PackageSigning.ProcessSignature.Tests.TestData";
-        public const string SignedPackageLeaf1 = ResourceNamespace + ".TestSigned.leaf-1.1.0.0.nupkg";
-        public const string SignedPackageLeaf2 = ResourceNamespace + ".TestSigned.leaf-2.2.0.0.nupkg";
-        public const string UnsignedPackage = ResourceNamespace + ".TestUnsigned.1.0.0.nupkg";
-        public const string Zip64Package = ResourceNamespace + ".Zip64Package.1.0.0.nupkg";
-        public const string RepoSignedPackageLeaf1 = ResourceNamespace + ".TestRepoSigned.leaf-1.1.0.0.nupkg";
-        public const string AuthorAndRepoSignedPackageLeaf1 = ResourceNamespace + ".TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
+        private const string ResourcePrefix = "Validation.PackageSigning.ProcessSignature.Tests.TestData.";
+        public const string SignedPackageLeaf1 = "TestSigned.leaf-1.1.0.0.nupkg";
+        public const string SignedPackageLeaf2 = "TestSigned.leaf-2.2.0.0.nupkg";
+        public const string UnsignedPackage = "TestUnsigned.1.0.0.nupkg";
+        public const string Zip64Package = "Zip64Package.1.0.0.nupkg";
+        public const string RepoSignedPackageLeaf1 = "TestRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string AuthorAndRepoSignedPackageLeaf1 = "TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the root CA certificate for the signing certificate of <see cref="SignedPackageLeaf1"/>.
@@ -45,7 +45,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             var resourceStream = typeof(TestResources)
                 .Assembly
-                .GetManifestResourceStream(resourceName);
+                .GetManifestResourceStream(ResourcePrefix + resourceName);
 
             if (resourceStream == null)
             {

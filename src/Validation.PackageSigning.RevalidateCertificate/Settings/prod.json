@@ -21,7 +21,7 @@
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
   "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
-  "KeyVault_ValidateCertificate": false,
+  "KeyVault_ValidateCertificate": true,
   "KeyVault_StoreName": "My",
   "KeyVault_StoreLocation": "LocalMachine"
 }

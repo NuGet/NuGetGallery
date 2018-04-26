@@ -35,9 +35,6 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Bitrium.Http.Extensions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=43390f7aed073600, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Bitrium.Http.Extensions.1.1.0\lib\portable-net45+sl50\Bitrium.Http.Extensions.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.ApplicationInsights, Version=2.1.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.1.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
     </Reference>
@@ -132,7 +129,6 @@
     <Compile Include="DownloadCountData.cs" />
     <Compile Include="DownloadCountReport.cs" />
     <Compile Include="DownloadsPerToolVersionReport.cs" />
-    <Compile Include="Formatting\JsonFormat.cs" />
     <Compile Include="Formatting\NuGetContractResolver.cs" />
     <Compile Include="GalleryTotalsData.cs" />
     <Compile Include="GalleryTotalsReport.cs" />

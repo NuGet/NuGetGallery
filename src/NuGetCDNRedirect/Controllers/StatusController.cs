@@ -8,6 +8,7 @@ namespace NuGet.Services.CDNRedirect.Controllers
     public class StatusController : Controller
     {
         // GET: Status
+        [HttpGet]
         public ActionResult Index()
         {
             return View();

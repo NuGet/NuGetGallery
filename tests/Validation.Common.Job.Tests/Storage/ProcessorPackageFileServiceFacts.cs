@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation;
 using NuGetGallery;
@@ -99,6 +100,7 @@ namespace Validation.Common.Job.Tests.Storage
             Assert.Equal(0, _stream.Position);
         }
 
+        [ValidatorName("TestProcessor")]
         private class TestProcessor : IProcessor
         {
             public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();

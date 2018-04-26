@@ -30,35 +30,95 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ExtractAsync(int packageKey, PrimarySignature signature, CancellationToken token)
+        public async Task ExtractAsync(int packageKey, PrimarySignature primarySignature, CancellationToken cancellationToken)
         {
-            // Extract the certificates found in the package signatures.
-            var extractedCertificates = ExtractCertificates(signature);
+            using (var context = new Context(packageKey, primarySignature, cancellationToken))
+            {
+                if (primarySignature == null)
+                {
+                    throw new ArgumentNullException(nameof(primarySignature));
+                }
 
-            // Prepare signature entities for the database (does not commit).
-            await SaveSignatureToDatabaseAsync(packageKey, signature, extractedCertificates);
+                // Extract the certificates found in the package signatures.
+                ExtractSignaturesAndCertificates(context);
 
-            // Save the certificates to blob storage.
-            await SaveCertificatesToStoreAsync(extractedCertificates, token);
+                // Prepare signature and certificate entities for the database but don't commit.
+                await PrepareSignaturesAndCertificatesRecordsAsync(context);
 
-            // Commit the database changes.
-            await _entitiesContext.SaveChangesAsync();
+                // Save the certificates to blob storage.
+                await SaveCertificatesToStoreAsync(context);
+
+                // Commit the database changes.
+                await _entitiesContext.SaveChangesAsync();
+            }
         }
 
-        private ExtractedCertificates ExtractCertificates(PrimarySignature signature)
+        private static void ExtractSignaturesAndCertificates(Context context)
         {
-            if (signature.Timestamps.Count != 1)
+            if (context.PrimarySignature.Timestamps.Count != 1)
             {
-                throw new ArgumentException("There should be exactly one timestamp.", nameof(signature));
+                throw new InvalidOperationException("There should be exactly one timestamp on the primary signature.");
             }
 
-            var signatureCertificates = SignatureUtility
-                .GetPrimarySignatureCertificates(signature);
+            var primarySignatureCertificates = ExtractPrimarySignatureCertificates(context);
+
+            if (context.PrimarySignature.Type == SignatureType.Author)
+            {
+                context.Author = new SignatureAndCertificates(context.PrimarySignature, primarySignatureCertificates);
+
+                var repositoryCountersignature = RepositoryCountersignature.GetRepositoryCountersignature(context.PrimarySignature);
+                if (repositoryCountersignature != null)
+                {
+                    if (repositoryCountersignature.Timestamps.Count != 1)
+                    {
+                        throw new InvalidOperationException("There should be exactly one timestamp on the repository countersignature.");
+                    }
+
+                    var countersignatureCertificates = ExtractRepositoryCountersignatureCertificates(context, repositoryCountersignature);
+                    context.Repository = new SignatureAndCertificates(repositoryCountersignature, countersignatureCertificates);
+                }
+            }
+            else if (context.PrimarySignature.Type == SignatureType.Repository)
+            {
+                context.Repository = new SignatureAndCertificates(context.PrimarySignature, primarySignatureCertificates);
+            }
+            else
+            {
+                throw new InvalidOperationException("The primary signature must be an author or repository signature.");
+            }
+        }
+
+        private static ExtractedCertificates ExtractPrimarySignatureCertificates(Context context)
+        {
+            return ExtractCertificates(context, repositoryCountersignature: null);
+        }
+
+        private static ExtractedCertificates ExtractRepositoryCountersignatureCertificates(
+            Context context,
+            RepositoryCountersignature repositoryCountersignature)
+        {
+            return ExtractCertificates(context, repositoryCountersignature);
+        }
+
+        private static ExtractedCertificates ExtractCertificates(
+            Context context,
+            RepositoryCountersignature repositoryCountersignature)
+        {
+            IX509CertificateChain signatureCertificates;
+            if (repositoryCountersignature == null)
+            {
+                signatureCertificates = SignatureUtility.GetCertificateChain(context.PrimarySignature);
+            }
+            else
+            {
+                signatureCertificates = SignatureUtility.GetCertificateChain(context.PrimarySignature, repositoryCountersignature);
+            }
+
+            context.Disposables.Add(signatureCertificates);
+
             if (signatureCertificates == null || !signatureCertificates.Any())
             {
-                throw new ArgumentException(
-                    "The provided signature must have at least one primary signing certificate.",
-                    nameof(signature));
+                throw new InvalidOperationException("The provided signature must have at least one signing certificate.");
             }
 
             var hashedSignatureCertificates = signatureCertificates
@@ -67,13 +127,21 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             var signatureEndCertificate = hashedSignatureCertificates.First();
             var signatureParentCertificates = hashedSignatureCertificates.Skip(1).ToList();
 
-            var timestampCertificates = SignatureUtility
-                .GetPrimarySignatureTimestampCertificates(signature);
+            IX509CertificateChain timestampCertificates;
+            if (repositoryCountersignature == null)
+            {
+                timestampCertificates = SignatureUtility.GetTimestampCertificateChain(context.PrimarySignature);
+            }
+            else
+            {
+                timestampCertificates = SignatureUtility.GetTimestampCertificateChain(context.PrimarySignature, repositoryCountersignature);
+            }
+
+            context.Disposables.Add(timestampCertificates);
+
             if (timestampCertificates == null || !timestampCertificates.Any())
             {
-                throw new ArgumentException(
-                    "The provided signature must have at least one timestamp certificate.",
-                    nameof(signature));
+                throw new InvalidOperationException("The provided signature must have at least one timestamp certificate.");
             }
 
             var hashedTimestampCertificates = timestampCertificates
@@ -89,22 +157,51 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 timestampParentCertificates);
         }
 
-        private async Task SaveSignatureToDatabaseAsync(int packageKey, Signature signature, ExtractedCertificates extractedCertificates)
+        private async Task PrepareSignaturesAndCertificatesRecordsAsync(Context context)
         {
             // Initialize the end and parent certificates.
-            var thumbprintToEndCertificate = await InitializeEndCertificatesAsync(
-                new[]
-                {
-                    new CertificateAndUse(extractedCertificates.SignatureEndCertificate, EndCertificateUse.CodeSigning),
-                    new CertificateAndUse(extractedCertificates.TimestampEndCertificate, EndCertificateUse.Timestamping),
-                });
+            var endCertificatesAndUses = new List<EndCertificateAndUse>();
+            var parentCertificates = new List<HashedCertificate>();
 
-            var thumbprintToParentCertificate = await InitializeParentCertificatesAsync(
-                extractedCertificates
-                    .SignatureParentCertificates
-                    .Concat(extractedCertificates.TimestampParentCertificates));
+            CollectCertificates(endCertificatesAndUses, parentCertificates, context.Author?.Certificates);
+            CollectCertificates(endCertificatesAndUses, parentCertificates, context.Repository?.Certificates);
+
+            var thumbprintToEndCertificate = await InitializeEndCertificatesAsync(endCertificatesAndUses);
+            var thumbprintToParentCertificate = await InitializeParentCertificatesAsync(parentCertificates);
 
             // Connect the end and parent certificates.
+            ConnectCertificates(context.Author?.Certificates, thumbprintToEndCertificate, thumbprintToParentCertificate);
+            ConnectCertificates(context.Repository?.Certificates, thumbprintToEndCertificate, thumbprintToParentCertificate);
+
+            // Initialize the package signature for the author signature. If the record is already in the database,
+            // verify that nothing has changed.
+            await InitializePackageSignatureAndTrustedTimestampAsync(
+                context.PackageKey,
+                PackageSignatureType.Author,
+                context.Author,
+                thumbprintToEndCertificate,
+                allowSignatureChanges: false);
+
+            // Initialize the package signature for the repository signature. If the record is already in the database
+            // and different than the current repository signature, replace the old one with the new one.
+            await InitializePackageSignatureAndTrustedTimestampAsync(
+                context.PackageKey,
+                PackageSignatureType.Repository,
+                context.Repository,
+                thumbprintToEndCertificate,
+                allowSignatureChanges: true);
+        }
+
+        private void ConnectCertificates(
+            ExtractedCertificates extractedCertificates,
+            IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate,
+            IReadOnlyDictionary<string, ParentCertificate> thumbprintToParentCertificate)
+        {
+            if (extractedCertificates == null)
+            {
+                return;
+            }
+
             ConnectCertificates(
                 extractedCertificates.SignatureEndCertificate,
                 extractedCertificates.SignatureParentCertificates,
@@ -116,57 +213,69 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 extractedCertificates.TimestampParentCertificates,
                 thumbprintToEndCertificate,
                 thumbprintToParentCertificate);
+        }
+
+        private async Task InitializePackageSignatureAndTrustedTimestampAsync(
+            int packageKey,
+            PackageSignatureType type,
+            SignatureAndCertificates signatureAndCertificates,
+            IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate,
+            bool allowSignatureChanges)
+        {
+            if (signatureAndCertificates == null)
+            {
+                return;
+            }
 
             // Initialize the package signature record.
             var packageSignature = await InitializePackageSignatureAsync(
                 packageKey,
-                extractedCertificates.SignatureEndCertificate,
-                thumbprintToEndCertificate);
+                type,
+                signatureAndCertificates.Certificates.SignatureEndCertificate,
+                thumbprintToEndCertificate,
+                allowSignatureChanges);
 
             // Initialize the trusted timestamp record.
             InitializeTrustedTimestamp(
                 packageSignature,
-                signature,
-                extractedCertificates.TimestampEndCertificate,
+                signatureAndCertificates.Signature,
+                signatureAndCertificates.Certificates.TimestampEndCertificate,
                 thumbprintToEndCertificate);
         }
 
-        public async Task<PackageSignature> InitializePackageSignatureAsync(
+        private async Task<PackageSignature> InitializePackageSignatureAsync(
             int packageKey,
+            PackageSignatureType type,
             HashedCertificate signatureEndCertificate,
-            IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate)
+            IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate,
+            bool replacePackageSignature)
         {
             var packageSignatures = await _entitiesContext
                 .PackageSignatures
                 .Include(x => x.TrustedTimestamps)
                 .Include(x => x.EndCertificate)
-                .Where(x => x.PackageKey == packageKey)
+                .Where(x => x.PackageKey == packageKey && x.Type == type)
                 .ToListAsync();
 
             if (packageSignatures.Count > 1)
             {
                 _logger.LogError(
-                    "There are {Count} package signatures for package key {PackageKey}. There should be either zero or one.",
+                    "There are {Count} package signatures for package key {PackageKey} and type {Type}. There should be either zero or one.",
                     packageSignatures.Count,
-                    packageKey);
+                    packageKey,
+                    type);
 
-                throw new InvalidOperationException("There should never be more than one package signature per package.");
+                throw new InvalidOperationException("There should never be more than one package signature per package and signature type.");
             }
 
             PackageSignature packageSignature;
             if (packageSignatures.Count == 0)
             {
-                packageSignature = new PackageSignature
-                {
-                    CreatedAt = DateTime.UtcNow,
-                    EndCertificate = thumbprintToEndCertificate[signatureEndCertificate.Thumbprint],
-                    PackageKey = packageKey,
-                    Status = PackageSignatureStatus.Unknown,
-                    TrustedTimestamps = new List<TrustedTimestamp>(),
-                };
-                _entitiesContext.PackageSignatures.Add(packageSignature);
-
-                packageSignature.EndCertificateKey = packageSignature.EndCertificate.Key;
+                packageSignature = InitializePackageSignature(
+                    packageKey,
+                    type,
+                    signatureEndCertificate,
+                    thumbprintToEndCertificate);
             }
             else
             {
@@ -174,17 +283,70 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
                 if (packageSignature.EndCertificate.Thumbprint != signatureEndCertificate.Thumbprint)
                 {
-                    _logger.LogError(
-                        "The signature end certificate thumbprint cannot change for package {PackageKey}. The " +
-                        "existing signature end certificate is {ExistingThumbprint}. The new thumprint is " +
-                        "{NewThumbprint}.",
-                        packageKey,
-                        packageSignature.EndCertificate.Thumbprint,
-                        signatureEndCertificate.Thumbprint);
+                    if (replacePackageSignature)
+                    {
+                        _logger.LogWarning(
+                            "The signature end certificate thumbprint has changed for package {PackageKey} and type " +
+                            "{Type}. The previous signature end certificate is {ExistingThumbprint}. The new thumprint " +
+                            "is {NewThumbprint}. The previous record with key {PackageSignatureKey} will be removed.",
+                            packageKey,
+                            type,
+                            packageSignature.EndCertificate.Thumbprint,
+                            signatureEndCertificate.Thumbprint,
+                            packageSignature.Key);
 
-                    throw new InvalidOperationException("The thumbprint of the signature end certificate cannot change.");
+                        // Remove the child trusted timestamps. This should be handled by cascading delete but to be
+                        // explicit and to facilitate unit testing, we explicitly remove them.
+                        foreach (var trustedTimestamp in packageSignature.TrustedTimestamps)
+                        {
+                            _entitiesContext.TrustedTimestamps.Remove(trustedTimestamp);
+                        }
+
+                        _entitiesContext.PackageSignatures.Remove(packageSignature);
+
+                        packageSignature = InitializePackageSignature(
+                            packageKey,
+                            type,
+                            signatureEndCertificate,
+                            thumbprintToEndCertificate);
+                    }
+                    else
+                    {
+                        _logger.LogError(
+                            "The signature end certificate thumbprint cannot change for package {PackageKey} and type " +
+                            "{Type}. The existing signature end certificate is {ExistingThumbprint}. The new thumprint " +
+                            "is {NewThumbprint}.",
+                            packageKey,
+                            type,
+                            packageSignature.EndCertificate.Thumbprint,
+                            signatureEndCertificate.Thumbprint);
+
+                        throw new InvalidOperationException("The thumbprint of the signature end certificate cannot change.");
+                    }
                 }
             }
+
+            return packageSignature;
+        }
+
+        private PackageSignature InitializePackageSignature(
+            int packageKey,
+            PackageSignatureType type,
+            HashedCertificate signatureEndCertificate,
+            IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate)
+        {
+            var packageSignature = new PackageSignature
+            {
+                CreatedAt = DateTime.UtcNow,
+                EndCertificate = thumbprintToEndCertificate[signatureEndCertificate.Thumbprint],
+                PackageKey = packageKey,
+                Status = PackageSignatureStatus.Unknown,
+                Type = type,
+                TrustedTimestamps = new List<TrustedTimestamp>(),
+            };
+
+            packageSignature.EndCertificateKey = packageSignature.EndCertificate.Key;
+            _entitiesContext.PackageSignatures.Add(packageSignature);
 
             return packageSignature;
         }
@@ -198,8 +360,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             if (packageSignature.TrustedTimestamps.Count > 1)
             {
                 _logger.LogError(
-                    "There are {Count} trusted timestamps for signature on package {PackageKey}. There should be either zero or one.",
+                    "There are {Count} trusted timestamps for the {SignatureType} signature on package {PackageKey}. There should be either zero or one.",
                     packageSignature.TrustedTimestamps.Count,
+                    signature.Type,
                     packageSignature.PackageKey);
 
                 throw new InvalidOperationException("There should never be more than one trusted timestamp per package signature.");
@@ -230,9 +393,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 if (trustedTimestamp.EndCertificate.Thumbprint != timestampEndCertificate.Thumbprint)
                 {
                     _logger.LogError(
-                        "The timestamp end certificate thumbprint cannot change for package {PackageKey}. The " +
-                        "existing timestamp end certificate is {ExistingThumbprint}. The new thumprint is " +
-                        "{NewThumbprint}.",
+                        "The timestamp end certificate thumbprint cannot change for the {SignatureType} signature " +
+                        "on package {PackageKey}. The existing timestamp end certificate is {ExistingThumbprint}. " +
+                        "The new thumprint is {NewThumbprint}.",
+                        signature.Type,
                         packageSignature.PackageKey,
                         packageSignature.EndCertificate.Thumbprint,
                         timestampEndCertificate.Thumbprint);
@@ -243,8 +407,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 if (trustedTimestamp.Value != value)
                 {
                     _logger.LogError(
-                        "The trusted timestamp value cannot change for package {PackageKey}. The existing timestamp " +
-                        "value is {ExistingValue}. The new value is {NewValue}.",
+                        "The trusted timestamp value cannot change for the {SignatureType} signature on package " +
+                        "{PackageKey}. The existing timestamp value is {ExistingValue}. The new value is {NewValue}.",
+                        signature.Type,
                         packageSignature.PackageKey,
                         trustedTimestamp.Value,
                         value);
@@ -256,7 +421,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         private void ConnectCertificates(
             HashedCertificate endCertificate,
-            IReadOnlyList<HashedCertificate> parentCertificates,
+            IReadOnlyCollection<HashedCertificate> parentCertificates,
             IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate,
             IReadOnlyDictionary<string, ParentCertificate> thumbprintToParentCertificates)
         {
@@ -292,7 +457,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         }
 
         private async Task<IReadOnlyDictionary<string, EndCertificate>> InitializeEndCertificatesAsync(
-            IEnumerable<CertificateAndUse> certificatesAndUses)
+            IReadOnlyCollection<EndCertificateAndUse> certificatesAndUses)
         {
             var thumbprints = certificatesAndUses
                 .Select(x => x.Certificate.Thumbprint)
@@ -375,41 +540,126 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             return thumbprintToEntity;
         }
 
-        private async Task SaveCertificatesToStoreAsync(ExtractedCertificates extractedCertificates, CancellationToken token)
+        private async Task SaveCertificatesToStoreAsync(Context context)
         {
-            var allCertificates = Enumerable
-                .Empty<HashedCertificate>()
-                .Concat(new[] { extractedCertificates.SignatureEndCertificate })
-                .Concat(extractedCertificates.SignatureParentCertificates)
-                .Concat(new[] { extractedCertificates.TimestampEndCertificate })
-                .Concat(extractedCertificates.TimestampParentCertificates);
+            var thumbprintToCertificate = new Dictionary<string, HashedCertificate>();
 
-            foreach (var certificate in allCertificates)
+            CollectCertificates(thumbprintToCertificate, context.Author?.Certificates);
+            CollectCertificates(thumbprintToCertificate, context.Repository?.Certificates);
+
+            foreach (var certificate in thumbprintToCertificate.Values)
             {
-                await SaveCertificateToStoreAsync(certificate, token);
+                if (await _certificateStore.ExistsAsync(certificate.Thumbprint, context.CancellationToken))
+                {
+                    continue;
+                }
+
+                await _certificateStore.SaveAsync(certificate.Certificate, context.CancellationToken);
             }
         }
 
-        private async Task SaveCertificateToStoreAsync(HashedCertificate certificate, CancellationToken token)
+        private static void CollectCertificates(
+            List<EndCertificateAndUse> endCertificatesAndUses,
+            List<HashedCertificate> parentCertificates,
+            ExtractedCertificates extractedCertificates)
         {
-            if (await _certificateStore.ExistsAsync(certificate.Thumbprint, token))
+            if (extractedCertificates == null)
             {
                 return;
             }
 
-            await _certificateStore.SaveAsync(certificate.Certificate, token);
+            endCertificatesAndUses.Add(new EndCertificateAndUse(extractedCertificates.SignatureEndCertificate, EndCertificateUse.CodeSigning));
+            endCertificatesAndUses.Add(new EndCertificateAndUse(extractedCertificates.TimestampEndCertificate, EndCertificateUse.Timestamping));
+
+            parentCertificates.AddRange(extractedCertificates.SignatureParentCertificates);
+            parentCertificates.AddRange(extractedCertificates.TimestampParentCertificates);
         }
 
-        private class CertificateAndUse
+        private static void CollectCertificates(
+            Dictionary<string, HashedCertificate> thumbprintToCertificate,
+            ExtractedCertificates extractedCertificates)
         {
-            public CertificateAndUse(HashedCertificate hashedCertificate, EndCertificateUse endCertificateUse)
+            if (extractedCertificates == null)
             {
-                Certificate = hashedCertificate;
+                return;
+            }
+
+            CollectCertificate(thumbprintToCertificate, extractedCertificates.SignatureEndCertificate);
+            CollectCertificates(thumbprintToCertificate, extractedCertificates.SignatureParentCertificates);
+            CollectCertificate(thumbprintToCertificate, extractedCertificates.TimestampEndCertificate);
+            CollectCertificates(thumbprintToCertificate, extractedCertificates.TimestampParentCertificates);
+        }
+
+        private static void CollectCertificates(
+            Dictionary<string, HashedCertificate> thumbprintToCertificate,
+            IEnumerable<HashedCertificate> hashedCertificates)
+        {
+            foreach (var hashedCertificate in hashedCertificates)
+            {
+                CollectCertificate(thumbprintToCertificate, hashedCertificate);
+            }
+        }
+
+        private static void CollectCertificate(
+            Dictionary<string, HashedCertificate> thumbprintToCertificate,
+            HashedCertificate hashedCertificate)
+        {
+            if (!thumbprintToCertificate.ContainsKey(hashedCertificate.Thumbprint))
+            {
+                thumbprintToCertificate.Add(hashedCertificate.Thumbprint, hashedCertificate);
+            }
+        }
+
+        private class EndCertificateAndUse
+        {
+            public EndCertificateAndUse(HashedCertificate hashedCertificate, EndCertificateUse endCertificateUse)
+            {
+                Certificate = hashedCertificate ?? throw new ArgumentNullException(nameof(hashedCertificate));
                 Use = endCertificateUse;
             }
 
             public HashedCertificate Certificate { get; }
             public EndCertificateUse Use { get; }
+        }
+
+        private class Context : IDisposable
+        {
+            public Context(int packageKey, PrimarySignature primarySignature, CancellationToken cancellationToken)
+            {
+                PackageKey = packageKey;
+                PrimarySignature = primarySignature ?? throw new ArgumentNullException(nameof(primarySignature));
+                CancellationToken = cancellationToken;
+                Disposables = new List<IDisposable>();
+            }
+
+            public int PackageKey { get; }
+            public PrimarySignature PrimarySignature { get; }
+            public CancellationToken CancellationToken { get; }
+
+            public List<IDisposable> Disposables { get; }
+
+            public SignatureAndCertificates Author { get; set; }
+            public SignatureAndCertificates Repository { get; set; }
+
+            public void Dispose()
+            {
+                foreach (var disposable in Disposables)
+                {
+                    disposable?.Dispose();
+                }
+            }
+        }
+
+        private class SignatureAndCertificates
+        {
+            public SignatureAndCertificates(Signature signature, ExtractedCertificates certificates)
+            {
+                Signature = signature ?? throw new ArgumentNullException(nameof(signature));
+                Certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
+            }
+
+            public Signature Signature { get; }
+            public ExtractedCertificates Certificates { get; }
         }
     }
 }

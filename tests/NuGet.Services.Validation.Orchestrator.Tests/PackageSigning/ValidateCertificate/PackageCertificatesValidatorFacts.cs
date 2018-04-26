@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
 using Validation.PackageSigning.Helpers;
@@ -158,6 +160,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     PackageKey = PackageKey,
                     Status = PackageSignatureStatus.Unknown,
                     EndCertificate = certificate,
+                    Type = PackageSignatureType.Author,
                 };
 
                 certificate.PackageSignatures = new[] { packageSignature };
@@ -269,6 +272,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     Status = packageSignatureStatus,
                     PackageSigningState = packageSigningState,
                     EndCertificate = certificate,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -333,6 +337,7 @@ namespace NuGet.Services.Validation.PackageSigning
                                 EndCertificate = cert1SecondAgo,
                             }
                         },
+                        Type = PackageSignatureType.Author,
                     },
                 };
 
@@ -352,6 +357,7 @@ namespace NuGet.Services.Validation.PackageSigning
                                 EndCertificate = cert1SecondAgo,
                             }
                         },
+                        Type = PackageSignatureType.Author,
                     },
                 };
 
@@ -371,6 +377,7 @@ namespace NuGet.Services.Validation.PackageSigning
                                 EndCertificate = cert1YearAgo,
                             }
                         },
+                        Type = PackageSignatureType.Author,
                     },
                 };
 
@@ -394,6 +401,7 @@ namespace NuGet.Services.Validation.PackageSigning
                                 EndCertificate = cert1YearAgo,
                             }
                         },
+                        Type = PackageSignatureType.Author,
                     },
                 };
 
@@ -413,6 +421,7 @@ namespace NuGet.Services.Validation.PackageSigning
                                 EndCertificate = cert1SecondAgo,
                             }
                         },
+                        Type = PackageSignatureType.Author,
                     },
                 };
             }
@@ -487,7 +496,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var signature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Unknown
+                    Status = PackageSignatureStatus.Unknown,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -628,7 +638,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var packageSignature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Valid
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -710,7 +721,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var packageSignature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Valid
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -790,7 +802,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var packageSignature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Valid
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -873,7 +886,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var packageSignature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Valid
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -1049,7 +1063,8 @@ namespace NuGet.Services.Validation.PackageSigning
                 var packageSignature = new PackageSignature
                 {
                     PackageKey = PackageKey,
-                    Status = PackageSignatureStatus.Valid
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -1120,6 +1135,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 {
                     PackageKey = PackageKey,
                     Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
                 };
 
                 var timestamp = new TrustedTimestamp
@@ -1165,6 +1181,98 @@ namespace NuGet.Services.Validation.PackageSigning
                 Assert.Equal(PackageSigningStatus.Invalid, packageSigningState.SigningStatus);
             }
 
+            [Theory]
+            [InlineData(PackageSignatureType.Repository)]
+            [InlineData((PackageSignatureType)0)]
+            public async Task NonAuthorSignaturesAreIgnored(PackageSignatureType type)
+            {
+                // Arrange
+                var validatorStatus = new ValidatorStatus
+                {
+                    ValidationId = ValidationId,
+                    ValidatorName = nameof(PackageCertificatesValidator),
+                    PackageKey = PackageKey,
+                    State = ValidationStatus.NotStarted,
+                    ValidatorIssues = new List<ValidatorIssue>(),
+                };
+
+                var packageSigningState = new PackageSigningState
+                {
+                    PackageKey = PackageKey,
+                    PackageId = PackageId,
+                    PackageNormalizedVersion = PackageNormalizedVersion,
+                    SigningStatus = PackageSigningStatus.Valid,
+                };
+
+                var authorPackageSignature = new PackageSignature
+                {
+                    PackageKey = PackageKey,
+                    Status = PackageSignatureStatus.Valid,
+                    Type = PackageSignatureType.Author,
+                };
+
+                var repositoryPackageSignature = new PackageSignature
+                {
+                    PackageKey = PackageKey,
+                    Status = PackageSignatureStatus.Unknown,
+                    Type = type,
+                };
+
+                var timestamp = new TrustedTimestamp
+                {
+                    Value = DateTime.UtcNow.AddDays(-10)
+                };
+
+                var signatureCertificate = new EndCertificate
+                {
+                    Key = 123,
+                    Status = EndCertificateStatus.Good,
+                    StatusUpdateTime = DateTime.UtcNow.AddSeconds(-10),
+                    NextStatusUpdateTime = DateTime.UtcNow.AddDays(1),
+                    LastVerificationTime = DateTime.UtcNow.AddSeconds(-10),
+                    RevocationTime = null,
+                    ValidationFailures = 0,
+                };
+
+                var timestampCertificate = new EndCertificate
+                {
+                    Key = 456,
+                    Status = EndCertificateStatus.Good,
+                    StatusUpdateTime = DateTime.UtcNow.AddSeconds(-10),
+                    NextStatusUpdateTime = DateTime.UtcNow.AddDays(1),
+                    LastVerificationTime = DateTime.UtcNow.AddSeconds(-10),
+                    RevocationTime = null,
+                    ValidationFailures = 0,
+                };
+
+                packageSigningState.PackageSignatures = new[] { authorPackageSignature, repositoryPackageSignature };
+                authorPackageSignature.PackageSigningState = packageSigningState;
+                authorPackageSignature.TrustedTimestamps = new[] { timestamp };
+                authorPackageSignature.EndCertificate = signatureCertificate;
+                timestamp.EndCertificate = timestampCertificate;
+                signatureCertificate.PackageSignatures = new[] { authorPackageSignature };
+                timestampCertificate.TrustedTimestamps = new[] { timestamp };
+
+                _validationContext.Mock(
+                    validatorStatuses: new[] { validatorStatus },
+                    packageSigningStates: new[] { packageSigningState },
+                    packageSignatures: new[] { authorPackageSignature, repositoryPackageSignature },
+                    trustedTimestamps: new[] { timestamp },
+                    endCertificates: new[] { signatureCertificate, timestampCertificate });
+
+                // Act & Assert
+                var actual = await _target.StartAsync(_validationRequest.Object);
+
+                _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
+                _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+                _telemetryService.Verify(
+                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    Times.Never);
+
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
+                Assert.Equal(ValidationStatus.Succeeded, validatorStatus.State);
+            }
+
             public static IEnumerable<object[]> ValidationStatusesThatAreStarted = validationStatusesThatAreStarted.Select(s => new object[] { s });
         }
 
@@ -1194,7 +1302,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 var validatorStateServiceLogger = new Mock<ILogger<ValidatorStateService>>();
                 var validatorStateService = new ValidatorStateService(
                     _validationContext.Object,
-                    typeof(PackageCertificatesValidator),
+                    ValidatorName.PackageCertificate,
                     validatorStateServiceLogger.Object);
 
                 _target = new PackageCertificatesValidator(

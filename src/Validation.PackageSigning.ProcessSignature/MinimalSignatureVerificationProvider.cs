@@ -21,7 +21,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             CancellationToken token)
         {
             var result = new SignedPackageVerificationResult(
-                SignatureVerificationStatus.Trusted,
+                SignatureVerificationStatus.Valid,
                 signature,
                 Enumerable.Empty<SignatureLog>());
 

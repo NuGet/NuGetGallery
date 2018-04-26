@@ -20,6 +20,7 @@ namespace Validation.PackageSigning.Core.Tests.Support
             dbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(() => list.AsQueryable().ElementType);
             dbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => list.GetEnumerator());
             dbSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => list.Add(e));
+            dbSet.Setup(m => m.Remove(It.IsAny<T>())).Callback<T>(e => list.Remove(e));
 
             return dbSet.Object;
         }

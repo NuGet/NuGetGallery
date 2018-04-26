@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs.Validation;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -55,13 +56,14 @@ namespace NuGet.Services.Validation.Orchestrator
                     var validatorTypes = candidateTypes
                         .Where(type => typeof(IValidator).IsAssignableFrom(type)
                                && type != typeof(IValidator)
-                               && type != typeof(IProcessor))
-                        .ToDictionary(type => type.Name);
+                               && type != typeof(IProcessor)
+                               && ValidatorUtility.HasValidatorNameAttribute(type))
+                        .ToDictionary(ValidatorUtility.GetValidatorName);
 
                     var processorTypes = validatorTypes
                         .Values
                         .Where(IsProcessorType)
-                        .ToDictionary(type => type.Name);
+                        .ToDictionary(ValidatorUtility.GetValidatorName);
 
                     _logger.LogTrace("After enumeration, got {NumImplementations} implementations: {TypeNames}",
                         validatorTypes.Count,

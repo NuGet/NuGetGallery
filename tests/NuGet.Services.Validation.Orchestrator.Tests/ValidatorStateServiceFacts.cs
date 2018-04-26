@@ -8,7 +8,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Services.Validation.Orchestrator;
 using Validation.PackageSigning.Helpers;
 using Xunit;
 
@@ -31,6 +33,7 @@ namespace NuGet.Services.Validation
             ValidationStatus.Failed,
         };
 
+        [ValidatorName("AValidator")]
         class AValidator : IValidator
         {
             public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
@@ -38,6 +41,7 @@ namespace NuGet.Services.Validation
             public Task<IValidationResult> StartAsync(IValidationRequest request) => throw new NotImplementedException();
         }
 
+        [ValidatorName("BValidator")]
         class BValidator : IValidator
         {
             public Task CleanUpAsync(IValidationRequest request) => throw new NotImplementedException();
@@ -498,8 +502,14 @@ namespace NuGet.Services.Validation
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
-                _target = new ValidatorStateService(_validationContext.Object, typeof(AValidator), _logger.Object);
+                _target = CreateValidatorStateService(ValidatorUtility.GetValidatorName(typeof(AValidator)));
             }
+
+            protected ValidatorStateService CreateValidatorStateService(string validatorName)
+                => new ValidatorStateService(
+                    _validationContext.Object,
+                    validatorName,
+                    _logger.Object);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace NuGet.Jobs
         public const string Once = "Once";
         public const string Sleep = "Sleep";
         public const string Interval = "Interval";
+        public const string ReinitializeAfterSeconds = "ReinitializeAfterSeconds";
 
         public const string WhatIf = "WhatIf";
 
@@ -72,7 +73,7 @@ namespace NuGet.Jobs
         public const string AzureCdnAccountNumber = "AzureCdnAccountNumber";
         public const string AzureCdnPlatform = "AzureCdnPlatform";
 
-        //Arguments shared by CollectAzureCdnLogs and ParseAzureCdnLogs
+        //Arguments shared by CollectAzureCdnLogs, ParseAzureCdnLogs, Search.GenerateAuxiliaryData
         public const string AzureCdnCloudStorageAccount = "AzureCdnCloudStorageAccount";
         public const string AzureCdnCloudStorageContainerName = "AzureCdnCloudStorageContainerName";
 

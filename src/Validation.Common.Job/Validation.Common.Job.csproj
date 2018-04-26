@@ -45,6 +45,7 @@
     <Compile Include="LoggerDiagnosticsService.cs" />
     <Compile Include="LoggerDiagnosticsSource.cs" />
     <Compile Include="PackageDownloader.cs" />
+    <Compile Include="PathUtility.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="Storage\AddStatusResult.cs" />
@@ -59,6 +60,16 @@
     <Compile Include="Storage\ValidatorStatusExtensions.cs" />
     <Compile Include="SubcriptionProcessorJob.cs" />
     <Compile Include="JsonConfigurationJob.cs" />
+    <Compile Include="Validation\IValidatorProvider.cs" />
+    <Compile Include="Validation\ValidatorName.cs" />
+    <Compile Include="Validation\ValidatorNameAttribute.cs" />
+    <Compile Include="Validation\ValidatorUtility.cs" />
+    <Compile Include="TempFiles\DeleteOnCloseReadOnlyTempFile.cs" />
+    <Compile Include="TempFiles\ITempFile.cs" />
+    <Compile Include="TempFiles\ITempFileFactory.cs" />
+    <Compile Include="TempFiles\ITempReadOnlyFile.cs" />
+    <Compile Include="TempFiles\TempFile.cs" />
+    <Compile Include="TempFiles\TempFileFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Autofac">
@@ -77,19 +88,19 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.7.0-preview1.5029</Version>
+      <Version>4.7.0-preview4.5067</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.22.0</Version>
+      <Version>2.23.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.22.0</Version>
+      <Version>2.23.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Storage">
-      <Version>2.22.0</Version>
+      <Version>2.23.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.22.0</Version>
+      <Version>2.23.0</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
       <Version>4.4.4-dev-26726</Version>

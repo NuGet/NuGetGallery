@@ -208,7 +208,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     results: new[]
                     {
                         new InvalidSignaturePackageVerificationResult(
-                            SignatureVerificationStatus.Invalid,
+                            SignatureVerificationStatus.Illegal,
                             new[]
                             {
                                 SignatureLog.Issue(
@@ -264,7 +264,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     results: new[]
                     {
                         new InvalidSignaturePackageVerificationResult(
-                            SignatureVerificationStatus.Invalid,
+                            SignatureVerificationStatus.Illegal,
                             new[]
                             {
                                 SignatureLog.Issue(

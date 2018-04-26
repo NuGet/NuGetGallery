@@ -74,6 +74,10 @@ namespace NuGet.Jobs.Validation.Common.Validators.Vcs
 
         public void Configuration(IAppBuilder app)
         {
+            // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
+            ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+
             if (Services.Logging.ApplicationInsights.Initialized)
             {
                 app.Use<RequestTrackingMiddleware>();

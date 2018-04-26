@@ -337,8 +337,8 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .RegisterType<ValidatorStateService>()
                 .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(Type),
-                    (pi, ctx) => typeof(PackageSigningValidator))
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.PackageSigning)
                 .Keyed<IValidatorStateService>(PackageSigningBindingKey);
 
             // Configure the package signature verification enqueuer.
@@ -369,8 +369,8 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .RegisterType<ValidatorStateService>()
                 .WithParameter(
-                    (pi, ctx) => pi.ParameterType == typeof(Type),
-                    (pi, ctx) => typeof(PackageCertificatesValidator))
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.PackageCertificate)
                 .Keyed<IValidatorStateService>(PackageCertificatesBindingKey);
 
             // Configure the certificate verification enqueuer.

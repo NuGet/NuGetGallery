@@ -73,6 +73,7 @@ namespace Validation.PackageSigning.RevalidateCertificate
 
                 var potentialSignatures = await _context.PackageSignatures
                     .Where(s => s.Status == PackageSignatureStatus.InGracePeriod)
+                    .Where(s => s.Type == PackageSignatureType.Author)
                     .Include(s => s.EndCertificate)
                     .Include(s => s.TrustedTimestamps.Select(t => t.EndCertificate))
                     .OrderBy(s => s.CreatedAt)
