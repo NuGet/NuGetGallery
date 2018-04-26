@@ -287,7 +287,7 @@ namespace NuGetGallery
                 DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
                     signature: user.Username,
-                    unlistOrphanPackages: true,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
                     commitAsTransaction: true);
                 if (!accountDeleteStatus.Success)
                 {
@@ -347,7 +347,7 @@ namespace NuGetGallery
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
                     signature: model.Signature,
-                    unlistOrphanPackages: model.ShouldUnlist,
+                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
                     commitAsTransaction: true);
                 return View("DeleteUserAccountStatus", status);
             }

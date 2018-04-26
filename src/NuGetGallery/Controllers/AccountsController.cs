@@ -279,13 +279,13 @@ namespace NuGetGallery
 
             if (accountToDelete == null || accountToDelete.IsDeleted)
             {
-                return HttpNotFound("User not found.");
+                return HttpNotFound();
             }
 
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), accountToDelete)
                     != PermissionsCheckResult.Allowed)
             {
-                return new HttpNotFoundResult();
+                return HttpNotFound();
             }
 
             return View("DeleteAccount", GetDeleteAccountViewModel(accountToDelete));

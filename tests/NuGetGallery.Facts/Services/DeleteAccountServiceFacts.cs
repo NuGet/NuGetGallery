@@ -23,31 +23,6 @@ namespace NuGetGallery.Services
         public class TheDeleteGalleryUserAccountAsyncMethod
         {
             [Fact]
-            public async Task WhenAccountIsOrganization_DoesNotDelete()
-            {
-                // Arrange
-                var fakes = new Fakes();
-                var testableService = new DeleteAccountTestService(fakes.Organization, fakes.Package);
-                var deleteAccountService = testableService.GetDeleteAccountService();
-
-                // Act
-                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
-                    fakes.Organization,
-                    fakes.Admin,
-                    "signature",
-                    unlistOrphanPackages: true,
-                    commitAsTransaction: false);
-
-                // Assert
-                Assert.False(result.Success);
-
-                var expected = string.Format(CultureInfo.CurrentCulture,
-                    Strings.AccountDelete_OrganizationDeleteNotImplemented,
-                    fakes.Organization.Username);
-                Assert.Equal(expected, result.Description);
-            }
-
-            [Fact]
             public async Task WhenAccountIsOrganizationMember_DoesNotDelete()
             {
                 // Arrange
@@ -60,9 +35,9 @@ namespace NuGetGallery.Services
                 var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
                     account,
                     fakes.Admin,
-                    "signature",
-                    unlistOrphanPackages: true,
-                    commitAsTransaction: false);
+                    commitAsTransaction: false,
+                    signature: "signature",
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 // Assert
                 Assert.False(result.Success);
@@ -83,7 +58,12 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(null, new User("AdminUser"), "Signature", unlistOrphanPackages: true, commitAsTransaction: false));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(
+                    null, 
+                    new User("AdminUser"),
+                    commitAsTransaction: false,
+                    signature: "signature",
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
             [Fact]
@@ -96,7 +76,12 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(new User("TestUser"),null , "Signature", unlistOrphanPackages: true, commitAsTransaction: false));
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(
+                    new User("TestUser"),
+                    null,
+                    commitAsTransaction: false,
+                    signature: "signature",
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
             /// <summary>
@@ -117,9 +102,9 @@ namespace NuGetGallery.Services
                 var result = await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
+                                                commitAsTransaction: false,
                                                 signature: signature,
-                                                unlistOrphanPackages: true,
-                                                commitAsTransaction: false);
+                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 string expected = $"The account:{testUser.Username} was already deleted. No action was performed.";
                 Assert.Equal<string>(expected, result.Description);
             }
@@ -147,9 +132,9 @@ namespace NuGetGallery.Services
                 await deleteAccountService.
                     DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
+                                                commitAsTransaction: false,
                                                 signature: signature,
-                                                unlistOrphanPackages: true,
-                                                commitAsTransaction: false);
+                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 Assert.Equal(0, registration.Owners.Count());
                 Assert.Equal(0, testUser.SecurityPolicies.Count());
@@ -178,9 +163,9 @@ namespace NuGetGallery.Services
                 //Act
                 var status = await deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
+                                                commitAsTransaction: false,
                                                 signature: testUser.Username,
-                                                unlistOrphanPackages: true,
-                                                commitAsTransaction: false);
+                                                orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 //Assert
                 Assert.True(status.Success);
@@ -191,50 +176,6 @@ namespace NuGetGallery.Services
                 Assert.Equal(testUser.Username, deleteAccountAuditRecord.AdminUsername);
                 Assert.Equal(testUser.Username, deleteAccountAuditRecord.Username);
                 Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteAccountAuditRecord.Status);
-            }
-
-            private static User CreateTestData(ref PackageRegistration registration)
-            {
-                User testUser = new User();
-                testUser.Username = "TestsUser";
-                testUser.EmailAddress = "user@test.com";
-
-                registration = new PackageRegistration();
-                registration.Owners.Add(testUser);
-
-                Package p = new Package()
-                {
-                    Description = "TestPackage",
-                    Key = 1
-                };
-                p.PackageRegistration = registration;
-                registration.Packages.Add(p);
-                return testUser;
-            }
-        }
-
-        public class TheDeleteGalleryOrganizationAccountAsyncMethod
-        {
-            [Fact]
-            public async Task NullUser()
-            {
-                // Arrange
-                var testableService = new DeleteAccountTestService();
-                var deleteAccountService = testableService.GetDeleteAccountService();
-
-                // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryOrganizationAccountAsync(null, new User("MemberUser"), commitAsTransaction: false));
-            }
-
-            [Fact]
-            public async Task NullAdmin()
-            {
-                // Arrange
-                var testableService = new DeleteAccountTestService();
-                var deleteAccountService = testableService.GetDeleteAccountService();
-
-                // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryOrganizationAccountAsync(new Organization("TestOrganization"), null, commitAsTransaction: false));
             }
 
             [Fact]
@@ -269,10 +210,11 @@ namespace NuGetGallery.Services
 
                 // Act
                 var status = await deleteAccountService.
-                    DeleteGalleryOrganizationAccountAsync(
+                    DeleteGalleryUserAccountAsync(
                         organization,
                         member,
-                        commitAsTransaction: false);
+                        commitAsTransaction: false,
+                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.KeepOrphans);
 
                 // Assert
                 Assert.True(status.Success);
@@ -320,10 +262,11 @@ namespace NuGetGallery.Services
 
                 // Act
                 var status = await deleteAccountService.
-                    DeleteGalleryOrganizationAccountAsync(
+                    DeleteGalleryUserAccountAsync(
                         organization,
                         member,
-                        commitAsTransaction: false);
+                        commitAsTransaction: false,
+                        orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.KeepOrphans);
 
                 // Assert
                 Assert.True(status.Success);
@@ -337,6 +280,25 @@ namespace NuGetGallery.Services
                 Assert.Equal(1, testableService.AuditService.Records.Count);
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
+            }
+
+            private static User CreateTestData(ref PackageRegistration registration)
+            {
+                User testUser = new User();
+                testUser.Username = "TestsUser";
+                testUser.EmailAddress = "user@test.com";
+
+                registration = new PackageRegistration();
+                registration.Owners.Add(testUser);
+
+                Package p = new Package()
+                {
+                    Description = "TestPackage",
+                    Key = 1
+                };
+                p.PackageRegistration = registration;
+                registration.Packages.Add(p);
+                return testUser;
             }
         }
 
