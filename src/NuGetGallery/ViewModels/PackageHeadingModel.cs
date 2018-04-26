@@ -11,6 +11,7 @@ namespace NuGetGallery
         public string Id { get; }
         public string Version { get; }
         public bool ShowProfileBreadcrumb { get; }
+
         public string PackageDisplay
         {
             get
@@ -25,6 +26,7 @@ namespace NuGetGallery
                 }
             }
         }
+
         public bool LinkIdOnly => string.IsNullOrEmpty(Version);
 
         public PackageHeadingModel(User currentUser, Package package, string pageHeading, bool linkIdOnly = false)
