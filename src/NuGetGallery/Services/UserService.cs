@@ -510,7 +510,11 @@ namespace NuGetGallery
         {
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
             var result = await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
-            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
+            if (result)
+            {
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
+            }
+
             return result;
         }
 

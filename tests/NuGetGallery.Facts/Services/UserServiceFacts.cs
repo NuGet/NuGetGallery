@@ -1561,9 +1561,14 @@ namespace NuGetGallery
             [Fact]
             public async Task WhenAdminHasNoTenant_TransformsAccountWithoutPolicy()
             {
-                Assert.True(await InvokeTransformUserToOrganization(3, new User("adminWithNoTenant") { Credentials = new Credential[0] }));
+                var tenantlessAdminUsername = "adminWithNoTenant";
+                Assert.True(await InvokeTransformUserToOrganization(3, new User(tenantlessAdminUsername) { Credentials = new Credential[0] }));
 
-                Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
+                Assert.True(_service.Auditing.WroteRecord<UserAuditRecord>(ar =>
+                    ar.Action == AuditedUserAction.TransformOrganization &&
+                    ar.Username == TransformedUsername &&
+                    ar.AffectedMemberUsername == tenantlessAdminUsername &&
+                    ar.AffectedMemberIsAdmin == true));
             }
 
             public async Task WhenAdminHasUnsupportedTenant_TransformsAccountWithoutPolicy()
