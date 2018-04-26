@@ -1188,6 +1188,7 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
+                PackageRegistration = package.PackageRegistration,
                 IsLocked = package.PackageRegistration.IsLocked,
             };
 
