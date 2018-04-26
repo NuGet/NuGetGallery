@@ -695,6 +695,7 @@
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
+    <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequestConfirmation.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
@@ -842,6 +843,7 @@
       <DependentUpon>201711021733062_ApiKeyOwnerScope.cs</DependentUpon>
     </Compile>
     <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
+    <Compile Include="Services\AccountDeletionOrphanPackagePolicy.cs" />
     <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissions.cs" />
@@ -1071,6 +1073,8 @@
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
+    <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\GalleryHomeViewModel.cs" />
     <Compile Include="ViewModels\HandleOrganizationMembershipRequestModel.cs" />
     <Compile Include="WebRole.cs" />
@@ -1639,7 +1643,6 @@
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicy.cs" />
     <Compile Include="Services\ReflowPackageService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
-    <Compile Include="Areas\Admin\ViewModels\DeleteUserAccountViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsItemViewModel.cs" />
     <Compile Include="ViewModels\ManageOrganizationsViewModel.cs" />
     <Compile Include="ViewModels\ChangeEmailViewModel.cs" />
@@ -2063,6 +2066,9 @@
     <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
     <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
+    <Content Include="Views\Organizations\DeleteAccount.cshtml" />
+    <Content Include="Views\Users\_DeleteUserAccountForm.cshtml" />
+    <Content Include="Views\Organizations\_OrganizationMembersListForDeletedAccount.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <CodeAnalysisDictionary Include="Properties\CodeAnalysisDictionary.xml" />

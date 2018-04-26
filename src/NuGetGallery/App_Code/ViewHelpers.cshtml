@@ -252,7 +252,7 @@
         {
             <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
         }
-        <a href="@url.User(user.Username)">@user.Username</a>
+        <a href="@url.User(user.Username)" title="@user.Username">@user.Username.Abbreviate(15)</a>
     </span>
 }
 
