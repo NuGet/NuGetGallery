@@ -32,7 +32,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
-                var result = await deleteAccountService.DeleteGalleryUserAccountAsync(
+                var result = await deleteAccountService.DeleteAccountAsync(
                     account,
                     fakes.Admin,
                     commitAsTransaction: false,
@@ -58,7 +58,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
                     null, 
                     new User("AdminUser"),
                     commitAsTransaction: false,
@@ -76,7 +76,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Assert
-                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteGalleryUserAccountAsync(
+                await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
                     new User("TestUser"),
                     null,
                     commitAsTransaction: false,
@@ -100,7 +100,7 @@ namespace NuGetGallery.Services
                 // Act
                 var signature = "Hello";
                 var result = await deleteAccountService.
-                    DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
+                    DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
                                                 signature: signature,
@@ -130,7 +130,7 @@ namespace NuGetGallery.Services
                 // Act
                 var signature = "Hello";
                 await deleteAccountService.
-                    DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
+                    DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
                                                 signature: signature,
@@ -161,7 +161,7 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 //Act
-                var status = await deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: testUser,
+                var status = await deleteAccountService.DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
                                                 signature: testUser.Username,
@@ -210,7 +210,7 @@ namespace NuGetGallery.Services
 
                 // Act
                 var status = await deleteAccountService.
-                    DeleteGalleryUserAccountAsync(
+                    DeleteAccountAsync(
                         organization,
                         member,
                         commitAsTransaction: false,
@@ -262,7 +262,7 @@ namespace NuGetGallery.Services
 
                 // Act
                 var status = await deleteAccountService.
-                    DeleteGalleryUserAccountAsync(
+                    DeleteAccountAsync(
                         organization,
                         member,
                         commitAsTransaction: false,

@@ -1328,7 +1328,7 @@ namespace NuGetGallery
                 testOrganization.Members.Remove(fakes.OrganizationCollaborator.Organizations.Single());
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(x => x.DeleteGalleryUserAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans, null))
+                    .Setup(x => x.DeleteAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans, null))
                     .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = false }));
 
                 // Act & Assert
@@ -1351,7 +1351,7 @@ namespace NuGetGallery
                 testOrganization.Members.Remove(fakes.OrganizationCollaborator.Organizations.Single());
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(x => x.DeleteGalleryUserAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans, null))
+                    .Setup(x => x.DeleteAccountAsync(testOrganization, currentUser, true, AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans, null))
                     .Returns(Task.FromResult(new DeleteUserAccountStatus { Success = true }));
 
                 // Act

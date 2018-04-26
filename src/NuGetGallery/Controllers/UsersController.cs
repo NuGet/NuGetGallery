@@ -284,7 +284,7 @@ namespace NuGetGallery
             if (!user.Confirmed)
             {
                 // Unconfirmed users can be deleted immediately without creating a support request.
-                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: user,
+                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
                     signature: user.Username,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
@@ -343,7 +343,7 @@ namespace NuGetGallery
             else
             {
                 var admin = GetCurrentUser();
-                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(
+                var status = await _deleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
                     signature: model.Signature,

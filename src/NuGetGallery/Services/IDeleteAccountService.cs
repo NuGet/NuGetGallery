@@ -23,7 +23,7 @@ namespace NuGetGallery
         /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
         /// <param name="signature">The signature of the user deleting the account.</param>
         /// <returns></returns>
-        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+        Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
             bool commitAsTransaction,
             AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans,
