@@ -379,7 +379,7 @@ namespace NuGetGallery
             }
 
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed)
+                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
@@ -438,7 +438,7 @@ namespace NuGetGallery
             }
 
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed)
+                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }

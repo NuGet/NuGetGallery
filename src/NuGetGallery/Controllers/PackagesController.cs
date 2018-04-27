@@ -1811,7 +1811,7 @@ namespace NuGetGallery
 
             if (ActionsRequiringPermissions.ManagePackageRequiredSigner
                 .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration)
-                    != PermissionsCheckResult.Allowed)
+                    != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
             {
                 return Json(HttpStatusCode.Forbidden);
             }

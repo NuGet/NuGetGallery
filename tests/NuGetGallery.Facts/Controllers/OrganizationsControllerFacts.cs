@@ -1801,6 +1801,7 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
 
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.AddCertificate(_organization.Username, uploadFile);
 
@@ -1833,6 +1834,8 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
 
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.AddCertificate(_organization.Username, uploadFile);
 
@@ -1953,6 +1956,7 @@ namespace NuGetGallery
                         It.Is<User>(user => user == _organization)))
                     .Returns(Task.CompletedTask);
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.DeleteCertificate(_organization.Username, _certificate.Thumbprint);
 

@@ -93,7 +93,7 @@
     @if (!Model.WasMultiFactorAuthenticated)
     {
         <div data-bind="visible: Packages.length > 0">
-            @ViewHelpers.AlertWarning(@<text>You need to enable two-factor authentication before you can change package signing requirements. This can be enabled in <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
+            @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can change package signing requirements. This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
         </div>
     }
     <div class="col-md-12">
