@@ -2891,6 +2891,7 @@ namespace NuGetGallery
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
                     .Returns(Enumerable.Empty<Certificate>());
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.GetCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
 
@@ -2908,6 +2909,7 @@ namespace NuGetGallery
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
                     .Returns(new[] { _certificate });
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.GetCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
 
@@ -2965,6 +2967,7 @@ namespace NuGetGallery
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
                     .Returns(Enumerable.Empty<Certificate>());
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.GetCertificates(accountName: null);
 
@@ -2982,6 +2985,7 @@ namespace NuGetGallery
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
                     .Returns(new[] { _certificate });
                 _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var response = _controller.GetCertificates(accountName: null);
 

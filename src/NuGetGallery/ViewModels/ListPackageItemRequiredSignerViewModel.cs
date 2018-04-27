@@ -26,7 +26,8 @@ namespace NuGetGallery
         public ListPackageItemRequiredSignerViewModel(
             Package package,
             User currentUser,
-            ISecurityPolicyService securityPolicyService)
+            ISecurityPolicyService securityPolicyService,
+            bool wasMultiFactorAuthenticated)
             : base(package, currentUser)
         {
             if (package == null)
@@ -134,6 +135,8 @@ namespace NuGetGallery
 
                     RequiredSignerMessage = GetRequiredSignerMessage(ownersWithRequiredSignerControl);
                 }
+
+                CanEditRequiredSigner &= wasMultiFactorAuthenticated;
             }
         }
 

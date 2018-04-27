@@ -436,14 +436,18 @@ namespace NuGetGallery
                 new ListPackageOwnerViewModel(currentUser)
             }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
 
+            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
+
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasMultiFactorAuthenticated))
+                .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasMultiFactorAuthenticated))
+                .OrderBy(p => p.Id)
                 .ToList();
 
             // find all received ownership requests
@@ -473,7 +477,8 @@ namespace NuGetGallery
                 ListedPackages = listedPackages,
                 UnlistedPackages = unlistedPackages,
                 OwnerRequests = ownerRequests,
-                ReservedNamespaces = reservedPrefixes
+                ReservedNamespaces = reservedPrefixes,
+                WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated()
             };
             return View(model);
         }

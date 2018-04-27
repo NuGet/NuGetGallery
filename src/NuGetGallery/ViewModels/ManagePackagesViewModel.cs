@@ -16,5 +16,7 @@ namespace NuGetGallery
         public OwnerRequestsViewModel OwnerRequests { get; set; }
 
         public ReservedNamespaceListViewModel ReservedNamespaces { get; set; }
+
+        public bool WasMultiFactorAuthenticated { get; set; }
     }
 }
