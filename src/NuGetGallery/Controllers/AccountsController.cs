@@ -335,6 +335,8 @@ namespace NuGetGallery
             model.CanManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(
                 GetCurrentUser(), account) == PermissionsCheckResult.Allowed;
 
+            model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
+
             model.CuratedFeeds = CuratedFeedService
                 .GetFeedsForManager(account.Key)
                 .Select(f => f.Name)
@@ -377,7 +379,7 @@ namespace NuGetGallery
             }
 
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed)
+                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
@@ -436,7 +438,7 @@ namespace NuGetGallery
             }
 
             if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed)
+                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
@@ -469,6 +471,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
+            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
             var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
                 == PermissionsCheckResult.Allowed;
             var template = GetDeleteCertificateForAccountTemplate(accountName);
@@ -478,7 +481,7 @@ namespace NuGetGallery
                 {
                     string deactivateUrl = null;
 
-                    if (canManage)
+                    if (wasMultiFactorAuthenticated && canManage)
                     {
                         deactivateUrl = template.Resolve(certificate.Thumbprint);
                     }
@@ -517,6 +520,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
+            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
             var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
                 == PermissionsCheckResult.Allowed;
             var template = GetDeleteCertificateForAccountTemplate(accountName);
@@ -527,7 +531,7 @@ namespace NuGetGallery
                 {
                     string deactivateUrl = null;
 
-                    if (canManage)
+                    if (wasMultiFactorAuthenticated && canManage)
                     {
                         deactivateUrl = template.Resolve(certificate.Thumbprint);
                     }

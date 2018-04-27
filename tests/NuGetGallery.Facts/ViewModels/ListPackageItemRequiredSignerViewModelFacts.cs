@@ -40,7 +40,8 @@ namespace NuGetGallery.ViewModels
                 () => new ListPackageItemRequiredSignerViewModel(
                     package: null,
                     currentUser: _currentUser,
-                    securityPolicyService: _securityPolicyService.Object));
+                    securityPolicyService: _securityPolicyService.Object,
+                    wasMultiFactorAuthenticated: true));
 
             Assert.Equal("package", exception.ParamName);
         }
@@ -58,7 +59,8 @@ namespace NuGetGallery.ViewModels
                 () => new ListPackageItemRequiredSignerViewModel(
                     package,
                     currentUser: null,
-                    securityPolicyService: _securityPolicyService.Object));
+                    securityPolicyService: _securityPolicyService.Object,
+                    wasMultiFactorAuthenticated: true));
 
             Assert.Equal("currentUser", exception.ParamName);
         }
@@ -73,7 +75,11 @@ namespace NuGetGallery.ViewModels
             };
 
             var exception = Assert.Throws<ArgumentNullException>(
-                () => new ListPackageItemRequiredSignerViewModel(package, _currentUser, securityPolicyService: null));
+                () => new ListPackageItemRequiredSignerViewModel(
+                    package,
+                    _currentUser,
+                    securityPolicyService: null,
+                    wasMultiFactorAuthenticated: true));
 
             Assert.Equal("securityPolicyService", exception.ParamName);
         }
@@ -98,7 +104,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -132,7 +139,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -166,7 +174,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -200,7 +209,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
             Assert.Equal("Any", viewModel.RequiredSigner.DisplayText);
@@ -209,6 +219,91 @@ namespace NuGetGallery.ViewModels
             Assert.True(viewModel.ShowRequiredSigner);
             Assert.False(viewModel.ShowTextBox);
             Assert.True(viewModel.CanEditRequiredSigner);
+
+            _securityPolicyService.VerifyAll();
+        }
+
+        [Fact]
+        public void Constructor_WhenPackageHasTwoOwnersAndTheCurrentUserIsAnOwnerAndNotMultiFactorAuthenticated_WhenRequiredSignerIsNull()
+        {
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Owners = new List<User>() { _currentUser, _otherUser }
+                },
+                Version = "1.0.0"
+            };
+
+            _securityPolicyService.Setup(
+                x => x.IsSubscribed(
+                    It.IsNotNull<User>(),
+                    It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
+                .Returns(false);
+
+            var viewModel = new ListPackageItemRequiredSignerViewModel(
+                package,
+                _currentUser,
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: false);
+
+            Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
+            Assert.Equal("Any", viewModel.RequiredSigner.DisplayText);
+            Assert.Null(viewModel.RequiredSignerMessage);
+            VerifySigners(package.PackageRegistration.Owners, viewModel.AllSigners, expectAnySigner: true);
+            Assert.True(viewModel.ShowRequiredSigner);
+            Assert.False(viewModel.ShowTextBox);
+            Assert.False(viewModel.CanEditRequiredSigner);
+
+            _securityPolicyService.VerifyAll();
+        }
+
+        [Fact]
+        public void Constructor_WhenPackageHasOneOwnerAndTheCurrentUserIsACollaborator_WhenRequiredSignerIsNull()
+        {
+            var organization = new Organization()
+            {
+                Key = 7,
+                Username = "c"
+            };
+
+            organization.Members.Add(new Membership()
+            {
+                OrganizationKey = organization.Key,
+                Organization = organization,
+                MemberKey = _currentUser.Key,
+                Member = _currentUser,
+                IsAdmin = false
+            });
+
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Owners = new List<User>() { organization }
+                },
+                Version = "1.0.0"
+            };
+
+            _securityPolicyService.Setup(
+                x => x.IsSubscribed(
+                    It.IsNotNull<User>(),
+                    It.Is<string>(s => s == ControlRequiredSignerPolicy.PolicyName)))
+                .Returns(false);
+
+            var viewModel = new ListPackageItemRequiredSignerViewModel(
+                package,
+                _currentUser,
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
+
+            Assert.Equal("c", viewModel.RequiredSigner.Username);
+            Assert.Equal($"{organization.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
+            Assert.Null(viewModel.RequiredSignerMessage);
+            VerifySigners(package.PackageRegistration.Owners, viewModel.AllSigners, expectAnySigner: false);
+            Assert.True(viewModel.ShowRequiredSigner);
+            Assert.False(viewModel.ShowTextBox);
+            Assert.False(viewModel.CanEditRequiredSigner);
 
             _securityPolicyService.VerifyAll();
         }
@@ -235,7 +330,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -270,7 +366,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -332,7 +429,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{currentUser.Username} (1 certificate)", viewModel.RequiredSigner.DisplayText);
@@ -367,7 +465,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -407,7 +506,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -458,7 +558,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -520,7 +621,8 @@ namespace NuGetGallery.ViewModels
             var viewModel = new ListPackageItemRequiredSignerViewModel(
                 package,
                 _currentUser,
-                _securityPolicyService.Object);
+                _securityPolicyService.Object,
+                wasMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
