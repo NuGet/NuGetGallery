@@ -11,7 +11,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         {
             ShouldUnlist = true;
         }
-        
+
         public DeleteAccountAsAdminViewModel(IDeleteAccountViewModel model)
         {
             AccountName = model.AccountName;

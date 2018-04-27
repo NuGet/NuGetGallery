@@ -40,7 +40,7 @@ namespace NuGetGallery
                  .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
                  .Select(p => new ListPackageItemViewModel(p, currentUser))
                  .ToList();
-            
+
             _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(packageIsOrphaned));
         }
 

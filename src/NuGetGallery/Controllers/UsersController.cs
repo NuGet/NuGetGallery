@@ -268,7 +268,7 @@ namespace NuGetGallery
         {
             return View("TransformToOrganizationFailed", new TransformAccountFailedViewModel(errorMessage));
         }
-        
+
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
@@ -278,7 +278,7 @@ namespace NuGetGallery
 
             if (user == null || user.IsDeleted)
             {
-                return HttpNotFound("User not found.");
+                return HttpNotFound();
             }
 
             if (!user.Confirmed)
