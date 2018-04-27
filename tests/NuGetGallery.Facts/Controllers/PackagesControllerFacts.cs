@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -21,14 +23,13 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
-using System.Globalization;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -5315,6 +5316,7 @@ namespace NuGetGallery
                     .Returns<User>(null);
 
                 controller.SetCurrentUser(currentUser);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
 
@@ -5385,6 +5387,7 @@ namespace NuGetGallery
                     .Returns(_signer);
 
                 controller.SetCurrentUser(_signer);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
 
                 var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
 
