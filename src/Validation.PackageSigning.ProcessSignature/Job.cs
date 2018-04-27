@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Configuration;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -30,7 +30,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
-            services.AddTransient<IEntityRepository<Certificate>, EntityRepository<Certificate>>();
+            services.AddScoped<IEntitiesContext>(serviceProvider =>
+                new EntitiesContext(
+                    serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
+                    readOnly: false));
+            services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));
+            services.AddTransient<ICorePackageService, CorePackageService>();
 
             services.AddTransient<ITelemetryService, TelemetryService>();
 
@@ -61,7 +66,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 PackageSignatureVerifierFactory.CreateFull(),
                 p.GetRequiredService<ISignaturePartsExtractor>(),
                 p.GetRequiredService<IProcessorPackageFileService>(),
-                p.GetRequiredService<IEntityRepository<Certificate>>(),
+                p.GetRequiredService<ICorePackageService>(),
                 p.GetRequiredService<ITelemetryService>(),
                 p.GetRequiredService<ILogger<SignatureValidator>>()));
         }

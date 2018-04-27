@@ -19,8 +19,8 @@
         <dependency id="NuGet.Services.Configuration" version="2.23.0" />
         <dependency id="NuGet.Services.Logging" version="2.23.0" />
         <dependency id="NuGet.Services.Storage" version="2.23.0" />
-        <dependency id="NuGet.Services.Validation" version="2.23.0" />
-        <dependency id="NuGetGallery.Core" version="4.4.4-dev-26726" />
+        <dependency id="NuGet.Services.Validation" version="2.25.0-master-29664" />
+        <dependency id="NuGetGallery.Core" version="4.4.4-dev-29942" />
         <dependency id="Serilog" version="2.5.0" />
         <dependency id="System.Net.Http" version="4.3.3" />
     </dependencies>
