@@ -845,4 +845,13 @@ If you wish to update the linked Microsoft account you can do so from the accoun
   <data name="AccountSelfDelete_Fail" xml:space="preserve">
     <value>An exception was encoutered while trying to delete the account. Please contact support for assistance.</value>
   </data>
+  <data name="MultiFactorAuth_Enabled" xml:space="preserve">
+    <value>Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}.</value>
+  </data>
+  <data name="MultiFactorAuth_LoginUpdate" xml:space="preserve">
+    <value>We noticed you used two-factor authentication for login. We have enabled your account to use two-factor authentication going forward.</value>
+  </data>
+  <data name="MultiFactorAuth_Disabled" xml:space="preserve">
+    <value>Two-factor authentication has been disabled for your account. Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting.</value>
+  </data>
 </root>

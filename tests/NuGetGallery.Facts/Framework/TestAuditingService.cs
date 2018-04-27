@@ -24,6 +24,11 @@ namespace NuGetGallery.Framework
 
     public static class AuditingServiceTestExtensions
     {
+        public static bool WroteRecord<T>(this IAuditingService self) where T : AuditRecord
+        {
+            return self.WroteRecord<T>(ar => true);
+        }
+
         public static bool WroteRecord<T>(this IAuditingService self, Func<T, bool> predicate) where T : AuditRecord
         {
             TestAuditingService testService = self as TestAuditingService;

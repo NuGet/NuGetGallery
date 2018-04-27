@@ -15,14 +15,19 @@ namespace NuGetGallery
     public class OrganizationsController
         : AccountsController<Organization, OrganizationAccountViewModel>
     {
+        public IDeleteAccountService DeleteAccountService { get; }
+
         public OrganizationsController(
             AuthenticationService authService,
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
             IUserService userService,
-            ITelemetryService telemetryService)
-            : base(authService, curatedFeedService, messageService, userService, telemetryService)
+            IPackageService packageService,
+            ITelemetryService telemetryService,
+            IDeleteAccountService deleteAccountService)
+            : base(authService, curatedFeedService, packageService, messageService, userService, telemetryService)
         {
+            DeleteAccountService = deleteAccountService;
         }
 
         public override string AccountAction => nameof(ManageOrganization);
@@ -274,6 +279,63 @@ namespace NuGetGallery
             catch (EntityException e)
             {
                 return Json(HttpStatusCode.BadRequest, e.Message);
+            }
+        }
+
+        protected override DeleteAccountViewModel<Organization> GetDeleteAccountViewModel(Organization account)
+        {
+            return GetDeleteOrganizationViewModel(account);
+        }
+
+        private DeleteOrganizationViewModel GetDeleteOrganizationViewModel(Organization account)
+        {
+            return new DeleteOrganizationViewModel(account, GetCurrentUser(), PackageService);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [UIAuthorize]
+        public override async Task<ActionResult> RequestAccountDeletion(string accountName = null)
+        {
+            var account = GetAccount(accountName);
+            var currentUser = GetCurrentUser();
+
+            if (account == null
+                || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
+                    != PermissionsCheckResult.Allowed)
+            {
+                return new HttpNotFoundResult();
+            }
+
+            var model = GetDeleteOrganizationViewModel(account);
+
+            if (model.HasOrphanPackages)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your organization unless you transfer ownership of all of its packages to another account.";
+
+                return RedirectToAction(nameof(DeleteRequest));
+            }
+
+            if (model.HasAdditionalMembers)
+            {
+                TempData["ErrorMessage"] = "You cannot delete your organization unless you remove all other members.";
+
+                return RedirectToAction(nameof(DeleteRequest));
+            }
+
+            var result = await DeleteAccountService.DeleteAccountAsync(account, currentUser, commitAsTransaction: true);
+
+            if (result.Success)
+            {
+                TempData["Message"] = $"Your organization, '{accountName}', was successfully deleted!";
+
+                return RedirectToAction("Organizations", "Users");
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"There was an issue deleting your organization '{accountName}'. Please contact support for assistance.";
+
+                return RedirectToAction(nameof(DeleteRequest));
             }
         }
 

@@ -12,21 +12,20 @@ namespace NuGetGallery
         /// Will clean-up the data related with an user account.
         /// The result will be:
         /// 1. The user will be removed as owner from its owned packages.
-        /// 2. Any of the packages owned only by the user will be unlisted if <paramref name="unlistOrphanPackages"/> is set to true.
+        /// 2. Any of the packages that become orphaned as its result will be handled according to <paramref name="orphanPackagePolicy"/>.
         /// 3. Any owned namespaces will be released.
-        /// 4. Any organization memberships will be removed.
-        /// 5. The user credentials will be cleaned.
-        /// 6. The user data will be cleaned.
+        /// 4. The user credentials will be cleaned.
+        /// 5. The user data will be cleaned.
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="admin">The admin that will perform the delete action.</param>
-        /// <param name="signature">The admin signature.</param>
-        /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
-        /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+        /// <param name="userToExecuteTheDelete">The user deleting the account.</param>
+        /// <param name="orphanPackagePolicy">If deleting the account creates any orphaned packages, a <see cref="AccountDeletionOrphanPackagePolicy"/> that describes how those orphans should be handled.</param>
+        /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
+        /// <param name="signature">The signature of the user deleting the account.</param>
+        Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
-            string signature,
-            bool unlistOrphanPackages,
-            bool commitAsTransaction);
+            bool commitAsTransaction,
+            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans,
+            string signature = null);
     }
 }

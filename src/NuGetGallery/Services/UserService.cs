@@ -36,6 +36,8 @@ namespace NuGetGallery
 
         public IDateTimeProvider DateTimeProvider { get; protected set; }
 
+        public ITelemetryService TelemetryService { get; protected set; }
+
         protected UserService() { }
 
         public UserService(
@@ -48,7 +50,8 @@ namespace NuGetGallery
             IContentObjectService contentObjectService,
             ISecurityPolicyService securityPolicyService,
             IDateTimeProvider dateTimeProvider,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            ITelemetryService telemetryService)
             : this()
         {
             Config = config;
@@ -60,6 +63,7 @@ namespace NuGetGallery
             ContentObjectService = contentObjectService;
             SecurityPolicyService = securityPolicyService;
             DateTimeProvider = dateTimeProvider;
+            TelemetryService = telemetryService;
         }
 
         public async Task<MembershipRequest> AddMembershipRequestAsync(Organization organization, string memberName, bool isAdmin)
@@ -214,12 +218,16 @@ namespace NuGetGallery
                     IsAdmin = request.IsAdmin
                 };
                 organization.Members.Add(membership);
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.AddOrganizationMember, membership));
             }
             else
             {
                 // If the user is already a member, update the existing membership.
                 // If the request grants admin but this member is not an admin, grant admin to the member.
                 membership.IsAdmin = membership.IsAdmin || request.IsAdmin;
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.UpdateOrganizationMember, membership));
             }
 
             await EntitiesContext.SaveChangesAsync();
@@ -247,6 +255,9 @@ namespace NuGetGallery
                 }
 
                 membership.IsAdmin = isAdmin;
+
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.UpdateOrganizationMember, membership));
+
                 await EntitiesContext.SaveChangesAsync();
             }
 
@@ -273,6 +284,9 @@ namespace NuGetGallery
             }
 
             organization.Members.Remove(membership);
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.RemoveOrganizationMember, membership));
+
             await EntitiesContext.SaveChangesAsync();
 
             return memberToRemove;
@@ -374,6 +388,14 @@ namespace NuGetGallery
 
             user.CancelChangeEmailAddress();
             await UserRepository.CommitChangesAsync();
+        }
+
+        public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
+        {
+            user.EnableMultiFactorAuthentication = enableMultiFactor;
+            await UserRepository.CommitChangesAsync();
+
+            TelemetryService.TrackUserChangedMultiFactorAuthentication(user, enableMultiFactor);
         }
 
         public async Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys)
@@ -487,8 +509,13 @@ namespace NuGetGallery
         public async Task<bool> TransformUserToOrganization(User accountToTransform, User adminUser, string token)
         {
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(accountToTransform, adminUser);
-            
-            return await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
+            var result = await EntitiesContext.TransformUserToOrganization(accountToTransform, adminUser, token);
+            if (result)
+            {
+                await Auditing.SaveAuditRecordAsync(new UserAuditRecord(accountToTransform, AuditedUserAction.TransformOrganization, adminUser, affectedMemberIsAdmin: true));
+            }
+
+            return result;
         }
 
         public async Task<Organization> AddOrganizationAsync(string username, string emailAddress, User adminUser)
@@ -526,6 +553,8 @@ namespace NuGetGallery
             OrganizationRepository.InsertOnCommit(organization);
 
             await SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(organization, adminUser, commitChanges: false);
+
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(organization, AuditedUserAction.AddOrganization, membership));
 
             await EntitiesContext.SaveChangesAsync();
 

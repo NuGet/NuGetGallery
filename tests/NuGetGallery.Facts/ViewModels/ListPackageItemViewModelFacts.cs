@@ -285,7 +285,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             // Act + Assert
-            Assert.Equal(expectedResult, listPackageItemViewModel.HasSingleOwner);
+            Assert.Equal(expectedResult, listPackageItemViewModel.HasSingleUserOwner);
         }
 
         public static IEnumerable<object[]> HasSingleOwner_Input

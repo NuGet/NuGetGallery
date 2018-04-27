@@ -21,7 +21,6 @@ namespace NuGetGallery
     public partial class UsersController
         : AccountsController<User, UserAccountViewModel>
     {
-        private readonly IPackageService _packageService;
         private readonly IPackageOwnerRequestService _packageOwnerRequestService;
         private readonly IAppConfiguration _config;
         private readonly ICredentialBuilder _credentialBuilder;
@@ -40,9 +39,8 @@ namespace NuGetGallery
             IDeleteAccountService deleteAccountService,
             ISupportRequestService supportRequestService,
             ITelemetryService telemetryService)
-            : base(authService, feedsQuery, messageService, userService, telemetryService)
+            : base(authService, feedsQuery, packageService, messageService, userService, telemetryService)
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
@@ -81,6 +79,11 @@ namespace NuGetGallery
                 return currentUser;
             }
             return null;
+        }
+
+        protected override DeleteAccountViewModel<User> GetDeleteAccountViewModel(User account)
+        {
+            return new DeleteUserViewModel(account, GetCurrentUser(), PackageService, _supportRequestService);
         }
 
         [HttpGet]
@@ -265,29 +268,13 @@ namespace NuGetGallery
         {
             return View("TransformToOrganizationFailed", new TransformAccountFailedViewModel(errorMessage));
         }
-
-        [HttpGet]
-        [UIAuthorize]
-        public virtual ActionResult DeleteRequest()
-        {
-            var currentUser = GetCurrentUser();
-
-            if (currentUser == null || currentUser.IsDeleted)
-            {
-                return HttpNotFound("User not found.");
-            }
-            
-            var model = new DeleteAccountViewModel(currentUser, currentUser, _packageService, _supportRequestService);
-
-            return View("DeleteAccount", model);
-        }
-
+        
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> RequestAccountDeletion()
+        public override async Task<ActionResult> RequestAccountDeletion(string accountName = null)
         {
-            var user = GetCurrentUser();
+            var user = GetAccount(accountName);
 
             if (user == null || user.IsDeleted)
             {
@@ -297,10 +284,10 @@ namespace NuGetGallery
             if (!user.Confirmed)
             {
                 // Unconfirmed users can be deleted immediately without creating a support request.
-                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteGalleryUserAccountAsync(userToBeDeleted: user,
+                DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
                     signature: user.Username,
-                    unlistOrphanPackages: true,
+                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
                     commitAsTransaction: true);
                 if (!accountDeleteStatus.Success)
                 {
@@ -312,36 +299,36 @@ namespace NuGetGallery
             }
 
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
-            if (!isSupportRequestCreated)
+            if (await _supportRequestService.TryAddDeleteSupportRequestAsync(user))
+            {
+                MessageService.SendAccountDeleteNotice(user);
+            }
+            else
             {
                 TempData["RequestFailedMessage"] = Strings.AccountDelete_CreateSupportRequestFails;
-                return RedirectToAction("DeleteRequest");
             }
-            MessageService.SendAccountDeleteNotice(user.ToMailAddress(), user.Username);
 
-            return RedirectToAction("DeleteRequest");
+            return RedirectToAction(nameof(DeleteRequest));
         }
 
         [HttpGet]
         [UIAuthorize(Roles = "Admins")]
         public virtual ActionResult Delete(string accountName)
         {
-            var currentUser = GetCurrentUser();
             var user = UserService.FindByUsername(accountName);
             if (user == null || user.IsDeleted || (user is Organization))
             {
                 return HttpNotFound("User not found.");
             }
-
-            var model = new DeleteAccountViewModel(user, currentUser, _packageService, _supportRequestService);
-            return View("DeleteUserAccount", model);
+            
+            return View("DeleteUserAccount", GetDeleteAccountViewModel(user));
         }
 
         [HttpDelete]
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("Delete account")]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> Delete(DeleteUserAccountViewModel model)
+        public virtual async Task<ActionResult> Delete(DeleteAccountAsAdminViewModel model)
         {
             var user = UserService.FindByUsername(model.AccountName);
             if (user == null || user.IsDeleted)
@@ -356,11 +343,11 @@ namespace NuGetGallery
             else
             {
                 var admin = GetCurrentUser();
-                var status = await _deleteAccountService.DeleteGalleryUserAccountAsync(
+                var status = await _deleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
                     signature: model.Signature,
-                    unlistOrphanPackages: model.ShouldUnlist,
+                    orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
                     commitAsTransaction: true);
                 return View("DeleteUserAccountStatus", status);
             }
@@ -408,7 +395,7 @@ namespace NuGetGallery
                 ActionsRequiringPermissions.UploadNewPackageId.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UploadNewPackageVersion.IsAllowedOnBehalfOfAccount(currentUser, account),
                 ActionsRequiringPermissions.UnlistOrRelistPackage.IsAllowedOnBehalfOfAccount(currentUser, account),
-                packageIds: _packageService.FindPackageRegistrationsByOwner(account)
+                packageIds: PackageService.FindPackageRegistrationsByOwner(account)
                                 .Select(p => p.Id)
                                 .OrderBy(i => i)
                                 .ToList());
@@ -438,7 +425,7 @@ namespace NuGetGallery
                 new ListPackageOwnerViewModel(currentUser)
             }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
 
-            var packages = _packageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
+            var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
                 .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
@@ -462,7 +449,7 @@ namespace NuGetGallery
                 .SelectMany(m => _packageOwnerRequestService.GetPackageOwnershipRequests(requestingOwner: m.Organization));
             var sent = userSent.Union(orgSent);
 
-            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, _packageService);
+            var ownerRequests = new OwnerRequestsViewModel(received, sent, currentUser, PackageService);
 
             var userReservedNamespaces = currentUser.ReservedNamespaces;
             var organizationsReservedNamespaces = currentUser.Organizations.SelectMany(m => m.Organization.ReservedNamespaces);
@@ -486,7 +473,7 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            var model = new ManageOrganizationsViewModel(currentUser, _packageService);
+            var model = new ManageOrganizationsViewModel(currentUser, PackageService);
 
             return View(model);
         }
@@ -607,7 +594,7 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = _packageService.FindPackagesByOwner(user, includeUnlisted: false)
+            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new ListPackageItemViewModel(p, currentUser)
                 {
@@ -643,7 +630,7 @@ namespace NuGetGallery
             }
             else
             {
-                if (!model.ChangePassword.EnablePasswordLogin)
+                if (model.ChangePassword.DisablePasswordLogin)
                 {
                     return await RemovePassword();
                 }
@@ -668,6 +655,33 @@ namespace NuGetGallery
                 TempData["Message"] = Strings.PasswordChanged;
                 return RedirectToAction("Account");
             }
+        }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> ChangeMultiFactorAuthentication(bool enableMultiFactor)
+        {
+            var user = GetCurrentUser();
+
+            await UserService.ChangeMultiFactorAuthentication(user, enableMultiFactor);
+
+            TempData["Message"] = string.Format(
+                enableMultiFactor ? Strings.MultiFactorAuth_Enabled : Strings.MultiFactorAuth_Disabled,
+                _config.Brand);
+
+            if (enableMultiFactor)
+            {
+                // Add the claim to remove the warning indicators for 2FA.
+                OwinContext.AddClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+            }
+            else
+            {
+                // Remove the claim from login to show warning indicators for 2FA.
+                OwinContext.RemoveClaim(NuGetClaims.EnabledMultiFactorAuthentication);
+            }
+
+            return RedirectToAction(AccountAction);
         }
 
         [HttpPost]
@@ -971,6 +985,12 @@ namespace NuGetGallery
             {
                 await AuthenticationService.RemoveCredential(user, cred);
 
+                if (cred.IsPassword())
+                {
+                    // Clear the password login claim, to remove warnings.
+                    OwinContext.RemoveClaim(NuGetClaims.PasswordLogin);
+                }
+
                 // Notify the user of the change
                 MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
 
@@ -991,7 +1011,7 @@ namespace NuGetGallery
                 .Sum(p => p.Value.Count);
 
             model.ChangePassword = model.ChangePassword ?? new ChangePasswordViewModel();
-            model.ChangePassword.EnablePasswordLogin = model.HasPassword;
+            model.ChangePassword.DisablePasswordLogin = !model.HasPassword;
         }
 
         private Dictionary<CredentialKind, List<CredentialViewModel>> GetCredentialGroups(User user)

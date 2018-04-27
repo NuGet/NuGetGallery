@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
@@ -1146,7 +1146,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                     }
                 };
                 controller.SetCurrentUser(new User()
@@ -1182,7 +1182,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new2",
@@ -1223,7 +1223,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",
@@ -1272,7 +1272,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = false,
+                        DisablePasswordLogin = true,
                     }
                 };
 
@@ -1300,7 +1300,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",
@@ -1369,6 +1369,40 @@ namespace NuGetGallery
                     .Select(e => e.ErrorMessage)
                     .ToArray();
                 Assert.Equal(errorMessages, new[] { Strings.UserIsNotYetConfirmed });
+            }
+        }
+
+        public class TheChangeMultiFactorAuthenticationAction : TestContainer
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task SettingsAreUpdated_RedirectsBackWithMessage(bool enable2FA)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+                user.EnableMultiFactorAuthentication = !enable2FA;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var userServiceMock = GetMock<IUserService>();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
+
+                // Assert
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA));
+                Assert.NotNull(controller.TempData["Message"]);
+                var identity = controller.OwinContext.Authentication.User.Identity as ClaimsIdentity;
+                Assert.NotNull(identity);
+                Assert.Equal(enable2FA, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
         }
 
@@ -1999,7 +2033,7 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: "NotFoundUser");
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
             }
 
             [Fact]
@@ -2021,11 +2055,13 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: userName);
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
             }
 
-            [Fact]
-            public void DeleteHappyAccount()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DeleteHappyAccount(bool withPendingIssues)
             {
                 // Arrange
                 string userName = "DeletedUser";
@@ -2033,6 +2069,7 @@ namespace NuGetGallery
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.IsDeleted = false;
+                testUser.Key = 1;
                 controller.SetCurrentUser(fakes.Admin);
 
                 PackageRegistration packageRegistration = new PackageRegistration();
@@ -2048,6 +2085,18 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(userPackage);
 
                 List<Package> userPackages = new List<Package>() { userPackage };
+                List<Issue> issues = new List<Issue>();
+                if (withPendingIssues)
+                {
+                    issues.Add(new Issue()
+                    {
+                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = userName,
+                        UserKey = testUser.Key,
+                        IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
+                    });
+                }
 
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(userName))
@@ -2059,15 +2108,16 @@ namespace NuGetGallery
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
                 GetMock<ISupportRequestService>()
-                    .Setup(x => x.GetIssues(null, null, null, null))
-                    .Returns(new Issue[0]);
+                    .Setup(stub => stub.GetIssues(null, null, null, null))
+                    .Returns(issues);
 
                 // act
-                var model = ResultAssert.IsView<DeleteAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+                var model = ResultAssert.IsView<DeleteUserViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
                 Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
 
@@ -2076,19 +2126,12 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public void DeleteAccountRequestView(bool withPendingIssues)
+            public void ShowsViewWithCorrectData(bool withPendingIssues)
             {
                 // Arrange
-                string userName = "DeletedUser";
-                string emailAddress = $"{userName}@coldmail.com";
-                int userKey = 1;
-
                 var controller = GetController<UsersController>();
                 var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.EmailAddress = emailAddress;
-                testUser.Key = userKey;
-                testUser.IsDeleted = false;
+                var testUser = fakes.User;
 
                 controller.SetCurrentUser(testUser);
                 PackageRegistration packageRegistration = new PackageRegistration();
@@ -2110,15 +2153,15 @@ namespace NuGetGallery
                     issues.Add(new Issue()
                     {
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
-                        OwnerEmail = emailAddress,
-                        CreatedBy = userName,
-                        UserKey = 1,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = testUser.Username,
+                        UserKey = testUser.Key,
                         IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(testUser.Username))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2129,22 +2172,54 @@ namespace NuGetGallery
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
-                var model = (DeleteAccountViewModel)result.Model;
+                var model = ResultAssert.IsView<DeleteUserViewModel>(result, "DeleteAccount");
 
                 // Assert
-                Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
-                Assert.Equal<bool>(true, model.HasOrphanPackages);
-                Assert.Equal<bool>(withPendingIssues, model.HasPendingRequests);
+                Assert.Equal(testUser.Username, model.AccountName);
+                Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
 
         public class TheRequestAccountDeletionAction : TestContainer
         {
+            [Fact]
+            public async Task ReturnsNotFoundWithoutCurrentUser()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act & Assert
+                await ReturnsNotFound(controller);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundWithDeletedCurrentUser()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                var currentUser = Get<Fakes>().User;
+                currentUser.IsDeleted = true;
+                controller.SetCurrentUser(currentUser);
+
+                // Act & Assert
+                await ReturnsNotFound(controller);
+            }
+
+            private async Task ReturnsNotFound(UsersController controller)
+            {
+                var result = await controller.RequestAccountDeletion(string.Empty);
+                
+                var notFoundResult = ResultAssert.IsNotFound(result);
+                Assert.Equal("User not found.", notFoundResult.StatusDescription);
+            }
+
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public async Task RequestDeleteAccountAsync(bool successOnSentRequest)
+            public async Task SucceedsIfSupportRequestIsAdded(bool successOnSentRequest)
             {
                 // Arrange
                 string userName = "DeletedUser";
@@ -2178,9 +2253,13 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
+                Assert.Equal("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
-                Assert.Equal<bool>(!successOnSentRequest, tempData);
+                Assert.Equal(!successOnSentRequest, tempData);
+                GetMock<IMessageService>()
+                    .Verify(
+                        stub => stub.SendAccountDeleteNotice(testUser), 
+                        successOnSentRequest ? Times.Once() : Times.Never());
             }
 
             /// <summary>
@@ -2205,7 +2284,7 @@ namespace NuGetGallery
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(stub => stub.DeleteGalleryUserAccountAsync(testUser, It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<AccountDeletionOrphanPackagePolicy>(), It.IsAny<string>()))
                     .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
                     {
                         AccountName = userName,
