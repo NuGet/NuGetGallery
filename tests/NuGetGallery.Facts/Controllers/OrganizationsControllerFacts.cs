@@ -1510,6 +1510,30 @@ namespace NuGetGallery
 
                 _certificateService.VerifyAll();
             }
+
+            [Fact]
+            public void GetCertificate_WhenOrganizationHasCertificateAndCurrentUserIsOrganizationCollaborator_ReturnsOK()
+            {
+                _organization.Members.Single().IsAdmin = false;
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.False(viewModel.CanDelete);
+                Assert.Null(viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
         }
 
         public class TheGetCertificatesAction : AccountsControllerTestContainer
@@ -1626,6 +1650,30 @@ namespace NuGetGallery
 
                 Assert.True(viewModel.CanDelete);
                 Assert.Equal($"/organization/{_organization.Username}/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void GetCertificates_WhenOrganizationHasCertificateAndCurrentUserIsOrganizationCollaborator_ReturnsOK()
+            {
+                _organization.Members.Single().IsAdmin = false;
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificates(_organization.Username);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.False(viewModel.CanDelete);
+                Assert.Null(viewModel.DeleteUrl);
                 Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
                 Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
                 Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
