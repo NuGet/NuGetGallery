@@ -392,6 +392,8 @@ namespace NuGetGallery
 
         public virtual async Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor)
         {
+            await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, enableMultiFactor ? AuditedUserAction.EnabledMultiFactorAuthentication : AuditedUserAction.DisabledMultiFactorAuthentication));
+
             user.EnableMultiFactorAuthentication = enableMultiFactor;
             await UserRepository.CommitChangesAsync();
 
