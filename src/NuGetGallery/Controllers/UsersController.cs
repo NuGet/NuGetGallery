@@ -9,12 +9,13 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
-using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -26,7 +27,7 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
         private readonly IDeleteAccountService _deleteAccountService;
         private readonly ISupportRequestService _supportRequestService;
-        
+
         public UsersController(
             ICuratedFeedService feedsQuery,
             IUserService userService,
@@ -38,8 +39,18 @@ namespace NuGetGallery
             ICredentialBuilder credentialBuilder,
             IDeleteAccountService deleteAccountService,
             ISupportRequestService supportRequestService,
-            ITelemetryService telemetryService)
-            : base(authService, feedsQuery, packageService, messageService, userService, telemetryService)
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService,
+            ICertificateService certificateService)
+            : base(
+                  authService,
+                  feedsQuery,
+                  packageService,
+                  messageService,
+                  userService,
+                  telemetryService,
+                  securityPolicyService,
+                  certificateService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -47,7 +58,7 @@ namespace NuGetGallery
             _deleteAccountService = deleteAccountService ?? throw new ArgumentNullException(nameof(deleteAccountService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
         }
-        
+
         public override string AccountAction => nameof(Account);
 
         protected internal override ViewMessages Messages => new ViewMessages
@@ -99,7 +110,7 @@ namespace NuGetGallery
         public virtual ActionResult TransformToOrganization()
         {
             var accountToTransform = GetCurrentUser();
-            
+
             string errorReason;
             if (!UserService.CanTransformUserToOrganization(accountToTransform, out errorReason))
             {
@@ -165,7 +176,7 @@ namespace NuGetGallery
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
             return Redirect(Url.LogOn(returnUrl));
         }
-        
+
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         [ActionName(RouteName.TransformToOrganizationConfirmation)]
@@ -246,7 +257,7 @@ namespace NuGetGallery
         {
             var accountToTransform = GetCurrentUser();
             var adminUser = accountToTransform.OrganizationMigrationRequest?.AdminUser;
-            
+
             if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
             {
                 MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
@@ -400,7 +411,7 @@ namespace NuGetGallery
                                 .OrderBy(i => i)
                                 .ToList());
         }
-        
+
         [HttpGet]
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual ActionResult Thanks()
@@ -428,11 +439,11 @@ namespace NuGetGallery
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
-                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService)).OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed)
-                .Select(p => new ListPackageItemViewModel(p, currentUser)).OrderBy(p => p.Id)
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService)).OrderBy(p => p.Id)
                 .ToList();
 
             // find all received ownership requests
@@ -583,7 +594,7 @@ namespace NuGetGallery
 
             return RedirectToAction("PasswordChanged");
         }
-        
+
         [HttpGet]
         public virtual ActionResult Profiles(string username, int page = 1)
         {
@@ -789,7 +800,7 @@ namespace NuGetGallery
                 Response.StatusCode = (int)HttpStatusCode.BadRequest;
                 return Json(Strings.UserNotFound);
             }
-            
+
             var resolvedScopes = BuildScopes(scopeOwner, scopes, subjects);
             if (!VerifyScopes(resolvedScopes))
             {
@@ -849,6 +860,11 @@ namespace NuGetGallery
             return Json(new ApiKeyViewModel(credentialViewModel));
         }
 
+        protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)
+        {
+            return Url.DeleteUserCertificateTemplate();
+        }
+
         private async Task<CredentialViewModel> GenerateApiKeyInternal(string description, ICollection<Scope> scopes, TimeSpan? expiration)
         {
             var user = GetCurrentUser();
@@ -873,7 +889,7 @@ namespace NuGetGallery
             { NuGetScopes.PackageUnlist, new [] { ActionsRequiringPermissions.UnlistOrRelistPackage } },
             { NuGetScopes.PackageVerify, new [] { ActionsRequiringPermissions.VerifyPackage } },
         };
-        
+
         private bool VerifyScopes(IEnumerable<Scope> scopes)
         {
             if (!scopes.Any())
@@ -889,7 +905,7 @@ namespace NuGetGallery
                     // All scopes must have an allowed action.
                     return false;
                 }
-                
+
                 // Get the list of actions allowed by this scope.
                 var actions = new List<IActionRequiringEntityPermissions>();
                 foreach (var allowedAction in AllowedActionToActionRequiringEntityPermissionsMap.Keys)

@@ -16,24 +16,28 @@ namespace NuGetGallery
 
         internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "Organizations/ManageOrganization",
+            "Organizations/AddMember",
+            "Organizations/AddCertificate",
+            "Organizations/CancelMemberRequest",
             "Organizations/ChangeEmailSubscription",
+            "Organizations/ConfirmMemberRequest",
+            "Organizations/DeleteCertificate",
+            "Organizations/DeleteMember",
+            "Organizations/GetCertificate",
+            "Organizations/GetCertificates",
+            "Organizations/ManageOrganization",
+            "Organizations/RejectMemberRequest",
+            "Organizations/UpdateMember",
+            "Packages/CancelPendingOwnershipRequest",
             "Packages/ConfirmPendingOwnershipRequest",
             "Packages/RejectPendingOwnershipRequest",
-            "Packages/CancelPendingOwnershipRequest",
+            "Packages/SetRequiredSigner",
             "Users/Confirm",
             "Users/ConfirmTransform",
             "Users/Delete",
             "Users/Profiles",
-            "Users/ResetPassword",
-            "Users/ConfirmTransform",
             "Users/RejectTransform",
-            "Organizations/AddMember",
-            "Organizations/ConfirmMemberRequest",
-            "Organizations/RejectMemberRequest",
-            "Organizations/CancelMemberRequest",
-            "Organizations/UpdateMember",
-            "Organizations/DeleteMember",
+            "Users/ResetPassword",
         };
 
         internal static string DefaultObfuscatedUrl(Uri url)

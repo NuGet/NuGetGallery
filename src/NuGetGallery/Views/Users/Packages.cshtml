@@ -7,6 +7,8 @@
 }
 
 <section role="main" class="container main-container page-manage-packages">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <div class="breadcrumb-menu">
@@ -20,7 +22,7 @@
                     </span>
                 </div>
             </div>
-            <hr class="breadcrumb-divider"/>
+            <hr class="breadcrumb-divider" />
 
             @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
                 @<text>
@@ -45,43 +47,43 @@
             @if (Model.ReservedNamespaces.ReservedNamespaces.Any())
             {
                 @ViewHelpers.Section(this, "namespaces",
-                    @<text>Reserved Namespaces</text>,
-                    @<text>
-                        <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
-                    </text>,
-                    @<text>
-                        <div class="row user-package-list">
-                            <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
-                        </div>
-                    </text>, expanded: false)
+                        @<text>Reserved Namespaces</text>,
+                        @<text>
+                            <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
+                            </div>
+                        </text>, expanded: false)
             }
 
             @if (Model.OwnerRequests.Received.Requests.Any())
             {
                 @ViewHelpers.Section(this, "requests-received",
-                    @<text>Ownership Requests (Received)</text>,
-                    @<text>
-                        <span id="requests-received-data" data-bind="text: RequestsReceived.VisibleRequestsHeading()"></span>
-                    </text>,
-                    @<text>
-                        <div class="row user-package-list">
-                            <div data-bind="template: { name: 'manage-owner-requests', data: RequestsReceived }"></div>
-                        </div>
-                    </text>, expanded: false)
+                        @<text>Ownership Requests (Received)</text>,
+                        @<text>
+                            <span id="requests-received-data" data-bind="text: RequestsReceived.VisibleRequestsHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-owner-requests', data: RequestsReceived }"></div>
+                            </div>
+                        </text>, expanded: false)
             }
 
             @if (Model.OwnerRequests.Sent.Requests.Any())
             {
                 @ViewHelpers.Section(this, "requests-sent",
-                    @<text>Ownership Requests (Sent)</text>,
-                    @<text>
-                        <span id="requests-sent-data" data-bind="text: RequestsSent.VisibleRequestsHeading()"></span>
-                    </text>,
-                    @<text>
-                        <div class="row user-package-list">
-                            <div data-bind="template: { name: 'manage-owner-requests', data: RequestsSent }"></div>
-                        </div>
-                    </text>, expanded: false)
+                        @<text>Ownership Requests (Sent)</text>,
+                        @<text>
+                            <span id="requests-sent-data" data-bind="text: RequestsSent.VisibleRequestsHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-owner-requests', data: RequestsSent }"></div>
+                            </div>
+                        </text>, expanded: false)
             }
         </div>
     </div>
@@ -97,6 +99,7 @@
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
+                        <th>Signing Owner</th>
                         <th>Downloads</th>
                         <th>Latest Version</th>
                         <th><span class="hidden">Icon</span></th>
@@ -123,6 +126,23 @@
                                 <span class="ms-noWrap" data-bind="text: '+' + ($index() - 1)"></span>
                                 <!-- /ko -->
                             </span>
+                        </td>
+                        <td class="align-middle">
+                            <!-- ko if: $data.ShowTextBox -->
+                            <span data-bind="text: RequiredSigner" />
+                            <!-- /ko -->
+                            <!-- ko ifnot: $data.ShowTextBox -->
+                            <select class="form-control"
+                                    aria-label="Select the signing owner"
+                                    data-bind="options: AllSigners,
+                                    optionsText: 'OptionText',
+                                    optionsValue: 'Username',
+                                    enable: CanEditRequiredSigner,
+                                    visible: ShowRequiredSigner,
+                                    value: RequiredSigner,
+                                    event: { change: $data.OnRequiredSignerChange },
+                                    attr: { title: RequiredSignerMessage }"></select>
+                            <!-- /ko -->
                         </td>
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: FormattedDownloadCount"></span>
@@ -277,6 +297,7 @@
     private RouteUrlTemplate<IPackageVersionModel> editUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
     private RouteUrlTemplate<IPackageVersionModel> deleteUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> setRequiredSignerUrlTemplate;
 
     private RouteUrlTemplate<string> searchUrlTemplate;
 
@@ -284,7 +305,7 @@
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
     private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
 
-    dynamic GetSerializablePackage(ListPackageItemViewModel p)
+    dynamic GetSerializablePackage(ListPackageItemRequiredSignerViewModel p)
     {
         if (packageUrlTemplate == null)
         {
@@ -306,12 +327,21 @@
             deleteUrlTemplate = Url.DeletePackageTemplate();
         }
 
+        if (setRequiredSignerUrlTemplate == null)
+        {
+            setRequiredSignerUrlTemplate = Url.SetRequiredSignerTemplate();
+        }
+
         return new
         {
             Id = p.Id.Abbreviate(40),
             Owners = GetSerializableOwners(p.Owners),
             p.TotalDownloadCount,
             LatestVersion = p.FullVersion.Abbreviate(15),
+            RequiredSigner = GetSerializableSigner(p.RequiredSigner),
+            p.RequiredSignerMessage,
+            AllSigners = GetSerializableSigners(p.AllSigners),
+            SetRequiredSignerUrl = setRequiredSignerUrlTemplate.Resolve(p),
             PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
             PackageUrl = packageUrlTemplate.Resolve(p),
             EditUrl = editUrlTemplate.Resolve(p),
@@ -319,7 +349,10 @@
             DeleteUrl = deleteUrlTemplate.Resolve(p),
             CanEdit = p.CanEdit,
             CanManageOwners = p.CanManageOwners,
-            CanDelete = p.CanUnlistOrRelist
+            CanDelete = p.CanUnlistOrRelist,
+            p.CanEditRequiredSigner,
+            p.ShowRequiredSigner,
+            p.ShowTextBox
         };
     }
 
@@ -397,10 +430,38 @@
             IsOrganization = user is Organization
         };
     }
+
+    dynamic GetSerializableSigners(IEnumerable<SignerViewModel> signers)
+    {
+        return signers.Select(signer => GetSerializableSigner(signer));
+    }
+
+    dynamic GetSerializableSigner(SignerViewModel signer)
+    {
+        if (signer == null)
+        {
+            return null;
+        }
+
+        return new
+        {
+            signer.Username,
+            OptionText = signer.DisplayText,
+            signer.HasCertificate
+        };
+    }
 }
 
 @section BottomScripts {
     <script type="text/javascript">
+        var strings_RequiredSigner_ThisAction = "@Html.Raw(Strings.RequiredSigner_ThisAction)";
+        var strings_RequiredSigner_OwnerHasNoCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasNoCertificate)";
+        var strings_RequiredSigner_OwnerHasAtLeastOneCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasAtLeastOneCertificate)";
+        var strings_RequiredSigner_AnyWithUnsignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithUnsignedResult)";
+        var strings_RequiredSigner_AnyWithMixedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithMixedResult)";
+        var strings_RequiredSigner_AnyWithSignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithSignedResult)";
+        var strings_RequiredSigner_Confirm = "@Html.Raw(Strings.RequiredSigner_Confirm)";
+
         var initialData = @Html.Raw(JsonConvert.SerializeObject(new
                      {
                          Owners = Model.Owners,

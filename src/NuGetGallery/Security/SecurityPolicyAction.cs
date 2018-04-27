@@ -8,6 +8,8 @@ namespace NuGetGallery.Security
         PackagePush,
         PackageVerify,
         ManagePackageOwners,
-        JoinOrganization
+        JoinOrganization,
+        AutomaticallyOverwriteRequiredSigner,
+        ControlRequiredSigner
     }
 }

@@ -9,9 +9,9 @@ namespace NuGetGallery
     {
         public IEnumerable<ListPackageOwnerViewModel> Owners { get; set; }
 
-        public IEnumerable<ListPackageItemViewModel> ListedPackages { get; set; }
+        public IEnumerable<ListPackageItemRequiredSignerViewModel> ListedPackages { get; set; }
 
-        public IEnumerable<ListPackageItemViewModel> UnlistedPackages { get; set; }
+        public IEnumerable<ListPackageItemRequiredSignerViewModel> UnlistedPackages { get; set; }
 
         public OwnerRequestsViewModel OwnerRequests { get; set; }
 

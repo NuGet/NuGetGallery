@@ -5,9 +5,12 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -36,13 +39,19 @@ namespace NuGetGallery
 
         public ITelemetryService TelemetryService { get; }
 
+        public ISecurityPolicyService SecurityPolicyService { get; }
+
+        public ICertificateService CertificateService { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
             ICuratedFeedService curatedFeedService,
             IPackageService packageService,
             IMessageService messageService,
             IUserService userService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService,
+            ICertificateService certificateService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
@@ -50,6 +59,8 @@ namespace NuGetGallery
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
             TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            SecurityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
+            CertificateService = certificateService ?? throw new ArgumentNullException(nameof(certificateService));
         }
 
         public abstract string AccountAction { get; }
@@ -87,7 +98,7 @@ namespace NuGetGallery
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.Unauthorized);
             }
-            
+
             var alreadyConfirmed = account.UnconfirmedEmailAddress == null;
 
             ConfirmationViewModel model;
@@ -204,14 +215,14 @@ namespace NuGetGallery
             {
                 return AccountView(account, model);
             }
-            
+
             if (account.HasPasswordCredential())
             {
                 if (!ModelState.IsValidField("ChangeEmail.Password"))
                 {
                     return AccountView(account, model);
                 }
-                
+
                 if (!AuthenticationService.ValidatePasswordCredential(account.Credentials, model.ChangeEmail.Password, out var _))
                 {
                     ModelState.AddModelError("ChangeEmail.Password", Strings.CurrentPasswordIncorrect);
@@ -270,7 +281,7 @@ namespace NuGetGallery
 
             return RedirectToAction(AccountAction);
         }
-        
+
         [HttpGet]
         [UIAuthorize]
         public virtual ActionResult DeleteRequest(string accountName = null)
@@ -292,7 +303,7 @@ namespace NuGetGallery
         }
 
         protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
-        
+
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
 
         protected virtual TUser GetAccount(string accountName)
@@ -310,7 +321,7 @@ namespace NuGetGallery
             }
 
             model = model ?? Activator.CreateInstance<TAccountViewModel>();
-            
+
             UpdateAccountViewModel(account, model);
 
             return View(AccountAction, model);
@@ -340,5 +351,193 @@ namespace NuGetGallery
             model.ChangeNotifications.EmailAllowed = account.EmailAllowed;
             model.ChangeNotifications.NotifyPackagePushed = account.NotifyPackagePushed;
         }
+
+        [HttpPost]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("add a certificate")]
+        public virtual async Task<JsonResult> AddCertificate(string accountName, HttpPostedFileBase uploadFile)
+        {
+            if (uploadFile == null)
+            {
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.CertificateFileIsRequired });
+            }
+
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
+            }
+
+            Certificate certificate;
+
+            try
+            {
+                using (var uploadStream = uploadFile.InputStream)
+                {
+                    certificate = await CertificateService.AddCertificateAsync(uploadFile);
+                }
+
+                await CertificateService.ActivateCertificateAsync(certificate.Thumbprint, account);
+            }
+            catch (UserSafeException ex)
+            {
+                ex.Log();
+
+                return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
+            }
+
+            var activeCertificateCount = CertificateService.GetCertificates(account).Count();
+
+            if (activeCertificateCount == 1 &&
+                SecurityPolicyService.IsSubscribed(account, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
+            {
+                await PackageService.SetRequiredSignerAsync(account);
+            }
+
+            return Json(HttpStatusCode.Created, new { certificate.Thumbprint });
+        }
+
+        [HttpDelete]
+        [UIAuthorize]
+        [ValidateAntiForgeryToken]
+        [RequiresAccountConfirmation("delete a certificate")]
+        public virtual async Task<JsonResult> DeleteCertificate(string accountName, string thumbprint)
+        {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                return Json(HttpStatusCode.BadRequest);
+            }
+
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
+            }
+
+            await CertificateService.DeactivateCertificateAsync(thumbprint, account);
+
+            return Json(HttpStatusCode.OK);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult GetCertificates(string accountName)
+        {
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, account)
+                != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden);
+            }
+
+            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                == PermissionsCheckResult.Allowed;
+            var template = GetDeleteCertificateForAccountTemplate(accountName);
+
+            var certificates = CertificateService.GetCertificates(account)
+                .Select(certificate =>
+                {
+                    string deactivateUrl = null;
+
+                    if (canManage)
+                    {
+                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    }
+
+                    return new ListCertificateItemViewModel(certificate, deactivateUrl);
+                });
+
+            return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        public virtual JsonResult GetCertificate(string accountName, string thumbprint)
+        {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                return Json(HttpStatusCode.BadRequest);
+            }
+
+            var currentUser = GetCurrentUser();
+            var account = GetAccount(accountName);
+
+            if (currentUser == null)
+            {
+                return Json(HttpStatusCode.Unauthorized);
+            }
+
+            if (account == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            if (ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, account)
+                != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Forbidden);
+            }
+
+            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                == PermissionsCheckResult.Allowed;
+            var template = GetDeleteCertificateForAccountTemplate(accountName);
+
+            var certificates = CertificateService.GetCertificates(account)
+                .Where(certificate => certificate.Thumbprint == thumbprint)
+                .Select(certificate =>
+                {
+                    string deactivateUrl = null;
+
+                    if (canManage)
+                    {
+                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    }
+
+                    return new ListCertificateItemViewModel(certificate, deactivateUrl);
+                });
+
+            return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+        }
+
+        protected abstract RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName);
     }
 }
