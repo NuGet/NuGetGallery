@@ -318,7 +318,7 @@ namespace NuGetGallery
             var user = UserService.FindByUsername(accountName);
             if (user == null || user.IsDeleted || (user is Organization))
             {
-                return HttpNotFound("User not found.");
+                return HttpNotFound();
             }
             
             return View("DeleteUserAccount", GetDeleteAccountViewModel(user));
