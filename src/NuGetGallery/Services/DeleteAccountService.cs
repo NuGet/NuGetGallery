@@ -210,8 +210,9 @@ namespace NuGetGallery
             foreach (var membership in user.Organizations.ToArray())
             {
                 var organization = membership.Organization;
-                var collaborators = organization.Members.Where(m => !m.IsAdmin).ToList();
-                var memberCount = organization.Members.Count();
+                var members = organization.Members.ToList();
+                var collaborators = members.Where(m => !m.IsAdmin).ToList();
+                var memberCount = members.Count();
                 user.Organizations.Remove(membership);
 
                 if (memberCount < 2)
