@@ -125,7 +125,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
-        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
+        ///If you want to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
         public static string AccountIsLinkedToAnotherExternalAccount {
             get {
@@ -723,7 +723,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
+        ///   Looks up a localized string similar to The email address &apos;{0}&apos; is already in use by a different account..
         /// </summary>
         public static string EmailAddressBeingUsed {
             get {
@@ -1020,33 +1020,22 @@ namespace NuGetGallery {
                 return ResourceManager.GetString("MissingRequiredConfigurationValue", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Two-factor authentication has been disabled for your account. Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting..
+        /// </summary>
+        public static string MultiFactorAuth_Disabled {
+            get {
+                return ResourceManager.GetString("MultiFactorAuth_Disabled", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}..
         /// </summary>
         public static string MultiFactorAuth_Enabled {
             get {
                 return ResourceManager.GetString("MultiFactorAuth_Enabled", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Two-factor authentication has been disabled for your account.Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting..
-        /// </summary>
-        public static string MultiFactorAuth_Disabled
-        {
-            get
-            {
-                return ResourceManager.GetString("MultiFactorAuth_Disabled", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
-        /// </summary>
-        public static string MultipleMatchingCredentials {
-            get {
-                return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
             }
         }
         
@@ -1056,6 +1045,15 @@ namespace NuGetGallery {
         public static string MultiFactorAuth_LoginUpdate {
             get {
                 return ResourceManager.GetString("MultiFactorAuth_LoginUpdate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Multiple Credentials match &apos;{0}&apos; credential with Key {1}.
+        /// </summary>
+        public static string MultipleMatchingCredentials {
+            get {
+                return ResourceManager.GetString("MultipleMatchingCredentials", resourceCulture);
             }
         }
         

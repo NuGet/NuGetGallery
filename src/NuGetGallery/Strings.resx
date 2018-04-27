@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmailAddressBeingUsed" xml:space="preserve">
-    <value>The email address '{0}' is being used.</value>
+    <value>The email address '{0}' is already in use by a different account.</value>
   </data>
   <data name="UsernameNotAvailable" xml:space="preserve">
     <value>The username '{0}' is not available.</value>
@@ -729,7 +729,7 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
     <value>The account with the email {0} is linked to another Microsoft account.
-If you wish to update the linked Microsoft account you can do so from the account settings page.</value>
+If you want to update the linked Microsoft account you can do so from the account settings page.</value>
   </data>
   <data name="ChangeCredential_Failed" xml:space="preserve">
     <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>

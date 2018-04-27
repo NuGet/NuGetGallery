@@ -1027,7 +1027,8 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = version,
-                    PackageRegistration = packageRegistration
+                    PackageRegistration = packageRegistration,
+                    User = new User("userThatPushed")
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -1046,7 +1047,7 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package published - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just published on {TestGalleryOwner.DisplayName}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just published on {TestGalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
 
             [Fact]
