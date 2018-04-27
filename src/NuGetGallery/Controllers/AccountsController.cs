@@ -281,7 +281,7 @@ namespace NuGetGallery
 
             return RedirectToAction(AccountAction);
         }
-        
+
         [HttpGet]
         [UIAuthorize]
         public virtual ActionResult DeleteRequest(string accountName = null)
@@ -303,7 +303,7 @@ namespace NuGetGallery
         }
 
         protected abstract DeleteAccountViewModel<TUser> GetDeleteAccountViewModel(TUser account);
-        
+
         public abstract Task<ActionResult> RequestAccountDeletion(string accountName = null);
 
         protected virtual TUser GetAccount(string accountName)
@@ -469,12 +469,19 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
+            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                == PermissionsCheckResult.Allowed;
             var template = GetDeleteCertificateForAccountTemplate(accountName);
 
             var certificates = CertificateService.GetCertificates(account)
                 .Select(certificate =>
                 {
-                    var deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    string deactivateUrl = null;
+
+                    if (canManage)
+                    {
+                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    }
 
                     return new ListCertificateItemViewModel(certificate, deactivateUrl);
                 });
@@ -510,13 +517,20 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
+            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
+                == PermissionsCheckResult.Allowed;
             var template = GetDeleteCertificateForAccountTemplate(accountName);
 
             var certificates = CertificateService.GetCertificates(account)
                 .Where(certificate => certificate.Thumbprint == thumbprint)
                 .Select(certificate =>
                 {
-                    var deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    string deactivateUrl = null;
+
+                    if (canManage)
+                    {
+                        deactivateUrl = template.Resolve(certificate.Thumbprint);
+                    }
 
                     return new ListCertificateItemViewModel(certificate, deactivateUrl);
                 });

@@ -51,6 +51,8 @@
             </div>
         </div>
 
+        @if (Model.CanManage)
+        {
         <div class="collapse in" id="upload-certificate-form" aria-expanded="true">
             @Html.ValidationSummary(true)
 
@@ -71,5 +73,6 @@
 
             <div id="validation-failure-container" class="hidden"></div>
         </div>
+        }
     </text>,
     expanded: false)
