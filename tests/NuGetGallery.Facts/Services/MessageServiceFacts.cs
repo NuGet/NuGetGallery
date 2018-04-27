@@ -1407,7 +1407,8 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = version,
-                    PackageRegistration = packageRegistration
+                    PackageRegistration = packageRegistration,
+                    User = new User("userThatPushed")
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -1427,7 +1428,7 @@ namespace NuGetGallery
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package uploaded - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.DoesNotContain("publish", message.Subject);
                 Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just uploaded to {TestGalleryOwner.DisplayName}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
+                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) was just uploaded to {TestGalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({supportUrl}).", message.Body);
             }
 
             [Fact]
@@ -1446,7 +1447,8 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = "1.2.3",
-                    PackageRegistration = packageRegistration
+                    PackageRegistration = packageRegistration,
+                    User = new User("userThatPushed")
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -1477,7 +1479,8 @@ namespace NuGetGallery
                 var package = new Package
                 {
                     Version = "1.2.3",
-                    PackageRegistration = packageRegistration
+                    PackageRegistration = packageRegistration,
+                    User = new User("userThatPushed")
                 };
                 packageRegistration.Packages.Add(package);
 
