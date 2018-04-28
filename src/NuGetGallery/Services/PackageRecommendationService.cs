@@ -27,8 +27,18 @@ namespace NuGetGallery
         public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package)
         {
             string reportName = GetReportName(package);
-            var report = await _reportService.Load(reportName);
-            var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report);
+            StatisticsReport report;
+            try
+            {
+                report = await _reportService.Load(reportName);
+            }
+            catch (StatisticsReportNotFoundException ex)
+            {
+                QuietLog.LogHandledException(ex);
+                return Enumerable.Empty<ListPackageItemViewModel>();
+            }
+
+            var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report.Content);
 
             string targetId = recommendedPackages.Id;
             Debug.Assert(string.Equals(targetId, package.Title, StringComparison.OrdinalIgnoreCase));
