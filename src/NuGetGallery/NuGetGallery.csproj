@@ -1895,7 +1895,7 @@
     <Compile Include="ViewModels\PackageViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
-    <Compile Include="ViewModels\RecommendedPackageViewModel.cs" />
+    <Compile Include="ViewModels\RecommendedPackages.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />

@@ -486,7 +486,7 @@
                 @foreach (var recommendation in Model.RecommendedPackages)
                 {
                     <li>
-                        <a href="@recommendation.GalleryPageUrl">
+                        <a href="@Url.Package(recommendation.Id)">
                             <img width="36" height="36" src="@recommendation.IconUrl" />
                             @recommendation.Id
                         </a>

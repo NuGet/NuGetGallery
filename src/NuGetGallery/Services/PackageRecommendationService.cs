@@ -3,55 +3,58 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
     public class PackageRecommendationService : IPackageRecommendationService
     {
+        private readonly IPackageService _packageService;
         private readonly IReportService _reportService;
 
-        public PackageRecommendationService(IReportService reportService)
+        public PackageRecommendationService(
+            IPackageService packageService,
+            IReportService reportService)
         {
+            _packageService = packageService;
             _reportService = reportService;
         }
 
-        public async Task<IEnumerable<RecommendedPackageViewModel>> GetRecommendedPackagesAsync(Package package)
+        public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package)
         {
-            string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(package.Title));
-            string reportName = $"{encodedId}.json";
-
+            string reportName = GetReportName(package);
             var report = await _reportService.Load(reportName);
-            var reportJson = JObject.Parse(report.Content);
+            var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report);
 
-            string targetId = reportJson["Id"];
-            Debug.Assert(targetId == package.Title);
+            string targetId = recommendedPackages.Id;
+            Debug.Assert(string.Equals(targetId, package.Title, StringComparison.OrdinalIgnoreCase));
 
-            return reportJson["Recommendations"].Select(
-                item => CreateViewModel(recommendationId: (string)item));
+            var recommendationIds = recommendedPackages.Recommendations;
+            return recommendationIds.Select(
+                id => new ListPackageItemViewModel(
+                    _packageService.FindAbsoluteLatestPackageById(id),
+                    // We don't need to know about the user's permissions for the recommendations.
+                    currentUser: null));
         }
 
-        private static string GetHexadecimalString(byte[] bytes)
+        private static string GetReportName(Package package)
         {
-            var sb = new StringBuilder(capacity: bytes.Length * 2);
-            foreach (byte b in bytes)
+            string GetHexadecimalString(byte[] bytes)
             {
-                sb.Append(b.ToString("x2"));
+                var sb = new StringBuilder(capacity: bytes.Length * 2);
+                foreach (byte b in bytes)
+                {
+                    sb.Append(b.ToString("x2"));
+                }
+                return sb.ToString();
             }
-            return sb.ToString();
-        }
 
-        private static RecommendedPackageViewModel CreateViewModel(string recommendationId)
-        {
-            string galleryPageUrl = $"https://www.nuget.org/packages/{recommendationId}";
-            return new RecommendedPackageViewModel
-            {
-                Id = recommendationId,
-                GalleryPageUrl = galleryPageUrl,
-                IconUrl = "" // TODO
-            };
+            string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(package.Title));
+            return $"Recommendations/{encodedId}.json";
         }
     }
 }

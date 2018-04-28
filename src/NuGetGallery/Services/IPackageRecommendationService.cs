@@ -10,8 +10,8 @@ namespace NuGetGallery
     public interface IPackageRecommendationService
     {
         /// <summary>
-        /// Gets a list of other packages recommended to users browsing the package.
+        /// Gets a list of alternative packages recommended for users browsing the package.
         /// </summary>
-        Task<IEnumerable<RecommendedPackageViewModel>> GetRecommendedPackagesAsync(Package package);
+        Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package);
     }
 }
