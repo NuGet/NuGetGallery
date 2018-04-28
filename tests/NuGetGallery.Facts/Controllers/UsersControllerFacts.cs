@@ -3054,6 +3054,21 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void AddCertificate_WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                var uploadFile = GetUploadFile();
+
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(accountName: null, uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
             public void AddCertificate_WhenUploadFileIsValid_ReturnsCreated()
             {
                 var uploadFile = GetUploadFile();
@@ -3165,6 +3180,17 @@ namespace NuGetGallery
 
                 Assert.NotNull(response);
                 Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.DeleteCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
             }
 
             [Fact]
