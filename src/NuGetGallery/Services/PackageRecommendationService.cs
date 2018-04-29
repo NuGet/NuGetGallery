@@ -37,7 +37,6 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(ex);
                 return Enumerable.Empty<ListPackageItemViewModel>();
             }
-
             var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report.Content);
 
             string targetId = recommendedPackages.Id;
@@ -47,7 +46,7 @@ namespace NuGetGallery
             return recommendationIds.Select(
                 id => new ListPackageItemViewModel(
                     _packageService.FindAbsoluteLatestPackageById(id),
-                    // We don't need to know about the user's permissions for the recommendations.
+                    // We don't need to know about the user's permissions for any of the recommended packages.
                     currentUser: null));
         }
 
