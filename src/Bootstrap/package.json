@@ -29,6 +29,9 @@
     "url": "https://github.com/twbs/bootstrap/issues"
   },
   "license": "MIT",
+  "dependencies": {
+    "hoek": "~5.0.3"
+  },
   "devDependencies": {
     "btoa": "~1.1.2",
     "glob": "~7.0.3",
