@@ -125,7 +125,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
-        ///If you want to update the linked Microsoft account you can do so from the account settings page..
+        ///If you would like to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
         public static string AccountIsLinkedToAnotherExternalAccount {
             get {

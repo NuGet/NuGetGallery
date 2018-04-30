@@ -639,7 +639,7 @@ The {Config.GalleryOwner.DisplayName} Team";
         public void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
             string subject = $"[{Config.GalleryOwner.DisplayName}] Package uploaded - {package.PackageRegistration.Id} {package.Version}";
-            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was just uploaded to {Config.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently uploaded to {Config.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
 
 Note: This package has not been published yet. It will appear in search results and will be available for install/restore after both validation and indexing are complete. Package validation and indexing may take up to an hour.
 
