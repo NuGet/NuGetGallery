@@ -56,6 +56,7 @@
     <Compile Include="Entities\PackageCompatibilityIssue.cs" />
     <Compile Include="Entities\PackageValidationSet.cs" />
     <Compile Include="Entities\ParentCertificate.cs" />
+    <Compile Include="Entities\ScanOperationState.cs" />
     <Compile Include="Entities\TrustedTimestamp.cs" />
     <Compile Include="Entities\TrustedTimestampStatus.cs" />
     <Compile Include="Entities\ValidationEntitiesContext.cs" />
@@ -108,6 +109,10 @@
     <Compile Include="Migrations\201803272331375_AddPackageSignatureType.cs" />
     <Compile Include="Migrations\201803272331375_AddPackageSignatureType.Designer.cs">
       <DependentUpon>201803272331375_AddPackageSignatureType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201804092202151_AddScanOperationStateTable.cs" />
+    <Compile Include="Migrations\201804092202151_AddScanOperationStateTable.Designer.cs">
+      <DependentUpon>201804092202151_AddScanOperationStateTable.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -166,6 +171,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201803272331375_AddPackageSignatureType.resx">
       <DependentUpon>201803272331375_AddPackageSignatureType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201804092202151_AddScanOperationStateTable.resx">
+      <DependentUpon>201804092202151_AddScanOperationStateTable.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
