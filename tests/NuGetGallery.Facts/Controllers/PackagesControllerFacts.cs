@@ -5325,7 +5325,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WhenCurrentUserNotAuthenticated_ReturnsForbidden()
+            public async Task WhenCurrentUserIsNotAuthenticated_ReturnsForbidden()
             {
                 var packageService = new Mock<IPackageService>();
                 var controller = CreateController(
@@ -5337,6 +5337,31 @@ namespace NuGetGallery
                 packageService.Setup(x => x.FindPackageRegistrationById(
                         It.Is<string>(id => id == _packageRegistration.Id)))
                     .Returns(_packageRegistration);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                var packageService = new Mock<IPackageService>();
+                var userService = new Mock<IUserService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    userService: userService);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
+                    .Returns(_signer);
+
+                _packageRegistration.Owners.Add(_signer);
+                controller.SetCurrentUser(_signer);
 
                 var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
 
