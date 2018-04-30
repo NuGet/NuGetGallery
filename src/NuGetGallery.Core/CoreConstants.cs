@@ -13,6 +13,7 @@ namespace NuGetGallery
         public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
 
         public const string NuGetPackageFileExtension = ".nupkg";
+        public const string CertificateFileExtension = ".cer";
 
         public const string Sha512HashAlgorithmId = "SHA512";
 
@@ -20,11 +21,12 @@ namespace NuGetGallery
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
 
+        public const string UserCertificatesFolderName = "user-certificates";
         public const string ContentFolderName = "content";
         public const string DownloadsFolderName = "downloads";
         public const string PackageBackupsFolderName = "package-backups";
         public const string PackageReadMesFolderName = "readmes";
-        public const string PackagesFolderName = "packages";        
+        public const string PackagesFolderName = "packages";
         public const string UploadsFolderName = "uploads";
         public const string ValidationFolderName = "validation";
     }

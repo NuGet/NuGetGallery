@@ -37,7 +37,8 @@ namespace NuGetGallery
             CoreConstants.ContentFolderName,
             CoreConstants.UploadsFolderName,
             CoreConstants.PackageReadMesFolderName,
-            CoreConstants.ValidationFolderName
+            CoreConstants.ValidationFolderName,
+            CoreConstants.UserCertificatesFolderName
         };
 
         protected readonly ICloudBlobClient _client;
@@ -233,7 +234,7 @@ namespace NuGetGallery
             }
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
             {
-                throw new InvalidOperationException(
+                throw new FileAlreadyExistsException(
                     String.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a blob with name {0} in container {1}.",
@@ -287,7 +288,7 @@ namespace NuGetGallery
             }
             catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
             {
-                throw new InvalidOperationException(
+                throw new FileAlreadyExistsException(
                     String.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a blob with name {0} in container {1}.",

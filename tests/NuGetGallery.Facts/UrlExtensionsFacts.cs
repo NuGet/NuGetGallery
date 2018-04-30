@@ -289,5 +289,58 @@ namespace NuGetGallery
                 Assert.Equal(expectedActionLink, result);
             }
         }
+
+        public class TheDeleteUserCertificateTemplateMethod : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                var result = urlHelper.DeleteUserCertificateTemplate().Resolve("thumbprint");
+
+                Assert.Equal("/account/certificates/thumbprint", result);
+            }
+        }
+
+        public class TheDeleteOrganizationCertificateTemplateMethod : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                var urlHelper = TestUtility.MockUrlHelper();
+
+                var result = urlHelper.DeleteOrganizationCertificateTemplate("accountName").Resolve("thumbprint");
+
+                Assert.Equal("/organization/accountName/certificates/thumbprint", result);
+            }
+        }
+
+        public class TheSetRequiredSignerTemplateMethod : TestContainer
+        {
+            [Fact]
+            public void ResolvePathIsCorrect()
+            {
+                var urlHelper = TestUtility.MockUrlHelper();
+                var model = new StubPackageVersionModel();
+
+                var result = urlHelper.SetRequiredSignerTemplate().Resolve(model);
+
+                Assert.Equal("/packages/packageId/required-signer/{username}", result);
+            }
+
+            private sealed class StubPackageVersionModel : IPackageVersionModel
+            {
+                public string Id => "packageId";
+
+                public string Version
+                {
+                    get => throw new NotImplementedException();
+                    set => throw new NotImplementedException();
+                }
+
+                public string Title => throw new NotImplementedException();
+            }
+        }
     }
 }

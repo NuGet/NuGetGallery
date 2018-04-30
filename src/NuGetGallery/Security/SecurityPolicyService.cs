@@ -19,6 +19,10 @@ namespace NuGetGallery.Security
     {
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
             new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
+        private static readonly ControlRequiredSignerPolicy _controlRequiredSignerPolicy
+            = new ControlRequiredSignerPolicy();
+        private static readonly AutomaticallyOverwriteRequiredSignerPolicy _automaticallyOverwriteRequiredSignerPolicy
+            = new AutomaticallyOverwriteRequiredSignerPolicy();
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -67,7 +71,8 @@ namespace NuGetGallery.Security
         {
             get
             {
-                return new List<IUserSecurityPolicySubscription>();
+                yield return _controlRequiredSignerPolicy;
+                yield return _automaticallyOverwriteRequiredSignerPolicy;
             }
         }
 
@@ -359,6 +364,8 @@ namespace NuGetGallery.Security
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
             yield return new RequireOrganizationTenantPolicy();
+            yield return _controlRequiredSignerPolicy;
+            yield return _automaticallyOverwriteRequiredSignerPolicy;
         }
    }
 }

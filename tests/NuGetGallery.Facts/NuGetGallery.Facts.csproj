@@ -442,10 +442,14 @@
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
+    <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
+    <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
+    <Compile Include="Services\CertificateServiceFacts.cs" />
+    <Compile Include="Services\CertificateValidatorFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\ContentObjectServiceFacts.cs" />
@@ -546,15 +550,19 @@
     <Compile Include="TestUtils\OwinAssert.cs" />
     <Compile Include="TestUtils\OwinTestExtensions.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
+    <Compile Include="TestUtils\StubHttpPostedFile.cs" />
     <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\ListCertificateItemViewModelFacts.cs" />
+    <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModelFacts.cs" />
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
+    <Compile Include="ViewModels\SignerViewModelFacts.cs" />
     <Compile Include="ViewModels\UserProfileModelFacts.cs" />
     <Compile Include="Views\Packages\ValidationIssueFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
@@ -569,6 +577,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="TestData\certificate.cer" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">

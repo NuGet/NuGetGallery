@@ -414,7 +414,7 @@
                 <table class="table borderless">
                     <thead>
                         <tr>
-                            <th>Version</th>
+                            <th colspan="2">Version</th>
                             <th>Downloads</th>
                             <th>Last updated</th>
                             @if (Model.CanDisplayPrivateMetadata)
@@ -439,6 +439,12 @@
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr>
+                                    <td class="signature-info-cell">
+                                        @if (packageVersion.CanDisplayPrivateMetadata && !string.IsNullOrEmpty(Model.SignatureInformation))
+                                        {
+                                            <i class="ms-Icon ms-Icon--Ribbon signature-info" title="@Model.SignatureInformation"></i>
+                                        }
+                                    </td>
                                     <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             <b>

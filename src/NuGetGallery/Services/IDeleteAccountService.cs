@@ -12,7 +12,7 @@ namespace NuGetGallery
         /// Will clean-up the data related with an user account.
         /// The result will be:
         /// 1. The user will be removed as owner from its owned packages.
-        /// 2. Any of the packages that become orphaned as its result will be unlisted if the unlistOrphanPackages is set to true.
+        /// 2. Any of the packages that become orphaned as its result will be handled according to <paramref name="orphanPackagePolicy"/>.
         /// 3. Any owned namespaces will be released.
         /// 4. The user credentials will be cleaned.
         /// 5. The user data will be cleaned.
@@ -22,7 +22,6 @@ namespace NuGetGallery
         /// <param name="orphanPackagePolicy">If deleting the account creates any orphaned packages, a <see cref="AccountDeletionOrphanPackagePolicy"/> that describes how those orphans should be handled.</param>
         /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
         /// <param name="signature">The signature of the user deleting the account.</param>
-        /// <returns></returns>
         Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
             bool commitAsTransaction,

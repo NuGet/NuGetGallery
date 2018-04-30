@@ -445,7 +445,7 @@ namespace NuGetGallery
                 fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
+                await Assert.ThrowsAsync<FileAlreadyExistsException>(async () => await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", new MemoryStream(), overwrite: false));
 
                 fakeBlob.Verify();
             }
@@ -902,7 +902,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillThrowInvalidOperationExceptionForConflict()
+            public async Task WillThrowFileAlreadyExistsExceptionForConflict()
             {
                 // Arrange
                 _destBlobMock
@@ -910,7 +910,7 @@ namespace NuGetGallery
                     .Throws(new StorageException(new RequestResult { HttpStatusCode = (int)HttpStatusCode.Conflict }, "Conflict!", inner: null));
 
                 // Act & Assert
-                await Assert.ThrowsAsync<InvalidOperationException>(
+                await Assert.ThrowsAsync<FileAlreadyExistsException>(
                     () => _target.CopyFileAsync(
                         _srcFolderName,
                         _srcFileName,

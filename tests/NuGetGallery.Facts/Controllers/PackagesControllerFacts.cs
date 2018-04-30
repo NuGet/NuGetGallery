@@ -3,11 +3,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -21,14 +23,13 @@ using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
-using System.Globalization;
-using System.Text;
 
 namespace NuGetGallery
 {
@@ -59,7 +60,8 @@ namespace NuGetGallery
             Mock<IPackageUploadService> packageUploadService = null,
             Mock<IValidationService> validationService = null,
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
-            IReadMeService readMeService = null)
+            IReadMeService readMeService = null,
+            ICertificateService certificateService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -112,6 +114,8 @@ namespace NuGetGallery
 
             readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
 
+            certificateService = certificateService ?? Mock.Of<ICertificateService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -133,7 +137,8 @@ namespace NuGetGallery
                 packageUploadService.Object,
                 readMeService,
                 validationService.Object,
-                packageOwnershipManagementService.Object);
+                packageOwnershipManagementService.Object,
+                certificateService);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -5247,6 +5252,172 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.IsType<HttpNotFoundResult>(result);
+            }
+        }
+
+        public class TheSetRequiredSignerMethod : TestContainer
+        {
+            private readonly PackageRegistration _packageRegistration;
+            private readonly User _signer;
+
+            public TheSetRequiredSignerMethod()
+            {
+                _packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+                _signer = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+            }
+
+            [Fact]
+            public async Task WhenPackageRegistrationNotFound_ReturnsNotFound()
+            {
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns<PackageRegistration>(null);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenSignerNotFound_ReturnsNotFound()
+            {
+                var packageService = new Mock<IPackageService>();
+                var userService = new Mock<IUserService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    userService: userService);
+
+                var currentUser = new User()
+                {
+                    Key = 3,
+                    Username = "c"
+                };
+
+                _packageRegistration.Owners.Add(currentUser);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
+                    .Returns<User>(null);
+
+                controller.SetCurrentUser(currentUser);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.NotFound, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenCurrentUserIsNotAuthenticated_ReturnsForbidden()
+            {
+                var packageService = new Mock<IPackageService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+
+                _packageRegistration.Owners.Add(_signer);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                var packageService = new Mock<IPackageService>();
+                var userService = new Mock<IUserService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    userService: userService);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
+                    .Returns(_signer);
+
+                _packageRegistration.Owners.Add(_signer);
+                controller.SetCurrentUser(_signer);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenCurrentUserIsNotPackageOwner_ReturnsForbidden()
+            {
+                var packageService = new Mock<IPackageService>();
+                var userService = new Mock<IUserService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    userService: userService);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
+                    .Returns(_signer);
+
+                controller.SetCurrentUser(_signer);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public async Task WhenCurrentUserIsAuthenticatedOwner_ReturnsOK()
+            {
+                var packageService = new Mock<IPackageService>();
+                var userService = new Mock<IUserService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    userService: userService);
+
+                _packageRegistration.Owners.Add(_signer);
+
+                packageService.Setup(x => x.FindPackageRegistrationById(
+                        It.Is<string>(id => id == _packageRegistration.Id)))
+                    .Returns(_packageRegistration);
+                userService.Setup(x => x.FindByUsername(It.Is<string>(username => username == _signer.Username)))
+                    .Returns(_signer);
+
+                controller.SetCurrentUser(_signer);
+                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.OK, controller.Response.StatusCode);
             }
         }
     }
