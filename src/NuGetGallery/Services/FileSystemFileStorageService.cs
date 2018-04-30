@@ -146,7 +146,7 @@ namespace NuGetGallery
             var dirPath = Path.GetDirectoryName(filePath);
 
             _fileSystemService.CreateDirectory(dirPath);
-                        
+
             try
             {
                 using (var file = _fileSystemService.OpenWrite(filePath, overwrite))
@@ -156,8 +156,8 @@ namespace NuGetGallery
             }
             catch (IOException ex)
             {
-                throw new InvalidOperationException(
-                    String.Format(
+                throw new FileAlreadyExistsException(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a file with name {0} in folder {1}.",
                         fileName,
@@ -206,14 +206,14 @@ namespace NuGetGallery
             var destFilePath = BuildPath(_configuration.FileStorageDirectory, destFolderName, destFileName);
 
             _fileSystemService.CreateDirectory(Path.GetDirectoryName(destFilePath));
-            
+
             try
             {
                 _fileSystemService.Copy(srcFilePath, destFilePath, overwrite: false);
             }
             catch (IOException e)
             {
-                throw new InvalidOperationException("Could not copy because destination file already exists", e);
+                throw new FileAlreadyExistsException("Could not copy because destination file already exists", e);
             }
 
             return Task.FromResult<string>(null);

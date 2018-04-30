@@ -201,4 +201,16 @@
     <value>The package manifest contains invalid metadata elements: '{0}'</value>
     <comment>{0} is a comma-delimited list of invalid metadata element names.</comment>
   </data>
+  <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The argument cannot be null or empty.</value>
+  </data>
+  <data name="PackageNotFound" xml:space="preserve">
+    <value>The package does not exist.</value>
+  </data>
+  <data name="CertificateNotFound" xml:space="preserve">
+    <value>The certificate does not exist.</value>
+  </data>
+  <data name="CertificateThumbprintHashAlgorithmChanged" xml:space="preserve">
+    <value>The thumbprint is expected to be a SHA-256 thumbprint, which is exactly 64 characters in length.  Did the hash algorithm change?</value>
+  </data>
 </root>

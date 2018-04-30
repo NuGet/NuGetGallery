@@ -289,6 +289,7 @@ namespace NuGetGallery.TestUtils
                 .Verifiable();
 
             var packageRepository = new Mock<IEntityRepository<Package>>();
+            var certificateRepository = new Mock<IEntityRepository<Certificate>>();
             var packageNamingConflictValidator = new PackageNamingConflictValidator(
                     packageRegistrationRepository.Object,
                     packageRepository.Object);
@@ -299,6 +300,7 @@ namespace NuGetGallery.TestUtils
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
+                certificateRepository.Object,
                 packageNamingConflictValidator,
                 auditingService,
                 telemetryService.Object);

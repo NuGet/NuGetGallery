@@ -14,13 +14,16 @@ namespace NuGetGallery.Auditing
         {
             // New records need to be added here.
             HashSet<string> expectedAuditRecords = new HashSet<string>()
-            {"NuGetGallery.Auditing.DeleteAccountAuditRecord",
-             "NuGetGallery.Auditing.FailedAuthenticatedOperationAuditRecord",
-             "NuGetGallery.Auditing.PackageAuditRecord",
-             "NuGetGallery.Auditing.PackageRegistrationAuditRecord",
-             "NuGetGallery.Auditing.ReservedNamespaceAuditRecord",
-             "NuGetGallery.Auditing.UserAuditRecord",
-             "NuGetGallery.Auditing.UserSecurityPolicyAuditRecord"};
+            {
+                "NuGetGallery.Auditing.CertificateAuditRecord",
+                "NuGetGallery.Auditing.DeleteAccountAuditRecord",
+                "NuGetGallery.Auditing.FailedAuthenticatedOperationAuditRecord",
+                "NuGetGallery.Auditing.PackageAuditRecord",
+                "NuGetGallery.Auditing.PackageRegistrationAuditRecord",
+                "NuGetGallery.Auditing.ReservedNamespaceAuditRecord",
+                "NuGetGallery.Auditing.UserAuditRecord",
+                "NuGetGallery.Auditing.UserSecurityPolicyAuditRecord"
+            };
 
             var actualAuditRecordTypeNames = typeof(AuditRecord).Assembly.GetTypes()
                 .Where(type => type.IsClass && !type.IsAbstract && type.IsSubclassOf(typeof(AuditRecord)))

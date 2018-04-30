@@ -48,6 +48,7 @@ namespace NuGetGallery
         public IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         public IDbSet<Certificate> Certificates { get; set; }
+        public IDbSet<UserCertificate> UserCertificates { get; set; }
 
         /// <summary>
         /// User or organization accounts.

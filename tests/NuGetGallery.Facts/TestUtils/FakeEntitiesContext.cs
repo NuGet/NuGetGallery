@@ -134,6 +134,30 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<Certificate> Certificates
+        {
+            get
+            {
+                return Set<Certificate>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        public IDbSet<UserCertificate> UserCertificates
+        {
+            get
+            {
+                return Set<UserCertificate>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

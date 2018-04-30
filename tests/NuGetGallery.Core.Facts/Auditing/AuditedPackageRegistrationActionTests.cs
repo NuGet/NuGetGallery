@@ -15,7 +15,8 @@ namespace NuGetGallery.Auditing
                 "AddOwner",
                 "RemoveOwner",
                 "MarkVerified",
-                "MarkUnverified"
+                "MarkUnverified",
+                "SetRequiredSigner"
             };
 
             Verify(typeof(AuditedPackageRegistrationAction), expectedNames);
