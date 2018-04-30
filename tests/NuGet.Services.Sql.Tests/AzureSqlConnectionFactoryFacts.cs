@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Moq;
 using NuGet.Services.KeyVault;
 using Xunit;
@@ -19,7 +19,7 @@ namespace NuGet.Services.Sql.Tests
         public const string BaseConnectionString = "Data Source=tcp:DB.database.windows.net;Initial Catalog=DB";
 
         public static readonly string SqlConnectionString = $"{BaseConnectionString};User ID=$$user$$;Password=$$pass$$";
-        public static readonly string AadSqlConnectionString = $"{BaseConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate=$$cert$$;AadCertificatePassword=$$certPass$$";
+        public static readonly string AadSqlConnectionString = $"{BaseConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate=$$cert$$";
 
         public const string TestAccessToken = "ABCDEFG";
         public static readonly X509Certificate2 TestCertificate;
@@ -32,88 +32,79 @@ namespace NuGet.Services.Sql.Tests
         [Theory]
         [InlineData("")]
         [InlineData(null)]
-        public void WhenConnectionStringMissingThrowsArgumentException(string connectionString)
+        public void WhenConnectionStringMissing_ThrowsArgumentException(string connectionString)
         {
             Assert.Throws<ArgumentException>(() => new AzureSqlConnectionFactory(
                 connectionString,
-                new Mock<ISecretReader>().Object));
+                new Mock<ISecretInjector>().Object));
+        }
+
+        [Fact]
+        public void WhenSecretInjectorIsNull_ThrowsArgumentException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new AzureSqlConnectionFactory(
+                SqlConnectionString,
+                null));
         }
 
         public class TheCreateAsyncMethod
         {
             [Fact]
-            public async Task WhenConnectFails_WillRetryWithForceRefresh()
+            public async Task WhenConnectFails_RefreshesSecretsAndRetries()
             {
                 // Arrange
-                var connectCalls = new List<bool>();
+                var connectCount = 0;
                 var factory = new TestAzureSqlConnectionFactory(SqlConnectionString);
-                factory.MockConnectAsync = (forceRefresh) => {
-                    connectCalls.Add(forceRefresh);
-                    if (connectCalls.Count == 1) { throw new Exception(); }
-                    return Task.FromResult(new SqlConnection());
+                factory.MockConnectAsync = async () =>
+                {
+                    var result = await factory.TestConnectAsync();
+                    if (connectCount++ == 0) { throw new AdalException(); }
+                    return result;
                 };
 
                 // Act
                 var connection = await factory.CreateAsync();
 
                 // Assert
-                Assert.Equal(2, connectCalls.Count);
-                Assert.False(connectCalls[0]);
-                Assert.True(connectCalls[1]);
+                Assert.Equal(2, connectCount);
+                factory.MockSecretReader.Verify(s => s.GetSecretAsync("user"), Times.Exactly(2));
+                factory.MockSecretReader.Verify(s => s.GetSecretAsync("pass"), Times.Exactly(2));
+                factory.MockSecretReader.Verify(s => s.RefreshSecret("user"), Times.Once);
+                factory.MockSecretReader.Verify(s => s.RefreshSecret("pass"), Times.Once);
             }
         }
 
         public class TheConnectAsyncMethod
         {
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public void WhenSqlConnectionString_InjectsSecrets(bool forceRefresh)
+            [Fact]
+            public void WhenSqlConnectionString_InjectsSecrets()
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(SqlConnectionString);
 
                 // Act
-                var connection = factory.TestConnectAsync(forceRefresh: forceRefresh).Result;
+                var connection = factory.TestConnectAsync().Result;
 
                 // Assert
                 factory.MockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Exactly(2));
                 factory.MockSecretReader.Verify(x => x.GetSecretAsync("user"), Times.Once);
                 factory.MockSecretReader.Verify(x => x.GetSecretAsync("pass"), Times.Once);
 
-                var refreshCalls = forceRefresh ? 1 : 0;
-                factory.MockSecretReader.Verify(x => x.RefreshSecret(It.IsAny<string>()), Times.Exactly(refreshCalls * 2));
-                factory.MockSecretReader.Verify(x => x.RefreshSecret("user"), Times.Exactly(refreshCalls));
-                factory.MockSecretReader.Verify(x => x.RefreshSecret("pass"), Times.Exactly(refreshCalls));
-
                 Assert.True(connection.ConnectionString.Equals(
                     $"{BaseConnectionString};User ID=user;Password=pass", StringComparison.InvariantCultureIgnoreCase));
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public void WhenAadConnectionString_InjectsSecrets(bool forceRefresh)
+            [Fact]
+            public void WhenAadConnectionString_InjectsSecrets()
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(AadSqlConnectionString);
 
                 // Act
-                var connection = factory.TestConnectAsync(forceRefresh: forceRefresh).Result;
+                var connection = factory.TestConnectAsync().Result;
 
                 // Assert
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Once);
-                factory.MockSecretReader.Verify(x => x.GetSecretAsync("certPass"), Times.Once);
-
-                factory.MockSecretReader.Verify(x => x.GetCertificateSecretAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-                factory.MockSecretReader.Verify(x => x.GetCertificateSecretAsync("cert", "certPass"), Times.Once);
-
-                var refreshCalls = forceRefresh ? 1 : 0;
-                factory.MockSecretReader.Verify(x => x.RefreshSecret(It.IsAny<string>()), Times.Exactly(refreshCalls));
-                factory.MockSecretReader.Verify(x => x.RefreshSecret("certPass"), Times.Exactly(refreshCalls));
-
-                factory.MockSecretReader.Verify(x => x.RefreshCertificateSecret(It.IsAny<string>()), Times.Exactly(refreshCalls));
-                factory.MockSecretReader.Verify(x => x.RefreshCertificateSecret("cert"), Times.Exactly(refreshCalls));
+                factory.MockSecretReader.Verify(x => x.GetSecretAsync("cert"), Times.Once);
 
                 // Note that AAD keys are extracted for internal use only
                 Assert.True(connection.ConnectionString.Equals(
@@ -127,13 +118,11 @@ namespace NuGet.Services.Sql.Tests
                 var factory = new TestAzureSqlConnectionFactory(SqlConnectionString);
 
                 // Act
-                var connection = factory.TestConnectAsync(forceRefresh: false).Result;
+                var connection = factory.TestConnectAsync().Result;
 
                 // Assert
                 Assert.True(string.IsNullOrEmpty(connection.AccessToken));
-                Assert.True(string.IsNullOrEmpty(factory.AcquireTokenAuthorityArgument));
-                Assert.True(string.IsNullOrEmpty(factory.AcquireTokenClientIdArgument));
-                Assert.Equal(null, factory.AcquireTokenCertificateArgument);
+                Assert.Null(factory.AcquireTokenArguments);
             }
 
             [Fact]
@@ -143,13 +132,14 @@ namespace NuGet.Services.Sql.Tests
                 var factory = new TestAzureSqlConnectionFactory(AadSqlConnectionString);
 
                 // Act
-                var connection = factory.TestConnectAsync(forceRefresh: false).Result;
+                var connection = factory.TestConnectAsync().Result;
 
                 // Assert
                 Assert.Equal(TestAccessToken, connection.AccessToken);
-                Assert.Equal($"https://login.microsoftonline.com/{AadTenant}/v2.0", factory.AcquireTokenAuthorityArgument);
-                Assert.Equal(AadClientId, factory.AcquireTokenClientIdArgument);
-                Assert.Equal(TestCertificate, factory.AcquireTokenCertificateArgument);
+                Assert.Equal($"https://login.microsoftonline.com/{AadTenant}/v2.0", factory.AcquireTokenArguments.Item1);
+                Assert.Equal(AadClientId, factory.AcquireTokenArguments.Item2);
+                Assert.True(factory.AcquireTokenArguments.Item3);
+                Assert.Equal(TestCertificate, factory.AcquireTokenArguments.Item4);
             }
         }
 
@@ -157,13 +147,9 @@ namespace NuGet.Services.Sql.Tests
         {
             public Mock<ICachingSecretReader> MockSecretReader { get; }
 
-            public string AcquireTokenAuthorityArgument { get; private set; }
+            public Func<Task<SqlConnection>> MockConnectAsync { get; set; }
 
-            public string AcquireTokenClientIdArgument { get; private set; }
-
-            public X509Certificate2 AcquireTokenCertificateArgument { get; private set; }
-
-            public Func<bool, Task<SqlConnection>> MockConnectAsync { get; set; }
+            public Tuple<string, string, bool, X509Certificate2> AcquireTokenArguments { get; private set; }
 
             public TestAzureSqlConnectionFactory(string connectionString)
                 : this(connectionString, CreateMockSecretReader())
@@ -171,23 +157,30 @@ namespace NuGet.Services.Sql.Tests
             }
 
             public TestAzureSqlConnectionFactory(string connectionString, Mock<ICachingSecretReader> mockSecretReader)
-             : base(connectionString, mockSecretReader.Object)
+             : base(connectionString, new SecretInjector(mockSecretReader.Object))
             {
                 MockSecretReader = mockSecretReader;
             }
 
-            public virtual Task<SqlConnection> TestConnectAsync(bool forceRefresh)
+            public virtual Task<SqlConnection> TestConnectAsync()
             {
-                return base.ConnectAsync(forceRefresh);
+                return base.ConnectAsync();
             }
 
-            protected override Task<SqlConnection> ConnectAsync(bool forceRefresh = false)
+            protected override Task<SqlConnection> ConnectAsync()
             {
                 if (MockConnectAsync != null)
                 {
-                    return MockConnectAsync(forceRefresh);
+                    return MockConnectAsync();
                 }
-                return TestConnectAsync(forceRefresh);
+                return TestConnectAsync();
+            }
+
+            protected override Task<string> GetAccessTokenAsync(string authority, string clientId, bool sendX5c, X509Certificate2 certificate)
+            {
+                AcquireTokenArguments = Tuple.Create(authority, clientId, sendX5c, certificate);
+
+                return Task.FromResult(TestAccessToken);
             }
 
             protected override Task OpenConnectionAsync(SqlConnection sqlConnection)
@@ -195,13 +188,9 @@ namespace NuGet.Services.Sql.Tests
                 return Task.CompletedTask;
             }
 
-            protected override Task<string> AcquireTokenAsync(string authority, string clientId, X509Certificate2 certificate)
+            protected override X509Certificate2 SecretToCertificate(string rawData)
             {
-                AcquireTokenAuthorityArgument = authority;
-                AcquireTokenClientIdArgument = clientId;
-                AcquireTokenCertificateArgument = certificate;
-
-                return Task.FromResult(TestAccessToken);
+                return TestCertificate;
             }
 
             private static Mock<ICachingSecretReader> CreateMockSecretReader()
@@ -209,20 +198,13 @@ namespace NuGet.Services.Sql.Tests
                 var mockSecretReader = new Mock<ICachingSecretReader>();
 
                 mockSecretReader.Setup(x => x.GetSecretAsync(It.IsAny<string>()))
-                    .Returns<string>(key => {
+                    .Returns<string>(key =>
+                    {
                         return Task.FromResult(key.Replace("$$", ""));
                     })
                     .Verifiable();
 
                 mockSecretReader.Setup(x => x.RefreshSecret(It.IsAny<string>()))
-                    .Returns(true)
-                    .Verifiable();
-
-                mockSecretReader.Setup(x => x.GetCertificateSecretAsync(It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(Task.FromResult(TestCertificate))
-                    .Verifiable();
-
-                mockSecretReader.Setup(x => x.RefreshCertificateSecret(It.IsAny<string>()))
                     .Returns(true)
                     .Verifiable();
 

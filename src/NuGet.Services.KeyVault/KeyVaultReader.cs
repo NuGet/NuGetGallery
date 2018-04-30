@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.Azure.KeyVault;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -36,12 +35,6 @@ namespace NuGet.Services.KeyVault
         {
             var secret = await _keyVaultClient.Value.GetSecretAsync(_vault, secretName);
             return secret.Value;
-        }
-
-        public async Task<X509Certificate2> GetCertificateSecretAsync(string secretName, string password)
-        {
-            var secret = await GetSecretAsync(secretName);
-            return new X509Certificate2(Convert.FromBase64String(secret), password);
         }
 
         private KeyVaultClient InitializeClient()

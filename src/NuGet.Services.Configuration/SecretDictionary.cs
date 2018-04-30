@@ -8,20 +8,21 @@ using NuGet.Services.KeyVault;
 
 namespace NuGet.Services.Configuration
 {
-    public class SecretDictionary : IDictionary<string, string>
+    public class SecretDictionary : ISecretDictionary
     {
-        private readonly ISecretInjector _secretInjector;
         private readonly IDictionary<string, string> _unprocessedArguments;
+
+        public ISecretInjector SecretInjector { get; }
 
         public SecretDictionary(ISecretInjector secretInjector, IDictionary<string, string> unprocessedArguments)
         {
-            _secretInjector = secretInjector;
+            SecretInjector = secretInjector;
             _unprocessedArguments = unprocessedArguments;
         }
 
         private string Inject(string key)
         {
-            return _secretInjector.InjectAsync(key).Result;
+            return SecretInjector.InjectAsync(key).Result;
         }
 
         public string this[string key]
@@ -76,7 +77,7 @@ namespace NuGet.Services.Configuration
             object IEnumerator.Current => Current;
         }
 
-        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => new SecretEnumerator(_secretInjector, _unprocessedArguments);
+        public IEnumerator<KeyValuePair<string, string>> GetEnumerator() => new SecretEnumerator(SecretInjector, _unprocessedArguments);
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 

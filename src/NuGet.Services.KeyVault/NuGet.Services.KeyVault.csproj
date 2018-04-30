@@ -45,7 +45,6 @@
     <Compile Include="CachingSecretReader.cs" />
     <Compile Include="CachingSecretReaderFactory.cs" />
     <Compile Include="CertificateUtility.cs" />
-    <Compile Include="Exceptions.cs" />
     <Compile Include="ICachingSecretReader.cs" />
     <Compile Include="ISecretReaderFactory.cs" />
     <Compile Include="EmptySecretReader.cs" />

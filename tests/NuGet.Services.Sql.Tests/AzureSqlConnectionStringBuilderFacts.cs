@@ -13,30 +13,12 @@ namespace NuGet.Services.Sql.Tests
         private const string AadCertificate = "MyAadCertificate";
 
         [Fact]
-        public void AadPropertyDefaultsToEmpty()
+        public void ExtractsAadSettingsFromConnectionString()
         {
             // Arrange
             var sqlConnectionString = "Data Source=tcp:noop.database.windows.net;Initial Catalog=noop;" +
                 "Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False";
             var aadConnectionString = $"{sqlConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate={AadCertificate}";
-
-            // Act
-            var builder = new AzureSqlConnectionStringBuilder(aadConnectionString);
-
-            // Assert
-            Assert.NotEmpty(builder.AadAuthority);
-            Assert.Equal(string.Empty, builder.AadCertificatePassword);
-        }
-
-        [Theory]
-        [InlineData("")]
-        [InlineData("password")]
-        public void ExtractsAadSettingsFromConnectionString(string certPassword)
-        {
-            // Arrange
-            var sqlConnectionString = "Data Source=tcp:noop.database.windows.net;Initial Catalog=noop;" +
-                "Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False";
-            var aadConnectionString = $"{sqlConnectionString};AadTenant={AadTenant};AadClientId={AadClientId};AadCertificate={AadCertificate};AadCertificatePassword={certPassword}";
 
             // Act
             var builder = new AzureSqlConnectionStringBuilder(aadConnectionString);
@@ -49,7 +31,7 @@ namespace NuGet.Services.Sql.Tests
             Assert.Equal(AadTenant, builder.AadTenant);
             Assert.Equal(AadClientId, builder.AadClientId);
             Assert.Equal(AadCertificate, builder.AadCertificate);
-            Assert.Equal(certPassword, builder.AadCertificatePassword);
+            Assert.True(builder.AadSendX5c);
         }
 
         [Fact]

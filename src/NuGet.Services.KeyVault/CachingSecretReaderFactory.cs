@@ -6,7 +6,7 @@ using System;
 namespace NuGet.Services.KeyVault
 {
     /// <summary>
-    /// Wraps existing secret reader factory to provide a caching layer for the <see cref="ISecretReader"/>.
+    /// Wraps existing secret reader factory to provide a caching layer for the <see cref="ISecretInjector"/>.
     /// </summary>
     public class CachingSecretReaderFactory : ISecretReaderFactory
     {

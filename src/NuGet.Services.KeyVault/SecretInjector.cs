@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -13,18 +12,16 @@ namespace NuGet.Services.KeyVault
     {
         public const string DefaultFrame = "$$";
         private readonly string _frame;
-        private readonly ISecretReader _secretReader;
 
-        public SecretInjector(ISecretReader secretReader) :this(secretReader, DefaultFrame)
+        public ISecretReader SecretReader { get; }
+
+        public SecretInjector(ISecretReader secretReader) : this(secretReader, DefaultFrame)
         {
         }
 
         public SecretInjector(ISecretReader secretReader, string frame)
         {
-            if (secretReader == null)
-            {
-                throw new ArgumentNullException(nameof(secretReader));
-            }
+            SecretReader = secretReader ?? throw new ArgumentNullException(nameof(SecretReader));
 
             if (string.IsNullOrWhiteSpace(frame))
             {
@@ -32,20 +29,9 @@ namespace NuGet.Services.KeyVault
             }
 
             _frame = frame;
-            _secretReader = secretReader;
         }
 
-        public string GetSecretName(string input)
-        {
-            return GetSecretNames(input).SingleOrDefault();
-        }
-
-        public Task<string> InjectAsync(string input)
-        {
-            return InjectAsync(input, forceRefresh: false);
-        }
-
-        public async Task<string> InjectAsync(string input, bool forceRefresh)
+        public async Task<string> InjectAsync(string input)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -57,28 +43,14 @@ namespace NuGet.Services.KeyVault
 
             foreach (var secretName in secretNames)
             {
-                var secretValue = await GetSecretAsync(secretName, forceRefresh);
+                var secretValue = await SecretReader.GetSecretAsync(secretName);
                 output.Replace($"{_frame}{secretName}{_frame}", secretValue);
             }
 
             return output.ToString();
         }
 
-        private async Task<string> GetSecretAsync(string secretName, bool forceRefresh = false)
-        {
-            if (forceRefresh)
-            {
-                var cachingSecretReader = _secretReader as ICachingSecretReader;
-                if (cachingSecretReader != null)
-                {
-                    cachingSecretReader.RefreshSecret(secretName);
-                }
-            }
-
-            return await _secretReader.GetSecretAsync(secretName);
-        }
-
-        private IEnumerable<string> GetSecretNames(string input)
+        public IEnumerable<string> GetSecretNames(string input)
         {
             var secretNames = new HashSet<string>();
 

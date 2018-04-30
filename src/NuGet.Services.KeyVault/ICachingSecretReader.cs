@@ -9,10 +9,5 @@ namespace NuGet.Services.KeyVault
         /// Remove a secret from the cache.
         /// </summary>
         bool RefreshSecret(string secretName);
-
-        /// <summary>
-        /// Remove a certificate secret from the cache.
-        /// </summary>
-        bool RefreshCertificateSecret(string secretName);
     }
 }
