@@ -91,5 +91,14 @@ namespace NuGetGallery
         public const string Downloads = "Downloads";
         public const string AdminDeleteAccount = "AdminDeleteAccount";
         public const string UserDeleteAccount = "DeleteAccount";
+        public const string AddUserCertificate = "AddUserCertificate";
+        public const string DeleteUserCertificate = "DeleteUserCertificate";
+        public const string GetUserCertificate = "GetUserCertificate";
+        public const string GetUserCertificates = "GetUserCertificates";
+        public const string AddOrganizationCertificate = "AddOrganizationCertificate";
+        public const string DeleteOrganizationCertificate = "DeleteOrganizationCertificate";
+        public const string GetOrganizationCertificate = "GetOrganizationCertificate";
+        public const string GetOrganizationCertificates = "GetOrganizationCertificates";
+        public const string SetRequiredSigner = "SetRequiredSigner";
     }
 }

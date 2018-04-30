@@ -32,10 +32,5 @@ namespace NuGetGallery
         /// Gets or sets the user entity.
         /// </summary>
         public virtual User User { get; set; }
-
-        /// <summary>
-        /// Gets or sets a flag indicating whether or not the user-certificate link is active.
-        /// </summary>
-        public bool IsActive { get; set; }
     }
 }

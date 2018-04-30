@@ -120,5 +120,13 @@ namespace NuGetGallery
         public static ActionRequiringAccountPermissions ManageMembership =
             new ActionRequiringAccountPermissions(
                 accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationAdmin);
+
+        /// <summary>
+        /// The action of changing a package's required signer.
+        /// </summary>
+        public static ActionRequiringPackagePermissions ManagePackageRequiredSigner =
+             new ActionRequiringPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
+                packageRegistrationPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
     }
 }

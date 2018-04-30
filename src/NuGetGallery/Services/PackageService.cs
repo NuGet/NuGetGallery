@@ -17,7 +17,6 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
-        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
@@ -25,11 +24,11 @@ namespace NuGetGallery
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
+            IEntityRepository<Certificate> certificateRepository,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService,
-            ITelemetryService telemetryService) : base(packageRepository)
+            ITelemetryService telemetryService) : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
-            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
             _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -110,16 +109,16 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual PackageRegistration FindPackageRegistrationById(string id)
+        public override PackageRegistration FindPackageRegistrationById(string packageId)
         {
-            if (id == null)
+            if (packageId == null)
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException(nameof(packageId));
             }
 
             return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners)
-                .SingleOrDefault(pr => pr.Id == id);
+                .SingleOrDefault(pr => pr.Id == packageId);
         }
 
         public virtual Package FindPackageByIdAndVersion(
@@ -220,7 +219,7 @@ namespace NuGetGallery
 
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            return GetPackagesForOwners(new [] { user.Key }, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
         }
 
         /// <summary>
@@ -430,7 +429,7 @@ namespace NuGetGallery
         private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
-            
+
             if (packageRegistration == null)
             {
                 if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
@@ -705,6 +704,127 @@ namespace NuGetGallery
                     .ForEach(pru => pru.IsVerified = isVerified);
 
                 await _packageRegistrationRepository.CommitChangesAsync();
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously sets the signer as the required signer on all package registrations owned by the signer.
+        /// </summary>
+        /// <param name="signer">A user.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="signer" /> is <c>null</c>.</exception>
+        public async Task SetRequiredSignerAsync(User signer)
+        {
+            if (signer == null)
+            {
+                throw new ArgumentNullException(nameof(signer));
+            }
+
+            var registrations = FindPackageRegistrationsByOwner(signer);
+            var auditRecords = new List<PackageRegistrationAuditRecord>();
+            var packageIds = new List<string>();
+            var isCommitRequired = false;
+
+            foreach (var registration in registrations)
+            {
+                string previousRequiredSigner = null;
+                string newRequiredSigner = null;
+
+                if (!registration.RequiredSigners.Contains(signer))
+                {
+                    previousRequiredSigner = registration.RequiredSigners.FirstOrDefault()?.Username;
+
+                    registration.RequiredSigners.Clear();
+
+                    isCommitRequired = true;
+
+                    registration.RequiredSigners.Add(signer);
+
+                    newRequiredSigner = signer.Username;
+
+                    var auditRecord = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                        registration,
+                        previousRequiredSigner,
+                        newRequiredSigner);
+
+                    auditRecords.Add(auditRecord);
+                    packageIds.Add(registration.Id);
+                }
+            }
+
+            if (isCommitRequired)
+            {
+                await _packageRegistrationRepository.CommitChangesAsync();
+
+                foreach (var auditRecord in auditRecords)
+                {
+                    await _auditingService.SaveAuditRecordAsync(auditRecord);
+                }
+
+                foreach (var packageId in packageIds)
+                {
+                    _telemetryService.TrackRequiredSignerSet(packageId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously sets the signer as the required signer on a single package registration owned by the signer.
+        /// </summary>
+        /// <param name="registration">A package registration.</param>
+        /// <param name="signer">A user.  May be <c>null</c>.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" /> is <c>null</c>.</exception>
+        public async Task SetRequiredSignerAsync(PackageRegistration registration, User signer)
+        {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
+            var isCommitRequired = false;
+
+            string previousRequiredSigner = null;
+            string newRequiredSigner = null;
+
+            if (signer == null)
+            {
+                var currentRequiredSigner = registration.RequiredSigners.FirstOrDefault();
+
+                if (currentRequiredSigner != null)
+                {
+                    previousRequiredSigner = currentRequiredSigner.Username;
+
+                    registration.RequiredSigners.Clear();
+
+                    isCommitRequired = true;
+                }
+            }
+            else if (!registration.RequiredSigners.Contains(signer))
+            {
+                previousRequiredSigner = registration.RequiredSigners.FirstOrDefault()?.Username;
+
+                registration.RequiredSigners.Clear();
+
+                isCommitRequired = true;
+
+                registration.RequiredSigners.Add(signer);
+
+                newRequiredSigner = signer.Username;
+            }
+
+            if (isCommitRequired)
+            {
+                await _packageRegistrationRepository.CommitChangesAsync();
+
+                var auditRecord = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                    registration,
+                    previousRequiredSigner,
+                    newRequiredSigner);
+
+                await _auditingService.SaveAuditRecordAsync(auditRecord);
+
+                _telemetryService.TrackRequiredSignerSet(registration.Id);
             }
         }
     }
