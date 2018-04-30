@@ -27,6 +27,12 @@ namespace NuGetGallery
 
         internal static Dictionary<string, ObfuscatedMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata[]>();
 
+        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, object constraints, ObfuscatedMetadata obfuscationMetadata)
+        {
+            routes.MapRoute(name, url, defaults, constraints);
+            if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, new[] { obfuscationMetadata }); }
+        }
+
         public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedMetadata obfuscationMetadata)
         {
             routes.MapRoute(name, url, defaults, new[] { obfuscationMetadata });

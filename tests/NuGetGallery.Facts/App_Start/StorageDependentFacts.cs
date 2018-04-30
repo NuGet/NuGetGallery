@@ -53,10 +53,12 @@ namespace NuGetGallery
 
             // Assert
             var implementationToInterface = dependents.ToDictionary(x => x.ImplementationType, x => x.InterfaceType);
+            Assert.Contains(typeof(CertificateService), implementationToInterface.Keys);
             Assert.Contains(typeof(ContentService), implementationToInterface.Keys);
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
-            Assert.Equal(3, implementationToInterface.Count);
+            Assert.Equal(4, implementationToInterface.Count);
+            Assert.Equal(implementationToInterface[typeof(CertificateService)], typeof(ICertificateService));
             Assert.Equal(implementationToInterface[typeof(ContentService)], typeof(IContentService));
             Assert.Equal(implementationToInterface[typeof(PackageFileService)], typeof(IPackageFileService));
             Assert.Equal(implementationToInterface[typeof(UploadFileService)], typeof(IUploadFileService));
@@ -73,6 +75,7 @@ namespace NuGetGallery
 
             // Assert
             var typeToConnectionString = dependents.ToDictionary(x => x.ImplementationType, x => x.AzureStorageConnectionString);
+            Assert.Equal(typeToConnectionString[typeof(CertificateService)], config.AzureStorage_UserCertificates_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(ContentService)], config.AzureStorage_Content_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(PackageFileService)], config.AzureStorage_Packages_ConnectionString);
             Assert.Equal(typeToConnectionString[typeof(UploadFileService)], config.AzureStorage_Uploads_ConnectionString);
@@ -83,6 +86,7 @@ namespace NuGetGallery
         {
             // Arrange
             var mock = new Mock<IAppConfiguration>();
+            mock.Setup(x => x.AzureStorage_UserCertificates_ConnectionString).Returns("Certificates");
             mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content");
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages and Uploads");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Packages and Uploads");
@@ -99,6 +103,7 @@ namespace NuGetGallery
         private static IAppConfiguration GetConfiguration()
         {
             var mock = new Mock<IAppConfiguration>();
+            mock.Setup(x => x.AzureStorage_UserCertificates_ConnectionString).Returns("Certificates");
             mock.Setup(x => x.AzureStorage_Content_ConnectionString).Returns("Content");
             mock.Setup(x => x.AzureStorage_Packages_ConnectionString).Returns("Packages");
             mock.Setup(x => x.AzureStorage_Uploads_ConnectionString).Returns("Uploads");

@@ -670,9 +670,6 @@ For more information, please contact '{2}'.</value>
   <data name="AccountDelete_OrganizationDeleteNotImplemented" xml:space="preserve">
     <value>Account '{0}' cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted.</value>
   </data>
-  <data name="AccountDelete_OrganizationMemberDeleteNotImplemented" xml:space="preserve">
-    <value>Account '{0}' cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted.</value>
-  </data>
   <data name="PackageIsLocked" xml:space="preserve">
     <value>Package '{0}' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact support@nuget.org.</value>
   </data>
@@ -848,6 +845,33 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="AccountSelfDelete_Fail" xml:space="preserve">
     <value>An exception was encoutered while trying to delete the account. Please contact support for assistance.</value>
   </data>
+  <data name="ValidateCertificate_FileTooLarge" xml:space="preserve">
+    <value>The file exceeds the size limit of {0} bytes.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidEncoding" xml:space="preserve">
+    <value>The file must be a DER encoded binary X.509 certificate.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidFileLength" xml:space="preserve">
+    <value>The file length is invalid.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidFileType" xml:space="preserve">
+    <value>The file extension must be {0}.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidStream" xml:space="preserve">
+    <value>The file stream is invalid.</value>
+  </data>
+  <data name="ValidateCertificate_StreamMustBeSeekable" xml:space="preserve">
+    <value>The file stream must be seekable.</value>
+  </data>
+  <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The argument cannot be null or empty.</value>
+  </data>
+  <data name="CertificateDoesNotExist" xml:space="preserve">
+    <value>The certificate does not exist.</value>
+  </data>
+  <data name="CertificateFileIsRequired" xml:space="preserve">
+    <value>A certificate file is required.</value>
+  </data>
   <data name="MultiFactorAuth_Enabled" xml:space="preserve">
     <value>Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}.</value>
   </data>
@@ -856,5 +880,26 @@ If you would like to update the linked Microsoft account you can do so from the 
   </data>
   <data name="MultiFactorAuth_Disabled" xml:space="preserve">
     <value>Two-factor authentication has been disabled for your account. Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithMixedResult" xml:space="preserve">
+    <value>At least one package owner has no certificate while at least one other package owner has at least one certificate, which means future package submissions may be unsigned or signed with any certificate registered to any owner.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithSignedResult" xml:space="preserve">
+    <value>All package owners have at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithUnsignedResult" xml:space="preserve">
+    <value>All package owners have at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_Confirm" xml:space="preserve">
+    <value>Are you sure you want to change the required signer for this package?</value>
+  </data>
+  <data name="RequiredSigner_OwnerHasAtLeastOneCertificate" xml:space="preserve">
+    <value>'{0}' currently has at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_OwnerHasNoCertificate" xml:space="preserve">
+    <value>'{0}' currently has no certificate, which means future package submissions must be unsigned.</value>
+  </data>
+  <data name="RequiredSigner_ThisAction" xml:space="preserve">
+    <value>This action will change the required signer to '{0}' for all future submissions for this package.</value>
   </data>
 </root>

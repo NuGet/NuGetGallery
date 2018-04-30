@@ -44,7 +44,12 @@ namespace NuGetGallery.Configuration
         /// The Azure Storage connection string used for auditing.
         /// </summary>
         string AzureStorage_Auditing_ConnectionString { get; set; }
-        
+
+        /// <summary>
+        /// The Azure Storage connection string used for user certificates.
+        /// </summary>
+        string AzureStorage_UserCertificates_ConnectionString { get; set; }
+
         /// <summary>
         /// The Azure Storage connection string used for static content.
         /// </summary>

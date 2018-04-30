@@ -97,15 +97,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted..
-        /// </summary>
-        public static string AccountDelete_OrganizationMemberDeleteNotImplemented {
-            get {
-                return ResourceManager.GetString("AccountDelete_OrganizationMemberDeleteNotImplemented", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
@@ -469,6 +460,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument cannot be null or empty..
+        /// </summary>
+        public static string ArgumentCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ArgumentCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The &apos;{0}&apos; authentication provider is disabled and cannot be used to authenticate
         ///.
         /// </summary>
@@ -538,6 +538,24 @@ namespace NuGetGallery {
         public static string CannotRemoveOnlyLoginCredential {
             get {
                 return ResourceManager.GetString("CannotRemoveOnlyLoginCredential", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The certificate does not exist..
+        /// </summary>
+        public static string CertificateDoesNotExist {
+            get {
+                return ResourceManager.GetString("CertificateDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A certificate file is required..
+        /// </summary>
+        public static string CertificateFileIsRequired {
+            get {
+                return ResourceManager.GetString("CertificateFileIsRequired", resourceCulture);
             }
         }
         
@@ -1400,6 +1418,69 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to At least one package owner has no certificate while at least one other package owner has at least one certificate, which means future package submissions may be unsigned or signed with any certificate registered to any owner..
+        /// </summary>
+        public static string RequiredSigner_AnyWithMixedResult {
+            get {
+                return ResourceManager.GetString("RequiredSigner_AnyWithMixedResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All package owners have at least one certificate, which means future package submissions must be signed..
+        /// </summary>
+        public static string RequiredSigner_AnyWithSignedResult {
+            get {
+                return ResourceManager.GetString("RequiredSigner_AnyWithSignedResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to All package owners have at least one certificate, which means future package submissions must be signed..
+        /// </summary>
+        public static string RequiredSigner_AnyWithUnsignedResult {
+            get {
+                return ResourceManager.GetString("RequiredSigner_AnyWithUnsignedResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Are you sure you want to change the required signer for this package?.
+        /// </summary>
+        public static string RequiredSigner_Confirm {
+            get {
+                return ResourceManager.GetString("RequiredSigner_Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; currently has at least one certificate, which means future package submissions must be signed..
+        /// </summary>
+        public static string RequiredSigner_OwnerHasAtLeastOneCertificate {
+            get {
+                return ResourceManager.GetString("RequiredSigner_OwnerHasAtLeastOneCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; currently has no certificate, which means future package submissions must be unsigned..
+        /// </summary>
+        public static string RequiredSigner_OwnerHasNoCertificate {
+            get {
+                return ResourceManager.GetString("RequiredSigner_OwnerHasNoCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This action will change the required signer to &apos;{0}&apos; for all future submissions for this package..
+        /// </summary>
+        public static string RequiredSigner_ThisAction {
+            get {
+                return ResourceManager.GetString("RequiredSigner_ThisAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The namespace &apos;{0}&apos; contains invalid characters. Examples of valid namespaces include &apos;MyNamespace&apos; and &apos;MyNamespace.&apos;..
         /// </summary>
         public static string ReservedNamespace_InvalidCharactersInNamespace {
@@ -2080,6 +2161,60 @@ namespace NuGetGallery {
         public static string UserPackageDeleteSupportRequestMessage {
             get {
                 return ResourceManager.GetString("UserPackageDeleteSupportRequestMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file exceeds the size limit of {0} bytes..
+        /// </summary>
+        public static string ValidateCertificate_FileTooLarge {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_FileTooLarge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file must be a DER encoded binary X.509 certificate..
+        /// </summary>
+        public static string ValidateCertificate_InvalidEncoding {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_InvalidEncoding", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file length is invalid..
+        /// </summary>
+        public static string ValidateCertificate_InvalidFileLength {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_InvalidFileLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file extension must be {0}..
+        /// </summary>
+        public static string ValidateCertificate_InvalidFileType {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_InvalidFileType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file stream is invalid..
+        /// </summary>
+        public static string ValidateCertificate_InvalidStream {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_InvalidStream", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The file stream must be seekable..
+        /// </summary>
+        public static string ValidateCertificate_StreamMustBeSeekable {
+            get {
+                return ResourceManager.GetString("ValidateCertificate_StreamMustBeSeekable", resourceCulture);
             }
         }
         

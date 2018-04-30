@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
+using NuGetGallery.Helpers;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -22,10 +24,20 @@ namespace NuGetGallery
             ICuratedFeedService curatedFeedService,
             IMessageService messageService,
             IUserService userService,
-            IPackageService packageService,
             ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService,
+            ICertificateService certificateService,
+            IPackageService packageService,
             IDeleteAccountService deleteAccountService)
-            : base(authService, curatedFeedService, packageService, messageService, userService, telemetryService)
+            : base(
+                  authService,
+                  curatedFeedService,
+                  packageService,
+                  messageService,
+                  userService,
+                  telemetryService,
+                  securityPolicyService,
+                  certificateService)
         {
             DeleteAccountService = deleteAccountService;
         }
@@ -257,8 +269,8 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
 
-            if (account == null || 
-                (currentUser.Username != memberName && 
+            if (account == null ||
+                (currentUser.Username != memberName &&
                 ActionsRequiringPermissions.ManageMembership.CheckPermissions(currentUser, account)
                     != PermissionsCheckResult.Allowed))
             {
@@ -349,9 +361,14 @@ namespace NuGetGallery
 
             model.RequiresTenant = account.IsRestrictedToOrganizationTenantPolicy();
 
-            model.CanManageMemberships = 
-                ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account) == 
-                PermissionsCheckResult.Allowed;
+            model.CanManageMemberships =
+                ActionsRequiringPermissions.ManageMembership.CheckPermissions(GetCurrentUser(), account)
+                    == PermissionsCheckResult.Allowed;
+        }
+
+        protected override RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName)
+        {
+            return Url.DeleteOrganizationCertificateTemplate(accountName);
         }
     }
 }

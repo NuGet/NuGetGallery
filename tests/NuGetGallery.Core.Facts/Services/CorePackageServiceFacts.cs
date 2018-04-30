@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGetGallery.Packaging;
@@ -12,6 +13,45 @@ namespace NuGetGallery
 {
     public class CorePackageServiceFacts
     {
+        public class TheConstructor
+        {
+            [Fact]
+            public void Constructor_WhenPackageRepositoryIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new CorePackageService(
+                        packageRepository: null,
+                        packageRegistrationRepository: Mock.Of<IEntityRepository<PackageRegistration>>(),
+                        certificateRepository: Mock.Of<IEntityRepository<Certificate>>()));
+
+                Assert.Equal("packageRepository", exception.ParamName);
+            }
+
+            [Fact]
+            public void Constructor_WhenPackageRegistrationRepositoryIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new CorePackageService(
+                        Mock.Of<IEntityRepository<Package>>(),
+                        packageRegistrationRepository: null,
+                        certificateRepository: Mock.Of<IEntityRepository<Certificate>>()));
+
+                Assert.Equal("packageRegistrationRepository", exception.ParamName);
+            }
+
+            [Fact]
+            public void Constructor_WhenCertificateRepositoryIsNull_Throws()
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new CorePackageService(
+                        Mock.Of<IEntityRepository<Package>>(),
+                        Mock.Of<IEntityRepository<PackageRegistration>>(),
+                        certificateRepository: null));
+
+                Assert.Equal("certificateRepository", exception.ParamName);
+            }
+        }
+
         public class TheUpdatePackageStreamMetadataMethod
         {
             [Fact]
@@ -545,17 +585,259 @@ namespace NuGetGallery
             }
         }
 
+        public class TheFindPackageRegistrationByIdMethod
+        {
+            private readonly Mock<CorePackageService> _service;
+
+            public TheFindPackageRegistrationByIdMethod()
+            {
+                _service = CreateMockService();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            [InlineData(" ")]
+            public void FindPackageRegistrationById_WhenPackageIdIsInvalid_Throws(string packageId)
+            {
+                var exception = Assert.Throws<ArgumentException>(
+                    () => _service.Object.FindPackageRegistrationById(packageId));
+
+                Assert.Equal("packageId", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public void FindPackageRegistrationById_WhenPackageIdNotFound_ReturnsNull()
+            {
+                var packageRegistration = _service.Object.FindPackageRegistrationById(packageId: "nonexistant");
+
+                Assert.Null(packageRegistration);
+            }
+
+            [Fact]
+            public void FindPackageRegistrationById_WhenPackageIdFound_ReturnsPackageRegistration()
+            {
+                var packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a",
+                };
+                var package = new Package()
+                {
+                    PackageRegistration = packageRegistration
+                };
+
+                packageRegistration.Packages.Add(package);
+
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+
+                packageRegistrationRepository.Setup(x => x.GetAll())
+                    .Returns(new EnumerableQuery<PackageRegistration>(new[] { packageRegistration }));
+
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository);
+
+                var actualResult = service.FindPackageRegistrationById(packageRegistration.Id);
+
+                Assert.Same(packageRegistration, actualResult);
+            }
+        }
+
+        public class TheUpdatePackageSigningCertificateAsyncMethod
+        {
+            private readonly Package _package;
+            private readonly PackageRegistration _packageRegistration;
+            private readonly Certificate _certificate;
+            private readonly Mock<CorePackageService> _service;
+            private readonly Mock<IEntityRepository<Certificate>> _certificateRepository;
+            private readonly Mock<IEntityRepository<Package>> _packageRepository;
+
+            public TheUpdatePackageSigningCertificateAsyncMethod()
+            {
+                _packageRegistration = new PackageRegistration()
+                {
+                    Key = 2,
+                    Id = "b"
+                };
+                _package = new Package()
+                {
+                    Key = 3,
+                    PackageRegistration = _packageRegistration,
+                    NormalizedVersion = "1.2.3"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 4,
+                    Thumbprint = "c"
+                };
+
+                _packageRepository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                _certificateRepository = new Mock<IEntityRepository<Certificate>>(MockBehavior.Strict);
+
+                _service = CreateMockService(
+                    packageRepository: _packageRepository,
+                    certificateRepository: _certificateRepository);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public async Task UpdatePackageSigningCertificateAsync_WhenPackageIdIsInvalid_Throws(string packageId)
+            {
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.Object.UpdatePackageSigningCertificateAsync(
+                        packageId,
+                        packageVersion: "1.0.0",
+                        thumbprint: "a"));
+
+                Assert.Equal("packageId", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public async Task UpdatePackageSigningCertificateAsync_WhenPackageVersionIsInvalid_Throws(string packageVersion)
+            {
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.Object.UpdatePackageSigningCertificateAsync(
+                        packageId: "a",
+                        packageVersion: packageVersion,
+                        thumbprint: "a"));
+
+                Assert.Equal("packageVersion", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public async Task UpdatePackageSigningCertificateAsync_WhenThumbprintIsInvalid_Throws(string thumbprint)
+            {
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.Object.UpdatePackageSigningCertificateAsync(
+                        packageId: "a",
+                        packageVersion: "1.0.0",
+                        thumbprint: thumbprint));
+
+                Assert.Equal("thumbprint", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public async Task UpdatePackageSigningCertificateAsync_WhenPackageIsNotFound_Throws()
+            {
+                _service.Setup(x => x.FindPackageByIdAndVersionStrict(
+                        It.Is<string>(id => id == _packageRegistration.Id),
+                        It.Is<string>(version => version == _package.NormalizedVersion)))
+                    .Returns<Package>(null);
+
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.Object.UpdatePackageSigningCertificateAsync(
+                        _packageRegistration.Id,
+                        _package.NormalizedVersion,
+                        _certificate.Thumbprint));
+
+                Assert.StartsWith("The package does not exist.", exception.Message);
+
+                VerifyMockExpectations();
+            }
+
+            [Fact]
+            public async Task UpdatePackageSigningCertificateAsync_WhenCertificateIsNotFound_Throws()
+            {
+                _service.Setup(x => x.FindPackageByIdAndVersionStrict(
+                        It.Is<string>(id => id == _packageRegistration.Id),
+                        It.Is<string>(version => version == _package.NormalizedVersion)))
+                    .Returns(_package);
+
+                _certificateRepository.Setup(x => x.GetAll())
+                    .Returns(new EnumerableQuery<Certificate>(Enumerable.Empty<Certificate>()));
+
+                var exception = await Assert.ThrowsAsync<ArgumentException>(
+                    () => _service.Object.UpdatePackageSigningCertificateAsync(
+                        _packageRegistration.Id,
+                        _package.NormalizedVersion,
+                        _certificate.Thumbprint));
+
+                Assert.StartsWith("The certificate does not exist.", exception.Message);
+
+                VerifyMockExpectations();
+            }
+
+            [Fact]
+            public async Task UpdatePackageSigningCertificateAsync_WhenPackageDoesNotNeedUpdating_Succeeds()
+            {
+                _service.Setup(x => x.FindPackageByIdAndVersionStrict(
+                        It.Is<string>(id => id == _packageRegistration.Id),
+                        It.Is<string>(version => version == _package.NormalizedVersion)))
+                    .Returns(_package);
+                _certificateRepository.Setup(x => x.GetAll())
+                    .Returns(new EnumerableQuery<Certificate>(new[] { _certificate }));
+
+                _package.CertificateKey = _certificate.Key;
+
+                await _service.Object.UpdatePackageSigningCertificateAsync(
+                    _packageRegistration.Id,
+                    _package.NormalizedVersion,
+                    _certificate.Thumbprint);
+
+                VerifyMockExpectations();
+            }
+
+            [Fact]
+            public async Task UpdatePackageSigningCertificateAsync_WhenPackageNeedsUpdating_Succeeds()
+            {
+                _service.Setup(x => x.FindPackageByIdAndVersionStrict(
+                        It.Is<string>(id => id == _packageRegistration.Id),
+                        It.Is<string>(version => version == _package.NormalizedVersion)))
+                    .Returns(_package);
+                _certificateRepository.Setup(x => x.GetAll())
+                    .Returns(new EnumerableQuery<Certificate>(new[] { _certificate }));
+                _packageRepository.Setup(x => x.CommitChangesAsync())
+                    .Returns(Task.Delay(0));
+
+                await _service.Object.UpdatePackageSigningCertificateAsync(
+                    _packageRegistration.Id,
+                    _package.NormalizedVersion,
+                    _certificate.Thumbprint);
+
+                VerifyMockExpectations();
+            }
+
+            private void VerifyMockExpectations()
+            {
+                _packageRepository.VerifyAll();
+                _certificateRepository.VerifyAll();
+                _service.VerifyAll();
+            }
+        }
+
         private static ICorePackageService CreateService(
-            Mock<IEntityRepository<Package>> packageRepository = null)
+            Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
+            Mock<IEntityRepository<Certificate>> certificateRepository = null)
+        {
+            return CreateMockService(packageRepository, packageRegistrationRepository, certificateRepository).Object;
+        }
+
+        private static Mock<CorePackageService> CreateMockService(
+            Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
+            Mock<IEntityRepository<Certificate>> certificateRepository = null)
         {
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
-            
+            packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
+            certificateRepository = certificateRepository ?? new Mock<IEntityRepository<Certificate>>();
+
             var packageService = new Mock<CorePackageService>(
-                packageRepository.Object);
+                packageRepository.Object,
+                packageRegistrationRepository.Object,
+                certificateRepository.Object);
 
             packageService.CallBase = true;
 
-            return packageService.Object;
+            return packageService;
         }
     }
 }

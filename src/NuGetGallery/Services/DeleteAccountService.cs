@@ -78,35 +78,23 @@ namespace NuGetGallery
                     AccountName = userToBeDeleted.Username
                 };
             }
-
-            // The deletion of members of organizations is disabled for now.
-            if (userToBeDeleted.Organizations.Any())
-            {
-                return new DeleteUserAccountStatus()
-                {
-                    Success = false,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
-                        userToBeDeleted.Username),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
             
             return await RunAccountDeletionTask(
-                () => DeleteGalleryUserAccountImplAsync(
+                () => DeleteAccountImplAsync(
                     userToBeDeleted, 
                     userToExecuteTheDelete,
                     orphanPackagePolicy,
-                    signature),
+                    signature ?? userToExecuteTheDelete.Username),
                 userToBeDeleted,
                 userToExecuteTheDelete,
                 commitAsTransaction);
         }
 
-        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature = null)
+        private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature)
         {
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
+            await RemoveMemberships(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy, signature);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
             await RemovePackageOwnershipRequests(userToBeDeleted);
@@ -114,7 +102,7 @@ namespace NuGetGallery
             var organizationToBeDeleted = userToBeDeleted as Organization;
             if (organizationToBeDeleted != null)
             {
-                await RemoveMemberships(organizationToBeDeleted);
+                await RemoveMembers(organizationToBeDeleted);
             }
 
             if (!userToBeDeleted.Confirmed)
@@ -131,7 +119,7 @@ namespace NuGetGallery
                 await InsertDeleteAccount(
                     userToBeDeleted, 
                     userToExecuteTheDelete, 
-                    signature ?? userToExecuteTheDelete.Username);
+                    signature);
             }
         }
 
@@ -216,8 +204,55 @@ namespace NuGetGallery
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
             }
         }
+        
+        private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature)
+        {
+            foreach (var membership in user.Organizations.ToArray())
+            {
+                var organization = membership.Organization;
+                var members = organization.Members.ToList();
+                var collaborators = members.Where(m => !m.IsAdmin).ToList();
+                var memberCount = members.Count();
+                user.Organizations.Remove(membership);
 
-        private async Task RemoveMemberships(Organization organization)
+                if (memberCount < 2)
+                {
+                    // The user we are deleting is the only member of the organization.
+                    // We should delete the entire organization.
+                    await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy, signature);
+                }
+                else if (memberCount - 1 <= collaborators.Count())
+                {
+                    // All other members of this organization are collaborators, so we should promote them to administrators.
+                    foreach (var collaborator in collaborators)
+                    {
+                        collaborator.IsAdmin = true;
+                    }
+                }
+            }
+
+            foreach (var membershipRequest in user.OrganizationRequests.ToArray())
+            {
+                user.OrganizationRequests.Remove(membershipRequest);
+            }
+
+            foreach (var transformationRequest in user.OrganizationMigrationRequests.ToArray())
+            {
+                user.OrganizationMigrationRequests.Remove(transformationRequest);
+                transformationRequest.NewOrganization.OrganizationMigrationRequest = null;
+            }
+
+            var migrationRequest = user.OrganizationMigrationRequest;
+            user.OrganizationMigrationRequest = null;
+            if (migrationRequest != null)
+            {
+                migrationRequest.AdminUser.OrganizationMigrationRequests.Remove(migrationRequest);
+            }
+
+            await _entitiesContext.SaveChangesAsync();
+        }
+
+        private async Task RemoveMembers(Organization organization)
         {
             foreach (var membership in organization.Members.ToList())
             {
@@ -247,12 +282,6 @@ namespace NuGetGallery
         {
             _userRepository.DeleteOnCommit(user);
             await _userRepository.CommitChangesAsync();
-        }
-
-        private async Task RemoveUser(Organization organization)
-        {
-            _entitiesContext.DeleteOnCommit(organization);
-            await _entitiesContext.SaveChangesAsync();
         }
 
         private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
