@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -50,31 +51,17 @@ namespace NuGetGallery
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        /// <summary>
-        /// Will clean-up the data related with an user account.
-        /// The result will be:
-        /// 1. The user will be removed as owner from its owned packages.
-        /// 2. Any of the packages that become orphaned as its result will be unlisted if the unlistOrphanPackages is set to true.
-        /// 3. Any owned namespaces will be released.
-        /// 4. The user credentials will be cleaned.
-        /// 5. The user data will be cleaned.
-        /// </summary>
-        /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="userToExecuteTheDelete">The user that will perform the delete action.</param>
-        /// <param name="signature">The admin signature.</param>
-        /// <param name="unlistOrphanPackages">If the orphaned packages will unlisted.</param>
-        /// <param name="commitAsTransaction">If the data will be persisted as a transaction.</param>
-        /// <returns></returns>
-        public async Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted,
+        public async Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
-            string signature,
-            bool unlistOrphanPackages,
-            bool commitAsTransaction)
+            bool commitAsTransaction,
+            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans,
+            string signature = null)
         {
             if (userToBeDeleted == null)
             {
                 throw new ArgumentNullException(nameof(userToBeDeleted));
             }
+
             if (userToExecuteTheDelete == null)
             {
                 throw new ArgumentNullException(nameof(userToExecuteTheDelete));
@@ -92,19 +79,8 @@ namespace NuGetGallery
                 };
             }
 
-            // The deletion of Organization and Organization member accounts is disabled for now.
-            if (userToBeDeleted is Organization)
-            {
-                return new DeleteUserAccountStatus()
-                {
-                    Success = false,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_OrganizationDeleteNotImplemented,
-                        userToBeDeleted.Username),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
-            else if (userToBeDeleted.Organizations.Any())
+            // The deletion of members of organizations is disabled for now.
+            if (userToBeDeleted.Organizations.Any())
             {
                 return new DeleteUserAccountStatus()
                 {
@@ -115,77 +91,47 @@ namespace NuGetGallery
                     AccountName = userToBeDeleted.Username
                 };
             }
-
-            try
-            {
-                // The support requests db and gallery db are different.
-                // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
-                // The below code will clean first the suppport requests and after the gallery data.
-                // The order is important in order to allow the admin the oportunity to execute this step again.
-                await RemoveSupportRequests(userToBeDeleted);
-
-                if (commitAsTransaction)
-                {
-                    using (var strategy = new SuspendDbExecutionStrategy())
-                    using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-                    {
-                        await DeleteGalleryUserAccountImplAsync(userToBeDeleted, userToExecuteTheDelete, signature, unlistOrphanPackages, HardDeleteUser(userToBeDeleted));
-                        transaction.Commit();
-                    }
-                }
-                else
-                {
-                    await DeleteGalleryUserAccountImplAsync(userToBeDeleted, userToExecuteTheDelete, signature, unlistOrphanPackages, HardDeleteUser(userToBeDeleted));
-                }
-                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
-                    status: DeleteAccountAuditRecord.ActionStatus.Success,
-                    action: AuditedDeleteAccountAction.DeleteAccount,
-                    adminUsername: userToExecuteTheDelete.Username));
-                return new DeleteUserAccountStatus()
-                {
-                    Success = true,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_Success,
-                        userToBeDeleted.Username),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
-            catch(Exception e)
-            {
-                QuietLog.LogHandledException(e);
-                return new DeleteUserAccountStatus()
-                {
-                    Success = true,
-                    Description = string.Format(CultureInfo.CurrentCulture,
-                        Strings.AccountDelete_Fail,
-                        userToBeDeleted.Username, e),
-                    AccountName = userToBeDeleted.Username
-                };
-            }
+            
+            return await RunAccountDeletionTask(
+                () => DeleteGalleryUserAccountImplAsync(
+                    userToBeDeleted, 
+                    userToExecuteTheDelete,
+                    orphanPackagePolicy,
+                    signature),
+                userToBeDeleted,
+                userToExecuteTheDelete,
+                commitAsTransaction);
         }
 
-        internal bool HardDeleteUser(User userToBeDeleted)
+        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature = null)
         {
-            // If the userToBeDeleted does not have the email confirmed the user will be removed from the database.
-            return !userToBeDeleted.Confirmed;
-        }
-
-        private async Task DeleteGalleryUserAccountImplAsync(User userToBeDeleted, User admin, string signature, bool unlistOrphanPackages, bool hardDelete)
-        {
-            var ownedPackages = _packageService.FindPackagesByAnyMatchingOwner(userToBeDeleted, includeUnlisted: true, includeVersions: true).ToList();
-
-            await RemoveOwnership(userToBeDeleted, admin, unlistOrphanPackages, ownedPackages);
             await RemoveReservedNamespaces(userToBeDeleted);
+            await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
-            if (hardDelete)
+            await RemovePackageOwnershipRequests(userToBeDeleted);
+
+            var organizationToBeDeleted = userToBeDeleted as Organization;
+            if (organizationToBeDeleted != null)
             {
+                await RemoveMemberships(organizationToBeDeleted);
+            }
+
+            if (!userToBeDeleted.Confirmed)
+            {
+                // Unconfirmed users should be hard-deleted.
+                // Another account with the same username can be created.
                 await RemoveUser(userToBeDeleted);
             }
             else
             {
+                // Confirmed users should be soft-deleted.
+                // Another account with the same username cannot be created.
                 await RemoveUserDataInUserTable(userToBeDeleted);
-                await InsertDeleteAccount(userToBeDeleted, admin, signature);
+                await InsertDeleteAccount(
+                    userToBeDeleted, 
+                    userToExecuteTheDelete, 
+                    signature ?? userToExecuteTheDelete.Username);
             }
         }
 
@@ -229,16 +175,61 @@ namespace NuGetGallery
             }
         }
 
-        private async Task RemoveOwnership(User user, User admin, bool unlistOrphanPackages, List<Package> packages)
+        private async Task RemovePackageOwnership(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
-            foreach (var package in packages)
+            foreach (var package in GetPackagesOwnedByUser(user))
             {
-                if (unlistOrphanPackages && _packageService.GetPackageUserAccountOwners(package).Count() <= 1)
+                var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
+                if (owners.Count() <= 1)
                 {
-                    await _packageService.MarkPackageUnlistedAsync(package, commitChanges: true);
+                    // Package will be orphaned by removing ownership.
+                    if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
+                    {
+                        throw new InvalidOperationException($"Deleting user '{user.Username}' will make package '{package.PackageRegistration.Id}' an orphan, but no orphans were expected.");
+                    }
+                    else if (orphanPackagePolicy == AccountDeletionOrphanPackagePolicy.UnlistOrphans)
+                    {
+                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: true);
+                    }
                 }
-                await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, admin, user, commitAsTransaction:false);
+
+                await _packageOwnershipManagementService.RemovePackageOwnerAsync(package.PackageRegistration, requestingUser, user, commitAsTransaction:false);
             }
+        }
+
+        private bool WillPackageBeOrphaned(User user, Package package)
+        {
+            var owners = user is Organization ? package.PackageRegistration.Owners : _packageService.GetPackageUserAccountOwners(package);
+            return owners.Count() <= 1;
+        }
+
+        private List<Package> GetPackagesOwnedByUser(User user)
+        {
+            return _packageService.FindPackagesByAnyMatchingOwner(user, includeUnlisted: true, includeVersions: true).ToList();
+        }
+
+        private async Task RemovePackageOwnershipRequests(User user)
+        {
+            var requests = _packageOwnershipManagementService.GetPackageOwnershipRequests(newOwner: user).ToList();
+            foreach (var request in requests)
+            {
+                await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(request.PackageRegistration, request.NewOwner);
+            }
+        }
+
+        private async Task RemoveMemberships(Organization organization)
+        {
+            foreach (var membership in organization.Members.ToList())
+            {
+                organization.Members.Remove(membership);
+            }
+
+            foreach (var memberRequest in organization.MemberRequests.ToList())
+            {
+                organization.MemberRequests.Remove(memberRequest);
+            }
+
+            await _entitiesContext.SaveChangesAsync();
         }
 
         private async Task RemoveUserDataInUserTable(User user)
@@ -256,6 +247,64 @@ namespace NuGetGallery
         {
             _userRepository.DeleteOnCommit(user);
             await _userRepository.CommitChangesAsync();
+        }
+
+        private async Task RemoveUser(Organization organization)
+        {
+            _entitiesContext.DeleteOnCommit(organization);
+            await _entitiesContext.SaveChangesAsync();
+        }
+
+        private async Task<DeleteUserAccountStatus> RunAccountDeletionTask(Func<Task> getTask, User userToBeDeleted, User requestingUser, bool commitAsTransaction)
+        {
+            try
+            {
+                // The support requests DB and gallery DB are different.
+                // TransactionScope can be used for doing transaction actions across db on the same server but not on different servers.
+                // The below code will clean the suppport requests before the gallery data.
+                // The order is important in order to allow the admin the opportunity to execute this step again.
+                await RemoveSupportRequests(userToBeDeleted);
+
+                if (commitAsTransaction)
+                {
+                    using (var strategy = new SuspendDbExecutionStrategy())
+                    using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
+                    {
+                        await getTask();
+                        transaction.Commit();
+                    }
+                }
+                else
+                {
+                    await getTask();
+                }
+
+                await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: userToBeDeleted.Username,
+                    status: DeleteAccountAuditRecord.ActionStatus.Success,
+                    action: AuditedDeleteAccountAction.DeleteAccount,
+                    adminUsername: requestingUser.Username));
+
+                return new DeleteUserAccountStatus()
+                {
+                    Success = true,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Success,
+                        userToBeDeleted.Username),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
+            catch (Exception e)
+            {
+                QuietLog.LogHandledException(e);
+                return new DeleteUserAccountStatus()
+                {
+                    Success = false,
+                    Description = string.Format(CultureInfo.CurrentCulture,
+                        Strings.AccountDelete_Fail,
+                        userToBeDeleted.Username, e),
+                    AccountName = userToBeDeleted.Username
+                };
+            }
         }
     }
 }

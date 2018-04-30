@@ -1,35 +1,38 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
         private readonly Package _package;
-        private readonly bool _isSemVer2;
         private string _pendingTitle;
-        private string _fullVersion;
 
         private readonly PackageStatus _packageStatus;
         internal readonly NuGetVersion NuGetVersion;
 
         public PackageViewModel(Package package)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
             _package = package;
 
-            _fullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
-            _isSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
+            FullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
+            IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
 
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
                 NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;
 
-            NuGetVersion = NuGetVersion.Parse(_fullVersion);
+            NuGetVersion = NuGetVersion.Parse(FullVersion);
 
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
@@ -89,8 +92,8 @@ namespace NuGetGallery
         }
 
         public string Version { get; set; }
-        public string FullVersion => _fullVersion;
-        public bool IsSemVer2 => _isSemVer2;
+        public string FullVersion { get; }
+        public bool IsSemVer2 { get; }
 
         public string Title
         {

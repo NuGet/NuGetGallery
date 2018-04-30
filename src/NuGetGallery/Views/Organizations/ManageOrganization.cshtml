@@ -1,6 +1,8 @@
 ﻿@model OrganizationAccountViewModel
 @using Newtonsoft.Json;
 @{
+    var account = Model.Account;
+
     ViewBag.Title = "Manage Organization";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
@@ -65,9 +67,31 @@
 
             @Html.Partial("_AccountProfilePicture", Model)
 
-            @Html.Partial("_OrganizationAccountManageMembers", Model)
+            <div id="manage-organization-members-container">
+                @Html.Partial("_OrganizationAccountManageMembers", Model)
+            </div>
 
             @Html.Partial("_AccountCuratedFeeds", Model)
+
+            @ViewHelpers.Section(this,
+                "delete-organization",
+                @<text>Delete</text>,
+                @<text>Delete this organization</text>,
+                @<text>
+                    <div class="row form-group">
+                        <div class="col-sm-6">
+                            <a role="button" href="@Url.DeleteOrganization(Model.AccountName)"
+                                class="btn btn-primary form-control">Delete</a>
+                        </div>
+                        <div class="col-sm-6">
+                            <a href="#" role="button" class="btn btn-default form-control" id="cancel-delete-organization">
+                                Cancel
+                            </a>
+                        </div>
+                    </div>
+                </text>)
+
+            @Html.Partial("_AccountCertificates", Model)
         </div>
     </div>
 </section>
@@ -93,5 +117,16 @@
         }));
     </script>
     @ViewHelpers.SectionsScript(this);
+    @Scripts.Render("~/Scripts/gallery/certificates.js")
     @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")
+
+    <script type="text/javascript">
+        CertificatesManagement.init('@Url.AddOrganizationCertificate(account.Username)', '@Url.GetOrganizationCertificates(account.Username)');
+    </script>
+
+    <script type="text/html" id="validation-errors">
+        <div data-bind="foreach:$data" class="validation-error-message-list">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+        </div>
+    </script>
 }

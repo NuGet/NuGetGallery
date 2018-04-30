@@ -88,13 +88,57 @@ namespace NuGetGallery
         /// <returns>True if user has password credential, false otherwise.</returns>
         public static bool HasPasswordLogin(this IPrincipal self)
         {
+            return HasBooleanClaim(self, NuGetClaims.PasswordLogin);
+        }
+
+        /// <summary>
+        /// Determine if the current user has multi-factor authentication enabled.
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user has multi-factor authentication enabled, false otherwise.</returns>
+        public static bool HasMultiFactorAuthenticationEnabled(this IPrincipal self)
+        {
+            return HasBooleanClaim(self, NuGetClaims.EnabledMultiFactorAuthentication);
+        }
+
+        /// <summary>
+        /// Determine if the current user was multi-factor authenticated
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        /// <returns>True if user was multi-factor authenticated, false otherwise.</returns>
+        public static bool WasMultiFactorAuthenticated(this IPrincipal self)
+        {
+            return HasBooleanClaim(self, NuGetClaims.WasMultiFactorAuthenticated);
+        }
+
+        /// <summary>
+        /// Determine if the current user logged in with personal microsoft account
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        public static bool WasMicrosoftAccountUsedForSignin(this IPrincipal self)
+        {
             if (self == null || self.Identity == null)
             {
                 return false;
             }
 
             var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin);
+            return ClaimsExtensions.LoggedInWithMicrosoftAccount(identity);
+        }
+
+        /// <summary>
+        /// Determine if the current user logged in with azure active directory account
+        /// </summary>
+        /// <param name="self">Current user principal.</param>
+        public static bool WasAzureActiveDirectoryAccountUsedForSignin(this IPrincipal self)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.LoggedInWithAzureActiveDirectory(identity);
         }
 
         /// <summary>
@@ -104,13 +148,7 @@ namespace NuGetGallery
         /// <returns>True if user has password credential, false otherwise.</returns>
         public static bool HasExternalLogin(this IPrincipal self)
         {
-            if (self == null || self.Identity == null)
-            {
-                return false;
-            }
-
-            var identity = self.Identity as ClaimsIdentity;
-            return ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.ExternalLogin);
+            return HasBooleanClaim(self, NuGetClaims.ExternalLogin);
         }
 
         /// <summary>
@@ -156,7 +194,44 @@ namespace NuGetGallery
 
             return !self.IsScopedAuthentication() || self.HasExplicitScopeAction(requestedActions);
         }
-        
+
+        /// <summary>
+        /// Try to remove the claim from the identity
+        /// </summary>
+        /// <param name="identity">IIdentity from which the claim is to be removed</param>
+        /// <param name="claimType">The claim type to be removed</param>
+        /// <returns>True if successfully able to remove the claim, false otherwise</returns>
+        public static bool TryRemoveClaim(this IIdentity identity, string claimType)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            var claim = claimsIdentity?.FindFirst(claimType);
+            if (claim != null)
+            {
+                return claimsIdentity.TryRemoveClaim(claim);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Try to add a new default claim to the identity. It will not replace an existing claim.
+        /// </summary>
+        /// <param name="identity">IIdentity from which the claim is to be removed</param>
+        /// <param name="claimType">The claim type to be added</param>
+        /// <returns>True if successfully able to add the claim, false otherwise</returns>
+        public static bool TryAddClaim(this IIdentity identity, string claimType)
+        {
+            var claimsIdentity = identity as ClaimsIdentity;
+            var existingClaim = claimsIdentity?.FindFirst(claimType);
+            if (existingClaim == null)
+            {
+                claimsIdentity.AddClaim(ClaimsExtensions.CreateBooleanClaim(claimType));
+                return true;
+            }
+
+            return false;
+        }
+
         private static string GetScopeClaim(IIdentity self)
         {
             if (self == null)
@@ -171,6 +246,17 @@ namespace NuGetGallery
         private static bool IsEmptyScopeClaim(string scopeClaim)
         {
             return string.IsNullOrEmpty(scopeClaim) || scopeClaim == "[]";
+        }
+
+        private static bool HasBooleanClaim(IPrincipal self, string claimType)
+        {
+            if (self == null || self.Identity == null)
+            {
+                return false;
+            }
+
+            var identity = self.Identity as ClaimsIdentity;
+            return ClaimsExtensions.HasBooleanClaim(identity, claimType);
         }
     }
 }

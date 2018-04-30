@@ -84,6 +84,7 @@ namespace NuGetGallery
             /// This array must be added to as we implement more services that use <see cref="IFileStorageService"/>.
             var dependents = new[]
             {
+                Create<CertificateService, ICertificateService>(configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: true),
                 Create<ContentService, IContentService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
                 Create<PackageFileService, IPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),

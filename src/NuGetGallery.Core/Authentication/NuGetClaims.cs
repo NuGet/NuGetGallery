@@ -36,5 +36,30 @@ namespace NuGetGallery.Authentication
         /// The claim url for the claim that stores whether or not the user has an external login.
         /// </summary>
         public const string ExternalLogin = ClaimsDomain + "externallogin";
+
+        /// <summary>
+        /// The claim url for the claim that stores whether or not the user has enabled multi-factor authentication.
+        /// </summary>
+        public const string EnabledMultiFactorAuthentication = ClaimsDomain + "enabledmultifactorauthentication";
+
+        /// <summary>
+        /// The claim url for the claim that stores whether or not the user was multi-factor authenticated for the current session.
+        /// </summary>
+        public const string WasMultiFactorAuthenticated = ClaimsDomain + "wasmultifactorauthenticated";
+
+        /// <summary>
+        /// The claim url for the claim that stores the type of credential used for authentication for the current session.
+        /// </summary>
+        public const string ExternalLoginCredentialType = ClaimsDomain + "externallogincredentialtype";
+
+        /// <summary>
+        /// The class for all possible values for <see cref="ExternalLoginCredentialType"/> claim.
+        /// </summary>
+        public class ExternalLoginCredentialValues
+        {
+            public const string MicrosoftAccount = "msa";
+
+            public const string AzureActiveDirectory = "aad";
+        }
     }
 }

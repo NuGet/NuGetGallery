@@ -601,6 +601,22 @@ img.reserved-indicator-icon {
 .page-account-settings .form-group + .form-group .btn {
   margin-top: 20px;
 }
+.page-account-settings .login-account-row {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
+  padding-top: 10px;
+
+  -webkit-box-align: center;
+  -webkit-align-items: center;
+  -ms-flex-align: center;
+          align-items: center;
+  -webkit-box-pack: justify;
+  -webkit-justify-content: space-between;
+  -ms-flex-pack: justify;
+          justify-content: space-between;
+}
 .page-api-keys .example-commands {
   padding: 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
@@ -784,6 +800,15 @@ img.reserved-indicator-icon {
   word-wrap: break-word;
 
   overflow-wrap: break-word;
+}
+.page-package-details .package-details-main .signature-info-cell {
+  max-width: 1em;
+  padding-right: 0;
+  padding-left: 0;
+  cursor: default;
+}
+.page-package-details .package-details-main .signature-info-cell .signature-info {
+  padding-left: 6px;
 }
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
@@ -1156,6 +1181,9 @@ img.reserved-indicator-icon {
 .page-manage-packages .manage-package-listing .ms-Icon {
   position: relative;
   top: 2px;
+}
+.page-manage-packages .inner-table {
+  margin-bottom: 0;
 }
 .page-delete-package h1 {
   margin-bottom: 0;
@@ -1569,6 +1597,10 @@ img.reserved-indicator-icon {
 }
 .warning-icon {
   color: #ea7918;
+  vertical-align: bottom;
+}
+.checkmark-icon {
+  color: green;
   vertical-align: bottom;
 }
 /*# sourceMappingURL=bootstrap-theme.css.map */

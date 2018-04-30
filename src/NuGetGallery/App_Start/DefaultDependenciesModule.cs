@@ -139,6 +139,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDelete>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Certificate>>()
+                .AsSelf()
+                .As<IEntityRepository<Certificate>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<AccountDelete>>()
                .AsSelf()
                .As<IEntityRepository<AccountDelete>>()
@@ -198,7 +203,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<PackageOwnerRequestService>()
                 .AsSelf()
                 .As<IPackageOwnerRequestService>()
@@ -251,11 +256,21 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IApiScopeEvaluator>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ContentObjectService>()
                 .AsSelf()
                 .As<IContentObjectService>()
                 .SingleInstance();
+
+            builder.RegisterType<CertificateValidator>()
+                .AsSelf()
+                .As<ICertificateValidator>()
+                .SingleInstance();
+
+            builder.RegisterType<CertificateService>()
+                .AsSelf()
+                .As<ICertificateService>()
+                .InstancePerLifetimeScope();
 
             if (configuration.Current.IsHosted)
             {

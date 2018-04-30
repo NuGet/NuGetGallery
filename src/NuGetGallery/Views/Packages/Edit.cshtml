@@ -19,9 +19,8 @@
                 "_PackageHeading", 
                 new PackageHeadingModel(
                     CurrentUser,
-                    Model.PackageVersions.First(), 
-                    "Edit",
-                    linkIdOnly: true))
+                    Model.PackageRegistration, 
+                    "Edit"))
 
             @if (Model.IsLocked)
             {

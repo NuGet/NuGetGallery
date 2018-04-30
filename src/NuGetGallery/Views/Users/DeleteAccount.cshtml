@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery
-@model NuGetGallery.DeleteAccountViewModel
+@model NuGetGallery.DeleteUserViewModel
 @{
     ViewBag.Title = "Delete Account " + Model.AccountName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -26,11 +26,11 @@
                 }
                 else
                 {
-                    @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
-                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+                    @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong>
+                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a>
                     </text>)
                     <p>
-                        When you account is deleted we will<br />
+                        When you account is deleted we will:<br />
                         <ul>
                             <li>Revoke your api key(s).</li>
                             <li>Remove you as the owner for any packages you own.</li>
@@ -48,9 +48,7 @@
                         If you choose to proceed without fixing this issue, someone from the NuGet team may reach out and work with you to find a resolution.
                     </p>
                     <div class="form-group">
-                        @{
-                            @Html.Partial("_UserPackagesListForDeletedAccount", new ManagePackagesListViewModel(@Model.Packages, "Packages"))
-                        }
+                        @Html.Partial("_UserPackagesListForDeletedAccount", Model)
                     </div>
                     <div class="form-group danger-zone">
                         <text>
@@ -62,7 +60,7 @@
                                 </p>
                                 <div class="row form-group">
                                     <div class="col-sm-6">
-                                        <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account." />
+                                        <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account" />
                                     </div>
                                     <div class="col-sm-6">
                                         <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-account">Cancel</a>

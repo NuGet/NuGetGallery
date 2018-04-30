@@ -23,7 +23,12 @@ namespace NuGetGallery.Auditing
                 "RemoveCredential",
                 "RequestPasswordReset",
                 "SubscribeToPolicies",
-                "UnsubscribeFromPolicies"
+                "UnsubscribeFromPolicies",
+                "AddOrganization",
+                "TransformOrganization",
+                "AddOrganizationMember",
+                "RemoveOrganizationMember",
+                "UpdateOrganizationMember"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);

@@ -4,10 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Mail;
+using System.Text;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Areas.Admin;
@@ -16,6 +19,7 @@ using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Security;
 using Xunit;
 
 namespace NuGetGallery
@@ -41,7 +45,7 @@ namespace NuGetGallery
             {
                 return controller.Account();
             }
-            
+
             [Fact]
             public void LoadsDescriptionsOfCredentialsInToViewModel()
             {
@@ -443,7 +447,7 @@ namespace NuGetGallery
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNotice(cred.User, 
+                    .Verify(m => m.SendCredentialAddedNotice(cred.User,
                                                              It.Is<CredentialViewModel>(c => c.Type == cred.Type)));
             }
 
@@ -465,7 +469,7 @@ namespace NuGetGallery
                 Assert.Equal(forgot, viewResult.ViewBag.ForgotPassword);
             }
         }
-        
+
         public class TheConfirmAction : TheConfirmBaseAction
         {
             public static IEnumerable<object[]> AllowedCurrentUsers_Data
@@ -486,8 +490,8 @@ namespace NuGetGallery
             {
                 get
                 {
-                    foreach (var currentUser in 
-                        new[] 
+                    foreach (var currentUser in
+                        new[]
                         {
                             TestUtility.FakeUser,
                             TestUtility.FakeAdminUser,
@@ -512,7 +516,7 @@ namespace NuGetGallery
                 Assert.True(firstPackageOwner.CanPushExisting);
                 Assert.True(firstPackageOwner.CanUnlist);
             }
-            
+
             [Theory]
             [InlineData(true)]
             [InlineData(false)]
@@ -601,8 +605,8 @@ namespace NuGetGallery
             {
                 get
                 {
-                    foreach (var getCurrentUser in 
-                        new Func<Fakes, User>[] 
+                    foreach (var getCurrentUser in
+                        new Func<Fakes, User>[]
                         {
                             (fakes) => fakes.User,
                             (fakes) => fakes.Admin
@@ -663,7 +667,7 @@ namespace NuGetGallery
                     }
                 }
             }
-            
+
             [Theory]
             [MemberData(nameof(WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess_Data))]
             public async Task WhenScopeOwnerMatchesOrganizationWithPermission_ReturnsSuccess(bool isAdmin, string scope)
@@ -1003,7 +1007,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var username = "test";
-                
+
                 var package = new Package
                 {
                     Version = "1.1.1",
@@ -1146,7 +1150,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                     }
                 };
                 controller.SetCurrentUser(new User()
@@ -1182,7 +1186,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new2",
@@ -1223,7 +1227,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",
@@ -1260,7 +1264,7 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => 
+                    .Setup(m =>
                                 m.SendCredentialRemovedNotice(
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
@@ -1272,7 +1276,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = false,
+                        DisablePasswordLogin = true,
                     }
                 };
 
@@ -1300,7 +1304,7 @@ namespace NuGetGallery
                 {
                     ChangePassword = new ChangePasswordViewModel()
                     {
-                        EnablePasswordLogin = true,
+                        DisablePasswordLogin = false,
                         OldPassword = "old",
                         NewPassword = "new",
                         VerifyPassword = "new",
@@ -1369,6 +1373,40 @@ namespace NuGetGallery
                     .Select(e => e.ErrorMessage)
                     .ToArray();
                 Assert.Equal(errorMessages, new[] { Strings.UserIsNotYetConfirmed });
+            }
+        }
+
+        public class TheChangeMultiFactorAuthenticationAction : TestContainer
+        {
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task SettingsAreUpdated_RedirectsBackWithMessage(bool enable2FA)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var user = fakes.CreateUser("user1");
+                user.EnableMultiFactorAuthentication = !enable2FA;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                var userServiceMock = GetMock<IUserService>();
+                userServiceMock
+                    .Setup(x => x.ChangeMultiFactorAuthentication(user, enable2FA))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
+                // Act
+                var result = await controller.ChangeMultiFactorAuthentication(enable2FA);
+
+                // Assert
+                userServiceMock.Verify(x => x.ChangeMultiFactorAuthentication(user, enable2FA));
+                Assert.NotNull(controller.TempData["Message"]);
+                var identity = controller.OwinContext.Authentication.User.Identity as ClaimsIdentity;
+                Assert.NotNull(identity);
+                Assert.Equal(enable2FA, ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
+                ResultAssert.IsRedirectToRoute(result, new { action = "Account" });
             }
         }
 
@@ -1533,7 +1571,7 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => 
+                    .Setup(m =>
                                 m.SendCredentialRemovedNotice(
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
@@ -1763,7 +1801,7 @@ namespace NuGetGallery
                 Assert.NotEqual(newApiKey.Value, viewModel.Value);
                 Assert.True(ApiKeyV4.TryParse(viewModel.Value, out ApiKeyV4 apiKeyV4));
                 Assert.True(apiKeyV4.Verify(newApiKey.Value));
-                
+
                 Assert.Equal(newApiKey.Key, viewModel.Key);
                 Assert.Equal(description, viewModel.Description);
                 Assert.Equal(newApiKey.Expires.Value.ToString("O"), viewModel.Expires);
@@ -1999,7 +2037,7 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: "NotFoundUser");
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
             }
 
             [Fact]
@@ -2021,11 +2059,13 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: userName);
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, (int)((HttpNotFoundResult)result).StatusCode);
+                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
             }
 
-            [Fact]
-            public void DeleteHappyAccount()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void DeleteHappyAccount(bool withPendingIssues)
             {
                 // Arrange
                 string userName = "DeletedUser";
@@ -2033,6 +2073,8 @@ namespace NuGetGallery
                 var fakes = Get<Fakes>();
                 var testUser = fakes.CreateUser(userName);
                 testUser.IsDeleted = false;
+                testUser.Key = 1;
+                controller.SetCurrentUser(fakes.Admin);
 
                 PackageRegistration packageRegistration = new PackageRegistration();
                 packageRegistration.Owners.Add(testUser);
@@ -2047,6 +2089,18 @@ namespace NuGetGallery
                 packageRegistration.Packages.Add(userPackage);
 
                 List<Package> userPackages = new List<Package>() { userPackage };
+                List<Issue> issues = new List<Issue>();
+                if (withPendingIssues)
+                {
+                    issues.Add(new Issue()
+                    {
+                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = userName,
+                        UserKey = testUser.Key,
+                        IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
+                    });
+                }
 
                 GetMock<IUserService>()
                     .Setup(stub => stub.FindByUsername(userName))
@@ -2057,13 +2111,17 @@ namespace NuGetGallery
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
                     .Returns(userPackages);
+                GetMock<ISupportRequestService>()
+                    .Setup(stub => stub.GetIssues(null, null, null, null))
+                    .Returns(issues);
 
                 // act
-                var model = ResultAssert.IsView<DeleteUserAccountViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
+                var model = ResultAssert.IsView<DeleteUserViewModel>(controller.Delete(accountName: userName), viewName: "DeleteUserAccount");
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
+                Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
 
@@ -2072,19 +2130,12 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public void DeleteAccountRequestView(bool withPendingIssues)
+            public void ShowsViewWithCorrectData(bool withPendingIssues)
             {
                 // Arrange
-                string userName = "DeletedUser";
-                string emailAddress = $"{userName}@coldmail.com";
-                int userKey = 1;
-
                 var controller = GetController<UsersController>();
                 var fakes = Get<Fakes>();
-                var testUser = fakes.CreateUser(userName);
-                testUser.EmailAddress = emailAddress;
-                testUser.Key = userKey;
-                testUser.IsDeleted = false;
+                var testUser = fakes.User;
 
                 controller.SetCurrentUser(testUser);
                 PackageRegistration packageRegistration = new PackageRegistration();
@@ -2106,15 +2157,15 @@ namespace NuGetGallery
                     issues.Add(new Issue()
                     {
                         IssueTitle = Strings.AccountDelete_SupportRequestTitle,
-                        OwnerEmail = emailAddress,
-                        CreatedBy = userName,
-                        UserKey = 1,
+                        OwnerEmail = testUser.EmailAddress,
+                        CreatedBy = testUser.Username,
+                        UserKey = testUser.Key,
                         IssueStatus = new IssueStatus() { Key = IssueStatusKeys.New, Name = "OneIssue" }
                     });
                 }
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(testUser.Username))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2125,22 +2176,54 @@ namespace NuGetGallery
 
                 // act
                 var result = controller.DeleteRequest() as ViewResult;
-                var model = (DeleteAccountViewModel)result.Model;
+                var model = ResultAssert.IsView<DeleteUserViewModel>(result, "DeleteAccount");
 
                 // Assert
-                Assert.Equal(userName, model.AccountName);
-                Assert.Equal<int>(1, model.Packages.Count());
-                Assert.Equal<bool>(true, model.HasOrphanPackages);
-                Assert.Equal<bool>(withPendingIssues, model.HasPendingRequests);
+                Assert.Equal(testUser.Username, model.AccountName);
+                Assert.Equal(1, model.Packages.Count());
+                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
 
         public class TheRequestAccountDeletionAction : TestContainer
         {
+            [Fact]
+            public async Task ReturnsNotFoundWithoutCurrentUser()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                // Act & Assert
+                await ReturnsNotFound(controller);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundWithDeletedCurrentUser()
+            {
+                // Arrange
+                var controller = GetController<UsersController>();
+
+                var currentUser = Get<Fakes>().User;
+                currentUser.IsDeleted = true;
+                controller.SetCurrentUser(currentUser);
+
+                // Act & Assert
+                await ReturnsNotFound(controller);
+            }
+
+            private async Task ReturnsNotFound(UsersController controller)
+            {
+                var result = await controller.RequestAccountDeletion(string.Empty);
+                
+                var notFoundResult = ResultAssert.IsNotFound(result);
+                Assert.Equal("User not found.", notFoundResult.StatusDescription);
+            }
+
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
-            public async Task RequestDeleteAccountAsync(bool successOnSentRequest)
+            public async Task SucceedsIfSupportRequestIsAdded(bool successOnSentRequest)
             {
                 // Arrange
                 string userName = "DeletedUser";
@@ -2174,9 +2257,13 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal<string>("DeleteRequest", (string)result.RouteValues["action"]);
+                Assert.Equal("DeleteRequest", (string)result.RouteValues["action"]);
                 bool tempData = controller.TempData.ContainsKey("RequestFailedMessage");
-                Assert.Equal<bool>(!successOnSentRequest, tempData);
+                Assert.Equal(!successOnSentRequest, tempData);
+                GetMock<IMessageService>()
+                    .Verify(
+                        stub => stub.SendAccountDeleteNotice(testUser), 
+                        successOnSentRequest ? Times.Once() : Times.Never());
             }
 
             /// <summary>
@@ -2201,7 +2288,7 @@ namespace NuGetGallery
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
-                    .Setup(stub => stub.DeleteGalleryUserAccountAsync(testUser, It.IsAny<User>(), It.IsAny<string>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Setup(stub => stub.DeleteAccountAsync(testUser, It.IsAny<User>(), It.IsAny<bool>(), It.IsAny<AccountDeletionOrphanPackagePolicy>(), It.IsAny<string>()))
                     .Returns(value: Task.FromResult(new DeleteUserAccountStatus()
                     {
                         AccountName = userName,
@@ -2244,7 +2331,8 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Setup(s => s.RequestTransformToOrganizationAccount(It.IsAny<User>(), It.IsAny<User>()))
-                    .Callback<User, User>((acct, admin) => {
+                    .Callback<User, User>((acct, admin) =>
+                    {
                         acct.OrganizationMigrationRequest = new OrganizationMigrationRequest()
                         {
                             NewOrganization = acct,
@@ -2290,7 +2378,8 @@ namespace NuGetGallery
                 var controller = CreateController(accountToTransform, canTransformErrorReason: "error");
 
                 // Act
-                var result = await controller.TransformToOrganization(new TransformAccountViewModel() {
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
                     AdminUsername = "OrgAdmin"
                 }) as ViewResult;
 
@@ -2345,7 +2434,7 @@ namespace NuGetGallery
                     controller.ModelState[string.Empty].Errors.First().ErrorMessage);
 
                 GetMock<IMessageService>()
-                    .Verify(m => 
+                    .Verify(m =>
                         m.SendOrganizationTransformRequest(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
@@ -2355,7 +2444,7 @@ namespace NuGetGallery
                         Times.Never());
 
                 GetMock<IMessageService>()
-                    .Verify(m => 
+                    .Verify(m =>
                         m.SendOrganizationTransformInitiatedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
@@ -2394,8 +2483,8 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m => m.SendOrganizationTransformInitiatedNotice(
-                        It.IsAny<User>(), 
-                        It.IsAny<User>(), 
+                        It.IsAny<User>(),
+                        It.IsAny<User>(),
                         It.IsAny<string>()));
 
                 GetMock<ITelemetryService>()
@@ -2403,7 +2492,7 @@ namespace NuGetGallery
                         t => t.TrackOrganizationTransformInitiated(It.IsAny<User>()));
             }
         }
-        
+
         public class TheConfirmTransformToOrganizationAction : TestContainer
         {
             [Fact]
@@ -2574,7 +2663,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"), 
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_OrganizationAccountDoesNotExist, "account"),
                     controller.TempData["Message"]);
 
                 GetMock<IMessageService>()
@@ -2630,7 +2719,7 @@ namespace NuGetGallery
                 // Assert
                 Assert.NotNull(result);
                 Assert.Equal(
-                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Rejected, accountToTransform), 
+                    String.Format(CultureInfo.CurrentCulture, Strings.TransformAccount_Rejected, accountToTransform),
                     controller.TempData["Message"]);
 
                 GetMock<IMessageService>()
@@ -2749,6 +2838,376 @@ namespace NuGetGallery
                 return controller;
             }
         }
+
+        public class TheGetCertificateAction : TestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly UsersController _controller;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheGetCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _controller = GetController<UsersController>();
+                _user = new User()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 2,
+                    Sha1Thumbprint = "b",
+                    Thumbprint = "c"
+                };
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void GetCertificate_WhenThumbprintIsInvalid_ReturnsBadRequest(string thumbprint)
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.GetCertificate(accountName: null, thumbprint: thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.GetCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificate_WhenCurrentUserHasNoCertificates_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
+                    .Returns(Enumerable.Empty<Certificate>());
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.GetCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Empty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void GetCertificate_WhenCurrentUserHasCertificate_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.GetCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.True(viewModel.CanDelete);
+                Assert.Equal($"/account/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+        }
+
+        public class TheGetCertificatesAction : TestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly UsersController _controller;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheGetCertificatesAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _controller = GetController<UsersController>();
+                _user = new User()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 2,
+                    Sha1Thumbprint = "b",
+                    Thumbprint = "c"
+                };
+            }
+
+            [Fact]
+            public void GetCertificates_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.GetCertificates(accountName: null);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void GetCertificates_WhenCurrentUserHasNoCertificates_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
+                    .Returns(Enumerable.Empty<Certificate>());
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.GetCertificates(accountName: null);
+
+                Assert.NotNull(response);
+                Assert.Empty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void GetCertificates_WhenCurrentUserHasCertificate_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _user)))
+                    .Returns(new[] { _certificate });
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.GetCertificates(accountName: null);
+
+                Assert.NotNull(response);
+                Assert.NotEmpty((IEnumerable<ListCertificateItemViewModel>)response.Data);
+
+                var viewModel = ((IEnumerable<ListCertificateItemViewModel>)response.Data).Single();
+
+                Assert.True(viewModel.CanDelete);
+                Assert.Equal($"/account/certificates/{_certificate.Thumbprint}", viewModel.DeleteUrl);
+                Assert.Equal(_certificate.Sha1Thumbprint, viewModel.Sha1Thumbprint);
+                Assert.Equal(JsonRequestBehavior.AllowGet, response.JsonRequestBehavior);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+        }
+
+        public class TheAddCertificateAction : TestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly Mock<ISecurityPolicyService> _securityPolicyService;
+            private readonly Mock<IPackageService> _packageService;
+            private readonly UsersController _controller;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheAddCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _securityPolicyService = GetMock<ISecurityPolicyService>();
+                _packageService = GetMock<IPackageService>();
+                _controller = GetController<UsersController>();
+                _user = new User()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 2,
+                    Sha1Thumbprint = "b",
+                    Thumbprint = "c"
+                };
+            }
+
+            [Fact]
+            public void AddCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var uploadFile = new StubHttpPostedFile(contentLength: 0, fileName: "a.cer", inputStream: Stream.Null);
+                var response = _controller.AddCertificate(accountName: null, uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUploadFileIsNull_ReturnsBadRequest()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(accountName: null, uploadFile: null);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void AddCertificate_WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                var uploadFile = GetUploadFile();
+
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.AddCertificate(accountName: null, uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUploadFileIsValid_ReturnsCreated()
+            {
+                var uploadFile = GetUploadFile();
+
+                _certificateService.Setup(x => x.AddCertificateAsync(
+                        It.Is<HttpPostedFileBase>(file => ReferenceEquals(file, uploadFile))))
+                    .ReturnsAsync(_certificate);
+                _certificateService.Setup(x => x.ActivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _user)))
+                    .Returns(Task.CompletedTask);
+
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.AddCertificate(accountName: null, uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Created, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+            }
+
+            [Fact]
+            public void AddCertificate_WhenUserIsSubscribedToAutomaticallyOverwriteRequiredSignerPolicy_ReturnsCreated()
+            {
+                var uploadFile = GetUploadFile();
+
+                _certificateService.Setup(x => x.AddCertificateAsync(
+                        It.Is<HttpPostedFileBase>(file => ReferenceEquals(file, uploadFile))))
+                    .ReturnsAsync(_certificate);
+                _certificateService.Setup(x => x.ActivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _user)))
+                    .Returns(Task.CompletedTask);
+                _certificateService.Setup(x => x.GetCertificates(
+                        It.Is<User>(user => user == _user)))
+                    .Returns(new[] { _certificate });
+                _securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(user => user == _user),
+                        It.Is<string>(policyName => policyName == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+                _packageService.Setup(x => x.SetRequiredSignerAsync(It.Is<User>(user => user == _user)))
+                    .Returns(Task.CompletedTask);
+
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.AddCertificate(accountName: null, uploadFile: uploadFile);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Created, _controller.Response.StatusCode);
+
+                _certificateService.VerifyAll();
+                _securityPolicyService.VerifyAll();
+                _packageService.Verify(x => x.SetRequiredSignerAsync(_user), Times.Once);
+            }
+
+            private static StubHttpPostedFile GetUploadFile()
+            {
+                var bytes = Encoding.UTF8.GetBytes("certificate");
+                var stream = new MemoryStream(bytes);
+
+                return new StubHttpPostedFile((int)stream.Length, "certificate.cer", stream);
+            }
+        }
+
+        public class TheDeleteCertificateAction : TestContainer
+        {
+            private readonly Mock<ICertificateService> _certificateService;
+            private readonly UsersController _controller;
+            private readonly User _user;
+            private readonly Certificate _certificate;
+
+            public TheDeleteCertificateAction()
+            {
+                _certificateService = GetMock<ICertificateService>();
+                _controller = GetController<UsersController>();
+                _user = new User()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+                _certificate = new Certificate()
+                {
+                    Key = 2,
+                    Sha1Thumbprint = "b",
+                    Thumbprint = "c"
+                };
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void DeleteCertificate_WhenThumbprintIsInvalid_ReturnsBadRequest(string thumbprint)
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.DeleteCertificate(accountName: null, thumbprint: thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenCurrentUserIsNull_ReturnsUnauthorized()
+            {
+                var response = _controller.DeleteCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Unauthorized, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WhenCurrentUserIsNotMultiFactorAuthenticated_ReturnsForbidden()
+            {
+                _controller.SetCurrentUser(_user);
+
+                var response = _controller.DeleteCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
+            }
+
+            [Fact]
+            public void DeleteCertificate_WithValidThumbprint_ReturnsOK()
+            {
+                _certificateService.Setup(x => x.DeactivateCertificateAsync(
+                        It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
+                        It.Is<User>(user => user == _user)))
+                    .Returns(Task.CompletedTask);
+                _controller.SetCurrentUser(_user);
+                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+
+                var response = _controller.DeleteCertificate(accountName: null, thumbprint: _certificate.Thumbprint);
+
+                Assert.NotNull(response);
+                Assert.Equal((int)HttpStatusCode.OK, _controller.Response.StatusCode);
+            }
+        }
     }
 }
-

@@ -56,6 +56,9 @@ namespace NuGetGallery.Configuration
         [DisplayName("AzureStorage.Auditing.ConnectionString")]
         public string AzureStorage_Auditing_ConnectionString { get; set; }
 
+        [DisplayName("AzureStorage.UserCertificates.ConnectionString")]
+        public string AzureStorage_UserCertificates_ConnectionString { get; set; }
+
         [DisplayName("AzureStorage.Content.ConnectionString")]
         public string AzureStorage_Content_ConnectionString { get; set; }
 

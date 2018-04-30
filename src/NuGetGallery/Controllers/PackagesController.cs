@@ -84,6 +84,7 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly ICertificateService _certificateService;
 
         public PackagesController(
             IPackageService packageService,
@@ -106,7 +107,8 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
             IValidationService validationService,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            ICertificateService certificateService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -129,6 +131,7 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
+            _certificateService = certificateService;
         }
 
         [HttpGet]
@@ -1188,6 +1191,7 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
+                PackageRegistration = package.PackageRegistration,
                 IsLocked = package.PackageRegistration.IsLocked,
             };
 
@@ -1336,6 +1340,14 @@ namespace NuGetGallery
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
                 SendAddPackageOwnerNotification(package, user);
+
+                var hasActiveCertificates = _certificateService.GetCertificates(user).Any();
+
+                if (hasActiveCertificates &&
+                    _securityPolicyService.IsSubscribed(user, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
+                {
+                    await _packageService.SetRequiredSignerAsync(package, user);
+                }
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -1783,7 +1795,45 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
-        // this methods exist to make unit testing easier
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> SetRequiredSigner(string id, string username)
+        {
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+
+            if (packageRegistration == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            var currentUser = GetCurrentUser();
+
+            if (ActionsRequiringPermissions.ManagePackageRequiredSigner
+                .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration)
+                    != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
+            {
+                return Json(HttpStatusCode.Forbidden);
+            }
+
+            User signer = null;
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                signer = _userService.FindByUsername(username);
+
+                if (signer == null)
+                {
+                    return Json(HttpStatusCode.NotFound);
+                }
+            }
+
+            await _packageService.SetRequiredSignerAsync(packageRegistration, signer);
+
+            return Json(HttpStatusCode.OK);
+        }
+
+        // this method exists to make unit testing easier
         protected internal virtual PackageArchiveReader CreatePackage(Stream stream)
         {
             try
