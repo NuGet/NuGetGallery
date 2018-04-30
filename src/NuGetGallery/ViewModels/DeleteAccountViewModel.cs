@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
@@ -44,7 +46,7 @@ namespace NuGetGallery
 
         public List<ListPackageItemViewModel> Packages { get; }
 
-        public User User { get; set; }
+        public User User { get; }
 
         public string AccountName => User.Username;
 

@@ -2037,7 +2037,7 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: "NotFoundUser");
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
+                ResultAssert.IsNotFound(result);
             }
 
             [Fact]
@@ -2059,7 +2059,7 @@ namespace NuGetGallery
                 var result = controller.Delete(accountName: userName);
 
                 // Assert
-                Assert.Equal((int)HttpStatusCode.NotFound, ((HttpNotFoundResult)result).StatusCode);
+                ResultAssert.IsNotFound(result);
             }
 
             [Theory]
@@ -2216,8 +2216,7 @@ namespace NuGetGallery
             {
                 var result = await controller.RequestAccountDeletion(string.Empty);
                 
-                var notFoundResult = ResultAssert.IsNotFound(result);
-                Assert.Equal("User not found.", notFoundResult.StatusDescription);
+                ResultAssert.IsNotFound(result);
             }
 
             [Theory]

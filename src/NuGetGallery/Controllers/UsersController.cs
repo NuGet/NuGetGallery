@@ -289,7 +289,7 @@ namespace NuGetGallery
 
             if (user == null || user.IsDeleted)
             {
-                return HttpNotFound("User not found.");
+                return HttpNotFound();
             }
 
             if (!user.Confirmed)
@@ -329,9 +329,9 @@ namespace NuGetGallery
             var user = UserService.FindByUsername(accountName);
             if (user == null || user.IsDeleted || (user is Organization))
             {
-                return HttpNotFound("User not found.");
+                return HttpNotFound();
             }
-
+            
             return View("DeleteUserAccount", GetDeleteAccountViewModel(user));
         }
 
