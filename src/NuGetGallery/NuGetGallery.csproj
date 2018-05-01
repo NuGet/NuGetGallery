@@ -2019,6 +2019,7 @@
     <Content Include="Areas\Admin\Views\Delete\_ReflowBulkConfirm.cshtml" />
     <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
+    <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -2092,6 +2093,7 @@
     <Content Include="Views\Authentication\_SigninAssistance.cshtml" />
     <Content Include="Views\Organizations\Add.cshtml" />
     <Content Include="Views\Organizations\HandleOrganizationMembershipRequest.cshtml" />
+    <Content Include="Views\Users\_UserOrganizationsListForDeletedAccount.cshtml" />
     <Content Include="Views\Organizations\DeleteAccount.cshtml" />
     <Content Include="Views\Users\_DeleteUserAccountForm.cshtml" />
     <Content Include="Views\Organizations\_OrganizationMembersListForDeletedAccount.cshtml" />

@@ -97,15 +97,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account &apos;{0}&apos; cannot be deleted because it is a member of an organization. The user needs to be manually removed from any organizations before the account can be deleted..
-        /// </summary>
-        public static string AccountDelete_OrganizationMemberDeleteNotImplemented {
-            get {
-                return ResourceManager.GetString("AccountDelete_OrganizationMemberDeleteNotImplemented", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The account:{0} was deleted succesfully..
         /// </summary>
         public static string AccountDelete_Success {
@@ -125,7 +116,7 @@ namespace NuGetGallery {
         
         /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
-        ///If you wish to update the linked Microsoft account you can do so from the account settings page..
+        ///If you would like to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
         public static string AccountIsLinkedToAnotherExternalAccount {
             get {
@@ -750,7 +741,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The email address &apos;{0}&apos; is being used..
+        ///   Looks up a localized string similar to The email address &apos;{0}&apos; is already in use by a different account..
         /// </summary>
         public static string EmailAddressBeingUsed {
             get {

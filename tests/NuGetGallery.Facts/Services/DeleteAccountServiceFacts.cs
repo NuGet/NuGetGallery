@@ -4,14 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
-using NuGetGallery.Framework;
 using NuGetGallery.Security;
 using Xunit;
 using Moq;
@@ -22,31 +20,7 @@ namespace NuGetGallery.Services
     {
         public class TheDeleteGalleryUserAccountAsyncMethod
         {
-            [Fact]
-            public async Task WhenAccountIsOrganizationMember_DoesNotDelete()
-            {
-                // Arrange
-                var fakes = new Fakes();
-                var account = fakes.OrganizationCollaborator;
-                var testableService = new DeleteAccountTestService(account, fakes.Package);
-                var deleteAccountService = testableService.GetDeleteAccountService();
-
-                // Act
-                var result = await deleteAccountService.DeleteAccountAsync(
-                    account,
-                    fakes.Admin,
-                    commitAsTransaction: false,
-                    signature: "signature",
-                    orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-
-                // Assert
-                Assert.False(result.Success);
-
-                var expected = string.Format(CultureInfo.CurrentCulture,
-                    Strings.AccountDelete_OrganizationMemberDeleteNotImplemented,
-                    account.Username);
-                Assert.Equal(expected, result.Description);
-            }
+            private static int Key = -1;
 
             [Fact]
             public async Task NullUser()
@@ -60,7 +34,7 @@ namespace NuGetGallery.Services
                 // Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
                     null, 
-                    new User("AdminUser"),
+                    new User("AdminUser") { Key = Key++ },
                     commitAsTransaction: false,
                     signature: "signature",
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
@@ -77,7 +51,7 @@ namespace NuGetGallery.Services
 
                 // Assert
                 await Assert.ThrowsAsync<ArgumentNullException>(() => deleteAccountService.DeleteAccountAsync(
-                    new User("TestUser"),
+                    new User("TestUser") { Key = Key++ },
                     null,
                     commitAsTransaction: false,
                     signature: "signature",
@@ -124,6 +98,7 @@ namespace NuGetGallery.Services
                 // Arrange
                 PackageRegistration registration = null;
                 var testUser = CreateTestData(ref registration);
+                var testUserOrganizations = testUser.Organizations.ToList();
                 var testableService = new DeleteAccountTestService(testUser, registration);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
@@ -135,17 +110,35 @@ namespace NuGetGallery.Services
                                                 commitAsTransaction: false,
                                                 signature: signature,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
-
-                Assert.Equal(0, registration.Owners.Count());
-                Assert.Equal(0, testUser.SecurityPolicies.Count());
-                Assert.Equal(0, testUser.ReservedNamespaces.Count());
+                
+                Assert.Empty(registration.Owners);
+                Assert.Empty(testUser.SecurityPolicies);
+                Assert.Empty(testUser.ReservedNamespaces);
                 Assert.Equal(false, registration.Packages.ElementAt(0).Listed);
                 Assert.Null(testUser.EmailAddress);
                 Assert.Equal(1, testableService.DeletedAccounts.Count());
                 Assert.Equal(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
-                Assert.Equal(1, testableService.SupportRequests.Count);
-                Assert.Equal(0, testableService.PackageOwnerRequests.Count);
-                Assert.Equal(1, testableService.AuditService.Records.Count);
+                Assert.Equal(1, testableService.SupportRequests.Count());
+                Assert.Empty(testableService.PackageOwnerRequests);
+                Assert.Equal(1, testableService.AuditService.Records.Count());
+                Assert.Null(testUser.OrganizationMigrationRequest);
+                Assert.Empty(testUser.OrganizationMigrationRequests);
+                Assert.Empty(testUser.OrganizationRequests);
+
+                Assert.Empty(testUser.Organizations);
+                foreach (var testUserOrganization in testUserOrganizations)
+                {
+                    var notDeletedMembers = testUserOrganization.Organization.Members.Where(m => m.Member != testUser);
+                    if (!notDeletedMembers.Any())
+                    {
+                        Assert.Contains(testUserOrganization.Organization, testableService.DeletedUsers);
+                    }
+                    else
+                    {
+                        Assert.True(notDeletedMembers.Any(m => m.IsAdmin));
+                    }
+                }
+                
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
             }
@@ -154,9 +147,7 @@ namespace NuGetGallery.Services
             public async Task WhenUserIsNotConfirmedTheUserRecordIsDeleted()
             {
                 //Arange
-                User testUser = new User();
-                testUser.Username = "TestsUser";
-                testUser.UnconfirmedEmailAddress = "user@test.com";
+                User testUser = new User("TestsUser") { Key = Key++, UnconfirmedEmailAddress = "user@test.com" };
                 var testableService = new DeleteAccountTestService(testUser);
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
@@ -182,14 +173,14 @@ namespace NuGetGallery.Services
             public async Task DeleteConfirmedOrganization()
             {
                 // Arrange
-                var member = new User("testUser");
-                var organization = new Organization("testOrganization") { EmailAddress = "org@test.com" };
+                var member = new User("testUser") { Key = Key++ };
+                var organization = new Organization("testOrganization") { Key = Key++, EmailAddress = "org@test.com" };
 
                 var membership = new Membership() { Organization = organization, Member = member };
                 member.Organizations.Add(membership);
                 organization.Members.Add(membership);
 
-                var requestedMember = new User("testRequestedMember");
+                var requestedMember = new User("testRequestedMember") { Key = Key++ };
                 var memberRequest = new MembershipRequest() { Organization = organization, NewMember = requestedMember };
                 requestedMember.OrganizationRequests.Add(memberRequest);
                 organization.MemberRequests.Add(memberRequest);
@@ -234,14 +225,14 @@ namespace NuGetGallery.Services
             public async Task DeleteUnconfirmedOrganization()
             {
                 // Arrange
-                var member = new User("testUser");
-                var organization = new Organization("testOrganization");
+                var member = new User("testUser") { Key = Key++ };
+                var organization = new Organization("testOrganization") { Key = Key++ };
 
                 var membership = new Membership() { Organization = organization, Member = member };
                 member.Organizations.Add(membership);
                 organization.Members.Add(membership);
 
-                var requestedMember = new User("testRequestedMember");
+                var requestedMember = new User("testRequestedMember") { Key = Key++ };
                 var memberRequest = new MembershipRequest() { Organization = organization, NewMember = requestedMember };
                 requestedMember.OrganizationRequests.Add(memberRequest);
                 organization.MemberRequests.Add(memberRequest);
@@ -284,14 +275,29 @@ namespace NuGetGallery.Services
 
             private static User CreateTestData(ref PackageRegistration registration)
             {
-                User testUser = new User();
-                testUser.Username = "TestsUser";
+                var testUser = new User("TestUser") { Key = Key++ };
                 testUser.EmailAddress = "user@test.com";
+
+                AddOrganizationMigrationRequest(testUser);
+                AddOrganizationMigrationRequests(testUser);
+                AddOrganizationRequests(testUser, false);
+                AddOrganizationRequests(testUser, true);
+
+                foreach (var isAdmin in new[] { false, true })
+                {
+                    foreach (var hasAdminMember in new[] { false, true })
+                    {
+                        foreach (var hasCollaboratorMember in new[] { false, true })
+                        {
+                            AddOrganization(testUser, isAdmin, hasAdminMember, hasCollaboratorMember);
+                        }
+                    }
+                }
 
                 registration = new PackageRegistration();
                 registration.Owners.Add(testUser);
 
-                Package p = new Package()
+                var p = new Package()
                 {
                     Description = "TestPackage",
                     Key = 1
@@ -299,6 +305,59 @@ namespace NuGetGallery.Services
                 p.PackageRegistration = registration;
                 registration.Packages.Add(p);
                 return testUser;
+            }
+
+            private static void AddOrganizationMigrationRequest(User testUser)
+            {
+                var testOrganizationAdmin = new User("TestOrganizationAdmin") { Key = Key++ };
+
+                var request = new OrganizationMigrationRequest { AdminUser = testOrganizationAdmin, NewOrganization = testUser };
+                testUser.OrganizationMigrationRequest = request;
+                testOrganizationAdmin.OrganizationMigrationRequests.Add(request);
+            }
+
+            private static void AddOrganizationMigrationRequests(User testUser)
+            {
+                var testOrganization = new Organization("testOrganization") { Key = Key++ };
+
+                var request = new OrganizationMigrationRequest { AdminUser = testUser, NewOrganization = testOrganization };
+                testOrganization.OrganizationMigrationRequest = request;
+                testUser.OrganizationMigrationRequests.Add(request);
+            }
+
+            private static void AddOrganizationRequests(User testUser, bool isAdmin)
+            {
+                var testOrganization = new Organization("testOrganization") { Key = Key++ };
+
+                var request = new MembershipRequest { IsAdmin = isAdmin, NewMember = testUser, Organization = testOrganization };
+                testOrganization.MemberRequests.Add(request);
+                testUser.OrganizationRequests.Add(request);
+            }
+
+            private static void AddOrganization(User testUser, bool isAdmin, bool hasAdminMember, bool hasCollaboratorMember)
+            {
+                var testOrganization = new Organization("testOrganization") { Key = Key++ };
+
+                AddMemberToOrganization(testOrganization, testUser, isAdmin);
+
+                if (hasAdminMember)
+                {
+                    var adminUser = new User("testAdministrator") { Key = Key++ };
+                    AddMemberToOrganization(testOrganization, adminUser, isAdmin);
+                }
+
+                if (hasCollaboratorMember)
+                {
+                    var collaboratorUser = new User("testCollaborator") { Key = Key++ };
+                    AddMemberToOrganization(testOrganization, collaboratorUser, isAdmin);
+                }
+            }
+
+            private static void AddMemberToOrganization(Organization organization, User user, bool isAdmin)
+            {
+                var membership = new Membership { IsAdmin = isAdmin, Organization = organization, Member = user };
+                organization.Members.Add(membership);
+                user.Organizations.Add(membership);
             }
         }
 
@@ -313,6 +372,7 @@ namespace NuGetGallery.Services
             private ICollection<Package> _userPackages;
 
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
+            public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
@@ -341,7 +401,7 @@ namespace NuGetGallery.Services
                     IssueTitle = Strings.AccountDelete_SupportRequestTitle,
                     OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.New,
-                    HistoryEntries = new List<History>() { new History() { EditedBy = user.Username, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New} }
+                    HistoryEntries = new List<History>() { new History() { EditedBy = user.Username, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New } }
                 });
 
                 SupportRequests.Add(new Issue()
@@ -422,8 +482,6 @@ namespace NuGetGallery.Services
             private Mock<IEntitiesContext> SetupEntitiesContext()
             {
                 var mockContext = new Mock<IEntitiesContext>();
-                mockContext.Setup(m => m.DeleteOnCommit(_user))
-                              .Callback(() => _user = null);
                 var dbContext = new Mock<DbContext>();
                 mockContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
                 return mockContext;
@@ -447,7 +505,7 @@ namespace NuGetGallery.Services
                 var securityPolicyService = new Mock<ISecurityPolicyService>();
                 if (_user != null)
                 {
-                    securityPolicyService.Setup(m => m.UnsubscribeAsync(It.IsAny<User>(), SubscriptionName))
+                    securityPolicyService.Setup(m => m.UnsubscribeAsync(_user, SubscriptionName))
                                          .Returns(Task.CompletedTask)
                                          .Callback(() => _user.SecurityPolicies.Remove(_securityPolicy));
                 }
@@ -468,8 +526,18 @@ namespace NuGetGallery.Services
                 var userRepository = new Mock<IEntityRepository<User>>();
                 userRepository.Setup(m => m.CommitChangesAsync())
                               .Returns(Task.CompletedTask);
-                userRepository.Setup(m => m.DeleteOnCommit(_user))
-                              .Callback(()=>_user = null);
+                userRepository.Setup(m => m.DeleteOnCommit(It.IsAny<User>()))
+                              .Callback<User>(user =>
+                              {
+                                  if (user == _user)
+                                  {
+                                      _user = null;
+                                  }
+                                  else
+                                  {
+                                      DeletedUsers.Add(user);
+                                  }
+                              });
                 return userRepository;
             }
 
@@ -486,7 +554,7 @@ namespace NuGetGallery.Services
                               .Callback<Package, bool>((package, commit) => { package.Listed = false; });
                 return packageService;
             }
-             
+
             private Mock<ISupportRequestService> SetupSupportRequestService()
             {
                 var supportService = new Mock<ISupportRequestService>();
