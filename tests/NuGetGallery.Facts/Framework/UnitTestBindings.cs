@@ -90,7 +90,7 @@ namespace NuGetGallery.Framework
 
                 foreach (var user in fakes.Users)
                 {
-                    mockService.Setup(u => u.FindByUsername(user.Username)).Returns(user);
+                    mockService.Setup(u => u.FindByUsername(user.Username, false)).Returns(user);
                 }
 
                 return mockService.Object;
