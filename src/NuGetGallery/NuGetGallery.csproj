@@ -837,6 +837,10 @@
     <Compile Include="Migrations\201804241507196_RemoveUserCertificateIsActive.Designer.cs">
       <DependentUpon>201804241507196_RemoveUserCertificateIsActive.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.cs" />
+    <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.Designer.cs">
+      <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1994,6 +1998,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201804241507196_RemoveUserCertificateIsActive.resx">
       <DependentUpon>201804241507196_RemoveUserCertificateIsActive.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201805012001354_AddUserCertificatesIndex.resx">
+      <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -63,10 +63,10 @@
 
         @if (Model.WasMultiFactorAuthenticated && Model.CanManage)
         {
-        <div class="collapse in" id="upload-certificate-form" aria-expanded="true">
+        <div class="collapse in row" id="upload-certificate-form" aria-expanded="true">
             @Html.ValidationSummary(true)
 
-            <form id="uploadCertificateForm" enctype="multipart/form-data" aria-label="Register a certificate">
+            <form id="uploadCertificateForm" class="certificates-form" enctype="multipart/form-data" aria-label="Register a certificate">
                 @Html.AntiForgeryToken()
 
                 <div class="col-sm-6">

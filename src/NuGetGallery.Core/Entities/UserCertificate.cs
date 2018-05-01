@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace NuGetGallery
 {
     /// <summary>
@@ -16,6 +18,7 @@ namespace NuGetGallery
         /// <summary>
         /// Gets or sets the foreign key of the certificate entity.
         /// </summary>
+        [Index("IX_UserCertificates_CertificateKeyUserKey", IsUnique = true, Order = 0)]
         public int CertificateKey { get; set; }
 
         /// <summary>
@@ -26,6 +29,7 @@ namespace NuGetGallery
         /// <summary>
         /// Gets or sets the foreign key of the user entity.
         /// </summary>
+        [Index("IX_UserCertificates_CertificateKeyUserKey", IsUnique = true, Order = 1)]
         public int UserKey { get; set; }
 
         /// <summary>
