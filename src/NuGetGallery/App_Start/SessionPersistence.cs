@@ -1,14 +1,14 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Configuration;
 using System.Configuration;
 using System.Reflection;
 using System.Web.Configuration;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery
 {
-    public static class MachineKey
+    public static class SessionPersistence
     {
         public static void Setup(IGalleryConfigurationService config)
         {
