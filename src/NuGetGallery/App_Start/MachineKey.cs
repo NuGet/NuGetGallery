@@ -28,10 +28,10 @@ namespace NuGetGallery
                 machineKeyConfig.DataProtectorType = mksSection.DataProtectorType;
                 machineKeyConfig.Validation = mksSection.Validation;
 
-                machineKeyConfig.ValidationKey = config.Current.MachineKeyValidationKey;
-                machineKeyConfig.ValidationAlgorithm = config.Current.MachineKeyValidationAlgorithm;
                 machineKeyConfig.DecryptionKey = config.Current.MachineKeyDecryptionKey;
                 machineKeyConfig.Decryption = config.Current.MachineKeyDecryption;
+                machineKeyConfig.ValidationKey = config.Current.MachineKeyValidationKey;
+                machineKeyConfig.ValidationAlgorithm = config.Current.MachineKeyValidationAlgorithm;
 
                 resetMethod.Invoke(mksSection, new object[] { machineKeyConfig });
             }
