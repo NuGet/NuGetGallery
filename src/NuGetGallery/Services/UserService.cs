@@ -352,34 +352,28 @@ namespace NuGetGallery
             }
         }
 
-        public virtual User FindByUsername(string username, bool includeDeleteRecord = false)
+        public virtual User FindByUsername(string username, bool includeDeleted = false)
         {
-            if(includeDeleteRecord)
+            var users = UserRepository.GetAll();
+            if (!includeDeleted)
             {
-                return UserRepository.GetAll()
-                .Include(u => u.Roles)
-                .Include(u => u.Credentials)
-                .SingleOrDefault(u => u.Username == username);
+                users = users.Where(u => !u.IsDeleted);
             }
-            return UserRepository.GetAll()
-                .Where(u => !u.IsDeleted)
-                .Include(u => u.Roles)
+
+            return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
-        public virtual User FindByKey(int key, bool includeDeleteRecord = false)
+        public virtual User FindByKey(int key, bool includeDeleted = false)
         {
-            if (includeDeleteRecord)
+            var users = UserRepository.GetAll();
+            if (!includeDeleted)
             {
-                return UserRepository.GetAll()
-                .Include(u => u.Roles)
-                .Include(u => u.Credentials)
-                .SingleOrDefault(u => u.Key == key);
+                users = users.Where(u => !u.IsDeleted);
             }
-            return UserRepository.GetAll()
-                .Where(u => !u.IsDeleted)
-                .Include(u => u.Roles)
+
+            return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Key == key);
         }
