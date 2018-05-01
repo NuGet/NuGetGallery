@@ -10,6 +10,13 @@ namespace NuGet.Services.Sql
 {
     /// <summary>
     /// Builder for SQL server connections which support AAD token-based authentication with <see cref="AzureSqlConnectionFactory"/>.
+    /// 
+    /// Sample connection string to perform AAD token-based authentication:
+    ///     Data Source=tcp:mydb.database.windows.net;Initial Catalog=mydb;
+    ///     Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;
+    ///     AadTenant=ffffffff-ffff-ffff-ffff-ffffffffffff;
+    ///     AadClientId=00000000-0000-0000-0000-000000000000;
+    ///     AadCertificate=MyKeyVaultCertificate
     /// </summary>
     public class AzureSqlConnectionStringBuilder : DbConnectionStringBuilder
     {
