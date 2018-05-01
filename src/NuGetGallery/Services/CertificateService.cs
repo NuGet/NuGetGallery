@@ -96,7 +96,7 @@ namespace NuGetGallery
                 throw new ArgumentException(Strings.CertificateDoesNotExist, nameof(thumbprint));
             }
 
-            var userCertificate = certificate.UserCertificates.SingleOrDefault(uc => uc.User == account);
+            var userCertificate = certificate.UserCertificates.SingleOrDefault(uc => uc.UserKey == account.Key);
 
             if (userCertificate == null)
             {

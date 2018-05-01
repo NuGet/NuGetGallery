@@ -617,6 +617,10 @@ img.reserved-indicator-icon {
   -ms-flex-pack: justify;
           justify-content: space-between;
 }
+.page-account-settings .certificates-form {
+  display: inline-block;
+  width: 100%;
+}
 .page-api-keys .example-commands {
   padding: 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
@@ -1076,6 +1080,10 @@ img.reserved-indicator-icon {
 }
 .page-manage-organizations .form-group + .form-group .btn {
   margin-top: 20px;
+}
+.page-manage-organizations .certificates-form {
+  display: inline-block;
+  width: 100%;
 }
 .manage-members-listing tbody:first-child {
   border-style: hidden;

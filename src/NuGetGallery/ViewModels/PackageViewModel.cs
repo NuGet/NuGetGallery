@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
-        private readonly Package _package;
+        protected readonly Package _package;
         private string _pendingTitle;
 
         private readonly PackageStatus _packageStatus;
