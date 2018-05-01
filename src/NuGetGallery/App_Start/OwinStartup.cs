@@ -60,6 +60,9 @@ namespace NuGetGallery
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
 
+            // Configure machine key for session persistence across slots
+            MachineKey.Setup(config);
+
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
             if (!string.IsNullOrEmpty(instrumentationKey))
