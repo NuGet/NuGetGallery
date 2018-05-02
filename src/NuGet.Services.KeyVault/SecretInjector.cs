@@ -14,7 +14,7 @@ namespace NuGet.Services.KeyVault
         private readonly string _frame;
         private readonly ISecretReader _secretReader;
 
-        public SecretInjector(ISecretReader secretReader) :this(secretReader, DefaultFrame)
+        public SecretInjector(ISecretReader secretReader) : this(secretReader, DefaultFrame)
         {
         }
 

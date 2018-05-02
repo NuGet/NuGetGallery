@@ -1,7 +1,7 @@
 ﻿{
   "dependencies": {
     "Microsoft.Azure.KeyVault": "1.0.0",
-    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.13.5"
+    "Microsoft.IdentityModel.Clients.ActiveDirectory": "3.19.4"
   },
   "frameworks": {
     "net45": {}

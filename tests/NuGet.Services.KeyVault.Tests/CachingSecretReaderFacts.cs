@@ -5,8 +5,6 @@ using System;
 using System.Threading.Tasks;
 using Moq;
 using Xunit;
-using System.Threading;
-using System.Diagnostics;
 
 namespace NuGet.Services.KeyVault.Tests
 {
