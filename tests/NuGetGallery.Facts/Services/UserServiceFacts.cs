@@ -19,6 +19,95 @@ namespace NuGetGallery
 {
     public class UserServiceFacts
     {
+
+        public class TheFindByKeyMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ReturnsTheUserForTheKey(bool includedDeletedRecords)
+            {
+                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org" };
+                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user1, user2 }
+                };
+
+                var result = service.FindByKey(1, includedDeletedRecords);
+                Assert.Equal("User1", result.Username);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ReturnsDeletedUserIfRequired(bool includedDeletedRecords)
+            {
+                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org", IsDeleted = true };
+                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
+
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user1, user2 }
+                };
+
+                var result = service.FindByKey(1, includedDeletedRecords);
+
+                if (includedDeletedRecords)
+                {
+                    Assert.Equal("User1", result.Username);
+                }
+                else
+                {
+                    Assert.Null(result);
+                }
+            }
+        }
+
+        public class TheFindByUsernameMethod
+        {
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ReturnsTheUserForTheUsername(bool includedDeletedRecords)
+            {
+                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org" };
+                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user1, user2 }
+                };
+
+                var result = service.FindByUsername("User1", includedDeletedRecords);
+                Assert.Equal("User1", result.Username);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public void ReturnsDeletedUserIfRequired(bool includedDeletedRecords)
+            {
+                var user1 = new User { Username = "User1", Key = 1, EmailAddress = "new1@example.org", IsDeleted = true };
+                var user2 = new User { Username = "User2", Key = 2, EmailAddress = "new2@example.org" };
+
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user1, user2 }
+                };
+
+                var result = service.FindByUsername("User1", includedDeletedRecords);
+
+                if (includedDeletedRecords)
+                {
+                    Assert.Equal("User1", result.Username);
+                }
+                else
+                {
+                    Assert.Null(result);
+                }
+            }
+        }
+
         public class TheAddMembershipRequestAsyncMethod
         {
             [Theory]

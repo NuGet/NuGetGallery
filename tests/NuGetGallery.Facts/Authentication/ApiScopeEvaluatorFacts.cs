@@ -158,7 +158,7 @@ namespace NuGetGallery.Authentication
                     .Returns(permissionsCheckResult);
 
                 var mockUserService = new Mock<IUserService>();
-                mockUserService.Setup(x => x.FindByKey(user.Key)).Returns(user);
+                mockUserService.Setup(x => x.FindByKey(user.Key, false)).Returns(user);
 
                 var apiScopeEvaluator = Setup(mockUserService);
 
@@ -190,7 +190,7 @@ namespace NuGetGallery.Authentication
                     .Returns(permissionsCheckResult);
 
                 var mockUserService = new Mock<IUserService>();
-                mockUserService.Setup(u => u.FindByKey(scopeUser.Key)).Returns(scopeUser);
+                mockUserService.Setup(u => u.FindByKey(scopeUser.Key, false)).Returns(scopeUser);
 
                 var apiScopeEvaluator = Setup(mockUserService);
 
