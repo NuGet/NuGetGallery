@@ -116,7 +116,7 @@
             $('#certificates-section-header').text(certificatesHeader);
         }
 
-        function onError(model, resultCodeString, fullResponse) {
+        function onError(model, resultCodeString) {
             switch (resultCodeString) {
                 case "timeout":
                     displayErrors(["The operation timed out. Please try again."]);
@@ -129,7 +129,7 @@
                     break;
             }
 
-            if (fullResponse.status >= 500) {
+            if (model.status >= 500) {
                 displayErrors(["There was a server error."]);
             }
         }
