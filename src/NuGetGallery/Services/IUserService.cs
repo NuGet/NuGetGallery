@@ -28,9 +28,9 @@ namespace NuGetGallery
 
         IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername);
 
-        User FindByUsername(string username);
+        User FindByUsername(string username, bool includeDeleted = false);
 
-        User FindByKey(int key);
+        User FindByKey(int key, bool includeDeleted = false);
 
         Task<bool> ConfirmEmailAddress(User user, string token);
 
