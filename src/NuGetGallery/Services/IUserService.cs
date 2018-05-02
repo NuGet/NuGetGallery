@@ -28,15 +28,17 @@ namespace NuGetGallery
 
         IList<User> FindByUnconfirmedEmailAddress(string unconfirmedEmailAddress, string optionalUsername);
 
-        User FindByUsername(string username);
+        User FindByUsername(string username, bool includeDeleted = false);
 
-        User FindByKey(int key);
+        User FindByKey(int key, bool includeDeleted = false);
 
         Task<bool> ConfirmEmailAddress(User user, string token);
 
         Task ChangeEmailAddress(User user, string newEmailAddress);
 
         Task CancelChangeEmailAddress(User user);
+
+        Task ChangeMultiFactorAuthentication(User user, bool enableMultiFactor);
 
         Task<IDictionary<int, string>> GetEmailAddressesForUserKeysAsync(IReadOnlyCollection<int> distinctUserKeys);
 

@@ -14,5 +14,12 @@ namespace NuGetGallery
         /// for support.
         /// </summary>
         public string ContactUrl { get; set; }
+
+        public ThirdPartyPackageManagerViewModel(string contactUrl)
+        {
+            ContactUrl = contactUrl;
+            AlertLevel = AlertLevel.Warning;
+            AlertMessage = string.Format("The NuGet Team does not provide support for this client. Please contact its <a href=\"{0}\">maintainers</a> for support.", contactUrl);
+        }
     }
 }

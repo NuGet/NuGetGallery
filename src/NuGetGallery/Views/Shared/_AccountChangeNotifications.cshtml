@@ -53,7 +53,7 @@
             @(Model.ChangeNotifications.NotifyPackagePushed ? ViewBag.NotifyPackagePushedEnabled : ViewBag.NotifyPackagePushedNotEnabled)
         </text>,
         @<text>
-            @using (Html.BeginForm("ChangeEmailSubscription", controllerName))
+            @using (Html.BeginForm("ChangeEmailSubscription", controllerName, FormMethod.Post, new { aria_label = "Change email subscription settings" }))
             {
                 @Html.AntiForgeryToken()
 
@@ -63,6 +63,7 @@
                         <b>@ViewBag.EmailAllowedLabel</b>
                     </label>
                     <div id="emailallowed-label" class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
+                    @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.EmailAllowed)
                 </div>
 
                 <div class="checkbox">
@@ -71,6 +72,7 @@
                         <b>@ViewBag.NotifyPackagePushedLabel</b>
                     </label>
                     <div id="notifypackagepushed-label" class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
+                    @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.NotifyPackagePushed)
                 </div>
 
                 <p><strong>Note: </strong>@ViewBag.PrivacyNotice</p>

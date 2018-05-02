@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Filters;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Web.Mvc;
+using NuGetGallery.Filters;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -31,7 +31,7 @@ namespace NuGetGallery.Controllers
                 Controller = method.DeclaringType;
                 Name = method.Name;
             }
-            
+
             public bool Equals(ControllerActionRuleException other)
             {
                 return other != null && other.Controller == Controller && other.Name == Name;
@@ -98,7 +98,7 @@ namespace NuGetGallery.Controllers
         public void AllActionsHaveUIAuthorizeAttribute()
         {
             // Arrange
-            
+
             // These actions are allowed to continue to support a discontinued login.
             var expectedActionsSupportingDiscontinuedLogins = new ControllerActionRuleException[]
             {
@@ -118,7 +118,7 @@ namespace NuGetGallery.Controllers
             var actions = GetAllActions();
 
             // Assert
-            
+
             // No actions should have the base authorize attribute!
             var actionsWithBaseAuthorizeAttribute = actions
                 .Where(m => m.GetCustomAttributes().Any(a => a.GetType() == typeof(AuthorizeAttribute)));

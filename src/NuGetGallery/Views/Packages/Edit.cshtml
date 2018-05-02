@@ -19,9 +19,8 @@
                 "_PackageHeading", 
                 new PackageHeadingModel(
                     CurrentUser,
-                    Model.PackageVersions.First(), 
-                    "Edit",
-                    linkIdOnly: true))
+                    Model.PackageRegistration, 
+                    "Edit"))
 
             @if (Model.IsLocked)
             {
@@ -46,10 +45,10 @@
                         </a>
                     </h2>
                     <div class="collapse in" id="select-package-version-form" aria-expanded="true">
-                        <form id="cancel-form">
+                        <form aria-hidden="true" id="cancel-form">
                             @Html.AntiForgeryToken()
                         </form>
-                        <form id="select-version-form" enctype="multipart/form-data">
+                        <form aria-label="Select package version to edit" id="select-version-form" enctype="multipart/form-data">
                             @Html.AntiForgeryToken()
 
                             @Html.ValidationSummary(true)
@@ -60,7 +59,7 @@
                                                   new
                                                   {
                                                       @class = "form-control selectpicker show-tick show-menu-arrow btn-block",
-                                                      @title = "Select A Version...",
+                                                      @title = "Select a version",
                                                       @id = "input-select-version"
                                                   })
                                 </label>

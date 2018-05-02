@@ -1,5 +1,5 @@
 ﻿@using NuGetGallery
-@model NuGetGallery.DeleteAccountViewModel
+@model NuGetGallery.DeleteUserViewModel
 @{
     ViewBag.Title = "Delete Account " + Model.AccountName;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -26,15 +26,16 @@
                 }
                 else
                 {
-                    @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong> <br />
-                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a><br />
+                    @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong>
+                        Once your account is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a>
                     </text>)
                     <p>
-                        When you account is deleted we will<br />
+                        When you account is deleted we will:<br />
                         <ul>
                             <li>Revoke your api key(s).</li>
                             <li>Remove you as the owner for any packages you own.</li>
                             <li>Remove your ownership from any ID prefix reservations and delete any ID prefix reservations that you were the only owner of.</li>
+                            <li>Remove you from any organizations that you are a member of.</li>
                             <li>Not delete the NuGet packages associated with the account.</li>
                         </ul>
                     </p>
@@ -43,15 +44,21 @@
                             @ViewHelpers.AlertDanger(@<text>One or more packages do not have co-owners.</text>)
                     }
                     <p>
-                        Before submitting the request, it is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
-                        This will enable us to expedite processing your request.<br />
-                        If you choose to proceed without fixing this issue, someone from the NuGet team may reach out and work with you to find a resolution.
+                        It is recommended that you transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
                     </p>
                     <div class="form-group">
-                        @{
-                            @Html.Partial("_UserPackagesListForDeletedAccount", new ManagePackagesListViewModel(@Model.Packages, "Packages"))
-                        }
+                        @Html.Partial("_UserPackagesListForDeletedAccount", Model)
                     </div>
+                    <p>
+                        It is also recommended that you transfer ownership of any organization where you are the sole member, using the <i>edit organization</i> <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i> button for that organization below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=870439">Organizations.</a>
+                    </p>
+                    <div class="form-group">
+                        @Html.Partial("_UserOrganizationsListForDeletedAccount", Model.Organizations)
+                    </div>
+                    <p>
+                        We can expedite processing your deletion request if you are not the sole owner of any packages or organizations.<br />
+                        If you choose to proceed as the sole owner of any packages or organizations, someone from the NuGet team may reach out and work with you to find a resolution.
+                    </p>
                     <div class="form-group danger-zone">
                         <text>
                             @using (Html.BeginForm("RequestAccountDeletion", "Users", FormMethod.Post, new { id = "delete-form" }))
@@ -62,7 +69,7 @@
                                 </p>
                                 <div class="row form-group">
                                     <div class="col-sm-6">
-                                        <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account." />
+                                        <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account" />
                                     </div>
                                     <div class="col-sm-6">
                                         <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-account">Cancel</a>

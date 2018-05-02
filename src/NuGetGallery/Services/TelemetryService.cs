@@ -24,6 +24,8 @@ namespace NuGetGallery
             public const string CredentialAdded = "CredentialAdded";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
+            public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
+            public const string UserMultiFactorAuthenticationDisabled = "UserMultiFactorAuthenticationDisabled";
             public const string PackageReflow = "PackageReflow";
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
@@ -35,6 +37,10 @@ namespace NuGetGallery
             public const string OrganizationTransformDeclined = "OrganizationTransformDeclined";
             public const string OrganizationTransformCancelled = "OrganizationTransformCancelled";
             public const string OrganizationAdded = "OrganizationAdded";
+            public const string CertificateAdded = "CertificateAdded";
+            public const string CertificateActivated = "CertificateActivated";
+            public const string CertificateDeactivated = "CertificateDeactivated";
+            public const string PackageRegistrationRequiredSignerSet = "PackageRegistrationRequiredSignerSet";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -88,6 +94,9 @@ namespace NuGetGallery
         // Organization properties
         public const string OrganizationAccountKey = "OrganizationAccountKey";
         public const string OrganizationIsRestrictedToOrganizationTenantPolicy = "OrganizationIsRestrictedToOrganizationTenantPolicy";
+
+        // Certificate properties
+        public const string Sha256Thumbprint = "Sha256Thumbprint";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -196,6 +205,13 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(Events.NewUserRegistration, user, credential);
         }
 
+        public void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth)
+        {
+            TrackMetricForAccountActivity(enabledMultiFactorAuth ? Events.UserMultiFactorAuthenticationEnabled : Events.UserMultiFactorAuthenticationDisabled,
+                user,
+                credential: null);
+        }
+
         public void TrackNewCredentialCreated(User user, Credential credential)
         {
             TrackMetricForAccountActivity(Events.CredentialAdded, user, credential);
@@ -255,6 +271,33 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
+        public void TrackCertificateAdded(string thumbprint)
+        {
+            TrackMetricForCertificateActivity(Events.CertificateAdded, thumbprint);
+        }
+
+        public void TrackCertificateActivated(string thumbprint)
+        {
+            TrackMetricForCertificateActivity(Events.CertificateActivated, thumbprint);
+        }
+
+        public void TrackCertificateDeactivated(string thumbprint)
+        {
+            TrackMetricForCertificateActivity(Events.CertificateDeactivated, thumbprint);
+        }
+
+        public void TrackRequiredSignerSet(string packageId)
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                throw new ArgumentException(Strings.ArgumentCannotBeNullOrEmpty, nameof(packageId));
+            }
+
+            TrackMetric(Events.PackageRegistrationRequiredSignerSet, 1, properties => {
+                properties.Add(PackageId, packageId);
+            });
+        }
+
         public void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties)
         {
             var telemetryProperties = new Dictionary<string, string>();
@@ -271,16 +314,23 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential == null)
-            {
-                throw new ArgumentNullException(nameof(credential));
-            }
-
             TrackMetric(eventName, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(RegistrationMethod, GetRegistrationMethod(credential));
+            });
+        }
+
+        private void TrackMetricForCertificateActivity(string eventName, string thumbprint)
+        {
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                throw new ArgumentException(Strings.ArgumentCannotBeNullOrEmpty, nameof(thumbprint));
+            }
+
+            TrackMetric(eventName, 1, properties => {
+                properties.Add(Sha256Thumbprint, thumbprint);
             });
         }
 
@@ -312,7 +362,7 @@ namespace NuGetGallery
 
         private static string GetRegistrationMethod(Credential cred)
         {
-            return cred.Type;
+            return cred?.Type ?? "";
         }
 
         private static string GetApiKeyCreationDate(User user, IIdentity identity)

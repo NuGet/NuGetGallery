@@ -4,25 +4,51 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Models;
 
 namespace NuGetGallery
 {
-    public class DeleteAccountViewModel
+    public class DeleteAccountViewModel<TAccount> : DeleteAccountViewModel where TAccount : User
+    {
+        public DeleteAccountViewModel(
+            TAccount accountToDelete,
+            User currentUser,
+            IPackageService packageService,
+            Func<ListPackageItemViewModel, bool> packageIsOrphaned)
+            : base(accountToDelete, currentUser, packageService, packageIsOrphaned)
+        {
+            Account = accountToDelete;
+        }
+
+        public TAccount Account { get; set; }
+    }
+
+    public class DeleteAccountViewModel : IDeleteAccountViewModel
     {
         private Lazy<bool> _hasOrphanPackages;
 
-        public DeleteAccountViewModel()
+        public DeleteAccountViewModel(
+            User userToDelete,
+            User currentUser,
+            IPackageService packageService,
+            Func<ListPackageItemViewModel, bool> packageIsOrphaned)
         {
-            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(p => p.HasSingleOwner));
+            User = userToDelete;
+
+            Packages = packageService
+                 .FindPackagesByAnyMatchingOwner(User, includeUnlisted: true)
+                 .Select(p => new ListPackageItemViewModel(p, currentUser))
+                 .ToList();
+
+            _hasOrphanPackages = new Lazy<bool>(() => Packages.Any(packageIsOrphaned));
         }
 
-        public List<ListPackageItemViewModel> Packages { get; set; }
+        public List<ListPackageItemViewModel> Packages { get; }
 
-        public User User { get; set; }
+        public User User { get; }
 
-        public string AccountName { get; set; }
-
-        public bool HasPendingRequests { get; set; }
+        public string AccountName => User.Username;
 
         public bool HasOrphanPackages
         {
@@ -31,5 +57,12 @@ namespace NuGetGallery
                 return Packages == null ? false : _hasOrphanPackages.Value;
             }
         }
+    }
+
+    public interface IDeleteAccountViewModel
+    {
+        string AccountName { get; }
+
+        bool HasOrphanPackages { get; }
     }
 }

@@ -35,6 +35,8 @@ namespace NuGetGallery
 
         void TrackNewUserRegistrationEvent(User user, Credential identity);
 
+        void TrackUserChangedMultiFactorAuthentication(User user, bool enabledMultiFactorAuth);
+
         void TrackNewCredentialCreated(User user, Credential credential);
 
         /// <summary>
@@ -46,6 +48,38 @@ namespace NuGetGallery
         /// A telemetry event emitted when a user package delete is executed.
         /// </summary>
         void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success);
+
+        /// <summary>
+        /// A telemetry event emitted when a certificate is added to the database.
+        /// </summary>
+        /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
+        /// or empty.</exception>
+        void TrackCertificateAdded(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a certificate is activated for an account.
+        /// </summary>
+        /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
+        /// or empty.</exception>
+        void TrackCertificateActivated(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a certificate is deactivated for an account.
+        /// </summary>
+        /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
+        /// or empty.</exception>
+        void TrackCertificateDeactivated(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when the required signer is set on a package registration.
+        /// </summary>
+        /// <param name="packageId">The package ID.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
+        /// or empty.</exception>
+        void TrackRequiredSignerSet(string packageId);
 
         /// <summary>
         /// A telemetry event emitted when a user requests transformation of their account into an organization.

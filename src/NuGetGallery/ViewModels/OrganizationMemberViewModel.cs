@@ -9,32 +9,29 @@ namespace NuGetGallery
     public class OrganizationMemberViewModel
     {
         public OrganizationMemberViewModel(Membership membership)
+            : this(membership?.Member)
         {
-            var member = membership?.Member ?? throw new ArgumentNullException(nameof(membership));
-
-            Username = member.Username;
             IsAdmin = membership.IsAdmin;
             Pending = false;
-            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
         }
 
         public OrganizationMemberViewModel(MembershipRequest request)
+            : this(request?.NewMember)
         {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            IsAdmin = request.IsAdmin;
+            Pending = true;
+        }
 
-            var member = request.NewMember;
+        private OrganizationMemberViewModel(User member)
+        {
             if (member == null)
             {
-                throw new ArgumentNullException(nameof(request.NewMember));
+                throw new ArgumentNullException(nameof(member));
             }
 
             Username = member.Username;
-            IsAdmin = request.IsAdmin;
-            Pending = true;
-            GravatarUrl = GravatarHelper.Url(member.EmailAddress, Constants.GravatarElementSize);
+            EmailAddress = member.EmailAddress;
+            GravatarUrl = GravatarHelper.Url(EmailAddress, Constants.GravatarElementSize);
         }
 
         public string Username { get; }
@@ -42,6 +39,8 @@ namespace NuGetGallery
         public bool IsAdmin { get; }
 
         public bool Pending { get; }
+
+        public string EmailAddress { get; }
 
         public string GravatarUrl { get; }
     }

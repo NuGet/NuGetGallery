@@ -1,0 +1,94 @@
+﻿@model AccountViewModel
+@{
+    var parent = (WebViewPage)TempData["Parent"];
+}
+
+@helper WarnFor2FARequirement()
+{
+    if (Model.User.EnableMultiFactorAuthentication)
+    {
+        @ViewHelpers.AlertWarning(@<text>You must log in using two-factor authentication before you can register or manage certificates.</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can register or manage certificates. This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
+    }
+}
+
+@ViewHelpers.Section(
+    parent,
+    "certificates",
+    @<text>Certificates</text>,
+    @<text>
+        <span id="certificates-section-header"></span>
+    </text>,
+    @<text>
+        @ViewHelpers.AjaxAntiForgeryToken(Html)
+
+        <form id="addCertificateForm" enctype="multipart/form-data" aria-hidden="true">
+            @Html.AntiForgeryToken()
+        </form>
+
+        <div class="list-certificates">
+            @if (!Model.WasMultiFactorAuthenticated)
+            {
+                @WarnFor2FARequirement();
+            }
+
+            <div class="row" data-bind="ifnot: $data && $data.hasCertificates && $data.hasCertificates()">
+                <div class="col-xs-12 clearfix">
+                    All your packages need to be signed by one of the registered certificates.  <a href="https://docs.microsoft.com/en-us/nuget/reference/signed-packages-reference">Learn more about package signing.</a>
+                    <br /> <br />
+                </div>
+            </div>
+
+            <div data-bind="if: $data && $data.hasCertificates && $data.hasCertificates()">
+                <div class="panel-collapse collapse in" aria-expanded="true">
+                    <table class="table" role="list">
+                        <thead>
+                            <tr class="manage-certificate-headings">
+                                <th>Fingerprint</th>
+                                <th><span class="hidden">Icon</span></th>
+                            </tr>
+                        </thead>
+                        <tbody data-bind="foreach: $data.certificates">
+                            <tr class="manage-certificate-listing" role="listitem">
+                                <td class="align-middle" data-bind="text: Sha1Thumbprint"></td>
+                                <td class="text-right align-middle package-controls">
+                                    <span data-bind="visible: CanDelete">
+                                        <a class="btn" title="Delete certificate" tabindex="0" data-bind="attr: { 'data-href': DeleteUrl, 'aria-label': 'Delete certificate' }, click: $parent.deleteCertificate">
+                                            <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                        </a>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.WasMultiFactorAuthenticated && Model.CanManage)
+        {
+        <div class="collapse in row" id="upload-certificate-form" aria-expanded="true">
+            @Html.ValidationSummary(true)
+
+            <form id="uploadCertificateForm" class="certificates-form" enctype="multipart/form-data" aria-label="Register a certificate">
+                @Html.AntiForgeryToken()
+
+                <div class="col-sm-6">
+                    Register a certificate by uploading a certificate file (.cer).
+                </div>
+                <div class="col-sm-6">
+                    <label for="input-select-file" id="CertificateFileLabel" class="input-group-btn">
+                        <a id="register-new" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for certificate" role="button">
+                            Register new<input type="file" name="uploadFile" accept=".cer" aria-labelledby="CertificateFileLabel" id="input-select-file" style="display:none;" />
+                        </a>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div id="validation-failure-container" class="hidden"></div>
+        }
+    </text>,
+    expanded: false)

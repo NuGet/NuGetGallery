@@ -285,7 +285,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             // Act + Assert
-            Assert.Equal(expectedResult, listPackageItemViewModel.HasSingleOwner);
+            Assert.Equal(expectedResult, listPackageItemViewModel.HasSingleUserOwner);
         }
 
         public static IEnumerable<object[]> HasSingleOwner_Input
@@ -306,7 +306,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
                 var packageRegistration2 = CreatePackageRegistration(2);
                 packageRegistration2.Owners.Add(new User() { Username = "user2.1", Key = 1 });
-                packageRegistration2.Owners.Add(new User() { Username = "user2.2", Key = 2});
+                packageRegistration2.Owners.Add(new User() { Username = "user2.2", Key = 2 });
                 var result2 = false;
                 result.Add(new object[] { new Package() { Key = 2, Version = "1.0.0", PackageRegistration = packageRegistration2, Description = description }, result2 });
 
@@ -324,17 +324,19 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 // A single organization with one owner
                 var packageRegistration5 = CreatePackageRegistration(5);
                 var user51 = new User() { Username = "user5.1", Key = 51 };
-                packageRegistration5.Owners.Add(new Organization() {
-                                                        Username = "userOrg5",
-                                                        Key = 50,
-                                                        Members = new List<Membership>
+                packageRegistration5.Owners.Add(new Organization()
+                {
+                    Username = "userOrg5",
+                    Key = 50,
+                    Members = new List<Membership>
                                                         {
                                                             new Membership(){
                                                                 Member = user51,
                                                                 MemberKey = user51.Key,
                                                                 OrganizationKey = 50
                                                             }
-                                                        } });
+                                                        }
+                });
                 var result5 = true;
                 result.Add(new object[] { new Package() { Key = 5, Version = "1.0.0", PackageRegistration = packageRegistration5, Description = description }, result5 });
 
@@ -345,7 +347,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "userOrg6",
                     Key = 60,
-                    Members = new List<Membership>{new Membership(){Member = user61, MemberKey = user61.Key, OrganizationKey = 60}}
+                    Members = new List<Membership> { new Membership() { Member = user61, MemberKey = user61.Key, OrganizationKey = 60 } }
                 });
                 packageRegistration6.Owners.Add(user61);
                 var result6 = true;
@@ -372,13 +374,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "userOrg81",
                     Key = 801,
-                    Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 801}}
+                    Members = new List<Membership> { new Membership() { Member = user81, MemberKey = user81.Key, OrganizationKey = 801 } }
                 });
                 packageRegistration8.Owners.Add(new Organization()
                 {
                     Username = "userOrg82",
                     Key = 802,
-                    Members = new List<Membership>{new Membership(){Member = user81, MemberKey = user81.Key, OrganizationKey = 802}}
+                    Members = new List<Membership> { new Membership() { Member = user81, MemberKey = user81.Key, OrganizationKey = 802 } }
                 });
                 var result8 = true;
                 result.Add(new object[] { new Package() { Key = 8, Version = "1.0.0", PackageRegistration = packageRegistration8, Description = description }, result8 });
@@ -390,13 +392,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org9Child",
                     Key = 902,
-                    Members = new List<Membership>{new Membership(){Member = user91, MemberKey = user91.Key, OrganizationKey = 902}}
+                    Members = new List<Membership> { new Membership() { Member = user91, MemberKey = user91.Key, OrganizationKey = 902 } }
                 };
                 packageRegistration9.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 901,
-                    Members = new List<Membership>{new Membership(){Member = org91, MemberKey = org91.Key, OrganizationKey = 901}}
+                    Members = new List<Membership> { new Membership() { Member = org91, MemberKey = org91.Key, OrganizationKey = 901 } }
                 });
                 var result9 = true;
                 result.Add(new object[] { new Package() { Key = 9, Version = "1.0.0", PackageRegistration = packageRegistration9, Description = description }, result9 });
@@ -408,13 +410,13 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org101Child",
                     Key = 1002,
-                    Members = new List<Membership>{new Membership(){Member = user101, MemberKey = user101.Key, OrganizationKey = 1002}}
+                    Members = new List<Membership> { new Membership() { Member = user101, MemberKey = user101.Key, OrganizationKey = 1002 } }
                 };
                 packageRegistration10.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 1001,
-                    Members = new List<Membership>{new Membership(){Member = org101, MemberKey = org101.Key, OrganizationKey = 1001}}
+                    Members = new List<Membership> { new Membership() { Member = org101, MemberKey = org101.Key, OrganizationKey = 1001 } }
                 });
                 packageRegistration10.Owners.Add(user101);
                 var result10 = true;
@@ -428,19 +430,172 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
                 {
                     Username = "org111Child",
                     Key = 1102,
-                    Members = new List<Membership>{new Membership(){Member = user111, MemberKey = user111.Key, OrganizationKey = 1102}}
+                    Members = new List<Membership> { new Membership() { Member = user111, MemberKey = user111.Key, OrganizationKey = 1102 } }
                 };
                 packageRegistration11.Owners.Add(new Organization()
                 {
                     Username = "userOrgParent",
                     Key = 1101,
-                    Members = new List<Membership>{new Membership(){Member = org111, MemberKey = org111.Key, OrganizationKey = 1101}}
+                    Members = new List<Membership> { new Membership() { Member = org111, MemberKey = org111.Key, OrganizationKey = 1101 } }
                 });
                 packageRegistration11.Owners.Add(user112);
                 var result11 = false;
                 result.Add(new object[] { new Package() { Key = 11, Version = "1.0.0", PackageRegistration = packageRegistration11, Description = description }, result11 });
 
                 return result;
+            }
+        }
+
+
+        public class SignerInformation
+        {
+            private readonly User _user1;
+            private readonly User _user2;
+            private readonly User _user3;
+            private readonly Certificate _certificate;
+            private readonly PackageRegistration _packageRegistration;
+            private readonly Package _package;
+
+            public SignerInformation()
+            {
+                _user1 = new User()
+                {
+                    Key = 1,
+                    Username = "A"
+                };
+                _user2 = new User()
+                {
+                    Key = 2,
+                    Username = "B"
+                };
+                _user3 = new User()
+                {
+                    Key = 3,
+                    Username = "C"
+                };
+
+                _certificate = new Certificate()
+                {
+                    Key = 4,
+                    Thumbprint = "D",
+                    Sha1Thumbprint = "E"
+                };
+
+                _packageRegistration = new PackageRegistration()
+                {
+                    Key = 5,
+                    Id = "F"
+                };
+
+                _package = new Package()
+                {
+                    Key = 6,
+                    Version = "1.0.0",
+                    PackageRegistration = _packageRegistration
+                };
+
+                _packageRegistration.Packages.Add(_package);
+            }
+
+            [Fact]
+            public void WhenCannotDisplayPrivateMetadata_ReturnsNull()
+            {
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                Assert.False(viewModel.CanDisplayPrivateMetadata);
+                Assert.Null(viewModel.SignatureInformation);
+            }
+
+            [Fact]
+            public void WhenPackageCertificateIsNull_ReturnsNull()
+            {
+                _packageRegistration.Owners.Add(_user1);
+
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                Assert.True(viewModel.CanDisplayPrivateMetadata);
+                Assert.Null(viewModel.SignatureInformation);
+            }
+
+            [Fact]
+            public void WhenPackageCertificateIsNotNullAndNoOwners_ReturnsString()
+            {
+                SignPackage();
+
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                viewModel.CanDisplayPrivateMetadata = true;
+
+                Assert.Equal("Signed with certificate (E)", viewModel.SignatureInformation);
+            }
+
+            [Fact]
+            public void WhenPackageCertificateIsNotNullAndOneSigner_ReturnsString()
+            {
+                _packageRegistration.Owners.Add(_user1);
+
+                ActivateCertificate(_user1);
+                SignPackage();
+
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                Assert.True(viewModel.CanDisplayPrivateMetadata);
+                Assert.Equal("Signed with A's certificate (E)", viewModel.SignatureInformation);
+            }
+
+            [Fact]
+            public void WhenPackageCertificateIsNotNullAndTwoSigners_ReturnsString()
+            {
+                _packageRegistration.Owners.Add(_user1);
+                _packageRegistration.Owners.Add(_user2);
+
+                ActivateCertificate(_user1);
+                ActivateCertificate(_user2);
+                SignPackage();
+
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                Assert.True(viewModel.CanDisplayPrivateMetadata);
+                Assert.Equal("Signed with A and B's certificate (E)", viewModel.SignatureInformation);
+            }
+
+            [Fact]
+            public void WhenPackageCertificateIsNotNullAndThreeSigners_ReturnsString()
+            {
+                _packageRegistration.Owners.Add(_user1);
+                _packageRegistration.Owners.Add(_user2);
+                _packageRegistration.Owners.Add(_user3);
+
+                ActivateCertificate(_user1);
+                ActivateCertificate(_user2);
+                ActivateCertificate(_user3);
+                SignPackage();
+
+                var viewModel = new ListPackageItemViewModel(_package, _user1);
+
+                Assert.True(viewModel.CanDisplayPrivateMetadata);
+                Assert.Equal("Signed with A, B, and C's certificate (E)", viewModel.SignatureInformation);
+            }
+
+            private void ActivateCertificate(User user)
+            {
+                var userCertificate = new UserCertificate()
+                {
+                    Key = _certificate.UserCertificates.Count() + 1,
+                    UserKey = user.Key,
+                    User = user,
+                    CertificateKey = _certificate.Key,
+                    Certificate = _certificate
+                };
+
+                _certificate.UserCertificates.Add(userCertificate);
+                user.UserCertificates.Add(userCertificate);
+            }
+
+            private void SignPackage()
+            {
+                _package.CertificateKey = _certificate.Key;
+                _package.Certificate = _certificate;
             }
         }
 

@@ -217,21 +217,21 @@
     <Reference Include="NuGet.Protocol, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Protocol.4.3.0-preview1-2524\lib\net45\NuGet.Protocol.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Contracts, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Contracts.2.10.0\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    <Reference Include="NuGet.Services.Contracts, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.25.0-master-30191\lib\net45\NuGet.Services.Contracts.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.1.0.0.0\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="NuGet.Services.ServiceBus, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.10.0\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
+    <Reference Include="NuGet.Services.ServiceBus, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.ServiceBus.2.25.0-master-30191\lib\net45\NuGet.Services.ServiceBus.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.2.10.0\lib\net45\NuGet.Services.Validation.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.2.25.0-master-30191\lib\net45\NuGet.Services.Validation.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Validation.Issues, Version=2.10.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.10.0\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
+    <Reference Include="NuGet.Services.Validation.Issues, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Validation.Issues.2.25.0-master-30191\lib\net45\NuGet.Services.Validation.Issues.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0-preview1-2524\lib\net45\NuGet.Versioning.dll</HintPath>
@@ -266,10 +266,7 @@
     </Reference>
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\System.Net.Http.4.3.0-beta-24431-01\lib\net46\System.Net.Http.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.Extensions, Version=2.2.29.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
@@ -413,6 +410,7 @@
     <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
+    <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
@@ -444,9 +442,14 @@
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
+    <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
+    <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
+    <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
+    <Compile Include="Services\CertificateServiceFacts.cs" />
+    <Compile Include="Services\CertificateValidatorFacts.cs" />
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\ContentObjectServiceFacts.cs" />
@@ -547,16 +550,19 @@
     <Compile Include="TestUtils\OwinAssert.cs" />
     <Compile Include="TestUtils\OwinTestExtensions.cs" />
     <Compile Include="TestUtils\ResultAssert.cs" />
+    <Compile Include="TestUtils\StubHttpPostedFile.cs" />
     <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
     <Compile Include="UrlExtensionsFacts.cs" />
-    <Compile Include="ViewModels\DeleteAccountViewModelFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
+    <Compile Include="ViewModels\ListCertificateItemViewModelFacts.cs" />
+    <Compile Include="ViewModels\ListPackageItemRequiredSignerViewModelFacts.cs" />
     <Compile Include="ViewModels\ListPackageItemViewModelFacts.cs" />
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
+    <Compile Include="ViewModels\SignerViewModelFacts.cs" />
     <Compile Include="ViewModels\UserProfileModelFacts.cs" />
     <Compile Include="Views\Packages\ValidationIssueFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
@@ -571,6 +577,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <EmbeddedResource Include="TestData\certificate.cer" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Search.Client\NuGet.Services.Search.Client.csproj">

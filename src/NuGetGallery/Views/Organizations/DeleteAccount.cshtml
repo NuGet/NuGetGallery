@@ -1,0 +1,83 @@
+﻿@model DeleteOrganizationViewModel
+@{
+    ViewBag.Title = "Delete Organization " + Model.AccountName;
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+<section role="main" class="container main-container page-delete-account">
+    <div class="form-group">
+        <div class="form-group package-controls">
+            @ViewHelpers.OrganizationsBreadcrumb(
+                Url, 
+                CurrentUser, 
+                true, 
+                @<text><a href="@Url.ManageMyOrganization(Model.AccountName)">@Model.AccountName</a></text>, 
+                @<text>Delete</text>)
+
+            @ViewHelpers.AlertWarning(@<text><strong class="keywords">Important</strong>
+                Once your organization is deleted you cannot undo it. <a href="https://go.microsoft.com/fwlink/?linkid=862770">Read more.</a>
+                </text>)
+            <p>
+                When your organization is deleted we will:<br />
+                <ul>
+                    <li>Remove your organization from ownership of any packages.</li>
+                    <li>Remove your organization from ownership of any ID prefix reservations and delete any ID prefix reservations that your organization was the only owner of.</li>
+                    <li>Not delete the NuGet packages associated with the organization.</li>
+                </ul>
+            </p>
+            @if (Model.HasOrphanPackages || Model.HasAdditionalMembers)
+            {
+                if (Model.HasOrphanPackages)
+                {
+                    <p>
+                        Before deleting your organization, you must transfer ownership of any package where you are the sole owner, using the <i>manage owners</i> <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i> button for that package below. Read more about <a href="https://go.microsoft.com/fwlink/?linkid=862794">Manage package owners.</a>
+                    </p>
+                    @Html.Partial("~/Views/Users/_UserPackagesListForDeletedAccount.cshtml", Model)
+                }
+
+                if (Model.HasAdditionalMembers)
+                {
+                    <p>
+                        Before deleting your organization, you must remove any other members from it using the <a href="@Url.ManageMyOrganization(Model.AccountName)">manage organization</a> page.
+                    </p>
+                    @Html.Partial("_OrganizationMembersListForDeletedAccount", Model)
+                }
+            }
+            else
+            {
+                <div class="form-group danger-zone">
+                    <text>
+                        @using (Html.BeginForm("RequestAccountDeletion", "Organizations", FormMethod.Post, new { id = "delete-organization" }))
+                        {
+                            @Html.AntiForgeryToken()
+                            <p>
+                                <strong>By proceeding, I understand that I am relinquishing my organization's ownership of any packages and any package ID prefix reservations.</strong>
+                            </p>
+                            <div class="row form-group">
+                                <div class="col-sm-6">
+                                    <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-organization" value="Delete organization" />
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-organization">Cancel</a>
+                                </div>
+                            </div>
+                        }
+                    </text>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+        $(function () {
+            $('#delete-organization').submit(function(e) {
+                if (!confirm('Are you sure you want to continue to delete this organization?')) {
+                    e.preventDefault();
+                }
+            });
+        });
+    </script>
+}

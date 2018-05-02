@@ -694,14 +694,14 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillSwallowInvalidOperationException()
+            public async Task WillSwallowFileAlreadyExistsException()
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var fakeStream = new MemoryStream();
                 var service = CreateService(fileStorageService: fileStorageSvc);
                 fileStorageSvc
                     .Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>(), It.IsAny<bool>()))
-                    .Throws(new InvalidOperationException("File already exists."));
+                    .Throws(new FileAlreadyExistsException("File already exists."));
 
                 var package = CreatePackage();
 

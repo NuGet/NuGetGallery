@@ -8,16 +8,16 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
-    <div class="row">
-        <div class="col-xs-12">
-            <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
+    @if (Model.External.FoundExistingUser)
+    {
+        <div class="row">
+            <div class="col-xs-12">
+                <h1 class="text-center">Link @Model.External.ProviderAccountNoun</h1>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            @if (Model.External.FoundExistingUser)
-            {
-                if (Model.External.ExistingUserCanBeLinked)
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+                @if (Model.External.ExistingUserCanBeLinked)
                 {
                     <p class="text-center">
                         We found an account with this email address. Sign in with your NuGet.org password to link with this Microsoft account.
@@ -29,7 +29,7 @@
                         Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
                     </p>
 
-                    @Html.Partial("_SignIn", Model);
+                    @Html.Partial("_SignIn", Model)
                 }
                 else
                 {
@@ -40,7 +40,7 @@
                                 The account with the email @Model.SignIn.UserNameOrEmail is linked to another Microsoft account.
                             </p>
                             <p class="text-center">
-                                If you wish to update the linked Microsoft account you can do so from the account settings page.
+                                If you would like to update the linked Microsoft account you can do so from the account settings page.
                             </p>
                             break;
                         case AssociateExternalAccountViewModel.ExistingUserLinkingErrorType.AccountIsOrganization:
@@ -48,7 +48,7 @@
                                 The email @Model.SignIn.UserNameOrEmail is linked to an organization.
                             </p>
                             <p class="text-center">
-                                If you wish to manage the organization account, you must sign in as one of its admins.
+                                If you would like to manage the organization account, you must sign in as one of its admins.
                             </p>
                             break;
                         default:
@@ -62,9 +62,18 @@
                         Please <a href="mailto:@Config.Current.GalleryOwner.Address">contact support</a> if you need more assistance.
                     </p>
                 }
-            }
-            else
-            {
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-xs-12">
+                <h1 class="text-center">Register @Model.External.ProviderAccountNoun</h1>
+            </div>
+        </div>
+        <div class="row">
+            <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
                 <p class="text-center">
                     Looks like we don't have an account with this email address (@Model.Register.EmailAddress) in our records.
                 </p>
@@ -72,8 +81,8 @@
                     Please provide a username so that we can create an account for you!
                 </p>
 
-                @Html.Partial("_Register", Model);
-            }
+                @Html.Partial("_Register", Model)
+            </div>
         </div>
-    </div>
+    }
 </section>
