@@ -86,5 +86,14 @@ namespace NuGet.Services.Validation.Issues.Tests {
                 return ResourceManager.GetString("ObsoleteTestingIssueJson", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;t&quot;:&quot;thumbprint&quot;}.
+        /// </summary>
+        internal static string UnauthorizedCertificateFailureIssueJson {
+            get {
+                return ResourceManager.GetString("UnauthorizedCertificateFailureIssueJson", resourceCulture);
+            }
+        }
     }
 }

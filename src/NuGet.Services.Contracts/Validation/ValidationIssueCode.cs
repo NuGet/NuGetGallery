@@ -58,6 +58,11 @@ namespace NuGet.Services.Validation
         PackageIsNotSigned = 8,
 
         /// <summary>
+        /// A package is signed with an unauthorized certificate.
+        /// </summary>
+        PackageIsSignedWithUnauthorizedCertificate = 9,
+
+        /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
         [Obsolete("This issue code should only be used for testing")]

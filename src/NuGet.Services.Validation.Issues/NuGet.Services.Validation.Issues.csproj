@@ -43,6 +43,7 @@
     <Compile Include="NoDataValidationIssue.cs" />
     <Compile Include="ObsoleteTestingIssue.cs" />
     <Compile Include="ClientSigningVerificationFailure.cs" />
+    <Compile Include="UnauthorizedCertificateFailure.cs" />
     <Compile Include="ValidationIssue.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />

@@ -126,4 +126,7 @@
   <data name="ObsoleteTestingIssueJson" xml:space="preserve">
     <value>{"A":"Hello","B":123}</value>
   </data>
+  <data name="UnauthorizedCertificateFailureIssueJson" xml:space="preserve">
+    <value>{"t":"thumbprint"}</value>
+  </data>
 </root>

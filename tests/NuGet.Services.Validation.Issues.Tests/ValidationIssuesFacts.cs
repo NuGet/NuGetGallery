@@ -73,6 +73,19 @@ namespace NuGet.Services.Validation.Issues.Tests
                 // Assert
                 Assert.Equal(Strings.ClientSigningVerificationFailureIssueJson, result);
             }
+
+            [Fact]
+            public void UnauthorizedCertificateFailureSerialization()
+            {
+                // Arrange
+                var signedError = new UnauthorizedCertificateFailure("thumbprint");
+
+                // Act
+                var result = signedError.Serialize();
+
+                // Assert
+                Assert.Equal(Strings.UnauthorizedCertificateFailureIssueJson, result);
+            }
         }
 
         public class TheDeserializeMethod
@@ -193,6 +206,21 @@ namespace NuGet.Services.Validation.Issues.Tests
                 Assert.Equal(ValidationIssueCode.ClientSigningVerificationFailure, result.IssueCode);
                 Assert.Equal("NU3008", result.ClientCode);
                 Assert.Equal("The package integrity check failed.", result.ClientMessage);
+            }
+
+            [Fact]
+            public void UnauthorizedCertificateFailureDeserialization()
+            {
+                // Arrange
+                var validationIssue = CreatePackageValidationIssue(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, Strings.UnauthorizedCertificateFailureIssueJson);
+
+                // Act
+                var result = ValidationIssue.Deserialize(validationIssue.IssueCode, validationIssue.Data) as UnauthorizedCertificateFailure;
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, result.IssueCode);
+                Assert.Equal("thumbprint", result.Sha1Thumbprint);
             }
 
             private PackageValidationIssue CreatePackageValidationIssue(ValidationIssueCode issueCode, string data)
