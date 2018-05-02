@@ -11,12 +11,20 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
     public static class TestResources
     {
         private const string ResourcePrefix = "Validation.PackageSigning.ProcessSignature.Tests.TestData.";
+        public const string SignedPackageLeafId = "TestSigned.leaf";
+        public const string SignedPackageLeaf1Version = "1.1.0";
         public const string SignedPackageLeaf1 = "TestSigned.leaf-1.1.0.0.nupkg";
         public const string SignedPackageLeaf2 = "TestSigned.leaf-2.2.0.0.nupkg";
+        public const string UnsignedPackageId = "TestUnsigned";
+        public const string UnsignedPackageVersion = "1.0.0";
         public const string UnsignedPackage = "TestUnsigned.1.0.0.nupkg";
         public const string Zip64Package = "Zip64Package.1.0.0.nupkg";
+        public const string RepoSignedPackageLeafId = "TestRepoSigned.leaf";
         public const string RepoSignedPackageLeaf1 = "TestRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string RepoSignedPackageLeaf1Version = "1.1.0.0";
+        public const string AuthorAndRepoSignedPackageLeafId = "TestAuthorAndRepoSigned.leaf";
         public const string AuthorAndRepoSignedPackageLeaf1 = "TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg";
+        public const string AuthorAndRepoSignedPackageLeaf1Version = "1.1.0.0";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the root CA certificate for the signing certificate of <see cref="SignedPackageLeaf1"/>.
@@ -32,6 +40,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         /// This is the SHA-256 thumbprint of the signing certificate in <see cref="SignedPackageLeaf2"/>.
         /// </summary>
         public const string Leaf2Thumbprint = "a8cc70dbbd8bc61410231805b690cca7c5a8d07553c1c49b299a6aabaeb7ff9a";
+
+        /// <summary>
+        /// This is the SHA-1 thumbprint of the signing certificate in <see cref="SignedPackageLeaf2"/>.
+        /// </summary>
+        public const string Leaf2Sha1Thumbprint = "8e1b5dadf388dee204bcfd27b53f00b585fdca07";
 
         /// <summary>
         /// This is the SHA-256 thumbprint of the timestamp certificate in <see cref="SignedPackageLeaf1"/>.

@@ -19,6 +19,7 @@ using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery;
+using NuGetGallery.Extensions;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 {
@@ -32,7 +33,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IProcessorPackageFileService _packageFileService;
-        private readonly IEntityRepository<Certificate> _certificates;
+        private readonly ICorePackageService _corePackageService;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SignatureValidator> _logger;
 
@@ -42,7 +43,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             IPackageSignatureVerifier fullPackageSignatureVerifier,
             ISignaturePartsExtractor signaturePartsExtractor,
             IProcessorPackageFileService packageFileService,
-            IEntityRepository<Certificate> certificates,
+            ICorePackageService corePackageService,
             ITelemetryService telemetryService,
             ILogger<SignatureValidator> logger)
         {
@@ -51,7 +52,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             _fullPackageSignatureVerifier = fullPackageSignatureVerifier ?? throw new ArgumentNullException(nameof(fullPackageSignatureVerifier));
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
-            _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
+            _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -71,20 +72,30 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     return await RejectAsync(context, ValidationIssue.PackageIsZip64);
                 }
 
-                // Validate signed packages and accept unsigned packages.
                 if (await context.PackageReader.IsSignedAsync(cancellationToken))
                 {
                     return await HandleSignedPackageAsync(context);
                 }
-                else
-                {
-                    return await HandleUnsignedPackageAsync(context);
-                }
+
+                return await HandleUnsignedPackageAsync(context);
             }
         }
-        
+
         private async Task<SignatureValidatorResult> HandleUnsignedPackageAsync(Context context)
         {
+            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
+
+            if (packageRegistration.IsSigningRequired())
+            {
+                _logger.LogWarning(
+                    "Package {PackageId} {PackageVersion} for validation {ValidationId} must be signed but is unsigned.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                return await RejectAsync(context, ValidationIssue.PackageIsNotSigned);
+            }
+
             _logger.LogInformation(
                 "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for {ValidationId}.",
                 context.Message.PackageId,
@@ -178,7 +189,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             // We now know we can safely read the signature.
             context.Signature = await context.PackageReader.GetPrimarySignatureAsync(context.CancellationToken);
-            
+
             // Only reject counter signatures that have the author commitment type. Repository counter signatures
             // are removed and replaced if they are invalid and valid ones are left as-is. Counter signatures
             // without author or repository signature commitment type are not produced by the client but
@@ -319,16 +330,16 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             // Block packages with any unknown signing certificates.
-            var signingFingerprint = context.Signature
+            var signingCertificate = context.Signature
                 .SignerInfo
-                .Certificate
-                .ComputeSHA256Thumbprint();
-            var isKnownCertificate = _certificates
-                .GetAll()
-                .Any(c => signingFingerprint == c.Thumbprint);
-            if (!isKnownCertificate)
+                .Certificate;
+            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
+
+            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
+
+            if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
             {
-                _logger.LogInformation(
+                _logger.LogWarning(
                     "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
@@ -337,7 +348,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
                 return await RejectAsync(
                     context,
-                    ValidationIssue.PackageIsSigned);
+                    new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
             }
 
             // Call the "verify" API, which does the main logic of signature validation.
@@ -355,6 +366,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 context.Message.PackageId,
                 context.Message.PackageVersion,
                 context.Message.ValidationId,
+                signingFingerprint);
+
+            await _corePackageService.UpdatePackageSigningCertificateAsync(
+                context.Message.PackageId,
+                context.Message.PackageVersion,
                 signingFingerprint);
 
             return null;

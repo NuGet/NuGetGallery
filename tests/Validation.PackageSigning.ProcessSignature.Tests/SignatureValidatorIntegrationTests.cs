@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -44,8 +43,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly SignaturePartsExtractor _signaturePartsExtractor;
         private readonly Mock<IProcessorPackageFileService> _packageFileService;
         private readonly Uri _nupkgUri;
-        private readonly Mock<IEntityRepository<Certificate>> _certificates;
-        private readonly List<string> _trustedThumbprints;
+        private readonly Mock<ICorePackageService> _corePackageService;
         private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
         private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
         private readonly Mock<ITelemetryClient> _telemetryClient;
@@ -54,7 +52,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly int _packageKey;
         private Stream _packageStream;
         private byte[] _savedPackageBytes;
-        private readonly SignatureValidationMessage _message;
+        private SignatureValidationMessage _message;
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
 
@@ -91,7 +89,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 loggerFactory.CreateLogger<PackageSigningStateService>());
 
             _certificateStore = new Mock<ICertificateStore>();
-            
+
             _signaturePartsExtractor = new SignaturePartsExtractor(
                 _certificateStore.Object,
                 _validationEntitiesContext.Object,
@@ -115,11 +113,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     }
                 });
 
-            _certificates = new Mock<IEntityRepository<Certificate>>();
-            _trustedThumbprints = new List<string>();
-            _certificates
-                .Setup(x => x.GetAll())
-                .Returns(() => _trustedThumbprints.Select(x => new Certificate { Thumbprint = x }).AsQueryable());
+            _corePackageService = new Mock<ICorePackageService>();
 
             // These dependencies are concrete.
             _minimalPackageSignatureVerifier = PackageSignatureVerifierFactory.CreateMinimal();
@@ -146,14 +140,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _fullPackageSignatureVerifier,
                 _signaturePartsExtractor,
                 _packageFileService.Object,
-                _certificates.Object,
+                _corePackageService.Object,
                 _telemetryService,
                 _logger);
         }
 
         public async Task<MemoryStream> GetSignedPackageStream1Async()
         {
-            AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
+            TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, await _fixture.GetSigningCertificateThumbprintAsync());
             return await _fixture.GetSignedPackageStream1Async(_output);
         }
 
@@ -179,8 +173,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsUntrustedSigningCertificate()
         {
             // Arrange
-            AllowCertificateThumbprint(TestResources.Leaf1Thumbprint);
+            TestUtility.RequireSignedPackage(_corePackageService, TestResources.SignedPackageLeafId, TestResources.Leaf1Thumbprint);
             _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+
+            _message = new SignatureValidationMessage(
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                Guid.NewGuid());
 
             // Act
             var result = await _target.ValidateAsync(
@@ -223,9 +223,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         _output);
                 }
 
-                AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
+                TestUtility.RequireSignedPackage(_corePackageService, 
+                    TestResources.SignedPackageLeafId,
+                    await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _packageStream = new MemoryStream(packageBytes);
+
+                _message = new SignatureValidationMessage(
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
 
                 // Act
                 var result = await _target.ValidateAsync(
@@ -274,9 +282,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // https://github.com/NuGet/Home/issues/6508
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
-                AllowCertificateThumbprint(await _fixture.GetSigningCertificateThumbprintAsync());
+                TestUtility.RequireSignedPackage(_corePackageService, 
+                    TestResources.SignedPackageLeafId,
+                    await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _packageStream = new MemoryStream(packageBytes);
+
+                _message = new SignatureValidationMessage(
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
 
                 SignatureValidatorResult result;
                 using (testServer.RegisterResponders(timestampService, addOcsp: false))
@@ -329,7 +345,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // https://github.com/NuGet/Home/issues/6508
                 await Task.Delay(TimeSpan.FromSeconds(1));
 
-                AllowCertificateThumbprint(signingCertificate.ComputeSHA256Thumbprint());
+                TestUtility.RequireSignedPackage(_corePackageService, TestResources.SignedPackageLeafId, signingCertificate.ComputeSHA256Thumbprint());
 
                 _packageStream = new MemoryStream(packageBytes);
 
@@ -454,12 +470,15 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             // Arrange
             SetSignatureContent(
+                TestResources.SignedPackageLeafId,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 configuredSignedCms: signedCms =>
                 {
                     using (var additionalCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        AllowCertificateThumbprint(additionalCertificate.ComputeSHA256Thumbprint());
+                        TestUtility.RequireSignedPackage(_corePackageService, 
+                            TestResources.SignedPackageLeafId,
+                            additionalCertificate.ComputeSHA256Thumbprint());
                         signedCms.ComputeSignature(new CmsSigner(additionalCertificate));
                     }
                 });
@@ -491,7 +510,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
+                        TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, counterCertificate.ComputeSHA256Thumbprint());
 
                         var cmsSigner = new CmsSigner(counterCertificate);
                         cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(SignatureType.Author));
@@ -557,6 +576,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task StripsRepositorySignatures()
         {
             // Arrange
+            _message = new SignatureValidationMessage(
+                TestResources.UnsignedPackageId,
+                TestResources.UnsignedPackageVersion,
+                new Uri($"https://unit.test/validation/{TestResources.UnsignedPackage.ToLowerInvariant()}"),
+                Guid.NewGuid());
             var packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
                 TestResources.GetResourceStream(TestResources.UnsignedPackage),
                 new RepositorySignPackageRequest(
@@ -568,6 +592,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 await _fixture.GetTimestampServiceUrlAsync(),
                 _output);
             var packageStream = new MemoryStream(packageBytes);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
 
             // Act
             var result = await _target.ValidateAsync(
@@ -603,7 +628,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
+                        TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, counterCertificate.ComputeSHA256Thumbprint());
 
                         var cmsSigner = new CmsSigner(counterCertificate);
                         foreach (var type in counterSignatureTypes)
@@ -637,6 +662,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task AllowsNonAuthorAndRepositoryCounterSignatures(string commitmentTypeOidBase64)
         {
             // Arrange
+            _message = new SignatureValidationMessage(
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                Guid.NewGuid());
             var packageStream = await GetSignedPackageStream1Async();
             ModifySignatureContent(
                 packageStream,
@@ -644,8 +674,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        AllowCertificateThumbprint(counterCertificate.ComputeSHA256Thumbprint());
-
                         var cmsSigner = new CmsSigner(counterCertificate);
 
                         if (commitmentTypeOidBase64 != null)
@@ -660,7 +688,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                             cmsSigner.SignedAttributes.Add(attribute);
                         }
-                        
+
                         signedCms.SignerInfos[0].ComputeCounterSignature(cmsSigner);
                     }
                 });
@@ -684,6 +712,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             // Arrange
             SetSignatureContent(
+                TestResources.SignedPackageLeafId,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 "!!--:::FOO...");
 
@@ -708,6 +737,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             // Arrange
             SetSignatureContent(
+                TestResources.SignedPackageLeafId,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 "Version:2" + Environment.NewLine + Environment.NewLine + "2.16.840.1.101.3.4.2.1-Hash:hash");
 
@@ -733,6 +763,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 NuGetHashAlgorithmName.SHA256,
                 hashValue: "hash");
             SetSignatureContent(
+                TestResources.SignedPackageLeafId,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 content.GetBytes());
 
@@ -798,7 +829,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-
         private void ModifySignatureContent(Stream packageStream, Action<SignedCms> configuredSignedCms = null)
         {
             SignedCms signedCms;
@@ -822,7 +852,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             SetSignatureFileContent(packageStream, signedCms.Encode());
         }
 
-        private void SetSignatureContent(Stream packageStream, byte[] signatureContent = null, Action<SignedCms> configuredSignedCms = null)
+        private void SetSignatureContent(
+            string packageId,
+            Stream packageStream,
+            byte[] signatureContent = null,
+            Action<SignedCms> configuredSignedCms = null)
         {
             if (signatureContent == null)
             {
@@ -834,7 +868,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             using (var certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
             {
-                AllowCertificateThumbprint(certificate.ComputeSHA256Thumbprint());
+                TestUtility.RequireSignedPackage(_corePackageService, packageId, certificate.ComputeSHA256Thumbprint());
 
                 var contentInfo = new ContentInfo(signatureContent);
                 var signedCms = new SignedCms(contentInfo);
@@ -849,15 +883,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        private void SetSignatureContent(Stream packageStream, string signatureContent)
+        private void SetSignatureContent(string packageId, Stream packageStream, string signatureContent)
         {
-            SetSignatureContent(packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
+            SetSignatureContent(packageId, packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
         }
 
-        private void AllowCertificateThumbprint(string thumbprint)
-        {
-            _trustedThumbprints.Add(thumbprint);
-        }
+      
 
         private void VerifyPackageSigningStatus(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
         {
