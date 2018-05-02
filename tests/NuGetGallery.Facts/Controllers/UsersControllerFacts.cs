@@ -630,7 +630,7 @@ namespace NuGetGallery
                 var userInOwnerScope = fakes.ShaUser;
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(userInOwnerScope.Username))
+                    .Setup(u => u.FindByUsername(userInOwnerScope.Username, false))
                     .Returns(userInOwnerScope);
 
                 var controller = GetController<UsersController>();
@@ -677,7 +677,7 @@ namespace NuGetGallery
                 var user = isAdmin ? fakes.OrganizationAdmin : fakes.OrganizationCollaborator;
                 var orgUser = fakes.Organization;
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(orgUser.Username))
+                    .Setup(u => u.FindByUsername(orgUser.Username, false))
                     .Returns(orgUser);
 
                 GetMock<AuthenticationService>()
@@ -736,7 +736,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(user.Username))
+                    .Setup(u => u.FindByUsername(user.Username, false))
                     .Returns(user);
 
                 // Act
@@ -827,7 +827,7 @@ namespace NuGetGallery
                 // Arrange 
                 var user = new User("the-username");
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(user.Username))
+                    .Setup(u => u.FindByUsername(user.Username, false))
                     .Returns(user);
 
                 GetMock<AuthenticationService>()
@@ -894,7 +894,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(user);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(user.Username))
+                    .Setup(u => u.FindByUsername(user.Username, false))
                     .Returns(user);
 
                 // Act
@@ -940,7 +940,7 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(user.Username))
+                    .Setup(u => u.FindByUsername(user.Username, false))
                     .Returns(user);
 
 
@@ -975,7 +975,7 @@ namespace NuGetGallery
                 var username = "test";
 
                 GetMock<IUserService>()
-                    .Setup(x => x.FindByUsername(username))
+                    .Setup(x => x.FindByUsername(username, false))
                     .Returns(user);
 
                 var controller = GetController<UsersController>();
@@ -1023,7 +1023,7 @@ namespace NuGetGallery
                 };
 
                 GetMock<IUserService>()
-                    .Setup(x => x.FindByUsername(username))
+                    .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
 
                 GetMock<IPackageService>()
@@ -1077,7 +1077,7 @@ namespace NuGetGallery
                 };
 
                 GetMock<IUserService>()
-                    .Setup(x => x.FindByUsername(username))
+                    .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
 
                 GetMock<IPackageService>()
@@ -2052,7 +2052,7 @@ namespace NuGetGallery
                 testUser.IsDeleted = true;
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
 
                 // act
@@ -2103,7 +2103,7 @@ namespace NuGetGallery
                 }
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2165,7 +2165,7 @@ namespace NuGetGallery
                 }
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(testUser.Username))
+                    .Setup(stub => stub.FindByUsername(testUser.Username, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2239,7 +2239,7 @@ namespace NuGetGallery
                 List<Issue> issues = new List<Issue>();
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
                 GetMock<IPackageService>()
                     .Setup(stub => stub.FindPackagesByAnyMatchingOwner(testUser, It.IsAny<bool>(), false))
@@ -2283,7 +2283,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(testUser);
 
                 GetMock<IUserService>()
-                    .Setup(stub => stub.FindByUsername(userName))
+                    .Setup(stub => stub.FindByUsername(userName, false))
                     .Returns(testUser);
 
                 GetMock<IDeleteAccountService>()
@@ -2314,7 +2314,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername("OrgAdmin"))
+                    .Setup(u => u.FindByUsername("OrgAdmin", false))
                     .Returns(new User("OrgAdmin")
                     {
                         EmailAddress = "orgadmin@example.com"
@@ -2624,7 +2624,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(accountToTransform))
+                    .Setup(u => u.FindByUsername(accountToTransform, false))
                     .Returns(new User(accountToTransform)
                     {
                         EmailAddress = $"{accountToTransform}@example.com"
@@ -2742,7 +2742,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
 
                 GetMock<IUserService>()
-                    .Setup(u => u.FindByUsername(accountToTransform))
+                    .Setup(u => u.FindByUsername(accountToTransform, false))
                     .Returns(new User(accountToTransform)
                     {
                         EmailAddress = $"{accountToTransform}@example.com"

@@ -43,7 +43,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange
             User currentUser = null;
             var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(It.IsAny<string>())).Returns(currentUser);
+            userService.Setup(m => m.FindByUsername(It.IsAny<string>(), false)).Returns(currentUser);
             var controller = new DeleteAccountController(userService.Object);
 
             // Act
@@ -66,7 +66,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             };
 
             var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(userName)).Returns(currentUser);
+            userService.Setup(m => m.FindByUsername(userName, false)).Returns(currentUser);
             var controller = new DeleteAccountController(userService.Object);
 
             // Act
@@ -89,7 +89,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             };
 
             var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(userName)).Returns(currentUser);
+            userService.Setup(m => m.FindByUsername(userName, false)).Returns(currentUser);
             var controller = new DeleteAccountController(userService.Object);
 
             // Act

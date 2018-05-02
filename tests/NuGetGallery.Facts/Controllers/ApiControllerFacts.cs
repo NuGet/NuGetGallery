@@ -1264,7 +1264,7 @@ namespace NuGetGallery
                     .Returns(package);
 
                 controller.MockUserService
-                    .Setup(x => x.FindByKey(user.Key))
+                    .Setup(x => x.FindByKey(user.Key, false))
                     .Returns(user);
 
                 controller.SetCurrentUser(user, credential);
