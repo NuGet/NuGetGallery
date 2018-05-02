@@ -1351,7 +1351,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(EmailSettingsCombinations))]
-            public void WillSendEmailToOwnersRegardlessOfSettings(bool user1PushAllowed, bool user2PushAllowed, bool user1EmailAllowed, bool user2EmailAllowed)
+            public void WillHonorPushSettings(bool user1PushAllowed, bool user2PushAllowed, bool user1EmailAllowed, bool user2EmailAllowed)
             {
                 // Arrange
                 var packageRegistration = new PackageRegistration
@@ -1363,6 +1363,9 @@ namespace NuGetGallery
                         new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = user2PushAllowed, EmailAllowed = user2EmailAllowed }
                     }
                 };
+                var user1EmailShouldBeSent = user1PushAllowed;
+                var user2EmailShouldBeSent = user2PushAllowed;
+                int expectedNumberOfEmails = (user1EmailShouldBeSent ? 1 : 0) + (user2EmailShouldBeSent ? 1 : 0);
                 var package = new Package
                 {
                     Version = "1.2.3",
@@ -1375,11 +1378,24 @@ namespace NuGetGallery
                 messageService.SendValidationTakingTooLongNotice(package, "http://dummy1");
 
                 // Assert
-                var message = messageService.MockMailSender.Sent.Last();
+                var message = messageService.MockMailSender.Sent.LastOrDefault();
 
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(2, message.To.Count);
+                if (expectedNumberOfEmails == 0)
+                {
+                    Assert.Null(message);
+                }
+                else
+                {
+                    if (user1EmailShouldBeSent)
+                    {
+                        Assert.Contains("yung@example.com", message.To.Select(ma => ma.Address));
+                    }
+                    if (user2EmailShouldBeSent)
+                    {
+                        Assert.Contains("flynt@example.com", message.To.Select(ma => ma.Address));
+                    }
+                    Assert.Equal(expectedNumberOfEmails, message.To.Count);
+                }
             }
         }
 
