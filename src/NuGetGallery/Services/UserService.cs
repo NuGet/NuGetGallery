@@ -352,18 +352,26 @@ namespace NuGetGallery
             }
         }
 
-        public virtual User FindByUsername(string username)
+        public virtual User FindByUsername(string username, bool includeDeleted = false)
         {
-            return UserRepository.GetAll()
-                .Include(u => u.Roles)
+            var users = UserRepository.GetAll();
+            if (!includeDeleted)
+            {
+                users = users.Where(u => !u.IsDeleted);
+            }
+            return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
         }
 
-        public virtual User FindByKey(int key)
+        public virtual User FindByKey(int key, bool includeDeleted = false)
         {
-            return UserRepository.GetAll()
-                .Include(u => u.Roles)
+            var users = UserRepository.GetAll();
+            if (!includeDeleted)
+            {
+                users = users.Where(u => !u.IsDeleted);
+            }
+            return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Key == key);
         }

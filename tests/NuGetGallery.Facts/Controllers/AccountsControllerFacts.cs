@@ -95,7 +95,7 @@ namespace NuGetGallery
                 var account = GetAccount(controller);
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
 
                 return InvokeAccount(controller);
@@ -150,7 +150,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
                 userService.Setup(u => u.CancelChangeEmailAddress(account))
                     .Returns(Task.CompletedTask)
@@ -294,7 +294,7 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
 
                 var setup = userService.Setup(u => u.ChangeEmailAddress(It.IsAny<User>(), It.IsAny<string>()))
@@ -383,7 +383,7 @@ namespace NuGetGallery
                 account.NotifyPackagePushed = !notifyPackagePushed;
 
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
                 userService.Setup(u => u.ChangeEmailSubscriptionAsync(account, emailAllowed, notifyPackagePushed))
                     .Returns(Task.CompletedTask);
@@ -450,7 +450,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
 
                 // Act
@@ -514,7 +514,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
 
                 GetMock<IMessageService>()
@@ -691,7 +691,7 @@ namespace NuGetGallery
                 // Arrange
                 controller.SetCurrentUser(getCurrentUser(Fakes));
                 var userService = GetMock<IUserService>();
-                userService.Setup(u => u.FindByUsername(account.Username))
+                userService.Setup(u => u.FindByUsername(account.Username, false))
                     .Returns(account as User);
                 var confirmSetup = userService.Setup(u => u.ConfirmEmailAddress(It.IsAny<User>(), It.IsAny<string>()));
                 if (exception == null)

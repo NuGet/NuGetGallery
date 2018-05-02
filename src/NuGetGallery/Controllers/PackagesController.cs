@@ -84,7 +84,6 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
-        private readonly ICertificateService _certificateService;
 
         public PackagesController(
             IPackageService packageService,
@@ -107,8 +106,7 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
             IValidationService validationService,
-            IPackageOwnershipManagementService packageOwnershipManagementService,
-            ICertificateService certificateService)
+            IPackageOwnershipManagementService packageOwnershipManagementService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -131,7 +129,6 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
-            _certificateService = certificateService;
         }
 
         [HttpGet]
@@ -1340,14 +1337,6 @@ namespace NuGetGallery
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
                 SendAddPackageOwnerNotification(package, user);
-
-                var hasActiveCertificates = _certificateService.GetCertificates(user).Any();
-
-                if (hasActiveCertificates &&
-                    _securityPolicyService.IsSubscribed(user, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
-                {
-                    await _packageService.SetRequiredSignerAsync(package, user);
-                }
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
