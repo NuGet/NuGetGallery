@@ -3,7 +3,6 @@
 
 using System;
 using System.Data.SqlClient;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using Microsoft.IdentityModel.Clients.ActiveDirectory;
@@ -14,17 +13,11 @@ namespace NuGet.Services.Sql
     public class AzureSqlConnectionFactory : ISqlConnectionFactory
     {
         private const string AzureSqlResourceId = "https://database.windows.net/";
+        private const int RetryIntervalInMilliseconds = 250;
 
-        public AzureSqlConnectionStringBuilder ConnectionStringBuilder { get; }
+        private AzureSqlConnectionStringBuilder ConnectionStringBuilder { get; }
 
-        public ISecretInjector SecretInjector { get; }
-
-        public ISecretReader SecretReader {
-            get
-            {
-                return SecretInjector.SecretReader;
-            }
-        }
+        private ISecretInjector SecretInjector { get; }
 
         public AzureSqlConnectionFactory(string connectionString, ISecretInjector secretInjector)
         {
@@ -45,23 +38,23 @@ namespace NuGet.Services.Sql
             }
             catch (Exception e) when (IsAdalException(e))
             {
-                RefreshSecrets();
+                await Task.Delay(RetryIntervalInMilliseconds);
+
                 return await ConnectAsync();
             }
         }
 
-        protected virtual async Task<SqlConnection> ConnectAsync()
+        private async Task<SqlConnection> ConnectAsync()
         {
             var connectionString = await SecretInjector.InjectAsync(ConnectionStringBuilder.ConnectionString);
             var connection = new SqlConnection(connectionString);
 
             if (!string.IsNullOrWhiteSpace(ConnectionStringBuilder.AadAuthority))
             {
-                var certSecret = GetSecretName(ConnectionStringBuilder.AadCertificate);
-                if (!string.IsNullOrEmpty(certSecret))
+                var certificateData = await SecretInjector.InjectAsync(ConnectionStringBuilder.AadCertificate);
+                if (!string.IsNullOrEmpty(certificateData))
                 {
-                    var certSecretBytes = await SecretReader.GetSecretAsync(certSecret);
-                    var certificate = SecretToCertificate(certSecretBytes);
+                    var certificate = SecretToCertificate(certificateData);
 
                     connection.AccessToken = await GetAccessTokenAsync(
                         ConnectionStringBuilder.AadAuthority,
@@ -91,41 +84,14 @@ namespace NuGet.Services.Sql
             return sqlConnection.OpenAsync();
         }
 
-        protected virtual X509Certificate2 SecretToCertificate(string rawData)
+        protected virtual X509Certificate2 SecretToCertificate(string certificateData)
         {
-            return new X509Certificate2(Convert.FromBase64String(rawData), string.Empty);
-        }
-
-        private void RefreshSecrets()
-        {
-            var cachingSecretReader = SecretReader as ICachingSecretReader;   
-            if (cachingSecretReader != null)
-            {
-                foreach (var secret in SecretInjector.GetSecretNames(ConnectionStringBuilder.ConnectionString))
-                {
-                    cachingSecretReader.RefreshSecret(secret);
-                }
-
-                if (!string.IsNullOrEmpty(ConnectionStringBuilder.AadCertificate))
-                {
-                    var certSecret = GetSecretName(ConnectionStringBuilder.AadCertificate);
-                    if (!string.IsNullOrEmpty(certSecret))
-                    {
-                        cachingSecretReader.RefreshSecret(certSecret);
-                    }
-                }
-            }
-        }
-
-        private string GetSecretName(string input)
-        {
-            return SecretInjector.GetSecretNames(input).SingleOrDefault();
+            return new X509Certificate2(Convert.FromBase64String(certificateData), string.Empty);
         }
 
         private static bool IsAdalException(Exception e)
         {
-            return (e is AdalException) ? true
-                : (e.InnerException != null) ? IsAdalException(e.InnerException) : false;
+            return e is AdalException || (e.InnerException != null && IsAdalException(e.InnerException));
         }
     }
 }

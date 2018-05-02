@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.KeyVault
 {
-    public class CachingSecretReader : ICachingSecretReader
+    public class CachingSecretReader : ISecretReader
     {
         public const int DefaultRefreshIntervalSec = 60 * 60 * 24; // 1 day
 
@@ -42,11 +42,6 @@ namespace NuGet.Services.KeyVault
 
             return _cache.AddOrUpdate(secretName, updatedValue, (key, old) => updatedValue)
                          .Value;
-        }
-
-        public bool RefreshSecret(string secretName)
-        {
-            return _cache.TryRemove(secretName, out var value);
         }
 
         private bool IsSecretOutdated(CachedSecret secret)

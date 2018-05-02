@@ -12,8 +12,7 @@ namespace NuGet.Services.KeyVault
     {
         public const string DefaultFrame = "$$";
         private readonly string _frame;
-
-        public ISecretReader SecretReader { get; }
+        private readonly ISecretReader _secretReader;
 
         public SecretInjector(ISecretReader secretReader) : this(secretReader, DefaultFrame)
         {
@@ -21,7 +20,10 @@ namespace NuGet.Services.KeyVault
 
         public SecretInjector(ISecretReader secretReader, string frame)
         {
-            SecretReader = secretReader ?? throw new ArgumentNullException(nameof(SecretReader));
+            if (secretReader == null)
+            {
+                throw new ArgumentNullException(nameof(secretReader));
+            }
 
             if (string.IsNullOrWhiteSpace(frame))
             {
@@ -29,6 +31,7 @@ namespace NuGet.Services.KeyVault
             }
 
             _frame = frame;
+            _secretReader = secretReader;
         }
 
         public async Task<string> InjectAsync(string input)
@@ -43,14 +46,14 @@ namespace NuGet.Services.KeyVault
 
             foreach (var secretName in secretNames)
             {
-                var secretValue = await SecretReader.GetSecretAsync(secretName);
+                var secretValue = await _secretReader.GetSecretAsync(secretName);
                 output.Replace($"{_frame}{secretName}{_frame}", secretValue);
             }
 
             return output.ToString();
         }
 
-        public IEnumerable<string> GetSecretNames(string input)
+        private IEnumerable<string> GetSecretNames(string input)
         {
             var secretNames = new HashSet<string>();
 
