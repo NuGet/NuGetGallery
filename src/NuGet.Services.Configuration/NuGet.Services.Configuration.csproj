@@ -53,7 +53,6 @@
     <Compile Include="DictionaryExtensions.cs" />
     <Compile Include="IConfigurationFactory.cs" />
     <Compile Include="IConfigurationProvider.cs" />
-    <Compile Include="ISecretDictionary.cs" />
     <Compile Include="KeyVaultInjectingConfigurationProvider.cs" />
     <Compile Include="KeyVaultJsonInjectingConfigurationSource.cs" />
     <Compile Include="NonCachingOptionsSnapshot.cs" />

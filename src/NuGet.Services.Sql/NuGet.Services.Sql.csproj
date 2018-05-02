@@ -47,13 +47,15 @@
     <Compile Include="AzureSqlConnectionFactory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="project.json" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.KeyVault\NuGet.Services.KeyVault.csproj">
       <Project>{c87d0ef1-54aa-4b0b-89de-cff2dc941d11}</Project>
       <Name>NuGet.Services.KeyVault</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Clients.ActiveDirectory">
+      <Version>3.19.4</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\..\build\sign.targets" />
