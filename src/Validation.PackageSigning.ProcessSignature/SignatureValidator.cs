@@ -330,10 +330,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             // Block packages with any unknown signing certificates.
-            var signingFingerprint = context.Signature
+            var signingCertificate = context.Signature
                 .SignerInfo
-                .Certificate
-                .ComputeSHA256Thumbprint();
+                .Certificate;
+            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
 
             var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
 
@@ -348,7 +348,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
                 return await RejectAsync(
                     context,
-                    ValidationIssue.PackageIsSigned);
+                    new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
             }
 
             // Call the "verify" API, which does the main logic of signature validation.

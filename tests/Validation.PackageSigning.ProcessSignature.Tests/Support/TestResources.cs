@@ -42,6 +42,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public const string Leaf2Thumbprint = "a8cc70dbbd8bc61410231805b690cca7c5a8d07553c1c49b299a6aabaeb7ff9a";
 
         /// <summary>
+        /// This is the SHA-1 thumbprint of the signing certificate in <see cref="SignedPackageLeaf2"/>.
+        /// </summary>
+        public const string Leaf2Sha1Thumbprint = "8e1b5dadf388dee204bcfd27b53f00b585fdca07";
+
+        /// <summary>
         /// This is the SHA-256 thumbprint of the timestamp certificate in <see cref="SignedPackageLeaf1"/>.
         /// </summary>
         public const string Leaf1TimestampThumbprint = "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67";

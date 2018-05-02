@@ -380,8 +380,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 // Assert
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                var issue = Assert.Single(result.Issues);
-                Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
+                Assert.Single(result.Issues);
+                var issue = Assert.IsType<UnauthorizedCertificateFailure>(result.Issues[0]);
+                Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, issue.IssueCode);
+                Assert.Equal(TestResources.Leaf2Sha1Thumbprint, issue.Sha1Thumbprint);
             }
 
             [Fact]
@@ -514,9 +516,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _cancellationToken);
 
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
-                Assert.Equal(1, result.Issues.Count);
-                var issue = Assert.IsType<NoDataValidationIssue>(result.Issues[0]);
-                Assert.Equal(ValidationIssueCode.PackageIsSigned, issue.IssueCode);
+                Assert.Single(result.Issues);
+                var issue = Assert.IsType<UnauthorizedCertificateFailure>(result.Issues[0]);
+                Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, issue.IssueCode);
+                Assert.Equal(TestResources.Leaf2Sha1Thumbprint, issue.Sha1Thumbprint);
             }
 
             [Fact]
