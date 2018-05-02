@@ -359,7 +359,6 @@ namespace NuGetGallery
             {
                 users = users.Where(u => !u.IsDeleted);
             }
-
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Username == username);
@@ -372,7 +371,6 @@ namespace NuGetGallery
             {
                 users = users.Where(u => !u.IsDeleted);
             }
-
             return users.Include(u => u.Roles)
                 .Include(u => u.Credentials)
                 .SingleOrDefault(u => u.Key == key);
