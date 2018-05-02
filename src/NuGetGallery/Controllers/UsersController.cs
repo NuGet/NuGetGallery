@@ -473,6 +473,7 @@ namespace NuGetGallery
 
             var model = new ManagePackagesViewModel
             {
+                User = currentUser,
                 Owners = owners,
                 ListedPackages = listedPackages,
                 UnlistedPackages = unlistedPackages,
