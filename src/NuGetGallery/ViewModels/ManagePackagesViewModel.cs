@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public class ManagePackagesViewModel
     {
+        public virtual User User { get; set; }
+
         public IEnumerable<ListPackageOwnerViewModel> Owners { get; set; }
 
         public IEnumerable<ListPackageItemRequiredSignerViewModel> ListedPackages { get; set; }

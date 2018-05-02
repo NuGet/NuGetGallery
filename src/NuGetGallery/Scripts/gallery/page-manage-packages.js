@@ -45,7 +45,17 @@
                 return ko.unwrap(this.DownloadCount).toLocaleString();
             }, this);
 
-            this._requiredSigner = ko.observable(packageItem.RequiredSigner ? packageItem.RequiredSigner.Username : null);
+            var requiredSigner = null;
+
+            if (packageItem.RequiredSigner) {
+                if (this.ShowTextBox) {
+                    requiredSigner = packageItem.RequiredSigner.OptionText;
+                } else {
+                    requiredSigner = packageItem.RequiredSigner.Username;
+                }
+            }
+
+            this._requiredSigner = ko.observable(requiredSigner);
 
             this.RequiredSigner = ko.pureComputed({
                 read: function () {
