@@ -19,7 +19,8 @@ namespace NuGet.Services.Validation
         IDbSet<EndCertificateValidation> CertificateValidations { get; }
         IDbSet<CertificateChainLink> CertificateChainLinks { get; }
         IDbSet<ParentCertificate> ParentCertificates { get; }
-        IDbSet<PackageCompatibilityIssue> PackageCompatibilityIssues {get;}
+        IDbSet<PackageCompatibilityIssue> PackageCompatibilityIssues { get; }
+        IDbSet<ScanOperationState> ScanOperationStates { get; }
 
         Task<int> SaveChangesAsync();
     }
