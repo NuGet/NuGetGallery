@@ -84,6 +84,7 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IContentObjectService _contentObjectService;
 
         public PackagesController(
             IPackageService packageService,
@@ -106,7 +107,8 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IReadMeService readMeService,
             IValidationService validationService,
-            IPackageOwnershipManagementService packageOwnershipManagementService)
+            IPackageOwnershipManagementService packageOwnershipManagementService,
+            IContentObjectService contentObjectService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -129,6 +131,7 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
+            _contentObjectService = contentObjectService;
         }
 
         [HttpGet]
@@ -463,6 +466,7 @@ namespace NuGetGallery
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
+            model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 

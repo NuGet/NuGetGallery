@@ -12,11 +12,11 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
-        internal HashSet<string> DiscontinuedForEmailAddresses { get; }
-        internal HashSet<string> DiscontinuedForDomains { get; }
-        internal HashSet<string> ExceptionsForEmailAddresses { get; }
-        internal HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
-        internal HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
+        public HashSet<string> DiscontinuedForEmailAddresses { get; }
+        public HashSet<string> DiscontinuedForDomains { get; }
+        public HashSet<string> ExceptionsForEmailAddresses { get; }
+        public HashSet<string> ForceTransformationToOrganizationForEmailAddresses { get; }
+        public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
 
         public LoginDiscontinuationConfiguration()
             : this(Enumerable.Empty<string>(), 

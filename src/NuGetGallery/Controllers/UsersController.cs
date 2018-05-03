@@ -41,7 +41,8 @@ namespace NuGetGallery
             ISupportRequestService supportRequestService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
-            ICertificateService certificateService)
+            ICertificateService certificateService,
+            IContentObjectService contentObjectService)
             : base(
                   authService,
                   feedsQuery,
@@ -50,7 +51,8 @@ namespace NuGetGallery
                   userService,
                   telemetryService,
                   securityPolicyService,
-                  certificateService)
+                  certificateService,
+                  contentObjectService)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -479,7 +481,8 @@ namespace NuGetGallery
                 UnlistedPackages = unlistedPackages,
                 OwnerRequests = ownerRequests,
                 ReservedNamespaces = reservedPrefixes,
-                WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated()
+                WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated(),
+                IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false
             };
             return View(model);
         }

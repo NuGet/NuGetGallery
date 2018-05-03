@@ -73,7 +73,10 @@
 
             @Html.Partial("_AccountCuratedFeeds", Model)
 
-            @Html.Partial("_AccountCertificates", Model)
+            @if (Model.IsCertificatesUIEnabled)
+            {
+                @Html.Partial("_AccountCertificates", Model)
+            }
 
             @if (Model.CanManage)
             {
@@ -120,12 +123,17 @@
         }));
     </script>
     @ViewHelpers.SectionsScript(this);
-    @Scripts.Render("~/Scripts/gallery/certificates.js")
+    @if (Model.IsCertificatesUIEnabled)
+    {
+        @Scripts.Render("~/Scripts/gallery/certificates.js")
+    }
     @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")
-
-    <script type="text/javascript">
-        CertificatesManagement.init('@Url.AddOrganizationCertificate(account.Username)', '@Url.GetOrganizationCertificates(account.Username)');
-    </script>
+    @if (Model.IsCertificatesUIEnabled)
+    {
+        <script type="text/javascript">
+            CertificatesManagement.init('@Url.AddOrganizationCertificate(account.Username)', '@Url.GetOrganizationCertificates(account.Username)');
+        </script>
+    }
 
     <script type="text/html" id="validation-errors">
         <div data-bind="foreach:$data" class="validation-error-message-list">
