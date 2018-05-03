@@ -302,7 +302,7 @@ namespace NuGetGallery.ViewModels
             Assert.Null(viewModel.RequiredSignerMessage);
             VerifySigners(package.PackageRegistration.Owners, viewModel.AllSigners, expectAnySigner: false);
             Assert.True(viewModel.ShowRequiredSigner);
-            Assert.False(viewModel.ShowTextBox);
+            Assert.True(viewModel.ShowTextBox);
             Assert.False(viewModel.CanEditRequiredSigner);
 
             _securityPolicyService.VerifyAll();
