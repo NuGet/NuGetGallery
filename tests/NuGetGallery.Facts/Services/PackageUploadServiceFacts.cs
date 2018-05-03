@@ -343,7 +343,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DoesNotCommitToDatabaseWhenThValidationFileConflicts()
+            public async Task DoesNotCommitToDatabaseWhenTheValidationFileConflicts()
             {
                 _package.PackageStatusKey = PackageStatus.Validating;
 
@@ -444,7 +444,7 @@ namespace NuGetGallery
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
-            protected InvalidOperationException _conflictException;
+            protected FileAlreadyExistsException _conflictException;
             protected readonly PackageUploadService _target;
 
             public FactsBase()
@@ -465,7 +465,7 @@ namespace NuGetGallery
                 };
                 _packageFile = Stream.Null;
                 _unexpectedException = new ArgumentException("Fail!");
-                _conflictException = new InvalidOperationException("Conflict!");
+                _conflictException = new FileAlreadyExistsException("Conflict!");
 
                 _target = new PackageUploadService(
                     _packageService.Object,
