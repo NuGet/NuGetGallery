@@ -2,18 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 using Test.Utility.Signing;
 using Xunit;
-using GeneralName = Org.BouncyCastle.Asn1.X509.GeneralName;
 using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
 
 namespace Validation.PackageSigning.Core.Tests.Support

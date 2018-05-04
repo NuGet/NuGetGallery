@@ -23,10 +23,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
     public class Job : SubcriptionProcessorJob<SignatureValidationMessage>
     {
         private const string CertificateStoreConfigurationSectionName = "CertificateStore";
+        private const string ProcessSignatureConfigurationSectionName = "ProcessSignature";
 
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
+            services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(ProcessSignatureConfigurationSectionName));
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
@@ -59,16 +61,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<IMessageHandler<SignatureValidationMessage>, SignatureValidationMessageHandler>();
             services.AddTransient<IPackageSigningStateService, PackageSigningStateService>();
             services.AddTransient<ISignaturePartsExtractor, SignaturePartsExtractor>();
-
-            services.AddTransient<ISignatureValidator, SignatureValidator>(p => new SignatureValidator(
-                p.GetRequiredService<IPackageSigningStateService>(),
-                PackageSignatureVerifierFactory.CreateMinimal(),
-                PackageSignatureVerifierFactory.CreateFull(),
-                p.GetRequiredService<ISignaturePartsExtractor>(),
-                p.GetRequiredService<IProcessorPackageFileService>(),
-                p.GetRequiredService<ICorePackageService>(),
-                p.GetRequiredService<ITelemetryService>(),
-                p.GetRequiredService<ILogger<SignatureValidator>>()));
+            services.AddTransient<ISignatureFormatValidator, SignatureFormatValidator>();
+            services.AddTransient<ISignatureValidator, SignatureValidator>();
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

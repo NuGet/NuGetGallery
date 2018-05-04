@@ -117,6 +117,49 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output);
         }
 
+        public async Task<MemoryStream> GenerateRepositorySignedPackageStreamAsync(X509Certificate2 signingCertificate, ITestOutputHelper output)
+        {
+            return await GenerateRepositorySignedPackageStreamAsync(
+                signingCertificate,
+                await GetTimestampServiceUrlAsync(),
+                output);
+        }
+
+        public async Task<MemoryStream> GenerateRepositorySignedPackageStreamAsync(
+            X509Certificate2 signingCertificate,
+            Uri timestampUri,
+            ITestOutputHelper output)
+        {
+            var packageBytes = await GenerateSignedPackageBytesAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                new RepositorySignPackageRequest(
+                    signingCertificate,
+                    HashAlgorithmName.SHA256,
+                    HashAlgorithmName.SHA256,
+                    new Uri(TestResources.V3ServiceIndexUrl),
+                    new[] { "nuget", "microsoft" }),
+                timestampUri,
+                output);
+
+            return new MemoryStream(packageBytes);
+        }
+
+        public async Task<MemoryStream> GenerateRepositoryCounterSignedPackageStreamAsync(X509Certificate2 signingCertificate, ITestOutputHelper output)
+        {
+            var packageBytes = await GenerateSignedPackageBytesAsync(
+                await GetSignedPackageStream1Async(output),
+                new RepositorySignPackageRequest(
+                    signingCertificate,
+                    HashAlgorithmName.SHA256,
+                    HashAlgorithmName.SHA256,
+                    new Uri(TestResources.V3ServiceIndexUrl),
+                    new[] { "nuget", "microsoft" }),
+                await GetTimestampServiceUrlAsync(),
+                output);
+
+            return new MemoryStream(packageBytes);
+        }
+
         /// <summary>
         /// This is a workaround for the lack of <code>ref</code> parameters in <code>async</code> methods.
         /// </summary>

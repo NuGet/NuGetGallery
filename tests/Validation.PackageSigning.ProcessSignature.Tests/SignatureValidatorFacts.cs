@@ -2,12 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Common;
+using NuGet.Jobs.Validation.PackageSigning;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -31,16 +37,18 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private SignatureValidationMessage _message;
             private readonly CancellationToken _cancellationToken;
             private readonly Mock<IPackageSigningStateService> _packageSigningStateService;
-            private VerifySignaturesResult _mimimalVerifyResult;
-            private readonly Mock<IPackageSignatureVerifier> _mimimalPackageSignatureVerifier;
+
+            private readonly Mock<ISignatureFormatValidator> _formatValidator;
+            private VerifySignaturesResult _minimalVerifyResult;
             private VerifySignaturesResult _fullVerifyResult;
-            private readonly Mock<IPackageSignatureVerifier> _fullPackageSignatureVerifier;
             private readonly Mock<ISignaturePartsExtractor> _signaturePartsExtractor;
             private readonly Mock<ICorePackageService> _corePackageService;
             private readonly ILogger<SignatureValidator> _logger;
             private readonly Mock<IProcessorPackageFileService> _packageFileService;
             private readonly Uri _nupkgUri;
             private readonly SignatureValidator _target;
+            private readonly Mock<IOptionsSnapshot<ProcessSignatureConfiguration>> _optionsSnapshot;
+            private readonly ProcessSignatureConfiguration _configuration;
             private readonly Mock<ITelemetryService> _telemetryService;
 
             public ValidateAsync(ITestOutputHelper output)
@@ -55,17 +63,16 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _cancellationToken = CancellationToken.None;
 
                 _packageSigningStateService = new Mock<IPackageSigningStateService>();
+                _formatValidator = new Mock<ISignatureFormatValidator>();
 
-                _mimimalVerifyResult = new VerifySignaturesResult(true);
-                _mimimalPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
-                _mimimalPackageSignatureVerifier
-                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()))
-                    .ReturnsAsync(() => _mimimalVerifyResult);
+                _minimalVerifyResult = new VerifySignaturesResult(true);
+                _formatValidator
+                    .Setup(x => x.ValidateMinimalAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
+                    .ReturnsAsync(() => _minimalVerifyResult);
 
                 _fullVerifyResult = new VerifySignaturesResult(true);
-                _fullPackageSignatureVerifier = new Mock<IPackageSignatureVerifier>();
-                _fullPackageSignatureVerifier
-                    .Setup(x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()))
+                _formatValidator
+                    .Setup(x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _fullVerifyResult);
 
                 _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
@@ -79,15 +86,23 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Setup(x => x.GetReadAndDeleteUriAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Guid>()))
                     .ReturnsAsync(() => _nupkgUri);
 
+                _optionsSnapshot = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
+                _configuration = new ProcessSignatureConfiguration
+                {
+                    AllowedRepositorySigningCertificates = new List<string>(),
+                    V3ServiceIndexUrl = "http://example/v3/index.json",
+                };
+                _optionsSnapshot.Setup(x => x.Value).Returns(() => _configuration);
+
                 _telemetryService = new Mock<ITelemetryService>();
 
                 _target = new SignatureValidator(
                     _packageSigningStateService.Object,
-                    _mimimalPackageSignatureVerifier.Object,
-                    _fullPackageSignatureVerifier.Object,
+                    _formatValidator.Object,
                     _signaturePartsExtractor.Object,
                     _packageFileService.Object,
                     _corePackageService.Object,
+                    _optionsSnapshot.Object,
                     _telemetryService.Object,
                     _logger);
             }
@@ -211,7 +226,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             {
                 // Arrange
                 _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
-                _mimimalVerifyResult = new VerifySignaturesResult(valid: false);
+                _minimalVerifyResult = new VerifySignaturesResult(valid: false);
                 _message = new SignatureValidationMessage(
                     TestResources.SignedPackageLeafId,
                     TestResources.SignedPackageLeaf1Version,
@@ -228,8 +243,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Assert
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 Assert.Empty(result.Issues);
-                _fullPackageSignatureVerifier.Verify(
-                    x => x.VerifySignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>(), It.IsAny<Guid>()),
+                _formatValidator.Verify(
+                    x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
                     Times.Never);
             }
 
@@ -238,7 +253,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             {
                 // Arrange
                 _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
-                _mimimalVerifyResult = new VerifySignaturesResult(
+                _minimalVerifyResult = new VerifySignaturesResult(
                     valid: false,
                     results: new[]
                     {
@@ -467,6 +482,40 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Times.Once);
                 Assert.IsType<FileStream>(uploadedStream);
                 Assert.Throws<ObjectDisposedException>(() => uploadedStream.Length);
+                if (signingStatus == PackageSigningStatus.Valid)
+                {
+                    _formatValidator.Verify(
+                        x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
+                        Times.Once);
+                }
+                else
+                {
+                    _formatValidator.Verify(
+                        x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                        Times.Never);
+                }
+            }
+
+            [Fact]
+            public async Task DoesntStripAcceptableRepositorySignatures()
+            {
+                // Arrange
+                _packageStream = TestResources.GetResourceStream(TestResources.RepoSignedPackageLeaf1);
+
+                _configuration.V3ServiceIndexUrl = TestResources.V3ServiceIndexUrl;
+                _configuration.AllowedRepositorySigningCertificates.Add(TestResources.Leaf1Thumbprint);
+
+                // Arrange & Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+                Assert.Empty(result.Issues);
+                Assert.Null(result.NupkgUri);
             }
 
             [Fact]
