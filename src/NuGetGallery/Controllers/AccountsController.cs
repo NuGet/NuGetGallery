@@ -133,11 +133,7 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return View(new ConfirmationViewModel(account)
-                {
-                    WrongUsername = true,
-                    SuccessfulConfirmation = false,
-                });
+                return View(new ConfirmationViewModel(accountName));
             }
 
             string existingEmail = account.EmailAddress;
