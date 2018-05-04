@@ -13,11 +13,22 @@ namespace NuGet.Services.Sql
     public class AzureSqlConnectionFactory : ISqlConnectionFactory
     {
         private const string AzureSqlResourceId = "https://database.windows.net/";
-        private const int RetryIntervalInMilliseconds = 250;
 
         private AzureSqlConnectionStringBuilder ConnectionStringBuilder { get; }
 
         private ISecretInjector SecretInjector { get; }
+
+        #region SqlConnectionStringBuilder properies
+
+        public string ApplicationName => ConnectionStringBuilder.Sql.ApplicationName;
+
+        public int ConnectRetryInterval => ConnectionStringBuilder.Sql.ConnectRetryInterval;
+
+        public string DataSource => ConnectionStringBuilder.Sql.DataSource;
+
+        public string InitialCatalog => ConnectionStringBuilder.Sql.InitialCatalog;
+
+        #endregion
 
         public AzureSqlConnectionFactory(string connectionString, ISecretInjector secretInjector)
         {
@@ -38,7 +49,9 @@ namespace NuGet.Services.Sql
             }
             catch (Exception e) when (IsAdalException(e))
             {
-                await Task.Delay(RetryIntervalInMilliseconds);
+                // SqlConnection.OpenAsync already contains retry logic. Keeping a retry here on our side
+                // in case secrets are refreshed at runtime.
+                await Task.Delay(ConnectRetryInterval * 1000);
 
                 return await ConnectAsync();
             }

@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.Data.Common;
+using System.Data.SqlClient;
 using System.Globalization;
 
 namespace NuGet.Services.Sql
@@ -33,6 +34,8 @@ namespace NuGet.Services.Sql
         [DefaultValue(true)]
         public bool AadSendX5c { get; }
 
+        internal SqlConnectionStringBuilder Sql { get; }
+
         public AzureSqlConnectionStringBuilder(string connectionString)
         {
             ConnectionString = connectionString;
@@ -46,6 +49,9 @@ namespace NuGet.Services.Sql
             {
                 AadAuthority = string.Format(CultureInfo.InvariantCulture, AadAuthorityTemplate, AadTenant);
             }
+
+            // SqlServer validation and support for exposing connection string properties.
+            Sql = new SqlConnectionStringBuilder(ConnectionString);
         }
 
         /// <summary>
