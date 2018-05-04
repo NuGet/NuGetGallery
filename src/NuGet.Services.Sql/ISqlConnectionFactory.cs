@@ -8,6 +8,12 @@ namespace NuGet.Services.Sql
 {
     public interface ISqlConnectionFactory
     {
+        string ApplicationName { get; }
+
+        string DataSource { get; }
+
+        string InitialCatalog { get; }
+
         /// <summary>
         /// Create and open a connection to the SqlServer database.
         /// </summary>
