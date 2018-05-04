@@ -43,6 +43,8 @@ namespace NuGetGallery
 
         public ICertificateService CertificateService { get; }
 
+        public IContentObjectService ContentObjectService { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
             ICuratedFeedService curatedFeedService,
@@ -51,7 +53,8 @@ namespace NuGetGallery
             IUserService userService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
-            ICertificateService certificateService)
+            ICertificateService certificateService,
+            IContentObjectService contentObjectService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
             CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
@@ -61,6 +64,7 @@ namespace NuGetGallery
             TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             SecurityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             CertificateService = certificateService ?? throw new ArgumentNullException(nameof(certificateService));
+            ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         public abstract string AccountAction { get; }
@@ -332,9 +336,12 @@ namespace NuGetGallery
             model.Account = account;
             model.AccountName = account.Username;
 
-            model.CanManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(
-                GetCurrentUser(), account) == PermissionsCheckResult.Allowed;
+            var currentUser = GetCurrentUser();
 
+            model.CanManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(
+                currentUser, account) == PermissionsCheckResult.Allowed;
+
+            model.IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
 
             model.CuratedFeeds = CuratedFeedService
