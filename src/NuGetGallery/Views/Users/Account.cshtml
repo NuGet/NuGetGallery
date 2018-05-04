@@ -49,10 +49,6 @@
     @if (Model.IsCertificatesUIEnabled)
     {
         @Scripts.Render("~/Scripts/gallery/certificates.js")
-    }
-    @Scripts.Render("~/Scripts/gallery/page-account.min.js")
-    @if (Model.IsCertificatesUIEnabled)
-    {
         <script type="text/javascript">
             CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
         </script>
