@@ -130,7 +130,7 @@ namespace NuGetGallery
                     await _packageFileService.SavePackageFileAsync(package, packageFile);
                 }
             }
-            catch (InvalidOperationException ex)
+            catch (FileAlreadyExistsException ex)
             {
                 ex.Log();
                 return PackageCommitResult.Conflict;

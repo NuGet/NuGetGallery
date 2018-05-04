@@ -12,6 +12,7 @@ using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -20,6 +21,7 @@ namespace NuGetGallery
         private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ISecurityPolicyService _securityPolicyService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
@@ -27,11 +29,14 @@ namespace NuGetGallery
             IEntityRepository<Certificate> certificateRepository,
             IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService,
-            ITelemetryService telemetryService) : base(packageRepository, packageRegistrationRepository, certificateRepository)
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService)
+            : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
             _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
         }
 
         /// <summary>
@@ -347,7 +352,13 @@ namespace NuGetGallery
         public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
             package.Owners.Add(newOwner);
+
             await _packageRepository.CommitChangesAsync();
+
+            if (_securityPolicyService.IsSubscribed(newOwner, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
+            {
+                await SetRequiredSignerAsync(package, newOwner);
+            }
         }
 
         public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)

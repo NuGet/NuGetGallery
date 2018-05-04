@@ -24,8 +24,15 @@ namespace NuGetGallery.Services
                 var loginDiscontinuationAndMigrationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
                 Assert.Empty(loginDiscontinuationAndMigrationConfiguration.DiscontinuedForDomains);
                 Assert.Empty(loginDiscontinuationAndMigrationConfiguration.ExceptionsForEmailAddresses);
+
+                var certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
+
+                Assert.False(certificatesConfiguration.IsUIEnabledByDefault);
+                Assert.Empty(certificatesConfiguration.AlwaysEnabledForDomains);
+                Assert.Empty(certificatesConfiguration.AlwaysEnabledForEmailAddresses);
             }
 
+            [Fact]
             public async Task RefreshRefreshesObject()
             {
                 // Arrange
@@ -35,24 +42,46 @@ namespace NuGetGallery.Services
                 var shouldTransforms = new[] { "transfomer@example.com" };
                 var orgTenantPairs = new[] { new OrganizationTenantPair("example.com", "tenantId") };
 
-                var config = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
-                var configString = JsonConvert.SerializeObject(config);
+                var loginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
+                var loginJson = JsonConvert.SerializeObject(loginDiscontinuationConfiguration);
 
-                GetMock<IContentService>()
+                var isUIEnabledByDefault = true;
+                var alwaysEnabledForDomains = new[] { "a" };
+                var alwaysEnabledForEmailAddresses = new[] { "b" };
+
+                var certificatesConfiguration = new CertificatesConfiguration(
+                    isUIEnabledByDefault,
+                    alwaysEnabledForDomains,
+                    alwaysEnabledForEmailAddresses);
+                var certificatesJson = JsonConvert.SerializeObject(certificatesConfiguration);
+
+                var contentService = GetMock<IContentService>();
+
+                contentService
                     .Setup(x => x.GetContentItemAsync(Constants.ContentNames.LoginDiscontinuationConfiguration, It.IsAny<TimeSpan>()))
-                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(configString)));
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(loginJson)));
+
+                contentService
+                    .Setup(x => x.GetContentItemAsync(Constants.ContentNames.CertificatesConfiguration, It.IsAny<TimeSpan>()))
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(certificatesJson)));
 
                 var service = GetService<ContentObjectService>();
 
                 // Act
                 await service.Refresh();
-                var loginDiscontinuationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
+
+                loginDiscontinuationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
+                certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
 
                 // Assert
                 Assert.True(loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
                 Assert.True(loginDiscontinuationConfiguration.DiscontinuedForDomains.SequenceEqual(domains));
                 Assert.True(loginDiscontinuationConfiguration.ExceptionsForEmailAddresses.SequenceEqual(exceptions));
-                Assert.True(loginDiscontinuationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs));
+                Assert.True(loginDiscontinuationConfiguration.EnabledOrganizationAadTenants.SequenceEqual(orgTenantPairs, new OrganizationTenantPairComparer()));
+
+                Assert.True(certificatesConfiguration.IsUIEnabledByDefault);
+                Assert.Equal(alwaysEnabledForDomains, certificatesConfiguration.AlwaysEnabledForDomains);
+                Assert.Equal(alwaysEnabledForEmailAddresses, certificatesConfiguration.AlwaysEnabledForEmailAddresses);
             }
         }
     }

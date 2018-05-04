@@ -5,7 +5,14 @@
 
 @helper WarnFor2FARequirement()
 {
-    @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can register or manage certificates.  This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
+    if (Model.User.EnableMultiFactorAuthentication)
+    {
+        @ViewHelpers.AlertWarning(@<text>You must log in using two-factor authentication before you can register or manage certificates.</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can register or manage certificates. This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
+    }
 }
 
 @ViewHelpers.Section(

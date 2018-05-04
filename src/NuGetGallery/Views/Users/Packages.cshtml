@@ -90,11 +90,18 @@
 </section>
 
 <script type="text/html" id="manage-packages">
-    @if (!Model.WasMultiFactorAuthenticated)
+    @if (Model.IsCertificatesUIEnabled && !Model.WasMultiFactorAuthenticated)
     {
-        <div data-bind="visible: Packages.length > 0">
+    <div data-bind="visible: Packages.length > 0">
+        @if (Model.User.EnableMultiFactorAuthentication)
+        {
+            @ViewHelpers.AlertWarning(@<text>You must log in using two-factor authentication before you can change package signing requirements.</text>)
+        }
+        else
+        {
             @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can change package signing requirements. This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
-        </div>
+        }
+    </div>
     }
     <div class="col-md-12">
         <div class="panel-collapse collapse in" aria-expanded="true">
@@ -105,7 +112,10 @@
                         <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
                         <th>Package ID</th>
                         <th>Owners</th>
+                    @if (Model.IsCertificatesUIEnabled)
+                    {
                         <th>Signing Owner</th>
+                    }
                         <th>Downloads</th>
                         <th>Latest Version</th>
                         <th><span class="hidden">Icon</span></th>
@@ -133,6 +143,8 @@
                                 <!-- /ko -->
                             </span>
                         </td>
+                    @if (Model.IsCertificatesUIEnabled)
+                    {
                         <td class="align-middle">
                             <!-- ko if: $data.ShowTextBox -->
                             <span data-bind="text: RequiredSigner" />
@@ -150,6 +162,7 @@
                                     attr: { title: RequiredSignerMessage }"></select>
                             <!-- /ko -->
                         </td>
+                    }
                         <td class="align-middle text-nowrap">
                             <span data-bind="text: FormattedDownloadCount"></span>
                         </td>
