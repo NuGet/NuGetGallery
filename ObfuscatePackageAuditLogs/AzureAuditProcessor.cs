@@ -14,6 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Auth;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using NuGetGallery.Auditing;
@@ -21,6 +22,23 @@ using NuGetGallery.Auditing;
 
 namespace ObfuscateAuditLogs
 {
+    public class PackageAuditEntry2
+    {
+        public PackageAuditRecord2 Record { get; set; }
+        public AuditActor Actor { get; set; }
+
+        public PackageAuditEntry2()
+        {
+
+        }
+
+        public PackageAuditEntry2(PackageAuditRecord2 record, AuditActor actor)
+        {
+            Record = record;
+            Actor = actor;
+        }
+    }
+
     public class PackageAuditEntry
     {
         public PackageAuditRecord Record { get; set; }
@@ -54,6 +72,10 @@ namespace ObfuscateAuditLogs
         CloudAuditingService _service;
         DateTimeOffset? _maxDateToUpate = null;
 
+        //if some of the blobs need to be ignored add the to this collection
+        private HashSet<string> _blobExclusionList ;
+
+
         public DateTimeOffset MaxDateToUpate
         {
             set
@@ -62,8 +84,12 @@ namespace ObfuscateAuditLogs
             }
         }
 
+        public AzureAuditProcessor(string connectionStringFrom)
+        {
+            _service = new CloudAuditingService("", "", _containerFrom, null);
+        }
 
-        public AzureAuditProcessor(string connectionStringFrom, string containerFrom, string connectionStringTo, string containerTo, string executionRunId)
+        public AzureAuditProcessor(string connectionStringFrom, string containerFrom, string connectionStringTo, string containerTo, string executionRunId, HashSet<string> blobExclusionList)
         {
             _storageAccountFrom = CloudStorageAccount.Parse(connectionStringFrom);
             _storageAccountTo = CloudStorageAccount.Parse(connectionStringTo);
@@ -79,31 +105,106 @@ namespace ObfuscateAuditLogs
             // it will be used only the Render method
             _service = new CloudAuditingService("", "", _containerFrom, null);
             _run = executionRunId;
+            _blobExclusionList = new HashSet<string>(blobExclusionList);
         }
 
-        public bool TryProcessFolder(string relativeFolderAddress, CancellationToken token)
+        public AzureAuditProcessor(string connectionStringFrom, string containerFrom, string connectionStringTo, string containerTo, string executionRunId) 
+            : this(connectionStringFrom, containerFrom, connectionStringTo, containerTo, executionRunId, new HashSet<string>())
+        {
+            
+        }
+
+        public string RunId
+        {
+            get
+            {
+                return _run;
+            }
+            set
+            {
+                _run = value;
+            }
+        }
+
+//        public bool TryProcessFolder(string relativeFolderAddress, CancellationToken token)
+//        {
+//            var cloudDirectoryFrom = _containerFrom.GetDirectoryReference(relativeFolderAddress);
+//            var cloudDirectoryTo = _containerTo.GetDirectoryReference(relativeFolderAddress);
+//            ParallelOptions options = new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 2 };
+//            Stopwatch sw = new Stopwatch();
+//            int processedFileIndex = 0;
+//            try
+//            {
+//                var blobs = cloudDirectoryFrom.ListBlobs(useFlatBlobListing: true);
+//                sw.Start();
+
+//# if parallelExecution
+//                Parallel.ForEach(blobs, (blob) =>
+//                {
+//                    var currentBlockBlobFrom = ((CloudBlockBlob)blob);
+//#if overwrite
+//                    ProcessBlob(currentBlockBlobFrom);
+//#else
+//                    ProcessBlob(currentBlockBlobFrom, cloudDirectoryFrom, cloudDirectoryTo);
+//#endif
+//                    Interlocked.Increment(ref processedFileIndex);
+//                });
+//#else
+//                foreach (var blob in blobs)
+//                {
+//                    var currentBlockBlobFrom = ((CloudBlockBlob)blob);
+//                    ProcessBlob(currentBlockBlobFrom, cloudDirectoryFrom, cloudDirectoryTo);
+//                    processedFileIndex++;
+//                }
+//#endif
+//                sw.Stop();
+
+//                LogRunStatusToFile(LogStatus.Pass, processedFileIndex, sw.ElapsedMilliseconds);
+//            }
+//            catch (Exception e)
+//            {
+//                sw.Stop();
+//                string m = e.Message;
+//                LogRunStatusToFile(LogStatus.Fail, processedFileIndex, sw.ElapsedMilliseconds, e);
+//                return false;
+//            }
+//            return true;
+//        }
+
+        public bool TryProcessFolderSegmented(string relativeFolderAddress, CancellationToken token)
         {
             var cloudDirectoryFrom = _containerFrom.GetDirectoryReference(relativeFolderAddress);
             var cloudDirectoryTo = _containerTo.GetDirectoryReference(relativeFolderAddress);
-            ParallelOptions options = new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 4 };
             Stopwatch sw = new Stopwatch();
             int processedFileIndex = 0;
             try
             {
-                var blobs = cloudDirectoryFrom.ListBlobs(useFlatBlobListing: true);
+                BlobContinuationToken bctoken = null;
                 sw.Start();
 
-# if parallelExecution
-                Parallel.ForEach(blobs, (blob) =>
+                do
                 {
-                    var currentBlockBlobFrom = ((CloudBlockBlob)blob);
+                    var result = cloudDirectoryFrom.ListBlobsSegmented(
+                        useFlatBlobListing: true,
+                        blobListingDetails: BlobListingDetails.Metadata,
+                        maxResults: null,
+                        currentToken: bctoken, options: null,
+                        operationContext: null);
+                    bctoken = result.ContinuationToken;
+                    var blobs = result.Results;
+#if parallelExecution
+                    ParallelOptions options = new ParallelOptions() { CancellationToken = token, MaxDegreeOfParallelism = 2 };
+
+                    Parallel.ForEach(blobs, (blob) =>
+                    {
+                        var currentBlockBlobFrom = ((CloudBlockBlob)blob);
 #if overwrite
-                    ProcessBlob(currentBlockBlobFrom, cloudDirectoryFrom);
+                        ProcessBlob(currentBlockBlobFrom);
 #else
-                    ProcessBlob(currentBlockBlobFrom, cloudDirectoryFrom, cloudDirectoryTo);
+                        ProcessBlob(currentBlockBlobFrom, cloudDirectoryFrom, cloudDirectoryTo);
 #endif
-                    Interlocked.Increment(ref processedFileIndex);
-                });
+                        Interlocked.Increment(ref processedFileIndex);
+                    });
 #else
                 foreach (var blob in blobs)
                 {
@@ -112,8 +213,43 @@ namespace ObfuscateAuditLogs
                     processedFileIndex++;
                 }
 #endif
-                sw.Stop();
+                    Console.WriteLine($"Blobs:{processedFileIndex}");
 
+                } while (bctoken != null);
+
+                sw.Stop();
+                LogRunStatusToFile(LogStatus.Pass, processedFileIndex, sw.ElapsedMilliseconds);
+            }
+            catch (Exception e)
+            {
+                sw.Stop();
+                string m = e.Message;
+                LogRunStatusToFile(LogStatus.Fail, processedFileIndex, sw.ElapsedMilliseconds, e);
+                return false;
+            }
+            return true;
+        }
+
+        public bool TryProcessListSegmented(IEnumerable<string> blobUriList, CancellationToken token)
+        {
+            Stopwatch sw = new Stopwatch();
+            int processedFileIndex = 0;
+            StorageCredentials credFrom = _storageAccountFrom.Credentials;
+            try
+            {
+                sw.Start();
+
+                var blobs = blobUriList.Select(b => new CloudBlockBlob(new Uri(b), credFrom));
+                foreach (var blob in blobs)
+                {
+                    var currentBlockBlobFrom = ((CloudBlockBlob)blob);
+                    ProcessBlob_PackageAuditEntry2(currentBlockBlobFrom);
+                    processedFileIndex++;
+                }
+
+                Console.WriteLine($"Blobs:{processedFileIndex}");
+
+                sw.Stop();
                 LogRunStatusToFile(LogStatus.Pass, processedFileIndex, sw.ElapsedMilliseconds);
             }
             catch (Exception e)
@@ -139,7 +275,7 @@ namespace ObfuscateAuditLogs
         private void LogRunStatusToFile(LogStatus status, int processedFileCount, long processingTimeInMilliSeconds, Exception e = null)
         {
             string message = $"ProcessedFileCount:{processedFileCount}, ProcessingTimeInMilliSeconds:{processingTimeInMilliSeconds} \n";
-            message += GetMessageFromException(e);
+            message += $"{e.GetType()} \n" + GetMessageFromException(e);
 
             var data = new LogData(status, _run, message)
             {
@@ -148,13 +284,11 @@ namespace ObfuscateAuditLogs
             _fileLog.LogAsync(data).Wait();
         }
 
-        private void ProcessBlob(CloudBlockBlob currentBlockBlobFrom, CloudBlobDirectory cloudDirectoryFrom, CloudBlobDirectory cloudDirectoryTo)
+        private void ProcessBlob2(CloudBlockBlob currentBlockBlobFrom, CloudBlobDirectory cloudDirectoryFrom, CloudBlobDirectory cloudDirectoryTo)
         {
             try
             {
                 var absolutePath = currentBlockBlobFrom.Uri.AbsolutePath;
-                var aa = Encoding.Unicode.GetBytes(absolutePath);
-                var bb = Encoding.Unicode.GetString(aa);
                 var cloudBlobDirFromAbsolutePath = cloudDirectoryFrom.Uri.AbsolutePath;
                 CloudBlockBlob currentBlockBlobTo = cloudDirectoryTo.GetBlockBlobReference(absolutePath.Remove(0, cloudBlobDirFromAbsolutePath.Length));
                 if (BlobNeedsProcessing(currentBlockBlobFrom, currentBlockBlobTo))
@@ -193,19 +327,15 @@ namespace ObfuscateAuditLogs
             }
         }
 
-        private void ProcessBlob(CloudBlockBlob currentBlockBlobFrom, CloudBlobDirectory cloudDirectoryFrom)
+        private void ProcessBlob(CloudBlockBlob currentBlockBlob)
         {
             try
             {
-                var absolutePath = currentBlockBlobFrom.Uri.AbsolutePath;
-                var aa = Encoding.Unicode.GetBytes(absolutePath);
-                var bb = Encoding.Unicode.GetString(aa);
-                var cloudBlobDirFromAbsolutePath = cloudDirectoryFrom.Uri.AbsolutePath;
-                if (BlobNeedsProcessing(currentBlockBlobFrom, currentBlockBlobFrom))
+                if(BlobNeedsProcessing(currentBlockBlob, currentBlockBlob))
                 {
                     using (var stream = new MemoryStream())
                     {
-                        currentBlockBlobFrom.DownloadToStream(stream);
+                        currentBlockBlob.DownloadToStream(stream);
                         stream.Position = 0;//resetting stream's position to 0
                         var serializer = new JsonSerializer();
 
@@ -219,12 +349,12 @@ namespace ObfuscateAuditLogs
                                     var resultAuditEntry = result as PackageAuditEntry;
                                     var auditEntry = new AuditEntry(resultAuditEntry.Record, resultAuditEntry.Actor);
                                     var obfuscatedValue = _service.RenderAuditEntry(auditEntry);
-                                    currentBlockBlobFrom.UploadTextAsync(obfuscatedValue).Wait();
-                                    LogToSql(currentBlockBlobFrom, LogStatus.Pass, null);
+                                    currentBlockBlob.UploadTextAsync(obfuscatedValue).Wait();
+                                    LogToSql(currentBlockBlob, LogStatus.Pass, null);
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogToSql(currentBlockBlobFrom, LogStatus.Fail, ex);
+                                    LogToSql(currentBlockBlob, LogStatus.Fail, ex);
                                 }
                             }
                         }
@@ -233,7 +363,49 @@ namespace ObfuscateAuditLogs
             }
             catch (Exception exception)
             {
-                LogToSql(currentBlockBlobFrom, LogStatus.Fail, exception);
+                LogToSql(currentBlockBlob, LogStatus.Fail, exception);
+            }
+        }
+
+        private void ProcessBlob_PackageAuditEntry2(CloudBlockBlob currentBlockBlob)
+        {
+            try
+            {
+                if (BlobNeedsProcessing(currentBlockBlob, currentBlockBlob))
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        currentBlockBlob.DownloadToStream(stream);
+                        stream.Position = 0;//resetting stream's position to 0
+                        var serializer = new JsonSerializer();
+
+                        using (var sr = new StreamReader(stream))
+                        {
+                            using (var jsonTextReader = new JsonTextReader(sr))
+                            {
+                                try
+                                {
+                                    var result = serializer.Deserialize(jsonTextReader, typeof(PackageAuditEntry2));
+                                    var resultAuditEntry2 = result as PackageAuditEntry2;
+
+                                    var resultAuditEntry = ConvertFrom(resultAuditEntry2);
+                                    var auditEntry = new AuditEntry(resultAuditEntry.Record, resultAuditEntry.Actor);
+                                    var obfuscatedValue = _service.RenderAuditEntry(auditEntry);
+                                    currentBlockBlob.UploadTextAsync(obfuscatedValue).Wait();
+                                    LogToSql(currentBlockBlob, LogStatus.Pass, null);
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogToSql(currentBlockBlob, LogStatus.Fail, ex);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                LogToSql(currentBlockBlob, LogStatus.Fail, exception);
             }
         }
 
@@ -258,6 +430,11 @@ namespace ObfuscateAuditLogs
 
         private bool BlobNeedsProcessing(CloudBlockBlob blobFrom, CloudBlockBlob blobTo)
         {
+            if(_blobExclusionList.Contains(blobFrom.Uri.ToString()))
+            {
+                //Console.Write(".");
+                return false;
+            }
             blobFrom.FetchAttributes();
             var blobUpdateTime = blobFrom.Properties.LastModified;
             bool blobCreatedTimeValidation = true;
@@ -300,25 +477,106 @@ namespace ObfuscateAuditLogs
         /// Returns the count of blobs that will be processed 
         /// </summary>
         /// <param name="relativeFolder"></param>
-        public void PrintCountOfFilesToBeProccesed(string relativeFolder)
+        public void LogFilesToBeProccesed(string relativeFolder)
         {
+            Stopwatch sw = new Stopwatch();
+            int processedFileIndex = 0;
             var fromDirectory = _containerFrom.GetDirectoryReference(relativeFolder);
-            int count = fromDirectory.ListBlobs(useFlatBlobListing: true)
-                .Where((b) =>
-               {
-                   var blockBlob = (CloudBlockBlob)b;
-                   blockBlob.FetchAttributes();
-                   var blobUpdateTime = blockBlob.Properties.LastModified;
-                   if (blobUpdateTime.HasValue && _maxDateToUpate.HasValue)
-                   {
-                       return blobUpdateTime.Value.ToUniversalTime() < _maxDateToUpate.Value.ToUniversalTime();
-                   }
-                   return true;
-               }).Count();
+            BlobContinuationToken bctoken = null;
+            sw.Start();
+            do
+            {
+                Console.WriteLine(processedFileIndex);
+                var result = fromDirectory.ListBlobsSegmented(
+                    useFlatBlobListing: true,
+                    blobListingDetails: BlobListingDetails.Metadata,
+                    maxResults: null,
+                    currentToken: bctoken, options: null,
+                    operationContext: null);
+                bctoken = result.ContinuationToken;
+                var blobs = result.Results;
 
-            int totalCount = fromDirectory.ListBlobs(useFlatBlobListing: true).Count();
-             var data = new LogData(LogStatus.Info, _run, $"Count of files to be processed:{count}. Total count:{totalCount}");
-            _fileLog.LogAsync(data);
+                ParallelOptions options = new ParallelOptions() { MaxDegreeOfParallelism = 2 };
+
+                Parallel.ForEach(blobs, (blob) =>
+                {
+                    var currentBlockBlobFrom = ((CloudBlockBlob)blob);
+                    if(BlobNeedsProcessing(currentBlockBlobFrom, currentBlockBlobFrom))
+                    {
+                        LogToSql(currentBlockBlobFrom, LogStatus.Pass);
+                    }
+                    Interlocked.Increment(ref processedFileIndex);
+                });
+            } while (bctoken != null);
+            sw.Stop();
+            LogRunStatusToFile(LogStatus.Pass, processedFileIndex, sw.ElapsedMilliseconds);
         }
+
+        public void TestDeserialization(string localFileName)
+        {
+            //using (var stream = new MemoryStream())
+            //{
+                using (var fs = File.OpenRead(localFileName))
+                {
+                    //stream.SetLength(fs.Length);
+                    //fs.Read()
+                    //stream.Position = 0;//resetting stream's position to 0
+                    var serializer = new JsonSerializer();
+
+                    using (var sr = new StreamReader(fs))
+                    {
+                        using (var jsonTextReader = new JsonTextReader(sr))
+                        {
+                            try
+                            {
+                                var result = serializer.Deserialize(jsonTextReader, typeof(PackageAuditEntry2));
+                                var resultAuditEntry2 = result as PackageAuditEntry2;
+
+                                var resultAuditEntry = ConvertFrom(resultAuditEntry2);
+
+                                var auditEntry = new AuditEntry(resultAuditEntry.Record, resultAuditEntry.Actor);
+                                var obfuscatedValue = _service.RenderAuditEntry(auditEntry);
+                                
+                            }
+                            catch (Exception ex)
+                            {
+                            Console.WriteLine(ex);
+                            }
+                        }
+                    }
+                }
+            //}
+        }
+
+        PackageAuditEntry ConvertFrom(PackageAuditEntry2 entry)
+        {
+            PackageAuditEntry result = new PackageAuditEntry();
+
+            result.Actor = entry.Actor;
+            var record = new PackageAuditRecord();
+            if (entry.Record.Action == AuditedPackageAction.Deleted)
+            {
+                record.Action = AuditedPackageAction.Delete;
+            }
+            else if (entry.Record.Action == AuditedPackageAction.SoftDeleted)
+            {
+                record.Action = AuditedPackageAction.SoftDelete;
+            }
+            else
+            {
+                record.Action = entry.Record.Action;
+            }
+            record.Hash = entry.Record.Hash;
+            record.Id = entry.Record.Id;
+            record.PackageRecord = entry.Record.PackageRecord[0];
+            record.RegistrationRecord = entry.Record.RegistrationRecord[0];
+            record.Version = entry.Record.Version;
+            record.Reason = entry.Record.Reason;
+
+            result.Record = record;
+            return result;
+        }
+
+
     }
 }

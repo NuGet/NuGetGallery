@@ -7,8 +7,10 @@ namespace NuGetGallery.Auditing
 {
     public enum AuditedPackageAction
     {
+        Deleted, //deprecated
         Delete,
         SoftDelete,
+        SoftDeleted, //deprecated
         Create,
         List,
         Unlist,
