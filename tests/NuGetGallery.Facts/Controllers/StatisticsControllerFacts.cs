@@ -100,13 +100,13 @@ namespace NuGetGallery
 
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
 
-            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
-            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
-            fakeReportService.Setup(x => x.Load("recentcommunitypopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.MinValue)));
-            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, null)));
+            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new ReportBlob(fakePackageReport, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, null)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularity.json")).Returns(Task.FromResult(new ReportBlob(fakePackageReport, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, null)));
 
-            fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.MinValue)));
-            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, updatedUtc)));
+            fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new ReportBlob(fakeNuGetClientVersion, DateTime.MinValue)));
+            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new ReportBlob(fakeLast6Weeks, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -213,10 +213,10 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
-            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
-            fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new StatisticsReport(fakeNuGetClientVersion, DateTime.UtcNow)));
-            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new StatisticsReport(fakeLast6Weeks, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new ReportBlob(fakePackageReport, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("nugetclientversion.json")).Returns(Task.FromResult(new ReportBlob(fakeNuGetClientVersion, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("last6weeks.json")).Returns(Task.FromResult(new ReportBlob(fakeLast6Weeks, DateTime.UtcNow)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -280,7 +280,7 @@ namespace NuGetGallery
 
             var fakeReportService = new Mock<IReportService>();
 
-            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageReport, DateTime.UtcNow)));
+            fakeReportService.Setup(x => x.Load("recentpopularity.json")).Returns(Task.FromResult(new ReportBlob(fakePackageReport, DateTime.UtcNow)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -327,8 +327,8 @@ namespace NuGetGallery
             var updatedUtc1 = new DateTime(2002, 01, 01, 10, 20, 30);
             var updatedUtc2 = new DateTime(2001, 01, 01, 10, 20, 30);
 
-            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc1)));
-            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, updatedUtc2)));
+            fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, updatedUtc1)));
+            fakeReportService.Setup(x => x.Load("recentcommunitypopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, updatedUtc2)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -423,7 +423,7 @@ namespace NuGetGallery
             reportName = reportName.ToLowerInvariant();
 
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
-            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new ReportBlob(fakeReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -505,7 +505,7 @@ namespace NuGetGallery
             reportName = reportName.ToLowerInvariant();
 
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
-            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new ReportBlob(fakeReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -609,7 +609,7 @@ namespace NuGetGallery
             reportName = reportName.ToLowerInvariant();
 
             var updatedUtc = new DateTime(2001, 01, 01, 10, 20, 30);
-            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new StatisticsReport(fakeReport, updatedUtc)));
+            fakeReportService.Setup(x => x.Load(reportName)).Returns(Task.FromResult(new ReportBlob(fakeReport, updatedUtc)));
 
             var controller = new StatisticsController(new JsonStatisticsService(fakeReportService.Object));
 
@@ -638,7 +638,7 @@ namespace NuGetGallery
             var fakeStatisticsService = new Mock<IStatisticsService>();
             fakeStatisticsService
                 .Setup(service => service.GetPackageDownloadsByVersion(PackageId))
-                .Throws<StatisticsReportNotFoundException>();
+                .Throws<ReportNotFoundException>();
 
             var controller = new StatisticsController(fakeStatisticsService.Object);
             TestUtility.SetupUrlHelperForUrlGeneration(controller);

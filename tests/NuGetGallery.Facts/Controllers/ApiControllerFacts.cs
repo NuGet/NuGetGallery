@@ -1580,7 +1580,7 @@ namespace NuGetGallery
 
                 fakeReportService
                     .Setup(x => x.Load("recentpopularitydetail.json"))
-                    .Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+                    .Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController(GetConfigurationService())
                 {
@@ -1631,7 +1631,7 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new StatisticsReport(fakePackageVersionReport, DateTime.UtcNow)));
+                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController(GetConfigurationService())
                 {

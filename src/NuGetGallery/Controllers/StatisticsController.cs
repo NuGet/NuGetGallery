@@ -254,7 +254,7 @@ namespace NuGetGallery
 
                 ProcessReport(report, groupby, PackageDownloadsByVersionDimensions, id);
             }
-            catch (StatisticsReportNotFoundException)
+            catch (ReportNotFoundException)
             {
                 // no report found
             }
@@ -276,7 +276,7 @@ namespace NuGetGallery
 
                 ProcessReport(report, groupby, PackageDownloadsDetailDimensions, null);
             }
-            catch (StatisticsReportNotFoundException)
+            catch (ReportNotFoundException)
             {
                 // no report found
             }

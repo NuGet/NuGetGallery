@@ -7,6 +7,6 @@ namespace NuGetGallery
 {
     public interface IReportService
     {
-        Task<StatisticsReport> Load(string reportName);
+        Task<ReportBlob> Load(string reportName);
     }
 }

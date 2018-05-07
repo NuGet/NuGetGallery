@@ -1348,7 +1348,7 @@
     <Compile Include="Infrastructure\PackageIndexEntity.cs" />
     <Compile Include="Infrastructure\ReadOnlyModeErrorFilter.cs" />
     <Compile Include="Infrastructure\SafeRedirectResult.cs" />
-    <Compile Include="Infrastructure\StatisticsReport.cs" />
+    <Compile Include="Infrastructure\ReportBlob.cs" />
     <Compile Include="Infrastructure\SubtextAttribute.cs" />
     <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadExtensions.cs" />
     <Compile Include="Authentication\AsyncFileUpload\AsyncFileUploadModule.cs" />
@@ -1821,7 +1821,7 @@
     <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\StatisticsReportName.cs" />
-    <Compile Include="Services\StatisticsReportNotFoundException.cs" />
+    <Compile Include="Services\ReportNotFoundException.cs" />
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Services\UploadFileService.cs" />

@@ -26,7 +26,7 @@ namespace NuGetGallery
             return container.ExistsAsync();
         }
 
-        public async Task<StatisticsReport> Load(string reportName)
+        public async Task<ReportBlob> Load(string reportName)
         {
             // In NuGet we always use lowercase names for all blobs in Azure Storage
             reportName = reportName.ToLowerInvariant();
@@ -37,13 +37,13 @@ namespace NuGetGallery
             // Check if the report blob is present before processing it.
             if (!blob.Exists())
             {
-                throw new StatisticsReportNotFoundException();
+                throw new ReportNotFoundException();
             }
 
             await blob.FetchAttributesAsync();
             string content = await blob.DownloadTextAsync();
 
-            return new StatisticsReport(content, blob.Properties.LastModified?.UtcDateTime);
+            return new ReportBlob(content, blob.Properties.LastModified?.UtcDateTime);
         }
 
         private CloudBlobContainer GetCloudBlobContainer()

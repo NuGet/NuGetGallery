@@ -5,12 +5,12 @@ using System;
 
 namespace NuGetGallery
 {
-    public class StatisticsReport
+    public class ReportBlob
     {
         public string Content { get; private set; }
         public DateTime? LastUpdatedUtc { get; private set; }
 
-        public StatisticsReport(string content, DateTime? lastUpdatedUtc)
+        public ReportBlob(string content, DateTime? lastUpdatedUtc)
         {
             Content = content;
             LastUpdatedUtc = lastUpdatedUtc;

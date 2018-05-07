@@ -363,7 +363,7 @@ namespace NuGetGallery
 
                 return report;
             }
-            catch (StatisticsReportNotFoundException)
+            catch (ReportNotFoundException)
             {
                 //do no logging and just return null. Since this exception will thrown for all packages which doesn't have downloads in last 6 weeks, we don't
                 //want to flood the elmah logs.
@@ -457,7 +457,7 @@ namespace NuGetGallery
             // Check if the "Items" exist before trying to access them.
             if (!data.TryGetValue("Items", out itemsToken))
             {
-                throw new StatisticsReportNotFoundException();
+                throw new ReportNotFoundException();
             }
             foreach (JObject perVersion in data["Items"])
             {

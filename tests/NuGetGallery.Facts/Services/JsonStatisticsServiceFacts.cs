@@ -198,10 +198,10 @@ namespace NuGetGallery.Services
                     communityPackageVersionsLastUpdateTimeUtc = communityPackageVersionsLastUpdateTimeUtc ?? LastUpdatedUtcDefault;
                 }
 
-                Task<StatisticsReport> CreateReport(IEnumerable<Dictionary<string, object>> report, DateTime? lastUpdatedUtc)
+                Task<ReportBlob> CreateReport(IEnumerable<Dictionary<string, object>> report, DateTime? lastUpdatedUtc)
                 {
                     var content = JsonConvert.SerializeObject(report);
-                    var result = new StatisticsReport(content, lastUpdatedUtc);
+                    var result = new ReportBlob(content, lastUpdatedUtc);
 
                     return Task.FromResult(result);
                 }

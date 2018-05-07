@@ -27,12 +27,12 @@ namespace NuGetGallery
         public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package)
         {
             string reportName = GetReportName(package);
-            StatisticsReport report;
+            ReportBlob report;
             try
             {
                 report = await _reportService.Load(reportName);
             }
-            catch (StatisticsReportNotFoundException ex)
+            catch (ReportNotFoundException ex)
             {
                 QuietLog.LogHandledException(ex);
                 return Enumerable.Empty<ListPackageItemViewModel>();

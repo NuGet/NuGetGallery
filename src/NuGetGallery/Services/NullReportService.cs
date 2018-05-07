@@ -13,9 +13,9 @@ namespace NuGetGallery
 
         private NullReportService() { }
 
-        public Task<StatisticsReport> Load(string reportName)
+        public Task<ReportBlob> Load(string reportName)
         {
-            return Task.FromResult<StatisticsReport>(null);
+            return Task.FromResult<ReportBlob>(null);
         }
     }
 }
