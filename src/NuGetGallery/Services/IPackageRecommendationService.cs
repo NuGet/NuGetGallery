@@ -12,6 +12,8 @@ namespace NuGetGallery
         /// <summary>
         /// Gets a list of alternative packages recommended for users browsing the package.
         /// </summary>
-        Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package);
+        Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(
+            Package package,
+            User currentUser);
     }
 }

@@ -468,7 +468,7 @@ namespace NuGetGallery
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
-            model.RecommendedPackages = await _packageRecommendationService.GetRecommendedPackagesAsync(package);
+            model.RecommendedPackages = await _packageRecommendationService.GetRecommendedPackagesAsync(package, GetCurrentUser());
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)

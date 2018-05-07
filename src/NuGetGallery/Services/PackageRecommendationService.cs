@@ -24,7 +24,9 @@ namespace NuGetGallery
             _reportService = reportService;
         }
 
-        public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(Package package)
+        public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(
+            Package package,
+            User currentUser)
         {
             string reportName = GetReportName(package);
             ReportBlob report;
@@ -46,8 +48,7 @@ namespace NuGetGallery
             return recommendationIds.Select(
                 id => new ListPackageItemViewModel(
                     _packageService.FindAbsoluteLatestPackageById(id),
-                    // We don't need to know about the user's permissions for any of the recommended packages.
-                    currentUser: null));
+                    currentUser));
         }
 
         private static string GetReportName(Package package)
