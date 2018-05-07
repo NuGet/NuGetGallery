@@ -484,17 +484,12 @@
             @if (Model.RecommendedPackages.Any())
             {
                 <h2>Related</h2>
-                <ul class="list-unstyled">
-                    @foreach (var recommendation in Model.RecommendedPackages)
+                <div class="list-packages" role="list">
+                    @foreach (var package in Model.RecommendedPackages)
                     {
-                        <li>
-                            <a href="@Url.Package(recommendation.Id)">
-                                <img width="36" height="36" src="@recommendation.IconUrl" />
-                                @recommendation.Id
-                            </a>
-                        </li>
+                        @Html.Partial("_ListPackage", package)
                     }
-                </ul>
+                </div>
             }
 
             <h2>Info</h2>
