@@ -20,5 +20,7 @@ namespace NuGetGallery
         public ReservedNamespaceListViewModel ReservedNamespaces { get; set; }
 
         public bool WasMultiFactorAuthenticated { get; set; }
+
+        public bool IsCertificatesUIEnabled { get; set; }
     }
 }

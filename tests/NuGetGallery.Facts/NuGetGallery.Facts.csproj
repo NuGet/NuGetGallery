@@ -447,6 +447,7 @@
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
+    <Compile Include="Services\CertificatesConfigurationFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
     <Compile Include="Services\CertificateServiceFacts.cs" />
     <Compile Include="Services\CertificateValidatorFacts.cs" />

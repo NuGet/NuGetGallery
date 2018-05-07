@@ -36,18 +36,23 @@
 
             @Html.Partial("_AccountCuratedFeeds", Model)
 
-            @Html.Partial("_AccountCertificates", Model)
+            @if (Model.IsCertificatesUIEnabled)
+            {
+                @Html.Partial("_AccountCertificates", Model)
+            }
         </div>
     </div>
 </section>
 
 @section bottomScripts {
     @ViewHelpers.SectionsScript(this)
-    @Scripts.Render("~/Scripts/gallery/certificates.js")
-    @Scripts.Render("~/Scripts/gallery/page-account.min.js")
-    <script type="text/javascript">
-        CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
-    </script>
+    @if (Model.IsCertificatesUIEnabled)
+    {
+        @Scripts.Render("~/Scripts/gallery/certificates.js")
+        <script type="text/javascript">
+            CertificatesManagement.init('@Url.AddUserCertificate()', '@Url.GetUserCertificates()');
+        </script>
+    }
 
     <script type="text/html" id="validation-errors">
         <div data-bind="foreach:$data" class="validation-error-message-list">
