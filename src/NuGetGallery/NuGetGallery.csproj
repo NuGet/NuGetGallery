@@ -862,12 +862,14 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
     <Compile Include="Services\CloudBlobFileStorageService.cs" />
     <Compile Include="Services\DeleteAccountService.cs" />
     <Compile Include="Services\IActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\ICertificateService.cs" />
+    <Compile Include="Services\ICertificatesConfiguration.cs" />
     <Compile Include="Services\ICertificateValidator.cs" />
     <Compile Include="Services\IDeleteAccountService.cs" />
     <Compile Include="Services\IFileStorageService.cs" />
@@ -2018,6 +2020,7 @@
     <Content Include="Areas\Admin\Views\LockPackage\Index.cshtml" />
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
+    <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

@@ -2,9 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
@@ -19,15 +19,21 @@ namespace NuGetGallery
             _contentService = contentService;
 
             LoginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration();
+            CertificatesConfiguration = new CertificatesConfiguration();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; set; }
+        public ICertificatesConfiguration CertificatesConfiguration { get; set; }
 
         public async Task Refresh()
         {
             LoginDiscontinuationConfiguration = 
                 await Refresh<LoginDiscontinuationConfiguration>(Constants.ContentNames.LoginDiscontinuationConfiguration) ??
                 new LoginDiscontinuationConfiguration();
+
+            CertificatesConfiguration =
+                await Refresh<CertificatesConfiguration>(Constants.ContentNames.CertificatesConfiguration) ??
+                new CertificatesConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName) 

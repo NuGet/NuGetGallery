@@ -141,7 +141,7 @@ namespace NuGetGallery.Services
                 mailMessage.Body = body;
                 mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
 
-                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
+                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
 
                 if (mailMessage.To.Any())
                 {

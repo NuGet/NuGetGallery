@@ -28,7 +28,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
             IPackageService packageService,
-            IDeleteAccountService deleteAccountService)
+            IDeleteAccountService deleteAccountService,
+            IContentObjectService contentObjectService)
             : base(
                   authService,
                   curatedFeedService,
@@ -37,7 +38,8 @@ namespace NuGetGallery
                   userService,
                   telemetryService,
                   securityPolicyService,
-                  certificateService)
+                  certificateService,
+                  contentObjectService)
         {
             DeleteAccountService = deleteAccountService;
         }

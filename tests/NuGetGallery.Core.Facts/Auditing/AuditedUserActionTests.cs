@@ -28,7 +28,9 @@ namespace NuGetGallery.Auditing
                 "TransformOrganization",
                 "AddOrganizationMember",
                 "RemoveOrganizationMember",
-                "UpdateOrganizationMember"
+                "UpdateOrganizationMember",
+                "EnabledMultiFactorAuthentication",
+                "DisabledMultiFactorAuthentication"
             };
 
             Verify(typeof(AuditedUserAction), expectedNames);
