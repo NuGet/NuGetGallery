@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
@@ -90,7 +91,7 @@ namespace NuGetGallery.Auditing
             return AuditActor.GetCurrentMachineActorAsync();
         }
 
-        protected static JsonSerializerSettings GetJsonSerializerSettings()
+        public static JsonSerializerSettings GetJsonSerializerSettings(bool obfuscate = false)
         {
             var settings = new JsonSerializerSettings
             {
@@ -102,9 +103,15 @@ namespace NuGetGallery.Auditing
                 MissingMemberHandling = MissingMemberHandling.Ignore,
                 NullValueHandling = NullValueHandling.Include,
                 TypeNameHandling = TypeNameHandling.None,
-                
             };
+
             settings.Converters.Add(new StringEnumConverter());
+
+            if (obfuscate)
+            {
+                settings.ContractResolver = new ObfuscatorContractResolver();
+            }
+
             return settings;
         }
 

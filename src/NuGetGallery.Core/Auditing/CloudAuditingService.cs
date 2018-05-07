@@ -2,21 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
-using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
@@ -144,10 +137,8 @@ namespace NuGetGallery.Auditing
             {
                 throw new ArgumentNullException(nameof(entry));
             }
-
-            var settings = GetJsonSerializerSettings();
-            settings.Converters.Add(new ObfuscatorJsonConverter(entry));
-            return JsonConvert.SerializeObject(entry, settings);
+            
+            return JsonConvert.SerializeObject(entry, GetJsonSerializerSettings(obfuscate: true));
         }
 
         public override bool RecordWillBePersisted(AuditRecord auditRecord)

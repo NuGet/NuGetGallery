@@ -2,117 +2,41 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.IO;
-using System.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using NuGetGallery.Auditing.Obfuscation;
+using System.Collections.Generic;
+using Moq;
 
 namespace NuGetGallery.Auditing
 {
     public class ObfuscatorJsonConverterTests
     {
-        [Fact]
-        public void ConstructorThrowsOnNull()
+        public static IEnumerable<object[]> ObfuscationTypes
         {
-            // Act and Assert
-            Assert.Throws<ArgumentNullException>( () => new ObfuscatorJsonConverter(null));
+            get
+            {
+                foreach (var obfuscationType in Enum.GetValues(typeof(ObfuscationType)))
+                {
+                    yield return new[] { obfuscationType };
+                }
+            }
         }
 
         [Theory]
-        [InlineData(typeof(string), true)]
-        [InlineData(typeof(int?), true)]
-
-        public void CanConvertTest(Type type, bool expectedResult)
+        [MemberData(nameof(ObfuscationTypes))]
+        public void ReturnsExpectedObfuscation(ObfuscationType obfuscationType)
         {
             // Arrange
-            var converter = new ObfuscatorJsonConverter(new Data());
-
-            // Act and Assert
-            Assert.Equal(expectedResult, converter.CanConvert(type));
-        }
-
-        [Fact]
-        public void WriteHappyJson()
-        {
-            // Arrange
-            var dataChild = new Data("name", "1.1.1.1", "authors", 1, "abc", 2.5, null);
-            var data = new Data("name", "1.1.1.1", "authors", 1, "abc", 2.5, dataChild);
-            var obfuscatorConverter = new ObfuscatorJsonConverter(data);
-            var stringBuilder = new StringBuilder();
-            var jsonWriter = new JsonTextWriter(new StringWriter(stringBuilder));
+            var obfuscatorJsonConverter = new ObfuscatorJsonConverter(obfuscationType);
+            var jsonWriterMock = new Mock<JsonWriter>();
+            var value = "127.0.0.1";
 
             // Act
-            var settings = new JsonSerializerSettings
-            {
-                DateFormatHandling = DateFormatHandling.IsoDateFormat,
-                DateTimeZoneHandling = DateTimeZoneHandling.Utc,
-                DefaultValueHandling = DefaultValueHandling.Include,
-                Formatting = Formatting.Indented,
-                MaxDepth = 10,
-                MissingMemberHandling = MissingMemberHandling.Ignore,
-                NullValueHandling = NullValueHandling.Include,
-                TypeNameHandling = TypeNameHandling.None,
-
-            };
-            settings.Converters.Add(new StringEnumConverter());
-            settings.Converters.Add(obfuscatorConverter);
-            var resultString = JsonConvert.SerializeObject(data, settings);
-            var result = JObject.Parse(resultString);
+            obfuscatorJsonConverter.WriteJson(jsonWriterMock.Object, value, new JsonSerializer());
 
             // Assert
-            Assert.Equal<string>("ObfuscatedUserName", result["UserName"].ToString());
-            Assert.Equal<string>("1.1.1.0", result["IP"].ToString());
-            Assert.Equal<string>(string.Empty, result["Authors"].ToString());
-            Assert.Equal<string>("-1", result["UserKey"].ToString());
-            Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", Convert.ToString(result["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
-
-            Assert.Equal<string>("ObfuscatedUserName", result["OtherData"]["UserName"].ToString());
-            Assert.Equal<string>("1.1.1.0", result["OtherData"]["IP"].ToString());
-            Assert.Equal<string>(string.Empty, result["OtherData"]["Authors"].ToString());
-            Assert.Equal<string>("-1", result["OtherData"]["UserKey"].ToString());
-            Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", Convert.ToString(result["OtherData"]["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
-        }
-
-        public class Data
-        {
-            [Obfuscate(ObfuscationType.UserName)]
-            public string UserName { get; }
-
-            [Obfuscate(ObfuscationType.IP)]
-            public string IP { get; }
-
-            [Obfuscate(ObfuscationType.Authors)]
-            public string Authors { get; }
-
-            [Obfuscate(ObfuscationType.UserKey)]
-            public int? UserKey { get; }
-
-            public string SupportedTypeRandom { get; }
-
-            public double NotSupportedTypeRandom { get; }
-
-            public Data OtherData { get; }
-
-            public Data()
-            {
-            }
-
-            public Data( string userName, string ip, string authors, int? userKey, string supportedTypeRandom, double notSupportedTypeRandom, Data otherData)
-            {
-                UserName = userName;
-                Authors = authors;
-                SupportedTypeRandom = supportedTypeRandom;
-                NotSupportedTypeRandom = notSupportedTypeRandom;
-                IP = ip;
-                UserKey = userKey;
-                OtherData = otherData;
-            }
+            jsonWriterMock.Verify(x => x.WriteValue(ObfuscatorJsonConverter.Obfuscate(value, obfuscationType)));
         }
     }
 }

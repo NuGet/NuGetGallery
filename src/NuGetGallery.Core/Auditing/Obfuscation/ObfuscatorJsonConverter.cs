@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Reflection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -13,67 +12,31 @@ namespace NuGetGallery.Auditing.Obfuscation
     /// </summary>
     public class ObfuscatorJsonConverter : JsonConverter
     {
-        private object Instance { get; }
+        private ObfuscationType _obfuscationType;
 
         /// <summary>
         /// The instance that will be serialized.
         /// </summary>
         /// <param name="instance"></param>
-        public ObfuscatorJsonConverter(object instance)
+        public ObfuscatorJsonConverter(ObfuscationType obfuscationType)
         {
-            Instance = instance ?? throw new ArgumentNullException(nameof(instance));
+            _obfuscationType = obfuscationType;
         }
 
         public override bool CanConvert(Type objectType)
         {
-            return objectType == typeof(string) ||
-                   objectType == typeof(int?);
+            return true;
         }
-
-        /// <summary>
-        /// Gets the <see cref="PropertyInfo"/> from a full property path.
-        /// </summary>
-        /// <param name="path"></param>
-        /// <returns>The <see cref="PropertyInfo"/> from the <paramref name="path"/>.</returns>
-        protected virtual PropertyInfo ResolvePath(string path)
-        {
-            PropertyInfo property = null;
-            var currentInstance = Instance;
-            foreach (var part in path.Split('.'))
-            {
-                property = currentInstance.GetType().GetProperty(part);
-                if (property == null) { return null; }
-                currentInstance = property.GetValue(currentInstance);
-            }
-            return property;
-        }
-
+        
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            var property = ResolvePath(writer.Path);
-            if (property != null)
-            {
-                var obfuscatorAttribute = property.GetCustomAttribute(typeof(ObfuscateAttribute));
-
-                if (obfuscatorAttribute != null)
-                {
-                    var obfuscationType = ((ObfuscateAttribute)obfuscatorAttribute).ObfuscationType;
-                    value = Obfuscate(value, obfuscationType);
-                }
-            }
-            var t = JToken.FromObject(value);
+            var t = JToken.FromObject(Obfuscate(value, _obfuscationType));
             t.WriteTo(writer);
         }
 
-        /// <summary>
-        /// Obfuscates values based on the <see cref="ObfuscationType"/>.
-        /// </summary>
-        /// <param name="value">The value to be obfuscated.</param>
-        /// <param name="obfuscationType">The type of obfuscation.</param>
-        /// <returns>The obfuscated value.</returns>
-        private string Obfuscate(object value, ObfuscationType obfuscationType)
+        public static string Obfuscate(object value, ObfuscationType obfuscationType)
         {
-            switch(obfuscationType)
+            switch (obfuscationType)
             {
                 case ObfuscationType.Authors:
                     return string.Empty;

@@ -130,6 +130,7 @@
     <Compile Include="Auditing\CertificateAuditRecord.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscateAttribute.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscationType.cs" />
+    <Compile Include="Auditing\Obfuscation\ObfuscatorContractResolver.cs" />
     <Compile Include="Auditing\Obfuscation\ObfuscatorJsonConverter.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackage.cs" />
     <Compile Include="Auditing\AuditedEntities\AuditedPackageIdentifier.cs" />
