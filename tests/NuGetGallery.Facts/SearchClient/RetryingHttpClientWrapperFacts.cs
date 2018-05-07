@@ -119,7 +119,7 @@ namespace NuGetGallery.SearchClient
             }
             // Because the algorithm for choosing uri1 or uri2 is random asserting that the one or the other uri is not reliable
             // However the sum of requests between two uri requests needs to be larger or equal with 1
-            Assert.True(hitUri1Count + hitUri2Count >= 1, $"The uri1 had {hitUri1Count} hits and the uri2 had {hitUri2Count} hits. The sum will need to be at least 1." );
+            Assert.True(hitUri1Count + hitUri2Count >= 1, $"The uri1 had {hitUri1Count} hits and the uri2 had {hitUri2Count} hits. The sum will need to be at least 1.");
         }
 
         [Fact]
