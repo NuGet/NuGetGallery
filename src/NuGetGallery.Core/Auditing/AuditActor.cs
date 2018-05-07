@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Authentication;
 using NuGetGallery.Auditing.Obfuscation;
+using Newtonsoft.Json;
 
 namespace NuGetGallery.Auditing
 {
@@ -37,6 +38,7 @@ namespace NuGetGallery.Auditing
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc)
             : this(machineName, machineIP, userName, authenticationType, credentialKey, timeStampUtc, null) { }
 
+        [JsonConstructor]
         public AuditActor(string machineName, string machineIP, string userName, string authenticationType, string credentialKey, DateTime timeStampUtc, AuditActor onBehalfOf)
         {
             MachineName = machineName;

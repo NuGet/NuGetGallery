@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Newtonsoft.Json;
 using NuGetGallery.Auditing.AuditedEntities;
 
 namespace NuGetGallery.Auditing
@@ -16,6 +17,7 @@ namespace NuGetGallery.Auditing
 
         public string Reason { get; }
 
+        [JsonConstructor]
         public PackageAuditRecord(
             string id, string version, string hash,
             AuditedPackage packageRecord, AuditedPackageRegistration registrationRecord,
