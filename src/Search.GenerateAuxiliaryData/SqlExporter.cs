@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -20,13 +21,13 @@ namespace Search.GenerateAuxiliaryData
         private static Assembly _executingAssembly = Assembly.GetExecutingAssembly();
         private static string _assemblyName = _executingAssembly.GetName().Name;
         
-        public string ConnectionString { get; }
+        public ISqlConnectionFactory ConnectionFactory { get; }
 
-        public SqlExporter(ILogger<SqlExporter> logger, string defaultConnectionString, CloudBlobContainer defaultDestinationContainer, string defaultName)
+        public SqlExporter(ILogger<SqlExporter> logger, ISqlConnectionFactory connectionFactory, CloudBlobContainer defaultDestinationContainer, string defaultName)
             : base(logger, defaultDestinationContainer, defaultName)
         {
             _logger = logger;
-            ConnectionString = defaultConnectionString;
+            ConnectionFactory = connectionFactory;
         }
 
         protected static string GetEmbeddedSqlScript(string resourceName)
@@ -37,13 +38,12 @@ namespace Search.GenerateAuxiliaryData
 
         public override async Task ExportAsync()
         {
-            _logger.LogInformation("Generating {ReportName} report from {ConnectionString}.", _name, TracableConnectionString(ConnectionString));
+            _logger.LogInformation("Generating {ReportName} report from {DataSource}/{InitialCatalog}.",
+                _name, ConnectionFactory.DataSource, ConnectionFactory.InitialCatalog);
 
             JContainer result;
-            using (var connection = new SqlConnection(ConnectionString))
+            using (var connection = await ConnectionFactory.CreateAsync())
             {
-                connection.Open();
-                
                 result = GetResultOfQuery(connection);
             }
 
@@ -60,14 +60,6 @@ namespace Search.GenerateAuxiliaryData
                 colNames[reader.GetName(i)] = i;
             }
             return colNames;
-        }
-
-        private static string TracableConnectionString(string connectionString)
-        {
-            var connStr = new SqlConnectionStringBuilder(connectionString);
-            connStr.UserID = "########";
-            connStr.Password = "########";
-            return connStr.ToString();
         }
 
         private static async Task WriteToBlobAsync(ILogger<Exporter> logger, CloudBlobContainer container, string content, string name)

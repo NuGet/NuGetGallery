@@ -7,6 +7,7 @@ using System.Data.SqlClient;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -20,11 +21,11 @@ namespace Search.GenerateAuxiliaryData
 
         public RankingsExporter(
             ILogger<SqlExporter> logger,
-            string defaultConnectionString,
+            ISqlConnectionFactory connectionFactory,
             CloudBlobContainer defaultDestinationContainer,
             string defaultRankingsScript,
             string defaultName)
-            : base(logger, defaultConnectionString, defaultDestinationContainer, defaultName)
+            : base(logger, connectionFactory, defaultDestinationContainer, defaultName)
         {
             _rankingsTotalScript = defaultRankingsScript;
         }

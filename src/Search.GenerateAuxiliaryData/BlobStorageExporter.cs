@@ -36,7 +36,7 @@ namespace Search.GenerateAuxiliaryData
 
             var sourceCloudBlob = _sourceContainer.GetBlockBlobReference(_sourceName);
             var destinationCloudBlob = _destinationContainer.GetBlockBlobReference(_name);
-            
+
 
             await destinationCloudBlob.StartCopyAsync(sourceCloudBlob);
 

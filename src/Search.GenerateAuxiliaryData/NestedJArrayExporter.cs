@@ -9,6 +9,7 @@ using System.Linq;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -19,8 +20,8 @@ namespace Search.GenerateAuxiliaryData
         public string Col1 { get; }
         public string SqlScript { get; }
 
-        public NestedJArrayExporter(ILogger<NestedJArrayExporter> logger, string defaultConnectionString, CloudBlobContainer defaultDestinationContainer, string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
-            : base(logger, defaultConnectionString, defaultDestinationContainer, defaultName)
+        public NestedJArrayExporter(ILogger<NestedJArrayExporter> logger, ISqlConnectionFactory connectionFactory, CloudBlobContainer defaultDestinationContainer, string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
+            : base(logger, connectionFactory, defaultDestinationContainer, defaultName)
         {
             Col0 = defaultCol0;
             Col1 = defaultCol1;
