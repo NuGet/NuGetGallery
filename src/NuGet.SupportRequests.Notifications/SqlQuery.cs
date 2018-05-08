@@ -31,6 +31,6 @@ namespace NuGet.SupportRequests.Notifications
             "SELECT COUNT(I.[Key]) FROM [dbo].[Issues] AS I (NOLOCK) INNER JOIN [dbo].[History] AS H (NOLOCK) ON I.[Key] = H.[IssueId] WHERE I.[IssueStatusId] = 3 AND H.[IssueStatusId] = 3 AND H.[EntryDate] BETWEEN @startDate AND @endDate";
 
         internal const string GetAverageTimeToResolutionInPeriod =
-            "SELECT CAST(AVG(CAST(T.[ResolutionTime] AS FLOAT)) AS DATETIME) AS \'AvgResolutionTime\' FROM (SELECT MAX(H.[EntryDate]) - I.[CreatedDate] AS \'ResolutionTime\' FROM [dbo].[Issues] AS I (NOLOCK) INNER JOIN[dbo].[History] AS H (NOLOCK) ON I.[Key] = H.[IssueId]WHERE I.[IssueStatusId] = 3 AND H.[IssueStatusId] = 3 AND I.[CreatedDate] BETWEEN @startDate AND @endDate GROUP BY I.[Key], I.[CreatedDate]) AS T";
+            "SELECT ISNULL(CAST(AVG(CAST(T.[ResolutionTime] AS FLOAT)) AS DATETIME), GETDATE()) AS \'AvgResolutionTime\' FROM (SELECT MAX(H.[EntryDate]) - I.[CreatedDate] AS \'ResolutionTime\' FROM [dbo].[Issues] AS I (NOLOCK) INNER JOIN[dbo].[History] AS H (NOLOCK) ON I.[Key] = H.[IssueId]WHERE I.[IssueStatusId] = 3 AND H.[IssueStatusId] = 3 AND I.[CreatedDate] BETWEEN @startDate AND @endDate GROUP BY I.[Key], I.[CreatedDate]) AS T";
     }
 }

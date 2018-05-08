@@ -12,6 +12,7 @@ namespace NuGet.SupportRequests.Notifications
     internal class Job
         : JobBase
     {
+        private IServiceContainer _serviceContainer;
         private IDictionary<string, string> _jobArgsDictionary;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
@@ -21,12 +22,13 @@ namespace NuGet.SupportRequests.Notifications
                 throw new NotSupportedException("The required argument -Task is missing.");
             }
 
+            _serviceContainer = serviceContainer ?? throw new ArgumentNullException(nameof(serviceContainer));
             _jobArgsDictionary = jobArgsDictionary;
         }
 
         public override async Task Run()
         {
-            var scheduledTask = ScheduledTaskFactory.Create(_jobArgsDictionary, LoggerFactory);
+            var scheduledTask = ScheduledTaskFactory.Create(_serviceContainer, _jobArgsDictionary, LoggerFactory);
 
             await scheduledTask.RunAsync();
         }
