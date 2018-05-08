@@ -52,6 +52,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public const string Leaf1TimestampThumbprint = "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67";
 
         /// <summary>
+        /// The URL for the V3 service index that repository signed <see cref="RepoSignedPackageLeaf1"/> and <see cref="AuthorAndRepoSignedPackageLeaf1"/>.
+        /// </summary>
+        public const string V3ServiceIndexUrl = "https://example-service/v3/index.json";
+
+        /// <summary>
         /// Buffer the resource stream into memory so the caller doesn't have to dispose.
         /// </summary>
         public static MemoryStream GetResourceStream(string resourceName)
