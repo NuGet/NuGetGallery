@@ -42,7 +42,7 @@ namespace NuGetGallery.Services
                 var shouldTransforms = new[] { "transfomer@example.com" };
                 var orgTenantPairs = new[] { new OrganizationTenantPair("example.com", "tenantId") };
 
-                var loginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs);
+                var loginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration(emails, domains, exceptions, shouldTransforms, orgTenantPairs, enablePasswordDiscontinuation: false);
                 var loginJson = JsonConvert.SerializeObject(loginDiscontinuationConfiguration);
 
                 var isUIEnabledByDefault = true;

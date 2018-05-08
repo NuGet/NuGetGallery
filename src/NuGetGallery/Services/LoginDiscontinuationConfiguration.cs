@@ -12,6 +12,7 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
+        public bool EnablePasswordDiscontinuation { get; }
         public HashSet<string> DiscontinuedForEmailAddresses { get; }
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
@@ -19,11 +20,12 @@ namespace NuGetGallery
         public HashSet<OrganizationTenantPair> EnabledOrganizationAadTenants { get; }
 
         public LoginDiscontinuationConfiguration()
-            : this(Enumerable.Empty<string>(), 
-                  Enumerable.Empty<string>(), 
-                  Enumerable.Empty<string>(), 
+            : this(Enumerable.Empty<string>(),
                   Enumerable.Empty<string>(),
-                  Enumerable.Empty<OrganizationTenantPair>())
+                  Enumerable.Empty<string>(),
+                  Enumerable.Empty<string>(),
+                  Enumerable.Empty<OrganizationTenantPair>(),
+                  enablePasswordDiscontinuation: false)
         {
         }
 
@@ -33,13 +35,15 @@ namespace NuGetGallery
             IEnumerable<string> discontinuedForDomains,
             IEnumerable<string> exceptionsForEmailAddresses,
             IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
-            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants)
+            IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
+            bool enablePasswordDiscontinuation)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
+            EnablePasswordDiscontinuation = enablePasswordDiscontinuation;
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -54,6 +58,7 @@ namespace NuGetGallery
                 authUser.CredentialUsed.IsPassword() &&
                 IsUserOnWhitelist(authUser.User) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
+            // TODO: Add check for enable password discontinuation flag.
         }
 
         public bool IsUserOnWhitelist(User user)

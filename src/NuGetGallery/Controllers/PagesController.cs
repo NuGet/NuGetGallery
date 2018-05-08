@@ -106,9 +106,25 @@ namespace NuGetGallery
         {
             var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
             var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginClaims(identity);
+            var user = GetCurrentUser();
             var transformIntoOrganization = _contentObjectService.LoginDiscontinuationConfiguration
-                .ShouldUserTransformIntoOrganization(GetCurrentUser());
-            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization));
+                .ShouldUserTransformIntoOrganization(user);
+            string externalIdentitiesValue = null;
+            if (user != null)
+            {
+                var externalIdentities = user
+                    .Credentials
+                    .Where(cred => cred.IsExternal())
+                    .Select(cred => cred.Identity)
+                    .ToArray();
+
+                if (externalIdentities.Any())
+                {
+                    externalIdentitiesValue = string.Join("; ", externalIdentities);
+                }
+            }
+
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, externalIdentitiesValue));
         }
 
         [HttpGet]
