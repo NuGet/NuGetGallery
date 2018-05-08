@@ -1,8 +1,11 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -55,7 +58,7 @@ namespace UpdateLicenseReports
             return report;
         }
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             _packageDatabase = new SqlConnectionStringBuilder(
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));

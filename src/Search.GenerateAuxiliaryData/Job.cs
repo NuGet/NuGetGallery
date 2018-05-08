@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Search.GenerateAuxiliaryData
         private CloudBlobContainer _destContainer;
         private CloudBlobContainer _statisticsContainer;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var packageDatabaseConnString = new SqlConnectionStringBuilder(
                 JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase)).ToString();

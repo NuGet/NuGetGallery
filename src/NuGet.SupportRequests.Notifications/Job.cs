@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Threading.Tasks;
 using NuGet.Jobs;
 
@@ -13,7 +14,7 @@ namespace NuGet.SupportRequests.Notifications
     {
         private IDictionary<string, string> _jobArgsDictionary;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             if (!jobArgsDictionary.ContainsKey(JobArgumentNames.ScheduledTask))
             {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics;
@@ -57,7 +58,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
         private int _batchSize;
         private int _batchSleepSeconds;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
             _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);

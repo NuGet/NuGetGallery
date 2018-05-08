@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ namespace Stats.CollectAzureChinaCDNLogs
         private int _executionTimeoutInSeconds;
         private string _destinationFilePrefix;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var cloudStorageAccountConnStringSource = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureAccountConnectionStringSource);
             var cloudStorageAccountConnStringDest = JobConfigurationManager.GetArgument(jobArgsDictionary, ArgumentNames.AzureAccountConnectionStringDestination);

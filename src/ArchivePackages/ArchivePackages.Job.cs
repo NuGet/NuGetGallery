@@ -1,19 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.ComponentModel.Design;
+using System.Data.SqlClient;
+using System.Diagnostics.Tracing;
+using System.Linq;
+using System.Threading.Tasks;
 using Dapper;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Diagnostics.Tracing;
-using System.Linq;
-using System.Threading.Tasks;
 using NuGet.Jobs;
-using Microsoft.Extensions.Logging;
 
 namespace ArchivePackages
 {
@@ -64,7 +63,7 @@ namespace ArchivePackages
 
         public Job() : base(JobEventSource.Log) { }
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             PackageDatabase = new SqlConnectionStringBuilder(
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));

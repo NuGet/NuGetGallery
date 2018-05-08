@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -18,7 +19,7 @@ namespace NuGet.Jobs.Validation.Helper
     {
         private ICommand _command;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var action = ParseEnum<Action>(JobConfigurationManager.GetArgument(jobArgsDictionary, CommandLineArguments.Action));
 

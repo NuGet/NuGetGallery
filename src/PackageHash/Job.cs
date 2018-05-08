@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -37,7 +38,7 @@ namespace NuGet.Services.PackageHash
         private int _bucketNumber = 1;
         private int _bucketCount = 1;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             if (jobArgsDictionary.TryGetValue(BucketCount, out var unparsedBucketCount))
             {
@@ -96,7 +97,7 @@ namespace NuGet.Services.PackageHash
                 throw new ArgumentException("The bucket number must be less or equal to the bucket count.");
             }
 
-            base.Init(jobArgsDictionary);
+            base.Init(serviceContainer, jobArgsDictionary);
         }
 
         public override async Task Run()
