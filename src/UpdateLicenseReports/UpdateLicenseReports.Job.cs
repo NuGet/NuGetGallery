@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Data;
-using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,13 +14,15 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Schema;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 
 namespace UpdateLicenseReports
 {
     internal class Job : JobBase
     {
         private const int _defaultRetryCount = 4;
-        private static readonly JsonSchema _sonatypeSchema = JsonSchema.Parse(@"{ 'type': 'object',
+        private static readonly JSchema _sonatypeSchema = JSchema.Parse(@"{ 'type': 'object',
             'properties': {
                 'next'   : { 'type' : 'string' },
                 'events' : {
@@ -40,7 +41,7 @@ namespace UpdateLicenseReports
         private Uri _licenseReportService;
         private string _licenseReportUser;
         private string _licenseReportPassword;
-        private SqlConnectionStringBuilder _packageDatabase;
+        private ISqlConnectionFactory _packageDbConnectionFactory;
         private int? _retryCount;
         private NetworkCredential _licenseReportCredentials;
 
@@ -60,8 +61,9 @@ namespace UpdateLicenseReports
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            _packageDatabase = new SqlConnectionStringBuilder(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase));
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var dbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase);
+            _packageDbConnectionFactory = new AzureSqlConnectionFactory(dbConnectionString, secretInjector);
 
             var retryCountString = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.RetryCount);
             if (string.IsNullOrEmpty(retryCountString))
@@ -109,10 +111,11 @@ namespace UpdateLicenseReports
 
         private async Task<Uri> FetchNextReportUrlAsync()
         {
-            Logger.LogInformation("Fetching next report URL from {DataSource}/{InitialCatalog}", _packageDatabase.DataSource, _packageDatabase.InitialCatalog);
+            Logger.LogInformation("Fetching next report URL from {DataSource}/{InitialCatalog}",
+                _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
 
             Uri nextLicenseReport = null;
-            using (var connection = await _packageDatabase.ConnectTo())
+            using (var connection = await _packageDbConnectionFactory.CreateAsync())
             {
                 var nextReportUrl = (await connection.QueryAsync<string>(
                     @"SELECT TOP 1 NextLicenseReport FROM GallerySettings")).SingleOrDefault();
@@ -129,7 +132,9 @@ namespace UpdateLicenseReports
                 nextLicenseReport = nextLicenseReport ?? _licenseReportService;
             }
 
-            Logger.LogInformation("Fetched next report URL '{NextReportUrl}' from {DataSource}/{InitialCatalog}", (nextLicenseReport == null ? string.Empty : nextLicenseReport.AbsoluteUri), _packageDatabase.DataSource, _packageDatabase.InitialCatalog);
+            Logger.LogInformation("Fetched next report URL '{NextReportUrl}' from {DataSource}/{InitialCatalog}",
+                (nextLicenseReport == null ? string.Empty : nextLicenseReport.AbsoluteUri),
+                _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
 
             return nextLicenseReport;
         }
@@ -237,7 +242,7 @@ namespace UpdateLicenseReports
                         Logger.LogInformation("Storing next license report URL: {NextReportUrl}", nextLicenseReport.AbsoluteUri);
 
                         // Record the next report to the database so we can check it again if we get aborted before finishing.
-                        using (var connection = await _packageDatabase.ConnectTo())
+                        using (var connection = await _packageDbConnectionFactory.CreateAsync())
                         {
                             await connection.QueryAsync<int>(@"
                                         UPDATE GallerySettings
@@ -269,7 +274,7 @@ namespace UpdateLicenseReports
 
         private async Task<int> StoreReportAsync(PackageLicenseReport report)
         {
-            using (var connection = await _packageDatabase.ConnectTo())
+            using (var connection = await _packageDbConnectionFactory.CreateAsync())
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = "AddPackageLicenseReport2";
