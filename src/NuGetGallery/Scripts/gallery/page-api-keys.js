@@ -100,6 +100,11 @@
                         function (owner) {
                             return owner.Owner.toUpperCase() == data.Owner.toUpperCase()
                         });
+
+                    if (existingOwner == null) {
+                        existingOwner = { "Owner": data.Owner, "PackageIds": [] };
+                    }
+
                     this.PackageOwner(existingOwner);
                 } else {
                     this.PackageOwner(this.PackageOwners[0]);

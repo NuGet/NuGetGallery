@@ -12,6 +12,7 @@ using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -26,6 +27,7 @@ namespace NuGetGallery
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
+            Mock<ISecurityPolicyService> securityPolicyService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
@@ -33,6 +35,7 @@ namespace NuGetGallery
             certificateRepository = certificateRepository ?? new Mock<IEntityRepository<Certificate>>();
             auditingService = auditingService ?? new TestAuditingService();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+            securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
             if (packageNamingConflictValidator == null)
             {
@@ -47,7 +50,8 @@ namespace NuGetGallery
                 certificateRepository.Object,
                 packageNamingConflictValidator,
                 auditingService,
-                telemetryService.Object);
+                telemetryService.Object,
+                securityPolicyService.Object);
 
             packageService.CallBase = true;
 
@@ -67,14 +71,103 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
                 packageRepository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == pendingOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(false);
+
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
 
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 Assert.Contains(pendingOwner, package.Owners);
                 packageRepository.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenNewOwnerHasAutomaticallyOverwriteRequiredSignerPolicyAndRequiredSignerIsNull_NewOwnerBecomesRequiredSigner()
+            {
+                var packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+                var newOwner = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+
+                packageRepository.Setup(pr => pr.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == newOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+
+                var packageService = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
+
+                await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
+
+                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Contains(newOwner, packageRegistration.RequiredSigners);
+
+                packageRepository.VerifyAll();
+                securityPolicyService.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenNewOwnerHasAutomaticallyOverwriteRequiredSignerPolicyAndRequiredSignerIsNotNull_NewOwnerBecomesRequiredSigner()
+            {
+                var packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+                var existingOwner = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                var newOwner = new User()
+                {
+                    Key = 3,
+                    Username = "c"
+                };
+
+                packageRegistration.Owners.Add(existingOwner);
+                packageRegistration.RequiredSigners.Add(existingOwner);
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+
+                packageRepository.Setup(pr => pr.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == newOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+
+                var packageService = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
+
+                await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
+
+                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Contains(newOwner, packageRegistration.RequiredSigners);
+
+                packageRepository.VerifyAll();
+                securityPolicyService.VerifyAll();
             }
         }
 

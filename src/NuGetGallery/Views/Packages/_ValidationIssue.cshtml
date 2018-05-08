@@ -40,6 +40,24 @@
             <b>NU3007:</b> Package signatures must have format version 1.
         </text>
         break;
+    case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
+        <text>
+            Author countersignatures are not supported.
+        </text>
+        break;
+    case ValidationIssueCode.PackageIsNotSigned:
+        <text>
+            <b>Package publishing failed.</b> The package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+        </text>
+        break;
+    case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
+        {
+            var typedIssue = (UnauthorizedCertificateFailure)Model;
+            <text>
+                <b>Package publishing failed.</b> The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account. You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+            </text>
+            break;
+        }
     default:
         <text>
             <strong>Package publishing failed.</strong> This package could not be published since package validation

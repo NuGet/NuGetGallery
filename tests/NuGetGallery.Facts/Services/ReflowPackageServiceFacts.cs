@@ -14,6 +14,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
 using NuGetGallery.TestUtils;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -343,6 +344,7 @@ namespace NuGetGallery
                     packageRepository.Object);
             var auditingService = new TestAuditingService();
             var telemetryService = new Mock<ITelemetryService>();
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
@@ -350,7 +352,8 @@ namespace NuGetGallery
                 certificateRepository.Object,
                 packageNamingConflictValidator,
                 auditingService,
-                telemetryService.Object);
+                telemetryService.Object,
+                securityPolicyService.Object);
 
             packageService.CallBase = true;
 

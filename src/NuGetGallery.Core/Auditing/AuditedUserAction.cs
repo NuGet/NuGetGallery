@@ -21,6 +21,8 @@ namespace NuGetGallery.Auditing
         TransformOrganization,
         AddOrganizationMember,
         RemoveOrganizationMember,
-        UpdateOrganizationMember
+        UpdateOrganizationMember,
+        EnabledMultiFactorAuthentication,
+        DisabledMultiFactorAuthentication
     }
 }

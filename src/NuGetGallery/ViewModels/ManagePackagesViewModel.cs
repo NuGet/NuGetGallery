@@ -7,6 +7,8 @@ namespace NuGetGallery
 {
     public class ManagePackagesViewModel
     {
+        public virtual User User { get; set; }
+
         public IEnumerable<ListPackageOwnerViewModel> Owners { get; set; }
 
         public IEnumerable<ListPackageItemRequiredSignerViewModel> ListedPackages { get; set; }
@@ -18,5 +20,7 @@ namespace NuGetGallery
         public ReservedNamespaceListViewModel ReservedNamespaces { get; set; }
 
         public bool WasMultiFactorAuthenticated { get; set; }
+
+        public bool IsCertificatesUIEnabled { get; set; }
     }
 }

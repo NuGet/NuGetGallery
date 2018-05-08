@@ -84,7 +84,7 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
-        private readonly ICertificateService _certificateService;
+        private readonly IContentObjectService _contentObjectService;
 
         public PackagesController(
             IPackageService packageService,
@@ -108,7 +108,7 @@ namespace NuGetGallery
             IReadMeService readMeService,
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            ICertificateService certificateService)
+            IContentObjectService contentObjectService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -131,7 +131,7 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
-            _certificateService = certificateService;
+            _contentObjectService = contentObjectService;
         }
 
         [HttpGet]
@@ -466,6 +466,7 @@ namespace NuGetGallery
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
+            model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
 
@@ -1340,14 +1341,6 @@ namespace NuGetGallery
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
                 SendAddPackageOwnerNotification(package, user);
-
-                var hasActiveCertificates = _certificateService.GetCertificates(user).Any();
-
-                if (hasActiveCertificates &&
-                    _securityPolicyService.IsSubscribed(user, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
-                {
-                    await _packageService.SetRequiredSignerAsync(package, user);
-                }
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
