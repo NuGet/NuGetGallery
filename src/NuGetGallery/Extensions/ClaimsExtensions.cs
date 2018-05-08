@@ -64,6 +64,21 @@ namespace NuGetGallery
             return new Claim(claimType, BooleanClaimDefault);
         }
 
+        public static void AddExternalCredentialIdentityClaim(List<Claim> claims, string identityList)
+        {
+            claims.Add(new Claim(NuGetClaims.ExternalCredentialIdenities, identityList));
+        }
+
+        public static string GetExternalCredentialIdentityList(ClaimsIdentity identity)
+        {
+            if (identity == null)
+            {
+                return null;
+            }
+
+            return identity.GetClaimOrDefault(NuGetClaims.ExternalCredentialIdenities);
+        }
+
         public static void AddExternalLoginCredentialTypeClaim(List<Claim> claims, string credentialType)
         {
             string claimValue = null;

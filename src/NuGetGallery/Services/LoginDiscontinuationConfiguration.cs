@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
-        public bool EnablePasswordDiscontinuation { get; }
+        public bool EnablePasswordDiscontinuationForAll { get; }
         public HashSet<string> DiscontinuedForEmailAddresses { get; }
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
@@ -43,7 +43,7 @@ namespace NuGetGallery
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
-            EnablePasswordDiscontinuation = enablePasswordDiscontinuation;
+            EnablePasswordDiscontinuationForAll = enablePasswordDiscontinuation;
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -56,12 +56,11 @@ namespace NuGetGallery
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
-                IsUserOnWhitelist(authUser.User) &&
+                IsUserOnWhitelist(authUser.User, EnablePasswordDiscontinuationForAll) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
-            // TODO: Add check for enable password discontinuation flag.
         }
 
-        public bool IsUserOnWhitelist(User user)
+        public bool IsUserOnWhitelist(User user, bool enableForAllUsers)
         {
             if (user == null)
             {
@@ -70,6 +69,7 @@ namespace NuGetGallery
 
             var email = user.ToMailAddress();
             return
+                enableForAllUsers ||
                 DiscontinuedForDomains.Contains(email.Host) ||
                 DiscontinuedForEmailAddresses.Contains(email.Address);
         }
@@ -94,7 +94,7 @@ namespace NuGetGallery
     public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
-        bool IsUserOnWhitelist(User user);
+        bool IsUserOnWhitelist(User user, bool enableForAllUsers);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }
