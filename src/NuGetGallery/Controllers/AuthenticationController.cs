@@ -31,6 +31,8 @@ namespace NuGetGallery
 
         private readonly ICredentialBuilder _credentialBuilder;
 
+        private readonly IContentObjectService _contentObjectService;
+
         private const string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
@@ -43,32 +45,14 @@ namespace NuGetGallery
             AuthenticationService authService,
             IUserService userService,
             IMessageService messageService,
-            ICredentialBuilder credentialBuilder)
+            ICredentialBuilder credentialBuilder,
+            IContentObjectService contentObjectService)
         {
-            if (authService == null)
-            {
-                throw new ArgumentNullException(nameof(authService));
-            }
-
-            if (userService == null)
-            {
-                throw new ArgumentNullException(nameof(userService));
-            }
-
-            if (messageService == null)
-            {
-                throw new ArgumentNullException(nameof(messageService));
-            }
-
-            if (credentialBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(credentialBuilder));
-            }
-
-            _authService = authService;
-            _userService = userService;
-            _messageService = messageService;
-            _credentialBuilder = credentialBuilder;
+            _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         /// <summary>
@@ -188,6 +172,13 @@ namespace NuGetGallery
                 }
 
                 usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
+            }
+            else if (_contentObjectService.LoginDiscontinuationConfiguration.IsPasswordLoginDiscontinuedForAll()
+                && authenticatedUser.CredentialUsed.IsExternal())
+            {
+                // Remove password logins when a user signs in with an external login.
+                TempData["Message"] = "On account of nuget.org login discontinuation, your password login has been removed. Please use Microsoft account login going forward.";
+                await RemovePasswordCredential(authenticatedUser.User);
             }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
@@ -470,11 +461,7 @@ namespace NuGetGallery
             if (await _authService.TryReplaceCredential(user, newCredential))
             {
                 // Remove the password credential after linking to external account.
-                var passwordCred = user.GetPasswordCredential();
-                if (passwordCred != null)
-                {
-                    await _authService.RemoveCredential(user, passwordCred);
-                }
+                await RemovePasswordCredential(user);
 
                 // Authenticate with the new credential after successful replacement
                 var authenticatedUser = await _authService.Authenticate(newCredential);
@@ -680,19 +667,25 @@ namespace NuGetGallery
 
             await _authService.AddCredential(user.User, result.Credential);
 
-            var passwordCredential = user.User.GetPasswordCredential();
-            if (passwordCredential != null)
-            {
-                await _authService.RemoveCredential(user.User, passwordCredential);
-            }
+            await RemovePasswordCredential(user.User);
 
             // Notify the user of the change
             _messageService.SendCredentialAddedNotice(user.User, _authService.DescribeCredential(result.Credential));
 
-            return new LoginUserDetails {
+            return new LoginUserDetails
+            {
                 AuthenticatedUser = new AuthenticatedUser(user.User, result.Credential),
                 UsedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false
             };
+        }
+
+        private async Task RemovePasswordCredential(User user)
+        {
+            var passwordCredential = user.GetPasswordCredential();
+            if (passwordCredential != null)
+            {
+                await _authService.RemoveCredential(user, passwordCredential);
+            }
         }
 
         private List<AuthenticationProviderViewModel> GetProviders()

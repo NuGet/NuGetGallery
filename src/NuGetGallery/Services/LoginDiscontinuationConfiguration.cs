@@ -89,11 +89,17 @@ namespace NuGetGallery
         {
             return EnabledOrganizationAadTenants.Contains(new OrganizationTenantPair(new MailAddress(emailAddress).Host, tenantId));
         }
+
+        public bool IsPasswordLoginDiscontinuedForAll()
+        {
+            return EnablePasswordDiscontinuationForAll;
+        }
     }
 
     public interface ILoginDiscontinuationConfiguration
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
+        bool IsPasswordLoginDiscontinuedForAll();
         bool IsUserOnWhitelist(User user, bool enableForAllUsers);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
