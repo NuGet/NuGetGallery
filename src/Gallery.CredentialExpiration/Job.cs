@@ -16,6 +16,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 
 namespace Gallery.CredentialExpiration
@@ -32,7 +34,7 @@ namespace Gallery.CredentialExpiration
         private string _galleryBrand;
         private string _galleryAccountUrl;
 
-        private SqlConnectionStringBuilder _galleryDatabase;
+        private ISqlConnectionFactory _galleryDatabase;
 
         private string _mailFrom;
         private SmtpClient _smtpClient;
@@ -46,8 +48,9 @@ namespace Gallery.CredentialExpiration
         {
             _whatIf = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.WhatIf);
 
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
             var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-            _galleryDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
+            _galleryDatabase = new AzureSqlConnectionFactory(databaseConnectionString, secretInjector);
 
             _galleryBrand = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryBrand);
             _galleryAccountUrl = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryAccountUrl);
@@ -94,12 +97,11 @@ namespace Gallery.CredentialExpiration
                 }
 
                 // Connect to database
-                using (var galleryConnection = await _galleryDatabase.ConnectTo())
+                using (var galleryConnection = await _galleryDatabase.CreateAsync())
                 {
                     // Fetch credentials that expire in _warnDaysBeforeExpiration days 
                     // + the user's e-mail address
-                    Logger.LogInformation("Retrieving expired credentials from {InitialCatalog}...",
-                        _galleryDatabase.InitialCatalog);
+                    Logger.LogInformation("Retrieving expired credentials from Gallery database...");
 
                     expiredCredentials = (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
                         Strings.GetExpiredCredentialsQuery,
