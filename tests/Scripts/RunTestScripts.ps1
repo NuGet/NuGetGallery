@@ -6,21 +6,21 @@ $dividerSymbol = "~"
 
 $failedTests = New-Object System.Collections.ArrayList
 
-$TestCategories.Split(';') | ForEach-Object {
+ForEach -Parallel ($TestCategory in $TestCategories.Split(';')) {
     Write-Output ($dividerSymbol * 20)
-    Write-Output "Testing $_."
+    Write-Output "Testing $TestCategory."
     Write-Output ($dividerSymbol * 10)
     
-    & $env:COMSPEC /c "$PSScriptRoot\Run$_.bat"
+    & $env:COMSPEC /c "$PSScriptRoot\Run$TestCategory.bat"
     
     Write-Output ($dividerSymbol * 10)
     
-    Write-Output "Finished testing $_."
+    Write-Output "Finished testing $TestCategory."
     if ($LastExitCode) {
-        Write-Output "$_ failed!"
-        $failedTests.Add($_) | Out-Null
+        Write-Output "$TestCategory failed!"
+        $failedTests.Add($TestCategory) | Out-Null
     } else {
-        Write-Output "$_ succeeded!"
+        Write-Output "$TestCategory succeeded!"
     }
 }
 
