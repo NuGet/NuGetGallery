@@ -6,6 +6,12 @@
     ViewBag.NotifyPackagePushedEnabled = "Receiving package push notifications";
     ViewBag.NotifyPackagePushedNotEnabled = "Not receiving package push notifications";
 
+    ViewBag.NotifyPackagePushedLabel = "Notify when a package is published to " + Config.Current.Brand;
+    ViewBag.NotifyPackagePushedDescription = "This setting enables notifications whenever a package is published "
+        + "to your account. We recommend enabling this setting so that you can inspect whether a package was "
+        + "published intentionally and so that you can be notified if there are unexpected delays in publishing "
+        + "your package.";
+
     if (Model.IsOrganization)
     {
         ViewBag.EmailAllowedEnabled = "Users can contact";
@@ -16,12 +22,6 @@
             + "organization about packages that it owns using the <em>Contact Owners</em> form, or to request "
             + "that your organization become an owner of their package. Disabling this setting means users cannot "
             + "contact your organization for these reasons.";
-        ViewBag.NotifyPackagePushedLabel = "Notify the organization when a package is pushed to "
-            + @Config.Current.Brand
-            + " using its account";
-        ViewBag.NotifyPackagePushedDescription = "This setting enables notifications whenever a package is pushed using "
-            + "the organization account. We recommend to enable this setting so that you can inspect whether a package was pushed "
-            + "intentionally or not. Disabling this setting means no notification will be sent on push.";
         ViewBag.PrivacyNotice = "We will always send important account management and security notices. Also, we never "
             + "reveal the organization email address to other users.";
     }
@@ -34,12 +34,6 @@
         ViewBag.EmailAllowedDescription = "This setting allows other registered users of the site to contact you about "
             + "packages that you own using the <em>Contact Owners</em> form, or to request that you become "
             + "an owner of their package. Disabling this setting means users cannot contact you for these reasons.";
-        ViewBag.NotifyPackagePushedLabel = "Notify me when a package is pushed to "
-            + @Config.Current.Brand
-            + " using my account";
-        ViewBag.NotifyPackagePushedDescription = "This setting enables notifications whenever a package is pushed using "
-            + "your account. We recommend to enable this setting so that you can inspect whether a package was pushed "
-            + "intentionally or not. Disabling this setting means no notification will be sent on push.";
         ViewBag.PrivacyNotice = "We will always send important account management and security notices. Also, we never "
             + "reveal your email address to other users.";
     }

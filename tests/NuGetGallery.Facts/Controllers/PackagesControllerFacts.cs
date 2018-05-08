@@ -60,7 +60,8 @@ namespace NuGetGallery
             Mock<IPackageUploadService> packageUploadService = null,
             Mock<IValidationService> validationService = null,
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
-            IReadMeService readMeService = null)
+            IReadMeService readMeService = null,
+            Mock<IContentObjectService> contentObjectService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -113,6 +114,8 @@ namespace NuGetGallery
 
             readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
 
+            contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
+
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -134,7 +137,8 @@ namespace NuGetGallery
                 packageUploadService.Object,
                 readMeService,
                 validationService.Object,
-                packageOwnershipManagementService.Object);
+                packageOwnershipManagementService.Object,
+                contentObjectService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());

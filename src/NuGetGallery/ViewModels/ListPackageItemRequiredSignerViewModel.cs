@@ -12,7 +12,8 @@ namespace NuGetGallery
     public sealed class ListPackageItemRequiredSignerViewModel : ListPackageItemViewModel
     {
         // username must be an empty string because <select /> option values are based on username
-        // and this "user" must be distinguishable from an account named "Any" and any other user;  null won't work.
+        // and this "user" must be distinguishable from an account named "Any" and any other user;
+        // null would be ideal, but null won't work as a <select /> option value.
         private static readonly SignerViewModel AnySigner = 
             new SignerViewModel(username: "", displayText: "Any");
 
@@ -133,7 +134,14 @@ namespace NuGetGallery
                     var ownersWithRequiredSignerControl = owners.Where(
                         owner => securityPolicyService.IsSubscribed(owner, ControlRequiredSignerPolicy.PolicyName));
 
-                    RequiredSignerMessage = GetRequiredSignerMessage(ownersWithRequiredSignerControl);
+                    if (owners.Count() == 1)
+                    {
+                        ShowTextBox = true;
+                    }
+                    else
+                    {
+                        RequiredSignerMessage = GetRequiredSignerMessage(ownersWithRequiredSignerControl);
+                    }
                 }
 
                 CanEditRequiredSigner &= wasMultiFactorAuthenticated;
