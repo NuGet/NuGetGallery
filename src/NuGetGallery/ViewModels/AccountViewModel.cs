@@ -9,6 +9,8 @@ namespace NuGetGallery
     {
         public T Account { get; set; }
 
+        public bool IsCertificatesUIEnabled { get; set; }
+
         public override User User => Account;
     }
 
