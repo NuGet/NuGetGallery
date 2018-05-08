@@ -2,14 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.X509;
 using Test.Utility.Signing;
 using Validation.PackageSigning.Core.Tests.Support;
-using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
 
 namespace Validation.PackageSigning.ValidateCertificate.Tests.Support
 {

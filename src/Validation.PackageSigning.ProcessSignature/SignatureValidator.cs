@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
@@ -29,30 +31,30 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private const string SignatureVerificationName = "signature integrity and trust verification";
 
         private readonly IPackageSigningStateService _packageSigningStateService;
-        private readonly IPackageSignatureVerifier _minimalPackageSignatureVerifier;
-        private readonly IPackageSignatureVerifier _fullPackageSignatureVerifier;
+        private readonly ISignatureFormatValidator _formatValidator;
         private readonly ISignaturePartsExtractor _signaturePartsExtractor;
         private readonly IProcessorPackageFileService _packageFileService;
         private readonly ICorePackageService _corePackageService;
+        private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<SignatureValidator> _logger;
 
         public SignatureValidator(
             IPackageSigningStateService packageSigningStateService,
-            IPackageSignatureVerifier minimalPackageSignatureVerifier,
-            IPackageSignatureVerifier fullPackageSignatureVerifier,
+            ISignatureFormatValidator formatValidator,
             ISignaturePartsExtractor signaturePartsExtractor,
             IProcessorPackageFileService packageFileService,
             ICorePackageService corePackageService,
+            IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
             ITelemetryService telemetryService,
             ILogger<SignatureValidator> logger)
         {
             _packageSigningStateService = packageSigningStateService ?? throw new ArgumentNullException(nameof(packageSigningStateService));
-            _minimalPackageSignatureVerifier = minimalPackageSignatureVerifier ?? throw new ArgumentNullException(nameof(minimalPackageSignatureVerifier));
-            _fullPackageSignatureVerifier = fullPackageSignatureVerifier ?? throw new ArgumentNullException(nameof(fullPackageSignatureVerifier));
+            _formatValidator = formatValidator ?? throw new ArgumentNullException(nameof(formatValidator));
             _signaturePartsExtractor = signaturePartsExtractor ?? throw new ArgumentNullException(nameof(signaturePartsExtractor));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -97,7 +99,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             _logger.LogInformation(
-                "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for {ValidationId}.",
+                "Package {PackageId} {PackageVersion} is unsigned, no additional validations necessary for " +
+                "{ValidationId}.",
                 context.Message.PackageId,
                 context.Message.PackageVersion,
                 context.Message.ValidationId);
@@ -137,8 +140,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     return initialValidationResult;
                 }
 
-                // Strip all repository signatures.
-                var stripRepositorySignaturesResult = await StripRepositorySignaturesAsync(context);
+                // Strip repository signatures that don't match the allow list from configuration.
+                var stripRepositorySignaturesResult = await StripUnacceptableRepositorySignaturesAsync(context);
                 if (stripRepositorySignaturesResult != null)
                 {
                     return stripRepositorySignaturesResult;
@@ -161,7 +164,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 _logger.LogInformation(
                     eventId,
                     ex,
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} due to an exception during signature validation.",
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} due to an " +
+                    "exception during signature validation.",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId);
@@ -178,10 +182,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             // First, detect format errors with a minimal verification. This doesn't even check package integrity. The
             // minimal verification is expected to swallow any sort of signature format exception.
+            var verifyResult = await _formatValidator.ValidateMinimalAsync(
+                context.PackageReader,
+                context.CancellationToken);
             var invalidFormatResult = await GetVerifyResult(
                 context,
                 FormatVerificationName,
-                _minimalPackageSignatureVerifier);
+                verifyResult);
             if (invalidFormatResult != null)
             {
                 return invalidFormatResult;
@@ -203,7 +210,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             if (authorCounterSignatureCount > 0)
             {
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has {AuthorCounterSignatureCount} invalid countersignatures.",
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it " +
+                    "has {AuthorCounterSignatureCount} invalid countersignatures.",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
@@ -217,8 +225,21 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             return null;
         }
 
-        private async Task<SignatureValidatorResult> StripRepositorySignaturesAsync(Context context)
+        private async Task<SignatureValidatorResult> StripUnacceptableRepositorySignaturesAsync(Context context)
         {
+            // Check if the repository signing certificates are acceptable.
+            if (HasAllValidRepositorySignatures(context))
+            {
+                _logger.LogInformation(
+                    "No repository signatures needed removal from package {PackageId} {PackageVersion} for " +
+                    "validation {ValidationId}.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                return null;
+            }
+
             Stream packageStreamToDispose = null;
             try
             {
@@ -241,7 +262,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 if (changed)
                 {
                     _logger.LogInformation(
-                        "Repository signatures were removed from package {PackageId} {PackageVersion} for validation {ValidationId}.",
+                        "Repository signatures were removed from package {PackageId} {PackageVersion} for " +
+                        "validation {ValidationId}.",
                         context.Message.PackageId,
                         context.Message.PackageVersion,
                         context.Message.ValidationId);
@@ -315,12 +337,134 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             return null;
         }
 
-        private async Task<SignatureValidatorResult> PerformFinalValidationAsync(Context context)
+        private bool HasAllValidRepositorySignatures(Context context)
         {
-            if (context.Signature.Type != SignatureType.Author)
+            if (context.Signature.Type == SignatureType.Repository)
+            {
+                if (!IsValidRepositorySignature(context, (RepositoryPrimarySignature)context.Signature))
+                {
+                    _logger.LogInformation(
+                        "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has repository " +
+                        "primary signature that is invalid.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+
+                    return false;
+                }
+            }
+
+            try
+            {
+                var repositoryCounterSignature = RepositoryCountersignature.GetRepositoryCountersignature(context.Signature);
+
+                if (repositoryCounterSignature != null
+                    && !IsValidRepositorySignature(context, repositoryCounterSignature))
+                {
+                    _logger.LogInformation(
+                        "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has repository " +
+                        "countersignature that is invalid.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+
+                    return false;
+                }
+            }
+            catch (SignatureException ex)
+            {
+                // This handles the case when there are multiple repository signatures.
+                _logger.LogInformation(
+                    0,
+                    ex,
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has repository " +
+                    "countersignature that is invalid due to an exception.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool IsValidRepositorySignature<T>(Context context, T signature)
+            where T : Signature, IRepositorySignature
+        {
+            if (signature.V3ServiceIndexUrl?.AbsoluteUri != _configuration.Value.V3ServiceIndexUrl)
             {
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it is not author signed: {SignatureType}",
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has invalid V3 index " +
+                    "URL {V3ServiceIndexUrl} in the repository signature.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId,
+                    signature.V3ServiceIndexUrl.AbsoluteUri);
+
+                return false;
+            }
+
+            var fingerprint = signature.SignerInfo.Certificate.ComputeSHA256Thumbprint();
+
+            if (!_configuration.Value.AllowedRepositorySigningCertificates.Contains(fingerprint, StringComparer.OrdinalIgnoreCase))
+            {
+                _logger.LogInformation(
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has unacceptable " +
+                    "signing certificate {Fingerprint} for the repository signature.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId,
+                    fingerprint);
+
+                return false;
+            }
+
+            if (signature.Timestamps.Count != 1)
+            {
+                _logger.LogInformation(
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has a repository " +
+                    "signature with an improper number of timestamps: {Count}.",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId,
+                    signature.Timestamps.Count);
+
+                return false;
+            }
+
+            return true;
+        }
+
+        private async Task<SignatureValidatorResult> PerformFinalValidationAsync(Context context)
+        {
+            var signingCertificate = context.Signature.SignerInfo.Certificate;
+            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
+
+            if (context.Signature.Type == SignatureType.Author)
+            {
+                // Block packages with any unknown signing certificates.
+                var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
+
+                if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
+                {
+                    _logger.LogWarning(
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId,
+                        signingFingerprint);
+
+                    return await RejectAsync(
+                        context,
+                        new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
+                }
+            }
+            else if (context.Signature.Type != SignatureType.Repository)
+            {
+                _logger.LogInformation(
+                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it " +
+                    "is not author signed: {SignatureType}",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
@@ -329,49 +473,36 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 return await RejectAsync(context, ValidationIssue.OnlyAuthorSignaturesSupported);
             }
 
-            // Block packages with any unknown signing certificates.
-            var signingCertificate = context.Signature
-                .SignerInfo
-                .Certificate;
-            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
-
-            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
-
-            if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
-            {
-                _logger.LogWarning(
-                    "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId,
-                    signingFingerprint);
-
-                return await RejectAsync(
-                    context,
-                    new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
-            }
-
             // Call the "verify" API, which does the main logic of signature validation.
+            var verifyResult = await _formatValidator.ValidateFullAsync(
+                context.PackageReader,
+                context.HasRepositorySignature,
+                context.CancellationToken);
             var failureResult = await GetVerifyResult(
                 context,
                 SignatureVerificationName,
-                _fullPackageSignatureVerifier);
+                verifyResult);
             if (failureResult != null)
             {
                 return failureResult;
             }
 
             _logger.LogInformation(
-                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid with certificate fingerprint: {SigningFingerprint}",
+                "{SignatureTyped} signed package {PackageId} {PackageVersion} for validation {ValidationId} is valid" +
+                " with certificate fingerprint: {SigningFingerprint}",
+                context.Signature.Type,
                 context.Message.PackageId,
                 context.Message.PackageVersion,
                 context.Message.ValidationId,
                 signingFingerprint);
 
-            await _corePackageService.UpdatePackageSigningCertificateAsync(
-                context.Message.PackageId,
-                context.Message.PackageVersion,
-                signingFingerprint);
+            if (context.Signature.Type == SignatureType.Author)
+            {
+                await _corePackageService.UpdatePackageSigningCertificateAsync(
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    signingFingerprint);
+            }
 
             return null;
         }
@@ -379,13 +510,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private async Task<SignatureValidatorResult> GetVerifyResult(
             Context context,
             string verificationName,
-            IPackageSignatureVerifier verifier)
+            VerifySignaturesResult verifyResult)
         {
-            var verifyResult = await verifier.VerifySignaturesAsync(
-                context.PackageReader,
-                context.CancellationToken,
-                parentId: Guid.Empty); // Pass an empty GUID, since we don't use client telemetry infrastructure.
-
             var errorIssues = verifyResult
                 .Results
                 .SelectMany(x => x.GetErrorIssues())
@@ -402,7 +528,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             if (!verifyResult.Valid)
             {
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} is blocked during {VerificationName} for validation {ValidationId} . Errors: [{Errors}] Warnings: [{Warnings}]",
+                    "Signed package {PackageId} {PackageVersion} is blocked during {VerificationName} for validation " +
+                    "{ValidationId}. Errors: {Errors} Warnings: {Warnings}",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     verificationName,
@@ -432,7 +559,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             else
             {
                 _logger.LogInformation(
-                   "Signed package {PackageId} {PackageVersion} passed {VerificationName} for validation {ValidationId}. Errors: [{Errors}] Warnings: [{Warnings}]",
+                   "Signed package {PackageId} {PackageVersion} passed {VerificationName} for validation " +
+                   "{ValidationId}. Errors: {Errors} Warnings: {Warnings}",
                    context.Message.PackageId,
                    context.Message.PackageVersion,
                    verificationName,
@@ -509,6 +637,24 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             public PrimarySignature Signature { get; set; }
             public SignatureValidationMessage Message { get; }
             public CancellationToken CancellationToken { get; }
+
+            public bool HasRepositorySignature
+            {
+                get
+                {
+                    if (Signature == null)
+                    {
+                        return false;
+                    }
+
+                    if (Signature.Type == SignatureType.Repository)
+                    {
+                        return true;
+                    }
+
+                    return SignatureUtility.HasRepositoryCountersignature(Signature);
+                }
+            }
 
             public void Dispose()
             {

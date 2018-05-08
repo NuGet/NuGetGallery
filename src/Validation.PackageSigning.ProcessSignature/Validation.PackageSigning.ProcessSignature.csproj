@@ -44,10 +44,12 @@
     <Compile Include="ExtractedCertificates.cs" />
     <Compile Include="Hash.cs" />
     <Compile Include="HashedCertificate.cs" />
+    <Compile Include="ISignatureFormatValidator.cs" />
     <Compile Include="ISignaturePartsExtractor.cs" />
     <Compile Include="ISignatureValidator.cs" />
     <Compile Include="MinimalSignatureVerificationProvider.cs" />
-    <Compile Include="PackageSignatureVerifierFactory.cs" />
+    <Compile Include="ProcessSignatureConfiguration.cs" />
+    <Compile Include="SignatureFormatValidator.cs" />
     <Compile Include="SignaturePartsExtractor.cs" />
     <Compile Include="SignatureValidator.cs" />
     <Compile Include="Storage\PackageSigningStateService.cs" />

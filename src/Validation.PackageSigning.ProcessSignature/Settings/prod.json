@@ -17,6 +17,10 @@
   "ValidationStorage": {
     "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"
   },
+  "ProcessSignature": {
+    "AllowedRepositorySigningCertificates": [],
+    "V3ServiceIndexUrl": "https://api.nuget.org/v3/index.json"
+  },
 
   "PackageDownloadTimeout": "00:10:00",
 
