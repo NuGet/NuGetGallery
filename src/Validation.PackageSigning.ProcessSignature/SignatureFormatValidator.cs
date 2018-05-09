@@ -64,13 +64,15 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             var repoAllowListEntries = _config
                 .Value
-                .AllowedRepositorySigningCertificates
+                .AllowedRepositorySigningCertificates?
                 .Select(hash => new CertificateHashAllowListEntry(
                     VerificationTarget.Repository,
                     SignaturePlacement.PrimarySignature | SignaturePlacement.Countersignature,
                     hash,
                     HashAlgorithmName.SHA256))
                 .ToList();
+
+            repoAllowListEntries = repoAllowListEntries ?? new List<CertificateHashAllowListEntry>();
 
             _authorOrRepositorySignatureSettings = new SignedPackageVerifierSettings(
                 allowUnsigned: _authorSignatureSettings.AllowUnsigned,
