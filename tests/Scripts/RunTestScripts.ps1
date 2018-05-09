@@ -5,7 +5,6 @@ param(
 
 $dividerSymbol = "~"
 
-Write-Host "Building solution"
 & "$PSScriptRoot\BuildTests.ps1" | Out-Host
 
 Write-Host ($dividerSymbol * 20)

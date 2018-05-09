@@ -10,11 +10,10 @@ $rootName = (Get-Item $PSScriptRoot).parent.FullName
 # Required tools
 $msBuild = "${Env:ProgramFiles(x86)}\MsBuild\14.0\Bin\msbuild"
 $nuget = "$rootName\nuget.exe"
-if (!(Test-Path $nuget)) {
-    & "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1"
-}
+& "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1" $rootName
 
 # Restore packages
+Write-Host "Restoring packages"
 $fullSolutionPath = "$rootName\$SolutionPath"
 & $nuget "restore" $fullSolutionPath "-NonInteractive"
 if ($LastExitCode) {
@@ -22,6 +21,7 @@ if ($LastExitCode) {
 }
 
 # Build the solution
+Write-Host "Building solution"
 & $msBuild $fullSolutionPath "/p:Configuration=$Config" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/flp:LogFile=$rootName\msbuild.log;Verbosity=diagnostic" "/nr:false"
 if ($LastExitCode) {
     throw "Failed to restore packages!"

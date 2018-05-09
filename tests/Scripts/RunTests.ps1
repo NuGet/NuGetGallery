@@ -11,10 +11,6 @@ $rootRootName = $root.parent.FullName
 
 # Required tools
 $nuget = "$rootName\nuget.exe"
-if (!(Test-Path $nuget)) {
-    & "$rootName\Scripts\DownloadLatestNuGetExeRelease.ps1"
-}
-
 $msTest = "${Env:ProgramFiles(x86)}\Microsoft Visual Studio 14.0\Common7\IDE\mstest.exe"
 $xunit = "$rootRootName\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
 
