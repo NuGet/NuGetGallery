@@ -9,6 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 
 namespace Stats.RollUpDownloadFacts
 {
@@ -19,12 +21,13 @@ namespace Stats.RollUpDownloadFacts
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
         private const int DefaultMinAgeInDays = 43;
         private static int _minAgeInDays;
-        private static SqlConnectionStringBuilder _targetDatabase;
+        private static ISqlConnectionFactory _statisticsDbConnectionFactory;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
 
             _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.MinAgeInDays) ?? DefaultMinAgeInDays;
             Logger.LogInformation("Min age in days: {MinAgeInDays}", _minAgeInDays);
@@ -32,7 +35,7 @@ namespace Stats.RollUpDownloadFacts
 
         public override async Task Run()
         {
-            using (var connection = await _targetDatabase.ConnectTo())
+            using (var connection = await _statisticsDbConnectionFactory.CreateAsync())
             {
                 connection.InfoMessage -= OnSqlConnectionInfoMessage;
                 connection.InfoMessage += OnSqlConnectionInfoMessage;
