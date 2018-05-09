@@ -60,19 +60,25 @@ try {
                 Write-Host "Running $script with test category $testCategory"
                 & $script -TestCategory $testCategory | Out-Host
                 if ($LastExitCode) {
-                    throw "$script failed!"
+                    throw "$script with test category $testCategory failed!"
                 }
             } -ArgumentList ($_, $PSScriptRoot)
-            
+
             Write-Host "Started testing $_"
         } | Out-Null
+    
+    Write-Host ($dividerSymbol * 20)
 
     do {
+        Write-Host "Waiting for $($TestCategoriesArray -join ", ")"
         $jobs = Get-Job -Name $TestCategoriesArray
         $job = Wait-Job $jobs -Any
         Output-Job $job | Out-Host
         $TestCategoriesArray = $TestCategoriesArray | Where-Object { $_ -ne $job.Name }
+        Write-Host ($dividerSymbol * 20)
     } while ($TestCategoriesArray.count -gt 0)
+
+    Write-Host "All functional tests finished"
 
     $finished = $true
 } finally {
@@ -89,7 +95,7 @@ try {
 Write-Host ($dividerSymbol * 20)
 if ($failedTests.Count -gt 0) {
     Write-Host "Some functional tests failed!"
-    $failedTests | ForEach-Object { Write-Host "Test category $_" }
+    $failedTests | ForEach-Object { Write-Host "Test category $_ failed" }
     exit 1
 }
 
