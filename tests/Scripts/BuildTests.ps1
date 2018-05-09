@@ -24,7 +24,7 @@ if ($LastExitCode) {
 Write-Host "Building solution"
 & $msBuild $fullSolutionPath "/p:Configuration=$Config" "/p:Platform=Any CPU" "/p:CodeAnalysis=true" "/m" "/v:M" "/fl" "/flp:LogFile=$rootName\msbuild.log;Verbosity=diagnostic" "/nr:false"
 if ($LastExitCode) {
-    throw "Failed to restore packages!"
+    throw "Failed to build solution!"
 }
 
 $functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"

@@ -4,10 +4,12 @@ param(
 )
 
 $dividerSymbol = "~"
+$fullDivider = ($dividerSymbol * 20)
+$halfDivider = ($dividerSymbol * 10)
 
 & "$PSScriptRoot\BuildTests.ps1" | Out-Host
 
-Write-Host ($dividerSymbol * 20)
+Write-Host $fullDivider
 
 $failedTests = New-Object System.Collections.ArrayList
 
@@ -17,12 +19,12 @@ Function Output-Job {
         [Parameter(ValueFromPipeline)]$job
     )
 
-    Write-Host ($dividerSymbol * 20)
+    Write-Host $fullDivider
     $jobName = $job.Name
     Write-Host "Finished testing test category $jobName."
-    Write-Host ($dividerSymbol * 10)
+    Write-Host $halfDivider
     Receive-Job $job | Out-Host
-    Write-Host ($dividerSymbol * 10)
+    Write-Host $halfDivider
     $jobState = $job.State
     if ($jobState -eq "Completed") {
         Write-Host "Test category $jobName succeeded!"
@@ -42,7 +44,7 @@ Function Output-Job {
 $finished = $false
 $TestCategoriesArray = $TestCategories.Split(';')
 Write-Host "Testing $($TestCategoriesArray -join ", ")"
-Write-Host ($dividerSymbol * 20)
+Write-Host $fullDivider
 try {
     $TestCategoriesArray `
         | ForEach-Object {
@@ -68,7 +70,7 @@ try {
             Write-Host "Started testing $_"
         } | Out-Null
     
-    Write-Host ($dividerSymbol * 20)
+    Write-Host $fullDivider
 
     do {
         Write-Host "Waiting for $($TestCategoriesArray -join ", ")"
@@ -76,7 +78,7 @@ try {
         $job = Wait-Job $jobs -Any
         Output-Job $job | Out-Host
         $TestCategoriesArray = $TestCategoriesArray | Where-Object { $_ -ne $job.Name }
-        Write-Host ($dividerSymbol * 20)
+        Write-Host $fullDivider
     } while ($TestCategoriesArray.count -gt 0)
 
     Write-Host "All functional tests finished"
@@ -84,7 +86,7 @@ try {
     $finished = $true
 } finally {
     if (!($finished)) {
-        Write-Host ($dividerSymbol * 20)
+        Write-Host $fullDivider
         Write-Host "Testing failed or was cancelled!"
         Get-Job -Name $TestCategoriesArray `
             | ForEach-Object {
@@ -94,7 +96,7 @@ try {
     }
 }
 
-Write-Host ($dividerSymbol * 20)
+Write-Host $fullDivider
 if ($failedTests.Count -gt 0) {
     Write-Host "Some functional tests failed!"
     $failedTests | ForEach-Object { Write-Host "Test category $_ failed" }
