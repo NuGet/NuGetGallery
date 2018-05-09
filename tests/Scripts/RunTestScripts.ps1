@@ -42,6 +42,7 @@ Function Output-Job {
 $finished = $false
 $TestCategoriesArray = $TestCategories.Split(';')
 Write-Host "Testing $($TestCategoriesArray -join ", ")"
+Write-Host ($dividerSymbol * 20)
 try {
     $TestCategoriesArray `
         | ForEach-Object {
