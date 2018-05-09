@@ -83,7 +83,7 @@ try {
     $finished = $true
 } finally {
     if (!($finished)) {
-        Write-Host "Testing failed!"
+        Write-Host "Testing failed or was cancelled!"
         Get-Job -Name $TestCategoriesArray `
             | ForEach-Object {
                 Stop-Job $_ | Out-Host
