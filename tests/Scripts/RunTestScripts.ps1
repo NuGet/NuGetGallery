@@ -83,6 +83,7 @@ try {
     $finished = $true
 } finally {
     if (!($finished)) {
+        Write-Host ($dividerSymbol * 20)
         Write-Host "Testing failed or was cancelled!"
         Get-Job -Name $TestCategoriesArray `
             | ForEach-Object {
