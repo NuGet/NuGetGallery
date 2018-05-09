@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace Stats.CreateAzureCdnWarehouseReports
@@ -24,8 +25,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private CloudStorageAccount _cloudStorageAccount;
         private CloudStorageAccount _dataStorageAccount;
         private string _statisticsContainerName;
-        private SqlConnectionStringBuilder _statisticsDatabase;
-        private SqlConnectionStringBuilder _galleryDatabase;
+        private ISqlConnectionFactory _statisticsDbConnectionFactory;
+        private ISqlConnectionFactory _galleryDbConnectionFactory;
         private string _reportName;
         private string[] _dataContainerNames;
         private int _sqlCommandTimeoutSeconds = DefaultSqlCommandTimeoutSeconds;
@@ -49,19 +50,23 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-            var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            var galleryDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase);
-            var dataStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
             _sqlCommandTimeoutSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.CommandTimeOut) ?? DefaultSqlCommandTimeoutSeconds;
+
+            var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDatabaseConnectionString, secretInjector);
+
+            var galleryDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SourceDatabase);
+            _galleryDbConnectionFactory = new AzureSqlConnectionFactory(galleryDatabaseConnectionString, secretInjector);
+
+            var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
+            var dataStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
             _perPackageReportDegreeOfParallelism = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.PerPackageReportDegreeOfParallelism) ?? DefaultPerPackageReportDegreeOfParallelism;
 
             _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString, JobArgumentNames.AzureCdnCloudStorageAccount);
             _statisticsContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName), JobArgumentNames.AzureCdnCloudStorageContainerName);
             _dataStorageAccount = ValidateAzureCloudStorageAccount(dataStorageAccountConnectionString, JobArgumentNames.DataStorageAccount);
             _reportName = ValidateReportName(JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.WarehouseReportName));
-            _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
-            _galleryDatabase = new SqlConnectionStringBuilder(galleryDatabaseConnectionString);
 
             var containerNames = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataContainerName)
                     .Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries);
@@ -78,7 +83,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             var reportGenerationTime = DateTime.UtcNow;
             var destinationContainer = _cloudStorageAccount.CreateCloudBlobClient().GetContainerReference(_statisticsContainerName);
 
-            Logger.LogDebug("Generating reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            Logger.LogDebug("Generating reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDbConnectionFactory.DataSource, _statisticsDbConnectionFactory.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
             var reportBuilderLogger = LoggerFactory.CreateLogger<ReportBuilder>();
             var reportCollectorLogger = LoggerFactory.CreateLogger<ReportDataCollector>();
@@ -88,12 +93,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 // generate all reports
                 var reportGenerators = new Dictionary<ReportBuilder, ReportDataCollector>
                     {
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.NuGetClientVersion), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.NuGetClientVersion], _statisticsDatabase, _sqlCommandTimeoutSeconds) },
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.Last6Weeks), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.Last6Weeks], _statisticsDatabase, _sqlCommandTimeoutSeconds) },
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularity], _statisticsDatabase, _sqlCommandTimeoutSeconds) },
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularityDetail], _statisticsDatabase, _sqlCommandTimeoutSeconds) },
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularity], _statisticsDatabase, _sqlCommandTimeoutSeconds) },
-                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularityDetail], _statisticsDatabase, _sqlCommandTimeoutSeconds) }
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.NuGetClientVersion), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.NuGetClientVersion], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.Last6Weeks), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.Last6Weeks], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularity], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentCommunityPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentCommunityPopularityDetail], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularity), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularity], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) },
+                        { new ReportBuilder(reportBuilderLogger, ReportNames.RecentPopularityDetail), new ReportDataCollector(reportCollectorLogger, _storedProcedures[ReportNames.RecentPopularityDetail], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds) }
                     };
 
                 foreach (var reportGenerator in reportGenerators)
@@ -109,12 +114,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 // generate only the specific report
                 var reportBuilder = new ReportBuilder(reportBuilderLogger, _reportName);
-                var reportDataCollector = new ReportDataCollector(reportCollectorLogger, _storedProcedures[_reportName], _statisticsDatabase, _sqlCommandTimeoutSeconds);
+                var reportDataCollector = new ReportDataCollector(reportCollectorLogger, _storedProcedures[_reportName], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds);
 
                 await ProcessReport(LoggerFactory, destinationContainer, reportBuilder, reportDataCollector, reportGenerationTime);
             }
 
-            Logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
+            Logger.LogInformation("Generated reports from {DataSource}/{InitialCatalog} and saving to {AccountName}/{Container}", _statisticsDbConnectionFactory.DataSource, _statisticsDbConnectionFactory.InitialCatalog, _cloudStorageAccount.Credentials.AccountName, destinationContainer.Name);
 
             // totals reports
             var stopwatch = Stopwatch.StartNew();
@@ -126,7 +131,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             {
                 targets.Add(new StorageContainerTarget(_dataStorageAccount, dataContainerName));
             }
-            var downloadCountReport = new DownloadCountReport(LoggerFactory.CreateLogger<DownloadCountReport>(), targets, _statisticsDatabase, _galleryDatabase);
+            var downloadCountReport = new DownloadCountReport(LoggerFactory.CreateLogger<DownloadCountReport>(), targets, _statisticsDbConnectionFactory, _galleryDbConnectionFactory);
             await downloadCountReport.Run();
 
             stopwatch.Stop();
@@ -135,7 +140,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
             stopwatch.Restart();
 
             // build stats-totals.json
-            var galleryTotalsReport = new GalleryTotalsReport(LoggerFactory.CreateLogger<GalleryTotalsReport>(), _cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+            var galleryTotalsReport = new GalleryTotalsReport(LoggerFactory.CreateLogger<GalleryTotalsReport>(), _cloudStorageAccount, _statisticsContainerName, _statisticsDbConnectionFactory, _galleryDbConnectionFactory);
             await galleryTotalsReport.Run();
 
             stopwatch.Stop();
@@ -144,7 +149,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
 
             // build tools.v1.json
-            var toolsReport = new DownloadsPerToolVersionReport(LoggerFactory.CreateLogger<DownloadsPerToolVersionReport>(), _cloudStorageAccount, _statisticsContainerName, _statisticsDatabase, _galleryDatabase);
+            var toolsReport = new DownloadsPerToolVersionReport(LoggerFactory.CreateLogger<DownloadsPerToolVersionReport>(), _cloudStorageAccount, _statisticsContainerName, _statisticsDbConnectionFactory, _galleryDbConnectionFactory);
             await toolsReport.Run();
 
             stopwatch.Stop();
@@ -169,14 +174,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private async Task RebuildPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
-            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(LoggerFactory.CreateLogger<ReportDataCollector>(), _statisticsDatabase, reportGenerationTime, _sqlCommandTimeoutSeconds);
+            var dirtyPackageIds = await ReportDataCollector.GetDirtyPackageIds(LoggerFactory.CreateLogger<ReportDataCollector>(), _statisticsDbConnectionFactory, reportGenerationTime, _sqlCommandTimeoutSeconds);
 
             if (!dirtyPackageIds.Any())
                 return;
 
             // first process the top 100 packages
             var top100 = dirtyPackageIds.Take(100);
-            var reportDataCollector = new ReportDataCollector(LoggerFactory.CreateLogger<ReportDataCollector>(), _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDatabase, _sqlCommandTimeoutSeconds);
+            var reportDataCollector = new ReportDataCollector(LoggerFactory.CreateLogger<ReportDataCollector>(), _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId], _statisticsDbConnectionFactory, _sqlCommandTimeoutSeconds);
             var top100Task = Parallel.ForEach(top100, new ParallelOptions { MaxDegreeOfParallelism = _perPackageReportDegreeOfParallelism }, dirtyPackageId =>
             {
                 var packageId = dirtyPackageId.PackageId.ToLowerInvariant();
@@ -206,7 +211,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                                 new ReportDataCollector(
                                     LoggerFactory.CreateLogger<ReportDataCollector>(),
                                     _storedProceduresPerPackageId[ReportNames.RecentPopularityDetailByPackageId],
-                                    _statisticsDatabase,
+                                    _statisticsDbConnectionFactory,
                                     _sqlCommandTimeoutSeconds)
                             }
                         };
@@ -223,7 +228,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
                 if (top100Task.IsCompleted)
                 {
                     var runToCursor = dirtyPackageIds.First().RunToCuror;
-                    await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDatabase, runToCursor, _sqlCommandTimeoutSeconds);
+                    await ReportDataCollector.UpdateDirtyPackageIdCursor(_statisticsDbConnectionFactory, runToCursor, _sqlCommandTimeoutSeconds);
                 }
             }
         }
@@ -231,7 +236,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private async Task CleanInactiveRecentPopularityDetailByPackageReports(CloudBlobContainer destinationContainer, DateTime reportGenerationTime)
         {
             Logger.LogDebug("Getting list of inactive packages.");
-            var packageIds = await ReportDataCollector.ListInactivePackageIdReports(_statisticsDatabase, reportGenerationTime, _sqlCommandTimeoutSeconds);
+            var packageIds = await ReportDataCollector.ListInactivePackageIdReports(_statisticsDbConnectionFactory, reportGenerationTime, _sqlCommandTimeoutSeconds);
             Logger.LogInformation("Found {InactivePackageCount} inactive packages.", packageIds.Count);
 
             // Collect the list of reports
