@@ -103,7 +103,7 @@
       <Version>2.25.0-master-29664</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.4-dev-29942</Version>
+      <Version>4.4.4-dev-30533</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>2.5.0</Version>
