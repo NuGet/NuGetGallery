@@ -5,7 +5,7 @@ cd ..
 
 REM Configuration
 set config=Release
-set testCategory="ReadonlyModeTests"
+set testCategory="ReadOnlyModeTests"
 set solutionPath="NuGetGallery.FunctionalTests.sln"
 set exitCode=0
 

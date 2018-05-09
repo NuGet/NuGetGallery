@@ -1,35 +1,93 @@
+[CmdletBinding()]
 param(
-    [string]$TestCategories
+    [Parameter(Mandatory)][string]$TestCategories
 )
 
 $dividerSymbol = "~"
 
+Write-Host "Building solution"
+& "$PSScriptRoot\BuildTests.ps1" | Out-Host
+
+Write-Host ($dividerSymbol * 20)
+
 $failedTests = New-Object System.Collections.ArrayList
 
-ForEach -Parallel ($TestCategory in $TestCategories.Split(';')) {
-    Write-Output ($dividerSymbol * 20)
-    Write-Output "Testing $TestCategory."
-    Write-Output ($dividerSymbol * 10)
-    
-    & $env:COMSPEC /c "$PSScriptRoot\Run$TestCategory.bat"
-    
-    Write-Output ($dividerSymbol * 10)
-    
-    Write-Output "Finished testing $TestCategory."
-    if ($LastExitCode) {
-        Write-Output "$TestCategory failed!"
-        $failedTests.Add($TestCategory) | Out-Null
+Function Output-Job {
+    [CmdletBinding()]
+    param(
+        [Parameter(ValueFromPipeline)]$job
+    )
+
+    Write-Host ($dividerSymbol * 20)
+    $jobName = $job.Name
+    Write-Host "Finished testing test category $jobName."
+    Write-Host ($dividerSymbol * 10)
+    Receive-Job $job | Out-Host
+    Write-Host ($dividerSymbol * 10)
+    $jobState = $job.State
+    if ($jobState -eq "Completed") {
+        Write-Host "Test category $jobName succeeded!"
     } else {
-        Write-Output "$TestCategory succeeded!"
+        $failedTests.Add($jobName) | Out-Null
+        if ($jobState -eq "Failed") {
+            Write-Host "Test category $jobName failed!"
+        } elseif ($jobState -eq "Stopped") {
+            Write-Host "Test category $jobName was stopped!"
+        } else {
+            Write-Host "Test category $jobName had unexpected state of $jobState!"
+        }
+    }
+    Remove-Job $job | Out-Host
+}
+
+$finished = $false
+$TestCategoriesArray = $TestCategories.Split(';')
+Write-Host "Testing $($TestCategoriesArray -join ", ")"
+try {
+    $TestCategoriesArray `
+        | ForEach-Object {
+            # Kill existing job
+            $job = Get-Job -Name $_ -ErrorAction SilentlyContinue | Remove-Job -Force | Out-Host
+
+            # Start new job
+            Start-Job -Name $_ -ScriptBlock {
+                param(
+                    [string]$testCategory,
+                    [string]$scriptRoot
+                )
+
+                Set-Location -Path $scriptRoot | Out-Host
+                $script = "$scriptRoot\RunTests.ps1"
+                Write-Host "Running $script with test category $testCategory"
+                & $script -TestCategory $testCategory | Out-Host
+                if ($LastExitCode) {
+                    throw "$script failed!"
+                }
+            } -ArgumentList ($_, $PSScriptRoot)
+        } `
+        | ForEach-Object { 
+            Wait-Job $_ | Output-Job | Out-Host
+        } `
+        | Out-Host
+
+    $finished = $true
+} finally {
+    if (!($finished)) {
+        Write-Host "Testing failed!"
+        Get-Job -Name $TestCategoriesArray `
+            | ForEach-Object {
+                Stop-Job $_ | Out-Host
+                Output-Job $_ | Out-Host
+            } | Out-Host
     }
 }
 
-Write-Output ($dividerSymbol * 20)
+Write-Host ($dividerSymbol * 20)
 if ($failedTests.Count -gt 0) {
-    Write-Output "Some functional tests failed!"
-    $failedTests | ForEach-Object { Write-Output $_ }
+    Write-Host "Some functional tests failed!"
+    $failedTests | ForEach-Object { Write-Host "Test category $_" }
     exit 1
 }
 
-Write-Output "All functional tests succeeded!"
+Write-Host "All functional tests succeeded!"
 exit 0
