@@ -263,7 +263,7 @@ namespace NuGetGallery.Services
 
             protected override bool GetWhitelistValue(ILoginDiscontinuationConfiguration config, User user)
             {
-                return config.IsUserOnWhitelist(user, enableForAllUsers: false);
+                return config.IsUserOnWhitelist(user, discontinuedForAllUsers: false);
             }
         }
 

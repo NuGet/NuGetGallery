@@ -60,7 +60,7 @@ namespace NuGetGallery
                 !ExceptionsForEmailAddresses.Contains(email.Address);
         }
 
-        public bool IsUserOnWhitelist(User user, bool enableForAllUsers)
+        public bool IsUserOnWhitelist(User user, bool discontinuedForAllUsers)
         {
             if (user == null)
             {
@@ -69,7 +69,7 @@ namespace NuGetGallery
 
             var email = user.ToMailAddress();
             return
-                enableForAllUsers ||
+                discontinuedForAllUsers ||
                 DiscontinuedForDomains.Contains(email.Host) ||
                 DiscontinuedForEmailAddresses.Contains(email.Address);
         }
@@ -100,7 +100,7 @@ namespace NuGetGallery
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
         bool IsPasswordLoginDiscontinuedForAll();
-        bool IsUserOnWhitelist(User user, bool enableForAllUsers);
+        bool IsUserOnWhitelist(User user, bool discontinuedForAllUsers);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }

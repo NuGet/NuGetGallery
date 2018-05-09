@@ -521,7 +521,7 @@ namespace NuGetGallery
                     && result.Authentication.User.HasPasswordCredential())
                 {
                     // Remove password logins when a user signs in with an external login.
-                    TempData["Message"] = "On account of nuget.org login discontinuation, your password login has been removed. Please use Microsoft account login going forward.";
+                    TempData["Message"] = string.Format(Strings.DiscontinuedLogin_PasswordRemoved, NuGetContext.Config.Current.Brand);
                     await RemovePasswordCredential(result.Authentication.User);
                 }
 
