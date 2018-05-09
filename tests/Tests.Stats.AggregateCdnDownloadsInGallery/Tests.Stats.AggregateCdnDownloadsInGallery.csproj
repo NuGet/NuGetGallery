@@ -8,9 +8,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Stats.AggregateCdnDownloadsInGallery</RootNamespace>
     <AssemblyName>Tests.Stats.AggregateCdnDownloadsInGallery</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -53,6 +54,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="xunit">
+      <Version>2.3.1</Version>
+    </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
       <Version>2.3.1</Version>
     </PackageReference>
   </ItemGroup>

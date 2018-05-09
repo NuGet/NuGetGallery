@@ -11,6 +11,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
 namespace Stats.AggregateCdnDownloadsInGallery
@@ -53,18 +55,20 @@ namespace Stats.AggregateCdnDownloadsInGallery
             DROP TABLE #AggregateCdnDownloadsInGallery";
 
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private SqlConnectionStringBuilder _statisticsDatabase;
-        private SqlConnectionStringBuilder _destinationDatabase;
+        private ISqlConnectionFactory _statisticsDbConnectionFactory;
+        private ISqlConnectionFactory _galleryDbConnectionFactory;
         private int _batchSize;
         private int _batchSleepSeconds;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var statisticsDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _statisticsDatabase = new SqlConnectionStringBuilder(statisticsDatabaseConnectionString);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
 
-            var destinationDatabaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
-            _destinationDatabase = new SqlConnectionStringBuilder(destinationDatabaseConnectionString);
+            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
+
+            var galleryDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
+            _galleryDbConnectionFactory = new AzureSqlConnectionFactory(galleryDbConnectionString, secretInjector);
 
             _batchSize = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSize) ?? _defaultBatchSize;
             _batchSleepSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSleepSeconds) ?? _defaultBatchSleepSeconds;
@@ -75,10 +79,10 @@ namespace Stats.AggregateCdnDownloadsInGallery
             // Gather download counts data from statistics warehouse
             IReadOnlyList<DownloadCountData> downloadData;
             Logger.LogInformation("Using batch size {BatchSize} and batch sleep seconds {BatchSleepSeconds}.", _batchSize, _batchSleepSeconds);
-            Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", _statisticsDatabase.DataSource, _statisticsDatabase.InitialCatalog);
+            Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", _statisticsDbConnectionFactory.DataSource, _statisticsDbConnectionFactory.InitialCatalog);
             var stopwatch = Stopwatch.StartNew();
 
-            using (var statisticsDatabase = await _statisticsDatabase.ConnectTo())
+            using (var statisticsDatabase = await _statisticsDbConnectionFactory.CreateAsync())
             using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot))
             {
                 downloadData = (
@@ -102,7 +106,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 return;
             }
 
-            using (var destinationDatabase = await _destinationDatabase.ConnectTo())
+            using (var destinationDatabase = await _galleryDbConnectionFactory.CreateAsync())
             {
                 // Fetch package registrations so we can match package ID to package registration key.
                 var packageRegistrationLookup = await GetPackageRegistrations(destinationDatabase);
