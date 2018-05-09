@@ -4,17 +4,18 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using NuGet.Services.Sql;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     internal class DataImporter
     {
-        private readonly SqlConnectionStringBuilder _targetDatabase;
+        private readonly ISqlConnectionFactory _statisticsDbConnectionFactory;
         private const string _sqlSelectTop1FromTable = "SELECT TOP 1 * FROM [dbo].[{0}]";
 
-        public DataImporter(SqlConnectionStringBuilder targetDatabase)
+        public DataImporter(ISqlConnectionFactory statisticsDbConnectionFactory)
         {
-            _targetDatabase = targetDatabase;
+            _statisticsDbConnectionFactory = statisticsDbConnectionFactory;
         }
 
         public async Task<DataTable> GetDataTableAsync(string tableName)
@@ -22,7 +23,7 @@ namespace Stats.ImportAzureCdnStatistics
             var dataTable = new DataTable();
             var query = string.Format(_sqlSelectTop1FromTable, tableName);
 
-            using (var connection = await _targetDatabase.ConnectTo())
+            using (var connection = await _statisticsDbConnectionFactory.CreateAsync())
             {
                 var tableAdapter = new SqlDataAdapter(query, connection)
                 {

@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
@@ -22,19 +23,21 @@ namespace Stats.ImportAzureCdnStatistics
         private string _azureCdnAccountNumber;
         private string _cloudStorageContainerName;
         private AzureCdnPlatform _azureCdnPlatform;
-        private SqlConnectionStringBuilder _targetDatabase;
+        private ISqlConnectionFactory _statisticsDbConnectionFactory;
         private CloudStorageAccount _cloudStorageAccount;
         private CloudBlobClient _cloudBlobClient;
         private LogFileProvider _blobLeaseManager;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
+
             var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
             var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
             _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
 
-            _targetDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
             _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
             _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
             _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
@@ -62,7 +65,7 @@ namespace Stats.ImportAzureCdnStatistics
             await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
             // Create a parser
-            var warehouse = new Warehouse(LoggerFactory, _targetDatabase);
+            var warehouse = new Warehouse(LoggerFactory, _statisticsDbConnectionFactory);
             var statisticsBlobContainerUtility = new StatisticsBlobContainerUtility(
                 targetBlobContainer,
                 deadLetterBlobContainer,
