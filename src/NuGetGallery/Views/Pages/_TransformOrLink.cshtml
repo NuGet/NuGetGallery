@@ -1,7 +1,7 @@
 ﻿@model GalleryHomeViewModel
 @{ 
     var title = Model.TransformIntoOrganization ? "Transform to an organization" : "Sign-in with Microsoft account";
-    var hasExternalIdentity = string.IsNullOrWhiteSpace(Model.Identity);
+    var hasExternalIdentity = !string.IsNullOrWhiteSpace(Model.Identity);
 }
 
 <div class="modal-dialog modal-box">
@@ -15,7 +15,7 @@
         <div class="tag-node">
             <span class="title-text">
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                NuGet.org authentication is deprecated
+                NuGet.org authentication is discontinued
             </span>
         </div>
         @if (Model.TransformIntoOrganization)
@@ -31,7 +31,7 @@
         }
         else
         {
-            if (hasExternalIdentity)
+            if (@hasExternalIdentity)
             {
                 <p class="transform-text">Please sign in with your linked Microsoft account: @Model.Identity</p>
             }

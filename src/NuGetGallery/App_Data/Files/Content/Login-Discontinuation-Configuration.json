@@ -1,5 +1,5 @@
 {
-    "EnablePasswordDiscontinuationForAll": false,
+    "IsPasswordDiscontinuedForAll": false,
     "DiscontinuedForEmailAddresses": [
         "cannotUsePassword@canUsePassword.com"
     ],

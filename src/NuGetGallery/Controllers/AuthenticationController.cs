@@ -173,13 +173,6 @@ namespace NuGetGallery
 
                 usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
             }
-            else if (_contentObjectService.LoginDiscontinuationConfiguration.IsPasswordLoginDiscontinuedForAll()
-                && authenticatedUser.CredentialUsed.IsExternal())
-            {
-                // Remove password logins when a user signs in with an external login.
-                TempData["Message"] = "On account of nuget.org login discontinuation, your password login has been removed. Please use Microsoft account login going forward.";
-                await RemovePasswordCredential(authenticatedUser.User);
-            }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
             // to require a specific authentication provider, challenge that provider if needed.
@@ -519,6 +512,17 @@ namespace NuGetGallery
                         Url.LinkExternalAccount(returnUrl),
                         result.Authenticator.Name,
                         new AuthenticationPolicy() { Email = result.LoginDetails.EmailUsed, EnforceMultiFactorAuthentication = true });
+                }
+
+                // Remove the password login if the password logins are deprecated and enforced discontinuation.
+                if (NuGetContext.Config.Current.DeprecateNuGetPasswordLogins
+                    && _contentObjectService.LoginDiscontinuationConfiguration.IsPasswordLoginDiscontinuedForAll()
+                    && result.Authentication.CredentialUsed.IsExternal()
+                    && result.Authentication.User.HasPasswordCredential())
+                {
+                    // Remove password logins when a user signs in with an external login.
+                    TempData["Message"] = "On account of nuget.org login discontinuation, your password login has been removed. Please use Microsoft account login going forward.";
+                    await RemovePasswordCredential(result.Authentication.User);
                 }
 
                 // Create session

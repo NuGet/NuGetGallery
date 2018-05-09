@@ -12,7 +12,7 @@ namespace NuGetGallery
 {
     public class LoginDiscontinuationConfiguration : ILoginDiscontinuationConfiguration
     {
-        public bool EnablePasswordDiscontinuationForAll { get; }
+        public bool IsPasswordDiscontinuedForAll { get; }
         public HashSet<string> DiscontinuedForEmailAddresses { get; }
         public HashSet<string> DiscontinuedForDomains { get; }
         public HashSet<string> ExceptionsForEmailAddresses { get; }
@@ -25,7 +25,7 @@ namespace NuGetGallery
                   Enumerable.Empty<string>(),
                   Enumerable.Empty<string>(),
                   Enumerable.Empty<OrganizationTenantPair>(),
-                  enablePasswordDiscontinuation: false)
+                  isPasswordDiscontinuedForAll: false)
         {
         }
 
@@ -36,14 +36,14 @@ namespace NuGetGallery
             IEnumerable<string> exceptionsForEmailAddresses,
             IEnumerable<string> forceTransformationToOrganizationForEmailAddresses,
             IEnumerable<OrganizationTenantPair> enabledOrganizationAadTenants,
-            bool enablePasswordDiscontinuation)
+            bool isPasswordDiscontinuedForAll)
         {
             DiscontinuedForEmailAddresses = new HashSet<string>(discontinuedForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             DiscontinuedForDomains = new HashSet<string>(discontinuedForDomains, StringComparer.OrdinalIgnoreCase);
             ExceptionsForEmailAddresses = new HashSet<string>(exceptionsForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             ForceTransformationToOrganizationForEmailAddresses = new HashSet<string>(forceTransformationToOrganizationForEmailAddresses, StringComparer.OrdinalIgnoreCase);
             EnabledOrganizationAadTenants = new HashSet<OrganizationTenantPair>(enabledOrganizationAadTenants, new OrganizationTenantPairComparer());
-            EnablePasswordDiscontinuationForAll = enablePasswordDiscontinuation;
+            IsPasswordDiscontinuedForAll = isPasswordDiscontinuedForAll;
         }
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
@@ -56,7 +56,7 @@ namespace NuGetGallery
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
-                IsUserOnWhitelist(authUser.User, EnablePasswordDiscontinuationForAll) &&
+                IsUserOnWhitelist(authUser.User, IsPasswordDiscontinuedForAll) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
         }
 
@@ -92,7 +92,7 @@ namespace NuGetGallery
 
         public bool IsPasswordLoginDiscontinuedForAll()
         {
-            return EnablePasswordDiscontinuationForAll;
+            return IsPasswordDiscontinuedForAll;
         }
     }
 
