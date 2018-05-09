@@ -38,7 +38,7 @@ namespace NuGetGallery.Authentication
         public const string ExternalLogin = ClaimsDomain + "externallogin";
 
         /// <summary>
-        /// The claim url for the claim that stores the semi-colon separated list of external login identities.
+        /// The claim url for the claim that stores the list of associated external login identities.
         /// </summary>
         public const string ExternalCredentialIdenities = ClaimsDomain + "externalcredentialidentity";
 

@@ -15,7 +15,7 @@
         <div class="tag-node">
             <span class="title-text">
                 <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
-                NuGet.org authentication is discontinued
+                NuGet.org authentication is discontinued. <a class="title-text" href="">Learn more.</a>
             </span>
         </div>
         @if (Model.TransformIntoOrganization)
@@ -31,14 +31,20 @@
         }
         else
         {
-            if (@hasExternalIdentity)
-            {
-                <p class="transform-text">Please sign in with your linked Microsoft account: @Model.Identity</p>
-            }
-            else
-            {
-                <p class="transform-text">Please link this account to your personal or work Microsoft account:</p>
-            }
+            <div class="transform-text">
+                @if (@hasExternalIdentity)
+                {
+                    <span>
+                        Please sign in with your linked Microsoft account: <br>@Model.Identity
+                    </span>
+                }
+                else
+                {
+                    <span>Please link this account to your Microsoft account.</span>
+                }
+                <br /><br />
+                <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
+            </div>
             <div class="action-node">
                 <a role="button" 
                    class="btn btn-default btn-block action-button" 

@@ -278,7 +278,7 @@ namespace NuGetGallery.Authentication
                     .Select(cred => cred.Identity)
                     .ToArray();
                 
-                var identityList = string.Join("; ", externalIdentities);
+                var identityList = string.Join(" or ", externalIdentities);
                 ClaimsExtensions.AddExternalCredentialIdentityClaim(claims, identityList);
             }
 
