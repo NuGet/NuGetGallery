@@ -1241,6 +1241,58 @@ namespace NuGetGallery.Controllers
                     .VerifyAll();
             }
 
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GivenDiscontinuedLoginSetting_ItRemovesPasswordLoginAsAppropriate(bool discontinuedLogin)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var builder = new CredentialBuilder();
+                var cred = builder.CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+                var passwordCred = builder.CreatePasswordCredential("scret_password");
+                var user = fakes.CreateUser("test", cred, passwordCred);
+                var authUser = new AuthenticatedUser(user, cred);
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                controller.NuGetContext.Config.Current.DeprecateNuGetPasswordLogins = discontinuedLogin;
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Authentication = authUser
+                    });
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.RemoveCredential(user, passwordCred))
+                    .Completes()
+                    .Verifiable();
+
+                var passwordConfigMock = new Mock<ILoginDiscontinuationConfiguration>();
+                passwordConfigMock
+                    .Setup(x => x.IsPasswordLoginDiscontinuedForAll())
+                    .Returns(discontinuedLogin);
+
+                GetMock<IContentObjectService>()
+                    .Setup(x => x.LoginDiscontinuationConfiguration)
+                    .Returns(passwordConfigMock.Object);
+
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
+                    .Returns(Task.CompletedTask);
+
+                // Act
+                var result = await controller.LinkExternalAccount("theReturnUrl");
+
+                // Assert
+                ResultAssert.IsSafeRedirectTo(result, "theReturnUrl");
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.RemoveCredential(user, passwordCred), discontinuedLogin ? Times.Once() : Times.Never());
+            }
+
             [Fact]
             public async Task ShouldChallengeForEnforcedMultiFactorAuthentication()
             {
