@@ -63,11 +63,16 @@ try {
                     throw "$script failed!"
                 }
             } -ArgumentList ($_, $PSScriptRoot)
-        } `
-        | ForEach-Object { 
-            Wait-Job $_ | Output-Job | Out-Host
-        } `
-        | Out-Host
+            
+            Write-Host "Started testing $_"
+        } | Out-Null
+
+    do {
+        $jobs = Get-Job -Name $TestCategoriesArray
+        $job = Wait-Job $jobs -Any
+        Output-Job $job | Out-Host
+        $TestCategoriesArray = $TestCategoriesArray | Where-Object { $_ -ne $job.Name }
+    } while ($TestCategoriesArray.count -gt 0)
 
     $finished = $true
 } finally {
