@@ -137,10 +137,10 @@ namespace NuGetGallery
                 || ActionsRequiringPermissions.ManageAccount.CheckPermissions(GetCurrentUser(), account)
                     != PermissionsCheckResult.Allowed)
             {
-                return View(new ConfirmationViewModel(account)
+                return View(new ConfirmationViewModel(accountName)
                 {
                     WrongUsername = true,
-                    SuccessfulConfirmation = false,
+                    SuccessfulConfirmation = false
                 });
             }
 
