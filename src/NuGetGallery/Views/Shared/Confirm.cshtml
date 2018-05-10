@@ -1,6 +1,6 @@
 ﻿@model ConfirmationViewModel
 @{
-    var titleString = Model.ConfirmingNewAccount ? "Account" : "Email";
+    var titleString = Model.ConfirmingNewAccount ? (Model.IsOrganization ? "Organization" : "Account") : "Email";
     ViewBag.Title = "Confirm Your " + titleString;
     ViewBag.SmPageColumns = Constants.ColumnsWideAuthenticationSm;
     ViewBag.MdPageColumns = Constants.ColumnsWideAuthenticationMd;
@@ -12,7 +12,7 @@
         <div class="col-xs-12">
             @if (Model.SuccessfulConfirmation)
             {
-                <h1 class="text-center">@(Model.ConfirmingNewAccount ? (Model.IsOrganization ? "Organization" : "Account") : "Email") Confirmed</h1>
+                <h1 class="text-center">@titleString Confirmed</h1>
             }
             else
             {
@@ -34,36 +34,28 @@
                     @<text>
                         @if (Model.WrongUsername)
                         {
+                            <span>You cannot confirm a different user's email address!</span>
                             <p>
-                                You cannot confirm a different user's email address!
-                            </p>
-                            <p>
-                                Please check that you used the link from the right confirmation email, and are logged in as the right user.
+                                Please log in as '@Model.AccountName' and then click the link again.
                             </p>
                         }
                         else if (Model.DuplicateEmailAddress)
                         {
-                            <p>
-                                Your email address has already been confirmed by another account (likely another account you own).
-                            </p>
+                            <span>Your email address has already been confirmed by another account (likely another account you own).</span>
                             <p>
                                 You can <span class="ms-noWrap">@Html.ActionLink("change your email address", "Account", "Users")</span>, reuse the account registered with this email address, or change the email address of the account registered with this email address.
                             </p>
                         }
                         else if (Model.AlreadyConfirmed)
                         {
-                            <p>
-                                Your email address has already been confirmed.
-                            </p>
+                            <span>Your email address has already been confirmed.</span>
                             <p>
                                 Is @Model.ConfirmedEmailAddress incorrect? <span class="ms-noWrap">@Html.ActionLink("Change your email", "Account", "Users")</span>
                             </p>
                         }
                         else
                         {
-                            <p>
-                                We could not confirm your email address. This probably means the confirmation token was invalid or expired.
-                            </p>
+                            <span>We could not confirm your email address. This probably means the confirmation token was invalid or expired.</span>
                             <p>
                                 Please check that you used the link from the confirmation email we sent. If you did, try resending your confirmation email.
                             </p>
