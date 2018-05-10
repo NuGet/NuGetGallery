@@ -38,6 +38,11 @@ namespace NuGetGallery.Authentication
         public const string ExternalLogin = ClaimsDomain + "externallogin";
 
         /// <summary>
+        /// The claim url for the claim that stores the list of associated external login identities.
+        /// </summary>
+        public const string ExternalCredentialIdenities = ClaimsDomain + "externalcredentialidentity";
+
+        /// <summary>
         /// The claim url for the claim that stores whether or not the user has enabled multi-factor authentication.
         /// </summary>
         public const string EnabledMultiFactorAuthentication = ClaimsDomain + "enabledmultifactorauthentication";
