@@ -56,11 +56,11 @@ namespace NuGetGallery
             var email = authUser.User.ToMailAddress();
             return
                 authUser.CredentialUsed.IsPassword() &&
-                IsUserOnWhitelist(authUser.User, IsPasswordDiscontinuedForAll) &&
+                (IsPasswordDiscontinuedForAll || IsUserOnWhitelist(authUser.User)) &&
                 !ExceptionsForEmailAddresses.Contains(email.Address);
         }
 
-        public bool IsUserOnWhitelist(User user, bool discontinuedForAllUsers)
+        public bool IsUserOnWhitelist(User user)
         {
             if (user == null)
             {
@@ -69,7 +69,6 @@ namespace NuGetGallery
 
             var email = user.ToMailAddress();
             return
-                discontinuedForAllUsers ||
                 DiscontinuedForDomains.Contains(email.Host) ||
                 DiscontinuedForEmailAddresses.Contains(email.Address);
         }
@@ -100,7 +99,7 @@ namespace NuGetGallery
     {
         bool IsLoginDiscontinued(AuthenticatedUser authUser);
         bool IsPasswordLoginDiscontinuedForAll();
-        bool IsUserOnWhitelist(User user, bool discontinuedForAllUsers);
+        bool IsUserOnWhitelist(User user);
         bool ShouldUserTransformIntoOrganization(User user);
         bool IsTenantIdPolicySupportedForOrganization(string emailAddress, string tenantId);
     }

@@ -731,7 +731,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use Microsoft account to log into {0} going forward..
+        ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
         /// </summary>
         public static string DiscontinuedLogin_PasswordRemoved {
             get {
