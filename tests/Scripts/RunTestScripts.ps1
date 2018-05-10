@@ -49,7 +49,7 @@ try {
     $TestCategoriesArray `
         | ForEach-Object {
             # Kill existing job
-            $job = Get-Job -Name $_ -ErrorAction SilentlyContinue | Remove-Job -Force | Out-Host
+            $job = Get-Job -Name $_ -ErrorAction Ignore | Remove-Job -Force | Out-Host
 
             # Start new job
             Start-Job -Name $_ -ScriptBlock {
@@ -77,7 +77,7 @@ try {
         $jobs = Get-Job -Name $TestCategoriesArray
         $job = Wait-Job $jobs -Any
         Output-Job $job | Out-Host
-        $TestCategoriesArray = $TestCategoriesArray | Where-Object { $_ -ne $job.Name }
+        $TestCategoriesArray = @($TestCategoriesArray | Where-Object { $_ -ne $job.Name })
         Write-Host $fullDivider
     } while ($TestCategoriesArray.count -gt 0)
 

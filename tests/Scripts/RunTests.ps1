@@ -20,17 +20,9 @@ $webUITestResults = "$rootName/NuGetGallery.$TestCategory.WebUITests.trx"
 $loadTestResults = "$rootName/NuGetGallery.$TestCategory.LoadTests.trx"
 
 # Clean previous test results
-if (Test-Path $functionalTestsResults) {
-    Remove-Item $functionalTestsResults
-}
-
-if (Test-Path $webUITestResults) {
-    Remove-Item $webUITestResults
-}
-
-if (Test-Path $loadTestResults) {
-    Remove-Item $loadTestResults
-}
+Remove-Item $functionalTestsResults -ErrorAction Ignore
+Remove-Item $webUITestResults -ErrorAction Ignore
+Remove-Item $loadTestResults -ErrorAction Ignore
 
 # Run functional tests
 $fullTestCategory = "$($testCategory)Tests"
