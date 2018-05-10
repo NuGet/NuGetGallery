@@ -1256,7 +1256,7 @@ namespace NuGetGallery.Controllers
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 var controller = GetController<AuthenticationController>();
-                controller.NuGetContext.Config.Current.DeprecateNuGetPasswordLogins = discontinuedLogin;
+                controller.NuGetContext.Config.Current.DeprecateNuGetPasswordLogins = true;
 
                 GetMock<AuthenticationService>()
                     .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
