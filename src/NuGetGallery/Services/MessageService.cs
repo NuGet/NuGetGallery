@@ -636,34 +636,6 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
-        public void SendPackageUploadedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
-        {
-            string subject = $"[{Config.GalleryOwner.DisplayName}] Package uploaded - {package.PackageRegistration.Id} {package.Version}";
-            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently uploaded to {Config.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
-
-Note: This package has not been published yet. It will appear in search results and will be available for install/restore after both validation and indexing are complete. Package validation and indexing may take up to an hour.
-
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving emails as an owner of this package, sign in to the {Config.GalleryOwner.DisplayName} and
-    [change your email notification settings]({emailSettingsUrl}).
-</em>";
-
-            using (var mailMessage = new MailMessage())
-            {
-                mailMessage.Subject = subject;
-                mailMessage.Body = body;
-                mailMessage.From = Config.GalleryNoReplyAddress;
-
-                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
-
-                if (mailMessage.To.Any())
-                {
-                    SendMessage(mailMessage);
-                }
-            }
-        }
-
         public void SendAccountDeleteNotice(User user)
         {
             string body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.

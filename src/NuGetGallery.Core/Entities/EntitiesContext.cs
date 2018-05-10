@@ -348,7 +348,7 @@ namespace NuGetGallery
                 .Property(c => c.Sha1Thumbprint)
                 .HasMaxLength(40)
                 .HasColumnType("varchar")
-                .IsOptional();
+                .IsRequired();
 
             modelBuilder.Entity<UserCertificate>()
                 .HasKey(uc => uc.Key);
