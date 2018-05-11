@@ -274,8 +274,8 @@ namespace NuGetGallery.FunctionalTests
             bool success = true)
         {
             return UnlistPackage(
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Any(p => p.Listed && p.ApiKey == apiKey), 
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) ? pr.Versions.Last() : null, 
+                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Any(p => !p.Listed && p.ApiKey == apiKey), 
+                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) ? pr.Versions.Last(p => p.Listed) : null, 
                 apiKey, 
                 success);
         }

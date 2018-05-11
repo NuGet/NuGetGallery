@@ -98,7 +98,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <param name="packageRegistrationInfos">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
         /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
-        public async Task CheckPackageTimestampsInOrder(IEnumerable<PackageRegistrationInfo> packageRegistrationInfos, string timestampPropertyName,
+        private async Task CheckPackageTimestampsInOrder(IEnumerable<PackageRegistrationInfo> packageRegistrationInfos, string timestampPropertyName,
             DateTime operationStartTimestamp)
         {
             var lastTimestamp = DateTime.MinValue;
