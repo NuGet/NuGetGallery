@@ -175,10 +175,7 @@ namespace NuGetGallery.FunctionalTests
         {
             return UploadPackage(
                 pr => pr.Versions.Count(p => p.Listed && p.ApiKey == apiKey) > 1,
-                prs => 
-                    prs.First(
-                        pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))) ?? 
-                        throw new ArgumentException($"There is no existing package registration with at least one version and the same owner as the API key {apiKey}.", nameof(apiKey)),
+                prs => prs.FirstOrDefault(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))),
                 apiKey, 
                 success);
         }
@@ -203,6 +200,11 @@ namespace NuGetGallery.FunctionalTests
                 if (packageRegistrationInfo == null)
                 {
                     packageRegistrationInfo = getRegistrationToUploadTo(ExistingPackages);
+                    if (packageRegistrationInfo == null)
+                    {
+                        throw new ArgumentException("Could not find a package registration to upload the new package to!", nameof(getRegistrationToUploadTo));
+                    }
+
                     if (!ExistingPackages.Any(pr => pr == packageRegistrationInfo))
                     {
                         ExistingPackages.Add(packageRegistrationInfo);
@@ -318,7 +320,7 @@ namespace NuGetGallery.FunctionalTests
 
                     if (packageRegistrationInfo == null || packageInfo == null)
                     {
-                        throw new ArgumentException("There must be at least one existing package registration that returns a non-null PackageInfo with the predicate provided!", nameof(getPackageToUnlist));
+                        throw new ArgumentException("Could not find a package to unlist!", nameof(getPackageToUnlist));
                     }
 
                     var task = packageInfo.ReadyTask
