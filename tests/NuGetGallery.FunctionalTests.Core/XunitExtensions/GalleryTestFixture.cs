@@ -48,7 +48,11 @@ namespace NuGetGallery.FunctionalTests
                 var clientSdkHelper = new ClientSdkHelper(ConsoleTestOutputHelper.New);
                 if (!clientSdkHelper.CheckIfPackageExistsInSource(Constants.TestPackageId, UrlHelper.V2FeedRootUrl))
                 {
-                    await clientSdkHelper.UploadNewPackageAndVerify(Constants.TestPackageId);
+                    var testOutputHelper = ConsoleTestOutputHelper.New;
+                    var commandlineHelper = new CommandlineHelper(testOutputHelper);
+                    var packageCreationHelper = new PackageCreationHelper(testOutputHelper);
+                    string packageFullPath = await packageCreationHelper.CreatePackage(Constants.TestPackageId, "1.0.0");
+                    var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
                 }
             }
             catch (Exception exception)

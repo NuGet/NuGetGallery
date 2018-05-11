@@ -2,10 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
-using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
@@ -48,59 +48,31 @@ namespace NuGetGallery.FunctionalTests.Commandline
             Assert.True(_clientSdkHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
         }
 
-        [Fact]
-        [Description("Tests upload and unlist scenarios as self")]
+        public static IEnumerable<object[]> UploadAndUnlistPackages_Data
+        {
+            get
+            {
+                yield return new object[] { null };
+                yield return new object[] { EnvironmentSettings.TestOrganizationAdminAccountApiKey };
+                yield return new object[] { EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(UploadAndUnlistPackages_Data))]
+        [Description("Tests upload and unlist scenarios with API key")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadAndUnlistPackagesAsSelf()
+        public async Task UploadAndUnlistPackages(string apiKey)
         {
             // Can push new package ID as self
-            var id = UploadHelper.GetUniquePackageId(nameof(UploadAndUnlistPackagesAsSelf));
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0");
+            await _clientSdkHelper.UploadPackage(apiKey);
 
             // Can push new version of an existing package as self
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0");
+            await _clientSdkHelper.UploadPackageVersion(apiKey);
 
             // Can unlist versions of an existing package as self
-            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0");
-        }
-
-        [Fact]
-        [Description("Tests upload and unlist scenarios as an organization admin")]
-        [Priority(0)]
-        [Category("P0Tests")]
-        public async Task UploadAndUnlistPackagesAsOrganizationAdmin()
-        {
-            var apiKey = EnvironmentSettings.TestOrganizationAdminAccountApiKey;
-
-            // Can push new package ID as organization
-            var id = UploadHelper.GetUniquePackageId(nameof(UploadAndUnlistPackagesAsOrganizationAdmin));
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0", apiKey: apiKey);
-
-            // Can push new version of an existing package as organization
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0", apiKey: apiKey);
-
-            // Can unlist versions of an existing package as organization
-            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0", apiKey);
-        }
-
-        [Fact]
-        [Description("Tests upload and unlist scenarios as an organization collaborator")]
-        [Priority(0)]
-        [Category("P0Tests")]
-        public async Task UploadAndUnlistPackagesAsOrganizationCollaborator()
-        {
-            var apiKey = EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
-
-            // Can push new package ID as organization
-            var id = UploadHelper.GetUniquePackageId(nameof(UploadAndUnlistPackagesAsOrganizationCollaborator));
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "1.0.0", apiKey: apiKey);
-
-            // Can push new version of an existing package as organization
-            await _clientSdkHelper.UploadNewPackageAndVerify(id, "2.0.0", apiKey: apiKey);
-
-            // Can unlist versions of an existing package as organization
-            await _clientSdkHelper.UnlistPackageAndVerify(id, "2.0.0", apiKey);
+            await _clientSdkHelper.UnlistPackage(apiKey);
         }
 
         [Fact]
@@ -112,45 +84,27 @@ namespace NuGetGallery.FunctionalTests.Commandline
             // Arrange
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-
-            var packageId = UploadHelper.GetUniquePackageId(nameof(ScopedApiKeysCanOnlyPushAndUnlistWithCorrectScopes));
-            var version1 = "1.0.0";
-            var version2= "2.0.0";
-
+            
             // 1. Try to upload package using 'unlist' api key => expect failure
-            TestOutputHelper.WriteLine($"1. Trying to upload package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: failure.");
-            await _clientSdkHelper.UploadNewPackage(packageId, version1, apiKey: EnvironmentSettings.TestAccountApiKey_Unlist, success: false);
+            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Unlist, success: false);
 
             // 2. Try to upload package using 'push version' api key => expect failure
-            TestOutputHelper.WriteLine($"2. Trying to upload package '{packageId}', version '{version1}' using 'push version' API key. Expected result: failure.");
-            await _clientSdkHelper.UploadNewPackage(packageId, version1, apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
+            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
 
             // 3. Upload package using 'push' api key => expect success
-            TestOutputHelper.WriteLine($"3. Trying to upload package '{packageId}', version '{version1}' using 'push' API key. Expected result: success.");
-            await _clientSdkHelper.UploadNewPackage(packageId, version1, apiKey: EnvironmentSettings.TestAccountApiKey_Push);
+            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Push);
 
             // 4. Upload new version of package using 'push version' api key => expect success
-            TestOutputHelper.WriteLine($"4. Trying to upload package '{packageId}', version '{version2}' using 'push version' API key. Expected result: success.");
-            await _clientSdkHelper.UploadNewPackage(packageId, version2, apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion);
-
-            // Verify the existence of the two pushed packages.
-            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version1);
-            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version2);
+            await _clientSdkHelper.UploadPackageVersion(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion);
 
             // 5. Try unlisting package version1 using 'push' api key => expect failure
-            TestOutputHelper.WriteLine($"5. Trying to unlist package '{packageId}', version '{version1}' using 'push' API key. Expected result: failure.");
-            await _clientSdkHelper.UnlistPackage(packageId, version1, EnvironmentSettings.TestAccountApiKey_Push, success: false);
+            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Push, success: false);
 
             // 6. Try unlisting package version2 using 'push version' api key => expect failure
-            TestOutputHelper.WriteLine($"6. Trying to unlist package '{packageId}', version '{version2}' using 'push' API key. Expected result: failure.");
-            await _clientSdkHelper.UnlistPackage(packageId, version2, EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
+            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
 
             // 7. Unlist both packages using 'unlist' api key => expect succees
-            TestOutputHelper.WriteLine($"7. Trying to unlist package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: success.");
-            await _clientSdkHelper.UnlistPackage(packageId, version1, EnvironmentSettings.TestAccountApiKey_Unlist);
-
-            TestOutputHelper.WriteLine($"8. Trying to unlist package '{packageId}', version '{version2}' using 'unlist' API key. Expected result: success.");
-            await _clientSdkHelper.UnlistPackage(packageId, version2, EnvironmentSettings.TestAccountApiKey_Unlist);
+            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Unlist);
         }
 
         [Fact]

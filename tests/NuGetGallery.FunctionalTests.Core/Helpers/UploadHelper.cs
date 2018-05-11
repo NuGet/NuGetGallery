@@ -48,14 +48,9 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// <summary>
         /// Gets a unique ID for a package to upload.
         /// </summary>
-        public static string GetUniquePackageId(string test)
+        public static string GetUniquePackageId()
         {
-            if (test == null)
-            {
-                test = "UploadPackageFromUI";
-            }
-
-            return $"{test}_{DateTimeOffset.UtcNow.Ticks}";
+            return $"NuGetFunctionalTest_{DateTimeOffset.UtcNow.Ticks}";
         }
 
         /// <summary>

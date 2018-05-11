@@ -4,6 +4,7 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -124,15 +125,14 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns404ForMissingPackage()
         {
             // Arrange
-            var packageId = $"VerifyPackageKey_Returns404ForMissingPackage.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageRegistrationInfo.Id;
+            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
 
             var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
             
             // Act & Assert
-            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, packageId + "_bad", packageVersion));
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, "missingPackage", "1.0.0"));
         }
 
         [DefaultSecurityPoliciesEnforcedFact(runIfEnforced: false)]
@@ -142,10 +142,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForFullApiKey()
         {
             // Arrange
-            var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageRegistrationInfo.Id;
+            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
 
             // Act & Assert
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
@@ -159,10 +158,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForTempApiKey()
         {
             // Arrange
-            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageRegistrationInfo.Id;
+            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
 
             var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
 

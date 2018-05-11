@@ -9,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionalTests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,24 +38,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
-            string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
-            
-            TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-            await _clientSdkHelper.UploadNewPackage(packageId, "1.0.0");
+            await _clientSdkHelper.UploadPackage();
+            var packageRegistrationInfo = await _clientSdkHelper.UploadPackageVersion();
 
-            TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
-            await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
-
-            // Wait for the packages to be available in V2 (due to async validation)
-            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, "1.0.0");
-            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, "2.0.0");
-
+            var packageId = packageRegistrationInfo.Id;
             string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
-            string[] expectedTexts =
-            {
-                    @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>",
-                    @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"
-                };
+            var expectedTexts = packageRegistrationInfo.Versions.Select(p => @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + p.Version + "')</id>").ToArray();
             var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
             Assert.True(containsResponseText);
         }
@@ -70,35 +59,32 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.
             // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
             // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
-            var packageIds = new List<string>(PackagesInOrderNumPackages);
-            var packageVersion = "1.0.0";
+            var packageRegistrationInfoTasks = new List<Task<PackageRegistrationInfo>>(PackagesInOrderNumPackages);
             var startingTime = DateTime.UtcNow;
 
             // Upload the packages in order.
             var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                var packageId = $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
-                await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
-                packageIds.Add(packageId);
+                packageRegistrationInfoTasks.Add(_clientSdkHelper.UploadPackage(pr => false));
             }
 
-            // Wait for the packages to be available in V2 (due to async validation)
-            foreach (var packageId in packageIds)
-            {
-                await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
-            }
+            var packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);
 
-            await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
+            await CheckPackageTimestampsInOrder(packageRegistrationInfos, "Created", uploadStartTimestamp);
+
+            packageRegistrationInfoTasks.Clear();
 
             // Unlist the packages in order.
             var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
-            for (var i = 0; i < PackagesInOrderNumPackages; i++)
+            foreach (var packageRegistrationInfo in packageRegistrationInfos)
             {
-                await _clientSdkHelper.UnlistPackage(packageIds[i]);
+                packageRegistrationInfoTasks.Add(_clientSdkHelper.UnlistPackage(pr => pr == packageRegistrationInfo, pr => pr.Versions.Last()));
             }
 
-            await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
+            packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);
+
+            await CheckPackageTimestampsInOrder(packageRegistrationInfos, "LastEdited", unlistStartTimestamp);
         }
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
@@ -109,17 +95,18 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <summary>
         /// Verifies if a set of packages in the feed have timestamps in a particular order.
         /// </summary>
-        /// <param name="packageIds">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
+        /// <param name="packageRegistrationInfos">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
         /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
-        private async Task CheckPackageTimestampsInOrder(List<string> packageIds, string timestampPropertyName,
+        public async Task CheckPackageTimestampsInOrder(IEnumerable<PackageRegistrationInfo> packageRegistrationInfos, string timestampPropertyName,
             DateTime operationStartTimestamp)
         {
             var lastTimestamp = DateTime.MinValue;
-            for (var i = 0; i < PackagesInOrderNumPackages; i++)
+            var lastPackageId = string.Empty;
+            foreach (var packageRegistrationInfo in packageRegistrationInfos)
             {
-                var packageId = packageIds[i];
-                TestOutputHelper.WriteLine($"Attempting to check order of package #{i} {timestampPropertyName} timestamp in feed.");
+                var packageId = packageRegistrationInfo.Id;
+                TestOutputHelper.WriteLine($"Attempting to check order of package {packageId} {timestampPropertyName} timestamp in feed.");
 
                 var newTimestamp =
                     await
@@ -130,8 +117,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
                 Assert.True(newTimestamp.HasValue);
                 Assert.True(newTimestamp.Value > lastTimestamp,
-                    $"Package #{i} was last modified after package #{i - 1} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
+                    $"Package {packageId} was last modified after package {lastPackageId} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
                 lastTimestamp = newTimestamp.Value;
+                lastPackageId = packageId;
             }
         }
 

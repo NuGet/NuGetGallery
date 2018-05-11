@@ -71,6 +71,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\AssertAndValidationHelper.cs" />
+    <Compile Include="Helpers\PackageInfo.cs" />
+    <Compile Include="Helpers\PackageRegistrationInfo.cs" />
     <Compile Include="Helpers\ServicePointManagerInitializer.cs" />
     <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="XunitExtensions\CategoryAttribute.cs" />
