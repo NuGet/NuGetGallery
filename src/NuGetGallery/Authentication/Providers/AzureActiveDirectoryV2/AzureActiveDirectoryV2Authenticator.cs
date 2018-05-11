@@ -43,7 +43,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string V2CommonTenant = "common";
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
+        private static string _callbackPath = "users/account/authenticate/return";
         private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
+        private static HashSet<string> _stagingUrlList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "stagingdev.nugettest.org",
+            "stagingint.nugettest.org",
+            "staging.nuget.org"
+        };
 
         /// <summary>
         /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
@@ -75,7 +82,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             // Configure OpenIdConnect
             var options = new OpenIdConnectAuthenticationOptions(BaseConfig.AuthenticationType)
             {
-                RedirectUri = siteRoot + "users/account/authenticate/return",
+                RedirectUri = siteRoot + _callbackPath,
                 PostLogoutRedirectUri = siteRoot,
                 Scope = OpenIdConnectScopes.OpenIdProfile + " email",
                 ResponseType = OpenIdConnectResponseTypes.CodeIdToken,
@@ -219,6 +226,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             else
             {
                 notification.ProtocolMessage.AcrValues = ACR_VALUES.ANY;
+            }
+
+            // Set the redirect_uri token for the staging environments
+            if (_stagingUrlList.Contains(notification.Request.Uri.Host))
+            {
+                notification.ProtocolMessage.RedirectUri = "https://" + notification.Request.Uri.Host + "/" + _callbackPath ;
             }
 
             return Task.FromResult(0);
