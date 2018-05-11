@@ -7,7 +7,7 @@ using System.Runtime.Serialization;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Exception thrown when a report is not found.
+    /// Exception thrown when a <see cref="ReportBlob"/> is not found by the <see cref="ReportService"/>.
     /// </summary>
     [Serializable]
     public class ReportNotFoundException : Exception
