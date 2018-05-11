@@ -42,7 +42,10 @@ namespace NuGetGallery
             var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report.Content);
 
             string targetId = recommendedPackages.Id;
-            Debug.Assert(string.Equals(targetId, package.Title, StringComparison.OrdinalIgnoreCase));
+            Debug.Assert(string.Equals(
+                targetId,
+                package.PackageRegistration.Id,
+                StringComparison.OrdinalIgnoreCase));
 
             var recommendationIds = recommendedPackages.Recommendations;
             return recommendationIds.Select(
@@ -63,7 +66,8 @@ namespace NuGetGallery
                 return sb.ToString();
             }
 
-            string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(package.Title));
+            string encodedId = GetHexadecimalString(
+                Encoding.UTF8.GetBytes(package.PackageRegistration.Id));
             return $"Recommendations/{encodedId}.json";
         }
     }
