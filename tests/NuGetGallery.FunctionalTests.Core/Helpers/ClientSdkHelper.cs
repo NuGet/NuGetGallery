@@ -184,7 +184,7 @@ namespace NuGetGallery.FunctionalTests
             {
                 if (success)
                 {
-                    packageRegistrationInfo = ExistingPackages.First(cachePredicate);
+                    packageRegistrationInfo = ExistingPackages.FirstOrDefault(cachePredicate);
                 }
 
                 if (packageRegistrationInfo == null)
@@ -275,7 +275,7 @@ namespace NuGetGallery.FunctionalTests
             {
                 if (success)
                 {
-                    packageRegistrationInfo = ExistingPackages.First(cachePredicate);
+                    packageRegistrationInfo = ExistingPackages.FirstOrDefault(cachePredicate);
                 }
 
                 if (packageRegistrationInfo == null)
