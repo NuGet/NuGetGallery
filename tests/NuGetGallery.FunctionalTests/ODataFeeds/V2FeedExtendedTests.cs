@@ -66,7 +66,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                packageRegistrationInfoTasks.Add(_clientSdkHelper.UploadPackage(pr => false));
+                packageRegistrationInfoTasks.Add(_clientSdkHelper.UploadPackage(pr => false, prs => new PackageRegistrationInfo(UploadHelper.GetUniquePackageId())));
             }
 
             var packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);

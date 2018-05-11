@@ -162,23 +162,33 @@ namespace NuGetGallery.FunctionalTests
             string apiKey = null,
             bool success = true)
         {
-            return UploadPackage(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)), apiKey, success);
+            return UploadPackage(
+                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)), 
+                prs => new PackageRegistrationInfo(UploadHelper.GetUniquePackageId()), 
+                apiKey, 
+                success);
         }
 
         public Task<PackageRegistrationInfo> UploadPackageVersion(
             string apiKey = null,
             bool success = true)
         {
-            return UploadPackage(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Count > 0, apiKey, success);
+            return UploadPackage(
+                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Count > 0,
+                prs => prs.First(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))),
+                apiKey, 
+                success);
         }
 
 
         public async Task<PackageRegistrationInfo> UploadPackage(
             Func<PackageRegistrationInfo, bool> cachePredicate, 
+            Func<IEnumerable<PackageRegistrationInfo>, PackageRegistrationInfo> getRegistrationToUploadTo,
             string apiKey = null, 
             bool success = true)
         {
             PackageRegistrationInfo packageRegistrationInfo = null;
+            IEnumerable<Task> tasks;
             
             lock (ExistingPackagesLock)
             {
@@ -189,16 +199,27 @@ namespace NuGetGallery.FunctionalTests
 
                 if (packageRegistrationInfo == null)
                 {
-                    packageRegistrationInfo = new PackageRegistrationInfo(UploadHelper.GetUniquePackageId());
-                    ExistingPackages.Add(packageRegistrationInfo);
+                    packageRegistrationInfo = getRegistrationToUploadTo(ExistingPackages);
+                    if (!ExistingPackages.Any(pr => pr == packageRegistrationInfo))
+                    {
+                        ExistingPackages.Add(packageRegistrationInfo);
+                    }
                     
-                    var version = $"1.0.0";
+                    var version = $"{packageRegistrationInfo.Versions.Count}.0.0";
                     var task = UploadPackage(packageRegistrationInfo.Id, version, apiKey, success);
-                    packageRegistrationInfo.Versions.Add(new PackageInfo(version, true, task));
+                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask).Concat(new[] { task });
+                    if (success)
+                    {
+                        packageRegistrationInfo.Versions.Add(new PackageInfo(version, true, task));
+                    }
+                }
+                else
+                {
+                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask);
                 }
             }
 
-            await Task.WhenAll(packageRegistrationInfo.Versions.Select(p => p.ReadyTask));
+            await Task.WhenAll(tasks);
             return packageRegistrationInfo;
         }
         
@@ -270,6 +291,7 @@ namespace NuGetGallery.FunctionalTests
             bool success = true)
         {
             PackageRegistrationInfo packageRegistrationInfo = null;
+            IEnumerable<Task> tasks;
 
             lock (ExistingPackagesLock)
             {
@@ -296,15 +318,23 @@ namespace NuGetGallery.FunctionalTests
                         throw new ArgumentException("There must be at least one existing package registration that returns a non-null PackageInfo with the predicate provided!", nameof(getPackageToUnlist));
                     }
 
-                    packageRegistrationInfo.Versions.Remove(packageInfo);
                     var task = packageInfo.ReadyTask
                         .ContinueWith(t => UnlistPackage(packageRegistrationInfo.Id, packageInfo.Version, apiKey));
-                    var newPackageInfo = new PackageInfo(packageInfo.Version, !success && packageInfo.Listed, task);
-                    packageRegistrationInfo.Versions.Add(newPackageInfo);
+                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask).Concat(new[] { task });
+                    if (success)
+                    {
+                        packageRegistrationInfo.Versions.Remove(packageInfo);
+                        var newPackageInfo = new PackageInfo(packageInfo.Version, !success && packageInfo.Listed, task);
+                        packageRegistrationInfo.Versions.Add(newPackageInfo);
+                    }
+                }
+                else
+                {
+                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask);
                 }
             }
 
-            await Task.WhenAll(packageRegistrationInfo.Versions.Select(p => p.ReadyTask));
+            await Task.WhenAll(tasks);
             return packageRegistrationInfo;
         }
 
