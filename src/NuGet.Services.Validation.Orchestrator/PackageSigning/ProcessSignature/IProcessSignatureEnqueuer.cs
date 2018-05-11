@@ -11,13 +11,19 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
     public interface IProcessSignatureEnqueuer
     {
         /// <summary>
-        /// Kicks off the package verification process for the given request. Verification will begin when the
-        /// <see cref="ValidationEntitiesContext"/> has a <see cref="ValidatorStatus"/> that matches the
-        /// <see cref="IValidationRequest"/>'s validationId. Once verification completes, the <see cref="ValidatorStatus"/>'s
-        /// State will be updated to "Succeeded" or "Failed".
+        /// Processes the package's signatures, if any. Unacceptable repository signatures will be stripped off.
+        /// Author signatures that fail trust or integrity verification will fail the validation.
         /// </summary>
+        /// <remarks>
+        /// Verification will begin when the <see cref="ValidationEntitiesContext"/> has a <see cref="ValidatorStatus"/>
+        /// that matches the <see cref="IValidationRequest"/>'s validationId. Once verification completes,
+        /// the <see cref="ValidatorStatus"/>'s State will be updated to "Succeeded" or "Failed".
+        /// </remarks>
         /// <param name="request">The request that details the package to be verified.</param>
+        /// <param name="requireRepositorySignature">
+        /// If true, the package must have an acceptable repository signature to pass validation.
+        /// </param>
         /// <returns>A task that will complete when the verification process has been queued.</returns>
-        Task EnqueueVerificationAsync(IValidationRequest request);
+        Task EnqueueProcessSignatureAsync(IValidationRequest request, bool requireRepositorySignature);
     }
 }

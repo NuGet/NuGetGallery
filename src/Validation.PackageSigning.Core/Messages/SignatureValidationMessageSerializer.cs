@@ -21,7 +21,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
                 PackageId = message.PackageId,
                 PackageVersion = message.PackageVersion,
                 NupkgUri = message.NupkgUri,
-                ValidationId = message.ValidationId
+                ValidationId = message.ValidationId,
+                RequireReopsitorySignature = message.RequireRepositorySignature,
             });
         }
 
@@ -33,7 +34,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
                 deserializedMessage.PackageId,
                 deserializedMessage.PackageVersion,
                 deserializedMessage.NupkgUri,
-                deserializedMessage.ValidationId);
+                deserializedMessage.ValidationId,
+                deserializedMessage.RequireReopsitorySignature);
         }
 
         [Schema(Name = SignatureValidationSchemaName, Version = 1)]
@@ -43,6 +45,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             public string PackageVersion { get; set; }
             public Uri NupkgUri { get; set; }
             public Guid ValidationId { get; set; }
+            public bool RequireReopsitorySignature { get; set; }
         }
     }
 }

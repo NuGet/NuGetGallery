@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -202,15 +201,12 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 
             if (certificates.Any())
             {
-                var stopwatch = Stopwatch.StartNew();
+                using (_telemetryService.TrackDurationToStartPackageCertificatesValidator())
+                {
+                    await StartCertificateValidationsAsync(request, certificates);
 
-                await StartCertificateValidationsAsync(request, certificates);
-
-                var result = await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
-
-                _telemetryService.TrackDurationToStartPackageCertificatesValidator(stopwatch.Elapsed);
-
-                return result;
+                    return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
+                }
             }
             else
             {

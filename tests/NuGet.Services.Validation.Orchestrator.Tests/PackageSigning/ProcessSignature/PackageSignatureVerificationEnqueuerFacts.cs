@@ -21,7 +21,7 @@ namespace NuGet.Services.Validation.PackageSigning
             _configuration.MessageDelay = messageDelay;
 
             var before = DateTimeOffset.UtcNow;
-            await _target.EnqueueVerificationAsync(_validationRequest.Object);
+            await _target.EnqueueProcessSignatureAsync(_validationRequest.Object, requireRepositorySignature: false);
             var after = DateTimeOffset.UtcNow;
 
             Assert.InRange(_brokeredMessage.Object.ScheduledEnqueueTimeUtc, before.Add(messageDelay), after.Add(messageDelay));
@@ -31,7 +31,7 @@ namespace NuGet.Services.Validation.PackageSigning
         public async Task DefaultsNullMessageDelayToZero()
         {
             var before = DateTimeOffset.UtcNow;
-            await _target.EnqueueVerificationAsync(_validationRequest.Object);
+            await _target.EnqueueProcessSignatureAsync(_validationRequest.Object, requireRepositorySignature: false);
             var after = DateTimeOffset.UtcNow;
 
             Assert.InRange(_brokeredMessage.Object.ScheduledEnqueueTimeUtc, before, after);
@@ -46,7 +46,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 .Returns(() => _brokeredMessage.Object)
                 .Callback<SignatureValidationMessage>(x => message = x);
 
-            await _target.EnqueueVerificationAsync(_validationRequest.Object);
+            await _target.EnqueueProcessSignatureAsync(_validationRequest.Object, requireRepositorySignature: false);
 
             Assert.Equal(_validationRequest.Object.ValidationId, message.ValidationId);
             Assert.Equal(_validationRequest.Object.PackageId, message.PackageId);

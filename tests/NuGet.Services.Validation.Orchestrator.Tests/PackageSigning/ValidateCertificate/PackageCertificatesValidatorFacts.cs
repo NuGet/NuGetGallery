@@ -634,7 +634,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Never);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(status, actual.Status);
@@ -671,7 +671,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
@@ -717,7 +717,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
@@ -800,7 +800,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);
@@ -881,7 +881,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(2));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
@@ -965,7 +965,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Once);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
@@ -1047,7 +1047,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
@@ -1213,7 +1213,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Exactly(expectedCertificateValidations));
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Once);
 
                 Assert.Equal(ValidationStatus.Incomplete, actual.Status);
@@ -1282,7 +1282,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Failed, actual.Status);
@@ -1376,7 +1376,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _certificateVerifier.Verify(v => v.EnqueueVerificationAsync(It.IsAny<IValidationRequest>(), It.IsAny<EndCertificate>()), Times.Never);
                 _validationContext.Verify(c => c.SaveChangesAsync(), Times.Once);
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageCertificatesValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageCertificatesValidator(),
                     Times.Never);
 
                 Assert.Equal(ValidationStatus.Succeeded, actual.Status);

@@ -7,7 +7,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
 {
     public class SignatureValidationMessage
     {
-        public SignatureValidationMessage(string packageId, string packageVersion, Uri nupkgUri, Guid validationId)
+        public SignatureValidationMessage(
+            string packageId,
+            string packageVersion,
+            Uri nupkgUri,
+            Guid validationId,
+            bool requireRepositorySignature = false)
         {
             if (validationId == Guid.Empty)
             {
@@ -18,11 +23,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.Messages
             PackageVersion = packageVersion ?? throw new ArgumentNullException(nameof(packageVersion));
             NupkgUri = nupkgUri ?? throw new ArgumentNullException(nameof(nupkgUri));
             ValidationId = validationId;
+            RequireRepositorySignature = requireRepositorySignature;
         }
 
         public string PackageId { get; }
         public string PackageVersion { get; }
         public Uri NupkgUri { get; }
         public Guid ValidationId { get; }
+        public bool RequireRepositorySignature { get; }
     }
 }

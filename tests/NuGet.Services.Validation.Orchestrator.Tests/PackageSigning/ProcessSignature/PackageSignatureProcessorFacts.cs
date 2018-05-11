@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
@@ -17,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace NuGet.Services.Validation.PackageSigning
 {
-    public class PackageSigningValidatorFacts
+    public class PackageSignatureProcessorFacts
     {
         private const int PackageKey = 1001;
         private const string PackageId = "NuGet.Versioning";
@@ -50,7 +51,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     {
                         ValidationId = ValidationId,
                         PackageKey = PackageKey,
-                        ValidatorName = nameof(PackageSigningValidator),
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
                         State = status,
                         ValidatorIssues = new List<ValidatorIssue>(),
                     });
@@ -71,7 +72,7 @@ namespace NuGet.Services.Validation.PackageSigning
                     {
                         ValidationId = ValidationId,
                         PackageKey = PackageKey,
-                        ValidatorName = nameof(PackageSigningValidator),
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
                         State = ValidationStatus.Failed,
                         ValidatorIssues = new List<ValidatorIssue>
                         {
@@ -129,7 +130,7 @@ namespace NuGet.Services.Validation.PackageSigning
                      {
                          ValidationId = ValidationId,
                          PackageKey = PackageKey,
-                         ValidatorName = nameof(PackageSigningValidator),
+                         ValidatorName = ValidatorName.PackageSignatureProcessor,
                          State = status,
                          ValidatorIssues = new List<ValidatorIssue>(),
                      });
@@ -138,13 +139,13 @@ namespace NuGet.Services.Validation.PackageSigning
                 await _target.StartAsync(_validationRequest.Object);
 
                 _packageSignatureVerifier
-                    .Verify(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()), Times.Never);
+                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), It.IsAny<bool>()), Times.Never);
 
                 _validatorStateService
                     .Verify(x => x.AddStatusAsync(It.IsAny<ValidatorStatus>()), Times.Never);
 
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageSigningValidator(),
                     Times.Never);
             }
 
@@ -162,13 +163,13 @@ namespace NuGet.Services.Validation.PackageSigning
                      {
                          ValidationId = ValidationId,
                          PackageKey = PackageKey,
-                         ValidatorName = nameof(PackageSigningValidator),
+                         ValidatorName = ValidatorName.PackageSignatureProcessor,
                          State = ValidationStatus.NotStarted,
                          ValidatorIssues = new List<ValidatorIssue>(),
                      });
 
                 _packageSignatureVerifier
-                    .Setup(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), false))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
@@ -195,7 +196,7 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Assert
                 _packageSignatureVerifier
-                    .Verify(x => x.EnqueueVerificationAsync(It.IsAny<IValidationRequest>()), Times.Once);
+                    .Verify(x => x.EnqueueProcessSignatureAsync(It.IsAny<IValidationRequest>(), false), Times.Once);
 
                 _validatorStateService
                     .Verify(
@@ -206,7 +207,7 @@ namespace NuGet.Services.Validation.PackageSigning
                         Times.Once);
 
                 _telemetryService.Verify(
-                    x => x.TrackDurationToStartPackageSigningValidator(It.IsAny<TimeSpan>()),
+                    x => x.TrackDurationToStartPackageSigningValidator(),
                     Times.Once);
 
                 Assert.True(verificationQueuedBeforeStatePersisted);
@@ -265,9 +266,9 @@ namespace NuGet.Services.Validation.PackageSigning
             protected readonly Mock<IProcessSignatureEnqueuer> _packageSignatureVerifier;
             protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
             protected readonly Mock<ITelemetryService> _telemetryService;
-            protected readonly ILogger<PackageSigningValidator> _logger;
+            protected readonly ILogger<PackageSignatureProcessor> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
-            protected readonly PackageSigningValidator _target;
+            protected readonly PackageSignatureProcessor _target;
 
             public FactsBase(ITestOutputHelper output)
             {
@@ -276,7 +277,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _blobProvider = new Mock<ISimpleCloudBlobProvider>();
                 _telemetryService = new Mock<ITelemetryService>();
                 var loggerFactory = new LoggerFactory().AddXunit(output);
-                _logger = loggerFactory.CreateLogger<PackageSigningValidator>();
+                _logger = loggerFactory.CreateLogger<PackageSignatureProcessor>();
 
                 _validationRequest = new Mock<IValidationRequest>();
                 _validationRequest.Setup(x => x.NupkgUrl).Returns(NupkgUrl);
@@ -285,7 +286,7 @@ namespace NuGet.Services.Validation.PackageSigning
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
-                _target = new PackageSigningValidator(
+                _target = new PackageSignatureProcessor(
                     _validatorStateService.Object,
                     _packageSignatureVerifier.Object,
                     _blobProvider.Object,
