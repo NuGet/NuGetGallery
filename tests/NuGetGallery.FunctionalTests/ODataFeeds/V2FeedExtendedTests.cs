@@ -79,7 +79,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             foreach (var packageRegistrationInfo in packageRegistrationInfos)
             {
-                packageRegistrationInfoTasks.Add(_clientSdkHelper.UnlistPackage(pr => pr == packageRegistrationInfo, pr => pr.Versions.Last()));
+                packageRegistrationInfoTasks.Add(_clientSdkHelper.UnlistPackage(pr => false, pr => pr == packageRegistrationInfo ? pr.Versions.Last() : null));
             }
 
             packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);
