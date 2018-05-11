@@ -111,7 +111,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.PackageSigning.ValidateCertificate\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.PackageSigning.RevalidateCertificate\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGet.Jobs.Common\Properties\AssemblyInfo.g.cs",
-            "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\PackageLagMonitor\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -167,7 +168,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Stats.CollectAzureChinaCDNLogs/Stats.CollectAzureChinaCDNLogs.csproj", `
             "src/Validation.PackageSigning.ProcessSignature/Validation.PackageSigning.ProcessSignature.csproj", `
             "src/Validation.PackageSigning.ValidateCertificate/Validation.PackageSigning.ValidateCertificate.csproj", `
-            "src/Validation.PackageSigning.RevalidateCertificate/Validation.PackageSigning.RevalidateCertificate.csproj" `
+            "src/Validation.PackageSigning.RevalidateCertificate/Validation.PackageSigning.RevalidateCertificate.csproj", `
+            "src/PackageLagMonitor/Monitoring.PackageLag.csproj" `
             + $ProjectsWithSymbols
 
         Foreach ($Project in $Projects) {
