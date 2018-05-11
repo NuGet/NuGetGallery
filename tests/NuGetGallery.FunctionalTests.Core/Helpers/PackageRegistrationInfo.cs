@@ -14,7 +14,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         public PackageRegistrationInfo(string id, params PackageInfo[] versions)
         {
             Id = id;
-            Versions = versions;
+            Versions = versions.ToList();
         }
 
         public PackageInfo GetVersion(string version)
