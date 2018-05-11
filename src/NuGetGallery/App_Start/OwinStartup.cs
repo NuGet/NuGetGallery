@@ -64,7 +64,7 @@ namespace NuGetGallery
             // Configure machine key for session persistence across slots
             SessionPersistence.Setup(config);
 
-            // Refresh the content
+            // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
             if (config.Current.IsHosted)
             {
                 var contentObjectService = dependencyResolver.GetService<IContentObjectService>();
