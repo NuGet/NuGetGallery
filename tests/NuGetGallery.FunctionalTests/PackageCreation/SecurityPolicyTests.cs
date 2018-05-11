@@ -125,9 +125,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns404ForMissingPackage()
         {
             // Arrange
-            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
-            var packageId = packageRegistrationInfo.Id;
-            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
 
             var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
             
@@ -142,9 +142,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForFullApiKey()
         {
             // Arrange
-            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
-            var packageId = packageRegistrationInfo.Id;
-            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
 
             // Act & Assert
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(EnvironmentSettings.TestAccountApiKey, packageId));
@@ -158,9 +158,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForTempApiKey()
         {
             // Arrange
-            var packageRegistrationInfo = await _clientSdkHelper.UploadPackage();
-            var packageId = packageRegistrationInfo.Id;
-            var packageVersion = packageRegistrationInfo.Versions.Last().Version;
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
 
             var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
 

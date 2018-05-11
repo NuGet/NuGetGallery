@@ -23,6 +23,7 @@ namespace NuGetGallery.FunctionalTests
         private static readonly int Attempts = (int) (TotalSleepDuration.Ticks / SleepDuration.Ticks);
 
         private static readonly object ExistingPackagesLock = new object();
+        private static readonly IList<PackageInfo> Packages = new List<PackageInfo>();
         private static readonly IList<PackageRegistrationInfo> ExistingPackages = new List<PackageRegistrationInfo>();
 
         public ClientSdkHelper(ITestOutputHelper testOutputHelper)
@@ -160,74 +161,138 @@ namespace NuGetGallery.FunctionalTests
             return success;
         }
 
-        public Task<PackageRegistrationInfo> UploadPackage(
-            string apiKey = null,
-            bool success = true)
+        public async Task<PackageInfo> UploadPackage(string apiKey = null)
         {
-            return UploadPackage(
-                pr => pr.Versions.Any(p => p.Listed && p.ApiKey == apiKey), 
-                prs => new PackageRegistrationInfo(UploadHelper.GetUniquePackageId()), 
-                apiKey, 
-                success);
-        }
+            PackageInfo packageInfo = null;
 
-        public Task<PackageRegistrationInfo> UploadPackageVersion(
-            string apiKey = null,
-            bool success = true)
-        {
-            return UploadPackage(
-                pr => pr.Versions.Count(p => p.Listed && p.ApiKey == apiKey) > 1,
-                prs => prs.FirstOrDefault(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))),
-                apiKey, 
-                success);
-        }
-
-
-        public async Task<PackageRegistrationInfo> UploadPackage(
-            Func<PackageRegistrationInfo, bool> cachePredicate, 
-            Func<IEnumerable<PackageRegistrationInfo>, PackageRegistrationInfo> getRegistrationToUploadTo,
-            string apiKey = null, 
-            bool success = true)
-        {
-            PackageRegistrationInfo packageRegistrationInfo = null;
-            IEnumerable<Task> tasks;
-            
             lock (ExistingPackagesLock)
             {
-                if (success)
-                {
-                    packageRegistrationInfo = ExistingPackages.FirstOrDefault(cachePredicate);
-                }
-
-                if (packageRegistrationInfo == null)
-                {
-                    packageRegistrationInfo = getRegistrationToUploadTo(ExistingPackages);
-                    if (packageRegistrationInfo == null)
-                    {
-                        throw new ArgumentException("Could not find a package registration to upload the new package to!", nameof(getRegistrationToUploadTo));
-                    }
-
-                    if (!ExistingPackages.Any(pr => pr == packageRegistrationInfo))
-                    {
-                        ExistingPackages.Add(packageRegistrationInfo);
-                    }
-                    
-                    var version = $"{packageRegistrationInfo.Versions.Count}.0.0";
-                    var task = UploadPackage(packageRegistrationInfo.Id, version, apiKey, success);
-                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask).Concat(new[] { task });
-                    if (success)
-                    {
-                        packageRegistrationInfo.Versions.Add(new PackageInfo(version, true, task));
-                    }
-                }
-                else
-                {
-                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask);
-                }
+                packageInfo = Packages.FirstOrDefault(p => p.WasUploadedByApiKey(apiKey));
             }
 
-            await Task.WhenAll(tasks);
-            return packageRegistrationInfo;
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, apiKey);
+            }
+
+            return packageInfo;
+        }
+
+        public Task FailToUploadPackage(string apiKey = null)
+        {
+            return UploadPackage(UploadHelper.GetUniquePackageId(), UploadHelper.GetUniquePackageVersion(), apiKey, success: false);
+        }
+
+        public async Task<PackageInfo> UploadPackageVersion(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                var pushablePackageInfos = Packages.Where(p => p.CanUseApiKeyToPushNewVersion(apiKey));
+
+                packageInfo = pushablePackageInfos
+                    .GroupBy(p => p.Id)
+                    .Where(pr => pr.Count() > 1)
+                    .Select(pr => pr.Skip(1))
+                    .SelectMany(pr => pr)
+                    .LastOrDefault(p => p.WasUploadedByApiKey(apiKey));
+
+                if (packageInfo != null)
+                {
+                    return packageInfo;
+                }
+
+                packageInfo = pushablePackageInfos.LastOrDefault();
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            return await packageInfo.PushNewVersion(this, apiKey);
+        }
+
+        private static string GetApiKeyWithSameOwnerThatCanUpload(string apiKey = null)
+        {
+            if (apiKey == null ||
+                apiKey == EnvironmentSettings.TestAccountApiKey ||
+                apiKey == EnvironmentSettings.TestAccountApiKey_Push ||
+                apiKey == EnvironmentSettings.TestAccountApiKey_PushVersion ||
+                apiKey == EnvironmentSettings.TestAccountApiKey_Unlist)
+            {
+                return EnvironmentSettings.TestAccountApiKey;
+            }
+            else if (apiKey == EnvironmentSettings.TestOrganizationAdminAccountApiKey)
+            {
+                return EnvironmentSettings.TestOrganizationAdminAccountApiKey;
+            }
+            else if (apiKey == EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey)
+            {
+                return EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(apiKey));
+        }
+
+        public async Task FailToUploadPackageVersion(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.HasSameOwnerAsApiKey(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.FailToUploadNewVersion(this, apiKey);
+        }
+
+        public async Task<PackageInfo> UnlistPackage(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.WasUnlistedByApiKey(apiKey));
+
+                if (packageInfo != null)
+                {
+                    return packageInfo;
+                }
+
+                packageInfo = Packages.LastOrDefault(p => p.Listed && p.CanUseApiKeyToPushNewVersion(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.Unlist(this, apiKey);
+            return packageInfo;
+        }
+
+        public async Task FailToUnlistPackage(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.HasSameOwnerAsApiKey(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.FailToUnlist(this, apiKey);
         }
         
         private async Task UploadPackage(string packageId, string version, string apiKey = null, bool success = true)
@@ -276,75 +341,6 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        public Task<PackageRegistrationInfo> UnlistPackage(
-            string apiKey = null,
-            bool success = true)
-        {
-            return UnlistPackage(
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Any(p => !p.Listed && p.ApiKey == apiKey), 
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) ? pr.Versions.Last(p => p.Listed) : null, 
-                apiKey, 
-                success);
-        }
-
-        /// <summary>
-        /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
-        /// Throws if the unlist fails or cannot be verified in the source.
-        /// </summary>
-        public async Task<PackageRegistrationInfo> UnlistPackage(
-            Func<PackageRegistrationInfo, bool> cachePredicate,
-            Func<PackageRegistrationInfo, PackageInfo> getPackageToUnlist,
-            string apiKey = null, 
-            bool success = true)
-        {
-            PackageRegistrationInfo packageRegistrationInfo = null;
-            IEnumerable<Task> tasks;
-
-            lock (ExistingPackagesLock)
-            {
-                if (success)
-                {
-                    packageRegistrationInfo = ExistingPackages.FirstOrDefault(cachePredicate);
-                }
-
-                if (packageRegistrationInfo == null)
-                {
-                    PackageInfo packageInfo = null;
-                    foreach (var existingPackage in ExistingPackages)
-                    {
-                        packageInfo = getPackageToUnlist(existingPackage);
-                        if (packageInfo != null)
-                        {
-                            packageRegistrationInfo = existingPackage;
-                            break;
-                        }
-                    }
-
-                    if (packageRegistrationInfo == null || packageInfo == null)
-                    {
-                        throw new ArgumentException("Could not find a package to unlist!", nameof(getPackageToUnlist));
-                    }
-
-                    var task = packageInfo.ReadyTask
-                        .ContinueWith(t => UnlistPackage(packageRegistrationInfo.Id, packageInfo.Version, apiKey));
-                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask).Concat(new[] { task });
-                    if (success)
-                    {
-                        packageRegistrationInfo.Versions.Remove(packageInfo);
-                        var newPackageInfo = new PackageInfo(packageInfo.Version, !success && packageInfo.Listed, task);
-                        packageRegistrationInfo.Versions.Add(newPackageInfo);
-                    }
-                }
-                else
-                {
-                    tasks = packageRegistrationInfo.Versions.Select(p => p.ReadyTask);
-                }
-            }
-
-            await Task.WhenAll(tasks);
-            return packageRegistrationInfo;
-        }
-
         private async Task UnlistPackage(string packageId, string version, string apiKey = null, bool success = true)
         {
             if (string.IsNullOrEmpty(packageId))
@@ -380,10 +376,147 @@ namespace NuGetGallery.FunctionalTests
             }
         }
 
-        private enum PackageOperation
+        public class PackageInfo
         {
-            Upload,
-            Unlist
+            public string Id { get; }
+            public string Version { get; }
+            public bool Listed { get; private set; }
+            private string UploadApiKey { get; }
+            private string UnlistApiKey { get; set; }
+            private Task PackageIsReady { get; set; }
+
+            public PackageInfo(string id, string version, string uploadApiKey)
+            {
+                Id = id;
+                Version = version;
+                Listed = true;
+                UploadApiKey = uploadApiKey;
+            }
+
+            public static Task<PackageInfo> CreateForUpload(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                return CreateForUpload(UploadHelper.GetUniquePackageId(), helper, uploadApiKey);
+            }
+
+            private static async Task<PackageInfo> CreateForUpload(string id, ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                var packageInfo = new PackageInfo(
+                    id,
+                    UploadHelper.GetUniquePackageVersion(),
+                    uploadApiKey);
+
+                packageInfo.PackageIsReady = helper.UploadPackage(packageInfo.Id, packageInfo.Version, uploadApiKey, success: true);
+
+                lock (ExistingPackagesLock)
+                {
+                    Packages.Add(packageInfo);
+                }
+
+                await packageInfo.PackageIsReady;
+                return packageInfo;
+            }
+
+            public async Task<PackageInfo> PushNewVersion(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                if (!CanUseApiKeyToPushNewVersion(uploadApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {uploadApiKey} to push a new version of a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(uploadApiKey));
+                }
+
+                await PackageIsReady;
+                return await CreateForUpload(Id, helper, uploadApiKey);
+            }
+
+            public async Task FailToUploadNewVersion(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                if (CanUseApiKeyToPushNewVersion(uploadApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {uploadApiKey} to fail to push a new version of a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(uploadApiKey));
+                }
+
+                await PackageIsReady;
+                await helper.UploadPackage(Id, UploadHelper.GetUniquePackageVersion(), uploadApiKey, success: false);
+            }
+
+            public async Task Unlist(ClientSdkHelper helper, string unlistApiKey = null)
+            {
+                if (!CanUseApiKeyToUnlist(unlistApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {unlistApiKey} to unlist a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(unlistApiKey));
+                }
+
+                await PackageIsReady;
+
+                lock (ExistingPackagesLock)
+                {
+                    Listed = false;
+                    UnlistApiKey = unlistApiKey;
+                    PackageIsReady = helper.UnlistPackage(Id, Version, unlistApiKey, success: true);
+                }
+
+                await PackageIsReady;
+            }
+
+            public async Task FailToUnlist(ClientSdkHelper helper, string unlistApiKey = null)
+            {
+                if (CanUseApiKeyToUnlist(unlistApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {unlistApiKey} to fail to unlist a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(unlistApiKey));
+                }
+
+                await PackageIsReady;
+                await helper.UnlistPackage(Id, UploadHelper.GetUniquePackageVersion(), unlistApiKey, success: false);
+            }
+
+            public bool HasSameOwnerAsApiKey(string apiKey)
+            {
+                return MapApiKeyToOwner(UploadApiKey) == MapApiKeyToOwner(apiKey);
+            }
+
+            public bool CanUseApiKeyToPushNewVersion(string apiKey)
+            {
+                return HasSameOwnerAsApiKey(apiKey) && 
+                    apiKey != EnvironmentSettings.TestAccountApiKey_Unlist;
+            }
+
+            public bool CanUseApiKeyToUnlist(string apiKey)
+            {
+                return HasSameOwnerAsApiKey(apiKey) && 
+                    apiKey != EnvironmentSettings.TestAccountApiKey_Push && 
+                    apiKey != EnvironmentSettings.TestAccountApiKey_PushVersion;
+            }
+
+            public bool WasUploadedByApiKey(string apiKey)
+            {
+                return apiKey == UploadApiKey;
+            }
+
+            public bool WasUnlistedByApiKey(string apiKey)
+            {
+                return apiKey == UnlistApiKey;
+            }
+
+            private static string MapApiKeyToOwner(string apiKey)
+            {
+                if (apiKey == null ||
+                    apiKey == EnvironmentSettings.TestAccountApiKey ||
+                    apiKey == EnvironmentSettings.TestAccountApiKey_Push ||
+                    apiKey == EnvironmentSettings.TestAccountApiKey_PushVersion ||
+                    apiKey == EnvironmentSettings.TestAccountApiKey_Unlist)
+                {
+                    return EnvironmentSettings.TestAccountName;
+                }
+                else if (apiKey == EnvironmentSettings.TestOrganizationAdminAccountApiKey)
+                {
+                    return EnvironmentSettings.TestOrganizationAdminAccountName;
+                }
+                else if (apiKey == EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey)
+                {
+                    return EnvironmentSettings.TestOrganizationCollaboratorAccountName;
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(apiKey));
+            }
         }
 
         /// <summary>

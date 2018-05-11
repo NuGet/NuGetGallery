@@ -85,26 +85,29 @@ namespace NuGetGallery.FunctionalTests.Commandline
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             
-            // 1. Try to upload package using 'unlist' api key => expect failure
-            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Unlist, success: false);
+            // Try to upload package using 'unlist' api key
+            await _clientSdkHelper.FailToUploadPackage(EnvironmentSettings.TestAccountApiKey_Unlist);
 
-            // 2. Try to upload package using 'push version' api key => expect failure
-            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
+            // Try to upload package using 'push version' api key
+            await _clientSdkHelper.FailToUploadPackage(EnvironmentSettings.TestAccountApiKey_PushVersion);
 
-            // 3. Upload package using 'push' api key => expect success
-            await _clientSdkHelper.UploadPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Push);
+            // Upload package using 'push' api key
+            await _clientSdkHelper.UploadPackage(EnvironmentSettings.TestAccountApiKey_Push);
 
-            // 4. Upload new version of package using 'push version' api key => expect success
-            await _clientSdkHelper.UploadPackageVersion(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion);
+            // Try to upload new version of package using 'unlist' api key
+            await _clientSdkHelper.FailToUploadPackageVersion(EnvironmentSettings.TestAccountApiKey_Unlist);
 
-            // 5. Try unlisting package version1 using 'push' api key => expect failure
-            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Push, success: false);
+            // Upload new version of package using 'push version' api key
+            await _clientSdkHelper.UploadPackageVersion(EnvironmentSettings.TestAccountApiKey_PushVersion);
 
-            // 6. Try unlisting package version2 using 'push version' api key => expect failure
-            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_PushVersion, success: false);
+            // Try unlisting package version1 using 'push' api key
+            await _clientSdkHelper.FailToUnlistPackage(EnvironmentSettings.TestAccountApiKey_Push);
 
-            // 7. Unlist both packages using 'unlist' api key => expect succees
-            await _clientSdkHelper.UnlistPackage(apiKey: EnvironmentSettings.TestAccountApiKey_Unlist);
+            // Try unlisting package version2 using 'push version' api key
+            await _clientSdkHelper.FailToUnlistPackage(EnvironmentSettings.TestAccountApiKey_PushVersion);
+
+            // Unlist both packages using 'unlist' api key
+            await _clientSdkHelper.UnlistPackage(EnvironmentSettings.TestAccountApiKey_Unlist);
         }
 
         [Fact]

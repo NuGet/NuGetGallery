@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery.FunctionalTests.Helpers
 {
-    public class PackageInfo
+    public class PackageVersionInfo
     {
         public string Version { get; }
         public bool Listed { get; }
@@ -16,7 +16,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// </summary>
         public Task ReadyTask { get; }
 
-        public PackageInfo(string version, bool listed, Task uploadTask)
+        public PackageVersionInfo(string version, bool listed, Task uploadTask)
         {
             Version = version;
             Listed = listed;

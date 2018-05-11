@@ -38,13 +38,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
-            await _clientSdkHelper.UploadPackage();
-            var packageRegistrationInfo = await _clientSdkHelper.UploadPackageVersion();
+            var packageInfo = await _clientSdkHelper.UploadPackageVersion();
 
-            var packageId = packageRegistrationInfo.Id;
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
             string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
-            var expectedTexts = packageRegistrationInfo.Versions.Select(p => @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + p.Version + "')</id>").ToArray();
-            var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
+            var containsResponseText = await _odataHelper.ContainsResponseText(url, @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + packageVersion + "')</id>");
             Assert.True(containsResponseText);
         }
 
