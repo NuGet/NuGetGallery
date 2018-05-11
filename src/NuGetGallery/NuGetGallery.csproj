@@ -653,6 +653,7 @@
     <Compile Include="App_Start\NuGetODataConfig.cs" />
     <Compile Include="App_Start\RuntimeServiceProvider.cs" />
     <Compile Include="App_Start\StorageDependent.cs" />
+    <Compile Include="App_Start\SessionPersistence.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="App_Start\AutofacConfig.cs" />
     <Compile Include="Areas\Admin\Controllers\DeleteAccountController.cs" />
@@ -840,6 +841,10 @@
     <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.cs" />
     <Compile Include="Migrations\201805012001354_AddUserCertificatesIndex.Designer.cs">
       <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.cs" />
+    <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.Designer.cs">
+      <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -2003,6 +2008,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201805012001354_AddUserCertificatesIndex.resx">
       <DependentUpon>201805012001354_AddUserCertificatesIndex.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.resx">
+      <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

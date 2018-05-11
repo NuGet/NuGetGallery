@@ -406,7 +406,10 @@ img.reserved-indicator-icon {
   padding-top: 13px;
 }
 .modal-container .modal-box .modal-body .transform-text {
-  padding: 40px 15px;
+  padding-top: 20px;
+  padding-right: 15px;
+  padding-bottom: 40px;
+  padding-left: 15px;
   margin: 0;
 }
 #edit-metadata-form-container .loading:after {

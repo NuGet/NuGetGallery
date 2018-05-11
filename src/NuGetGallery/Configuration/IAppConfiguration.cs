@@ -243,6 +243,31 @@ namespace NuGetGallery.Configuration
         int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
 
         /// <summary>
+        /// Configuration to enable manual setting of the machine key for session persistence across deployments/slots.
+        /// </summary>
+        bool EnableMachineKeyConfiguration { get; set; }
+
+        /// <summary>
+        /// Defines the encryption aglorithm that is used for encrypting and decrypting forms authentication data.
+        /// </summary>
+        string MachineKeyDecryption { get; set; }
+
+        /// <summary>
+        /// Defines the key that is sued to encrypt and decrypt data, or the process by which the key is generated.
+        /// </summary>
+        string MachineKeyDecryptionKey { get; set; }
+
+        /// <summary>
+        /// Defines the hashing algorithm used for validating forms authentication and view state data.
+        /// </summary>
+        string MachineKeyValidationAlgorithm { get; set; }
+
+        /// <summary>
+        /// Defines the key that is used to validate forms authentication and view state data, or the process by which the key is generated.
+        /// </summary>
+        string MachineKeyValidationKey { get; set; }
+
+        /// <summary>
         /// Gets a string containing the PagerDuty account name.
         /// </summary>
         string PagerDutyAccountName { get; set; }
