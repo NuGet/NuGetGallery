@@ -24,7 +24,7 @@ namespace NuGetGallery
                 var lastUpdatedUtc = File.GetLastWriteTimeUtc(path);
                 return Task.FromResult(new ReportBlob(content, lastUpdatedUtc));
             }
-            catch (FileNotFoundException ex)
+            catch (Exception ex) when (ex is DirectoryNotFoundException || ex is FileNotFoundException)
             {
                 throw new ReportNotFoundException(
                     $"Report {reportName} was not found on the local filesystem.",

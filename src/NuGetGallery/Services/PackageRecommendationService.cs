@@ -48,10 +48,21 @@ namespace NuGetGallery
                 StringComparison.OrdinalIgnoreCase));
 
             var recommendationIds = recommendedPackages.Recommendations;
-            return recommendationIds.Select(
-                id => new ListPackageItemViewModel(
-                    _packageService.FindAbsoluteLatestPackageById(id),
-                    currentUser));
+            return RecommendedPackagesIterator(recommendationIds, currentUser);
+        }
+
+        private IEnumerable<ListPackageItemViewModel> RecommendedPackagesIterator(
+            IEnumerable<string> recommendationIds,
+            User currentUser)
+        {
+            foreach (string id in recommendationIds)
+            {
+                var package = _packageService.FindAbsoluteLatestPackageById(id);
+                if (package != null)
+                {
+                    yield return new ListPackageItemViewModel(package, currentUser);
+                }
+            }
         }
 
         private static string GetReportName(Package package)
