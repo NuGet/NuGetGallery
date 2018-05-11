@@ -1808,7 +1808,7 @@
     <Compile Include="Services\ISearchService.cs" />
     <Compile Include="Services\IUploadFileService.cs" />
     <Compile Include="Services\LocalFileReference.cs" />
-    <Compile Include="Services\NullReportService.cs" />
+    <Compile Include="Services\LocalReportService.cs" />
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />

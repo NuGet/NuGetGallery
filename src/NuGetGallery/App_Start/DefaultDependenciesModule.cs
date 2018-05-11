@@ -515,10 +515,10 @@ namespace NuGetGallery
                 }
             }
 
-            builder.RegisterInstance(NullReportService.Instance)
+            builder.RegisterType<LocalReportService>()
                 .AsSelf()
                 .As<IReportService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder.RegisterInstance(NullStatisticsService.Instance)
                 .AsSelf()
