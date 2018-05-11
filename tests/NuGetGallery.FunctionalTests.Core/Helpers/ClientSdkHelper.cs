@@ -22,8 +22,8 @@ namespace NuGetGallery.FunctionalTests
         private static readonly TimeSpan TotalSleepDuration = TimeSpan.FromMinutes(30);
         private static readonly int Attempts = (int) (TotalSleepDuration.Ticks / SleepDuration.Ticks);
 
-        private static object ExistingPackagesLock = new object();
-        private static IList<PackageRegistrationInfo> ExistingPackages = new List<PackageRegistrationInfo>();
+        private static readonly object ExistingPackagesLock = new object();
+        private static readonly IList<PackageRegistrationInfo> ExistingPackages = new List<PackageRegistrationInfo>();
 
         public ClientSdkHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)

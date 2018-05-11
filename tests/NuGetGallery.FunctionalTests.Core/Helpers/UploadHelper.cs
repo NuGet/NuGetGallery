@@ -10,7 +10,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
 {
     public static class UploadHelper
     {
-        private static object UniqueLock = new object();
+        private static readonly object UniqueLock = new object();
 
         /// <summary>
         /// Helper class for defining the properties of a test package to be uploaded.
