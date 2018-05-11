@@ -66,6 +66,14 @@
     },
     "MessageDelay": "00:00:05"
   },
+  "ScanAndSign": {
+    "ServiceBus": {
+      "ConnectionString": "",
+      "TopicPath": "",
+      "SubscriptionName": ""
+    },
+    "MessageDelay": "00:00:05"
+  },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",
     "ShutdownWaitInterval": "00:01:00"

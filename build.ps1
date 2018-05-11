@@ -112,6 +112,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.PackageSigning.RevalidateCertificate\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\NuGet.Jobs.Common\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\Validation.ScanAndSign.Core\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\PackageLagMonitor\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
@@ -144,7 +145,8 @@ Invoke-BuildStep 'Creating artifacts' {
         # don't need to be shared, hence no need for symbols for them
         $ProjectsWithSymbols =
             "src/NuGet.Jobs.Common/NuGet.Jobs.Common.csproj",
-            "src/Validation.Common.Job/Validation.Common.Job.csproj"
+            "src/Validation.Common.Job/Validation.Common.Job.csproj",
+            "src/Validation.ScanAndSign.Core/Validation.ScanAndSign.Core.csproj"
 
         $Projects = `
             "src/Stats.CollectAzureCdnLogs/Stats.CollectAzureCdnLogs.csproj", `
