@@ -59,32 +59,34 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.
             // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
             // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
-            var packageRegistrationInfoTasks = new List<Task<PackageRegistrationInfo>>(PackagesInOrderNumPackages);
+            var uploadedPackageIds = new List<string>();
+            var version = "1.0.0";
             var startingTime = DateTime.UtcNow;
 
             // Upload the packages in order.
             var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                packageRegistrationInfoTasks.Add(_clientSdkHelper.UploadPackage(pr => false, prs => new PackageRegistrationInfo(UploadHelper.GetUniquePackageId())));
+                var packageId = UploadHelper.GetUniquePackageId();
+                var packageFullPath = await _packageCreationHelper.CreatePackage(packageId, version);
+                await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey);
+                uploadedPackageIds.Add(packageId);
             }
 
-            var packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);
+            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version)));
 
-            await CheckPackageTimestampsInOrder(packageRegistrationInfos, "Created", uploadStartTimestamp);
-
-            packageRegistrationInfoTasks.Clear();
+            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp);
 
             // Unlist the packages in order.
+            var unlistedPackageIds = new List<string>();
             var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
-            foreach (var packageRegistrationInfo in packageRegistrationInfos)
+            foreach (var uploadedPackageId in uploadedPackageIds)
             {
-                packageRegistrationInfoTasks.Add(_clientSdkHelper.UnlistPackage(pr => false, pr => pr == packageRegistrationInfo ? pr.Versions.Last() : null));
+                await _commandlineHelper.DeletePackageAsync(uploadedPackageId, version, UrlHelper.V2FeedPushSourceUrl);
+                unlistedPackageIds.Add(uploadedPackageId);
             }
 
-            packageRegistrationInfos = await Task.WhenAll(packageRegistrationInfoTasks);
-
-            await CheckPackageTimestampsInOrder(packageRegistrationInfos, "LastEdited", unlistStartTimestamp);
+            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp);
         }
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
@@ -95,17 +97,16 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <summary>
         /// Verifies if a set of packages in the feed have timestamps in a particular order.
         /// </summary>
-        /// <param name="packageRegistrationInfos">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
+        /// <param name="packageIds">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
         /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
-        private async Task CheckPackageTimestampsInOrder(IEnumerable<PackageRegistrationInfo> packageRegistrationInfos, string timestampPropertyName,
+        private async Task CheckPackageTimestampsInOrder(IEnumerable<string> packageIds, string timestampPropertyName,
             DateTime operationStartTimestamp)
         {
             var lastTimestamp = DateTime.MinValue;
             var lastPackageId = string.Empty;
-            foreach (var packageRegistrationInfo in packageRegistrationInfos)
+            foreach (var packageId in packageIds)
             {
-                var packageId = packageRegistrationInfo.Id;
                 TestOutputHelper.WriteLine($"Attempting to check order of package {packageId} {timestampPropertyName} timestamp in feed.");
 
                 var newTimestamp =

@@ -163,7 +163,7 @@ namespace NuGetGallery.FunctionalTests
             bool success = true)
         {
             return UploadPackage(
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)), 
+                pr => pr.Versions.Any(p => p.Listed && p.ApiKey == apiKey), 
                 prs => new PackageRegistrationInfo(UploadHelper.GetUniquePackageId()), 
                 apiKey, 
                 success);
@@ -174,8 +174,11 @@ namespace NuGetGallery.FunctionalTests
             bool success = true)
         {
             return UploadPackage(
-                pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey)) && pr.Versions.Count > 0,
-                prs => prs.First(pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))),
+                pr => pr.Versions.Count(p => p.Listed && p.ApiKey == apiKey) > 1,
+                prs => 
+                    prs.First(
+                        pr => pr.Versions.All(p => p.HasApiKeyWithSameOwner(apiKey))) ?? 
+                        throw new ArgumentException($"There is no existing package registration with at least one version and the same owner as the API key {apiKey}.", nameof(apiKey)),
                 apiKey, 
                 success);
         }
