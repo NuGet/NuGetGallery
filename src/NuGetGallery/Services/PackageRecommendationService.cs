@@ -24,9 +24,7 @@ namespace NuGetGallery
             _reportService = reportService;
         }
 
-        public async Task<IEnumerable<ListPackageItemViewModel>> GetRecommendedPackagesAsync(
-            Package package,
-            User currentUser)
+        public async Task<IEnumerable<Package>> GetRecommendedPackagesAsync(Package package)
         {
             string packageId = package.PackageRegistration.Id;
             string reportName = GetReportName(packageId);
@@ -38,7 +36,7 @@ namespace NuGetGallery
             catch (ReportNotFoundException ex)
             {
                 QuietLog.LogHandledException(ex);
-                return Enumerable.Empty<ListPackageItemViewModel>();
+                return Enumerable.Empty<Package>();
             }
             var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report.Content);
 
@@ -49,21 +47,9 @@ namespace NuGetGallery
                 StringComparison.OrdinalIgnoreCase));
 
             var recommendationIds = recommendedPackages.Recommendations;
-            return RecommendedPackagesIterator(recommendationIds, currentUser);
-        }
-
-        private IEnumerable<ListPackageItemViewModel> RecommendedPackagesIterator(
-            IEnumerable<string> recommendationIds,
-            User currentUser)
-        {
-            foreach (string id in recommendationIds)
-            {
-                var package = _packageService.FindAbsoluteLatestPackageById(id);
-                if (package != null)
-                {
-                    yield return new ListPackageItemViewModel(package, currentUser);
-                }
-            }
+            return recommendationIds
+                .Select(id => _packageService.FindAbsoluteLatestPackageById(id))
+                .Where(p => p != null);
         }
 
         internal static string GetReportName(string packageId)
