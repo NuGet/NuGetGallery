@@ -28,7 +28,8 @@ namespace NuGetGallery
             Package package,
             User currentUser)
         {
-            string reportName = GetReportName(package);
+            string packageId = package.PackageRegistration.Id;
+            string reportName = GetReportName(packageId);
             ReportBlob report;
             try
             {
@@ -65,7 +66,7 @@ namespace NuGetGallery
             }
         }
 
-        private static string GetReportName(Package package)
+        internal static string GetReportName(string packageId)
         {
             string GetHexadecimalString(byte[] bytes)
             {
@@ -77,8 +78,7 @@ namespace NuGetGallery
                 return sb.ToString();
             }
 
-            string encodedId = GetHexadecimalString(
-                Encoding.UTF8.GetBytes(package.PackageRegistration.Id));
+            string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(packageId));
             return $"Recommendations/{encodedId}.json";
         }
     }

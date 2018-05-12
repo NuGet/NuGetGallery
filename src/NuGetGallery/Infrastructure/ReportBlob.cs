@@ -10,7 +10,7 @@ namespace NuGetGallery
         public string Content { get; private set; }
         public DateTime? LastUpdatedUtc { get; private set; }
 
-        public ReportBlob(string content, DateTime? lastUpdatedUtc)
+        public ReportBlob(string content, DateTime? lastUpdatedUtc = null)
         {
             Content = content;
             LastUpdatedUtc = lastUpdatedUtc;
