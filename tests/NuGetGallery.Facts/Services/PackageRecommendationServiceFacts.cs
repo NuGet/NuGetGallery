@@ -45,8 +45,8 @@ namespace NuGetGallery
         {
             var targetIds = recommendationSets.Select(rp => rp.Id);
             var idMap = targetIds.ToDictionary(
-                keySelector: id => id,
-                elementSelector: id => PackageRecommendationService.GetReportName(id));
+                keySelector: id => PackageRecommendationService.GetReportName(id),
+                elementSelector: id => id);
             var reportMap = recommendationSets.ToDictionary(
                 keySelector: rp => rp.Id,
                 elementSelector: rp => CreateReport(rp.Id, rp.Recommendations));
@@ -57,7 +57,7 @@ namespace NuGetGallery
                 return Task.FromResult(reportMap[targetId]);
             }
 
-            var reportNames = idMap.Values;
+            var reportNames = idMap.Keys;
             var reportService = new Mock<IReportService>();
             reportService
                 .Setup(rs => rs.Load(It.IsIn<string>(reportNames)))
