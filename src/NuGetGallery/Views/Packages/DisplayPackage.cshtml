@@ -487,7 +487,7 @@
                 <ul class="list-unstyled">
                     @foreach (var package in Model.RecommendedPackages)
                     {
-                        <li class="recommendation-item">
+                        <li class="recommendation-item" style="margin-bottom: 10px; position: relative;">
                             <a href="@Url.Package(package)"
                                style="display: inline-block; float: left; margin-right: 10px;"
                                target="_blank"><img aria-hidden="true" alt=""
@@ -496,14 +496,11 @@
                                                     style="display: inline-block;"
                                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                                     /></a>
-                            <div style="display: inline;">
-                                <a href="@Url.Package(package)"
-                                   class="recommendation-anchor"
-                                   style="word-wrap: break-word;"
-                                   target="_blank">@package.Id</a>
-                            </div>
+                            <a href="@Url.Package(package)"
+                                class="recommendation-anchor"
+                                style="word-wrap: break-word; position: absolute; bottom: 0;"
+                                target="_blank">@package.Id</a>
                             <br clear="all" />
-                            <br />
                         </li>
                     }
                 </ul>
