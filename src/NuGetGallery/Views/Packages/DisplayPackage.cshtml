@@ -484,12 +484,29 @@
             @if (Model.RecommendedPackages.Any())
             {
                 <h2>Related</h2>
-                <div class="list-packages" role="list">
+                <ul class="list-unstyled">
                     @foreach (var package in Model.RecommendedPackages)
                     {
-                        @Html.Partial("_ListPackage", package)
+                        <li class="recommendation-item">
+                            <a href="@Url.Package(package)"
+                               style="display: inline-block; float: left; margin-right: 10px;"
+                               target="_blank"><img aria-hidden="true" alt=""
+                                                    width="28" height="28"
+                                                    class="recommendation-icon"
+                                                    style="display: inline-block;"
+                                                    src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                                    /></a>
+                            <div style="display: inline;">
+                                <a href="@Url.Package(package)"
+                                   class="recommendation-anchor"
+                                   style="word-wrap: break-word;"
+                                   target="_blank">@package.Id</a>
+                            </div>
+                            <br clear="all" />
+                            <br />
+                        </li>
                     }
-                </div>
+                </ul>
             }
 
             <h2>Info</h2>
