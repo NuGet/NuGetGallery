@@ -88,7 +88,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.8.0-preview1.5179</Version>
+      <Version>4.8.0-preview1.5195</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
       <Version>2.23.0</Version>

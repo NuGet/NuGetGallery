@@ -13,5 +13,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             string packageId,
             string packageVersion,
             PackageSigningStatus status);
+
+        Task<bool> HasValidPackageSigningStateAsync(int packageKey);
     }
 }

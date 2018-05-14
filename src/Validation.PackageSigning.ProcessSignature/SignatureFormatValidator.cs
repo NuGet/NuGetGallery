@@ -44,6 +44,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private readonly SignedPackageVerifierSettings _authorSignatureSettings;
         private readonly SignedPackageVerifierSettings _authorOrRepositorySignatureSettings;
 
+        private readonly RepositorySignatureVerifier _repositorySignatureVerifier;
+
         public SignatureFormatValidator(IOptionsSnapshot<ProcessSignatureConfiguration> config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -87,6 +89,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 clientAllowListEntries: _authorSignatureSettings.ClientCertificateList,
                 allowNoRepositoryCertificateList: false,
                 repoAllowListEntries: repoAllowListEntries);
+
+            _repositorySignatureVerifier = new RepositorySignatureVerifier();
         }
 
         public async Task<VerifySignaturesResult> ValidateMinimalAsync(
@@ -112,6 +116,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 _fullProviders,
                 settings,
                 token);
+        }
+
+        public async Task<SignatureVerificationStatus> VerifyRepositorySignatureAsync(
+            ISignedPackageReader package,
+            CancellationToken token)
+        {
+            return await _repositorySignatureVerifier.VerifyAsync(package, token);
         }
 
         private static async Task<VerifySignaturesResult> VerifyAsync(

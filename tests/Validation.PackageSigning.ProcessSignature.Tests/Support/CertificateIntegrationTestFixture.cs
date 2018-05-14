@@ -24,14 +24,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1);
         private byte[] _signedPackageBytes1;
 
-        public async Task<SignedPackageArchive> GetSignedPackage1Async(ITestOutputHelper output) => await GetSignedPackageAsync(
+        public async Task<SignedPackageArchive> GetAuthorSignedPackage1Async(ITestOutputHelper output) => await GetAuthorSignedPackageAsync(
             new Reference<byte[]>(
                 () => _signedPackageBytes1,
                 x => _signedPackageBytes1 = x),
             TestResources.SignedPackageLeaf1,
             await GetSigningCertificateAsync(),
             output);
-        public async Task<MemoryStream> GetSignedPackageStream1Async(ITestOutputHelper output) => await GetSignedPackageStreamAsync(
+        public async Task<MemoryStream> GetAuthorSignedPackageStream1Async(ITestOutputHelper output) => await GetAuthorSignedPackageStreamAsync(
             new Reference<byte[]>(
                 () => _signedPackageBytes1,
                 x => _signedPackageBytes1 = x),
@@ -39,7 +39,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             await GetSigningCertificateAsync(),
             output);
 
-        private async Task<MemoryStream> GetSignedPackageStreamAsync(
+        private async Task<MemoryStream> GetAuthorSignedPackageStreamAsync(
             Reference<byte[]> reference,
             string resourceName,
             X509Certificate2 certificate,
@@ -50,7 +50,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             {
                 if (reference.Value == null)
                 {
-                    reference.Value = await GenerateSignedPackageBytesAsync(
+                    reference.Value = await GenerateAuthorSignedPackageBytesAsync(
                         resourceName,
                         certificate,
                         await GetTimestampServiceUrlAsync(),
@@ -67,14 +67,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        private async Task<SignedPackageArchive> GetSignedPackageAsync(
+        private async Task<SignedPackageArchive> GetAuthorSignedPackageAsync(
             Reference<byte[]> reference,
             string resourceName,
             X509Certificate2 certificate,
             ITestOutputHelper output)
         {
             return new SignedPackageArchive(
-                await GetSignedPackageStreamAsync(reference, resourceName, certificate, output),
+                await GetAuthorSignedPackageStreamAsync(reference, resourceName, certificate, output),
                 Stream.Null);
         }
 
@@ -84,8 +84,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Uri timestampUri,
             ITestOutputHelper output)
         {
+            Rfc3161TimestampProvider timestampProvider = null;
+            if (timestampUri != null)
+            {
+                timestampProvider = new Rfc3161TimestampProvider(timestampUri);
+            }
+
             var testLogger = new TestLogger(output);
-            var timestampProvider = new Rfc3161TimestampProvider(timestampUri);
             var signatureProvider = new X509SignatureProvider(timestampProvider);
 
             using (var outputPackageStream = new MemoryStream())
@@ -104,7 +109,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        public Task<byte[]> GenerateSignedPackageBytesAsync(
+        public Task<byte[]> GenerateAuthorSignedPackageBytesAsync(
             string resourceName,
             X509Certificate2 certificate,
             Uri timestampUri,
@@ -117,23 +122,30 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output);
         }
 
-        public async Task<MemoryStream> GenerateRepositorySignedPackageStreamAsync(X509Certificate2 signingCertificate, ITestOutputHelper output)
+        public async Task<MemoryStream> RepositorySignPackageStreamAsync(
+            Stream inputPackageStream,
+            X509Certificate2 signingCertificate,
+            ITestOutputHelper output)
         {
-            return await GenerateRepositorySignedPackageStreamAsync(
+            var timestampUri = await GetTimestampServiceUrlAsync();
+
+            return await RepositorySignPackageStreamAsync(
+                inputPackageStream,
                 signingCertificate,
-                await GetTimestampServiceUrlAsync(),
+                timestampUri,
                 output);
         }
 
-        public async Task<MemoryStream> GenerateRepositorySignedPackageStreamAsync(
-            X509Certificate2 signingCertificate,
+        public async Task<MemoryStream> RepositorySignPackageStreamAsync(
+            Stream inputPackageStream,
+            X509Certificate2 certificate,
             Uri timestampUri,
             ITestOutputHelper output)
         {
             var packageBytes = await GenerateSignedPackageBytesAsync(
-                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                inputPackageStream,
                 new RepositorySignPackageRequest(
-                    signingCertificate,
+                    certificate,
                     HashAlgorithmName.SHA256,
                     HashAlgorithmName.SHA256,
                     new Uri(TestResources.V3ServiceIndexUrl),
@@ -141,23 +153,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 timestampUri,
                 output);
 
-            return new MemoryStream(packageBytes);
-        }
-
-        public async Task<MemoryStream> GenerateRepositoryCounterSignedPackageStreamAsync(X509Certificate2 signingCertificate, ITestOutputHelper output)
-        {
-            var packageBytes = await GenerateSignedPackageBytesAsync(
-                await GetSignedPackageStream1Async(output),
-                new RepositorySignPackageRequest(
-                    signingCertificate,
-                    HashAlgorithmName.SHA256,
-                    HashAlgorithmName.SHA256,
-                    new Uri(TestResources.V3ServiceIndexUrl),
-                    new[] { "nuget", "microsoft" }),
-                await GetTimestampServiceUrlAsync(),
-                output);
-
-            return new MemoryStream(packageBytes);
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(packageBytes, 0, packageBytes.Length);
+            return memoryStream;
         }
 
         /// <summary>

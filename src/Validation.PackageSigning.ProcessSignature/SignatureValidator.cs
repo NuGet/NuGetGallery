@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -239,7 +238,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private async Task<SignatureValidatorResult> StripUnacceptableRepositorySignaturesAsync(Context context)
         {
             // Check if the repository signing certificates are acceptable.
-            if (HasAllValidRepositorySignatures(context))
+            if (await HasAllValidRepositorySignaturesAsync(context))
             {
                 _logger.LogInformation(
                     "No repository signatures needed removal from package {PackageId} {PackageVersion} for " +
@@ -348,11 +347,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             return null;
         }
 
-        private bool HasAllValidRepositorySignatures(Context context)
+        private async Task<bool> HasAllValidRepositorySignaturesAsync(Context context)
         {
             if (context.Signature.Type == SignatureType.Repository)
             {
-                if (!IsValidRepositorySignature(context, (RepositoryPrimarySignature)context.Signature))
+                if (!await IsValidRepositorySignatureAsync(context, (RepositoryPrimarySignature)context.Signature))
                 {
                     _logger.LogInformation(
                         "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has repository " +
@@ -370,7 +369,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 var repositoryCounterSignature = RepositoryCountersignature.GetRepositoryCountersignature(context.Signature);
 
                 if (repositoryCounterSignature != null
-                    && !IsValidRepositorySignature(context, repositoryCounterSignature))
+                    && !await IsValidRepositorySignatureAsync(context, repositoryCounterSignature))
                 {
                     _logger.LogInformation(
                         "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has repository " +
@@ -400,7 +399,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             return true;
         }
 
-        private bool IsValidRepositorySignature<T>(Context context, T signature)
+        private async Task<bool> IsValidRepositorySignatureAsync<T>(Context context, T signature)
             where T : Signature, IRepositorySignature
         {
             if (signature.V3ServiceIndexUrl?.AbsoluteUri != _configuration.Value.V3ServiceIndexUrl)
@@ -431,20 +430,41 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 return false;
             }
 
-            if (signature.Timestamps.Count != 1)
+            var status = await _formatValidator.VerifyRepositorySignatureAsync(context.PackageReader, context.CancellationToken);
+
+            if (status == SignatureVerificationStatus.Valid)
             {
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has a repository " +
-                    "signature with an improper number of timestamps: {Count}.",
+                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has a valid repository signature",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                return true;
+            }
+            else if (status == SignatureVerificationStatus.Suspect && await _packageSigningStateService.HasValidPackageSigningStateAsync(context.PackageKey))
+            {
+                _logger.LogCritical(
+                    "Detected suspect repository signature on revalidation of package {PackageId} {PackageVersion} for " +
+                    "validation {ValidationId}",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                throw new InvalidOperationException($"Suspect repository signature for validation id '{context.Message.ValidationId}'");
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Package {PackageId} {PackageVersion} for validation {ValidationId} has an unacceptable repository " +
+                    "signature with status {Status} and will be stripped",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
-                    signature.Timestamps.Count);
+                    status);
 
                 return false;
             }
-
-            return true;
         }
 
         private async Task<SignatureValidatorResult> PerformFinalValidationAsync(Context context)

@@ -20,6 +20,16 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             CancellationToken token);
 
         /// <summary>
+        /// Run all validations on the package's repository signature. This includes integrity and trust validations.
+        /// </summary>
+        /// <param name="package">The package whose repository signature should be validated.</param>
+        /// <param name="token"></param>
+        /// <returns>Whether the package's signature is readable.</returns>
+        Task<SignatureVerificationStatus> VerifyRepositorySignatureAsync(
+            ISignedPackageReader package,
+            CancellationToken token);
+
+        /// <summary>
         /// Run all validations on the package's signature. This includes integrity and trust validations.
         /// </summary>
         /// <param name="package">The package to validate.</param>

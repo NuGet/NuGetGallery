@@ -550,28 +550,6 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             [Fact]
-            public async Task DoesntStripAcceptableRepositorySignatures()
-            {
-                // Arrange
-                _packageStream = TestResources.GetResourceStream(TestResources.RepoSignedPackageLeaf1);
-
-                _configuration.V3ServiceIndexUrl = TestResources.V3ServiceIndexUrl;
-                _configuration.AllowedRepositorySigningCertificates.Add(TestResources.Leaf1Thumbprint);
-
-                // Arrange & Act
-                var result = await _target.ValidateAsync(
-                    _packageKey,
-                    _packageStream,
-                    _message,
-                    _cancellationToken);
-
-                // Assert
-                Validate(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
-                Assert.Empty(result.Issues);
-                Assert.Null(result.NupkgUri);
-            }
-
-            [Fact]
             public async Task StripsAndRejectsPackagesWithRepositorySignatureWhenPackageMustBeAuthorSigned()
             {
                 _packageStream = TestResources.GetResourceStream(TestResources.RepoSignedPackageLeaf1);
