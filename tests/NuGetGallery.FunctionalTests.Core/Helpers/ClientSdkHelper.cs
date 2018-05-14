@@ -24,7 +24,6 @@ namespace NuGetGallery.FunctionalTests
 
         private static readonly object ExistingPackagesLock = new object();
         private static readonly IList<PackageInfo> Packages = new List<PackageInfo>();
-        private static readonly IList<PackageRegistrationInfo> ExistingPackages = new List<PackageRegistrationInfo>();
 
         public ClientSdkHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
@@ -45,14 +44,6 @@ namespace NuGetGallery.FunctionalTests
         public static void ClearMachineCache()
         {
             MachineCache.Default.Clear();
-        }
-
-        /// <summary>
-        /// Checks if the given package is present in the source.
-        /// </summary>
-        public bool CheckIfPackageExistsInSource(PackageRegistrationInfo packageRegistrationInfo, string sourceUrl)
-        {
-            return CheckIfPackageExistsInSource(packageRegistrationInfo.Id, sourceUrl);
         }
 
         /// <summary>

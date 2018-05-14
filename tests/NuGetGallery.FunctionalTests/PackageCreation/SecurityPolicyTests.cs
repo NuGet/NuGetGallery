@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
@@ -128,11 +129,12 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             var packageInfo = await _clientSdkHelper.UploadPackage();
             var packageId = packageInfo.Id;
             var packageVersion = packageInfo.Version;
+            var missingPackageId = UploadHelper.GetUniquePackageId();
 
             var verificationKey = await CreateVerificationKey(EnvironmentSettings.TestAccountApiKey, packageId, packageVersion);
             
             // Act & Assert
-            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, "missingPackage", "1.0.0"));
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, missingPackageId, "1.0.0"));
         }
 
         [DefaultSecurityPoliciesEnforcedFact(runIfEnforced: false)]

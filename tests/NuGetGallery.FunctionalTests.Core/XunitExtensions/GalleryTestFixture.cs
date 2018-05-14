@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Xunit;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -51,8 +52,9 @@ namespace NuGetGallery.FunctionalTests
                     var testOutputHelper = ConsoleTestOutputHelper.New;
                     var commandlineHelper = new CommandlineHelper(testOutputHelper);
                     var packageCreationHelper = new PackageCreationHelper(testOutputHelper);
-                    string packageFullPath = await packageCreationHelper.CreatePackage(Constants.TestPackageId, "1.0.0");
+                    var packageFullPath = await packageCreationHelper.CreatePackage(Constants.TestPackageId, "1.0.0");
                     var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+                    Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
                 }
             }
             catch (Exception exception)

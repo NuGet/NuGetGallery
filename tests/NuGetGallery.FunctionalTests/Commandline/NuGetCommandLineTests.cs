@@ -65,13 +65,13 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Category("P0Tests")]
         public async Task UploadAndUnlistPackages(string apiKey)
         {
-            // Can push new package ID as self
+            // Can push new package ID
             await _clientSdkHelper.UploadPackage(apiKey);
 
-            // Can push new version of an existing package as self
+            // Can push new version of an existing package
             await _clientSdkHelper.UploadPackageVersion(apiKey);
 
-            // Can unlist versions of an existing package as self
+            // Can unlist versions of an existing package
             await _clientSdkHelper.UnlistPackage(apiKey);
         }
 
@@ -84,29 +84,29 @@ namespace NuGetGallery.FunctionalTests.Commandline
             // Arrange
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            
-            // Try to upload package using 'unlist' api key
+
+            // Try to upload package using 'unlist' API key
             await _clientSdkHelper.FailToUploadPackage(EnvironmentSettings.TestAccountApiKey_Unlist);
 
-            // Try to upload package using 'push version' api key
+            // Try to upload package using 'push version' API key
             await _clientSdkHelper.FailToUploadPackage(EnvironmentSettings.TestAccountApiKey_PushVersion);
 
-            // Upload package using 'push' api key
+            // Upload package using 'push' API key
             await _clientSdkHelper.UploadPackage(EnvironmentSettings.TestAccountApiKey_Push);
 
-            // Try to upload new version of package using 'unlist' api key
+            // Try to upload new version of package using 'unlist' API key
             await _clientSdkHelper.FailToUploadPackageVersion(EnvironmentSettings.TestAccountApiKey_Unlist);
 
-            // Upload new version of package using 'push version' api key
+            // Upload new version of package using 'push version' API key
             await _clientSdkHelper.UploadPackageVersion(EnvironmentSettings.TestAccountApiKey_PushVersion);
 
-            // Try unlisting package version1 using 'push' api key
+            // Try unlisting package version1 using 'push' API key
             await _clientSdkHelper.FailToUnlistPackage(EnvironmentSettings.TestAccountApiKey_Push);
 
-            // Try unlisting package version2 using 'push version' api key
+            // Try unlisting package version2 using 'push version' API key
             await _clientSdkHelper.FailToUnlistPackage(EnvironmentSettings.TestAccountApiKey_PushVersion);
 
-            // Unlist both packages using 'unlist' api key
+            // Unlist a package using 'unlist' API key
             await _clientSdkHelper.UnlistPackage(EnvironmentSettings.TestAccountApiKey_Unlist);
         }
 
