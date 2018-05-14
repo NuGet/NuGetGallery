@@ -13,6 +13,7 @@ namespace Tests.Stats.ImportAzureCdnStatistics
             return new PackageTranslator("packagetranslations.json");
         }
 
+        [Fact]
         public void DoesNotThrowWhenGivenNull()
         {
             var target = CreatePackageTranslator();

@@ -37,7 +37,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
         {
             IEnumerable<PackageVerificationKey> expiredKeys;
 
-            using (var connection = await job.GalleryDatabase.ConnectTo())
+            using (var connection = await job.GalleryDatabase.CreateAsync())
             {
                 expiredKeys = await connection.QueryWithRetryAsync<PackageVerificationKey>(
                     SelectQuery,
@@ -59,7 +59,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
             if (expectedRowCount > 0)
             {
-                using (var connection = await job.GalleryDatabase.ConnectTo())
+                using (var connection = await job.GalleryDatabase.CreateAsync())
                 {
                     using (var transaction = connection.BeginTransaction())
                     {

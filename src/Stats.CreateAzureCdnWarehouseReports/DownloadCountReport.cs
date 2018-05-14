@@ -5,13 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet;
+using NuGet.Services.Sql;
 using NuGet.Versioning;
 
 namespace Stats.CreateAzureCdnWarehouseReports
@@ -23,8 +22,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "downloads.v1.json";
 
-        public DownloadCountReport(ILogger<DownloadCountReport> logger, IEnumerable<StorageContainerTarget> targets, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(logger, targets, statisticsDatabase, galleryDatabase)
+        public DownloadCountReport(
+            ILogger<DownloadCountReport> logger,
+            IEnumerable<StorageContainerTarget> targets,
+            ISqlConnectionFactory statisticsDbConnectionFactory,
+            ISqlConnectionFactory galleryDbConnectionFactory)
+            : base(logger, targets, statisticsDbConnectionFactory, galleryDbConnectionFactory)
         {
         }
 
@@ -32,8 +35,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<DownloadCountData> downloadData;
-            _logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog);
-            using (var connection = await StatisticsDatabase.ConnectTo())
+            _logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...",
+                StatisticsDbConnectionFactory.DataSource, StatisticsDbConnectionFactory.InitialCatalog);
+
+            using (var connection = await StatisticsDbConnectionFactory.CreateAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(

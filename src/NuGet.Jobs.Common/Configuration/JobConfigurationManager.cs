@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.ComponentModel.Design;
 using System.Linq;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
@@ -25,37 +25,16 @@ namespace NuGet.Jobs
         /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
         /// <param name="secretReaderFactory">Creates a secret reader.</param>
         /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(ILogger logger, string[] commandLineArgs, string jobName, ISecretReaderFactory secretReaderFactory)
+        public static IDictionary<string, string> GetJobArgsDictionary(IServiceContainer serviceContainer, ILogger logger, string[] commandLineArgs, string jobName)
         {
-            if (secretReaderFactory == null)
+            if (serviceContainer == null)
             {
-                throw new ArgumentNullException(nameof(secretReaderFactory));
+                throw new ArgumentNullException(nameof(serviceContainer));
             }
 
             Dictionary<string, string> argsDictionary = ReadCommandLineArguments(logger, commandLineArgs);
 
-            return InjectSecrets(secretReaderFactory, argsDictionary);
-        }
-
-        /// <summary>
-        /// Parses the string[] of <c>args</c> passed into the job into a dictionary of string, string.
-        /// Expects the string[] to be set of pairs of argumentName and argumentValue, where, argumentName start with a hyphen
-        /// </summary>
-        /// <param name="logger">Logger to use for internal logging</param>
-        /// <param name="commandLineArgs">Arguments passed to the job via commandline or environment variable settings</param>
-        /// <param name="jobName">Jobname to be used to infer environment variable settings</param>
-        /// <param name="secretReaderFactory">Creates a secret reader.</param>
-        /// <returns>Returns a dictionary of arguments</returns>
-        public static IDictionary<string, string> GetJobArgsDictionary(ILogger logger, string[] commandLineArgs, string jobName, NuGet.Services.KeyVault.ISecretReaderFactory secretReaderFactory)
-        {
-            if (secretReaderFactory == null)
-            {
-                throw new ArgumentNullException(nameof(secretReaderFactory));
-            }
-
-            Dictionary<string, string> argsDictionary = ReadCommandLineArguments(logger, commandLineArgs);
-
-            return InjectSecrets(secretReaderFactory, argsDictionary);
+            return InjectSecrets(serviceContainer, argsDictionary);
         }
 
         /// <summary>
@@ -209,8 +188,10 @@ namespace NuGet.Jobs
             return argsDictionary;
         }
 
-        private static IDictionary<string, string> InjectSecrets(ISecretReaderFactory secretReaderFactory, Dictionary<string, string> argsDictionary)
+        private static IDictionary<string, string> InjectSecrets(IServiceContainer serviceContainer, Dictionary<string, string> argsDictionary)
         {
+            var secretReaderFactory = (ISecretReaderFactory)serviceContainer.GetService(typeof(ISecretReaderFactory));
+
             var secretReader = secretReaderFactory.CreateSecretReader(argsDictionary);
             if (secretReader == null)
             {
@@ -218,6 +199,8 @@ namespace NuGet.Jobs
             }
 
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            serviceContainer.AddService(typeof(ISecretInjector), secretInjector);
 
             return InjectSecrets(secretInjector, argsDictionary);
         }

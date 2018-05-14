@@ -28,21 +28,14 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        /// <summary>
-        /// Kicks off the package verification process for the given request. Verification will begin when the
-        /// <see cref="ValidationEntitiesContext"/> has a <see cref="ValidatorStatus"/> that matches the
-        /// <see cref="IValidationRequest"/>'s validationId. Once verification completes, the <see cref="ValidatorStatus"/>'s
-        /// State will be updated to "Succeeded" or "Failed".
-        /// </summary>
-        /// <param name="request">The request that details the package to be verified.</param>
-        /// <returns>A task that will complete when the verification process has been queued.</returns>
-        public Task EnqueueVerificationAsync(IValidationRequest request)
+        public Task EnqueueProcessSignatureAsync(IValidationRequest request, bool requireRepositorySignature)
         {
             var message = new SignatureValidationMessage(
                 request.PackageId,
                 request.PackageVersion,
                 new Uri(request.NupkgUrl),
-                request.ValidationId);
+                request.ValidationId,
+                requireRepositorySignature);
             var brokeredMessage = _serializer.Serialize(message);
 
             var visibleAt = DateTimeOffset.UtcNow + (_configuration.Value.MessageDelay ?? TimeSpan.Zero);

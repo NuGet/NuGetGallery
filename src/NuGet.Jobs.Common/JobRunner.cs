@@ -56,7 +56,8 @@ namespace NuGet.Jobs
                 _logger.LogInformation("Started...");
 
                 // Get the args passed in or provided as an env variable based on jobName as a dictionary of <string argName, string argValue>
-                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(loggerFactory.CreateLogger(typeof(JobConfigurationManager)), commandLineArgs, job.JobName, (ISecretReaderFactory)ServiceContainer.GetService(typeof(ISecretReaderFactory)));
+
+                var jobArgsDictionary = JobConfigurationManager.GetJobArgsDictionary(ServiceContainer, loggerFactory.CreateLogger(typeof(JobConfigurationManager)), commandLineArgs, job.JobName);
 
                 // Setup logging
                 if (!ApplicationInsights.Initialized)
@@ -156,7 +157,7 @@ namespace NuGet.Jobs
                 {
                     if (ShouldInitialize(reinitializeAfterSeconds, timeSinceInitialization))
                     {
-                        job.Init(jobArgsDictionary);
+                        job.Init(ServiceContainer, jobArgsDictionary);
                         timeSinceInitialization = Stopwatch.StartNew();
                     }
 

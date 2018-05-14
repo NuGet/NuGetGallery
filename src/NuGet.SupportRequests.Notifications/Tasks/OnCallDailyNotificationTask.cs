@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,9 +23,10 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         private readonly PagerDutyClient _pagerDutyClient;
 
         public OnCallDailyNotificationTask(
+            IServiceContainer serviceContainer,
             IDictionary<string, string> jobArgsDictionary,
             ILoggerFactory loggerFactory)
-          : base(jobArgsDictionary, loggerFactory)
+          : base(serviceContainer, jobArgsDictionary, loggerFactory)
         {
             var pagerDutyConfiguration = new PagerDutyConfiguration(
                 jobArgsDictionary[_argumentNamePagerDutyAccountName],

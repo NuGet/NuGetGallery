@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using Microsoft.WindowsAzure.Storage;
 using Stats.CollectAzureChinaCDNLogs;
 using Xunit;
@@ -11,13 +12,15 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
 {
     public class JobTests
     {
+        private static IServiceContainer ServiceContainer = new ServiceContainer();
+
         [Fact]
         public void InitFailsWhenEmptyArguments()
         {
             var jobArgsDictionary = new Dictionary<string, string>();
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Fact]
@@ -26,7 +29,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var jobArgsDictionary = CreateValidJobArgsDictionary();
 
             var job = new Job();
-            Assert.ThrowsAny<StorageException>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<StorageException>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -40,7 +43,7 @@ namespace Tests.Stats.CollectAzureChinaCDNLogs
             var jobArgsDictionary = CreateValidJobArgsDictionary();
             jobArgsDictionary.Remove(keyToRemove);
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
 

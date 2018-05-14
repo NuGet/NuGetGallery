@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -25,7 +26,7 @@ namespace CopyAzureContainer
 
         private IEnumerable<AzureContainerInfo> _sourceContainers;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             _backupDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, ArgumentNames.CopyAzureContainer_BackupDays) ??
                           DefaultBackupDays;

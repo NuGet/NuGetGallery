@@ -195,6 +195,31 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             [Fact]
+            public async Task RejectsUnsignedPackagesWhenRepositorySigningIsRequired()
+            {
+                // Arrange
+                _packageStream = TestResources.GetResourceStream(TestResources.UnsignedPackage);
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                _message = new SignatureValidationMessage(
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion,
+                    new Uri($"https://unit.test/{TestResources.UnsignedPackage.ToLowerInvariant()}"),
+                    Guid.NewGuid(),
+                    requireRepositorySignature: true);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
+            }
+
+            [Fact]
             public async Task AcceptsSignedPackagesWithKnownCertificates()
             {
                 // Arrange
@@ -399,6 +424,34 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var issue = Assert.IsType<UnauthorizedCertificateFailure>(result.Issues[0]);
                 Assert.Equal(ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate, issue.IssueCode);
                 Assert.Equal(TestResources.Leaf2Sha1Thumbprint, issue.Sha1Thumbprint);
+            }
+
+            [Fact]
+            public async Task WhenRepositorySigningIsRequired_RejectsSignedPackagesWithNoRepositorySignature()
+            {
+                // Arrange
+                _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
+                TestUtility.RequireSignedPackage(
+                    _corePackageService,
+                    TestResources.SignedPackageLeafId,
+                    TestResources.Leaf1Thumbprint);
+                _message = new SignatureValidationMessage(
+                   TestResources.SignedPackageLeafId,
+                   TestResources.SignedPackageLeaf1Version,
+                   new Uri($"https://unit.test/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                   Guid.NewGuid(),
+                   requireRepositorySignature: true);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Assert.Empty(result.Issues);
             }
 
             [Fact]

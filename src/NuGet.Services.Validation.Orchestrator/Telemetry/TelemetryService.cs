@@ -213,18 +213,10 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
                         { ValidationTrackingId, validationTrackingId },
                     });
 
-        public void TrackDurationToStartPackageSigningValidator(TimeSpan duration)
-        {
-            _telemetryClient.TrackMetric(
-                DurationToStartPackageSigningValidatorSeconds,
-                duration.TotalSeconds);
-        }
+        public IDisposable TrackDurationToStartPackageSigningValidator()
+            => _telemetryClient.TrackDuration(DurationToStartPackageSigningValidatorSeconds);
 
-        public void TrackDurationToStartPackageCertificatesValidator(TimeSpan duration)
-        {
-            _telemetryClient.TrackMetric(
-                DurationToStartPackageCertificatesValidatorSeconds,
-                duration.TotalSeconds);
-        }
+        public IDisposable TrackDurationToStartPackageCertificatesValidator()
+            => _telemetryClient.TrackDuration(DurationToStartPackageCertificatesValidatorSeconds);
     }
 }

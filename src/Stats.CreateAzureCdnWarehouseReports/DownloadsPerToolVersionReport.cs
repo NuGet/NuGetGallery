@@ -5,13 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -22,8 +22,14 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "tools.v1.json";
 
-        public DownloadsPerToolVersionReport(ILogger<DownloadsPerToolVersionReport> logger, CloudStorageAccount cloudStorageAccount, string statisticsContainerName, SqlConnectionStringBuilder statisticsDatabase, SqlConnectionStringBuilder galleryDatabase)
-            : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) }, statisticsDatabase, galleryDatabase)
+        public DownloadsPerToolVersionReport(
+            ILogger<DownloadsPerToolVersionReport> logger,
+            CloudStorageAccount cloudStorageAccount,
+            string statisticsContainerName,
+            ISqlConnectionFactory statisticsDbConnectionFactory,
+            ISqlConnectionFactory galleryDbConnectionFactory)
+            : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) },
+                  statisticsDbConnectionFactory, galleryDbConnectionFactory)
         {
         }
 
@@ -31,8 +37,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<ToolDownloadCountData> data;
-            _logger.LogInformation("Gathering Tools Download Counts from {DataSource}/{InitialCatalog}...", StatisticsDatabase.DataSource, StatisticsDatabase.InitialCatalog);
-            using (var connection = await StatisticsDatabase.ConnectTo())
+            _logger.LogInformation("Gathering Tools Download Counts from {DataSource}/{InitialCatalog}...",
+                StatisticsDbConnectionFactory.DataSource, StatisticsDbConnectionFactory.InitialCatalog);
+
+            using (var connection = await StatisticsDbConnectionFactory.CreateAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
                 data = (await connection.QueryWithRetryAsync<ToolDownloadCountData>(

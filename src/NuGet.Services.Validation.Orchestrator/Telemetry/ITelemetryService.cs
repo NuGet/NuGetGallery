@@ -68,15 +68,13 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// <summary>
         /// The duration to start the package signing validator. This includes both the enqueue and DB commit time.
         /// </summary>
-        /// <param name="duration">The duration.</param>
-        void TrackDurationToStartPackageSigningValidator(TimeSpan duration);
+        IDisposable TrackDurationToStartPackageSigningValidator();
 
         /// <summary>
-        /// The duration to star the package certificates validator. This includes all enqueue times and the DB commit
+        /// The duration to start the package certificates validator. This includes all enqueue times and the DB commit
         /// time.
         /// </summary>
-        /// <param name="duration">The duration.</param>
-        void TrackDurationToStartPackageCertificatesValidator(TimeSpan duration);
+        IDisposable TrackDurationToStartPackageCertificatesValidator();
 
         /// <summary>
         /// A counter metric emmitted when a validator reaches a terminal state and potentially persists validation

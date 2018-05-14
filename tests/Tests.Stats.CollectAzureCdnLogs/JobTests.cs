@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using Stats.CollectAzureCdnLogs;
 using Xunit;
 
@@ -10,11 +11,13 @@ namespace Tests.Stats.CollectAzureCdnLogs
 {
     public class JobTests
     {
+        private static IServiceContainer ServiceContainer = new ServiceContainer();
+
         [Fact]
         public void InitFailsWhenNoArguments()
         {
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(null));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, null));
         }
 
         [Fact]
@@ -23,7 +26,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             var jobArgsDictionary = new Dictionary<string, string>();
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Fact]
@@ -32,7 +35,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             var jobArgsDictionary = CreateValidJobArgsDictionary();
 
             var job = new Job();
-            job.Init(jobArgsDictionary);
+            job.Init(ServiceContainer, jobArgsDictionary);
         }
 
         [Theory]
@@ -47,7 +50,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["FtpSourceUri"] = serverUri;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -59,7 +62,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["FtpSourceUsername"] = username;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -71,7 +74,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["FtpSourcePassword"] = password;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -84,7 +87,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["AzureCdnPlatform"] = platform;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -96,7 +99,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["AzureCdnAccountNumber"] = accountNumber;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -109,7 +112,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["AzureCdnCloudStorageAccount"] = cloudStorageAccount;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         [Theory]
@@ -121,7 +124,7 @@ namespace Tests.Stats.CollectAzureCdnLogs
             jobArgsDictionary["AzureCdnCloudStorageContainerName"] = containerName;
 
             var job = new Job();
-            Assert.ThrowsAny<Exception>(() => job.Init(jobArgsDictionary));
+            Assert.ThrowsAny<Exception>(() => job.Init(ServiceContainer, jobArgsDictionary));
         }
 
         private static Dictionary<string, string> CreateValidJobArgsDictionary()

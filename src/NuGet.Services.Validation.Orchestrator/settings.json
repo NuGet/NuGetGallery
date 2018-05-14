@@ -16,9 +16,16 @@
         "FailureBehavior": "MustSucceed"
       },
       {
-        "name": "PackageCertificatesValidator",
+        "name": "PackageSigningValidator2",
         "TrackAfter": "00:10:00",
         "requiredValidations": [ "PackageSigningValidator" ],
+        "ShouldStart": true,
+        "FailureBehavior": "AllowedToFail"
+      },
+      {
+        "name": "PackageCertificatesValidator",
+        "TrackAfter": "00:10:00",
+        "requiredValidations": [ "PackageSigningValidator2" ],
         "ShouldStart": true,
         "FailureBehavior": "MustSucceed"
       }
@@ -52,6 +59,14 @@
   },
   "PackageCertificates": {
     "CertificateRevalidationThreshold": "1:00:00:00",
+    "ServiceBus": {
+      "ConnectionString": "",
+      "TopicPath": "",
+      "SubscriptionName": ""
+    },
+    "MessageDelay": "00:00:05"
+  },
+  "ScanAndSign": {
     "ServiceBus": {
       "ConnectionString": "",
       "TopicPath": "",

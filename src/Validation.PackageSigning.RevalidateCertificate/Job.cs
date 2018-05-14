@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
@@ -20,9 +21,9 @@ namespace Validation.PackageSigning.RevalidateCertificate
 
         private ICertificateRevalidator _revalidator;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            base.Init(jobArgsDictionary);
+            base.Init(serviceContainer, jobArgsDictionary);
 
             _revalidator = _serviceProvider.GetRequiredService<ICertificateRevalidator>();
         }

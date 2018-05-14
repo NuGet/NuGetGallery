@@ -54,7 +54,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<IProcessorPackageFileService, ProcessorPackageFileService>(p => new ProcessorPackageFileService(
                 p.GetRequiredService<ICoreFileStorageService>(),
-                typeof(PackageSigningValidator),
+                typeof(PackageSignatureProcessor),
                 p.GetRequiredService<ILogger<ProcessorPackageFileService>>()));
 
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
@@ -74,7 +74,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 .RegisterType<ValidatorStateService>()
                 .WithParameter(
                     (pi, ctx) => pi.ParameterType == typeof(string),
-                    (pi, ctx) => ValidatorName.PackageSigning)
+                    (pi, ctx) => ValidatorName.PackageSignatureProcessor)
                 .As<IValidatorStateService>();
 
             containerBuilder

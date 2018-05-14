@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -86,7 +85,19 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
             // may have a status of "Unknown" if the package is at ingestion and its signature has passed
             // all validations, "Invalid" if one or more of the signature's certificates has failed validations,
             // or "InGracePeriod" or "Valid" if this is a revalidation request.
-            var signature = await FindSignatureAsync(request);
+            var signature = await FindAuthorSignatureAsync(request);
+
+            if (signature == null)
+            {
+                _logger.LogError(
+                    "Could not find author signature for {PackageKey} {PackageId} {PackageVersion} {ValidationId}",
+                    request.PackageKey,
+                    request.PackageId,
+                    request.PackageVersion,
+                    request.ValidationId);
+
+                throw new InvalidOperationException($"Package with key {request.PackageKey} does not have an author signature");
+            }
 
             if (signature.Status == PackageSignatureStatus.Invalid)
             {
@@ -160,12 +171,22 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
                 return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Failed);
             }
 
-            var isRevalidationRequest = await _validatorStateService.IsRevalidationRequestAsync(request);
+            // Skip packages that are only repository signed.
+            var signature = await FindAuthorSignatureAsync(request);
 
-            // Find the signatures used to sign the package and see if any certificates known to be revoked
-            // invalidate any of these signatures. Note that a revoked certificate is assumed to remain
-            // revoked forever.
-            var signature = await FindSignatureAsync(request);
+            if (signature == null)
+            {
+                _logger.LogInformation(
+                    "Package {PackageId} {PackageVersion} does not have an author signature, no additional validations necessary",
+                    request.PackageId,
+                    request.PackageVersion);
+
+                return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Succeeded);
+            }
+
+            // If any of the author signature's certificates are known to be revoked, invalidate any the signatures.
+            // A revoked certificate is assumed to remain revoked forever.
+            var isRevalidationRequest = await _validatorStateService.IsRevalidationRequestAsync(request);
 
             if (ShouldInvalidateSignature(signature, isRevalidationRequest))
             {
@@ -180,15 +201,12 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 
             if (certificates.Any())
             {
-                var stopwatch = Stopwatch.StartNew();
+                using (_telemetryService.TrackDurationToStartPackageCertificatesValidator())
+                {
+                    await StartCertificateValidationsAsync(request, certificates);
 
-                await StartCertificateValidationsAsync(request, certificates);
-
-                var result = await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
-
-                _telemetryService.TrackDurationToStartPackageCertificatesValidator(stopwatch.Elapsed);
-
-                return result;
+                    return await _validatorStateService.TryAddValidatorStatusAsync(request, status, ValidationStatus.Incomplete);
+                }
             }
             else
             {
@@ -226,18 +244,18 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
         }
 
         /// <summary>
-        /// Find all of the signatures and their certificates for the given validation request's package.
+        /// Find the package's author signature, if one exists.
         /// </summary>
         /// <param name="request">The validation request containing the package whose signatures should be fetched.</param>
-        /// <returns>The package's signatures with their certificates.</returns>
-        private Task<PackageSignature> FindSignatureAsync(IValidationRequest request)
+        /// <returns>The package's author signature with its certificates, or null.</returns>
+        private Task<PackageSignature> FindAuthorSignatureAsync(IValidationRequest request)
         {
             return _validationContext
                         .PackageSignatures
                         .Include(s => s.EndCertificate)
                         .Include(s => s.TrustedTimestamps.Select(t => t.EndCertificate))
                         .Where(s => s.Type == PackageSignatureType.Author)
-                        .SingleAsync(s => s.PackageKey == request.PackageKey);
+                        .SingleOrDefaultAsync(s => s.PackageKey == request.PackageKey);
         }
 
         /// <summary>

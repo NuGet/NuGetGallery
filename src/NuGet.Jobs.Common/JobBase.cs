@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Diagnostics.Tracing;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ namespace NuGet.Jobs
             Logger = logger;
         }
 
-        public abstract void Init(IDictionary<string, string> jobArgsDictionary);
+        public abstract void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary);
 
         public abstract Task Run();
     }

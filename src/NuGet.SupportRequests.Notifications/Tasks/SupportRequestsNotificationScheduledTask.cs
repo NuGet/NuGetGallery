@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.ComponentModel.Design;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using NuGet.SupportRequests.Notifications.Notifications;
 using NuGet.SupportRequests.Notifications.Services;
 using NuGet.SupportRequests.Notifications.Templates;
@@ -20,8 +22,9 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         private readonly MessagingService _messagingService;
 
         protected SupportRequestsNotificationScheduledTask(
-          IDictionary<string, string> jobArgsDictionary,
-          ILoggerFactory loggerFactory)
+            IServiceContainer serviceContainer,
+            IDictionary<string, string> jobArgsDictionary,
+            ILoggerFactory loggerFactory)
         {
             if (jobArgsDictionary == null)
             {
@@ -36,9 +39,11 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             var smtpUri = jobArgsDictionary[JobArgumentNames.SmtpUri];
             _messagingService = new MessagingService(loggerFactory, smtpUri);
 
-            var databaseConnectionString = jobArgsDictionary[JobArgumentNames.SourceDatabase];
-            var sourceDatabase = new SqlConnectionStringBuilder(databaseConnectionString);
-            _supportRequestRepository = new SupportRequestRepository(loggerFactory, sourceDatabase);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var supportDbConnectionString = jobArgsDictionary[JobArgumentNames.SourceDatabase];
+            var supportDbConnectionFactory = new AzureSqlConnectionFactory(supportDbConnectionString, secretInjector);
+            
+            _supportRequestRepository = new SupportRequestRepository(loggerFactory, supportDbConnectionFactory);
         }
 
         protected abstract Task<TNotification> BuildNotification(SupportRequestRepository supportRequestRepository, DateTime referenceTime);

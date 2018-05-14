@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -29,7 +30,7 @@ namespace NuGet.Jobs.Validation.Runner
         private string[] _requestValidationTasks;
         private int _batchSize;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             _galleryBaseAddress = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryBaseAddress);
 

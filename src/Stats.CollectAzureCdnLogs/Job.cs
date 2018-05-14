@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -31,7 +32,7 @@ namespace Stats.CollectAzureCdnLogs
         private CloudStorageAccount _cloudStorageAccount;
         private string _cloudStorageContainerName;
 
-        public override void Init(IDictionary<string, string> jobArgsDictionary)
+        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
             var ftpLogFolder = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.FtpSourceUri);
             var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);

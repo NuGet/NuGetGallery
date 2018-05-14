@@ -46,10 +46,11 @@
     <Compile Include="Configuration\TopologicalSortFacts.cs" />
     <Compile Include="MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
+    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidatorFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\CertificateVerificationEnqueuerFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidatorFacts.cs" />
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureVerificationEnqueuerFacts.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSigningValidatorFacts.cs" />
+    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessorFacts.cs" />
     <Compile Include="PackageStatusProcessorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ValidationMessageHandlerFacts.cs" />

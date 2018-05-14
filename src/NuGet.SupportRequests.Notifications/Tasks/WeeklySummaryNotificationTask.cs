@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,9 +22,10 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         private readonly string _targetEmailAddress;
 
         public WeeklySummaryNotificationTask(
-          IDictionary<string, string> jobArgsDictionary,
-          ILoggerFactory loggerFactory)
-          : base(jobArgsDictionary, loggerFactory)
+            IServiceContainer serviceContainer,
+            IDictionary<string, string> jobArgsDictionary,
+            ILoggerFactory loggerFactory)
+          : base(serviceContainer, jobArgsDictionary, loggerFactory)
         {
             _targetEmailAddress = jobArgsDictionary[_argumentNameTargetEmailAddress];
         }

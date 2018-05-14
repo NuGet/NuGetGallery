@@ -62,14 +62,20 @@
     <Compile Include="MessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />
     <Compile Include="Configuration\OrchestrationRunnerConfiguration.cs" />
+    <Compile Include="PackageSigning\ProcessSignature\BaseSignatureProcessor.cs" />
     <Compile Include="PackageSigning\ProcessSignature\IProcessSignatureEnqueuer.cs" />
-    <Compile Include="PackageSigning\ProcessSignature\PackageSigningValidator.cs" />
+    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessor.cs" />
     <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureConfiguration.cs" />
     <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureEnqueuer.cs" />
+    <Compile Include="PackageSigning\ScanAndSign\IScanAndSignEnqueuer.cs" />
+    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignConfiguration.cs" />
+    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignEnqueuer.cs" />
+    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignProcessor.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\IValidateCertificateEnqueuer.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidator.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\ValidateCertificateConfiguration.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\ValidateCertificateEnqueuer.cs" />
+    <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidator.cs" />
     <Compile Include="PackageStatusProcessor.cs" />
     <Compile Include="PackageValidationMessageDataSerializer.cs" />
     <Compile Include="Program.cs" />
@@ -127,7 +133,12 @@
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj">
+      <Project>{dfac2769-4b67-4fbc-ad60-d93a39dd45ae}</Project>
+      <Name>Validation.ScanAndSign.Core</Name>
+    </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>
