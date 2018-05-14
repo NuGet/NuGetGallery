@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
@@ -45,12 +46,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
 
         private static string _callbackPath = "users/account/authenticate/return";
         private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
-        private static HashSet<string> _stagingUrlList = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            "stagingdev.nugettest.org",
-            "stagingint.nugettest.org",
-            "staging.nuget.org"
-        };
+        private static HashSet<string> _stagingUrlDomainList;
 
         /// <summary>
         /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
@@ -77,6 +73,18 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 
             {
                 siteRoot = siteRoot.Replace("http://", "https://");
+            }
+
+            if (!string.IsNullOrWhiteSpace(config.Current.StagingDomainsList))
+            {
+                var stagingDomains = config
+                    .Current
+                    .StagingDomainsList
+                    .Split(';')
+                    .Select(d => d.Trim())
+                    .ToArray();
+
+                _stagingUrlDomainList = new HashSet<string>(stagingDomains, StringComparer.OrdinalIgnoreCase);
             }
 
             // Configure OpenIdConnect
@@ -229,7 +237,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             }
 
             // Set the redirect_uri token for the staging environments
-            if (_stagingUrlList.Contains(notification.Request.Uri.Host))
+            if (_stagingUrlDomainList != null && _stagingUrlDomainList.Contains(notification.Request.Uri.Host))
             {
                 notification.ProtocolMessage.RedirectUri = "https://" + notification.Request.Uri.Host + "/" + _callbackPath ;
             }
