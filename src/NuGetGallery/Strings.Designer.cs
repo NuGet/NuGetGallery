@@ -731,6 +731,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward..
+        /// </summary>
+        public static string DiscontinuedLogin_PasswordRemoved {
+            get {
+                return ResourceManager.GetString("DiscontinuedLogin_PasswordRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Owner(s) &apos;{0}&apos; require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
         ///.
         /// </summary>
