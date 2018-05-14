@@ -132,7 +132,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-            _clientSdkHelper.DownloadPackageAndVerify(packageId);
+            _clientSdkHelper.DownloadPackageAndVerify(packageId, version);
         }
 
         [PackageLockFact]
