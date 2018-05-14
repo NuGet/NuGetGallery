@@ -124,7 +124,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
 
-            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, version);
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
@@ -156,7 +156,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             // 2. Try unlisting the locked package 
             // Perform a sanity check that the package exists
-            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(LockedPackageId, LockedPackageVersion);
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(LockedPackageId, LockedPackageVersion);
             TestOutputHelper.WriteLine($"5. Trying to unlist locked package '{LockedPackageId}', version '{LockedPackageVersion}'.");
             processResult = await _commandlineHelper.DeletePackageAsync(LockedPackageId, LockedPackageVersion, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey);
             Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");

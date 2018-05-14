@@ -325,7 +325,7 @@ namespace NuGetGallery.FunctionalTests
                         "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
                         processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-                    await VerifyPackageExistsInV2AndV3Async(packageId, version);
+                    await VerifyPackageExistsInV2Async(packageId, version);
                 }
                 else
                 {
@@ -366,7 +366,7 @@ namespace NuGetGallery.FunctionalTests
                     "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
                     processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-                await VerifyPackageExistsInV2AndV3Async(packageId, version);
+                await VerifyPackageExistsInV2Async(packageId, version);
             }
             else
             {
@@ -517,18 +517,6 @@ namespace NuGetGallery.FunctionalTests
 
                 throw new ArgumentOutOfRangeException(nameof(apiKey));
             }
-        }
-
-        /// <summary>
-        /// Throws if the specified package cannot be found in the source.
-        /// </summary>
-        /// <param name="packageId">Id of the package.</param>
-        /// <param name="version">Version of the package.</param>
-        public async Task VerifyPackageExistsInV2AndV3Async(string packageId, string version)
-        {
-            var packageExistsInSource = await CheckIfPackageVersionExistsInV2AndV3Async(packageId, version);
-            Assert.True(packageExistsInSource,
-                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl} and V3.");
         }
         
         public async Task VerifyPackageExistsInV2Async(string packageId, string version)
