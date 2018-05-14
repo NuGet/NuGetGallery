@@ -124,7 +124,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
 
-            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version);
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, version);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))

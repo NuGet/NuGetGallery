@@ -518,7 +518,14 @@ namespace NuGetGallery.FunctionalTests
                 throw new ArgumentOutOfRangeException(nameof(apiKey));
             }
         }
-        
+
+        public async Task VerifyPackageExistsInV2AndV3Async(string packageId, string version)
+        {
+            var packageExistsInSource = await CheckIfPackageVersionExistsInV2AndV3Async(packageId, version);
+            Assert.True(packageExistsInSource,
+                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
+        }
+
         public async Task VerifyPackageExistsInV2Async(string packageId, string version)
         {
             var packageExistsInSource = await CheckIfPackageVersionExistsInV2Async(packageId, version);
