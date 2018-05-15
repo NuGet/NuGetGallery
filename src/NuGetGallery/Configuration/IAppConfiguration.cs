@@ -243,6 +243,11 @@ namespace NuGetGallery.Configuration
         int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
 
         /// <summary>
+        /// Defines a semi-colon separated list of domains for the alternate site root for gallery, used for MSA authentication by AADv2
+        /// </summary>
+        string AlternateSiteRootList { get; set; }
+
+        /// <summary>
         /// Configuration to enable manual setting of the machine key for session persistence across deployments/slots.
         /// </summary>
         bool EnableMachineKeyConfiguration { get; set; }
