@@ -499,6 +499,7 @@
     </Reference>
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.DirectoryServices" />
     <Reference Include="System.IdentityModel" />
     <Reference Include="System.IdentityModel.Tokens.Jwt, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -732,11 +733,13 @@
     <Compile Include="Authentication\PasswordResetResult.cs" />
     <Compile Include="Authentication\Providers\AuthenticationPolicy.cs" />
     <Compile Include="Authentication\Providers\AuthenticatorT.cs" />
+    <Compile Include="Authentication\Providers\LdapUser\LdapUserAuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\IdentityInformation.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2Authenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Authentication\Providers\LdapUser\LdapUserAuthenticator.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
@@ -805,6 +808,7 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Authentication\LdapValidator.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>

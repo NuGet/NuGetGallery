@@ -11,6 +11,13 @@ namespace NuGetGallery.Infrastructure.Authentication
     {
         public const string LatestPasswordType = CredentialTypes.Password.V3;
 
+        public Credential CreateLdapCredential(string username)
+        {
+            return new Credential(
+                CredentialTypes.Ldap.User,
+                username);
+        }
+
         public Credential CreatePasswordCredential(string plaintextPassword)
         {
             return new Credential(

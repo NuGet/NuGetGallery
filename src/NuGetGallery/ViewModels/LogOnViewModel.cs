@@ -12,6 +12,7 @@ namespace NuGetGallery
     public class LogOnViewModel
     {
         public AssociateExternalAccountViewModel External { get; set; }
+        public bool UseLdap { get; set; }
         public SignInViewModel SignIn { get; set; }
         public RegisterViewModel Register { get; set; }
         public IList<AuthenticationProviderViewModel> Providers { get; set; }

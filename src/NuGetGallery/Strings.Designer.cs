@@ -668,6 +668,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to LDAP.
+        /// </summary>
+        public static string CredentialType_Ldap {
+            get {
+                return ResourceManager.GetString("CredentialType_Ldap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Password.
         /// </summary>
         public static string CredentialType_Password {
@@ -919,6 +928,15 @@ namespace NuGetGallery {
         public static string JobLogBlobNameInvalid {
             get {
                 return ResourceManager.GetString("JobLogBlobNameInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The user &apos;{0}&apos; was not validated through LDAP. Please check the LDAP username and password..
+        /// </summary>
+        public static string LdapUserInvalid {
+            get {
+                return ResourceManager.GetString("LdapUserInvalid", resourceCulture);
             }
         }
         

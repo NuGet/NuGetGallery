@@ -7,6 +7,8 @@ namespace NuGetGallery.Infrastructure.Authentication
 {
     public interface ICredentialBuilder
     {
+        Credential CreateLdapCredential(string username);
+
         Credential CreatePasswordCredential(string plaintextPassword);
 
         Credential CreateApiKey(TimeSpan? expiration, out string plaintextApiKey);

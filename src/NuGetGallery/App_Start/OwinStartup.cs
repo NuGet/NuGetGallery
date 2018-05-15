@@ -20,6 +20,7 @@ using NuGet.Services.Logging;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.Cookie;
+using NuGetGallery.Authentication.Providers.LdapUser;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure;
 using Owin;
@@ -120,11 +121,17 @@ namespace NuGetGallery
             }
 
             // Get the local user auth provider, if present and attach it first
-            Authenticator localUserAuthenticator;
-            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out localUserAuthenticator))
+            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LocalUserAuthenticator)), out var localUserAuthenticator))
             {
                 // Configure cookie auth now
                 localUserAuthenticator.Startup(config, app).Wait();
+            }
+
+            // Get the ldap user auth provider, if present and attach it second
+            if (auth.Authenticators.TryGetValue(Authenticator.GetName(typeof(LdapUserAuthenticator)), out var ldapUserAuthenticator))
+            {
+                // Configure cookie auth now
+                ldapUserAuthenticator.Startup(config, app).Wait();
             }
 
             // Attach external sign-in cookie middleware
@@ -143,6 +150,10 @@ namespace NuGetGallery
                 .Where(p => !String.Equals(
                     p.Key,
                     Authenticator.GetName(typeof(LocalUserAuthenticator)),
+                    StringComparison.OrdinalIgnoreCase)
+                && !String.Equals(
+                    p.Key,
+                    Authenticator.GetName(typeof(LdapUserAuthenticator)),
                     StringComparison.OrdinalIgnoreCase))
                 .Select(p => p.Value);
             foreach (var auther in nonCookieAuthers)

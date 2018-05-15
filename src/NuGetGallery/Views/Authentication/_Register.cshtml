@@ -7,6 +7,7 @@
     @Html.AntiForgeryToken()
     @Html.Hidden("ReturnUrl", returnUrl)
     @Html.Hidden("LinkingAccount", Model.External != null)
+    @Html.HiddenFor(m => m.UseLdap)
 
     if (Model.External != null)
     {
