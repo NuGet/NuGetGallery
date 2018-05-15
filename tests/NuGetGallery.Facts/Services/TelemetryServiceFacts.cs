@@ -116,6 +116,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
                     };
 
+                    yield return new object[] { "CredentialUsed",
+                        (TrackAction)(s => s.TrackUserLogin(fakes.User, fakes.User.Credentials.First(), wasMultiFactorAuthenticated: true))
+                    };
+
                     yield return new object[] { "UserPackageDeleteCheckedAfterHours",
                         (TrackAction)(s => s.TrackUserPackageDeleteChecked(
                             new UserPackageDeleteEvent(
