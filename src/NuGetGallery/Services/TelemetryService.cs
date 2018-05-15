@@ -22,6 +22,7 @@ namespace NuGetGallery
             public const string PackagePushNamespaceConflict = "PackagePushNamespaceConflict";
             public const string NewUserRegistration = "NewUserRegistration";
             public const string CredentialAdded = "CredentialAdded";
+            public const string CredentialUsed = "CredentialUsed";
             public const string UserPackageDeleteCheckedAfterHours = "UserPackageDeleteCheckedAfterHours";
             public const string UserPackageDeleteExecuted = "UserPackageDeleteExecuted";
             public const string UserMultiFactorAuthenticationEnabled = "UserMultiFactorAuthenticationEnabled";
@@ -66,6 +67,7 @@ namespace NuGetGallery
         // User properties
         public const string RegistrationMethod = "RegistrationMethod";
         public const string AccountCreationDate = "AccountCreationDate";
+        public const string WasMultiFactorAuthenticated = "WasMultiFactorAuthenticated";
 
         // Verify package properties
         public const string IsVerificationKeyUsed = "IsVerificationKeyUsed";
@@ -217,6 +219,11 @@ namespace NuGetGallery
             TrackMetricForAccountActivity(Events.CredentialAdded, user, credential);
         }
 
+        public void TrackUserLogin(User user, Credential credential, bool wasMultiFactorAuthenticated)
+        {
+            TrackMetricForAccountActivity(Events.CredentialUsed, user, credential, wasMultiFactorAuthenticated);
+        }
+
         public void TrackUserPackageDeleteExecuted(int packageKey, string packageId, string packageVersion, ReportPackageReason reason, bool success)
         {
             if (packageId == null)
@@ -307,7 +314,7 @@ namespace NuGetGallery
             _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
         }
 
-        private void TrackMetricForAccountActivity(string eventName, User user, Credential credential)
+        private void TrackMetricForAccountActivity(string eventName, User user, Credential credential, bool wasMultiFactorAuthenticated = false)
         {
             if (user == null)
             {
@@ -319,6 +326,7 @@ namespace NuGetGallery
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(RegistrationMethod, GetRegistrationMethod(credential));
+                properties.Add(WasMultiFactorAuthenticated, wasMultiFactorAuthenticated.ToString());
             });
         }
 
