@@ -20,6 +20,7 @@ namespace NuGetGallery
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
+        public const string CertificateContentType = "application/pkix-cert";
 
         public const string UserCertificatesFolderName = "user-certificates";
         public const string ContentFolderName = "content";

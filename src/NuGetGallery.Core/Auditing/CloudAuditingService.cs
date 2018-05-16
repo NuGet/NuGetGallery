@@ -152,7 +152,10 @@ namespace NuGetGallery.Auditing
 
         public override bool RecordWillBePersisted(AuditRecord auditRecord)
         {
-            return auditRecord.GetType() == typeof(PackageAuditRecord);
+            var packageAuditRecord = auditRecord as PackageAuditRecord;
+
+            return packageAuditRecord != null &&
+                (packageAuditRecord.Action == AuditedPackageAction.Delete || packageAuditRecord.Action == AuditedPackageAction.SoftDelete);
         }
     }
 }

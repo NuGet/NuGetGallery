@@ -247,6 +247,8 @@ namespace NuGetGallery.Authentication
             owinContext.Authentication.SignIn(identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
 
+            _telemetryService.TrackUserLogin(authenticatedUser.User, authenticatedUser.CredentialUsed, wasMultiFactorAuthenticated);
+
             // Write an audit record
             await Auditing.SaveAuditRecordAsync(
                 new UserAuditRecord(authenticatedUser.User, AuditedUserAction.Login, authenticatedUser.CredentialUsed));
