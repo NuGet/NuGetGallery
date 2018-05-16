@@ -51,7 +51,7 @@ namespace NuGetGallery.FunctionalTests
 
             if (apiKey == null)
             {
-                apiKey = EnvironmentSettings.TestAccountApiKey;
+                apiKey = GalleryConfiguration.Instance.Account.ApiKey;
 
                 message += " Using full access API key";
             }
@@ -79,7 +79,7 @@ namespace NuGetGallery.FunctionalTests
 
             if (apiKey == null)
             {
-                apiKey = EnvironmentSettings.TestAccountApiKey;
+                apiKey = GalleryConfiguration.Instance.Account.ApiKey;
 
                 message += " Using full access API key";
             }
@@ -173,7 +173,7 @@ namespace NuGetGallery.FunctionalTests
             var nugetProcess = new Process();
             var pathToNugetExe = Path.Combine(Environment.CurrentDirectory, NugetExePath);
 
-            foreach (var trustedCertificate in EnvironmentSettings.TrustedHttpsCertificates)
+            foreach (var trustedCertificate in GalleryConfiguration.Instance.TrustedHttpsCertificates)
             {
                 arguments.AddRange(new[] { "-TrustedHttpsCertificate", trustedCertificate });
             }

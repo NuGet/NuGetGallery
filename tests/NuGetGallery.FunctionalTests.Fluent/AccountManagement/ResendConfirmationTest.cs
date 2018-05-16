@@ -20,7 +20,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.AccountManagement
         [Priority(2)]
         public void ResendConfirmation()
         {
-            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(GalleryConfiguration.Instance.Account.Email, GalleryConfiguration.Instance.Account.Password);
 
             // Go to account confirmation page
             I.Open(UrlHelper.BaseUrl + "account/confirmationrequired");

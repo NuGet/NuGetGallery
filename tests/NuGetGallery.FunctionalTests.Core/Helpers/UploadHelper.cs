@@ -34,7 +34,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             {
                 Id = id;
                 Version = version ?? GetUniquePackageVersion();
-                Owner = owner ?? EnvironmentSettings.TestAccountName;
+                Owner = owner ?? GalleryConfiguration.Instance.Account.Name;
             }
 
             protected PackageToUpload(PackageToUpload package)

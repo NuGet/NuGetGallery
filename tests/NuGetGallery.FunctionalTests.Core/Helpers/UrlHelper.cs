@@ -38,7 +38,7 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
-                return EnsureTrailingSlash(EnvironmentSettings.BaseUrl);
+                return EnsureTrailingSlash(GalleryConfiguration.Instance.GalleryBaseUrl);
             }
         }
 
@@ -46,7 +46,7 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
-                return EnsureTrailingSlash(EnvironmentSettings.SearchServiceBaseUrl);
+                return EnsureTrailingSlash(GalleryConfiguration.Instance.SearchServiceBaseUrl);
             }
         }
 
