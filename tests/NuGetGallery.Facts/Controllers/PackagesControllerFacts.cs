@@ -3914,6 +3914,29 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
+            public async Task WillTrackFailureIfUnexpectedException()
+            {
+                // Arrange
+                var fakeUserService = new Mock<IUserService>();
+                fakeUserService
+                    .Setup(x => x.FindByUsername(It.IsAny<string>(), false))
+                    .Throws<Exception>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    userService: fakeUserService,
+                    telemetryService: fakeTelemetryService);
+                var user = new User("test") { Key = 1 };
+                controller.SetCurrentUser(user);
+
+                // Act
+                await Assert.ThrowsAnyAsync<Exception>(() => controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = TestUtility.FakeUser.Username }));
+
+                // Assert
+                fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user), Times.Once());
+            }
+
+            [Fact]
             public async Task WillRedirectToUploadPageWhenThereIsNoUploadInProgress()
             {
                 var fakeUploadFileService = new Mock<IUploadFileService>();

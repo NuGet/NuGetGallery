@@ -60,6 +60,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
                     };
 
+                    yield return new object[] { "PackagePushFailure",
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent(fakes.User))
+                    };
+
                     yield return new object[] { "PackageUnlisted",
                         (TrackAction)(s => s.TrackPackageUnlisted(package))
                     };
@@ -226,6 +230,17 @@ namespace NuGetGallery
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
                     service.TrackPackagePushEvent(null, fakes.User, Fakes.ToIdentity(fakes.User)));
+            }
+
+            [Fact]
+            public void TrackPackagePushFailureEventThrowsIfUserIsNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackPackagePushFailureEvent(null));
             }
 
             [Fact]

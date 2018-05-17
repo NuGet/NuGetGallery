@@ -177,6 +177,24 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
+            public async Task CreatePackage_TracksFailureIfUnexpectedException()
+            {
+                // Arrange
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockSecurityPolicyService
+                    .Setup(x => x.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                    .Throws<Exception>();
+                var user = new User("test") { Key = 1 };
+                controller.SetCurrentUser(user);
+
+                // Act
+                await Assert.ThrowsAnyAsync<Exception>(() => controller.CreatePackagePut());
+
+                // Assert
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user), Times.Once());
+            }
+
+            [Fact]
             public async Task CreatePackage_Returns400IfSecurityPolicyFails()
             {
                 // Arrange
