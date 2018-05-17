@@ -24,12 +24,12 @@ Function Merge-Objects {
 
         .DESCRIPTION
             Iterates through every NoteProperty in the source object.
-            Properties of the source object are added to the output object.
-            If these properties already exist in the output object, they are overwritten.
+            Properties of the source object are added to the target object.
+            If these properties already exist in the target object, they are overwritten.
             Properties that are PSObjects are merged recursively.
 
         .PARAMETER Source
-            The object to merge the output with.
+            The object to merge the target with.
 
         .PARAMETER Output
             The object that the properties of the source are copied into.
@@ -40,31 +40,31 @@ Function Merge-Objects {
 
         .EXAMPLE
             $source = New-Object PSObject -Property @{ A = "A", B = New-Object PSObject -Property @{ C = "C" }, D = "D"}
-            $output = New-Object PSObject -Property @{ D = "E", E = "E" }
+            $target = New-Object PSObject -Property @{ D = "E", E = "E" }
 
-            Get-MergedObject -Source $source -Output $output
+            Merge-Objects -Source $source -Target $target
 
-            $output is now @{ A = "A", B = New-Object PSObject -Property @{ C = "C" }, D = "D", E = "E" }
+            $target is now @{ A = "A", B = New-Object PSObject -Property @{ C = "C" }, D = "D", E = "E" }
     #>
     param(
         [PSObject]$Source,
-        [PSObject]$Output
+        [PSObject]$Target
     )
 
-    # For each property of the source object, add the property to the output object
+    # For each property of the source object, add the property to the target object
     $Source | `
         Get-Member -MemberType NoteProperty | `
         ForEach-Object {
             $name = $_.Name
             $value = $Source."$name"
-            $existingValue = $Output."$name"
+            $existingValue = $Target."$name"
             if ($_.Definition.StartsWith("System.Management.Automation.PSCustomObject") -and $existingValue -is [PSObject]) {
-                # If the property is a nested object in both the source and output, merge the nested object in the source with the output object
-                Get-MergedObject -Source $value -output $existingValue
+                # If the property is a nested object in both the source and target, merge the nested object in the source with the target object
+                Merge-Objects -Source $value -Target $existingValue
             } else {
-                # Add the property to the output object
-                # If the property already exists on the output object, overwrite it
-                $Output | Add-Member -MemberType NoteProperty -Name $name -Value $value -Force
+                # Add the property to the target object
+                # If the property already exists on the target object, overwrite it
+                $Target | Add-Member -MemberType NoteProperty -Name $name -Value $value -Force
             }
         }
 }
@@ -81,7 +81,7 @@ $configObject = New-Object PSObject
         $configData = Get-Content -Path $file | ConvertFrom-Json
         Remove-Item -Path $file
         # Merge the current file with the last files
-        Get-MergedObject -Source $configData -Output $configObject
+        Merge-Objects -Source $configData -Target $configObject
     }
 
 # Add a field to the file determining which slot should be tested
