@@ -16,6 +16,7 @@ namespace NuGetGallery
         {
             public const string ODataQueryFilter = "ODataQueryFilter";
             public const string PackagePush = "PackagePush";
+            public const string PackagePushFailure = "PackagePushFailure";
             public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
@@ -167,6 +168,20 @@ namespace NuGetGallery
             }
 
             TrackMetricForPackage(Events.PackagePush, package.PackageRegistration.Id, package.NormalizedVersion, user, identity);
+        }
+
+        public void TrackPackagePushFailureEvent(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+
+            TrackMetric(Events.PackagePushFailure, 1, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+            });
         }
 
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)

@@ -525,24 +525,29 @@ namespace NuGetGallery
                 }
                 catch (InvalidPackageException ex)
                 {
-                    return BadRequestForExceptionMessage(ex);
+                    return HandleExpectedPackagePushFailure(ex);
                 }
                 catch (InvalidDataException ex)
                 {
-                    return BadRequestForExceptionMessage(ex);
+                    return HandleExpectedPackagePushFailure(ex);
                 }
                 catch (EntityException ex)
                 {
-                    return BadRequestForExceptionMessage(ex);
+                    return HandleExpectedPackagePushFailure(ex);
                 }
                 catch (FrameworkException ex)
                 {
-                    return BadRequestForExceptionMessage(ex);
+                    return HandleExpectedPackagePushFailure(ex);
+                }
+                catch (Exception)
+                {
+                    TelemetryService.TrackPackagePushFailureEvent(GetCurrentUser());
+                    throw;
                 }
             }
         }
 
-        private static ActionResult BadRequestForExceptionMessage(Exception ex)
+        private ActionResult HandleExpectedPackagePushFailure(Exception ex)
         {
             return new HttpStatusCodeWithBodyResult(
                 HttpStatusCode.BadRequest,

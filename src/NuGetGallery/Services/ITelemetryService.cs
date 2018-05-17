@@ -13,6 +13,8 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
+        void TrackPackagePushFailureEvent(User user);
+
         void TrackPackageUnlisted(Package package);
 
         void TrackPackageListed(Package package);
