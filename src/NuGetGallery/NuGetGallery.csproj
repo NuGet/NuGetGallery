@@ -1931,7 +1931,8 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
-    <Content Include="Scripts\gallery\d3.v3.js" />
+    <Content Include="Scripts\d3\d3.js" />
+    <Content Include="Scripts\d3\d3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
@@ -2029,6 +2030,10 @@
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
     <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
+    <Content Include="Scripts\d3\README.md" />
+    <Content Include="Scripts\d3\LICENSE" />
+    <Content Include="Scripts\d3\CHANGES.md" />
+    <Content Include="Scripts\d3\API.md" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
