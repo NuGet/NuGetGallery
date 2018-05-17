@@ -69,9 +69,9 @@ Function Merge-Objects {
         }
 }
 
-# Download the config files--common ("All"), per environment, and per region--and merge them into a single file
+# Download the config files--common, per environment, and per region--and merge them into a single file
 $configObject = New-Object PSObject
-"All", $Environment, "$Environment-$Region" | `
+"Common", $Environment, "$Environment-$Region" | `
     ForEach-Object {
         $filename = "$_.json"
         $file = "$PSScriptRoot\temp-$filename"
