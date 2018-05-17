@@ -28,11 +28,11 @@ Remove-Item $loadTestResults -ErrorAction Ignore
 $fullTestCategory = "$($testCategory)Tests"
 $exitCode = 0
 
-$functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"
-& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
-if ($LastExitCode) {
-    $exitCode = 1
-}
+#$functionalTestsDirectory = "$rootName\NuGetGallery.FunctionalTests\bin\$Config"
+#& $xunit "$functionalTestsDirectory\NuGetGallery.FunctionalTests.dll" "-trait" "Category=$fullTestCategory" "-xml" $functionalTestsResults
+#if ($LastExitCode) {
+#    $exitCode = 1
+#}
 
 # Run web UI tests
 $webTestsDirectory = "$rootName\NuGetGallery.WebUITests.$TestCategory\bin\$Config"
@@ -42,10 +42,10 @@ if ($LastExitCode) {
 }
 
 # Run load tests
-$loadTestsDirectory = "$rootName\NuGetGallery.LoadTests\bin\$Config"
-& $msTest "/TestContainer:$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/category:$fullTestCategory" "/resultsfile:$loadTestResults"
-if ($LastExitCode) {
-    $exitCode = 1
-}
+#$loadTestsDirectory = "$rootName\NuGetGallery.LoadTests\bin\$Config"
+#& $msTest "/TestContainer:$loadTestsDirectory\NuGetGallery.LoadTests.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/category:$fullTestCategory" "/resultsfile:$loadTestResults"
+#if ($LastExitCode) {
+#    $exitCode = 1
+#}
 
 exit $exitCode

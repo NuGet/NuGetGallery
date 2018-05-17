@@ -49,6 +49,7 @@
     </CodeAnalysisDependentAssemblyPaths>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AccountManagement\MSALogonTest.cs" />
     <Compile Include="AccountManagement\LogonTest.cs" />
     <Compile Include="AccountManagement\RegisterNewUserTest.cs" />
     <Compile Include="BasicPages\BrandingValidationTest.cs" />

@@ -23,6 +23,9 @@ namespace NuGetGallery.FunctionalTests
         private static string _testAccountEmail;
         private static string _testAccountName;
         private static string _testAccountPassword;
+        private static string _testAccountMSAEmail;
+        private static string _testAccountMSAName;
+        private static string _testAccountMSAPassword;
         private static string _testAccountApiKey;
         private static string _testAccountApiKey_Unlist;
         private static string _testAccountApiKey_PushPackage;
@@ -255,6 +258,51 @@ namespace NuGetGallery.FunctionalTests
                     _testAccountPassword = Environment.GetEnvironmentVariable("TestAccountPassword");
                 }
                 return _testAccountPassword;
+            }
+        }
+
+        /// <summary>
+        /// The test nuget account name to be used for functional tests.
+        /// </summary>
+        public static string MSATestAccountEmail
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountMSAEmail))
+                {
+                    _testAccountMSAEmail = Environment.GetEnvironmentVariable("MSATestAccountEmail");
+                }
+                return _testAccountMSAEmail;
+            }
+        }
+
+        /// <summary>
+        /// The test nuget account name to be used for functional tests.
+        /// </summary>
+        public static string MSATestAccountName
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountMSAName))
+                {
+                    _testAccountMSAName = Environment.GetEnvironmentVariable("MSATestAccountName");
+                }
+                return _testAccountMSAName;
+            }
+        }
+
+        /// <summary>
+        /// The password for the test account.
+        /// </summary>
+        public static string MSATestAccountPassword
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(_testAccountMSAPassword))
+                {
+                    _testAccountMSAPassword = Environment.GetEnvironmentVariable("MSATestAccountPassword");
+                }
+                return _testAccountMSAPassword;
             }
         }
 
