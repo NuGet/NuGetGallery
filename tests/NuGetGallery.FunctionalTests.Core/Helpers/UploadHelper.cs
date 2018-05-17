@@ -111,13 +111,11 @@ namespace NuGetGallery.FunctionalTests.Helpers
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
 
+            var cancelUploadPostRequest = AssertAndValidationHelper.GetCancelUploadPostRequestForPackage(test);
+            yield return cancelUploadPostRequest;
+
             var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(test, packageToUpload.FullPath);
             yield return uploadPostRequest;
-
-            // This second get request to upload is to put us on the new "Verify Page" which is just the upload page in a different state.
-            // This is to get the RequestVerificationToken for the following request. (upload and verify were merged onto the same page).
-            var uploadRequest2 = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
-            yield return uploadRequest2;
 
             var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(test,
                 packageToUpload.Id,
