@@ -108,15 +108,20 @@ namespace NuGetGallery.FunctionalTests.Helpers
 
         private static IEnumerable<WebTestRequest> UploadPackage(WebTest test, PackageToUploadInternal packageToUpload)
         {
+            // Navigate to the upload page.
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
 
+            // Cancel any pending uploads.
+            // We can't upload the new package if any uploads are pending.
             var cancelUploadPostRequest = AssertAndValidationHelper.GetCancelUploadPostRequestForPackage(test);
             yield return cancelUploadPostRequest;
 
+            // Upload the new package.
             var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(test, packageToUpload.FullPath);
             yield return uploadPostRequest;
 
+            // Verify the new package.
             var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(test,
                 packageToUpload.Id,
                 packageToUpload.Version,

@@ -17,8 +17,9 @@ namespace NuGetGallery.FunctionalTests
             EnvironmentVariableTarget.User,
             EnvironmentVariableTarget.Machine
         };
-        
-        public static string ConfigurationFilePath => GetEnvironmentVariable("ConfigurationFilePath", required: true);
+
+        public const string ConfigurationFilePathVariableName = "ConfigurationFilePath";
+        public static string ConfigurationFilePath => GetEnvironmentVariable(ConfigurationFilePathVariableName, required: true);
 
         private static string GetEnvironmentVariable(string key, bool required)
         {

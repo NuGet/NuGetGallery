@@ -1,7 +1,10 @@
-﻿using Newtonsoft.Json;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace NuGetGallery.FunctionalTests
 {
@@ -38,8 +41,26 @@ namespace NuGetGallery.FunctionalTests
 
         static GalleryConfiguration()
         {
-            var configurationString = File.ReadAllText(EnvironmentSettings.ConfigurationFilePath);
-            Instance = JsonConvert.DeserializeObject<GalleryConfiguration>(configurationString);
+            try
+            {
+                var configurationFilePath = EnvironmentSettings.ConfigurationFilePath;
+                var configurationString = File.ReadAllText(configurationFilePath);
+                Instance = JsonConvert.DeserializeObject<GalleryConfiguration>(configurationString);
+            }
+            catch (ArgumentException ae)
+            {
+                throw new ArgumentException(
+                    $"No configuration file was specified! Set the '{EnvironmentSettings.ConfigurationFilePathVariableName}' environment variable to the path to a JSON configuration file.", 
+                    ae);
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException(
+                    $"Unable to load the JSON configuration file. " +
+                    $"Make sure the JSON configuration file exists at the path specified by the '{EnvironmentSettings.ConfigurationFilePathVariableName}' " +
+                    $"and that it is a valid JSON file containing all required configuration.",
+                    e);
+            }
         }
 
         public class AccountConfiguration : OrganizationConfiguration
