@@ -118,30 +118,28 @@ namespace NuGetGallery.FunctionalTests
         {
             bool success = false;
 
-            WriteLine($"{actionPhrase} ({Attempts} attempts, interval {SleepDuration.TotalSeconds} seconds).");
-
-            for (var i = 0; i < Attempts && !success; i++)
+            try
             {
-                if (i != 0)
-                {
-                    await Task.Delay(SleepDuration);
-                }
+                WriteLine($"{actionPhrase} ({Attempts} attempts, interval {SleepDuration.TotalSeconds} seconds).");
 
-                WriteLine($"[verification attempt {i}]: Executing... ");
-
-                try
+                for (var i = 0; i < Attempts && !success; i++)
                 {
+                    if (i != 0)
+                    {
+                        await Task.Delay(SleepDuration);
+                    }
+
+                    WriteLine($"[verification attempt {i}]: Executing... ");
                     success = await actionAsync();
+                    if (success)
+                    {
+                        WriteLine("Successful!");
+                    }
                 }
-                catch (Exception ex)
-                {
-                    WriteLine($"{actionPhrase} attempt {i} threw an exception.{Environment.NewLine}{ex}");
-                }
-
-                if (success)
-                {
-                    WriteLine("Successful!");
-                }
+            }
+            catch (Exception ex)
+            {
+                WriteLine($"{actionPhrase} threw an exception.{Environment.NewLine}{ex}");
             }
 
             return success;
@@ -155,7 +153,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies, apiKey);
 
-            await VerifyPackageExistsInV2Async(packageId, version);
+            await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
         public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
@@ -200,7 +198,7 @@ namespace NuGetGallery.FunctionalTests
         {
             await UnlistPackage(packageId, version, apiKey);
 
-            await VerifyPackageExistsInV2Async(packageId, version);
+            await VerifyPackageExistsInV2AndV3Async(packageId, version);
         }
 
         public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null, bool success = true)
