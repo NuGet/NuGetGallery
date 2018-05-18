@@ -338,6 +338,23 @@
                     <p>@Html.PreFormattedText(Model.ReleaseNotes)</p>
                 }
 
+                if (Model.RecommendedPackages.Any())
+                {
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#related-packages"
+                        aria-expanded="true" aria-controls="related-packages" id="show-related-packages">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Related</span>
+                        </a>
+                    </h2>
+                    <div class="list-packages" role="list">
+                        @foreach (var package in Model.RecommendedPackages)
+                        {
+                            @Html.Partial("_ListPackage", package)
+                        }
+                    </div>
+                }
+
                 if (Model.Dependencies.DependencySets == null)
                 {
                     if (Model.CanDisplayPrivateMetadata)
