@@ -68,7 +68,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             {
                 var packageId = UploadHelper.GetUniquePackageId();
                 var packageFullPath = await _packageCreationHelper.CreatePackage(packageId, version);
-                await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey);
+                await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
                 uploadedPackageIds.Add(packageId);
             }
 
