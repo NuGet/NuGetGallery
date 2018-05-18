@@ -801,10 +801,19 @@ img.reserved-indicator-icon {
   margin-bottom: 15px;
 }
 .page-package-details .owner-list li {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display:         flex;
   margin-bottom: 8px;
 }
 .page-package-details .owner-list img {
   margin-right: 8px;
+}
+.page-package-details .owner-list a:last-of-type {
+  width: -webkit-calc(100% - 32px - 5px);
+  width:         calc(100% - 32px - 5px);
+  word-wrap: break-word;
 }
 .page-package-details .share-buttons img {
   display: inline-block;

@@ -33,11 +33,17 @@
 
   .owner-list {
     li {
+      display: flex;
       margin-bottom: 8px;
     }
 
     img {
       margin-right: 8px;
+    }
+
+    a:last-of-type {
+      width: calc(100% - 32px - 5px);
+      word-wrap: break-word;
     }
   }
 
