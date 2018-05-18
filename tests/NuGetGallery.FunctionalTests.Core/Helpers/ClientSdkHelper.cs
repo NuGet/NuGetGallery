@@ -208,20 +208,20 @@ namespace NuGetGallery.FunctionalTests
         private static string GetApiKeyWithSameOwnerThatCanUpload(string apiKey = null)
         {
             if (apiKey == null ||
-                apiKey == EnvironmentSettings.TestAccountApiKey ||
-                apiKey == EnvironmentSettings.TestAccountApiKey_Push ||
-                apiKey == EnvironmentSettings.TestAccountApiKey_PushVersion ||
-                apiKey == EnvironmentSettings.TestAccountApiKey_Unlist)
+                apiKey == GalleryConfiguration.Instance.Account.ApiKey ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyPush ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyPushVersion ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyUnlist)
             {
-                return EnvironmentSettings.TestAccountApiKey;
+                return GalleryConfiguration.Instance.Account.ApiKey;
             }
-            else if (apiKey == EnvironmentSettings.TestOrganizationAdminAccountApiKey)
+            else if (apiKey == GalleryConfiguration.Instance.AdminOrganization.ApiKey)
             {
-                return EnvironmentSettings.TestOrganizationAdminAccountApiKey;
+                return GalleryConfiguration.Instance.AdminOrganization.ApiKey;
             }
-            else if (apiKey == EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey)
+            else if (apiKey == GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey)
             {
-                return EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey;
+                return GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey;
             }
 
             throw new ArgumentOutOfRangeException(nameof(apiKey));
@@ -467,14 +467,14 @@ namespace NuGetGallery.FunctionalTests
             public bool CanUseApiKeyToPushNewVersion(string apiKey)
             {
                 return HasSameOwnerAsApiKey(apiKey) && 
-                    apiKey != EnvironmentSettings.TestAccountApiKey_Unlist;
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyUnlist;
             }
 
             public bool CanUseApiKeyToUnlist(string apiKey)
             {
                 return HasSameOwnerAsApiKey(apiKey) && 
-                    apiKey != EnvironmentSettings.TestAccountApiKey_Push && 
-                    apiKey != EnvironmentSettings.TestAccountApiKey_PushVersion;
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyPush && 
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyPushVersion;
             }
 
             public bool WasUploadedByApiKey(string apiKey)
@@ -490,20 +490,20 @@ namespace NuGetGallery.FunctionalTests
             private static string MapApiKeyToOwner(string apiKey)
             {
                 if (apiKey == null ||
-                    apiKey == EnvironmentSettings.TestAccountApiKey ||
-                    apiKey == EnvironmentSettings.TestAccountApiKey_Push ||
-                    apiKey == EnvironmentSettings.TestAccountApiKey_PushVersion ||
-                    apiKey == EnvironmentSettings.TestAccountApiKey_Unlist)
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKey ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyPush ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyPushVersion ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyUnlist)
                 {
-                    return EnvironmentSettings.TestAccountName;
+                    return GalleryConfiguration.Instance.Account.Name;
                 }
-                else if (apiKey == EnvironmentSettings.TestOrganizationAdminAccountApiKey)
+                else if (apiKey == GalleryConfiguration.Instance.AdminOrganization.ApiKey)
                 {
-                    return EnvironmentSettings.TestOrganizationAdminAccountName;
+                    return GalleryConfiguration.Instance.AdminOrganization.Name;
                 }
-                else if (apiKey == EnvironmentSettings.TestOrganizationCollaboratorAccountApiKey)
+                else if (apiKey == GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey)
                 {
-                    return EnvironmentSettings.TestOrganizationCollaboratorAccountName;
+                    return GalleryConfiguration.Instance.CollaboratorOrganization.Name;
                 }
 
                 throw new ArgumentOutOfRangeException(nameof(apiKey));

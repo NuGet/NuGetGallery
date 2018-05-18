@@ -11,7 +11,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     /// </summary>
     public class UploadPackageToOrganizationAsCollaboratorFromUI : UploadPackageFromUI
     {
-        private static string Owner = EnvironmentSettings.TestOrganizationCollaboratorAccountName;
+        private static string Owner = GalleryConfiguration.Instance.CollaboratorOrganization.Name;
 
         private string _id = UploadHelper.GetUniquePackageId();
 
