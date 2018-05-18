@@ -5,30 +5,35 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using System.Web;
 
 namespace NuGetGallery
 {
     public class LocalReportService : IReportService
     {
-        private static readonly string ProjectDirectory = HttpRuntime.AppDomainAppPath;
-        private static readonly string ReportsDirectory =
-            Path.Combine(ProjectDirectory, "App_Data", "Files", "Reports");
+        private const string FolderName = "Reports";
 
-        public Task<ReportBlob> Load(string reportName)
+        private readonly IFileStorageService _fileStorage;
+
+        public LocalReportService(
+            IFileStorageService fileStorage)
         {
-            string path = Path.Combine(ReportsDirectory, reportName);
-            try
+            _fileStorage = fileStorage;
+        }
+
+        public async Task<ReportBlob> Load(string reportName)
+        {
+            using (var stream = await _fileStorage.GetFileAsync(FolderName, fileName: reportName))
             {
-                string content = File.ReadAllText(path, Encoding.UTF8);
-                var lastUpdatedUtc = File.GetLastWriteTimeUtc(path);
-                return Task.FromResult(new ReportBlob(content, lastUpdatedUtc));
-            }
-            catch (Exception ex) when (ex is DirectoryNotFoundException || ex is FileNotFoundException)
-            {
-                throw new ReportNotFoundException(
-                    $"Report {reportName} was not found on the local filesystem.",
-                    ex);
+                if (stream == null)
+                {
+                    throw new ReportNotFoundException();
+                }
+
+                using (var reader = new StreamReader(stream))
+                {
+                    string content = await reader.ReadToEndAsync();
+                    return new ReportBlob(content);
+                }
             }
         }
     }
