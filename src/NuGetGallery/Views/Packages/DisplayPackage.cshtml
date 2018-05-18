@@ -488,13 +488,13 @@
                     @foreach (var package in Model.RecommendedPackages)
                     {
                         <li>
-                            <a href="@Url.Package(package.Id)" title="@package.Id">
+                            <a href="@Url.Package(package.Id)" title="@package.Id" target="_blank">
                                 <img class="owner-image" aria-hidden="true" alt="" width="32" height="32"
                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
                                     />
                             </a>
-                            <a href="@Url.Package(package.Id)" title="@package.Id">@package.Id</a>
+                            <a href="@Url.Package(package.Id)" title="@package.Id" target="_blank">@package.Id</a>
                         </li>
                     }
                 </ul>
