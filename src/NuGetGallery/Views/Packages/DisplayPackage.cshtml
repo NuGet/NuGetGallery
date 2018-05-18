@@ -494,7 +494,7 @@
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
                                     />
                             </a>
-                            <a href="@Url.Package(package)" title="@package.Id" target="_blank">@package.Id</a>
+                            <a class="owner-text" href="@Url.Package(package)" title="@package.Id" target="_blank">@package.Id</a>
                         </li>
                     }
                 </ul>
@@ -653,7 +653,7 @@ foreach (var owner in Model.Owners)
     {
             <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
 }
-                <a href="@Url.User(owner)" title="@owner.Username">
+                <a class="owner-text" href="@Url.User(owner)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>

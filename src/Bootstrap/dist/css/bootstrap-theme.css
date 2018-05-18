@@ -801,6 +801,7 @@ img.reserved-indicator-icon {
   margin-bottom: 15px;
 }
 .page-package-details .owner-list li {
+  /* Gets the image + anchor text to display side-by-side */
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -810,7 +811,8 @@ img.reserved-indicator-icon {
 .page-package-details .owner-list img {
   margin-right: 8px;
 }
-.page-package-details .owner-list a:last-of-type {
+.page-package-details .owner-list .owner-text {
+  /* Hacky solution to limit the width of the text anchor */
   width: -webkit-calc(100% - 32px - 5px);
   width:         calc(100% - 32px - 5px);
   word-wrap: break-word;

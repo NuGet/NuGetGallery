@@ -33,6 +33,7 @@
 
   .owner-list {
     li {
+      /* Gets the image + anchor text to display side-by-side */
       display: flex;
       margin-bottom: 8px;
     }
@@ -41,7 +42,8 @@
       margin-right: 8px;
     }
 
-    a:last-of-type {
+    .owner-text {
+      /* Hacky solution to limit the width of the text anchor */
       width: calc(100% - 32px - 5px);
       word-wrap: break-word;
     }
