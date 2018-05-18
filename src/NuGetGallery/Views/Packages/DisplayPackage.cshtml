@@ -484,23 +484,17 @@
             @if (Model.RecommendedPackages.Any())
             {
                 <h2>Related</h2>
-                <ul class="list-unstyled">
+                <ul class="list-unstyled owner-list">
                     @foreach (var package in Model.RecommendedPackages)
                     {
-                        <li class="recommendation-item" style="margin-bottom: 10px; position: relative;">
-                            <a href="@Url.Package(package)"
-                               style="display: inline-block; float: left; margin-right: 10px;"
-                               target="_blank"><img aria-hidden="true" alt=""
-                                                    width="28" height="28"
-                                                    class="recommendation-icon"
-                                                    style="display: inline-block;"
-                                                    src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                                    /></a>
-                            <a href="@Url.Package(package)"
-                                class="recommendation-anchor"
-                                style="word-wrap: break-word; position: absolute; bottom: 0;"
-                                target="_blank">@package.Id</a>
-                            <br clear="all" />
+                        <li>
+                            <a href="@Url.Package(package.Id)" title="@package.Id">
+                                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                    src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
+                                    />
+                            </a>
+                            <a href="@Url.Package(package.Id)" title="@package.Id">@package.Id</a>
                         </li>
                     }
                 </ul>
