@@ -487,14 +487,14 @@
                 <ul class="list-unstyled owner-list">
                     @foreach (var package in Model.RecommendedPackages)
                     {
-                        <li style="position: relative;">
+                        <li style="display: flex">
                             <a href="@Url.Package(package)" title="@package.Id" target="_blank">
                                 <img class="owner-image" aria-hidden="true" alt="" width="32" height="32"
                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
                                     />
                             </a>
-                            <a href="@Url.Package(package)" title="@package.Id" target="_blank" style="position: absolute;">@package.Id</a>
+                            <a href="@Url.Package(package)" title="@package.Id" target="_blank" style="width: calc(100% - (32px + 5px)); word-wrap: break-word;">@package.Id</a>
                         </li>
                     }
                 </ul>
