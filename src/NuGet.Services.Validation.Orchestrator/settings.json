@@ -72,6 +72,14 @@
       "TopicPath": "",
       "SubscriptionName": ""
     },
+    "PackageCriteria": {
+      "ExcludeOwners": [
+        "NugetTestAccount"
+      ],
+      "IncludeIdPatterns": [
+        "E2E.SemVer1Stable.*"
+      ]
+    },
     "MessageDelay": "00:00:05"
   },
   "RunnerConfiguration": {

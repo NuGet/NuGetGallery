@@ -614,7 +614,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.NotNull(result.NupkgUri);
         }
 
-        [Fact]
+        [Fact(Skip = "Appears to be flaky")]
         public async Task StripsRepositorySignatureWithUntrustedSigningCertificate()
         {
             // Arrange

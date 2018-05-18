@@ -3,6 +3,7 @@
 
 using System;
 using NuGet.Jobs.Configuration;
+using NuGet.Services.Validation.Vcs;
 
 namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
 {
@@ -17,5 +18,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
         /// The visibility delay to apply to Service Bus messages requesting a new validation.
         /// </summary>
         public TimeSpan? MessageDelay { get; set; }
+
+        /// <summary>
+        /// The criteria used to determine if a package should be submitted scanning.
+        /// </summary>
+        public PackageCriteria PackageCriteria { get; set; } = new PackageCriteria();
     }
 }
