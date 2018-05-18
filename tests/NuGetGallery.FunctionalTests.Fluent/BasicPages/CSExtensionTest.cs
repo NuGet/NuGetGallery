@@ -26,7 +26,7 @@ namespace NuGetGallery.FunctionalTests.Fluent.BasicPages
             await UploadPackageIfNecessary(packageName, version);
 
             // Log on using the test account.
-            I.LogOn(EnvironmentSettings.TestAccountEmail, EnvironmentSettings.TestAccountPassword);
+            I.LogOn(GalleryConfiguration.Instance.Account.Email, GalleryConfiguration.Instance.Account.Password);
 
             // Go back to the package page.
             I.Open(UrlHelper.BaseUrl + "/packages/" + packageName);
