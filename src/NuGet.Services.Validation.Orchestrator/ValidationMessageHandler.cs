@@ -123,8 +123,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     return true;
                 }
 
-                await _validationSetProcessor.ProcessValidationsAsync(validationSet, package);
-                await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, package);
+                var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet, package);
+                await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, package, processorStats);
             }
             return true;
         }

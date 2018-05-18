@@ -88,6 +88,7 @@
     <Compile Include="Configuration\ValidationConfigurationItem.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
     <Compile Include="ValidationPackageFileService.cs" />
+    <Compile Include="ValidationSetProcessorResult.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
     <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />
