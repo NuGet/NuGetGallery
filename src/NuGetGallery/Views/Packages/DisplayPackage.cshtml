@@ -489,7 +489,7 @@
                     {
                         <li>
                             <a href="@Url.Package(package.Id)" title="@package.Id">
-                                <img class="package-icon img-responsive" aria-hidden="true" alt=""
+                                <img class="owner-image" aria-hidden="true" alt="" width="32" height="32"
                                     src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
                                     />
