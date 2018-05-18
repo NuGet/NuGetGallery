@@ -100,6 +100,9 @@ namespace NuGetGallery.Views.Packages
                 yield return ValidationIssue.OnlyAuthorSignaturesSupported;
                 yield return ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported;
                 yield return ValidationIssue.OnlySignatureFormatVersion1Supported;
+                yield return ValidationIssue.AuthorCounterSignaturesNotSupported;
+                yield return ValidationIssue.PackageIsNotSigned;
+                yield return new UnauthorizedCertificateFailure("thumbprint");
             }
         }
 

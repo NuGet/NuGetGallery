@@ -9,15 +9,11 @@
         <div class="col-md-12">
             <div class="breadcrumb-menu">
                 <div>
-                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, false, @<text>Organizations</text>)
-                </div>
-                <div>
-                    @if (Model.Organizations.Any())
-                    {
-                        <form action="@Url.AddOrganization()">
-                            <input type="submit" class="btn btn-primary" value="Add new" />
-                        </form>
-                    }
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false, 
+                        @<text>Organizations&nbsp;<span aria-hidden="true" class="ms-font-xxl organizations-divider">|</span>&nbsp;<a href="@Url.AddOrganization()">Add new</a></text>)
                 </div>
             </div>
             <hr class="breadcrumb-divider"/>
@@ -27,7 +23,7 @@
                 var orgCount = Model.Organizations.Count();
                 var orgCountString = orgCount > 1 ? orgCount + " organizations" : orgCount + " organization";
 
-                <div class="subtitle">
+                <div>
                     <p>You have @(orgCountString).</p>
                 </div>
                 <table class="table user-package-list">
@@ -93,21 +89,17 @@
             }
             else
             {
-                <div class="subtitle text-center">
-                    <img width="260" height="150" alt="Learn to use packages"
+                <p>Organizations allow you to manage and publish packages as a team or a group. <a href="https://go.microsoft.com/fwlink/?linkid=870439">Learn more.</a></p>
+                <div class="organizations-empty text-center">
+                    <img width="260" height="150" alt="You are not a member of any organizations"
                          src="~/Content/gallery/img/manage-organizations.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/manage-organizations-260x150.png")) />
                 </div>
                 <div class="subtitle text-center">
-                    <p>Organizations allow you to manage and publish packages as a team or a group.</p>
+                    <p>You are not a member of any organizations. Get started by <a href="@Url.AddOrganization()">adding a new organization.</a></p>
                 </div>
                 <div class="subtitle text-center">
-                    <form action="@Url.AddOrganization()">
-                        <input type="submit" class="btn btn-primary" value="Add new organization" />
-                    </form>
-                </div>
-                <div class="subtitle text-center">
-                    <a href="@Url.TransformAccount()">Transform your account into an organization</a>
+                    You can also <a href="@Url.TransformAccount()">transform your account into an organization.</a>
                 </div>
             }
         </div>

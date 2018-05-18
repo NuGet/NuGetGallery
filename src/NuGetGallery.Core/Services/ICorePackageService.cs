@@ -42,5 +42,27 @@ namespace NuGetGallery
         /// <param name="packageRegistration">The package registration.</param>
         /// <param name="commitChanges">Whether or not to commit the changes to the packages.</param>
         Task UpdateIsLatestAsync(PackageRegistration packageRegistration, bool commitChanges = true);
+
+        /// <summary>
+        /// Updates the <see cref="Package.CertificateKey"/>.
+        /// </summary>
+        /// <param name="packageId">The package key.</param>
+        /// <param name="packageVersion">The package key.</param>
+        /// <param name="thumbprint">The certificate thumbprint.</param>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="packageId" /> is <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="packageVersion" /> is <c>null</c> or empty.</exception>
+        /// <exception cref="ArgumentException">Thrown if the package does not exist.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c> or empty
+        /// or a certificate with the specified thumbprint does not exist.</exception>
+        Task UpdatePackageSigningCertificateAsync(string packageId, string packageVersion, string thumbprint);
+
+        /// <summary>
+        /// Gets the package registration with the specified ID when it exists; otherwise, <c>null</c>.
+        /// </summary>
+        /// <param name="packageId">The package ID.</param>
+        /// <returns>A package registration or <c>null</c>.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="packageId" /> is <c>null</c>
+        /// or empty.</exception>
+        PackageRegistration FindPackageRegistrationById(string packageId);
     }
 }

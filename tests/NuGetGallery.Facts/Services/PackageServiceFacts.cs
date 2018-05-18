@@ -12,6 +12,7 @@ using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
 using Xunit;
 
@@ -22,15 +23,19 @@ namespace NuGetGallery
         private static IPackageService CreateService(
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
+            Mock<IEntityRepository<Certificate>> certificateRepository = null,
             IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
+            Mock<ISecurityPolicyService> securityPolicyService = null,
             Action<Mock<PackageService>> setup = null)
         {
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageRepository = packageRepository ?? new Mock<IEntityRepository<Package>>();
+            certificateRepository = certificateRepository ?? new Mock<IEntityRepository<Certificate>>();
             auditingService = auditingService ?? new TestAuditingService();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+            securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
             if (packageNamingConflictValidator == null)
             {
@@ -42,9 +47,11 @@ namespace NuGetGallery
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
+                certificateRepository.Object,
                 packageNamingConflictValidator,
                 auditingService,
-                telemetryService.Object);
+                telemetryService.Object,
+                securityPolicyService.Object);
 
             packageService.CallBase = true;
 
@@ -64,14 +71,103 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Key = 2, Id = "pkg42" };
                 var pendingOwner = new User { Key = 100, Username = "teamawesome" };
                 var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
                 packageRepository.Setup(r => r.CommitChangesAsync())
                     .Returns(Task.CompletedTask).Verifiable();
-                var service = CreateService(packageRepository: packageRepository);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == pendingOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(false);
+
+                var service = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
 
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 Assert.Contains(pendingOwner, package.Owners);
                 packageRepository.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenNewOwnerHasAutomaticallyOverwriteRequiredSignerPolicyAndRequiredSignerIsNull_NewOwnerBecomesRequiredSigner()
+            {
+                var packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+                var newOwner = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+
+                packageRepository.Setup(pr => pr.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == newOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+
+                var packageService = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
+
+                await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
+
+                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Contains(newOwner, packageRegistration.RequiredSigners);
+
+                packageRepository.VerifyAll();
+                securityPolicyService.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenNewOwnerHasAutomaticallyOverwriteRequiredSignerPolicyAndRequiredSignerIsNotNull_NewOwnerBecomesRequiredSigner()
+            {
+                var packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+                var existingOwner = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+                var newOwner = new User()
+                {
+                    Key = 3,
+                    Username = "c"
+                };
+
+                packageRegistration.Owners.Add(existingOwner);
+                packageRegistration.RequiredSigners.Add(existingOwner);
+
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var securityPolicyService = new Mock<ISecurityPolicyService>();
+
+                packageRepository.Setup(pr => pr.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                securityPolicyService.Setup(x => x.IsSubscribed(
+                        It.Is<User>(u => u == newOwner),
+                        It.Is<string>(p => p == AutomaticallyOverwriteRequiredSignerPolicy.PolicyName)))
+                    .Returns(true);
+
+                var packageService = CreateService(
+                    packageRepository: packageRepository,
+                    securityPolicyService: securityPolicyService);
+
+                await packageService.AddPackageOwnerAsync(packageRegistration, newOwner);
+
+                Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                Assert.Contains(newOwner, packageRegistration.RequiredSigners);
+
+                packageRepository.VerifyAll();
+                securityPolicyService.VerifyAll();
             }
         }
 
@@ -1127,7 +1223,8 @@ namespace NuGetGallery
             {
                 var packageRegistrationA = new PackageRegistration { Key = 0, Id = "idA", Owners = { packageOwner } };
                 var packageRegistrationB = new PackageRegistration { Key = 1, Id = "idB", Owners = { packageOwner } };
-                var packageA = new Package {
+                var packageA = new Package
+                {
                     Version = "1.0",
                     PackageRegistration = packageRegistrationA,
                     PackageRegistrationKey = 0,
@@ -1135,7 +1232,8 @@ namespace NuGetGallery
                     IsLatestSemVer2 = true,
                     IsLatestStableSemVer2 = true
                 };
-                var packageB = new Package {
+                var packageB = new Package
+                {
                     Version = "1.0",
                     PackageRegistration = packageRegistrationB,
                     PackageRegistrationKey = 1,
@@ -1288,7 +1386,8 @@ namespace NuGetGallery
             {
                 var packageRegistration = new PackageRegistration { Key = 0, Id = "theId", Owners = { packageOwner } };
 
-                var package1 = new Package {
+                var package1 = new Package
+                {
                     Version = "1.0",
                     PackageRegistration = packageRegistration,
                     PackageRegistrationKey = 0,
@@ -1298,7 +1397,8 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package1);
 
-                var package2 = new Package {
+                var package2 = new Package
+                {
                     Version = "2.0",
                     PackageRegistration = packageRegistration,
                     PackageRegistrationKey = 0,
@@ -2120,6 +2220,300 @@ namespace NuGetGallery
 
                     return result;
                 }
+            }
+        }
+
+        public class TheSetRequiredSignerAsyncMethodOneParameter : TestContainer
+        {
+            private readonly User _user1;
+
+            public TheSetRequiredSignerAsyncMethodOneParameter()
+            {
+                _user1 = new User()
+                {
+                    Key = 1,
+                    Username = "a"
+                };
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenSignerIsNull_Throws()
+            {
+                var service = Get<PackageService>();
+                var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.SetRequiredSignerAsync(signer: null));
+
+                Assert.Equal("signer", exception.ParamName);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenNoPackageRegistrationsOwned_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var service = Get<PackageService>();
+
+                await service.SetRequiredSignerAsync(_user1);
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.IsAny<PackageRegistrationAuditRecord>()), Times.Never);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(It.IsAny<string>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenMultiplePackageRegistrationsOwned_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var entityContext = new FakeEntitiesContext();
+                var service = Get<PackageService>();
+
+                var packageRegistration1 = new PackageRegistration()
+                {
+                    Key = 2,
+                    Id = "b"
+                };
+                var packageRegistration2 = new PackageRegistration()
+                {
+                    Key = 3,
+                    Id = "c"
+                };
+                var packageRegistration3 = new PackageRegistration()
+                {
+                    Key = 4,
+                    Id = "d"
+                };
+
+                var user2 = new User()
+                {
+                    Key = 5,
+                    Username = "e"
+                };
+
+                packageRegistration1.Owners.Add(_user1);
+                packageRegistration1.Owners.Add(user2);
+                packageRegistration1.RequiredSigners.Add(user2);
+
+                packageRegistration2.Owners.Add(_user1);
+                packageRegistration2.Owners.Add(user2);
+
+                packageRegistration3.Owners.Add(user2);
+                packageRegistration3.Owners.Add(_user1);
+                packageRegistration3.RequiredSigners.Add(_user1);
+
+                var packageRegistrations = new[] { packageRegistration1, packageRegistration2, packageRegistration3 };
+
+                foreach (var packageRegistration in packageRegistrations)
+                {
+                    entityContext.PackageRegistrations.Add(packageRegistration);
+                }
+
+                packageRegistrationRepository.Setup(x => x.GetAll())
+                    .Returns(entityContext.PackageRegistrations);
+
+                await service.SetRequiredSignerAsync(_user1);
+
+                foreach (var packageRegistration in packageRegistrations)
+                {
+                    Assert.Equal(1, packageRegistration.RequiredSigners.Count);
+                    Assert.Equal(_user1, packageRegistration.RequiredSigners.Single());
+                }
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.Is<PackageRegistrationAuditRecord>(
+                        record =>
+                            record.Action == AuditedPackageRegistrationAction.SetRequiredSigner &&
+                            record.Id == packageRegistration1.Id &&
+                            record.PreviousRequiredSigner == user2.Username &&
+                            record.NewRequiredSigner == _user1.Username)), Times.Once);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.Is<PackageRegistrationAuditRecord>(
+                        record =>
+                            record.Action == AuditedPackageRegistrationAction.SetRequiredSigner &&
+                            record.Id == packageRegistration2.Id &&
+                            record.PreviousRequiredSigner == null &&
+                            record.NewRequiredSigner == _user1.Username)), Times.Once);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(
+                    It.Is<string>(packageId => packageId == packageRegistration1.Id)), Times.Once);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(
+                    It.Is<string>(packageId => packageId == packageRegistration2.Id)), Times.Once);
+            }
+        }
+
+        public class TheSetRequiredSignerAsyncMethodTwoParameters : TestContainer
+        {
+            private readonly PackageRegistration _packageRegistration;
+            private readonly User _user1;
+            private readonly User _user2;
+
+            public TheSetRequiredSignerAsyncMethodTwoParameters()
+            {
+                _packageRegistration = new PackageRegistration()
+                {
+                    Key = 1,
+                    Id = "a"
+                };
+
+                _user1 = new User()
+                {
+                    Key = 2,
+                    Username = "b"
+                };
+
+                _user2 = new User()
+                {
+                    Key = 3,
+                    Username = "c"
+                };
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenRegistrationIsNull_Throws()
+            {
+                var service = Get<PackageService>();
+                var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+                    () => service.SetRequiredSignerAsync(registration: null, signer: _user1));
+
+                Assert.Equal("registration", exception.ParamName);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenCurrentRequiredSignerIsNullAndNewRequiredSignerIsNull_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var service = Get<PackageService>();
+
+                await service.SetRequiredSignerAsync(_packageRegistration, signer: null);
+
+                Assert.Empty(_packageRegistration.RequiredSigners);
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.IsAny<PackageRegistrationAuditRecord>()), Times.Never);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(It.IsAny<string>()), Times.Never);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenCurrentRequiredSignerIsNullAndNewRequiredSignerIsNotNull_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var entityContext = new FakeEntitiesContext();
+                var service = Get<PackageService>();
+
+                entityContext.PackageRegistrations.Add(_packageRegistration);
+
+                packageRegistrationRepository.Setup(x => x.GetAll())
+                    .Returns(entityContext.PackageRegistrations);
+
+                await service.SetRequiredSignerAsync(_packageRegistration, _user1);
+
+                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Equal(_user1, _packageRegistration.RequiredSigners.Single());
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.Is<PackageRegistrationAuditRecord>(
+                        record =>
+                            record.Action == AuditedPackageRegistrationAction.SetRequiredSigner &&
+                            record.Id == _packageRegistration.Id &&
+                            record.PreviousRequiredSigner == null &&
+                            record.NewRequiredSigner == _user1.Username)), Times.Once);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(
+                    It.Is<string>(packageId => packageId == _packageRegistration.Id)), Times.Once);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenCurrentRequiredSignerIsNotNullAndNewRequiredSignerIsNotNull_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var entityContext = new FakeEntitiesContext();
+                var service = Get<PackageService>();
+
+                _packageRegistration.RequiredSigners.Add(_user1);
+
+                entityContext.PackageRegistrations.Add(_packageRegistration);
+
+                packageRegistrationRepository.Setup(x => x.GetAll())
+                    .Returns(entityContext.PackageRegistrations);
+
+                await service.SetRequiredSignerAsync(_packageRegistration, _user2);
+
+                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Equal(_user2, _packageRegistration.RequiredSigners.Single());
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.Is<PackageRegistrationAuditRecord>(
+                        record =>
+                            record.Action == AuditedPackageRegistrationAction.SetRequiredSigner &&
+                            record.Id == _packageRegistration.Id &&
+                            record.PreviousRequiredSigner == _user1.Username &&
+                            record.NewRequiredSigner == _user2.Username)), Times.Once);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(
+                    It.Is<string>(packageId => packageId == _packageRegistration.Id)), Times.Once);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenCurrentRequiredSignerIsNotNullAndNewRequiredSignerIsNull_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var entityContext = new FakeEntitiesContext();
+                var service = Get<PackageService>();
+
+                _packageRegistration.RequiredSigners.Add(_user1);
+
+                entityContext.PackageRegistrations.Add(_packageRegistration);
+
+                packageRegistrationRepository.Setup(x => x.GetAll())
+                    .Returns(entityContext.PackageRegistrations);
+
+                await service.SetRequiredSignerAsync(_packageRegistration, signer: null);
+
+                Assert.Empty(_packageRegistration.RequiredSigners);
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Once);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.Is<PackageRegistrationAuditRecord>(
+                        record =>
+                            record.Action == AuditedPackageRegistrationAction.SetRequiredSigner &&
+                            record.Id == _packageRegistration.Id &&
+                            record.PreviousRequiredSigner == _user1.Username &&
+                            record.NewRequiredSigner == null)), Times.Once);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(
+                    It.Is<string>(packageId => packageId == _packageRegistration.Id)), Times.Once);
+            }
+
+            [Fact]
+            public async Task SetRequiredSignerAsync_WhenCurrentRequiredSignerAndNewRequiredSignerAreSame_Succeeds()
+            {
+                var packageRegistrationRepository = GetMock<IEntityRepository<PackageRegistration>>();
+                var auditingService = GetMock<IAuditingService>();
+                var telemetryService = GetMock<ITelemetryService>();
+                var service = Get<PackageService>();
+
+                _packageRegistration.RequiredSigners.Add(_user1);
+
+                await service.SetRequiredSignerAsync(_packageRegistration, _user1);
+
+                Assert.Equal(1, _packageRegistration.RequiredSigners.Count);
+                Assert.Equal(_user1, _packageRegistration.RequiredSigners.Single());
+
+                packageRegistrationRepository.Verify(x => x.CommitChangesAsync(), Times.Never);
+                auditingService.Verify(x => x.SaveAuditRecordAsync(
+                    It.IsAny<PackageRegistrationAuditRecord>()), Times.Never);
+                telemetryService.Verify(x => x.TrackRequiredSignerSet(It.IsAny<string>()), Times.Never);
             }
         }
     }

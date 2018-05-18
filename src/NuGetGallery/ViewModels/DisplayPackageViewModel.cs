@@ -40,10 +40,10 @@ namespace NuGetGallery
             : base(package, currentUser)
         {
             Copyright = package.Copyright;
-            
+
             DownloadCount = package.DownloadCount;
             LastEdited = package.LastEdited;
-            
+
             TotalDaysSinceCreated = 0;
             DownloadsPerDay = 0;
 
@@ -81,6 +81,8 @@ namespace NuGetGallery
         public string DownloadsPerDayLabel { get; private set; }
 
         public string PushedBy { get; private set; }
+
+        public bool IsCertificatesUIEnabled { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 

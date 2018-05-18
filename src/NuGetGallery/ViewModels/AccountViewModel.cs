@@ -5,21 +5,26 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
+    public abstract class AccountViewModel<T> : AccountViewModel where T : User
+    {
+        public T Account { get; set; }
+
+        public bool IsCertificatesUIEnabled { get; set; }
+
+        public override User User => Account;
+    }
+
     public abstract class AccountViewModel
     {
-        public User Account { get; set; }
+        public virtual User User { get; }
 
-        public bool IsOrganization
-        {
-            get
-            {
-                return Account is Organization;
-            }
-        }
+        public bool IsOrganization => User is Organization;
 
         public string AccountName { get; set; }
 
         public bool CanManage { get; set; }
+
+        public bool WasMultiFactorAuthenticated { get; set; }
 
         public IList<string> CuratedFeeds { get; set; }
 

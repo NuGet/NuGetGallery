@@ -29,7 +29,13 @@
                 : this.PackagesListViewModel.ManagePackagesViewModel.DefaultPackageIconUrl;
             this.PackageUrl = packageItem.PackageUrl;
             this.EditUrl = packageItem.EditUrl;
+            this.SetRequiredSignerUrl = packageItem.SetRequiredSignerUrl;
             this.ManageOwnersUrl = packageItem.ManageOwnersUrl;
+            this.RequiredSignerMessage = packageItem.RequiredSignerMessage;
+            this.AllSigners = packageItem.AllSigners;
+            this.ShowRequiredSigner = packageItem.ShowRequiredSigner;
+            this.ShowTextBox = packageItem.ShowTextBox;
+            this.CanEditRequiredSigner = packageItem.CanEditRequiredSigner;
             this.DeleteUrl = packageItem.DeleteUrl;
             this.CanEdit = packageItem.CanEdit;
             this.CanManageOwners = packageItem.CanManageOwners;
@@ -38,6 +44,50 @@
             this.FormattedDownloadCount = ko.pureComputed(function () {
                 return ko.unwrap(this.DownloadCount).toLocaleString();
             }, this);
+
+            var requiredSigner = null;
+
+            if (packageItem.RequiredSigner) {
+                if (this.ShowTextBox) {
+                    requiredSigner = packageItem.RequiredSigner.OptionText;
+                } else {
+                    requiredSigner = packageItem.RequiredSigner.Username;
+                }
+            }
+
+            this._requiredSigner = ko.observable(requiredSigner);
+
+            this.RequiredSigner = ko.pureComputed({
+                read: function () {
+                    return self._requiredSigner();
+                },
+                write: function (newSignerUsername) {
+                    var message = self.GetConfirmationMessage(packageItem, newSignerUsername);
+
+                    if (confirm(message)) {
+                        var url = packageItem.SetRequiredSignerUrl.replace("{username}", newSignerUsername);
+
+                        $.ajax({
+                            method: 'POST',
+                            url: url,
+                            cache: false,
+                            data: window.nuget.addAjaxAntiForgeryToken({}),
+                            complete: function (xhr, textStatus) {
+                                switch (xhr.status) {
+                                    case 200:
+                                    case 409:
+                                        break;
+
+                                    default:
+                                        break;
+                                }
+                            }
+                        });
+
+                        self._requiredSigner(newSignerUsername);
+                    }
+                }
+            });
 
             this.Visible = ko.observable(true);
 
@@ -57,6 +107,67 @@
                 var url = this.PackagesListViewModel.ManagePackagesViewModel.PackageIconUrlFallback;
                 return "this.src='" + url + "'; this.onerror = null;";
             }, this);
+
+            this.GetConfirmationMessage = function (packageItem, newSignerUsername) {
+                var signerHasCertificate;
+                var signerIsAny = !newSignerUsername;
+                var message;
+
+                for (var index in packageItem.AllSigners) {
+                    var signer = packageItem.AllSigners[index];
+
+                    if (signer.Username === newSignerUsername) {
+                        signerHasCertificate = signer.HasCertificate;
+                        break;
+                    }
+                }
+
+                if (signerIsAny) {
+                    var anySignerWithNoCertificate = false;
+                    var anySignerWithCertificate = false;
+
+                    for (var index in packageItem.AllSigners) {
+                        var signer = packageItem.AllSigners[index];
+
+                        if (signer.HasCertificate) {
+                            anySignerWithCertificate = true;
+                        } else {
+                            anySignerWithNoCertificate = true;
+                        }
+
+                        if (!signer.Username) {
+                            newSignerUsername = signer.OptionText;
+                        }
+                    }
+
+                    message = window.nuget.formatString(strings_RequiredSigner_ThisAction, newSignerUsername) + "\n\n";
+
+                    if (anySignerWithCertificate && anySignerWithNoCertificate) {
+                        message += strings_RequiredSigner_AnyWithMixedResult;
+                    } else if (anySignerWithCertificate) {
+                        message += strings_RequiredSigner_AnyWithSignedResult;
+                    } else {
+                        message += strings_RequiredSigner_AnyWithUnsignedResult;
+                    }
+                } else {
+                    message = window.nuget.formatString(strings_RequiredSigner_ThisAction, newSignerUsername) + "\n\n";
+
+                    if (signerHasCertificate) {
+                        message += window.nuget.formatString(strings_RequiredSigner_OwnerHasAtLeastOneCertificate, newSignerUsername);
+                    } else {
+                        message += window.nuget.formatString(strings_RequiredSigner_OwnerHasNoCertificate, newSignerUsername);
+                    }
+                }
+
+                message += "\n\n" + strings_RequiredSigner_Confirm;
+
+                return message;
+            };
+
+            this.OnRequiredSignerChange = function (packageItem, event) {
+                // If the change was cancelled, we need to reset the selected value.
+                event.currentTarget.value = self._requiredSigner();
+            };
         }
 
         function PackagesListViewModel(managePackagesViewModel, type, packages) {
@@ -237,7 +348,7 @@
             if (this.Owners.length > 2) {
                 $("#ownerFilter").removeClass("hidden");
             }
-            
+
             this.ListedPackages = new PackagesListViewModel(this, "published", initialData.ListedPackages);
             this.UnlistedPackages = new PackagesListViewModel(this, "unlisted", initialData.UnlistedPackages);
             this.ReservedNamespaces = new ReservedNamespaceListViewModel(this, initialData.ReservedNamespaces);

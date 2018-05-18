@@ -84,6 +84,7 @@ namespace NuGetGallery
         private readonly IReadMeService _readMeService;
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
+        private readonly IContentObjectService _contentObjectService;
         private readonly IPackageRecommendationService _packageRecommendationService;
 
         public PackagesController(
@@ -108,6 +109,7 @@ namespace NuGetGallery
             IReadMeService readMeService,
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
+            IContentObjectService contentObjectService,
             IPackageRecommendationService packageRecommendationService)
         {
             _packageService = packageService;
@@ -131,6 +133,7 @@ namespace NuGetGallery
             _readMeService = readMeService;
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
+            _contentObjectService = contentObjectService;
             _packageRecommendationService = packageRecommendationService;
         }
 
@@ -466,6 +469,7 @@ namespace NuGetGallery
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
             model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
+            model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
             model.RecommendedPackages = (await _packageRecommendationService
@@ -1194,6 +1198,7 @@ namespace NuGetGallery
                 PackageId = package.PackageRegistration.Id,
                 PackageTitle = package.Title,
                 Version = package.NormalizedVersion,
+                PackageRegistration = package.PackageRegistration,
                 IsLocked = package.PackageRegistration.IsLocked,
             };
 
@@ -1789,7 +1794,45 @@ namespace NuGetGallery
             return Redirect(urlFactory(package, /*relativeUrl:*/ true));
         }
 
-        // this methods exist to make unit testing easier
+        [UIAuthorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<JsonResult> SetRequiredSigner(string id, string username)
+        {
+            var packageRegistration = _packageService.FindPackageRegistrationById(id);
+
+            if (packageRegistration == null)
+            {
+                return Json(HttpStatusCode.NotFound);
+            }
+
+            var currentUser = GetCurrentUser();
+
+            if (ActionsRequiringPermissions.ManagePackageRequiredSigner
+                .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration)
+                    != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
+            {
+                return Json(HttpStatusCode.Forbidden);
+            }
+
+            User signer = null;
+
+            if (!string.IsNullOrEmpty(username))
+            {
+                signer = _userService.FindByUsername(username);
+
+                if (signer == null)
+                {
+                    return Json(HttpStatusCode.NotFound);
+                }
+            }
+
+            await _packageService.SetRequiredSignerAsync(packageRegistration, signer);
+
+            return Json(HttpStatusCode.OK);
+        }
+
+        // this method exists to make unit testing easier
         protected internal virtual PackageArchiveReader CreatePackage(Stream stream)
         {
             try

@@ -139,6 +139,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDelete>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Certificate>>()
+                .AsSelf()
+                .As<IEntityRepository<Certificate>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<AccountDelete>>()
                .AsSelf()
                .As<IEntityRepository<AccountDelete>>()
@@ -198,7 +203,7 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IDeleteAccountService>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<PackageOwnerRequestService>()
                 .AsSelf()
                 .As<IPackageOwnerRequestService>()
@@ -251,11 +256,21 @@ namespace NuGetGallery
                 .AsSelf()
                 .As<IApiScopeEvaluator>()
                 .InstancePerLifetimeScope();
-            
+
             builder.RegisterType<ContentObjectService>()
                 .AsSelf()
                 .As<IContentObjectService>()
                 .SingleInstance();
+
+            builder.RegisterType<CertificateValidator>()
+                .AsSelf()
+                .As<ICertificateValidator>()
+                .SingleInstance();
+
+            builder.RegisterType<CertificateService>()
+                .AsSelf()
+                .As<ICertificateService>()
+                .InstancePerLifetimeScope();
 
             if (configuration.Current.IsHosted)
             {
@@ -265,8 +280,7 @@ namespace NuGetGallery
                     .Refresh());
             }
 
-            var mailSenderThunk = new Lazy<IMailSender>(
-                () =>
+            Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;
                     if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
@@ -301,9 +315,9 @@ namespace NuGetGallery
 
                         return new MailSender(mailSenderConfiguration);
                     }
-                });
+                };
 
-            builder.Register(c => mailSenderThunk.Value)
+            builder.Register(c => mailSenderFactory())
                 .AsSelf()
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();

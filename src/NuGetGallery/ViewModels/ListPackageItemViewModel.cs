@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery
@@ -11,6 +12,8 @@ namespace NuGetGallery
     {
         private const int _descriptionLengthLimit = 300;
         private const string _omissionString = "...";
+
+        private string _signatureInformation;
 
         public ListPackageItemViewModel(Package package, User currentUser)
             : base(package)
@@ -45,6 +48,18 @@ namespace NuGetGallery
         public string ShortDescription { get; set; }
         public bool IsDescriptionTruncated { get; set; }
         public bool? IsVerified { get; set; }
+        public string SignatureInformation
+        {
+            get
+            {
+                if (CanDisplayPrivateMetadata && _signatureInformation == null)
+                {
+                    _signatureInformation = GetSignerInformation();
+                }
+
+                return _signatureInformation;
+            }
+        }
 
         public bool UseVersion
         {
@@ -57,7 +72,7 @@ namespace NuGetGallery
             }
         }
 
-        public bool HasSingleOwner
+        public bool HasSingleUserOwner
         {
             get
             {
@@ -81,6 +96,8 @@ namespace NuGetGallery
             }
         }
 
+        public bool HasSingleOrganizationOwner => Owners.Distinct().Count() < 2;
+
         public bool CanDisplayPrivateMetadata { get; set; }
         public bool CanEdit { get; set; }
         public bool CanUnlistOrRelist { get; set; }
@@ -91,6 +108,44 @@ namespace NuGetGallery
         private static bool CanPerformAction(User currentUser, Package package, ActionRequiringPackagePermissions action)
         {
             return action.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) == PermissionsCheckResult.Allowed;
+        }
+
+        private string GetSignerInformation()
+        {
+            if (_package.Certificate == null)
+            {
+                return null;
+            }
+
+            var owners = _package.PackageRegistration?.Owners ?? Enumerable.Empty<User>();
+            var signers = owners.Where(owner => owner.UserCertificates.Any(uc => uc.CertificateKey == _package.CertificateKey));
+            var signersCount = signers.Count();
+
+            var builder = new StringBuilder();
+
+            builder.Append($"Signed with");
+
+            if (signersCount == 1)
+            {
+                builder.Append($" {signers.Single().Username}'s");
+            }
+            else if (signersCount == 2)
+            {
+                builder.Append($" {signers.First().Username} and {signers.Last().Username}'s");
+            }
+            else if (signersCount != 0)
+            {
+                foreach (var signer in signers.Take(signersCount - 1))
+                {
+                    builder.Append($" {signer.Username},");
+                }
+
+                builder.Append($" and {signers.Last().Username}'s");
+            }
+
+            builder.Append($" certificate ({_package.Certificate.Sha1Thumbprint})");
+
+            return builder.ToString();
         }
     }
 }

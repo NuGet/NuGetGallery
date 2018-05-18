@@ -8,6 +8,7 @@ namespace NuGetGallery.Auditing
         AddOwner,
         RemoveOwner,
         MarkVerified,
-        MarkUnverified
+        MarkUnverified,
+        SetRequiredSigner
     }
 }
