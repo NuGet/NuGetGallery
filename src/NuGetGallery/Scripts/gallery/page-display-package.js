@@ -41,6 +41,7 @@ $(function () {
         });
     }
 
+    window.nuget.configureExpanderHeading("related-packages");
     window.nuget.configureExpanderHeading("dependency-groups");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
