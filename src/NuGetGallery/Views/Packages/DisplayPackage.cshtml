@@ -518,7 +518,7 @@
                 }
             </div>
 
-            @if (Model.RecommendedPackages.Any())
+            @if (!Model.Deleted && Model.RecommendedPackages.Any())
             {
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#related-packages"
@@ -536,25 +536,6 @@
             }
         </article>
         <aside aria-label="Package details info" class="col-sm-3 package-details-info">
-            @if (Model.RecommendedPackages.Any())
-            {
-                <h2>Related</h2>
-                <ul class="list-unstyled owner-list">
-                    @foreach (var package in Model.RecommendedPackages)
-                    {
-                        <li>
-                            <a href="@Url.Package(package)" title="@package.Id" target="_blank">
-                                <img class="owner-image" aria-hidden="true" alt="" width="32" height="32"
-                                    src="@(PackageHelper.ShouldRenderUrl(package.IconUrl) ? package.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon.svg"))"
-                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))
-                                    />
-                            </a>
-                            <a class="owner-text" href="@Url.Package(package)" title="@package.Id" target="_blank">@package.Id</a>
-                        </li>
-                    }
-                </ul>
-            }
-
             <h2>Info</h2>
             <ul class="list-unstyled ms-Icon-ul">
                 <li>
@@ -708,7 +689,7 @@ foreach (var owner in Model.Owners)
     {
             <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
 }
-                <a class="owner-text" href="@Url.User(owner)" title="@owner.Username">
+                <a href="@Url.User(owner)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>
