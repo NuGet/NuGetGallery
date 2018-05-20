@@ -42,6 +42,12 @@ $(function () {
     }
 
     window.nuget.configureExpanderHeading("related-packages");
+    window.nuget.configureExpander(
+        "hidden-packages",
+        "CalculatorAddition",
+        "Show less",
+        "CalculatorSubtract",
+        "Show more");
     window.nuget.configureExpanderHeading("dependency-groups");
     window.nuget.configureExpanderHeading("version-history");
     window.nuget.configureExpander(
@@ -49,7 +55,7 @@ $(function () {
         "CalculatorAddition",
         "Show less",
         "CalculatorSubtract",
-        "Show more"); 
+        "Show more");
 
     for (var i in packageManagers)
     {

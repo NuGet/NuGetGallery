@@ -347,10 +347,26 @@
                             <span>Related Packages</span>
                         </a>
                     </h2>
-                    <div class="list-packages panel-collapse collapse in related-packages" role="list" aria-expanded="true" id="related-packages">
-                        @foreach (var package in Model.RecommendedPackages)
+                    <div class="panel-collapse collapse in related-packages" aria-expanded="true" id="related-packages">
+                        <div class="list-packages" role="list">
+                            @foreach (var package in Model.RecommendedPackages.Take(3))
+                            {
+                                @Html.Partial("_ListPackage", package)
+                            }
+                        </div>
+                        @if (Model.RecommendedPackages.Count() > 3)
                         {
-                            @Html.Partial("_ListPackage", package)
+                            <div class="list-packages collapse" role="list" aria-expanded="false" id="hidden-packages">
+                                @foreach (var package in Model.RecommendedPackages.Skip(3))
+                                {
+                                    @Html.Partial("_ListPackage", package)
+                                }
+                            </div>
+                            <a href="#" role="button" data-toggle="collapse" class="icon-link" data-target="#hidden-packages"
+                               aria-expanded="false" aria-controls="hidden-packages" id="show-hidden-packages">
+                                <i class="ms-Icon ms-Icon--CalculatorAddition" aria-hidden="true"></i>
+                                <span>Show more</span>
+                            </a>
                         }
                     </div>
                 }
