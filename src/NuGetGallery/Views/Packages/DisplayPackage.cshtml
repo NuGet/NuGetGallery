@@ -705,7 +705,7 @@ foreach (var owner in Model.Owners)
     {
             <a href="@Url.User(owner)" title="@owner.Username">@ViewHelpers.GravatarImage(owner.EmailAddress, owner.Username, Constants.GravatarElementSize)</a>
 }
-                <a class="owner-text" href="@Url.User(owner)" title="@owner.Username">
+                <a href="@Url.User(owner)" title="@owner.Username">
                     @owner.Username
                 </a>
             </li>
