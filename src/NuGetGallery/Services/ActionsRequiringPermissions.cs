@@ -128,5 +128,21 @@ namespace NuGetGallery
              new ActionRequiringPackagePermissions(
                 accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationAdmin,
                 packageRegistrationPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
+
+        /// <summary>
+        /// The action of showing a package as verified by a reserved namespace.
+        /// </summary>
+        public static ActionRequiringReservedNamespacePermissions ShowPackageAsVerifiedByReservedNamespace =
+            new ActionRequiringReservedNamespacePermissions(
+                accountOnBehalfOfPermissionsRequirement: PermissionsRequirement.Owner,
+                reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
+
+        /// <summary>
+        /// The action of removing a package from a reserved namespace.
+        /// </summary>
+        public static ActionRequiringReservedNamespacePermissions RemovePackageFromReservedNamespace =
+            new ActionRequiringReservedNamespacePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationAdmin,
+                reservedNamespacePermissionsRequirement: RequireOwnerOrOrganizationAdmin);
     }
 }

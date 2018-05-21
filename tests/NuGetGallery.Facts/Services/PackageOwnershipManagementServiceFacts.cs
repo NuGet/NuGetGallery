@@ -35,17 +35,33 @@ namespace NuGetGallery
             if (useDefaultSetup)
             {
 
-                packageService.Setup(x => x.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>())).Returns(Task.CompletedTask).Verifiable();
-                packageService.Setup(x => x.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()))
-                    .Returns((IReadOnlyCollection<PackageRegistration> list, bool isVerified) =>
+                packageService
+                    .Setup(x => x.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>()))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+                packageService
+                    .Setup(x => x.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), It.IsAny<bool>()))
+                    .Returns((IReadOnlyCollection<PackageRegistration> list, bool isVerified, bool commitChanges) =>
                     {
                         list.ToList().ForEach(item => item.IsVerified = isVerified);
                         return Task.CompletedTask;
-                    }).Verifiable();
-                packageService.Setup(x => x.RemovePackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>())).Returns(Task.CompletedTask).Verifiable();
+                    })
+                    .Verifiable();
+                packageService
+                    .Setup(x => x.RemovePackageOwnerAsync(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<bool>()))
+                    .Callback<PackageRegistration, User, bool>((pr, user, commitChanges) => pr.Owners.Remove(user))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 reservedNamespaceService.Setup(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>())).Verifiable();
-                reservedNamespaceService.Setup(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>())).Verifiable();
+                reservedNamespaceService
+                    .Setup(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<ReservedNamespace>(), It.IsAny<PackageRegistration>()))
+                    .Callback<ReservedNamespace, PackageRegistration>((rn, pr) =>
+                    {
+                        rn.PackageRegistrations.Remove(pr);
+                        pr.ReservedNamespaces.Remove(rn);
+                    })
+                    .Verifiable();
 
                 packageOwnerRequestService.Setup(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>())).Returns(new[] { new PackageOwnerRequest() }).Verifiable();
                 packageOwnerRequestService.Setup(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>())).Returns(Task.CompletedTask).Verifiable();
@@ -129,7 +145,7 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == true)));
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == true), true));
                 packageOwnerRequestService.Verify(x => x.GetPackageOwnershipRequests(It.IsAny<PackageRegistration>(), It.IsAny<User>(), It.IsAny<User>()));
                 packageOwnerRequestService.Verify(x => x.DeletePackageOwnershipRequest(It.IsAny<PackageOwnerRequest>()));
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Once);
@@ -169,7 +185,7 @@ namespace NuGetGallery
                 await service.AddPackageOwnerAsync(package, pendingOwner);
 
                 reservedNamespaceService.Verify(x => x.AddPackageRegistrationToNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Never);
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -249,7 +265,7 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService);
                 await service.RemovePackageOwnerAsync(package, owner1, owner2);
 
-                packageService.Verify(x => x.RemovePackageOwnerAsync(package, owner2));
+                packageService.Verify(x => x.RemovePackageOwnerAsync(package, owner2, false));
             }
 
             [Fact]
@@ -288,8 +304,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, existingOwner1, existingOwner1);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)));
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Once);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false));
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<ReservedNamespace>(), It.IsAny<PackageRegistration>()), Times.Once);
                 Assert.False(package.IsVerified);
             }
 
@@ -312,8 +328,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, existingOwner2, existingOwner1);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)), Times.Never);
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Never);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false), Times.Never);
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<ReservedNamespace>(), It.IsAny<PackageRegistration>()), Times.Never);
                 Assert.True(package.IsVerified);
             }
 
@@ -336,8 +352,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, existingOwner1, existingOwner2);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)), Times.Never);
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<string>(), It.IsAny<PackageRegistration>()), Times.Never);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false), Times.Never);
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<ReservedNamespace>(), It.IsAny<PackageRegistration>()), Times.Never);
                 Assert.True(package.IsVerified);
             }
 
@@ -367,8 +383,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, existingOwner1, existingOwner2);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)), Times.Never);
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace2.Value, package), Times.Once);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false), Times.Never);
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace2, package), Times.Once);
                 Assert.True(package.IsVerified);
             }
 
@@ -379,7 +395,7 @@ namespace NuGetGallery
                 var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1 } };
                 var adminOwner = new User
                 {
-                    Key = 100,
+                    Key = 101,
                     Username = "aspnet",
                     Roles = new List<Role>
                     {
@@ -400,8 +416,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, adminOwner, existingOwner1);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)), Times.Once);
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace1.Value, package), Times.Once);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false), Times.Once);
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace1, package), Times.Once);
                 Assert.False(package.IsVerified);
             }
 
@@ -445,8 +461,8 @@ namespace NuGetGallery
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
                 await service.RemovePackageOwnerAsync(package, existingOwner1, existingOwner2);
 
-                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false)), Times.Never);
-                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace1.Value, package), Times.Never);
+                packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false), Times.Never);
+                reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(existingNamespace1, package), Times.Never);
                 Assert.True(package.IsVerified);
             }
         }
