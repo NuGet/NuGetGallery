@@ -56,22 +56,19 @@
             width = reportGraphWidth - margin.left - margin.right,
             height = 450 - margin.top - margin.bottom;
 
-        var xScale = d3.scale.ordinal()
-            .rangeRoundBands([10, width], .1);
+        var xScale = d3.scaleBand()
+            .rangeRound([10, width])
+            .padding(0.1);
 
-        var yScale = d3.scale.linear()
+        var yScale = d3.scaleLinear()
             .range([height, 0]);
 
-        var xAxis = d3.svg.axis()
-            .scale(xScale)
-            .orient('bottom')
+        var xAxis = d3.axisBottom(xScale)
             .tickFormat(function (d) {
                 return d.substring(0, axisLabelCharLimit) + (d.length > axisLabelCharLimit ? "..." : "");
             });
 
-        var yAxis = d3.svg.axis()
-            .scale(yScale)
-            .orient('left')
+        var yAxis = d3.axisLeft(yScale)
             .tickFormat(function (d) {
                 return GetShortNumberString(d);
             });
@@ -111,7 +108,7 @@
             .append("rect")
             .attr("class", "bar")
             .attr("x", function (d) { return xScale(d.label); })
-            .attr("width", xScale.rangeBand())
+            .attr("width", xScale.bandwidth())
             .attr("y", function (d) { return yScale(d.downloads); })
             .attr("height", function (d) { return height - yScale(d.downloads); })
             .append("title").text(function (d) { return d.downloads + " Downloads"; });
@@ -175,21 +172,19 @@
             width = reportGraphWidth - margin.left - margin.right,
             height = Math.max(550, data.length * 25) - margin.top - margin.bottom;
 
-        var xScale = d3.scale.linear()
+        var xScale = d3.scaleLinear()
             .range([0, width - 50]);
-        var yScale = d3.scale.ordinal()
-            .rangeRoundBands([height, 20], .1);
 
-        var xAxis = d3.svg.axis()
-            .scale(xScale)
-            .orient('bottom')
+        var yScale = d3.scaleBand()
+            .rangeRound([height, 20])
+            .padding(0.1);
+
+        var xAxis = d3.axisBottom(xScale)
             .tickFormat(function (d) {
                 return GetShortNumberString(d);
             });
 
-        var yAxis = d3.svg.axis()
-            .scale(yScale)
-            .orient('left')
+        var yAxis = d3.axisLeft(yScale)
             .tickFormat(function (d) {
                 return d.substring(0, axisLabelCharLimit) + (d.length > axisLabelCharLimit ? "..." : "");
             });
@@ -224,7 +219,7 @@
             .attr("x", 0)
             .attr("width", function (d) { return xScale(d.downloads); })
             .attr("y", function (d) { return yScale(d.label); })
-            .attr("height", yScale.rangeBand())
+            .attr("height", yScale.bandwidth())
             .append("title").text(function (d) { return d.downloads.toLocaleString() + " Downloads"; });
 
         svg.append("foreignObject")
