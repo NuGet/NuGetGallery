@@ -218,6 +218,13 @@ namespace NuGetGallery.Configuration
         public string EnforcedAuthProviderForAdmin { get; set; }
 
         /// <summary>
+        /// Gets a string indicating which is the AAD tenant to be used for adminsitrators authentication.
+        /// When specified, it will check if admins are loggin in with the approved AAD tenant, blank means the fallback will be on
+        /// EnforcedAuthProviderForAdmin
+        /// </summary>
+        string EnforcedAdminTenantId { get; set; }
+
+        /// <summary>
         /// A regex to validate password format. The default regex requires the password to be atlease 8 characters, 
         /// include at least one uppercase letter, one lowercase letter and a digit.
         /// </summary>

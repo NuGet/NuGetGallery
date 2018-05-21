@@ -199,6 +199,16 @@ namespace NuGetGallery
 
         internal bool ShouldChallengeEnforcedProvider(string enforcedProviders, AuthenticatedUser authenticatedUser, string returnUrl, out ActionResult challenge)
         {
+            var adminTenantId = NuGetContext.Config.Current.EnforcedAdminTenantId;
+            challenge = null;
+
+            if (!string.IsNullOrWhiteSpace(adminTenantId)
+                && authenticatedUser.User.IsAdministrator
+                && adminTenantId.Equals(authenticatedUser.CredentialUsed.TenantId, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
             if (!string.IsNullOrEmpty(enforcedProviders)
                 && authenticatedUser.CredentialUsed.Type != null
                 && authenticatedUser.User.IsAdministrator)
@@ -218,7 +228,6 @@ namespace NuGetGallery
                 }
             }
 
-            challenge = null;
             return false;
         }
 
