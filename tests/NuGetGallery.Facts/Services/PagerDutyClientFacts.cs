@@ -34,7 +34,7 @@ namespace NuGetGallery
                                 "]" +
                            "}], " +
                            "\"active_account_users\":11,\"limit\":25,\"offset\":0,\"total\":4}";
-            var username = PagerDutyClient.GetEmailAliasFromOnCallUser(response, "sampleId");
+            var username = PagerDutyClient.GetEmailAliasFromOnCallUser(response, 1, "sampleId");
             Assert.Equal("on-call", username);
         }
     }

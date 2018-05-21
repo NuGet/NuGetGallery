@@ -285,6 +285,16 @@ namespace NuGetGallery.Configuration
         public string PagerDutyServiceKey { get; set; }
 
         /// <summary>
+        /// Gets a string containing the PagerDuty on-call escalation policy id.
+        /// </summary>
+        public string PagerDutyOnCallPolicyId { get; set; }
+
+        /// <summary>
+        /// Gets a string containing the PagerDuty on-call level.
+        /// </summary>
+        public int PagerDutyOnCallLevel { get; set; }
+
+        /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }

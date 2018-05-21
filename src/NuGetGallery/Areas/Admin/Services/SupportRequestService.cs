@@ -30,7 +30,7 @@ namespace NuGetGallery.Areas.Admin
             _supportRequestDbContext = supportRequestDbContext;
             _siteRoot = config.SiteRoot;
 
-            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _pagerDutyClient = new PagerDutyClient(config);
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
