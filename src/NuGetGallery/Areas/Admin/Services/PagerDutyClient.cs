@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -17,14 +18,18 @@ namespace NuGetGallery.Areas.Admin
         private readonly string _apiKey;
         private readonly string _serviceKey;
         private readonly string _onCallUrl;
+        private readonly string _onCallPolicyId;
+        private readonly int _onCallLevel;
 
-        internal PagerDutyClient(string accountName, string apiKey, string serviceKey)
+        internal PagerDutyClient(IAppConfiguration config)
         {
-            _apiKey = apiKey;
-            _serviceKey = serviceKey;
+            _apiKey = config.PagerDutyAPIKey;
+            _serviceKey = config.PagerDutyServiceKey;
+            _onCallPolicyId = config.PagerDutyOnCallPolicyId;
+            _onCallLevel = config.PagerDutyOnCallLevel;
 
             // Configure defaults
-            _onCallUrl = string.Format(CultureInfo.InvariantCulture, "https://{0}.pagerduty.com/api/v1/users/on_call", accountName);
+            _onCallUrl = string.Format(CultureInfo.InvariantCulture, "https://{0}.pagerduty.com/api/v1/users/on_call", config.PagerDutyAccountName);
         }
 
         public async Task<string> GetPrimaryOnCallAsync()
@@ -44,7 +49,7 @@ namespace NuGetGallery.Areas.Admin
 
                 if (!string.IsNullOrEmpty(response))
                 {
-                    username = GetEmailAliasFromOnCallUser(response, "PQP8V6O");
+                    username = GetEmailAliasFromOnCallUser(response, _onCallLevel, _onCallPolicyId);
                 }
             }
             catch (Exception e)
@@ -55,7 +60,7 @@ namespace NuGetGallery.Areas.Admin
             return username;
         }
 
-        internal static string GetEmailAliasFromOnCallUser(string response, string policyId)
+        internal static string GetEmailAliasFromOnCallUser(string response, int level, string policyId)
         {
             var username = string.Empty;
 
@@ -66,7 +71,7 @@ namespace NuGetGallery.Areas.Admin
             {
                 foreach (var onCall in item["on_call"])
                 {
-                    if (Convert.ToInt32(onCall["level"], CultureInfo.InvariantCulture) == 1)
+                    if (Convert.ToInt32(onCall["level"], CultureInfo.InvariantCulture) == level)
                     {
                         var escalationPolicyId = onCall["escalation_policy"]["id"].Value<string>();
                         if (string.Equals(escalationPolicyId, policyId, StringComparison.Ordinal))
