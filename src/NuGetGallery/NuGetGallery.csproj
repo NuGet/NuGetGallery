@@ -705,7 +705,6 @@
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
-    <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
