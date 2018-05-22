@@ -24,7 +24,8 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
 
         protected PagesController() { }
-        public PagesController(IContentService contentService,
+        public PagesController(
+            IContentService contentService,
             IContentObjectService contentObjectService,
             IMessageService messageService,
             ISupportRequestService supportRequestService)

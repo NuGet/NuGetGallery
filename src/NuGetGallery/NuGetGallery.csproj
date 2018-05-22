@@ -686,6 +686,10 @@
     <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.Designer.cs">
       <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.cs" />
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
@@ -705,7 +709,6 @@
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
-    <Compile Include="Areas\Admin\Services\PagerDutyClient.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountSearchResult.cs" />
     <Compile Include="Areas\Admin\Services\ValidationEntityRepository.cs" />
@@ -1800,6 +1803,9 @@
     <Content Include="Content\themes\custom\images\ui-icons_888888_256x240.png" />
     <Content Include="Content\themes\custom\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="D3 LICENSE.txt" />
+    <EmbeddedResource Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.resx">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
     <Content Include="NuGetGallery.dll.config">
@@ -1931,7 +1937,8 @@
     <Content Include="App_Data\Files\Content\Terms-Of-Use.md" />
     <Content Include="Branding\Views\web.config" />
     <Compile Include="Views\NuGetViewBase.cs" />
-    <Content Include="Scripts\gallery\d3.v3.js" />
+    <Content Include="Scripts\d3\d3.js" />
+    <Content Include="Scripts\d3\d3.min.js" />
     <Content Include="Areas\Admin\Views\SupportRequest\Index.cshtml" />
     <Content Include="Areas\Admin\Views\SupportRequest\Admins.cshtml" />
     <EmbeddedResource Include="Migrations\201703221228170_AddSemVerLevelKeyColumn.resx">
@@ -2029,6 +2036,10 @@
     <Content Include="App_Data\Files\Content\Login-Discontinuation-Configuration.json" />
     <Content Include="Areas\Admin\Views\DeleteAccount\_DeleteUserAccountForm.cshtml" />
     <Content Include="App_Data\Files\Content\Certificates-Configuration.json" />
+    <Content Include="Scripts\d3\README.md" />
+    <Content Include="Scripts\d3\LICENSE" />
+    <Content Include="Scripts\d3\CHANGES.md" />
+    <Content Include="Scripts\d3\API.md" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />

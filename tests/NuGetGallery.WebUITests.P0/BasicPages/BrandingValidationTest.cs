@@ -24,12 +24,12 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             //send a request to home page and check for default home page text.
             var pageRequest = new WebTestRequest(UrlHelper.BaseUrl);
             
-            if (String.IsNullOrEmpty(EnvironmentSettings.ExternalBrandingMessage)
-                && String.IsNullOrEmpty(EnvironmentSettings.ExternalBrandingUrl)
-                && String.IsNullOrEmpty(EnvironmentSettings.ExternalAboutUrl)
-                && String.IsNullOrEmpty(EnvironmentSettings.ExternalPrivacyPolicyUrl)
-                && String.IsNullOrEmpty(EnvironmentSettings.ExternalTermsOfUseUrl)
-                && String.IsNullOrEmpty(EnvironmentSettings.ExternalTrademarksUrl))
+            if (String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.Message)
+                && String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.Url)
+                && String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.AboutUrl)
+                && String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl)
+                && String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.TermsOfUseUrl)
+                && String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.TrademarksUrl))
             {
                 var homePageTextValidationRuleLogo = AssertAndValidationHelper.GetValidationRuleForFindText(@"<a href=""https://www.dotnetfoundation.org"">");
                 var homePageTextValidationRuleCopyright = AssertAndValidationHelper.GetValidationRuleForFindText(@"&copy; " + DateTime.UtcNow.Year + " .NET Foundation");
@@ -43,39 +43,39 @@ namespace NuGetGallery.FunctionalTests.WebUITests.BasicPages
             }
             else
             {
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalBrandingMessage))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.Message))
                 {
-                    var validationBrandingMessage = AssertAndValidationHelper.GetValidationRuleForFindText(string.Format(EnvironmentSettings.ExternalBrandingMessage, DateTime.UtcNow.Year));
+                    var validationBrandingMessage = AssertAndValidationHelper.GetValidationRuleForFindText(string.Format(GalleryConfiguration.Instance.Branding.Message, DateTime.UtcNow.Year));
                     pageRequest.ValidateResponse += validationBrandingMessage.Validate;
                 }
 
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalBrandingUrl))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.Url))
                 {
-                    var validationBrandingUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{EnvironmentSettings.ExternalBrandingUrl}"">");
+                    var validationBrandingUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.Url}"">");
                     pageRequest.ValidateResponse += validationBrandingUrl.Validate;
                 }
 
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalAboutUrl))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.AboutUrl))
                 {
-                    var validationAboutUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{EnvironmentSettings.ExternalAboutUrl}"">");
+                    var validationAboutUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.AboutUrl}"">");
                     pageRequest.ValidateResponse += validationAboutUrl.Validate;
                 }
 
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalPrivacyPolicyUrl))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl))
                 {
-                    var validationPrivacyPolicyUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{EnvironmentSettings.ExternalPrivacyPolicyUrl}"">");
+                    var validationPrivacyPolicyUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.PrivacyPolicyUrl}"">");
                     pageRequest.ValidateResponse += validationPrivacyPolicyUrl.Validate;
                 }
 
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalTermsOfUseUrl))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.TermsOfUseUrl))
                 {
-                    var validationTermsOfUseUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{EnvironmentSettings.ExternalTermsOfUseUrl}"">");
+                    var validationTermsOfUseUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.TermsOfUseUrl}"">");
                     pageRequest.ValidateResponse += validationTermsOfUseUrl.Validate;
                 }
 
-                if (!String.IsNullOrEmpty(EnvironmentSettings.ExternalTrademarksUrl))
+                if (!String.IsNullOrEmpty(GalleryConfiguration.Instance.Branding.TrademarksUrl))
                 {
-                    var validationTrademarksUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{EnvironmentSettings.ExternalTrademarksUrl}"">");
+                    var validationTrademarksUrl = AssertAndValidationHelper.GetValidationRuleForFindText($@"<a href=""{GalleryConfiguration.Instance.Branding.TrademarksUrl}"">");
                     pageRequest.ValidateResponse += validationTrademarksUrl.Validate;
                 }
             }

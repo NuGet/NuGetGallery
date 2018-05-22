@@ -40,7 +40,7 @@ namespace NuGetGallery.FunctionalTests
                     .ToList();
 
                 // Assert
-                Assert.Equal(1, attributes.Count);
+                Assert.Single(attributes);
                 Assert.Equal(Version, attributes[0].InformationalVersion);
             }
         }

@@ -87,11 +87,28 @@ namespace NuGetGallery.FunctionalTests.Helpers
             logonRequestFormPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
             logonRequestFormPostBody.FormPostParameters.Add("ReturnUrl", "/");
             logonRequestFormPostBody.FormPostParameters.Add("LinkingAccount", "false");
-            logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, EnvironmentSettings.TestAccountEmail);
-            logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, EnvironmentSettings.TestAccountPassword);
+            logonRequestFormPostBody.FormPostParameters.Add(Constants.UserNameOrEmailFormField, GalleryConfiguration.Instance.Account.Email);
+            logonRequestFormPostBody.FormPostParameters.Add(Constants.PasswordFormField, GalleryConfiguration.Instance.Account.Password);
             logonPostRequest.Body = logonRequestFormPostBody;
 
             return logonPostRequest;
+        }
+
+        /// <summary>
+        /// Returns the POST WebRequest for logon with appropriate form parameters set.
+        /// Individual WebTests can use this.
+        /// </summary>
+        /// <returns></returns>
+        public static WebTestRequest GetCancelUploadPostRequestForPackage(WebTest test)
+        {
+            var uploadPostRequest = new WebTestRequest(UrlHelper.CancelUpload);
+            uploadPostRequest.Method = "POST";
+
+            var uploadPostBody = new FormPostHttpBody();
+            uploadPostBody.FormPostParameters.Add("__RequestVerificationToken", test.Context["$HIDDEN1.__RequestVerificationToken"].ToString());
+            uploadPostRequest.Body = uploadPostBody;
+
+            return uploadPostRequest;
         }
 
         /// <summary>
