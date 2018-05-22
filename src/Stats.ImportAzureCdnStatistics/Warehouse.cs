@@ -22,7 +22,7 @@ namespace Stats.ImportAzureCdnStatistics
         private readonly TimeSpan _retryDelay = TimeSpan.FromSeconds(5);
         private readonly ILogger _logger;
         private readonly ISqlConnectionFactory _statisticsDbConnectionFactory;
-        private readonly IList<PackageDimension> _cachedPackageDimensions = new List<PackageDimension>();
+        private readonly IDictionary<PackageDimension, PackageDimension> _cachedPackageDimensions = new Dictionary<PackageDimension, PackageDimension>();
         private readonly IList<ToolDimension> _cachedToolDimensions = new List<ToolDimension>();
         private readonly IDictionary<string, int> _cachedClientDimensions = new Dictionary<string, int>();
         private readonly IDictionary<string, int> _cachedPlatformDimensions = new Dictionary<string, int>();
@@ -687,26 +687,28 @@ namespace Stats.ImportAzureCdnStatistics
 
         private async Task<IReadOnlyCollection<PackageDimension>> RetrievePackageDimensions(IReadOnlyCollection<PackageStatistics> sourceData, SqlConnection connection)
         {
-            var packages = sourceData
-                .Select(e => new PackageDimension(e.PackageId, e.PackageVersion))
-                .Distinct()
-                .ToList();
-
             var results = new List<PackageDimension>();
-            if (!packages.Any())
+            var nonCachedPackageDimensions = new List<PackageDimension>();
+            var sourceDataPackages = new HashSet<PackageDimension>();
+
+            foreach (var sourceStatistics in sourceData)
             {
-                return results;
+                var sourcePackage = new PackageDimension(sourceStatistics.PackageId, sourceStatistics.PackageVersion);
+                if (!sourceDataPackages.Add(sourcePackage))
+                {
+                    // This package has already been seen in the sourceData
+                    continue;
+                }
+
+                if (_cachedPackageDimensions.TryGetValue(sourcePackage, out var cachedPackage))
+                {
+                    results.Add(cachedPackage);
+                }
+                else
+                {
+                    nonCachedPackageDimensions.Add(sourcePackage);
+                }
             }
-
-            results.AddRange(_cachedPackageDimensions
-                .Where(p1 => packages
-                    .FirstOrDefault(p2 =>
-                        string.Equals(p1.PackageId, p2.PackageId, StringComparison.OrdinalIgnoreCase)
-                        && string.Equals(p1.PackageVersion, p2.PackageVersion, StringComparison.OrdinalIgnoreCase)) != null
-                    )
-                );
-
-            var nonCachedPackageDimensions = packages.Except(results).ToList();
 
             if (nonCachedPackageDimensions.Any())
             {
@@ -730,15 +732,8 @@ namespace Stats.ImportAzureCdnStatistics
                             Id = dataReader.GetInt32(0)
                         };
 
-                        if (!results.Contains(package))
-                        {
-                            results.Add(package);
-                        }
-
-                        if (!_cachedPackageDimensions.Contains(package))
-                        {
-                            _cachedPackageDimensions.Add(package);
-                        }
+                        results.Add(package);
+                        _cachedPackageDimensions[package] = package;
                     }
                 }
             }
