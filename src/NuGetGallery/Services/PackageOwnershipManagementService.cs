@@ -182,29 +182,21 @@ namespace NuGetGallery
                 await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
             }
         }
-
-        // The requesting owner can remove other owner only if 
-        // 1. Is an admin.
-        // 2. Owns a namespace.
-        // 3. Removing the other owner would not remove the package from all of its reserved namespaces
+        
         private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
         {
             var reservedNamespaces = packageRegistration.ReservedNamespaces.ToList();
-            
-            if (ActionsRequiringPermissions.RemovePackageFromReservedNamespace
-                .CheckPermissionsOnBehalfOfAnyAccount(requestingOwner, reservedNamespaces) == PermissionsCheckResult.Allowed)
+            if (ActionsRequiringPermissions.ShowPackageAsVerifiedByReservedNamespace
+                .CheckPermissionsOnBehalfOfAnyAccount(ownerToBeRemoved, reservedNamespaces) == PermissionsCheckResult.Allowed)
             {
-                return true;
+                // If the owner to be removed owns a reserved namespace that applies to this package,
+                // the requesting user must own a reserved namespace that applies to this package or be a site admin.
+                return ActionsRequiringPermissions.RemovePackageFromReservedNamespace
+                    .CheckPermissionsOnBehalfOfAnyAccount(requestingOwner, reservedNamespaces) == PermissionsCheckResult.Allowed;
             }
 
-            var packageOwnersThatOwnAReservedNamespaceThatThePackageIsAMemberOf =
-                packageRegistration.Owners.Count(
-                    o => ActionsRequiringPermissions.ShowPackageAsVerifiedByReservedNamespace
-                        .CheckPermissionsOnBehalfOfAnyAccount(o, reservedNamespaces) != PermissionsCheckResult.Allowed);
-
-            // If multiple package owners own a reserved namespace that the package is a member of, then removing an owner will not remove the package from all of its reserved namespaces.
-            // If no package owners own a reserved namespace that the package is a member of, then the package is not in a reserved namespace and the owner can be removed.
-            return packageOwnersThatOwnAReservedNamespaceThatThePackageIsAMemberOf != 1;
+            // If the owner to be removed does not own any reserved namespaces that apply to this package, they can be removed by anyone.
+            return true;
         }
     }
 }
