@@ -15,7 +15,7 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
          {		
              _data = data;
 
-            if (!EnvironmentSettings.DefaultSecurityPoliciesEnforced)
+            if (!GalleryConfiguration.Instance.DefaultSecurityPoliciesEnforced)
             {
                 Skip = "Default security policies are not configured on the server";
             }

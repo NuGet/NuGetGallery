@@ -65,7 +65,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Description("Downloads a package from the V2 feed and checks if the file is present on local disk")]
         [Priority(0)]
         [Category("P0Tests")]
-        [Category("ReadonlyModeTests")]
+        [Category("ReadOnlyModeTests")]
         public async Task DownloadPackageFromV2Feed()
         {
             await _odataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Install");
@@ -75,7 +75,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Description("Restores a package from the V2 feed and checks if the file is present on local disk")]
         [Priority(0)]
         [Category("P0Tests")]
-        [Category("ReadonlyModeTests")]
+        [Category("ReadOnlyModeTests")]
         public async Task RestorePackageFromV2Feed()
         {
             await _odataHelper.DownloadPackageFromV2FeedWithOperation(Constants.TestPackageId, "1.0.0", "Restore");

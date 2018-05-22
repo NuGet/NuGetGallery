@@ -446,6 +446,9 @@ namespace NuGetGallery
                 case CoreConstants.PackageReadMesFolderName:
                     return CoreConstants.TextContentType;
 
+                case CoreConstants.UserCertificatesFolderName:
+                    return CoreConstants.CertificateContentType;
+
                 default:
                     throw new InvalidOperationException(
                         String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
