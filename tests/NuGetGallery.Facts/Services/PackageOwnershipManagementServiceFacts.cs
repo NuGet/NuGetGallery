@@ -287,14 +287,31 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task RemovingNamespaceOwnerRemovesPackageVerified()
+            public Task RemovingNamespaceOwnerRemovesPackageVerified()
             {
                 var existingOwner1 = new User { Key = 100, Username = "microsoft" };
+                return RemovingNamespaceOwnerRemovesPackageVerified(existingOwner1, existingOwner1);
+            }
+
+            [Fact]
+            public Task RemovingNamespaceOwnerAsOrganizationAdminRemovesPackageVerified()
+            {
+                var existingOrganizationOwner1 = new Organization { Key = 100, Username = "microsoft" };
+                var existingOrganizationOwner1Admin = new User { Key = 101, Username = "microsoftAdmin" };
+                var existingMembership = new Membership { IsAdmin = true, Member = existingOrganizationOwner1Admin, Organization = existingOrganizationOwner1 };
+                existingOrganizationOwner1.Members.Add(existingMembership);
+                existingOrganizationOwner1Admin.Organizations.Add(existingMembership);
+
+                return RemovingNamespaceOwnerRemovesPackageVerified(existingOrganizationOwner1, existingOrganizationOwner1Admin);
+            }
+
+            private async Task RemovingNamespaceOwnerRemovesPackageVerified(User owner, User requestingUser)
+            {
                 var existingNamespace = new ReservedNamespace("microsoft.aspnet.", isSharedNamespace: false, isPrefix: true);
-                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { existingOwner1 } };
-                existingOwner1.ReservedNamespaces.Add(existingNamespace);
+                var package = new PackageRegistration { Key = 2, Id = "Microsoft.Aspnet.Package1", IsVerified = true, Owners = new List<User> { owner } };
+                owner.ReservedNamespaces.Add(existingNamespace);
                 package.ReservedNamespaces.Add(existingNamespace);
-                existingNamespace.Owners.Add(existingOwner1);
+                existingNamespace.Owners.Add(owner);
                 existingNamespace.PackageRegistrations.Add(package);
 
                 var packageService = new Mock<IPackageService>();
@@ -302,7 +319,7 @@ namespace NuGetGallery
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
                 var service = CreateService(packageService: packageService, reservedNamespaceService: reservedNamespaceService, packageOwnerRequestService: packageOwnerRequestService);
-                await service.RemovePackageOwnerAsync(package, existingOwner1, existingOwner1);
+                await service.RemovePackageOwnerAsync(package, requestingUser, owner);
 
                 packageService.Verify(x => x.UpdatePackageVerifiedStatusAsync(It.Is<IReadOnlyCollection<PackageRegistration>>(pr => pr.First() == package), It.Is<bool>(b => b == false), false));
                 reservedNamespaceService.Verify(x => x.RemovePackageRegistrationFromNamespace(It.IsAny<ReservedNamespace>(), It.IsAny<PackageRegistration>()), Times.Once);
