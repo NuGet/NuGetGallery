@@ -49,6 +49,8 @@ namespace NuGetGallery.Areas.Admin.Models
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Admin>()
+                .Property(e => e.PagerDutyUsername).IsUnicode(false);
+            modelBuilder.Entity<Admin>()
                 .Property(e => e.GalleryUsername).IsUnicode(false);
             modelBuilder.Entity<Admin>()
                 .HasMany(e => e.Issues)

@@ -1,4 +1,5 @@
 // Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -66,6 +67,7 @@ namespace NuGetGallery.Areas.Admin
             }
 
             admin.GalleryUsername = galleryUsername;
+            admin.PagerDutyUsername = galleryUsername;
 
             await _supportRequestDbContext.CommitChangesAsync();
         }
@@ -79,6 +81,7 @@ namespace NuGetGallery.Areas.Admin
 
             var admin = new Models.Admin();
             admin.GalleryUsername = galleryUsername;
+            admin.PagerDutyUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
 

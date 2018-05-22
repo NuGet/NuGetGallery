@@ -12,6 +12,12 @@ namespace NuGetGallery.Areas.Admin.Models
         [Key]
         public int Key { get; set; }
 
+        [Required(ErrorMessage = "Please provide a Pagerduty username")]
+        [StringLength(255)]
+        [Display(Name = "Pager Duty username")]
+        [Index]
+        public string PagerDutyUsername { get; set; }
+
         [Required(ErrorMessage = "Please provide a NuGet Gallery username")]
         [Display(Name = "NuGet Gallery username")]
         [StringLength(255)]
