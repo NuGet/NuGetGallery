@@ -686,6 +686,10 @@
     <Compile Include="Areas\Admin\Migrations\201602191039005_PackageInfoIsOptional.Designer.cs">
       <DependentUpon>201602191039005_PackageInfoIsOptional.cs</DependentUpon>
     </Compile>
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.cs" />
+    <Compile Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.Designer.cs">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </Compile>
     <Compile Include="Areas\Admin\Models\DeletedStatus.cs" />
     <Compile Include="Areas\Admin\Models\IssueStatusKeys.cs" />
     <Compile Include="Areas\Admin\Migrations\SupportRequestMigrationsConfiguration.cs" />
@@ -1799,6 +1803,9 @@
     <Content Include="Content\themes\custom\images\ui-icons_888888_256x240.png" />
     <Content Include="Content\themes\custom\images\ui-icons_cd0a0a_256x240.png" />
     <Content Include="D3 LICENSE.txt" />
+    <EmbeddedResource Include="Areas\Admin\Migrations\201805221605033_DropPagerDutyColumn.resx">
+      <DependentUpon>201805221605033_DropPagerDutyColumn.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Up.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport2.Down.sql" />
     <Content Include="NuGetGallery.dll.config">

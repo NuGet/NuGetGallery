@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
@@ -36,17 +35,6 @@ namespace NuGetGallery.Areas.Admin
             return _supportRequestDbContext.Admins.ToList();
         }
 
-        public int? GetAdminKeyFromUsername(string username)
-        {
-            if (string.Equals(username, _unassignedAdmin, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            var admin = _supportRequestDbContext.Admins.FirstOrDefault(a => username == a.PagerDutyUsername);
-            return admin?.Key;
-        }
-
         public List<History> GetHistoryEntriesByIssueKey(int id)
         {
             return _supportRequestDbContext.Histories.Where(h => h.IssueId == id).ToList();
@@ -64,16 +52,11 @@ namespace NuGetGallery.Areas.Admin
             return GetFilteredIssuesQueryable(assignedToId, reason, issueStatusId).Count();
         }
 
-        public async Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername)
+        public async Task UpdateAdminAsync(int adminId, string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
-            }
-
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
             }
 
             var admin = GetAdminByKey(adminId);
@@ -83,25 +66,18 @@ namespace NuGetGallery.Areas.Admin
             }
 
             admin.GalleryUsername = galleryUsername;
-            admin.PagerDutyUsername = pagerDutyUsername;
 
             await _supportRequestDbContext.CommitChangesAsync();
         }
 
-        public async Task AddAdminAsync(string galleryUsername, string pagerDutyUsername)
+        public async Task AddAdminAsync(string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
             }
 
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
-            }
-
             var admin = new Models.Admin();
-            admin.PagerDutyUsername = pagerDutyUsername;
             admin.GalleryUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
@@ -134,14 +110,14 @@ namespace NuGetGallery.Areas.Admin
 
                 if (currentIssue.AssignedToId != assignedToId)
                 {
-                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? "unassigned";
+                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? _unassignedAdmin;
                     string newAssignedUsername;
                     if (assignedToId.HasValue)
                     {
                         var admin = GetAdminByKey(assignedToId.Value);
                         if (admin == null)
                         {
-                            newAssignedUsername = "unassigned";
+                            newAssignedUsername = _unassignedAdmin;
                         }
                         else
                         {
@@ -151,7 +127,7 @@ namespace NuGetGallery.Areas.Admin
                     }
                     else
                     {
-                        newAssignedUsername = "unassigned";
+                        newAssignedUsername = _unassignedAdmin;
                     }
 
                     comments += $"Reassigned issue from '{previousAssignedUsername}' to '{newAssignedUsername}'.\r\n";
