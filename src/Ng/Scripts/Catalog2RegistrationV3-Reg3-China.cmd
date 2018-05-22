@@ -35,7 +35,8 @@ start /w ng.exe catalog2registration ^
     -storageSuffix #{Jobs.Common.China.StorageSuffix} ^
     -cursorUri #{Jobs.China.catalog2registrationv3reg3.CursorUri} ^
     -flatContainerName #{Jobs.China.catalog2registrationv3reg3.FlatContainerName} ^
-    -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout}
+    -storageOperationMaxExecutionTimeInSeconds #{Jobs.Common.China.AzureOperationMaxTimeout} ^
+    -storageServerTimeoutInSeconds #{Jobs.Common.China.StorageServerTimeoutInSeconds}
 
 echo "Finished #{Jobs.China.catalog2registrationv3reg3.Title}"
 

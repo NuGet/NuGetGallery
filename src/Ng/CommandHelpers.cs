@@ -140,6 +140,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -161,6 +162,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.CompressedStoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -182,6 +184,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.SemVer2StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -203,6 +206,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath + suffix },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds + suffix },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -244,16 +248,18 @@ namespace Ng
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
-                var storageOperationMaxExecutionTimeInSeconds = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
+                var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
+                var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
 
                 var account = string.IsNullOrEmpty(storageSuffix) ?
-                                new CloudStorageAccount(credentials, true) :
-                                new CloudStorageAccount(credentials, storageSuffix, true);
+                                new CloudStorageAccount(credentials, useHttps: true) :
+                                new CloudStorageAccount(credentials, storageSuffix, useHttps: true);
                 return new CatalogAzureStorageFactory(account,
                                                storageContainer,
-                                               storageOperationMaxExecutionTimeInSeconds,
+                                               storageOperationMaxExecutionTime,
+                                               storageServerTimeout,
                                                storagePath,
                                                storageBaseAddress)
                 { Verbose = verbose, CompressContent = compressed };
@@ -396,7 +402,8 @@ namespace Ng
 
         public static IEnumerable<EndpointFactory.Input> GetEndpointFactoryInputs(IDictionary<string, string> arguments)
         {
-            return arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e => {
+            return arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e =>
+            {
                 var endpointParts = e.Split('|');
 
                 if (endpointParts.Count() < 2)

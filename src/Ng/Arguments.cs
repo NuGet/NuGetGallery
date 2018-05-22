@@ -7,7 +7,6 @@ namespace Ng
 {
     public static class Arguments
     {
-
         #region Shared
         public const char Prefix = '-';
         public const char Quote = '"';
@@ -23,7 +22,7 @@ namespace Ng
         public const int DefaultInterval = 3; // seconds
         public const string Interval = "interval";
 
-        public const int DefaultReinitializeIntervalSec = 60*60; // 1 hour
+        public const int DefaultReinitializeIntervalSec = 60 * 60; // 1 hour
         public const string ReinitializeIntervalSec = "ReinitializeIntervalSec";
 
         public const string LuceneDirectoryType = "luceneDirectoryType";
@@ -31,7 +30,7 @@ namespace Ng
         public const string LuceneStorageAccountName = "luceneStorageAccountName";
         public const string LuceneStorageContainer = "luceneStorageContainer";
         public const string LuceneStorageKeyValue = "luceneStorageKeyValue";
-        
+
 
         public const string AzureStorageType = "azure";
         public const string FileStorageType = "file";
@@ -49,6 +48,7 @@ namespace Ng
 
         public const string StorageSuffix = "storageSuffix";
         public const string StorageOperationMaxExecutionTimeInSeconds = "storageOperationMaxExecutionTimeInSeconds";
+        public const string StorageServerTimeoutInSeconds = "storageServerTimeoutInSeconds";
         public const string HttpClientTimeoutInSeconds = "httpClientTimeoutInSeconds";
 
         #endregion
@@ -122,7 +122,7 @@ namespace Ng
         /// E.g. "endpointCursor<see cref="RegistrationEndpoint"/>".
         /// </summary>
         public const string EndpointCursorPrefix = "endpointCursor";
-        
+
         /// <summary>
         /// The folder in which <see cref="PackageMonitoringStatus"/>es are saved by the <see cref="PackageMonitoringStatusService"/>.
         /// Defaults to <see cref="PackageStatusFolderDefault"/>.

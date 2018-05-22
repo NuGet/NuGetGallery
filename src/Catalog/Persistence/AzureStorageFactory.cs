@@ -1,22 +1,24 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage;
 using System;
+using Microsoft.WindowsAzure.Storage;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorageFactory : StorageFactory
     {
-        CloudStorageAccount _account;
-        string _containerName;
-        string _path;
-        private Uri _differentBaseAddress = null;
-        TimeSpan _maxExecutionTime;
+        private readonly CloudStorageAccount _account;
+        private readonly string _containerName;
+        private readonly string _path;
+        private readonly Uri _differentBaseAddress = null;
+        private readonly TimeSpan _maxExecutionTime;
+        private readonly TimeSpan _serverTimeout;
 
         public AzureStorageFactory(CloudStorageAccount account,
                                    string containerName,
                                    TimeSpan maxExecutionTime,
+                                   TimeSpan serverTimeout,
                                    string path = null,
                                    Uri baseAddress = null)
         {
@@ -24,6 +26,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _containerName = containerName;
             _path = null;
             _maxExecutionTime = maxExecutionTime;
+            _serverTimeout = serverTimeout;
 
             if (path != null)
             {
@@ -70,7 +73,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase, _maxExecutionTime)
+            return new AzureStorage(_account, _containerName, path, newBase, _maxExecutionTime, _serverTimeout)
                                    { Verbose = Verbose, CompressContent = CompressContent };
         }
     }
