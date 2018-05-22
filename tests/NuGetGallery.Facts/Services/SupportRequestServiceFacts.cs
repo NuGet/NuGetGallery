@@ -122,12 +122,10 @@ namespace NuGetGallery.Services
         {
             var appConfig = new Mock<IAppConfiguration>();
             appConfig.Setup(m => m.SiteRoot).Returns("SiteRoot");
-            appConfig.Setup(m => m.PagerDutyAccountName).Returns("PagerDutyAccountName");
-            appConfig.Setup(m => m.PagerDutyAPIKey).Returns("PagerDutyAPIKey");
-            appConfig.Setup(m => m.PagerDutyServiceKey).Returns("PagerDutyServiceKey");
 
             return appConfig.Object;
         }
+
         internal class TestSupportRequestDbContext : ISupportRequestDbContext
         {
             public TestSupportRequestDbContext()
