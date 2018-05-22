@@ -332,6 +332,9 @@ namespace NuGetGallery
 
         private async Task<ActionResult> CreatePackageInternal()
         {
+            string id = null;
+            NuGetVersion version = null;
+
             try
             {
                 var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, HttpContext);
@@ -404,8 +407,8 @@ namespace NuGetGallery
                             User owner;
 
                             // Ensure that the user can push packages for this partialId.
-                            var id = nuspec.GetId();
-                            var version = nuspec.GetVersion();
+                            id = nuspec.GetId();
+                            version = nuspec.GetVersion();
                             var packageRegistration = PackageService.FindPackageRegistrationById(id);
                             if (packageRegistration == null)
                             {
@@ -545,7 +548,7 @@ namespace NuGetGallery
             }
             catch (Exception)
             {
-                TelemetryService.TrackPackagePushFailureEvent(GetCurrentUser());
+                TelemetryService.TrackPackagePushFailureEvent(GetCurrentUser(), id, version);
                 throw;
             }
         }

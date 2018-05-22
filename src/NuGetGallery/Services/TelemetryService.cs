@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
+using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
@@ -170,7 +171,7 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackagePush, package.PackageRegistration.Id, package.NormalizedVersion, user, identity);
         }
 
-        public void TrackPackagePushFailureEvent(User user)
+        public void TrackPackagePushFailureEvent(User user, string id, NuGetVersion version)
         {
             if (user == null)
             {
@@ -181,6 +182,8 @@ namespace NuGetGallery
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
                 properties.Add(AccountCreationDate, GetAccountCreationDate(user));
+                properties.Add(PackageId, id);
+                properties.Add(PackageVersion, version.ToNormalizedString());
             });
         }
 

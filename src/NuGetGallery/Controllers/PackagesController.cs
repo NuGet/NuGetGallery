@@ -1458,6 +1458,9 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
+            string packageId = null;
+            NuGetVersion packageVersion = null;
+
             try
             {
                 if (!ModelState.IsValid)
@@ -1525,8 +1528,8 @@ namespace NuGetGallery
                         Size = uploadFile.Length,
                     };
 
-                    var packageId = packageMetadata.Id;
-                    var packageVersion = packageMetadata.Version;
+                    packageId = packageMetadata.Id;
+                    packageVersion = packageMetadata.Version;
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
                     if (existingPackageRegistration == null)
@@ -1686,7 +1689,7 @@ namespace NuGetGallery
             }
             catch (Exception)
             {
-                _telemetryService.TrackPackagePushFailureEvent(GetCurrentUser());
+                _telemetryService.TrackPackagePushFailureEvent(GetCurrentUser(), packageId, packageVersion);
                 throw;
             }
         }

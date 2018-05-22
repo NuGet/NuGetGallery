@@ -17,6 +17,7 @@ using System.Web.Routing;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
@@ -177,7 +178,7 @@ namespace NuGetGallery
             : TestContainer
         {
             [Fact]
-            public async Task CreatePackage_TracksFailureIfUnexpectedException()
+            public async Task CreatePackage_TracksFailureIfUnexpectedExceptionWithoutIdVersion()
             {
                 // Arrange
                 var controller = new TestableApiController(GetConfigurationService());
@@ -191,7 +192,45 @@ namespace NuGetGallery
                 await Assert.ThrowsAnyAsync<Exception>(() => controller.CreatePackagePut());
 
                 // Assert
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user), Times.Once());
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user, null, null), Times.Once());
+            }
+
+            [Fact]
+            public async Task CreatePackage_TracksFailureIfUnexpectedExceptionWithIdVersion()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var packageRegistration = new PackageRegistration();
+                packageRegistration.Id = "theId";
+                packageRegistration.Owners.Add(user);
+                var package = new Package();
+                package.PackageRegistration = packageRegistration;
+                package.Version = "1.0.42";
+                packageRegistration.Packages.Add(package);
+
+                TestGalleryConfigurationService configurationService = GetConfigurationService();
+                var controller = new TestableApiController(configurationService);
+                controller.SetCurrentUser(user);
+                controller.MockPackageUploadService
+                    .Setup(p => p.GeneratePackageAsync(
+                        It.IsAny<string>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .Returns(Task.FromResult(package));
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Throws<Exception>();
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                await Assert.ThrowsAnyAsync<Exception>(() => controller.CreatePackagePut());
+
+                // Assert
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user, packageRegistration.Id, new NuGetVersion(package.Version)), Times.Once());
             }
 
             [Fact]

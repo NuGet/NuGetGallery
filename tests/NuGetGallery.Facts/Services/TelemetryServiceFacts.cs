@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
+using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
@@ -61,7 +62,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "PackagePushFailure",
-                        (TrackAction)(s => s.TrackPackagePushFailureEvent(fakes.User))
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent(fakes.User, "id", new NuGetVersion("1.2.3")))
                     };
 
                     yield return new object[] { "PackageUnlisted",
@@ -240,7 +241,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
-                    service.TrackPackagePushFailureEvent(null));
+                    service.TrackPackagePushFailureEvent(null, null, null));
             }
 
             [Fact]
