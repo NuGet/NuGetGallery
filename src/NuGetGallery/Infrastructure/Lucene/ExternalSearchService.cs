@@ -149,7 +149,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     results = new SearchResults(
                         content.TotalHits,
                         content.IndexTimestamp,
-                        content.Data.Select(ReadPackage).AsQueryable());
+                        content.Data.Select(x => ReadPackage(x, filter.SemVerLevel)).AsQueryable());
                 }
             }
             else
@@ -240,7 +240,7 @@ namespace NuGetGallery.Infrastructure.Lucene
             }
         }
 
-        private static Package ReadPackage(JObject doc)
+        internal static Package ReadPackage(JObject doc, string semVerLevel)
         {
             var dependencies =
                 doc.Value<JArray>("Dependencies")
@@ -272,6 +272,10 @@ namespace NuGetGallery.Infrastructure.Lucene
                 };
             }
 
+            var isLatest = doc.Value<bool>("IsLatest");
+            var isLatestStable = doc.Value<bool>("IsLatestStable");
+            var semVer2 = SemVerLevelKey.ForSemVerLevel(semVerLevel) == SemVerLevelKey.SemVer2;
+
             return new Package
             {
                 Copyright = doc.Value<string>("Copyright"),
@@ -284,8 +288,10 @@ namespace NuGetGallery.Infrastructure.Lucene
                 Hash = doc.Value<string>("Hash"),
                 HashAlgorithm = doc.Value<string>("HashAlgorithm"),
                 IconUrl = doc.Value<string>("IconUrl"),
-                IsLatest = doc.Value<bool>("IsLatest"),
-                IsLatestStable = doc.Value<bool>("IsLatestStable"),
+                IsLatest = isLatest,
+                IsLatestStable = isLatestStable,
+                IsLatestSemVer2 = semVer2 ? isLatest : false,
+                IsLatestStableSemVer2 = semVer2 ? isLatestStable : false,
                 Key = doc.Value<int>("Key"),
                 Language = doc.Value<string>("Language"),
                 LastUpdated = doc.Value<DateTime>("LastUpdated"),
