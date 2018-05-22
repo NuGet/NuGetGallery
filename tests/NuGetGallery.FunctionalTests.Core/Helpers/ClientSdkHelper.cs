@@ -205,6 +205,13 @@ namespace NuGetGallery.FunctionalTests
             return await packageInfo.PushNewVersion(this, apiKey);
         }
 
+        /// <summary>
+        /// Gets an API key with the same owner as <paramref name="apiKey"/>.
+        /// </summary>
+        /// <remarks>
+        /// This function is used to create a package that <paramref name="apiKey"/> can be used on if no existing package can be used.
+        /// In other words, if a test requires unlisting a package with an API key, but there is no existing package that can be unlisted by that API key, this function is used to find an API key that can be used to upload a package for that API key to then unlist.
+        /// </remarks>
         private static string GetApiKeyWithSameOwnerThatCanUpload(string apiKey = null)
         {
             if (apiKey == null ||
@@ -466,12 +473,18 @@ namespace NuGetGallery.FunctionalTests
 
             public bool CanUseApiKeyToPushNewVersion(string apiKey)
             {
+                // An API key can be used to upload a new version of this package if
+                // - it has the same owner as the API key that was used to push
+                // - it has a scope that allows pushing new versions
                 return HasSameOwnerAsApiKey(apiKey) && 
                     apiKey != GalleryConfiguration.Instance.Account.ApiKeyUnlist;
             }
-
+            
             public bool CanUseApiKeyToUnlist(string apiKey)
             {
+                // An API key can be used to unlist this package if
+                // - it has the same owner as the API key that was used to push
+                // - it has a scope that allows unlisting
                 return HasSameOwnerAsApiKey(apiKey) && 
                     apiKey != GalleryConfiguration.Instance.Account.ApiKeyPush && 
                     apiKey != GalleryConfiguration.Instance.Account.ApiKeyPushVersion;
