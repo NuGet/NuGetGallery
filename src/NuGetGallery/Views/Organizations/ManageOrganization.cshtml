@@ -4,6 +4,7 @@
     var account = Model.Account;
 
     ViewBag.Title = "Manage Organization";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     TempData["Parent"] = this;
@@ -12,15 +13,13 @@
 <section role="main" class="container main-container page-manage-organizations">
     @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
-        <div class="col-md-12">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @ViewHelpers.OrganizationsBreadcrumb(
-                Url, 
+                Url,
                 CurrentUser,
                 true,
                 @<text>@Model.AccountName</text>)
-        </div>
 
-        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @{
                 string membershipString;
 
@@ -56,7 +55,7 @@
                     permissionsString = " " + permissionsString;
                 }
 
-                @ViewHelpers.AlertInfo(@<text>@membershipString@permissionsString</text>)
+                @membershipString@permissionsString
             }
 
             @Html.Partial("_AccountConfirmationNotices", Model)
@@ -82,21 +81,21 @@
             {
                 @ViewHelpers.Section(this,
                     "delete-organization",
-                    @<text>Delete</text>,
-                    @<text>Delete this organization</text>,
-                    @<text>
-                        <div class="row form-group">
-                            <div class="col-sm-6">
-                                <a role="button" href="@Url.DeleteOrganization(Model.AccountName)"
-                                    class="btn btn-primary form-control">Delete</a>
+                        @<text>Delete</text>,
+                        @<text>Delete this organization</text>,
+                        @<text>
+                            <div class="row form-group">
+                                <div class="col-sm-6">
+                                    <a role="button" href="@Url.DeleteOrganization(Model.AccountName)"
+                                       class="btn btn-primary form-control">Delete</a>
+                                </div>
+                                <div class="col-sm-6">
+                                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-delete-organization">
+                                        Cancel
+                                    </a>
+                                </div>
                             </div>
-                            <div class="col-sm-6">
-                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-delete-organization">
-                                    Cancel
-                                </a>
-                            </div>
-                        </div>
-                    </text>)
+                        </text>)
             }
         </div>
     </div>
