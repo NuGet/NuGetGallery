@@ -120,6 +120,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
                 Assert.Equal(1, testableService.SupportRequests.Count());
                 Assert.Empty(testableService.PackageOwnerRequests);
+                Assert.True(testableService.HasDeletedOwnerScope);
                 Assert.Equal(1, testableService.AuditService.Records.Count());
                 Assert.Null(testUser.OrganizationMigrationRequest);
                 Assert.Empty(testUser.OrganizationMigrationRequests);
@@ -161,6 +162,7 @@ namespace NuGetGallery.Services
                 //Assert
                 Assert.True(status.Success);
                 Assert.Null(testableService.User);
+                Assert.True(testableService.HasDeletedOwnerScope);
                 Assert.Equal(1, testableService.AuditService.Records.Count);
                 var deleteAccountAuditRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.NotNull(deleteAccountAuditRecord);
@@ -217,6 +219,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(1, testableService.SupportRequests.Count);
                 Assert.Equal(0, testableService.PackageOwnerRequests.Count);
                 Assert.Equal(1, testableService.AuditService.Records.Count);
+                Assert.True(testableService.HasDeletedOwnerScope);
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
             }
@@ -268,6 +271,7 @@ namespace NuGetGallery.Services
                 Assert.Equal(0, testableService.DeletedAccounts.Count());
                 Assert.Equal(1, testableService.SupportRequests.Count);
                 Assert.Equal(0, testableService.PackageOwnerRequests.Count);
+                Assert.True(testableService.HasDeletedOwnerScope);
                 Assert.Equal(1, testableService.AuditService.Records.Count);
                 var deleteRecord = testableService.AuditService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
@@ -370,12 +374,15 @@ namespace NuGetGallery.Services
             private UserSecurityPolicy _securityPolicy = new UserSecurityPolicy("PolicyName", SubscriptionName);
             private PackageRegistration _userPackagesRegistration = null;
             private ICollection<Package> _userPackages;
-
+            private bool _hasDeletedOwnerScope = false;
+            private bool _hasDeletedCredentialWithOwnerScope = false;
+            
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
             public List<User> DeletedUsers = new List<User>();
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
+            public bool HasDeletedOwnerScope => _hasDeletedOwnerScope && _hasDeletedCredentialWithOwnerScope;
 
             public DeleteAccountTestService(User user)
             {
@@ -435,12 +442,13 @@ namespace NuGetGallery.Services
             {
                 return new DeleteAccountService(SetupAccountDeleteRepository().Object,
                     SetupUserRepository().Object,
+                    SetupScopeRepository().Object,
                     SetupEntitiesContext().Object,
                     SetupPackageService().Object,
                     SetupPackageOwnershipManagementService().Object,
                     SetupReservedNamespaceService().Object,
                     SetupSecurityPolicyService().Object,
-                    new TestableAuthService(),
+                    SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
                     AuditService);
             }
@@ -459,24 +467,6 @@ namespace NuGetGallery.Services
             public User User
             {
                 get { return _user; }
-            }
-
-            private class TestableAuthService : AuthenticationService
-            {
-                public TestableAuthService() : base()
-                { }
-
-                public override async Task AddCredential(User user, Credential credential)
-                {
-                    await Task.Yield();
-                    user.Credentials.Add(credential);
-                }
-
-                public override async Task RemoveCredential(User user, Credential credential)
-                {
-                    await Task.Yield();
-                    user.Credentials.Remove(credential);
-                }
             }
 
             private Mock<IEntitiesContext> SetupEntitiesContext()
@@ -524,21 +514,54 @@ namespace NuGetGallery.Services
             private Mock<IEntityRepository<User>> SetupUserRepository()
             {
                 var userRepository = new Mock<IEntityRepository<User>>();
-                userRepository.Setup(m => m.CommitChangesAsync())
-                              .Returns(Task.CompletedTask);
-                userRepository.Setup(m => m.DeleteOnCommit(It.IsAny<User>()))
-                              .Callback<User>(user =>
-                              {
-                                  if (user == _user)
-                                  {
-                                      _user = null;
-                                  }
-                                  else
-                                  {
-                                      DeletedUsers.Add(user);
-                                  }
-                              });
+                userRepository
+                    .Setup(m => m.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                userRepository
+                    .Setup(m => m.DeleteOnCommit(It.IsAny<User>()))
+                    .Callback<User>(user =>
+                    {
+                        if (user == _user)
+                        {
+                            _user = null;
+                        }
+                        else
+                        {
+                            DeletedUsers.Add(user);
+                        }
+                    });
                 return userRepository;
+            }
+
+            private Mock<IEntityRepository<Scope>> SetupScopeRepository()
+            {
+                var scopeRepository = new Mock<IEntityRepository<Scope>>();
+                
+                var user = new User("userWithApiKeyScopedToDeletedUser") { Key = 54325 };
+                var credential = new Credential("CredentialType", "CredentialValue") { User = user };
+                user.Credentials.Add(credential);
+
+                var scope = new Scope(_user, "subject1", "action1") { OwnerKey = _user.Key };
+                credential.Scopes = new[] { scope };
+                scope.Credential = credential;
+
+                scopeRepository
+                    .Setup(m => m.GetAll())
+                    .Returns(new[] { scope }.AsQueryable());
+                scopeRepository
+                    .Setup(m => m.CommitChangesAsync())
+                    .Returns(Task.CompletedTask);
+                scopeRepository
+                    .Setup(m => m.DeleteOnCommit(It.IsAny<Scope>()))
+                    .Callback<Scope>(s =>
+                    {
+                        if (s == scope)
+                        {
+                            _hasDeletedOwnerScope = true;
+                        }
+                    });
+
+                return scopeRepository;
             }
 
             private Mock<IPackageService> SetupPackageService()
@@ -553,6 +576,28 @@ namespace NuGetGallery.Services
                               .Returns(Task.CompletedTask)
                               .Callback<Package, bool>((package, commit) => { package.Listed = false; });
                 return packageService;
+            }
+
+            private Mock<AuthenticationService> SetupAuthenticationService()
+            {
+                var authService = new Mock<AuthenticationService>();
+                authService
+                    .Setup(m => m.AddCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Callback<User, Credential>((user, credential) => user.Credentials.Add(credential))
+                    .Returns(Task.CompletedTask);
+                authService
+                    .Setup(m => m.RemoveCredential(It.IsAny<User>(), It.IsAny<Credential>()))
+                    .Callback<User, Credential>((user, credential) =>
+                    {
+                        user.Credentials.Remove(credential);
+                        if (credential.Scopes.Any(s => s.Owner == _user))
+                        {
+                            _hasDeletedCredentialWithOwnerScope = true;
+                        }
+                    })
+                    .Returns(Task.CompletedTask);
+
+                return authService;
             }
 
             private Mock<ISupportRequestService> SetupSupportRequestService()
