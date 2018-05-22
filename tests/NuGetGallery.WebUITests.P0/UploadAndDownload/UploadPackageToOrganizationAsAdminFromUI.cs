@@ -13,7 +13,7 @@ namespace NuGetGallery.FunctionalTests.WebUITests.UploadAndDownload
     {
         private static string Owner = GalleryConfiguration.Instance.AdminOrganization.Name;
 
-        private string _id = UploadHelper.GetUniquePackageId(nameof(UploadPackageToOrganizationAsAdminFromUI));
+        private string _id = UploadHelper.GetUniquePackageId();
 
         public override IEnumerable<UploadHelper.PackageToUpload> PackagesToUpload => new[]
         {
