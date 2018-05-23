@@ -374,7 +374,6 @@ namespace NuGetGallery.Services
             private UserSecurityPolicy _securityPolicy = new UserSecurityPolicy("PolicyName", SubscriptionName);
             private PackageRegistration _userPackagesRegistration = null;
             private ICollection<Package> _userPackages;
-            private bool _hasDeletedOwnerScope = false;
             private bool _hasDeletedCredentialWithOwnerScope = false;
             
             public List<AccountDelete> DeletedAccounts = new List<AccountDelete>();
@@ -382,7 +381,7 @@ namespace NuGetGallery.Services
             public List<Issue> SupportRequests = new List<Issue>();
             public List<PackageOwnerRequest> PackageOwnerRequests = new List<PackageOwnerRequest>();
             public FakeAuditingService AuditService = new FakeAuditingService();
-            public bool HasDeletedOwnerScope => _hasDeletedOwnerScope && _hasDeletedCredentialWithOwnerScope;
+            public bool HasDeletedOwnerScope => _hasDeletedCredentialWithOwnerScope;
 
             public DeleteAccountTestService(User user)
             {
@@ -553,13 +552,7 @@ namespace NuGetGallery.Services
                     .Returns(Task.CompletedTask);
                 scopeRepository
                     .Setup(m => m.DeleteOnCommit(It.IsAny<Scope>()))
-                    .Callback<Scope>(s =>
-                    {
-                        if (s == scope)
-                        {
-                            _hasDeletedOwnerScope = true;
-                        }
-                    });
+                    .Throws(new Exception("Scopes should be deleted by the AuthenticationService!"));
 
                 return scopeRepository;
             }

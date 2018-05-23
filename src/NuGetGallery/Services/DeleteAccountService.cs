@@ -154,14 +154,6 @@ namespace NuGetGallery
                 .ToArray();
 
             var credentials = userScopes.Select(s => s.Credential).Distinct().ToArray();
-
-            foreach (var userScope in userScopes)
-            {
-                _scopeRepository.DeleteOnCommit(userScope);
-            }
-
-            await _scopeRepository.CommitChangesAsync();
-
             foreach (var credential in credentials)
             {
                 await _authService.RemoveCredential(credential.User, credential);
