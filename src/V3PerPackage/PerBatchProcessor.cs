@@ -166,13 +166,13 @@ namespace NuGet.Services.V3PerPackage
 
                 packages.Add(key, new List<FeedPackageDetails>
                 {
-                    new FeedPackageDetails
-                    {
-                        ContentUri = packageContext.PackageUri,
-                        CreatedDate = created,
-                        LastEditedDate = lastEdited,
-                        PublishedDate = published,
-                    }
+                    new FeedPackageDetails(
+                        packageContext.PackageUri,
+                        created,
+                        lastEdited,
+                        published,
+                        packageContext.PackageId,
+                        packageContext.PackageVersion)
                 });
             }
 

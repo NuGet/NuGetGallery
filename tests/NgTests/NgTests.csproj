@@ -76,6 +76,9 @@
     <Reference Include="Lucene.Net.Contrib.SpellChecker, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Lucene.Net.Contrib.3.0.3\lib\net40\Lucene.Net.Contrib.SpellChecker.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.ApplicationInsights, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Microsoft.ApplicationInsights.2.2.0\lib\net45\Microsoft.ApplicationInsights.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Azure.Common, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\Microsoft.Azure.Common.2.0.4\lib\net45\Microsoft.Azure.Common.dll</HintPath>
       <Private>True</Private>
@@ -182,11 +185,38 @@
     <Reference Include="NuGet.Services.Configuration, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Configuration.2.2.2\lib\net452\NuGet.Services.Configuration.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Services.Contracts, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.25.0-master-30088\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.2.2\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Services.Logging, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.25.0-master-30088\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.2.0.0\lib\net45\Serilog.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Enrichers.Environment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Enrichers.Environment.2.1.0\lib\net45\Serilog.Enrichers.Environment.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Enrichers.Process, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Enrichers.Process.2.0.0\lib\net45\Serilog.Enrichers.Process.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Extensions.Logging, Version=1.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Extensions.Logging.1.2.0\lib\net45\Serilog.Extensions.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.ApplicationInsights, Version=2.2.1.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Sinks.ApplicationInsights.2.2.1\lib\net45\Serilog.Sinks.ApplicationInsights.dll</HintPath>
+    </Reference>
+    <Reference Include="Serilog.Sinks.ColoredConsole, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\Serilog.Sinks.ColoredConsole.2.0.0\lib\net45\Serilog.Sinks.ColoredConsole.dll</HintPath>
+    </Reference>
+    <Reference Include="SerilogTraceListener, Version=2.0.0.0, Culture=neutral, PublicKeyToken=9398e41289d9b801, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\SerilogTraceListener.2.0.10027\lib\net45\SerilogTraceListener.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -245,6 +275,9 @@
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MemoryStorageFactory.cs" />
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
+    <Compile Include="Infrastructure\MockTelemetryService.cs" />
+    <Compile Include="JobNameTelemetryInitializerTests.cs" />
+    <Compile Include="JobPropertiesTelemetryInitializerTests.cs" />
     <Compile Include="NgJobFactoryTests.cs" />
     <Compile Include="Package2CatalogJobTests.cs" />
     <Compile Include="PackageMonitoringStatusTests.cs" />

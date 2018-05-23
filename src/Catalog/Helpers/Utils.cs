@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             return _resourceStringCache[resName];
         }
-        
+
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, bool normalizeXml = false)
         {
             XsltArgumentList arguments = new XsltArgumentList();
@@ -208,7 +208,7 @@ namespace NuGet.Services.Metadata.Catalog
                 return JsonSort.OrderJson(compacted);
             }
         }
-        
+
         public static string CreateArrangedJson(IGraph graph, JToken frame = null)
         {
             System.IO.StringWriter writer = new System.IO.StringWriter();
@@ -353,7 +353,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 return new Uri(term);
             }
-            
+
             int indexOf = term.IndexOf(':');
             if (indexOf > 0)
             {
@@ -501,7 +501,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        public static CatalogItem CreateCatalogItem(string origin, Stream stream, DateTime createdDate, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
+        public static PackageCatalogItem CreateCatalogItem(string origin, Stream stream, DateTime createdDate, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
             try
             {
@@ -518,7 +518,7 @@ namespace NuGet.Services.Metadata.Catalog
                 throw new Exception(string.Format("Exception processsing {0}", origin), e);
             }
         }
-                
+
         public static void TraceException(Exception e)
         {
             if (e is AggregateException)

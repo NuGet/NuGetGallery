@@ -280,7 +280,17 @@ namespace Ng
             return TimeSpan.FromSeconds(seconds);
         }
 
-        public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
+        public static Lucene.Net.Store.Directory GetLuceneDirectory(
+            IDictionary<string, string> arguments,
+            bool required = true)
+        {
+            return GetLuceneDirectory(arguments, out var destination, required);
+        }
+
+        public static Lucene.Net.Store.Directory GetLuceneDirectory(
+            IDictionary<string, string> arguments,
+            out string destination,
+            bool required = true)
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
@@ -291,7 +301,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.LuceneStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out destination, required);
         }
 
         public static Lucene.Net.Store.Directory GetCopySrcLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
@@ -305,7 +315,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.SrcStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
         }
 
         public static Lucene.Net.Store.Directory GetCopyDestLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
@@ -319,11 +329,17 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.DestStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
         }
 
-        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap, bool required = true)
+        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            out string destination,
+            bool required = true)
         {
+            destination = null;
+
             try
             {
                 var luceneDirectoryType = arguments.GetOrThrow<string>(argumentNameMap[Arguments.DirectoryType]);
@@ -333,6 +349,8 @@ namespace Ng
                     var lucenePath = arguments.GetOrThrow<string>(argumentNameMap[Arguments.Path]);
 
                     var directoryInfo = new DirectoryInfo(lucenePath);
+
+                    destination = lucenePath;
 
                     if (directoryInfo.Exists)
                     {
@@ -353,7 +371,10 @@ namespace Ng
                     var luceneStorageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
 
                     var credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
-                    var account = new CloudStorageAccount(credentials, true);
+                    var account = new CloudStorageAccount(credentials, useHttps: true);
+
+                    destination = luceneStorageContainer;
+
                     return new AzureDirectory(account, luceneStorageContainer);
                 }
                 Trace.TraceError("Unrecognized Lucene Directory Type \"{0}\"", luceneDirectoryType);
