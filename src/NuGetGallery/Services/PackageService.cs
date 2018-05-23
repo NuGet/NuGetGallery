@@ -361,11 +361,14 @@ namespace NuGetGallery
             }
         }
 
-        public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
+        public async Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true)
         {
             // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
-            await _packageRepository.CommitChangesAsync();
+            if (commitChanges)
+            {
+                await _packageRepository.CommitChangesAsync();
+            }
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -701,7 +704,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> packageRegistrationList, bool isVerified)
+        public virtual async Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> packageRegistrationList, bool isVerified, bool commitChanges = true)
         {
             var packageRegistrationIdSet = new HashSet<string>(packageRegistrationList.Select(prl => prl.Id));
             var allPackageRegistrations = _packageRegistrationRepository.GetAll();
@@ -714,7 +717,10 @@ namespace NuGetGallery
                 packageRegistrationsToUpdate
                     .ForEach(pru => pru.IsVerified = isVerified);
 
-                await _packageRegistrationRepository.CommitChangesAsync();
+                if (commitChanges)
+                {
+                    await _packageRegistrationRepository.CommitChangesAsync();
+                }
             }
         }
 
