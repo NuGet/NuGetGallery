@@ -228,7 +228,7 @@ namespace NuGetGallery
             // for the given package registration.
             var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
                 .Where(pr => !pr.Owners.Any(o => 
-                    ActionsRequiringPermissions.ShowPackageAsVerifiedByReservedNamespace.CheckPermissionsOnBehalfOfAnyAccount(
+                    ActionsRequiringPermissions.AddPackageToReservedNamespace.CheckPermissionsOnBehalfOfAnyAccount(
                         o, new[] { namespaceToModify }) == PermissionsCheckResult.Allowed))
                 .ToList();
 

@@ -148,7 +148,7 @@ namespace NuGetGallery
             foreach (var reservedNamespace in packageRegistration.ReservedNamespaces.ToArray())
             {
                 if (!packageRegistration.Owners
-                    .Any(o => ActionsRequiringPermissions.ShowPackageAsVerifiedByReservedNamespace
+                    .Any(o => ActionsRequiringPermissions.AddPackageToReservedNamespace
                         .CheckPermissionsOnBehalfOfAnyAccount(o, reservedNamespace) == PermissionsCheckResult.Allowed))
                 {
                     _reservedNamespaceService.RemovePackageRegistrationFromNamespace(reservedNamespace, packageRegistration);
@@ -186,7 +186,7 @@ namespace NuGetGallery
         private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
         {
             var reservedNamespaces = packageRegistration.ReservedNamespaces.ToList();
-            if (ActionsRequiringPermissions.ShowPackageAsVerifiedByReservedNamespace
+            if (ActionsRequiringPermissions.AddPackageToReservedNamespace
                 .CheckPermissionsOnBehalfOfAnyAccount(ownerToBeRemoved, reservedNamespaces) == PermissionsCheckResult.Allowed)
             {
                 // If the owner to be removed owns a reserved namespace that applies to this package,

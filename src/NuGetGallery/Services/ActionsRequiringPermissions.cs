@@ -130,15 +130,15 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
-        /// The action of showing a package as verified by a reserved namespace.
+        /// The action of adding a package to a reserved namespace that the package is in.
         /// </summary>
-        public static ActionRequiringReservedNamespacePermissions ShowPackageAsVerifiedByReservedNamespace =
+        public static ActionRequiringReservedNamespacePermissions AddPackageToReservedNamespace =
             new ActionRequiringReservedNamespacePermissions(
                 accountOnBehalfOfPermissionsRequirement: PermissionsRequirement.Owner,
                 reservedNamespacePermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
-        /// The action of removing a package from a reserved namespace.
+        /// The action of removing a package from a reserved namespace that the package is in.
         /// </summary>
         public static ActionRequiringReservedNamespacePermissions RemovePackageFromReservedNamespace =
             new ActionRequiringReservedNamespacePermissions(

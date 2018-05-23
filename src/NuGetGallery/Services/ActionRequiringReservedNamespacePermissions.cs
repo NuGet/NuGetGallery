@@ -15,7 +15,9 @@ namespace NuGetGallery
     /// E.g. "JQuery.Extensions.MyCoolExtension" matches both "JQuery.*" and "JQuery.Extensions.*".
     /// </remarks>
     public class ActionRequiringReservedNamespacePermissions
-        : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>, IActionRequiringEntityPermissions<ReservedNamespace>
+        : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, 
+        IActionRequiringEntityPermissions<ActionOnNewPackageContext>, 
+        IActionRequiringEntityPermissions<ReservedNamespace>
     {
         public PermissionsRequirement ReservedNamespacePermissionsRequirement { get; }
 
