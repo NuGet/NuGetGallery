@@ -50,6 +50,11 @@ namespace NuGet.Services.Validation
         /// Time when the operation came to a terminal state.
         /// </summary>
         public DateTime? FinishedAt { get; set; }
+
+        /// <summary>
+        /// The size of the blob sent for scan/sign operation
+        /// </summary>
+        public long? BlobSize { get; set; }
         
         /// <summary>
         /// The url pointing to an operation output blob.
