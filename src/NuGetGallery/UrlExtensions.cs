@@ -8,6 +8,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Areas.Admin.Controllers;
 using NuGetGallery.Configuration;
 using NuGetGallery.Helpers;
 
@@ -744,6 +745,32 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
+        }
+
+        public static string ViewValidations(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(ValidationController.Search),
+                "Validation",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "q", $"{id} {version}" }
+                },
+                area: AdminAreaRegistration.Name);
+        }
+
+        public static string ViewValidations(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.ViewValidations(package.Id, package.Version, relativeUrl);
         }
 
         /// <summary>

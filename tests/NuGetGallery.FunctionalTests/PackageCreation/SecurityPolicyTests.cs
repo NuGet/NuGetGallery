@@ -4,10 +4,12 @@
 using System;
 using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionalTests.Helpers;
 using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
@@ -124,15 +126,15 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns404ForMissingPackage()
         {
             // Arrange
-            var packageId = $"VerifyPackageKey_Returns404ForMissingPackage.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
+            var missingPackageId = UploadHelper.GetUniquePackageId();
 
             var verificationKey = await CreateVerificationKey(GalleryConfiguration.Instance.Account.ApiKey, packageId, packageVersion);
             
             // Act & Assert
-            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, packageId + "_bad", packageVersion));
+            Assert.Equal(HttpStatusCode.NotFound, await VerifyPackageKey(verificationKey, missingPackageId, "1.0.0"));
         }
 
         [DefaultSecurityPoliciesEnforcedFact(runIfEnforced: false)]
@@ -142,10 +144,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForFullApiKey()
         {
             // Arrange
-            var packageId = $"VerifyPackageKeyReturns200ForFullApiKey.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
 
             // Act & Assert
             Assert.Equal(HttpStatusCode.OK, await VerifyPackageKey(GalleryConfiguration.Instance.Account.ApiKey, packageId));
@@ -159,10 +160,9 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
         public async Task VerifyPackageKey_Returns200ForTempApiKey()
         {
             // Arrange
-            var packageId = $"VerifyPackageKeySupportsFullAndTempApiKeys.{DateTimeOffset.UtcNow.Ticks}";
-            var packageVersion = "1.0.0";
-
-            await _clientSdkHelper.UploadNewPackage(packageId, packageVersion);
+            var packageInfo = await _clientSdkHelper.UploadPackage();
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
 
             var verificationKey = await CreateVerificationKey(GalleryConfiguration.Instance.Account.ApiKey, packageId, packageVersion);
 

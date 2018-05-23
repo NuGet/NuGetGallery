@@ -629,6 +629,14 @@
                         <a href="@Url.RevalidatePackage(Model)">Revalidate package</a>
                     </li>
                 }
+
+                @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Health" aria-hidden="true"></i>
+                        <a href="@Url.ViewValidations(Model)">View validations</a>
+                    </li>
+                }
             </ul>
             @if (Model.LicenseNames.AnySafe())
             {

@@ -270,21 +270,6 @@ namespace NuGetGallery.Configuration
         public string MachineKeyValidationKey { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty account name.
-        /// </summary>
-        public string PagerDutyAccountName { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty API key.
-        /// </summary>
-        public string PagerDutyAPIKey { get; set; }
-
-        /// <summary>
-        /// Gets a string containing the PagerDuty Service key.
-        /// </summary>
-        public string PagerDutyServiceKey { get; set; }
-
-        /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }

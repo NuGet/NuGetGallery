@@ -10,6 +10,8 @@ namespace NuGetGallery.FunctionalTests.Helpers
 {
     public static class UploadHelper
     {
+        private static readonly object UniqueLock = new object();
+
         /// <summary>
         /// Helper class for defining the properties of a test package to be uploaded.
         /// </summary>
@@ -48,14 +50,12 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// <summary>
         /// Gets a unique ID for a package to upload.
         /// </summary>
-        public static string GetUniquePackageId(string test)
+        public static string GetUniquePackageId()
         {
-            if (test == null)
+            lock (UniqueLock)
             {
-                test = "UploadPackageFromUI";
+                return $"NuGetFunctionalTest_{DateTimeOffset.UtcNow.Ticks}";
             }
-
-            return $"{test}_{DateTimeOffset.UtcNow.Ticks}";
         }
 
         /// <summary>
@@ -63,8 +63,11 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// </summary>
         public static string GetUniquePackageVersion()
         {
-            var ticks = DateTimeOffset.UtcNow.Ticks;
-            return $"1.0.0-v{ticks}";
+            lock (UniqueLock)
+            {
+                var ticks = DateTimeOffset.UtcNow.Ticks;
+                return $"1.0.0-v{ticks}";
+            }
         }
 
         /// <summary>
