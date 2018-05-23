@@ -206,40 +206,43 @@ namespace NuGetGallery
 
         private async Task<List<PackageRegistration>> DeleteOwnerFromReservedNamespaceImplAsync(string prefix, string username, ReservedNamespace namespaceToModify)
         {
-                var userToRemove = UserService.FindByUsername(username)
-                    ?? throw new InvalidOperationException(string.Format(
-                        CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
+            var userToRemove = UserService.FindByUsername(username)
+                ?? throw new InvalidOperationException(string.Format(
+                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotFound, username));
 
-                if (!namespaceToModify.Owners.Contains(userToRemove))
-                {
-                    throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
-                }
+            if (!namespaceToModify.Owners.Contains(userToRemove))
+            {
+                throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, Strings.ReservedNamespace_UserNotAnOwner, username));
+            }
 
-                var packagesOwnedByUserMatchingPrefix = namespaceToModify
-                        .PackageRegistrations
-                        .Where(pr => pr
-                            .Owners
-                            .Any(pro => pro.Username == userToRemove.Username))
-                        .ToList();
-
-                // Remove verified mark for package registrations if the user to be removed is the only prefix owner
-                // for the given package registration.
-                var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
-                    .Where(pr => pr.Owners.Intersect(namespaceToModify.Owners).Count() == 1)
+            var packagesOwnedByUserMatchingPrefix = namespaceToModify
+                    .PackageRegistrations
+                    .Where(pr => pr
+                        .Owners
+                        .Any(pro => pro.Username == userToRemove.Username))
                     .ToList();
 
-                if (packageRegistrationsToMarkUnverified.Any())
-                {
-                    packageRegistrationsToMarkUnverified
-                        .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
+            namespaceToModify.Owners.Remove(userToRemove);
 
-                    await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
-                }
+            // Remove verified mark for package registrations if the user to be removed is the only prefix owner
+            // for the given package registration.
+            var packageRegistrationsToMarkUnverified = packagesOwnedByUserMatchingPrefix
+                .Where(pr => !pr.Owners.Any(o => 
+                    ActionsRequiringPermissions.AddPackageToReservedNamespace.CheckPermissionsOnBehalfOfAnyAccount(
+                        o, new[] { namespaceToModify }) == PermissionsCheckResult.Allowed))
+                .ToList();
 
-                namespaceToModify.Owners.Remove(userToRemove);
-                await ReservedNamespaceRepository.CommitChangesAsync();
+            if (packageRegistrationsToMarkUnverified.Any())
+            {
+                packageRegistrationsToMarkUnverified
+                    .ForEach(pr => namespaceToModify.PackageRegistrations.Remove(pr));
 
-                return packageRegistrationsToMarkUnverified;
+                await PackageService.UpdatePackageVerifiedStatusAsync(packageRegistrationsToMarkUnverified, isVerified: false);
+            }
+            
+            await ReservedNamespaceRepository.CommitChangesAsync();
+
+            return packageRegistrationsToMarkUnverified;
         }
 
 
@@ -280,11 +283,11 @@ namespace NuGetGallery
         /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration entity to be removed.</param>
         /// <returns>Awaitable task</returns>
-        public void RemovePackageRegistrationFromNamespace(string prefix, PackageRegistration packageRegistration)
+        public void RemovePackageRegistrationFromNamespace(ReservedNamespace reservedNamespace, PackageRegistration packageRegistration)
         {
-            if (string.IsNullOrWhiteSpace(prefix))
+            if (reservedNamespace == null)
             {
-                throw new ArgumentException(Strings.ReservedNamespace_InvalidNamespace);
+                throw new ArgumentNullException(nameof(reservedNamespace));
             }
 
             if (packageRegistration == null)
@@ -292,11 +295,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageRegistration));
             }
 
-            var namespaceToModify = FindReservedNamespaceForPrefix(prefix)
-                ?? throw new InvalidOperationException(string.Format(
-                    CultureInfo.CurrentCulture, Strings.ReservedNamespace_NamespaceNotFound, prefix));
-
-            namespaceToModify.PackageRegistrations.Remove(packageRegistration);
+            reservedNamespace.PackageRegistrations.Remove(packageRegistration);
         }
 
         public virtual ReservedNamespace FindReservedNamespaceForPrefix(string prefix)
