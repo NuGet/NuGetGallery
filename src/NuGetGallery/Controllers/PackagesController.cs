@@ -474,7 +474,8 @@ namespace NuGetGallery
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
             model.RecommendedPackages = (await _packageRecommendationService
                 .GetRecommendedPackagesAsync(package))
-                .Select(p => new ListPackageItemViewModel(p, currentUser));
+                // We pass `currentUser: null` so that the administrative action buttons don't show up in the _ListPackage partial
+                .Select(p => new ListPackageItemViewModel(p, currentUser: null));
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
