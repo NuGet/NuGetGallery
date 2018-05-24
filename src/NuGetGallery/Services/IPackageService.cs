@@ -68,7 +68,7 @@ namespace NuGetGallery
         /// <returns>Awaitable task.</returns>
         Task AddPackageOwnerAsync(PackageRegistration package, User newOwner);
 
-        Task RemovePackageOwnerAsync(PackageRegistration package, User user);
+        Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true);
 
         Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true);
 
@@ -76,7 +76,7 @@ namespace NuGetGallery
 
         Task IncrementDownloadCountAsync(string id, string version, bool commitChanges = true);
 
-        Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified);
+        Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> package, bool isVerified, bool commitChanges = true);
 
         /// <summary>
         /// For a package get the list of owners that are not organizations.

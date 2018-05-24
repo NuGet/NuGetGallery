@@ -312,7 +312,7 @@ namespace NuGetGallery
             }
 
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
-            if (await _supportRequestService.TryAddDeleteSupportRequestAsync(user))
+            if (isSupportRequestCreated)
             {
                 MessageService.SendAccountDeleteNotice(user);
             }

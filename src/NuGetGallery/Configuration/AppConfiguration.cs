@@ -240,19 +240,34 @@ namespace NuGetGallery.Configuration
         public int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty account name.
+        /// Defines a semi-colon separated list of domains for the alternate site roots for gallery, used for MSA authentication by AADv2
         /// </summary>
-        public string PagerDutyAccountName { get; set; }
+        public string AlternateSiteRootList { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty API key.
+        /// Configuration to enable manual setting of the machine key for session persistence across deployments/slots.
         /// </summary>
-        public string PagerDutyAPIKey { get; set; }
+        public bool EnableMachineKeyConfiguration { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty Service key.
+        /// Gets/sets the encryption aglorithm that is used for encrypting and decrypting forms authentication data.
         /// </summary>
-        public string PagerDutyServiceKey { get; set; }
+        public string MachineKeyDecryption { get; set; }
+
+        /// <summary>
+        /// Gets/sets the key that is sued to encrypt and decrypt data, or the process by which the key is generated.
+        /// </summary>
+        public string MachineKeyDecryptionKey { get; set; }
+
+        /// <summary>
+        /// Gets/sets the hashing algorithm used for validating forms authentication and view state data.
+        /// </summary>
+        public string MachineKeyValidationAlgorithm { get; set; }
+
+        /// <summary>
+        /// Gets/sets the key that is used to validate forms authentication and view state data, or the process by which the key is generated.
+        /// </summary>
+        public string MachineKeyValidationKey { get; set; }
 
         /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.

@@ -198,7 +198,7 @@ namespace NuGetGallery
             BundleTable.Bundles.Add(newScriptBundle);
 
             var d3ScriptBundle = new ScriptBundle("~/Scripts/gallery/stats.min.js")
-                .Include("~/Scripts/gallery/d3.v3.js")
+                .Include("~/Scripts/d3/d3.js")
                 .Include("~/Scripts/gallery/stats-perpackagestatsgraphs.js")
                 .Include("~/Scripts/gallery/stats-dimensions.js");
             BundleTable.Bundles.Add(d3ScriptBundle);

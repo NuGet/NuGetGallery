@@ -10,6 +10,8 @@ namespace NuGetGallery.FunctionalTests.Helpers
 {
     public static class UploadHelper
     {
+        private static readonly object UniqueLock = new object();
+
         /// <summary>
         /// Helper class for defining the properties of a test package to be uploaded.
         /// </summary>
@@ -34,7 +36,7 @@ namespace NuGetGallery.FunctionalTests.Helpers
             {
                 Id = id;
                 Version = version ?? GetUniquePackageVersion();
-                Owner = owner ?? EnvironmentSettings.TestAccountName;
+                Owner = owner ?? GalleryConfiguration.Instance.Account.Name;
             }
 
             protected PackageToUpload(PackageToUpload package)
@@ -48,14 +50,12 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// <summary>
         /// Gets a unique ID for a package to upload.
         /// </summary>
-        public static string GetUniquePackageId(string test)
+        public static string GetUniquePackageId()
         {
-            if (test == null)
+            lock (UniqueLock)
             {
-                test = "UploadPackageFromUI";
+                return $"NuGetFunctionalTest_{DateTimeOffset.UtcNow.Ticks}";
             }
-
-            return $"{test}_{DateTimeOffset.UtcNow.Ticks}";
         }
 
         /// <summary>
@@ -63,8 +63,11 @@ namespace NuGetGallery.FunctionalTests.Helpers
         /// </summary>
         public static string GetUniquePackageVersion()
         {
-            var ticks = DateTimeOffset.UtcNow.Ticks;
-            return $"1.0.0-v{ticks}";
+            lock (UniqueLock)
+            {
+                var ticks = DateTimeOffset.UtcNow.Ticks;
+                return $"1.0.0-v{ticks}";
+            }
         }
 
         /// <summary>
@@ -108,17 +111,20 @@ namespace NuGetGallery.FunctionalTests.Helpers
 
         private static IEnumerable<WebTestRequest> UploadPackage(WebTest test, PackageToUploadInternal packageToUpload)
         {
+            // Navigate to the upload page.
             var uploadRequest = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
             yield return uploadRequest;
 
+            // Cancel any pending uploads.
+            // We can't upload the new package if any uploads are pending.
+            var cancelUploadPostRequest = AssertAndValidationHelper.GetCancelUploadPostRequestForPackage(test);
+            yield return cancelUploadPostRequest;
+
+            // Upload the new package.
             var uploadPostRequest = AssertAndValidationHelper.GetUploadPostRequestForPackage(test, packageToUpload.FullPath);
             yield return uploadPostRequest;
 
-            // This second get request to upload is to put us on the new "Verify Page" which is just the upload page in a different state.
-            // This is to get the RequestVerificationToken for the following request. (upload and verify were merged onto the same page).
-            var uploadRequest2 = AssertAndValidationHelper.GetHttpRequestForUrl(UrlHelper.UploadPageUrl);
-            yield return uploadRequest2;
-
+            // Verify the new package.
             var verifyUploadPostRequest = AssertAndValidationHelper.GetVerifyPackagePostRequestForPackage(test,
                 packageToUpload.Id,
                 packageToUpload.Version,

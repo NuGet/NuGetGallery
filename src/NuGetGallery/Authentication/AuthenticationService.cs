@@ -247,6 +247,8 @@ namespace NuGetGallery.Authentication
             owinContext.Authentication.SignIn(identity);
             owinContext.Authentication.SignOut(AuthenticationTypes.External);
 
+            _telemetryService.TrackUserLogin(authenticatedUser.User, authenticatedUser.CredentialUsed, wasMultiFactorAuthenticated);
+
             // Write an audit record
             await Auditing.SaveAuditRecordAsync(
                 new UserAuditRecord(authenticatedUser.User, AuditedUserAction.Login, authenticatedUser.CredentialUsed));
@@ -271,6 +273,15 @@ namespace NuGetGallery.Authentication
             if (user.User.HasExternalCredential())
             {
                 ClaimsExtensions.AddBooleanClaim(claims, NuGetClaims.ExternalLogin);
+
+                var externalIdentities = user.User
+                    .Credentials
+                    .Where(cred => cred.IsExternal())
+                    .Select(cred => cred.Identity)
+                    .ToArray();
+                
+                var identityList = string.Join(" or ", externalIdentities);
+                ClaimsExtensions.AddExternalCredentialIdentityClaim(claims, identityList);
             }
 
             if (user.User.EnableMultiFactorAuthentication)

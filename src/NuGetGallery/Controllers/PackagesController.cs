@@ -474,7 +474,8 @@ namespace NuGetGallery
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
             model.RelatedPackages = (await _relatedPackagesService
                 .GetRelatedPackagesAsync(package))
-                .Select(p => new ListPackageItemViewModel(p, currentUser));
+                // We pass `currentUser: null` so that the administrative action buttons don't show up in the _ListPackage partial
+                .Select(p => new ListPackageItemViewModel(p, currentUser: null));
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)
@@ -747,6 +748,7 @@ namespace NuGetGallery
             _messageService.ReportAbuse(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
+
             return Redirect(Url.Package(id, version));
         }
 

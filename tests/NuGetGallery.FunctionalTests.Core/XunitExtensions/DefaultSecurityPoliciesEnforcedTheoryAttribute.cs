@@ -9,7 +9,7 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
     {
         public DefaultSecurityPoliciesEnforcedTheoryAttribute()
         {
-            if (!EnvironmentSettings.DefaultSecurityPoliciesEnforced)
+            if (!GalleryConfiguration.Instance.DefaultSecurityPoliciesEnforced)
             {
                 Skip = "Default security policies are not configured on the server";
             }

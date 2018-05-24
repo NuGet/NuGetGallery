@@ -39,6 +39,8 @@ namespace NuGetGallery
 
         void TrackNewCredentialCreated(User user, Credential credential);
 
+        void TrackUserLogin(User user, Credential credential, bool wasMultiFactorAuthenticated);
+
         /// <summary>
         /// A telemetry event emitted when the service checks whether a user package delete is allowed.
         /// </summary>

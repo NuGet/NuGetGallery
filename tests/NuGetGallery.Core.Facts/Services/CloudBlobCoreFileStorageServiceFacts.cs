@@ -53,7 +53,8 @@ namespace NuGetGallery
                     new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
                     new object[] { CoreConstants.PackagesFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.UploadsFolderName, false, CoreConstants.PackageContentType },
-                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
+                    new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType }
                 };
 
                 if (!IncludePermissions && !IncludeContentTypes)
@@ -79,7 +80,7 @@ namespace NuGetGallery
                 return folderNames;
             }
         }
-        
+
         public class TheCtor
         {
             [Theory]
@@ -400,7 +401,7 @@ namespace NuGetGallery
                 var service = CreateService(fakeBlobClient: fakeBlobClient);
 
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
-                
+
                 fakeBlobContainer.Verify(x => x.GetBlobReference("theFileName"));
             }
 

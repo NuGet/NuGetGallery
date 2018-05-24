@@ -9,11 +9,11 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
     {
         public DefaultSecurityPoliciesEnforcedFactAttribute(bool runIfEnforced = true)
         {
-            if (EnvironmentSettings.DefaultSecurityPoliciesEnforced != runIfEnforced)
+            if (GalleryConfiguration.Instance.DefaultSecurityPoliciesEnforced != runIfEnforced)
             {
                 Skip = string.Format(
                     "Default security policies are {0} configured on the server",
-                    !EnvironmentSettings.DefaultSecurityPoliciesEnforced ? "not" : string.Empty);
+                    !GalleryConfiguration.Instance.DefaultSecurityPoliciesEnforced ? "not" : string.Empty);
             }
         }
     }
