@@ -23,6 +23,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _writeSecondaryStorageContentInterceptor = writeSecondaryStorageContentInterceptor;
 
             BaseAddress = PrimaryStorageFactory.BaseAddress;
+            DestinationAddress = PrimaryStorageFactory.DestinationAddress;
         }
 
         public override Storage Create(string name = null)

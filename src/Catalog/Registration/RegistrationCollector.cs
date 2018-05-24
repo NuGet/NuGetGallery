@@ -88,31 +88,40 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             var tasks = new List<Task>();
 
-            var legacyTask = RegistrationMaker.Process(
-                registrationKey: new RegistrationKey(sortedGraphs.Key),
-                newItems: sortedGraphs.Value,
-                shouldInclude: _shouldIncludeSemVer2,
-                storageFactory: _legacyStorageFactory,
-                contentBaseAddress: ContentBaseAddress,
-                partitionSize: PartitionSize,
-                packageCountThreshold: PackageCountThreshold,
-                cancellationToken: cancellationToken);
-            tasks.Add(legacyTask);
-
-            if (_semVer2StorageFactory != null)
+            using (_telemetryService.TrackDuration(TelemetryConstants.ProcessGraphsSeconds,
+                new Dictionary<string, string>()
+                {
+                    { TelemetryConstants.Id, sortedGraphs.Key.ToLowerInvariant() }
+                }))
             {
-                var semVer2Task = RegistrationMaker.Process(
-                   registrationKey: new RegistrationKey(sortedGraphs.Key),
-                   newItems: sortedGraphs.Value,
-                   storageFactory: _semVer2StorageFactory,
-                   contentBaseAddress: ContentBaseAddress,
-                   partitionSize: PartitionSize,
-                   packageCountThreshold: PackageCountThreshold,
-                   cancellationToken: cancellationToken);
-                tasks.Add(semVer2Task);
-            }
+                var legacyTask = RegistrationMaker.Process(
+                    registrationKey: new RegistrationKey(sortedGraphs.Key),
+                    newItems: sortedGraphs.Value,
+                    shouldInclude: _shouldIncludeSemVer2,
+                    storageFactory: _legacyStorageFactory,
+                    contentBaseAddress: ContentBaseAddress,
+                    partitionSize: PartitionSize,
+                    packageCountThreshold: PackageCountThreshold,
+                    telemetryService: _telemetryService,
+                    cancellationToken: cancellationToken);
+                tasks.Add(legacyTask);
 
-            await Task.WhenAll(tasks);
+                if (_semVer2StorageFactory != null)
+                {
+                    var semVer2Task = RegistrationMaker.Process(
+                       registrationKey: new RegistrationKey(sortedGraphs.Key),
+                       newItems: sortedGraphs.Value,
+                       storageFactory: _semVer2StorageFactory,
+                       contentBaseAddress: ContentBaseAddress,
+                       partitionSize: PartitionSize,
+                       packageCountThreshold: PackageCountThreshold,
+                       telemetryService: _telemetryService,
+                       cancellationToken: cancellationToken);
+                    tasks.Add(semVer2Task);
+                }
+
+                await Task.WhenAll(tasks);
+            }
         }
 
         public static ShouldIncludeRegistrationPackage GetShouldIncludeRegistrationPackage(StorageFactory semVer2StorageFactory)

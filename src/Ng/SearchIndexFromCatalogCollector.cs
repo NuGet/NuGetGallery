@@ -48,7 +48,7 @@ namespace Ng
 
         protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
-            JObject catalogIndex = null; ;
+            JObject catalogIndex = null;
             if (_baseAddress != null)
             {
                 var stopwatch = Stopwatch.StartNew();
@@ -73,7 +73,7 @@ namespace Ng
 
             if (_commitEachBatch || isLastBatch)
             {
-               EnsureCommitted();
+                EnsureCommitted();
             }
 
             return true;
@@ -85,7 +85,7 @@ namespace Ng
             if (_metadataForNextCommit != null)
             {
                 // we want the total for the entire commit, so add to the number we already have
-                count += _metadataForNextCommit.Count; 
+                count += _metadataForNextCommit.Count;
             }
 
             _metadataForNextCommit = DocumentCreator.CreateCommitMetadata(
@@ -100,7 +100,7 @@ namespace Ng
                 _logger.LogInformation(string.Format("SKIP COMMIT No changes. Index contains {0} documents.", _indexWriter.NumDocs()));
                 return;
             }
-            
+
             _indexWriter.ExpungeDeletes();
             _indexWriter.Commit(_metadataForNextCommit.ToDictionary());
 
@@ -150,17 +150,27 @@ namespace Ng
 
             foreach (JObject catalogItem in catalogItems)
             {
-                _logger.LogInformation("Process CatalogItem {CatalogItem}", catalogItem["@id"]);
+                _logger.LogInformation("Process CatalogItem {CatalogItem}", catalogItem["@id"].ToString());
 
                 NormalizeId(catalogItem);
 
                 if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDetails))
                 {
-                    ProcessPackageDetails(indexWriter, catalogItem);
+                    var properties = GetTelemetryProperties(catalogItem);
+
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetails, properties))
+                    {
+                        ProcessPackageDetails(indexWriter, catalogItem);
+                    }
                 }
                 else if (Utils.IsType(GetContext(catalogItem), catalogItem, Schema.DataTypes.PackageDelete))
                 {
-                    ProcessPackageDelete(indexWriter, catalogItem);
+                    var properties = GetTelemetryProperties(catalogItem);
+
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetails, properties))
+                    {
+                        ProcessPackageDelete(indexWriter, catalogItem);
+                    }
                 }
                 else
                 {
@@ -171,6 +181,18 @@ namespace Ng
             }
 
             _logger.LogInformation(string.Format("Processed {0} CatalogItems", count));
+        }
+
+        private static Dictionary<string, string> GetTelemetryProperties(JObject catalogItem)
+        {
+            var packageId = catalogItem["id"].ToString().ToLowerInvariant();
+            var packageVersion = catalogItem["version"].ToString().ToLowerInvariant();
+
+            return new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Id, packageId },
+                { TelemetryConstants.Version, packageVersion }
+            };
         }
 
         private static void NormalizeId(JObject catalogItem)

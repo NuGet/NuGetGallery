@@ -70,6 +70,9 @@ namespace Ng
                 // Create an ITelemetryService
                 var telemetryService = new TelemetryService(new TelemetryClient());
 
+                // Allow jobs to set global custom dimensions
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobPropertiesTelemetryInitializer(telemetryService));
+
                 job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
                 await job.Run(arguments, cancellationTokenSource.Token);
             }

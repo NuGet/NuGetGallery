@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,21 +9,25 @@ using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class AzureStorage : Storage
     {
-        private readonly TimeSpan _defaultServerTimeout = TimeSpan.FromSeconds(30);
         private readonly CloudBlobDirectory _directory;
         private readonly BlobRequestOptions _blobRequestOptions;
 
-       
+        public static readonly TimeSpan DefaultServerTimeout = TimeSpan.FromSeconds(30);
+        public static readonly TimeSpan DefaultMaxExecutionTime = TimeSpan.FromMinutes(10);
+
         public AzureStorage(CloudStorageAccount account,
                             string containerName,
                             string path,
                             Uri baseAddress)
-            : this(account, containerName, path, baseAddress, DefaultMaxExecutionTime)
+            : this(account, containerName, path, baseAddress, DefaultMaxExecutionTime, DefaultServerTimeout)
         {
         }
 
@@ -33,14 +35,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                            string containerName,
                            string path,
                            Uri baseAddress,
-                           TimeSpan maxExecutionTime)
+                           TimeSpan maxExecutionTime,
+                           TimeSpan serverTimeout)
            : this(account.CreateCloudBlobClient().GetContainerReference(containerName).GetDirectoryReference(path),
                  baseAddress,
-                 maxExecutionTime)
+                 maxExecutionTime,
+                 serverTimeout)
         {
         }
 
-        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, TimeSpan maxExecutionTime)
+        private AzureStorage(CloudBlobDirectory directory, Uri baseAddress, TimeSpan maxExecutionTime, TimeSpan serverTimeout)
             : base(baseAddress ?? GetDirectoryUri(directory))
         {
             _directory = directory;
@@ -54,16 +58,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                     Trace.WriteLine(String.Format("Created '{0}' publish container", _directory.Container.Name));
                 }
             }
-            ResetStatistics();
-            this._blobRequestOptions = CreateBlobRequestOptions(maxExecutionTime);
-        }
 
-        public static TimeSpan DefaultMaxExecutionTime
-        {
-            get
+            ResetStatistics();
+
+            _blobRequestOptions = new BlobRequestOptions()
             {
-                return TimeSpan.FromSeconds(600);
-            }
+                ServerTimeout = serverTimeout,
+                MaximumExecutionTime = maxExecutionTime,
+                RetryPolicy = new ExponentialRetry()
+            };
         }
 
         public bool CompressContent
@@ -160,16 +163,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             await TryTakeBlobSnapshotAsync(blob);
         }
 
-        private BlobRequestOptions CreateBlobRequestOptions(TimeSpan maxExecutionTime)
-        {           
-            return new BlobRequestOptions
-            {
-                ServerTimeout = _defaultServerTimeout,
-                MaximumExecutionTime = maxExecutionTime,
-                RetryPolicy = new ExponentialRetry()
-            };
-        }
-
         /// <summary>
         /// Take one snapshot only if there is not any snapshot for the specific blob
         /// This will prevent the blob to be deleted by a not intended delete action
@@ -178,13 +171,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         /// <returns></returns>
         private async Task<bool> TryTakeBlobSnapshotAsync(CloudBlockBlob blob)
         {
-            if (blob == null )
+            if (blob == null)
             {
                 //no action
                 return false;
             }
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+
+            var stopwatch = Stopwatch.StartNew();
+
             try
             {
                 var allSnapshots = blob.Container.
@@ -195,19 +189,19 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 if (allSnapshots.Count() == 1)
                 {
                     var snapshot = await blob.CreateSnapshotAsync();
-                    sw.Stop();
-                    Trace.WriteLine($"SnapshotCreated:milliseconds={sw.ElapsedMilliseconds}:{blob.Uri.ToString()}:{snapshot.SnapshotQualifiedUri}");
+                    stopwatch.Stop();
+                    Trace.WriteLine($"SnapshotCreated:milliseconds={stopwatch.ElapsedMilliseconds}:{blob.Uri.ToString()}:{snapshot.SnapshotQualifiedUri}");
                 }
                 return true;
             }
-            catch(StorageException storageException)
+            catch (StorageException storageException)
             {
-                sw.Stop();
-                Trace.WriteLine($"EXCEPTION:milliseconds={sw.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {blob.Uri.ToString()}. Exception{storageException.ToString()}");
+                stopwatch.Stop();
+                Trace.WriteLine($"EXCEPTION:milliseconds={stopwatch.ElapsedMilliseconds}:CreateSnapshot: Failed to take the snapshot for blob {blob.Uri.ToString()}. Exception{storageException.ToString()}");
                 return false;
             }
         }
-        
+
         //  load
         protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
@@ -266,11 +260,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string name = GetName(resourceUri);
 
             CloudBlockBlob blob = _directory.GetBlockBlobReference(name);
-            await blob.DeleteAsync(deleteSnapshotsOption:DeleteSnapshotsOption.IncludeSnapshots,
-                                   accessCondition:null,
-                                   options:_blobRequestOptions,
-                                   operationContext:null,
-                                   cancellationToken:cancellationToken);
+            await blob.DeleteAsync(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
+                                   accessCondition: null,
+                                   options: _blobRequestOptions,
+                                   operationContext: null,
+                                   cancellationToken: cancellationToken);
         }
 
         /// <summary>

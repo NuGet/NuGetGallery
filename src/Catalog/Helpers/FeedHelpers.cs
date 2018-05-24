@@ -150,6 +150,8 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             const string createdDateProperty = "Created";
             const string lastEditedDateProperty = "LastEdited";
             const string publishedDateProperty = "Published";
+            const string idProperty = "Id";
+            const string normalizedVersionProperty = "NormalizedVersion";
             const string licenseNamesProperty = "LicenseNames";
             const string licenseReportUrlProperty = "LicenseReportUrl";
 
@@ -179,6 +181,11 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
                 var propertiesElement = entry.Element(metadata + "properties");
 
+                var packageIdElement = propertiesElement.Element(dataservices + idProperty);
+                var packageId = packageIdElement?.Value;
+                var packageNormalizedVersionElement = propertiesElement.Element(dataservices + normalizedVersionProperty);
+                var packageNormalizedVersion = packageNormalizedVersionElement?.Value;
+
                 var createdElement = propertiesElement.Element(dataservices + createdDateProperty);
                 var createdValue = createdElement?.Value;
                 var createdDate = string.IsNullOrEmpty(createdValue) ? DateTime.MinValue : DateTime.Parse(createdValue);
@@ -202,15 +209,15 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 lastEditedDate = ForceUtc(lastEditedDate);
                 publishedDate = ForceUtc(publishedDate);
 
-                packages.Add(new FeedPackageDetails
-                {
-                    ContentUri = content,
-                    CreatedDate = createdDate,
-                    LastEditedDate = lastEditedDate,
-                    PublishedDate = publishedDate,
-                    LicenseNames = licenseNames,
-                    LicenseReportUrl = licenseReportUrl
-                });
+                packages.Add(new FeedPackageDetails(
+                    content,
+                    createdDate,
+                    lastEditedDate,
+                    publishedDate,
+                    packageId,
+                    packageNormalizedVersion,
+                    licenseNames,
+                    licenseReportUrl));
             }
 
             return packages;
@@ -273,7 +280,16 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     HttpResponseMessage response = null;
                     try
                     {
-                        response = await client.GetAsync(packageUri, cancellationToken);
+                        using (telemetryService.TrackDuration(
+                            TelemetryConstants.PackageDownloadSeconds,
+                            new Dictionary<string, string>()
+                            {
+                                { TelemetryConstants.Id, packageItem.PackageId?.ToLowerInvariant() },
+                                { TelemetryConstants.Version, packageItem.PackageVersion?.ToLowerInvariant() },
+                            }))
+                        {
+                            response = await client.GetAsync(packageUri, cancellationToken);
+                        }
                     }
                     catch (TaskCanceledException tce)
                     {
@@ -285,7 +301,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     {
                         using (var stream = await response.Content.ReadAsStreamAsync())
                         {
-                            CatalogItem item = Utils.CreateCatalogItem(
+                            PackageCatalogItem item = Utils.CreateCatalogItem(
                                 packageItem.ContentUri.ToString(),
                                 stream,
                                 packageItem.CreatedDate,

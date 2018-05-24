@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
-using System.Net;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,31 +20,23 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
-            var sw = Stopwatch.StartNew();
+            var properties = new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Method, request.Method.ToString() },
+                { TelemetryConstants.Uri, request.RequestUri.AbsoluteUri }
+            };
 
-            bool success = false;
-            HttpStatusCode? statusCode = null;
-            long? contentLength = null;
-
-            try
+            using (_telemetryService.TrackDuration(TelemetryConstants.HttpHeaderDurationSeconds, properties))
             {
                 var response = await base.SendAsync(request, cancellationToken);
 
-                success = response.IsSuccessStatusCode;
-                statusCode = response.StatusCode;
-                contentLength = response.Content?.Headers?.ContentLength;
+                var contentLength = response.Content?.Headers?.ContentLength;
+
+                properties[TelemetryConstants.StatusCode] = ((int)response.StatusCode).ToString();
+                properties[TelemetryConstants.Success] = response.IsSuccessStatusCode.ToString();
+                properties[TelemetryConstants.ContentLength] = contentLength == null ? "0" : contentLength.ToString();
 
                 return response;
-            }
-            finally
-            {
-                _telemetryService.TrackHttpHeaderDuration(
-                    sw.Elapsed,
-                    request.Method,
-                    request.RequestUri,
-                    success,
-                    statusCode,
-                    contentLength);
             }
         }
     }

@@ -140,6 +140,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -161,6 +162,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.CompressedStoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -182,6 +184,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.SemVer2StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: true);
@@ -203,6 +206,7 @@ namespace Ng
                 { Arguments.StoragePath, Arguments.StoragePath + suffix },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds + suffix },
+                { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
 
             return CreateStorageFactoryImpl(arguments, names, verbose, compressed: false);
@@ -244,16 +248,18 @@ namespace Ng
                 var storageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
                 var storagePath = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StoragePath]);
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
-                var storageOperationMaxExecutionTimeInSeconds = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
+                var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
+                var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
 
                 var account = string.IsNullOrEmpty(storageSuffix) ?
-                                new CloudStorageAccount(credentials, true) :
-                                new CloudStorageAccount(credentials, storageSuffix, true);
+                                new CloudStorageAccount(credentials, useHttps: true) :
+                                new CloudStorageAccount(credentials, storageSuffix, useHttps: true);
                 return new CatalogAzureStorageFactory(account,
                                                storageContainer,
-                                               storageOperationMaxExecutionTimeInSeconds,
+                                               storageOperationMaxExecutionTime,
+                                               storageServerTimeout,
                                                storagePath,
                                                storageBaseAddress)
                 { Verbose = verbose, CompressContent = compressed };
@@ -274,7 +280,17 @@ namespace Ng
             return TimeSpan.FromSeconds(seconds);
         }
 
-        public static Lucene.Net.Store.Directory GetLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
+        public static Lucene.Net.Store.Directory GetLuceneDirectory(
+            IDictionary<string, string> arguments,
+            bool required = true)
+        {
+            return GetLuceneDirectory(arguments, out var destination, required);
+        }
+
+        public static Lucene.Net.Store.Directory GetLuceneDirectory(
+            IDictionary<string, string> arguments,
+            out string destination,
+            bool required = true)
         {
             IDictionary<string, string> names = new Dictionary<string, string>
             {
@@ -285,7 +301,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.LuceneStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out destination, required);
         }
 
         public static Lucene.Net.Store.Directory GetCopySrcLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
@@ -299,7 +315,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.SrcStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
         }
 
         public static Lucene.Net.Store.Directory GetCopyDestLuceneDirectory(IDictionary<string, string> arguments, bool required = true)
@@ -313,11 +329,17 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.DestStorageContainer }
             };
 
-            return GetLuceneDirectoryImpl(arguments, names, required);
+            return GetLuceneDirectoryImpl(arguments, names, out var destination, required);
         }
 
-        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(IDictionary<string, string> arguments, IDictionary<string, string> argumentNameMap, bool required = true)
+        public static Lucene.Net.Store.Directory GetLuceneDirectoryImpl(
+            IDictionary<string, string> arguments,
+            IDictionary<string, string> argumentNameMap,
+            out string destination,
+            bool required = true)
         {
+            destination = null;
+
             try
             {
                 var luceneDirectoryType = arguments.GetOrThrow<string>(argumentNameMap[Arguments.DirectoryType]);
@@ -327,6 +349,8 @@ namespace Ng
                     var lucenePath = arguments.GetOrThrow<string>(argumentNameMap[Arguments.Path]);
 
                     var directoryInfo = new DirectoryInfo(lucenePath);
+
+                    destination = lucenePath;
 
                     if (directoryInfo.Exists)
                     {
@@ -347,7 +371,10 @@ namespace Ng
                     var luceneStorageContainer = arguments.GetOrThrow<string>(argumentNameMap[Arguments.StorageContainer]);
 
                     var credentials = new StorageCredentials(luceneStorageAccountName, luceneStorageKeyValue);
-                    var account = new CloudStorageAccount(credentials, true);
+                    var account = new CloudStorageAccount(credentials, useHttps: true);
+
+                    destination = luceneStorageContainer;
+
                     return new AzureDirectory(account, luceneStorageContainer);
                 }
                 Trace.TraceError("Unrecognized Lucene Directory Type \"{0}\"", luceneDirectoryType);
@@ -396,7 +423,8 @@ namespace Ng
 
         public static IEnumerable<EndpointFactory.Input> GetEndpointFactoryInputs(IDictionary<string, string> arguments)
         {
-            return arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e => {
+            return arguments.GetOrThrow<string>(Arguments.EndpointsToTest).Split(';').Select(e =>
+            {
                 var endpointParts = e.Split('|');
 
                 if (endpointParts.Count() < 2)

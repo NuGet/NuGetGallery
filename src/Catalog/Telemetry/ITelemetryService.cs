@@ -2,27 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net;
-using System.Net.Http;
+using System.Collections.Generic;
+using NuGet.Services.Logging;
 
 namespace NuGet.Services.Metadata.Catalog
 {
     public interface ITelemetryService
     {
-        void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri);
-
-        void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri);
-
         /// <summary>
-        /// Tracks the duration to fetch the HTTP response headers. Note that this duration does not include the time
-        /// it takes to fetch response body. In other words, this metric is not interesting for bandwidth analysis.
+        /// Allows setting dimensions that will be added to all telemetry emited by the job.
         /// </summary>
-        void TrackHttpHeaderDuration(
-            TimeSpan duration,
-            HttpMethod method,
-            Uri uri,
-            bool success,
-            HttpStatusCode? statusCode,
-            long? contentLength);
+        IDictionary<string, string> GlobalDimensions { get; }
+
+        void TrackCatalogIndexWriteDuration(TimeSpan duration, Uri uri);
+        void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri);
+        void TrackMetric(string name, ulong metric, IDictionary<string, string> properties = null);
+        DurationMetric TrackDuration(string name, IDictionary<string, string> properties = null);
     }
 }

@@ -20,6 +20,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri contentBaseAddress,
             int partitionSize,
             int packageCountThreshold,
+            ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
             await Process(
@@ -30,6 +31,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 contentBaseAddress,
                 partitionSize,
                 packageCountThreshold,
+                telemetryService,
                 cancellationToken);
         }
 
@@ -41,6 +43,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri contentBaseAddress,
             int partitionSize,
             int packageCountThreshold,
+            ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationMaker.Process: registrationKey = {0} newItems: {1}", registrationKey, newItems.Count);
@@ -54,6 +57,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> delta = PromoteRegistrationKey(newItems, shouldInclude);
 
             Trace.TraceInformation("RegistrationMaker.Process: delta = {0}", delta.Count);
+            telemetryService.TrackMetric(TelemetryConstants.RegistrationDeltaCount, (uint)delta.Count, new Dictionary<string, string>()
+            {
+                { TelemetryConstants.ContentBaseAddress, contentBaseAddress.AbsoluteUri }
+            });
+
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resulting = Apply(existing, delta);
 
             Trace.TraceInformation("RegistrationMaker.Process: resulting = {0}", resulting.Count);

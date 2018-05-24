@@ -20,7 +20,7 @@ namespace NgTests
     public class Feed2CatalogTests
     {
         private const string _feedBaseUri = "http://unit.test";
-        private const string FeedUrlSuffix = "&$top=20&$select=Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
+        private const string FeedUrlSuffix = "&$top=20&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
 
         [Fact]
         public async Task CreatesNewCatalogFromCreatedAndEditedPackages()
@@ -47,7 +47,15 @@ namespace NgTests
             mockServer.SetAction("/package/TestPackage.SemVer2/1.0.0-alpha.1", request => GetStreamContentActionAsync(request, "Packages\\TestPackage.SemVer2.1.0.0-alpha.1.nupkg"));
 
             // Act
-            var feed2catalogTestJob = new TestableFeed2CatalogJob(mockServer, _feedBaseUri, catalogStorage, auditingStorage, null, TimeSpan.FromMinutes(5), 20, true);
+            var feed2catalogTestJob = new TestableFeed2CatalogJob(
+                mockServer,
+                _feedBaseUri,
+                catalogStorage,
+                auditingStorage,
+                startDate: null,
+                timeout: TimeSpan.FromMinutes(5),
+                top: 20,
+                verbose: true);
             await feed2catalogTestJob.RunOnce(CancellationToken.None);
 
             // Assert

@@ -253,11 +253,14 @@
     <Reference Include="NuGet.Services.Configuration, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Configuration.2.2.2\lib\net452\NuGet.Services.Configuration.dll</HintPath>
     </Reference>
+    <Reference Include="NuGet.Services.Contracts, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Contracts.2.25.0-master-30088\lib\net45\NuGet.Services.Contracts.dll</HintPath>
+    </Reference>
     <Reference Include="NuGet.Services.KeyVault, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.KeyVault.2.2.2\lib\net45\NuGet.Services.KeyVault.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Logging, Version=2.2.2.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Logging.2.2.2\lib\net452\NuGet.Services.Logging.dll</HintPath>
+    <Reference Include="NuGet.Services.Logging, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Logging.2.25.0-master-30088\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Services.Storage, Version=2.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Storage.2.3.1-master-15426\lib\net452\NuGet.Services.Storage.dll</HintPath>
@@ -327,7 +330,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arguments.cs" />
-    <Compile Include="JobNameTelemetryInitializer.cs" />
+    <Compile Include="Telemetry\JobNameTelemetryInitializer.cs" />
     <Compile Include="Jobs\Catalog2DnxJob.cs" />
     <Compile Include="Jobs\Catalog2LuceneJob.cs" />
     <Compile Include="Jobs\Catalog2MonitoringJob.cs" />
@@ -357,6 +360,7 @@
     <Compile Include="SearchIndexFromCatalogCollector.cs" />
     <Compile Include="SecondaryStorageBaseUrlRewriter.cs" />
     <Compile Include="StorageAccessHandler.cs" />
+    <Compile Include="Telemetry\JobPropertiesTelemetryInitializer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
