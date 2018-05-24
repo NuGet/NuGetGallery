@@ -385,9 +385,9 @@ namespace NuGetGallery
 
             ConfigureAutocomplete(builder, configuration);
 
-            builder.RegisterType<PackageRecommendationService>()
+            builder.RegisterType<RelatedPackagesService>()
                 .AsSelf()
-                .As<IPackageRecommendationService>()
+                .As<IRelatedPackagesService>()
                 .InstancePerLifetimeScope();
         }
 

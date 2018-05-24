@@ -11,12 +11,12 @@ using Newtonsoft.Json;
 
 namespace NuGetGallery
 {
-    public class PackageRecommendationService : IPackageRecommendationService
+    public class RelatedPackagesService : IRelatedPackagesService
     {
         private readonly IPackageService _packageService;
         private readonly IReportService _reportService;
 
-        public PackageRecommendationService(
+        public RelatedPackagesService(
             IPackageService packageService,
             IReportService reportService)
         {
@@ -24,7 +24,7 @@ namespace NuGetGallery
             _reportService = reportService;
         }
 
-        public async Task<IEnumerable<Package>> GetRecommendedPackagesAsync(Package package)
+        public async Task<IEnumerable<Package>> GetRelatedPackagesAsync(Package package)
         {
             string packageId = package.PackageRegistration.Id;
             string reportName = GetReportName(packageId);
@@ -38,16 +38,16 @@ namespace NuGetGallery
                 QuietLog.LogHandledException(ex);
                 return Enumerable.Empty<Package>();
             }
-            var recommendedPackages = JsonConvert.DeserializeObject<RecommendedPackages>(report.Content);
+            var relatedPackages = JsonConvert.DeserializeObject<RelatedPackages>(report.Content);
 
-            string targetId = recommendedPackages.Id;
+            string targetId = relatedPackages.Id;
             Debug.Assert(string.Equals(
                 targetId,
                 package.PackageRegistration.Id,
                 StringComparison.OrdinalIgnoreCase));
 
-            var recommendationIds = recommendedPackages.Recommendations;
-            return recommendationIds
+            var relatedPackageIds = relatedPackages.Recommendations;
+            return relatedPackageIds
                 .Select(id => _packageService.FindAbsoluteLatestPackageById(id))
                 .Where(p => p != null);
         }
@@ -65,7 +65,7 @@ namespace NuGetGallery
             }
 
             string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(packageId));
-            return $"Recommendations/{encodedId}.json";
+            return $"RelatedPackages/{encodedId}.json";
         }
     }
 }

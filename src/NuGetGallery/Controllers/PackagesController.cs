@@ -85,7 +85,7 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IContentObjectService _contentObjectService;
-        private readonly IPackageRecommendationService _packageRecommendationService;
+        private readonly IRelatedPackagesService _relatedPackagesService;
 
         public PackagesController(
             IPackageService packageService,
@@ -110,7 +110,7 @@ namespace NuGetGallery
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IContentObjectService contentObjectService,
-            IPackageRecommendationService packageRecommendationService)
+            IRelatedPackagesService relatedPackagesService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -134,7 +134,7 @@ namespace NuGetGallery
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
-            _packageRecommendationService = packageRecommendationService;
+            _relatedPackagesService = relatedPackagesService;
         }
 
         [HttpGet]
@@ -472,8 +472,8 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
-            model.RecommendedPackages = (await _packageRecommendationService
-                .GetRecommendedPackagesAsync(package))
+            model.RelatedPackages = (await _relatedPackagesService
+                .GetRelatedPackagesAsync(package))
                 .Select(p => new ListPackageItemViewModel(p, currentUser));
 
             var externalSearchService = _searchService as ExternalSearchService;

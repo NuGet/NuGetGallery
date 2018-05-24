@@ -17,14 +17,14 @@ namespace NuGetGallery
 {
     public class PackageRecommendationServiceFacts
     {
-        private static PackageRecommendationService CreateService(
+        private static RelatedPackagesService CreateService(
             Mock<IPackageService> packageService = null,
             Mock<IReportService> reportService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             reportService = reportService ?? new Mock<IReportService>();
 
-            return new PackageRecommendationService(
+            return new RelatedPackagesService(
                 packageService.Object,
                 reportService.Object);
         }
@@ -41,11 +41,11 @@ namespace NuGetGallery
         }
 
         private static Mock<IReportService> CreateReportService(
-            params RecommendedPackages[] recommendationSets)
+            params RelatedPackages[] recommendationSets)
         {
             var targetIds = recommendationSets.Select(rp => rp.Id);
             var idMap = targetIds.ToDictionary(
-                keySelector: id => PackageRecommendationService.GetReportName(id),
+                keySelector: id => RelatedPackagesService.GetReportName(id),
                 elementSelector: id => id);
             var reportMap = recommendationSets.ToDictionary(
                 keySelector: rp => rp.Id,
@@ -89,7 +89,7 @@ namespace NuGetGallery
                 var recommendationService = CreateService(
                     reportService: reportService);
 
-                var result = await recommendationService.GetRecommendedPackagesAsync(CreatePackage("Newtonsoft.Json"));
+                var result = await recommendationService.GetRelatedPackagesAsync(CreatePackage("Newtonsoft.Json"));
 
                 Assert.Empty(result);
             }
@@ -108,7 +108,7 @@ namespace NuGetGallery
 
                 var packageService = CreatePackageService(allIds);
                 var reportService = CreateReportService(
-                    new RecommendedPackages
+                    new RelatedPackages
                     {
                         Id = targetId,
                         Recommendations = recommendationIds
@@ -119,7 +119,7 @@ namespace NuGetGallery
                     reportService: reportService);
 
                 var result = (await recommendationService
-                    .GetRecommendedPackagesAsync(CreatePackage(targetId)))
+                    .GetRelatedPackagesAsync(CreatePackage(targetId)))
                     .Select(p => p.PackageRegistration.Id);
 
                 Assert.Equal(recommendationIds, result);
@@ -140,7 +140,7 @@ namespace NuGetGallery
 
                 var packageService = CreatePackageService(registeredIds);
                 var reportService = CreateReportService(
-                    new RecommendedPackages
+                    new RelatedPackages
                     {
                         Id = targetId,
                         Recommendations = recommendationIds
@@ -151,7 +151,7 @@ namespace NuGetGallery
                     reportService: reportService);
 
                 var result = (await recommendationService
-                    .GetRecommendedPackagesAsync(CreatePackage(targetId)))
+                    .GetRelatedPackagesAsync(CreatePackage(targetId)))
                     .Select(p => p.PackageRegistration.Id);
 
                 Assert.Equal(recommendationIds.Intersect(registeredIds), result);

@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public interface IPackageRecommendationService
+    public interface IRelatedPackagesService
     {
         /// <summary>
-        /// Gets a list of alternative packages recommended for users browsing the package.
+        /// Gets a list of packages related to <see cref="package"/>.
         /// </summary>
-        Task<IEnumerable<Package>> GetRecommendedPackagesAsync(Package package);
+        Task<IEnumerable<Package>> GetRelatedPackagesAsync(Package package);
     }
 }

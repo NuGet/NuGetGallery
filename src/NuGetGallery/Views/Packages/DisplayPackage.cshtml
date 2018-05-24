@@ -518,7 +518,7 @@
                 }
             </div>
 
-            @if (!Model.Deleted && Model.RecommendedPackages.Any())
+            @if (!Model.Deleted && Model.RelatedPackages.Any())
             {
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#related-packages"
@@ -528,7 +528,7 @@
                     </a>
                 </h2>
                 <div class="list-packages" role="list">
-                    @foreach (var package in Model.RecommendedPackages)
+                    @foreach (var package in Model.RelatedPackages)
                     {
                         @Html.Partial("_ListPackage", package)
                     }

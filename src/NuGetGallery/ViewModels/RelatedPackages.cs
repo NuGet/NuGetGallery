@@ -5,15 +5,15 @@ using System.Collections.Generic;
 
 namespace NuGetGallery
 {
-    public class RecommendedPackages
+    public class RelatedPackages
     {
         /// <summary>
-        /// ID of package for which recommendations were generated.
+        /// ID of package for which related packages were found.
         /// </summary>
         public string Id { get; set; }
 
         /// <summary>
-        /// List of IDs of recommended packages.
+        /// List of IDs of related packages.
         /// </summary>
         public IEnumerable<string> Recommendations { get; set; }
     }

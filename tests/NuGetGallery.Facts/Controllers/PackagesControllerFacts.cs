@@ -62,7 +62,7 @@ namespace NuGetGallery
             Mock<IPackageOwnershipManagementService> packageOwnershipManagementService = null,
             IReadMeService readMeService = null,
             Mock<IContentObjectService> contentObjectService = null,
-            Mock<IPackageRecommendationService> packageRecommendationService = null)
+            Mock<IRelatedPackagesService> packageRecommendationService = null)
         {
             packageService = packageService ?? new Mock<IPackageService>();
             if (uploadFileService == null)
@@ -117,7 +117,7 @@ namespace NuGetGallery
 
             contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
 
-            packageRecommendationService = packageRecommendationService ?? new Mock<IPackageRecommendationService>();
+            packageRecommendationService = packageRecommendationService ?? new Mock<IRelatedPackagesService>();
 
             var controller = new Mock<PackagesController>(
                 packageService.Object,
