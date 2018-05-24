@@ -1848,8 +1848,8 @@
     <Compile Include="Services\StatisticsReportResult.cs" />
     <Compile Include="Services\StatusService.cs" />
     <Compile Include="Services\UploadFileService.cs" />
-    <Compile Include="Services\IPackageRecommendationService.cs" />
-    <Compile Include="Services\PackageRecommendationService.cs" />
+    <Compile Include="Services\IRelatedPackagesService.cs" />
+    <Compile Include="Services\RelatedPackagesService.cs" />
     <Compile Include="ViewModels\AggregateStats.cs" />
     <Compile Include="ViewModels\ContactSupportViewModel.cs" />
     <Compile Include="ViewModels\DeletePackageViewModel.cs" />
@@ -1918,7 +1918,7 @@
     <Compile Include="ViewModels\PackageViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetRequestViewModel.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModel.cs" />
-    <Compile Include="ViewModels\RecommendedPackages.cs" />
+    <Compile Include="ViewModels\RelatedPackages.cs" />
     <Compile Include="ViewModels\ReportAbuseViewModel.cs" />
     <Compile Include="ViewModels\TrivialPackageVersionModel.cs" />
     <Compile Include="ViewModels\UserProfileModel.cs" />
