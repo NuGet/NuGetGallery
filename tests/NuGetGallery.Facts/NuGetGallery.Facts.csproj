@@ -458,7 +458,7 @@
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
     <Compile Include="Services\LoginDiscontinuationConfigurationFacts.cs" />
-    <Compile Include="Services\PackageRecommendationServiceFacts.cs" />
+    <Compile Include="Services\RelatedPackagesServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />
