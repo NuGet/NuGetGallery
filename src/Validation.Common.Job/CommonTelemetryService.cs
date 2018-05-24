@@ -10,8 +10,10 @@ namespace NuGet.Jobs.Validation
     public class CommonTelemetryService : ICommonTelemetryService
     {
         private const string PackageDownloadedSeconds = "PackageDownloadedSeconds";
+        private const string PackageDownloadSpeed = "PackageDownloadSpeedBytesPerSec";
         private const string PackageUri = "PackageUri";
         private const string PackageSize = "PackageSize";
+        private const double DefaultDownloadSpeed = 1;
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -30,6 +32,14 @@ namespace NuGet.Jobs.Validation
             _telemetryClient.TrackMetric(
                 PackageDownloadedSeconds,
                 duration.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { PackageUri, absoluteUri },
+                    { PackageSize, size.ToString() },
+                });
+            _telemetryClient.TrackMetric(
+                PackageDownloadSpeed,
+                duration.TotalSeconds > 0 ? size / duration.TotalSeconds : DefaultDownloadSpeed,
                 new Dictionary<string, string>
                 {
                     { PackageUri, absoluteUri },
