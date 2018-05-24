@@ -22,6 +22,7 @@ namespace NuGetGallery.FunctionalTests
         private const string _statsPageUrlSuffix = "stats";
         private const string _aggregateStatsPageUrlSuffix = "/stats/totals";
         private const string _uploadPageUrlSuffix = "packages/manage/Upload";
+        private const string _cancelUploadPageUrlSuffix = "packages/manage/cancel-upload";
         private const string _verifyUploadPageUrlSuffix = "/packages/manage/verify-upload";
         private const string _windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
         private const string _webMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
@@ -38,7 +39,7 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
-                return EnsureTrailingSlash(EnvironmentSettings.BaseUrl);
+                return EnsureTrailingSlash(GalleryConfiguration.Instance.GalleryBaseUrl);
             }
         }
 
@@ -46,7 +47,7 @@ namespace NuGetGallery.FunctionalTests
         {
             get
             {
-                return EnsureTrailingSlash(EnvironmentSettings.SearchServiceBaseUrl);
+                return EnsureTrailingSlash(GalleryConfiguration.Instance.SearchServiceBaseUrl);
             }
         }
 
@@ -128,6 +129,11 @@ namespace NuGetGallery.FunctionalTests
         public static string UploadPageUrl
         {
             get { return BaseUrl + _uploadPageUrlSuffix; }
+        }
+
+        public static string CancelUpload
+        {
+            get { return BaseUrl + _cancelUploadPageUrlSuffix; }
         }
 
         public static string VerifyUploadPageUrl

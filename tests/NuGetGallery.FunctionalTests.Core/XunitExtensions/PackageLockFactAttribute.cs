@@ -9,7 +9,7 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
     {
         public PackageLockFactAttribute()
         {
-            if (!EnvironmentSettings.TestPackageLock)
+            if (!GalleryConfiguration.Instance.TestPackageLock)
             {
                 Skip = string.Format("Package locking shouldn't be tested");
             }

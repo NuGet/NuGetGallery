@@ -532,6 +532,26 @@ namespace NuGetGallery
         {
             [Theory]
             [MemberData(AllowedCurrentUsersDataName)]
+            public virtual async Task WithNullUser_ShowsError(Func<Fakes, User> getCurrentUser)
+            {
+                // Arrange
+                var controller = GetController();
+                var accountUsername = "nullUser";
+                controller.SetCurrentUser(getCurrentUser(Fakes));
+
+                // Act
+                var result = await controller.Confirm(accountUsername, "token");
+
+                // Assert
+                var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(accountUsername, model.AccountName);
+                Assert.False(model.SuccessfulConfirmation);
+                Assert.True(model.WrongUsername);
+                Assert.True(model.AlreadyConfirmed);
+            }
+
+            [Theory]
+            [MemberData(AllowedCurrentUsersDataName)]
             public virtual async Task ClearsReturnUrlFromViewData(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
@@ -563,6 +583,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(account.Username, model.AccountName);
                 Assert.False(model.SuccessfulConfirmation);
 
                 var userService = GetMock<IUserService>();
@@ -595,6 +616,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(account.Username, model.AccountName);
                 Assert.True(model.SuccessfulConfirmation);
 
                 var userService = GetMock<IUserService>();
@@ -626,6 +648,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(account.Username, model.AccountName);
                 Assert.True(model.SuccessfulConfirmation);
 
                 var userService = GetMock<IUserService>();
@@ -657,6 +680,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(account.Username, model.AccountName);
                 Assert.False(model.SuccessfulConfirmation);
             }
 
@@ -677,6 +701,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
+                Assert.Equal(account.Username, model.AccountName);
                 Assert.False(model.SuccessfulConfirmation);
                 Assert.True(model.DuplicateEmailAddress);
             }

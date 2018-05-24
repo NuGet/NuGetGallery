@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
@@ -18,7 +17,6 @@ namespace NuGetGallery.Areas.Admin
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
         private IAuditingService _auditingService;
-        private readonly PagerDutyClient _pagerDutyClient;
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
 
@@ -29,25 +27,12 @@ namespace NuGetGallery.Areas.Admin
         {
             _supportRequestDbContext = supportRequestDbContext;
             _siteRoot = config.SiteRoot;
-
-            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
         {
             return _supportRequestDbContext.Admins.ToList();
-        }
-
-        public int? GetAdminKeyFromUsername(string username)
-        {
-            if (string.Equals(username, _unassignedAdmin, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            var admin = _supportRequestDbContext.Admins.FirstOrDefault(a => username == a.PagerDutyUsername);
-            return admin?.Key;
         }
 
         public List<History> GetHistoryEntriesByIssueKey(int id)
@@ -67,16 +52,11 @@ namespace NuGetGallery.Areas.Admin
             return GetFilteredIssuesQueryable(assignedToId, reason, issueStatusId).Count();
         }
 
-        public async Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername)
+        public async Task UpdateAdminAsync(int adminId, string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
-            }
-
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
             }
 
             var admin = GetAdminByKey(adminId);
@@ -86,25 +66,18 @@ namespace NuGetGallery.Areas.Admin
             }
 
             admin.GalleryUsername = galleryUsername;
-            admin.PagerDutyUsername = pagerDutyUsername;
 
             await _supportRequestDbContext.CommitChangesAsync();
         }
 
-        public async Task AddAdminAsync(string galleryUsername, string pagerDutyUsername)
+        public async Task AddAdminAsync(string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
             }
 
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
-            }
-
             var admin = new Models.Admin();
-            admin.PagerDutyUsername = pagerDutyUsername;
             admin.GalleryUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
@@ -137,14 +110,14 @@ namespace NuGetGallery.Areas.Admin
 
                 if (currentIssue.AssignedToId != assignedToId)
                 {
-                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? "unassigned";
+                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? _unassignedAdmin;
                     string newAssignedUsername;
                     if (assignedToId.HasValue)
                     {
                         var admin = GetAdminByKey(assignedToId.Value);
                         if (admin == null)
                         {
-                            newAssignedUsername = "unassigned";
+                            newAssignedUsername = _unassignedAdmin;
                         }
                         else
                         {
@@ -154,7 +127,7 @@ namespace NuGetGallery.Areas.Admin
                     }
                     else
                     {
-                        newAssignedUsername = "unassigned";
+                        newAssignedUsername = _unassignedAdmin;
                     }
 
                     comments += $"Reassigned issue from '{previousAssignedUsername}' to '{newAssignedUsername}'.\r\n";
@@ -215,17 +188,6 @@ namespace NuGetGallery.Areas.Admin
             {
                 var newIssue = new Issue();
 
-                // If primary on-call person is not yet configured in the Support Request DB, assign to 'unassigned'.
-                var primaryOnCall = await _pagerDutyClient.GetPrimaryOnCallAsync();
-                if (string.IsNullOrEmpty(primaryOnCall) || GetAdminKeyFromUsername(primaryOnCall) == -1)
-                {
-                    newIssue.AssignedTo = null;
-                }
-                else
-                {
-                    newIssue.AssignedToId = GetAdminKeyFromUsername(primaryOnCall);
-                }
-
                 newIssue.CreatedDate = DateTime.UtcNow;
                 newIssue.Details = message;
                 newIssue.IssueStatusId = IssueStatusKeys.New;
@@ -243,20 +205,7 @@ namespace NuGetGallery.Areas.Admin
                 await AddIssueAsync(newIssue);
                 return newIssue;
             }
-            catch (SqlException sqlException)
-            {
-                QuietLog.LogHandledException(sqlException);
-
-                var packageInfo = "N/A";
-                if (package != null)
-                {
-                    packageInfo = $"{package.PackageRegistration.Id} v{package.Version}";
-                }
-
-                var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
-                await _pagerDutyClient.TriggerIncidentAsync(errorMessage);
-            }
-            catch (Exception e) //In case getting data from PagerDuty has failed
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
             }

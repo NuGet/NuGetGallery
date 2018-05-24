@@ -748,6 +748,7 @@ namespace NuGetGallery
             _messageService.ReportAbuse(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
+
             return Redirect(Url.Package(id, version));
         }
 

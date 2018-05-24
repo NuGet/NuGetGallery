@@ -34,8 +34,11 @@ namespace NuGetGallery.Areas.Admin.Models
         }
 
         public virtual IDbSet<Admin> Admins { get; set; }
+
         public virtual IDbSet<Issue> Issues { get; set; }
+
         public virtual IDbSet<IssueStatus> IssueStatus { get; set; }
+
         public virtual IDbSet<History> Histories { get; set; }
 
         public async Task CommitChangesAsync()
@@ -45,8 +48,6 @@ namespace NuGetGallery.Areas.Admin.Models
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Admin>()
-                .Property(e => e.PagerDutyUsername).IsUnicode(false);
             modelBuilder.Entity<Admin>()
                 .Property(e => e.GalleryUsername).IsUnicode(false);
             modelBuilder.Entity<Admin>()

@@ -902,4 +902,7 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="RequiredSigner_ThisAction" xml:space="preserve">
     <value>This action will change the required signer to '{0}' for all future submissions for this package.</value>
   </data>
+  <data name="DiscontinuedLogin_PasswordRemoved" xml:space="preserve">
+    <value>The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward.</value>
+  </data>
 </root>

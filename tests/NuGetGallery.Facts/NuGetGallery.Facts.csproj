@@ -478,7 +478,6 @@
     <Compile Include="Services\AsynchronousPackageValidationInitiatorFacts.cs" />
     <Compile Include="Services\ImmediatePackageValidatorFacts.cs" />
     <Compile Include="Services\NoLessSecureDestinationRedirectPolicyFacts.cs" />
-    <Compile Include="Services\PagerDutyClientFacts.cs" />
     <Compile Include="Services\PackageUploadServiceFacts.cs" />
     <Compile Include="Services\ReflowPackageServiceFacts.cs" />
     <Compile Include="Services\ReservedNamespaceServiceFacts.cs" />

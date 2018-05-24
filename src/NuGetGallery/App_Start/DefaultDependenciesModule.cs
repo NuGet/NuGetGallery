@@ -272,14 +272,6 @@ namespace NuGetGallery
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
 
-            if (configuration.Current.IsHosted)
-            {
-                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await DependencyResolver
-                    .Current
-                    .GetService<IContentObjectService>()
-                    .Refresh());
-            }
-
             Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;

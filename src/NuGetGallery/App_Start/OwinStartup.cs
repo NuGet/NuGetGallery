@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
@@ -59,6 +60,16 @@ namespace NuGetGallery
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
+
+            // Configure machine key for session persistence across slots
+            SessionPersistence.Setup(config);
+
+            // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
+            if (config.Current.IsHosted)
+            {
+                var contentObjectService = dependencyResolver.GetService<IContentObjectService>();
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await contentObjectService.Refresh());
+            }
 
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;

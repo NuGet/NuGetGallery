@@ -667,7 +667,7 @@ namespace NuGetGallery.Authentication
                 Assert.NotNull(identity);
                 Assert.Equal(user.Username, identity.Name);
                 Assert.Equal(user.Username, principal.GetClaimOrDefault(ClaimTypes.NameIdentifier));
-                Assert.Equal(8, identity.Claims.Count());
+                Assert.Equal(9, identity.Claims.Count());
                 Assert.False(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.DiscontinuedLogin));
                 Assert.True(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.PasswordLogin));
                 Assert.True(ClaimsExtensions.HasBooleanClaim(identity, NuGetClaims.EnabledMultiFactorAuthentication));
