@@ -35,15 +35,15 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             _differentBaseAddress = baseAddress;
 
+            var blobEndpointBuilder = new UriBuilder(account.BlobEndpoint)
+            {
+                Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
+                Port = 80
+            };
+
             if (baseAddress == null)
             {
-                Uri blobEndpoint = new UriBuilder(account.BlobEndpoint)
-                {
-                    Scheme = "http", // Convert base address to http. 'https' can be used for communication but is not part of the names.
-                    Port = 80
-                }.Uri;
-
-                BaseAddress = new Uri(blobEndpoint, containerName + "/" + _path ?? string.Empty);
+                BaseAddress = new Uri(blobEndpointBuilder.Uri, containerName + "/" + _path ?? string.Empty);
             }
             else
             {
@@ -56,6 +56,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
                 BaseAddress = newAddress;
             }
+
+            // Beautify the destination URL.
+            blobEndpointBuilder.Scheme = "https";
+            blobEndpointBuilder.Port = -1;
+
+            DestinationAddress = new Uri(blobEndpointBuilder.Uri, containerName + "/" + _path ?? string.Empty);
         }
 
         public bool CompressContent { get; set; }

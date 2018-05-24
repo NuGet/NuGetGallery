@@ -114,13 +114,13 @@ namespace Ng.Jobs
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
             storageFactories.SemVer2StorageFactory?.Create();
 
-            _destination = storageFactories.LegacyStorageFactory.BaseAddress;
-            TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination.AbsoluteUri;
+            _destination = storageFactories.LegacyStorageFactory.DestinationAddress;
+            TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination?.AbsoluteUri;
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
-            using (Logger.BeginScope($"Logging for {TelemetryConstants.Destination}", _destination.AbsoluteUri))
+            using (Logger.BeginScope($"Logging for {TelemetryConstants.Destination}", _destination?.AbsoluteUri))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
             {
                 bool run;
