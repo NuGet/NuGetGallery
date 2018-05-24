@@ -15,7 +15,9 @@ namespace NuGetGallery
     /// E.g. "JQuery.Extensions.MyCoolExtension" matches both "JQuery.*" and "JQuery.Extensions.*".
     /// </remarks>
     public class ActionRequiringReservedNamespacePermissions
-        : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, IActionRequiringEntityPermissions<ActionOnNewPackageContext>
+        : ActionRequiringEntityPermissions<IReadOnlyCollection<ReservedNamespace>>, 
+        IActionRequiringEntityPermissions<ActionOnNewPackageContext>, 
+        IActionRequiringEntityPermissions<ReservedNamespace>
     {
         public PermissionsRequirement ReservedNamespacePermissionsRequirement { get; }
 
@@ -32,9 +34,19 @@ namespace NuGetGallery
             return CheckPermissions(currentUser, account, GetReservedNamespaces(newPackageContext));
         }
 
+        public PermissionsCheckResult CheckPermissions(User currentUser, User account, ReservedNamespace reservedNamespace)
+        {
+            return CheckPermissions(currentUser, account, GetReservedNamespaces(reservedNamespace));
+        }
+
         public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, ActionOnNewPackageContext newPackageContext)
         {
             return CheckPermissions(currentPrincipal, account, GetReservedNamespaces(newPackageContext));
+        }
+
+        public PermissionsCheckResult CheckPermissions(IPrincipal currentPrincipal, User account, ReservedNamespace reservedNamespace)
+        {
+            return CheckPermissions(currentPrincipal, account, GetReservedNamespaces(reservedNamespace));
         }
 
         protected override PermissionsCheckResult CheckPermissionsForEntity(User account, IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
@@ -54,9 +66,19 @@ namespace NuGetGallery
             return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(newPackageContext));
         }
 
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ReservedNamespace reservedNamespace)
+        {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(reservedNamespace));
+        }
+
         public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ActionOnNewPackageContext newPackageContext, out IEnumerable<User> accountsAllowedOnBehalfOf)
         {
             return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(newPackageContext), out accountsAllowedOnBehalfOf);
+        }
+
+        public PermissionsCheckResult CheckPermissionsOnBehalfOfAnyAccount(User currentUser, ReservedNamespace reservedNamespace, out IEnumerable<User> accountsAllowedOnBehalfOf)
+        {
+            return CheckPermissionsOnBehalfOfAnyAccount(currentUser, GetReservedNamespaces(reservedNamespace), out accountsAllowedOnBehalfOf);
         }
 
         protected override IEnumerable<User> GetOwners(IReadOnlyCollection<ReservedNamespace> reservedNamespaces)
@@ -67,6 +89,11 @@ namespace NuGetGallery
         private IReadOnlyCollection<ReservedNamespace> GetReservedNamespaces(ActionOnNewPackageContext newPackageContext)
         {
             return newPackageContext.ReservedNamespaceService.GetReservedNamespacesForId(newPackageContext.PackageId);
+        }
+
+        private IReadOnlyCollection<ReservedNamespace> GetReservedNamespaces(ReservedNamespace reservedNamespace)
+        {
+            return new[] { reservedNamespace };
         }
     }
 }
