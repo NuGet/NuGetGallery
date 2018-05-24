@@ -15,7 +15,7 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class PackageRecommendationServiceFacts
+    public class RelatedPackagesServiceFacts
     {
         private static RelatedPackagesService CreateService(
             Mock<IPackageService> packageService = null,
@@ -41,13 +41,13 @@ namespace NuGetGallery
         }
 
         private static Mock<IReportService> CreateReportService(
-            params RelatedPackages[] recommendationSets)
+            params RelatedPackages[] relatedPackageSets)
         {
-            var targetIds = recommendationSets.Select(rp => rp.Id);
+            var targetIds = relatedPackageSets.Select(rp => rp.Id);
             var idMap = targetIds.ToDictionary(
                 keySelector: id => RelatedPackagesService.GetReportName(id),
                 elementSelector: id => id);
-            var reportMap = recommendationSets.ToDictionary(
+            var reportMap = relatedPackageSets.ToDictionary(
                 keySelector: rp => rp.Id,
                 elementSelector: rp => CreateReport(rp.Id, rp.Recommendations));
 
@@ -77,7 +77,7 @@ namespace NuGetGallery
             return new ReportBlob(json);
         }
 
-        public class TheGetRecommendedPackagesMethod
+        public class TheGetRelatedPackagesMethod
         {
             [Fact]
             public async void WillReturnEmptyListIfReportIsNotFound()
@@ -86,10 +86,10 @@ namespace NuGetGallery
                 reportService
                     .Setup(rs => rs.Load(It.IsAny<string>()))
                     .ThrowsAsync(new ReportNotFoundException());
-                var recommendationService = CreateService(
+                var relatedPackagesService = CreateService(
                     reportService: reportService);
 
-                var result = await recommendationService.GetRelatedPackagesAsync(CreatePackage("Newtonsoft.Json"));
+                var result = await relatedPackagesService.GetRelatedPackagesAsync(CreatePackage("Newtonsoft.Json"));
 
                 Assert.Empty(result);
             }
@@ -98,31 +98,31 @@ namespace NuGetGallery
             public async void WillReturnPackagesListedInReport()
             {
                 string targetId = "Newtonsoft.Json";
-                var recommendationIds = new[]
+                var relatedPackageIds = new[]
                 {
                     "SammysJsonLibrary",
                     "ElliesJsonLibrary",
                     "JimmysJsonLibrary"
                 };
-                var allIds = new[] { targetId }.Concat(recommendationIds);
+                var allIds = new[] { targetId }.Concat(relatedPackageIds);
 
                 var packageService = CreatePackageService(allIds);
                 var reportService = CreateReportService(
                     new RelatedPackages
                     {
                         Id = targetId,
-                        Recommendations = recommendationIds
+                        Recommendations = relatedPackageIds
                     });
 
-                var recommendationService = CreateService(
+                var relatedPackagesService = CreateService(
                     packageService: packageService,
                     reportService: reportService);
 
-                var result = (await recommendationService
+                var result = (await relatedPackagesService
                     .GetRelatedPackagesAsync(CreatePackage(targetId)))
                     .Select(p => p.PackageRegistration.Id);
 
-                Assert.Equal(recommendationIds, result);
+                Assert.Equal(relatedPackageIds, result);
             }
 
             [Fact]
@@ -130,31 +130,31 @@ namespace NuGetGallery
             {
                 string targetId = "Newtonsoft.Json";
                 string excludedId = "SammysJsonLibrary";
-                var recommendationIds = new[]
+                var relatedPackageIds = new[]
                 {
                     "SammysJsonLibrary",
                     "ElliesJsonLibrary",
                     "JimmysJsonLibrary"
                 };
-                var registeredIds = new[] { targetId }.Concat(recommendationIds).Except(new[] { excludedId });
+                var registeredIds = new[] { targetId }.Concat(relatedPackageIds).Except(new[] { excludedId });
 
                 var packageService = CreatePackageService(registeredIds);
                 var reportService = CreateReportService(
                     new RelatedPackages
                     {
                         Id = targetId,
-                        Recommendations = recommendationIds
+                        Recommendations = relatedPackageIds
                     });
 
-                var recommendationService = CreateService(
+                var relatedPackagesService = CreateService(
                     packageService: packageService,
                     reportService: reportService);
 
-                var result = (await recommendationService
+                var result = (await relatedPackagesService
                     .GetRelatedPackagesAsync(CreatePackage(targetId)))
                     .Select(p => p.PackageRegistration.Id);
 
-                Assert.Equal(recommendationIds.Intersect(registeredIds), result);
+                Assert.Equal(relatedPackageIds.Intersect(registeredIds), result);
             }
         }
     }
