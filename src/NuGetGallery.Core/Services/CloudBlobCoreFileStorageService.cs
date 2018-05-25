@@ -328,6 +328,47 @@ namespace NuGetGallery
                 blob.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess));
         }
 
+        public async Task SetMetadataAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync)
+        {
+            if (folderName == null)
+            {
+                throw new ArgumentNullException(nameof(folderName));
+            }
+
+            if (fileName == null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
+            }
+
+            if (updateMetadataAsync == null)
+            {
+                throw new ArgumentNullException(nameof(updateMetadataAsync));
+            }
+
+            var container = await GetContainerAsync(folderName);
+            var blob = container.GetBlobReference(fileName);
+
+            await blob.FetchAttributesAsync();
+
+            var lazyStream = new Lazy<Task<Stream>>(() => GetFileAsync(folderName, fileName));
+            var wasUpdated = await updateMetadataAsync(lazyStream, blob.Metadata);
+
+            if (wasUpdated)
+            {
+                var accessCondition = AccessConditionWrapper.GenerateIfMatchCondition(blob.ETag);
+                var mappedAccessCondition = new AccessCondition
+                {
+                    IfNoneMatchETag = accessCondition.IfNoneMatchETag,
+                    IfMatchETag = accessCondition.IfMatchETag
+                };
+
+                await blob.SetMetadataAsync(mappedAccessCondition);
+            }
+        }
+
         private static SharedAccessBlobPermissions MapFileUriPermissions(FileUriPermissions permissions)
         {
             return (SharedAccessBlobPermissions)permissions;
@@ -391,10 +432,10 @@ namespace NuGetGallery
             try
             {
                 await blob.DownloadToStreamAsync(
-                    stream, 
-                    accessCondition: 
-                        ifNoneMatch == null ? 
-                        null : 
+                    stream,
+                    accessCondition:
+                        ifNoneMatch == null ?
+                        null :
                         AccessCondition.GenerateIfNoneMatchCondition(ifNoneMatch));
             }
             catch (StorageException ex)
