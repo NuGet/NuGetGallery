@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
-    public interface IReportService
+    public interface IReportContainer : ICloudStorageStatusDependency
     {
-        Task<IReportContainer> GetContainer(string containerName);
+        Task<ReportBlob> Load(string reportName);
     }
 }

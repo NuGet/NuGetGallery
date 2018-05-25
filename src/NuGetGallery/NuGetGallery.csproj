@@ -884,6 +884,7 @@
     <Compile Include="Services\IContentObjectService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
+    <Compile Include="Services\IReportContainer.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />

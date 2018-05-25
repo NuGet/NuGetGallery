@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -8,9 +9,8 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGetGallery
 {
-    public class CloudReportService : IReportService, ICloudStorageStatusDependency
+    public class CloudReportService : IReportService
     {
-        private const string _statsContainerName = "nuget-cdnstats";
         private readonly string _connectionString;
         private readonly bool _readAccessGeoRedundant;
 
@@ -20,33 +20,13 @@ namespace NuGetGallery
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
-        public Task<bool> IsAvailableAsync()
+        public Task<IReportContainer> GetContainer(string containerName)
         {
-            var container = GetCloudBlobContainer();
-            return container.ExistsAsync();
+            return Task.FromResult<IReportContainer>(
+                new Container(GetCloudBlobContainer(containerName)));
         }
 
-        public async Task<ReportBlob> Load(string reportName)
-        {
-            // In NuGet we always use lowercase names for all blobs in Azure Storage
-            reportName = reportName.ToLowerInvariant();
-
-            var container = GetCloudBlobContainer();
-            var blob = container.GetBlockBlobReference(reportName);
-
-            // Check if the report blob is present before processing it.
-            if (!blob.Exists())
-            {
-                throw new ReportNotFoundException();
-            }
-
-            await blob.FetchAttributesAsync();
-            string content = await blob.DownloadTextAsync();
-
-            return new ReportBlob(content, blob.Properties.LastModified?.UtcDateTime);
-        }
-
-        private CloudBlobContainer GetCloudBlobContainer()
+        private CloudBlobContainer GetCloudBlobContainer(string containerName)
         {
             var storageAccount = CloudStorageAccount.Parse(_connectionString);
             var blobClient = storageAccount.CreateCloudBlobClient();
@@ -56,7 +36,37 @@ namespace NuGetGallery
                 blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
             }
 
-            return blobClient.GetContainerReference(_statsContainerName);
+            return blobClient.GetContainerReference(containerName);
+        }
+
+        private class Container : IReportContainer
+        {
+            private CloudBlobContainer _container;
+
+            public Container(CloudBlobContainer container)
+            {
+                _container = container ?? throw new ArgumentNullException(nameof(container));
+            }
+
+            public Task<bool> IsAvailableAsync() => _container.ExistsAsync();
+
+            public async Task<ReportBlob> Load(string reportName)
+            {
+                // In NuGet we always use lowercase names for all blobs in Azure Storage
+                reportName = reportName.ToLowerInvariant();
+                var blob = _container.GetBlockBlobReference(reportName);
+
+                // Check if the report blob is present before processing it.
+                if (!blob.Exists())
+                {
+                    throw new ReportNotFoundException();
+                }
+
+                await blob.FetchAttributesAsync();
+                string content = await blob.DownloadTextAsync();
+
+                return new ReportBlob(content, blob.Properties.LastModified?.UtcDateTime);
+            }
         }
     }
 }

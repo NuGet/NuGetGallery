@@ -20,19 +20,41 @@ namespace NuGetGallery
             _fileStorage = fileStorage;
         }
 
-        public async Task<ReportBlob> Load(string reportName)
+        public Task<IReportContainer> GetContainer(string containerName)
         {
-            using (var stream = await _fileStorage.GetFileAsync(FolderName, fileName: reportName))
-            {
-                if (stream == null)
-                {
-                    throw new ReportNotFoundException();
-                }
+            return Task.FromResult<IReportContainer>(new Container(this, containerName));
+        }
 
-                using (var reader = new StreamReader(stream))
+        private class Container : IReportContainer
+        {
+            private readonly LocalReportService _parent;
+            private readonly string _containerName;
+
+            public Container(LocalReportService parent, string containerName)
+            {
+                _parent = parent;
+                _containerName = containerName;
+            }
+
+            public Task<bool> IsAvailableAsync()
+            {
+                throw new NotImplementedException();
+            }
+
+            public async Task<ReportBlob> Load(string reportName)
+            {
+                using (var stream = await _parent._fileStorage.GetFileAsync(FolderName, fileName: reportName))
                 {
-                    string content = await reader.ReadToEndAsync();
-                    return new ReportBlob(content);
+                    if (stream == null)
+                    {
+                        throw new ReportNotFoundException();
+                    }
+
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string content = await reader.ReadToEndAsync();
+                        return new ReportBlob(content);
+                    }
                 }
             }
         }

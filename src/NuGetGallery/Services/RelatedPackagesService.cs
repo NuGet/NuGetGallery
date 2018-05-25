@@ -13,32 +13,37 @@ namespace NuGetGallery
 {
     public class RelatedPackagesService : IRelatedPackagesService
     {
+        private const string ContainerName = "nuget-relatedpackages";
+
         private readonly IPackageService _packageService;
         private readonly IReportService _reportService;
+
+        private IReportContainer _reportContainer;
 
         public RelatedPackagesService(
             IPackageService packageService,
             IReportService reportService)
         {
-            _packageService = packageService;
-            _reportService = reportService;
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         }
 
         public async Task<IEnumerable<Package>> GetRelatedPackagesAsync(Package package)
         {
-            string packageId = package.PackageRegistration.Id;
-            string reportName = GetReportName(packageId);
-            ReportBlob report;
+            await EnsureReportContainerLoaded();
+
+            RelatedPackages relatedPackages;
             try
             {
-                report = await _reportService.Load(reportName);
+                string reportName = GetReportName(package.PackageRegistration.Id);
+                var report = await _reportContainer.Load(reportName);
+                relatedPackages = JsonConvert.DeserializeObject<RelatedPackages>(report.Content);
             }
             catch (ReportNotFoundException ex)
             {
                 QuietLog.LogHandledException(ex);
                 return Enumerable.Empty<Package>();
             }
-            var relatedPackages = JsonConvert.DeserializeObject<RelatedPackages>(report.Content);
 
             string targetId = relatedPackages.Id;
             Debug.Assert(string.Equals(
@@ -66,6 +71,16 @@ namespace NuGetGallery
 
             string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(packageId));
             return $"RelatedPackages/{encodedId}.json";
+        }
+
+        private async Task EnsureReportContainerLoaded()
+        {
+            const string ContainerName = "nuget-relatedpackages";
+
+            if (_reportContainer == null)
+            {
+                _reportContainer = await _reportService.GetContainer(ContainerName);
+            }
         }
     }
 }
