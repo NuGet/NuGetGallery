@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
+using static NuGetGallery.RelatedPackagesService;
 
 namespace NuGetGallery
 {
@@ -53,21 +54,10 @@ namespace NuGetGallery
             }
 
             var reportNames = idMap.Keys;
-            var reportContainer = new Mock<IReportContainer>();
-            reportContainer
-                .Setup(rs => rs.Load(It.IsIn<string>(reportNames)))
-                .Returns<string>(GetReportByName);
-            return CreateReportService(reportContainer);
-        }
-
-        private static Mock<IReportService> CreateReportService(
-            Mock<IReportContainer> reportContainer,
-            string containerName = RelatedPackagesService.ContainerName)
-        {
             var reportService = new Mock<IReportService>();
             reportService
-                .Setup(rs => rs.GetContainer(containerName))
-                .Returns(reportContainer.Object);
+                .Setup(rs => rs.GetContainer(ContainerName).Load(It.IsIn<string>(reportNames)))
+                .Returns<string>(GetReportByName);
             return reportService;
         }
 
@@ -88,11 +78,10 @@ namespace NuGetGallery
             [Fact]
             public async void WillReturnEmptyListIfReportIsNotFound()
             {
-                var reportContainer = new Mock<IReportContainer>();
-                reportContainer
-                    .Setup(rs => rs.Load(It.IsAny<string>()))
+                var reportService = new Mock<IReportService>();
+                reportService
+                    .Setup(rs => rs.GetContainer(ContainerName).Load(It.IsAny<string>()))
                     .ThrowsAsync(new ReportNotFoundException());
-                var reportService = CreateReportService(reportContainer);
 
                 var relatedPackagesService = CreateService(
                     reportService: reportService);

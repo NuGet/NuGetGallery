@@ -22,9 +22,18 @@ namespace NuGetGallery
             IPackageService packageService,
             IReportService reportService)
         {
-            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _reportContainer = (reportService ?? throw new ArgumentNullException(nameof(reportService)))
-                .GetContainer(ContainerName);
+            if (packageService == null)
+            {
+                throw new ArgumentNullException(nameof(packageService));
+            }
+
+            if (reportService == null)
+            {
+                throw new ArgumentNullException(nameof(reportService));
+            }
+
+            _packageService = packageService;
+            _reportContainer = reportService.GetContainer(ContainerName);
         }
 
         public async Task<IEnumerable<Package>> GetRelatedPackagesAsync(Package package)

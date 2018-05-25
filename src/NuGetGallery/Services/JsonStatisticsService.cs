@@ -15,10 +15,11 @@ namespace NuGetGallery
 {
     public class JsonStatisticsService : IStatisticsService
     {
+        internal const string ContainerName = "nuget-cdnstats";
         private const string RecentPopularityDetailBlobNameFormat = "recentpopularity/{0}{1}.json";
 
         /// <summary>
-        /// How often statistics reports should be refreshed using the <see cref="_reportService"/>.
+        /// How often statistics reports should be refreshed using the <see cref="_reportContainer"/>.
         /// </summary>
         private readonly TimeSpan _refreshInterval = TimeSpan.FromHours(1);
 
@@ -28,9 +29,9 @@ namespace NuGetGallery
         private DateTime? _lastRefresh = null;
 
         /// <summary>
-        /// The service used to load reports in the form of JSON blobs.
+        /// The container used to load reports in the form of JSON blobs.
         /// </summary>
-        private readonly IReportService _reportService;
+        private readonly IReportContainer _reportContainer;
 
         /// <summary>
         /// The semaphore used to update the statistics service's reports.
@@ -54,7 +55,12 @@ namespace NuGetGallery
 
         public JsonStatisticsService(IReportService reportService)
         {
-            _reportService = reportService;
+            if (reportService == null)
+            {
+                throw new ArgumentNullException(nameof(reportService));
+            }
+
+            _reportContainer = reportService.GetContainer(ContainerName);
         }
 
         public StatisticsReportResult PackageDownloadsResult { get; private set; }
@@ -177,7 +183,7 @@ namespace NuGetGallery
             try
             {
                 var reportName = (statisticsReportName + ".json").ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
                 if (reportContent == null)
                 {
                     return StatisticsReportResult.Failed;
@@ -236,7 +242,7 @@ namespace NuGetGallery
             try
             {
                 var reportName = (statisticsReportName + ".json").ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
                 if (reportContent == null)
                 {
                     return StatisticsReportResult.Failed;
@@ -271,7 +277,7 @@ namespace NuGetGallery
             try
             {
                 var reportName = (StatisticsReportName.NuGetClientVersion + ".json").ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
                 if (reportContent == null)
                 {
                     return StatisticsReportResult.Failed;
@@ -305,7 +311,7 @@ namespace NuGetGallery
             try
             {
                 var reportName = (StatisticsReportName.Last6Weeks + ".json").ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
                 if (reportContent == null)
                 {
                     return StatisticsReportResult.Failed;
@@ -346,7 +352,7 @@ namespace NuGetGallery
 
                 var reportName = string.Format(CultureInfo.CurrentCulture, RecentPopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
 
                 if (reportContent == null)
                 {
@@ -402,7 +408,7 @@ namespace NuGetGallery
 
                 var reportName = string.Format(CultureInfo.CurrentCulture, RecentPopularityDetailBlobNameFormat,
                     StatisticsReportName.RecentPopularityDetail_, packageId).ToLowerInvariant();
-                var reportContent = await _reportService.Load(reportName);
+                var reportContent = await _reportContainer.Load(reportName);
                 if (reportContent == null)
                 {
                     return null;

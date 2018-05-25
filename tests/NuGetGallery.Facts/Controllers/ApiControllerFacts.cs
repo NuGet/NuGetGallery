@@ -25,6 +25,7 @@ using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
+using static NuGetGallery.JsonStatisticsService;
 
 namespace NuGetGallery
 {
@@ -1579,7 +1580,7 @@ namespace NuGetGallery
                 var fakeReportService = new Mock<IReportService>();
 
                 fakeReportService
-                    .Setup(x => x.Load("recentpopularitydetail.json"))
+                    .Setup(x => x.GetContainer(ContainerName).Load("recentpopularitydetail.json"))
                     .Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController(GetConfigurationService())
@@ -1631,7 +1632,9 @@ namespace NuGetGallery
 
                 var fakeReportService = new Mock<IReportService>();
 
-                fakeReportService.Setup(x => x.Load("recentpopularitydetail.json")).Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
+                fakeReportService
+                    .Setup(x => x.GetContainer(ContainerName).Load("recentpopularitydetail.json"))
+                    .Returns(Task.FromResult(new ReportBlob(fakePackageVersionReport, DateTime.UtcNow)));
 
                 var controller = new TestableApiController(GetConfigurationService())
                 {
