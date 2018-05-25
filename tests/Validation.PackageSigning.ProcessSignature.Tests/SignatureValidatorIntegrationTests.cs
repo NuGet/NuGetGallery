@@ -614,27 +614,24 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.NotNull(result.NupkgUri);
         }
 
-        [Fact(Skip = "Appears to be flaky")]
+        [Fact]
         public async Task StripsRepositorySignatureWithUntrustedSigningCertificate()
         {
             // Arrange
-            var untrustedCertificate = await _fixture.CreateUntrustedSigningCertificateAsync();
+            var certificate = await _fixture.CreateUntrustedRootSigningCertificateAsync();
             Stream packageStream;
 
-            using (untrustedCertificate.TemporarilyTrust())
-            {
-                packageStream = await _fixture.RepositorySignPackageStreamAsync(
-                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
-                    untrustedCertificate.Certificate,
-                    _output);
-            }
+            packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
 
             // Initialize the subject of testing.
             TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
-                allowedRepositorySigningCertificates: new[] { untrustedCertificate.Certificate });
+                allowedRepositorySigningCertificates: new[] { certificate });
 
             // Act
             var result = await target.ValidateAsync(
@@ -1038,20 +1035,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task StripsRepositoryCounterSignatureWithUntrustedSigningCertificate()
         {
             // Arrange
-            var untrustedCertificate = await _fixture.CreateUntrustedSigningCertificateAsync();
+            var certificate = await _fixture.CreateUntrustedRootSigningCertificateAsync();
             Stream packageStream;
 
-            using (untrustedCertificate.TemporarilyTrust())
-            {
-                packageStream = await _fixture.RepositorySignPackageStreamAsync(
-                    await GetAuthorSignedPackageStream1Async(),
-                    untrustedCertificate.Certificate,
-                    _output);
-            }
+            packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
 
             // Initialize the subject of testing.
             var target = CreateSignatureValidator(
-                allowedRepositorySigningCertificates: new[] { untrustedCertificate.Certificate });
+                allowedRepositorySigningCertificates: new[] { certificate });
 
             // Act
             var result = await target.ValidateAsync(

@@ -6,10 +6,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
 using NuGetGallery;
@@ -97,9 +99,11 @@ namespace NuGet.Services.Validation.PackageSigning
             }
 
             [Fact]
-            public async Task ThrowsExceptionIfValidationFails()
+            public async Task WhenRepositorySigningEnabled_ThrowsExceptionIfValidationFails()
             {
                 // Arrange
+                _config.RepositorySigningEnabled = true;
+
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
@@ -116,9 +120,11 @@ namespace NuGet.Services.Validation.PackageSigning
             }
 
             [Fact]
-            public async Task ThrowsExceptionIfPackageIsModified()
+            public async Task WhenRepositorySigningEnabled_ThrowsExceptionIfPackageIsModified()
             {
                 // Arrange
+                _config.RepositorySigningEnabled = true;
+
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
@@ -180,13 +186,17 @@ namespace NuGet.Services.Validation.PackageSigning
                     Times.Never);
             }
 
-            [Fact]
-            public async Task StartsValidationIfNotStarted()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task StartsValidationIfNotStarted(bool repositorySigningEnabled)
             {
                 // Arrange
                 // The order of operations is important! The state MUST be persisted AFTER verification has been queued.
                 var statePersisted = false;
                 bool verificationQueuedBeforeStatePersisted = false;
+
+                _config.RepositorySigningEnabled = repositorySigningEnabled;
 
                 _validatorStateService
                      .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
@@ -280,9 +290,11 @@ namespace NuGet.Services.Validation.PackageSigning
             }
 
             [Fact]
-            public async Task ThrowsExceptionIfValidationFails()
+            public async Task WhenRepositorySigningEnabled_ThrowsExceptionIfValidationFails()
             {
                 // Arrange
+                _config.RepositorySigningEnabled = true;
+
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
@@ -299,9 +311,11 @@ namespace NuGet.Services.Validation.PackageSigning
             }
 
             [Fact]
-            public async Task ThrowsExceptionIfPackageIsModified()
+            public async Task WhenRepositorySigningEnabled_ThrowsExceptionIfPackageIsModified()
             {
                 // Arrange
+                _config.RepositorySigningEnabled = true;
+
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
@@ -316,6 +330,59 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 // Act
                 await Assert.ThrowsAsync<InvalidOperationException>(() => _target.StartAsync(_validationRequest.Object));
+            }
+
+            [Fact]
+            public async Task WhenRepositorySigningDisabled_DoesNotThrowExceptionIfValidationFails()
+            {
+                // Arrange
+                _config.RepositorySigningEnabled = false;
+
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
+
+                // Act
+                var actual = await _target.StartAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
+                Assert.Equal(0, actual.Issues.Count);
+                Assert.Null(actual.NupkgUrl);
+            }
+
+            [Fact]
+            public async Task WhenRepositorySigningDisabled_DoesNotThrowExceptionIfPackageIsModified()
+            {
+                // Arrange
+                _config.RepositorySigningEnabled = false;
+
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
+                        State = ValidationStatus.Succeeded,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                        NupkgUrl = "https://nuget.org/a.nupkg"
+                    });
+
+                // Act
+                var actual = await _target.StartAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Equal(ValidationStatus.Succeeded, actual.Status);
+                Assert.Equal(0, actual.Issues.Count);
+                Assert.Null(actual.NupkgUrl);
             }
 
             public static IEnumerable<object[]> StartedValidationStatuses => startedValidationStatuses.Select(s => new object[] { s });
@@ -370,16 +437,21 @@ namespace NuGet.Services.Validation.PackageSigning
             protected readonly Mock<IValidatorStateService> _validatorStateService;
             protected readonly Mock<IProcessSignatureEnqueuer> _packageSignatureVerifier;
             protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
+            protected readonly Mock<IOptionsSnapshot<ScanAndSignConfiguration>> _configAccessor;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<PackageSignatureValidator> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
             protected readonly PackageSignatureValidator _target;
+
+            protected readonly ScanAndSignConfiguration _config;
 
             public FactsBase(ITestOutputHelper output)
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _packageSignatureVerifier = new Mock<IProcessSignatureEnqueuer>();
                 _blobProvider = new Mock<ISimpleCloudBlobProvider>();
+                _config = new ScanAndSignConfiguration();
+                _configAccessor = new Mock<IOptionsSnapshot<ScanAndSignConfiguration>>();
                 _telemetryService = new Mock<ITelemetryService>();
                 var loggerFactory = new LoggerFactory().AddXunit(output);
                 _logger = loggerFactory.CreateLogger<PackageSignatureValidator>();
@@ -391,10 +463,13 @@ namespace NuGet.Services.Validation.PackageSigning
                 _validationRequest.Setup(x => x.PackageVersion).Returns(PackageVersion);
                 _validationRequest.Setup(x => x.ValidationId).Returns(ValidationId);
 
+                _configAccessor.Setup(a => a.Value).Returns(_config);
+
                 _target = new PackageSignatureValidator(
                     _validatorStateService.Object,
                     _packageSignatureVerifier.Object,
                     _blobProvider.Object,
+                    _configAccessor.Object,
                     _telemetryService.Object,
                     _logger);
             }

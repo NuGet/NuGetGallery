@@ -5,9 +5,11 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
 namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
@@ -22,6 +24,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
         private readonly IValidatorStateService _validatorStateService;
         private readonly IProcessSignatureEnqueuer _signatureVerificationEnqueuer;
         private readonly ISimpleCloudBlobProvider _blobProvider;
+        private readonly ScanAndSignConfiguration _config;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<PackageSignatureValidator> _logger;
 
@@ -29,6 +32,7 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             IValidatorStateService validatorStateService,
             IProcessSignatureEnqueuer signatureVerificationEnqueuer,
             ISimpleCloudBlobProvider blobProvider,
+            IOptionsSnapshot<ScanAndSignConfiguration> configAccessor,
             ITelemetryService telemetryService,
             ILogger<PackageSignatureValidator> logger)
           : base(validatorStateService, signatureVerificationEnqueuer, blobProvider, telemetryService, logger)
@@ -38,6 +42,13 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             _blobProvider = blobProvider ?? throw new ArgumentNullException(nameof(blobProvider));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            if (configAccessor?.Value == null)
+            {
+                throw new ArgumentException($"{nameof(ScanAndSignConfiguration)} is required", nameof(configAccessor));
+            }
+
+            _config = configAccessor.Value;
         }
 
         /// <summary>
@@ -66,14 +77,29 @@ namespace NuGet.Services.Validation.PackageSigning.ProcessSignature
             /// All signature validation issues should be caught and handled by the processor.
             if (result.Status == ValidationStatus.Failed || result.NupkgUrl != null)
             {
-                _logger.LogCritical(
-                    "Unexpected validation result in package signature validator. This may be caused by an invalid repository " +
-                    "signature. Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
-                    result.Status,
-                    result.NupkgUrl,
-                    result.Issues.Select(i => i.IssueCode));
+                if (_config.RepositorySigningEnabled)
+                {
+                    _logger.LogCritical(
+                        "Unexpected validation result in package signature validator. This may be caused by an invalid repository " +
+                        "signature. Throwing an exception to force this validation to dead-letter. " +
+                        "Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
+                        result.Status,
+                        result.NupkgUrl,
+                        result.Issues.Select(i => i.IssueCode));
 
-                throw new InvalidOperationException("Package signature validator has an unexpected validation result");
+                    throw new InvalidOperationException("Package signature validator has an unexpected validation result");
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Ignoring invalid validation result in package signature validator as repository signing is disabled. " +
+                        "Status = {ValidationStatus}, Nupkg URL = {NupkgUrl}, validation issues = {Issues}",
+                        result.Status,
+                        result.NupkgUrl,
+                        result.Issues.Select(i => i.IssueCode));
+
+                    return ValidationResult.Succeeded;
+                }
             }
 
             /// Suppress all validation issues. The <see cref="PackageSignatureProcessor"/> should

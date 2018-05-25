@@ -111,7 +111,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 SignatureValidatorResult result,
                 ValidationStatus validationStatus,
                 PackageSigningStatus packageSigningStatus,
-                Uri nupkgUri = null)
+                Uri nupkgUri = null,
+                bool? shouldExtract = null)
             {
                 Assert.Equal(validationStatus, result.State);
                 Assert.Equal(nupkgUri, result.NupkgUri);
@@ -130,8 +131,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         It.IsAny<PackageSigningStatus>()),
                     Times.Once);
 
-                if (validationStatus == ValidationStatus.Succeeded
-                    && packageSigningStatus == PackageSigningStatus.Valid)
+                if ((shouldExtract.HasValue && shouldExtract.Value) ||
+                    (validationStatus == ValidationStatus.Succeeded && packageSigningStatus == PackageSigningStatus.Valid))
                 {
                     _signaturePartsExtractor.Verify(
                         x => x.ExtractAsync(_packageKey, It.Is<PrimarySignature>(y => y != null), It.IsAny<CancellationToken>()),
@@ -215,7 +216,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _cancellationToken);
 
                 // Assert
-                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Unsigned);
                 Assert.Empty(result.Issues);
             }
 
@@ -427,7 +428,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
 
             [Fact]
-            public async Task WhenRepositorySigningIsRequired_RejectsSignedPackagesWithNoRepositorySignature()
+            public async Task WhenRepositorySigningIsRequired_FailsValidationOfSignedPackagesWithNoRepositorySignature()
             {
                 // Arrange
                 _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
@@ -450,7 +451,56 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _cancellationToken);
 
                 // Assert
-                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                Validate(result, ValidationStatus.Failed, PackageSigningStatus.Valid, shouldExtract: true);
+                Assert.Empty(result.Issues);
+            }
+
+            [Theory]
+            [InlineData(
+                TestResources.RepoSignedPackageLeaf1,
+                TestResources.RepoSignedPackageLeafId,
+                TestResources.RepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Unsigned,
+                false)]
+            [InlineData(
+                TestResources.AuthorAndRepoSignedPackageLeaf1,
+                TestResources.AuthorAndRepoSignedPackageLeafId,
+                TestResources.AuthorAndRepoSignedPackageLeaf1Version,
+                PackageSigningStatus.Valid,
+                true)]
+            public async Task WhenRepositorySigningIsRequired_FailsValidationOfPackageWhoseRepositorySignatureIsStripped(
+                string resourceName,
+                string packageId,
+                string packageVersion,
+                PackageSigningStatus signingStatus,
+                bool allowSignedPackage)
+            {
+                // Arrange
+                _packageStream = TestResources.GetResourceStream(resourceName);
+                if (allowSignedPackage)
+                {
+                    TestUtility.RequireSignedPackage(_corePackageService, packageId, TestResources.Leaf1Thumbprint);
+                }
+                else
+                {
+                    TestUtility.RequireUnsignedPackage(_corePackageService, packageId);
+                }
+                _message = new SignatureValidationMessage(
+                   packageId,
+                   packageVersion,
+                   new Uri($"https://unit.test/{TestResources.RepoSignedPackageLeafId.ToLowerInvariant()}"),
+                   Guid.NewGuid(),
+                   requireRepositorySignature: true);
+
+                // Act
+                var result = await _target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _cancellationToken);
+
+                // Assert
+                Validate(result, ValidationStatus.Failed, signingStatus, shouldExtract: signingStatus == PackageSigningStatus.Valid);
                 Assert.Empty(result.Issues);
             }
 

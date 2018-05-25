@@ -73,12 +73,31 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     return await RejectAsync(context, ValidationIssue.PackageIsZip64);
                 }
 
+                SignatureValidatorResult result;
+
                 if (await context.PackageReader.IsSignedAsync(cancellationToken))
                 {
-                    return await HandleSignedPackageAsync(context);
+                    result = await HandleSignedPackageAsync(context);
+                }
+                else
+                {
+                    result = await HandleUnsignedPackageAsync(context);
                 }
 
-                return await HandleUnsignedPackageAsync(context);
+                // Force the validation to fail if the repository signature is expected but missing. The signature
+                // and signing state that are stored in the database may be still valid.
+                if (context.Message.RequireRepositorySignature && !context.HasRepositorySignature)
+                {
+                    _logger.LogCritical(
+                        "Package {PackageId} {PackageVersion} for validation {ValidationId} is expected to be repository signed.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+
+                    return new SignatureValidatorResult(ValidationStatus.Failed, result.Issues, nupkgUri: null);
+                }
+
+                return result;
             }
         }
 
@@ -95,17 +114,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     context.Message.ValidationId);
 
                 return await RejectAsync(context, ValidationIssue.PackageIsNotSigned);
-            }
-
-            if (context.Message.RequireRepositorySignature)
-            {
-                _logger.LogCritical(
-                    "Package {PackageId} {PackageVersion} for validation {ValidationId} is expected to be repository signed but is unsigned.",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId);
-
-                return await RejectAsync(context);
             }
 
             _logger.LogInformation(
@@ -502,17 +510,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     context.Signature.Type);
 
                 return await RejectAsync(context, ValidationIssue.OnlyAuthorSignaturesSupported);
-            }
-
-            if (context.Message.RequireRepositorySignature && !context.HasRepositorySignature)
-            {
-                _logger.LogCritical(
-                    "Package {PackageId} {PackageVersion} for validation {ValidationId} is expected to be repository signed.",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId);
-
-                return await RejectAsync(context);
             }
 
             // Call the "verify" API, which does the main logic of signature validation.

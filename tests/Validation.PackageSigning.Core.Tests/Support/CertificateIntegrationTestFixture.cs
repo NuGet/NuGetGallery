@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 using Test.Utility.Signing;
 using Xunit;
 using BCCertificate = Org.BouncyCastle.X509.X509Certificate;
@@ -141,18 +142,35 @@ namespace Validation.PackageSigning.Core.Tests.Support
             return IssueCertificate(ca, "Signing", CustomizeAsSigningCertificate).certificate;
         }
 
-        public async Task<UntrustedCertificate> CreateUntrustedSigningCertificateAsync()
+        public async Task<X509Certificate2> CreateUntrustedRootSigningCertificateAsync()
         {
+            var options = IssueCertificateOptions.CreateDefaultForRootCertificateAuthority();
+
+            options.CustomizeCertificate = (X509V3CertificateGenerator generator) =>
+            {
+                generator.AddExtension(
+                    X509Extensions.SubjectKeyIdentifier,
+                    critical: false,
+                    extensionValue: new SubjectKeyIdentifierStructure(options.KeyPair.Public));
+                generator.AddExtension(
+                    X509Extensions.BasicConstraints,
+                    critical: true,
+                    extensionValue: new BasicConstraints(cA: true));
+                generator.AddExtension(
+                    X509Extensions.KeyUsage,
+                    critical: true,
+                    extensionValue: new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
+                generator.AddSigningEku();
+            };
+
             var testServer = await GetTestServerAsync();
-            var rootCa = CertificateAuthority.Create(testServer.Url);
-            var rootCertificate = new X509Certificate2(rootCa.Certificate.GetEncoded());
+            var rootCa = CertificateAuthority.Create(testServer.Url, options);
 
-            var intermediateCa = rootCa.CreateIntermediateCertificateAuthority();
-            var disposable = testServer.RegisterResponders(intermediateCa);
+            var certificate = new X509Certificate2(rootCa.Certificate.GetEncoded());
 
-            var certificate = CreateSigningCertificate(intermediateCa);
+            certificate.PrivateKey = DotNetUtilities.ToRSA(options.KeyPair.Private as RsaPrivateCrtKeyParameters);
 
-            return new UntrustedCertificate(rootCertificate, certificate, disposable);
+            return certificate;
         }
 
         public async Task<RevokableCertificate> CreateRevokableSigningCertificateAsync()
@@ -252,33 +270,6 @@ namespace Validation.PackageSigning.Core.Tests.Support
             var identity = WindowsIdentity.GetCurrent();
             var principal = new WindowsPrincipal(identity);
             return principal.IsInRole(WindowsBuiltInRole.Administrator);
-        }
-
-        public class UntrustedCertificate
-        {
-            private readonly X509Certificate2 _root;
-            private readonly IDisposable _disposable;
-
-            public UntrustedCertificate(X509Certificate2 root, X509Certificate2 certificate, IDisposable disposable)
-            {
-                _root = root ?? throw new ArgumentNullException(nameof(root));
-                _disposable = disposable ?? throw new ArgumentNullException(nameof(disposable));
-
-                Certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
-            }
-
-            public X509Certificate2 Certificate { get; }
-
-            public IDisposable TemporarilyTrust()
-            {
-                return new TrustedTestCert<X509Certificate2>(
-                    _root,
-                    x => x,
-                    StoreName.Root,
-                    StoreLocation.LocalMachine);
-            }
-
-            public void Dispose() => _disposable.Dispose();
         }
 
         public class RevokableCertificate
