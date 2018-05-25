@@ -10,15 +10,13 @@ namespace NuGetGallery
 {
     public class LocalReportService : IReportService
     {
-        private const string FolderName = "Reports";
-
-        private readonly IFileStorageService _fileStorage;
-
         public LocalReportService(
             IFileStorageService fileStorage)
         {
-            _fileStorage = fileStorage;
+            FileStorage = fileStorage ?? throw new ArgumentNullException(nameof(fileStorage));
         }
+
+        private IFileStorageService FileStorage { get; }
 
         public IReportContainer GetContainer(string containerName)
         {
@@ -27,6 +25,8 @@ namespace NuGetGallery
 
         private class Container : IReportContainer
         {
+            private const string RootFolder = "Reports";
+
             private readonly LocalReportService _parent;
             private readonly string _containerName;
 
@@ -43,7 +43,8 @@ namespace NuGetGallery
 
             public async Task<ReportBlob> Load(string reportName)
             {
-                using (var stream = await _parent._fileStorage.GetFileAsync(FolderName, fileName: reportName))
+                string folderName = Path.Combine(RootFolder, _containerName);
+                using (var stream = await _parent.FileStorage.GetFileAsync(folderName, fileName: reportName))
                 {
                     if (stream == null)
                     {

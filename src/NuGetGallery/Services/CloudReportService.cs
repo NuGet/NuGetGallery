@@ -40,7 +40,7 @@ namespace NuGetGallery
 
         private class Container : IReportContainer
         {
-            private CloudBlobContainer _container;
+            private readonly CloudBlobContainer _container;
 
             public Container(CloudBlobContainer container)
             {

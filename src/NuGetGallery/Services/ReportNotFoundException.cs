@@ -7,17 +7,28 @@ using System.Runtime.Serialization;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Exception thrown when a <see cref="ReportBlob"/> is not found by the <see cref="ReportService"/>.
+    /// Exception thrown when a <see cref="ReportBlob"/> is not found by an <see cref="IReportContainer"/>.
     /// </summary>
     [Serializable]
     public class ReportNotFoundException : Exception
     {
-        public ReportNotFoundException() { }
-        public ReportNotFoundException(string message) : base(message) { }
-        public ReportNotFoundException(string message, Exception inner) : base(message, inner) { }
-        protected ReportNotFoundException(
-          SerializationInfo info,
-          StreamingContext context)
-            : base(info, context) { }
+        public ReportNotFoundException()
+        {
+        }
+
+        public ReportNotFoundException(string message)
+            : base(message)
+        {
+        }
+
+        public ReportNotFoundException(string message, Exception inner)
+            : base(message, inner)
+        {
+        }
+
+        protected ReportNotFoundException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 }

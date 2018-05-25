@@ -199,7 +199,7 @@ namespace NuGetGallery
             return package;
         }
 
-        public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey = null)
+        public virtual Package FindAbsoluteLatestPackageById(string id, int? semVerLevelKey)
         {
             var packageVersions = GetPackagesByIdQueryable(id);
 

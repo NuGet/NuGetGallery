@@ -13,7 +13,7 @@ namespace NuGetGallery
 {
     public class RelatedPackagesService : IRelatedPackagesService
     {
-        internal const string ContainerName = "nuget-relatedpackages";
+        internal const string ContainerName = "nuget-relativity";
 
         private readonly IPackageService _packageService;
         private readonly IReportContainer _reportContainer;
@@ -59,7 +59,7 @@ namespace NuGetGallery
 
             var relatedPackageIds = relatedPackages.Recommendations;
             return relatedPackageIds
-                .Select(id => _packageService.FindAbsoluteLatestPackageById(id))
+                .Select(id => _packageService.FindAbsoluteLatestPackageById(id, SemVerLevelKey.Unknown))
                 .Where(p => p != null);
         }
 
@@ -76,7 +76,7 @@ namespace NuGetGallery
             }
 
             string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(packageId));
-            return $"RelatedPackages/{encodedId}.json";
+            return $"{encodedId}.json";
         }
     }
 }
