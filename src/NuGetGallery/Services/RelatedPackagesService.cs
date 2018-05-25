@@ -13,7 +13,7 @@ namespace NuGetGallery
 {
     public class RelatedPackagesService : IRelatedPackagesService
     {
-        private const string ContainerName = "nuget-relatedpackages";
+        internal const string ContainerName = "nuget-relatedpackages";
 
         private readonly IPackageService _packageService;
         private readonly IReportService _reportService;
