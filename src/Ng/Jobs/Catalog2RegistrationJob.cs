@@ -17,6 +17,7 @@ namespace Ng.Jobs
         private CommitCollector _collector;
         private ReadWriteCursor _front;
         private ReadCursor _back;
+        private Uri _destination;
 
         public Catalog2RegistrationJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
         {
@@ -59,7 +60,8 @@ namespace Ng.Jobs
                    + $"-{Arguments.SemVer2StoragePath} <path>"
                    + Environment.NewLine
                    + "Optional Arguments"
-                   + $"-{Arguments.StorageOperationMaxExecutionTimeInSeconds} <azureOperationMaxExecutionTimeInSeconds>";
+                   + $"-{Arguments.StorageOperationMaxExecutionTimeInSeconds} <azureOperationMaxExecutionTimeInSeconds>"
+                   + $"-{Arguments.StorageServerTimeoutInSeconds} <storageServerTimeoutInSeconds>";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -111,16 +113,23 @@ namespace Ng.Jobs
             var cursorStorage = storageFactories.LegacyStorageFactory.Create();
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
             storageFactories.SemVer2StorageFactory?.Create();
+
+            _destination = storageFactories.LegacyStorageFactory.DestinationAddress;
+            TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination?.AbsoluteUri;
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
-            bool run;
-            do
+            using (Logger.BeginScope($"Logging for {TelemetryConstants.Destination}", _destination?.AbsoluteUri))
+            using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
             {
-                run = await _collector.Run(_front, _back, cancellationToken);
+                bool run;
+                do
+                {
+                    run = await _collector.Run(_front, _back, cancellationToken);
+                }
+                while (run);
             }
-            while (run);
         }
     }
 }

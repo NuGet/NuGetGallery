@@ -25,9 +25,14 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
-            var stopwatch = Stopwatch.StartNew();
-            JObject root = await client.GetJObjectAsync(Index, cancellationToken);
-            _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, Index);
+            JObject root;
+
+            using (_telemetryService.TrackDuration(
+                TelemetryConstants.CatalogIndexReadDurationSeconds,
+                new Dictionary<string, string>() { { TelemetryConstants.Uri, Index.AbsoluteUri } }))
+            {
+                root = await client.GetJObjectAsync(Index, cancellationToken);
+            }
 
             IEnumerable<CatalogItem> rootItems = root["items"]
                 .Select(item => new CatalogItem(item))
@@ -42,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog
 
                 JToken context = null;
                 page.TryGetValue("@context", out context);
-                
+
                 var batches = await CreateBatches(page["items"]
                     .Select(item => new CatalogItem(item))
                     .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value));
@@ -67,11 +72,11 @@ namespace NuGet.Services.Metadata.Catalog
                     }
 
                     acceptNextBatch = await OnProcessBatch(
-                        client, 
-                        batch.Items.Select(item => item.Value), 
-                        context, 
-                        batch.CommitTimeStamp, 
-                        batch.CommitTimeStamp == lastBatch.CommitTimeStamp, 
+                        client,
+                        batch.Items.Select(item => item.Value),
+                        context,
+                        batch.CommitTimeStamp,
+                        batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
                         cancellationToken);
 
                     // If this is the last batch, commit the cursor.

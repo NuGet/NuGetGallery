@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
@@ -48,11 +47,21 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
                 if (type == Schema.DataTypes.PackageDetails.ToString())
                 {
-                    await ProcessPackageDetailsAsync(client, id, version, cancellationToken);
+                    var properties = GetTelemetryProperties(id, version);
+
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetails, properties))
+                    {
+                        await ProcessPackageDetailsAsync(client, id, version, cancellationToken);
+                    }
                 }
                 else if (type == Schema.DataTypes.PackageDelete.ToString())
                 {
-                    await ProcessPackageDeleteAsync(id, version, cancellationToken);
+                    var properties = GetTelemetryProperties(id, version);
+
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDelete, properties))
+                    {
+                        await ProcessPackageDeleteAsync(id, version, cancellationToken);
+                    }
                 }
             }
 
@@ -160,6 +169,15 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 }
             }
             return null;
+        }
+
+        private static Dictionary<string, string> GetTelemetryProperties(string packageId, string packageVersion)
+        {
+            return new Dictionary<string, string>()
+            {
+                { TelemetryConstants.Id, packageId },
+                { TelemetryConstants.Version, packageVersion }
+            };
         }
     }
 }

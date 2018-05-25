@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Moq;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
@@ -15,16 +17,20 @@ namespace CatalogTests
 {
     public class TelemetryHandlerTests
     {
-        private readonly Mock<ITelemetryService> _telemetryService;
+        private readonly Mock<TelemetryService> _telemetryService;
         private Func<Task<HttpResponseMessage>> _sendAsync;
         private readonly FuncHttpMessageHandler _innerHandler;
         private readonly HttpRequestMessage _request;
         private readonly TelemetryHandler _target;
         private readonly HttpClient _httpClient;
+        private IDictionary<string, string> _properties;
 
         public TelemetryHandlerTests()
         {
-            _telemetryService = new Mock<ITelemetryService>();
+            _telemetryService = new Mock<TelemetryService>(new TelemetryClient());
+            _telemetryService.Setup(x => x.TrackDuration(TelemetryConstants.HttpHeaderDurationSeconds, It.IsAny<IDictionary<string, string>>()))
+                             .Callback((string name, IDictionary<string, string> properties) => { _properties = properties; }).CallBase();
+
             _sendAsync = () => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
                 Content = new StringContent("Hello, world!"),
@@ -45,15 +51,12 @@ namespace CatalogTests
             // Act & Assert
             var actual = await Assert.ThrowsAsync<HttpRequestException>(() => _httpClient.SendAsync(_request));
             Assert.Same(expected, actual);
-            _telemetryService.Verify(
-                x => x.TrackHttpHeaderDuration(
-                    It.Is<TimeSpan>(ts => ts > TimeSpan.Zero),
-                    _request.Method,
-                    _request.RequestUri,
-                    false,
-                    null,
-                    null),
-                Times.Once);
+
+            _telemetryService.Verify(x => x.TrackDuration(It.IsAny<string>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
+
+            Assert.Equal(2, _properties.Count);
+            Assert.Equal(_request.Method.ToString(), _properties[TelemetryConstants.Method]);
+            Assert.Equal(_request.RequestUri.AbsoluteUri, _properties[TelemetryConstants.Uri]);
         }
 
         [Fact]
@@ -71,15 +74,14 @@ namespace CatalogTests
 
             // Assert
             Assert.Same(expected, actual);
-            _telemetryService.Verify(
-                x => x.TrackHttpHeaderDuration(
-                    It.Is<TimeSpan>(ts => ts > TimeSpan.Zero),
-                    _request.Method,
-                    _request.RequestUri,
-                    false,
-                    expected.StatusCode,
-                    expected.Content.Headers.ContentLength.Value),
-                Times.Once);
+            _telemetryService.Verify(x => x.TrackDuration(It.IsAny<string>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
+
+            Assert.Equal(5, _properties.Count);
+            Assert.Equal(_request.Method.ToString(), _properties[TelemetryConstants.Method]);
+            Assert.Equal(_request.RequestUri.AbsoluteUri, _properties[TelemetryConstants.Uri]);
+            Assert.Equal(((int)expected.StatusCode).ToString(), _properties[TelemetryConstants.StatusCode]);
+            Assert.Equal("False", _properties[TelemetryConstants.Success]);
+            Assert.Equal(_properties[TelemetryConstants.ContentLength], expected.Content.Headers.ContentLength.Value.ToString());
         }
 
         [Fact]
@@ -97,15 +99,14 @@ namespace CatalogTests
 
             // Assert
             Assert.Same(expected, actual);
-            _telemetryService.Verify(
-                x => x.TrackHttpHeaderDuration(
-                    It.Is<TimeSpan>(ts => ts > TimeSpan.Zero),
-                    _request.Method,
-                    _request.RequestUri,
-                    true,
-                    expected.StatusCode,
-                    expected.Content.Headers.ContentLength.Value),
-                Times.Once);
+            _telemetryService.Verify(x => x.TrackDuration(It.IsAny<string>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
+
+            Assert.Equal(5, _properties.Count);
+            Assert.Equal(_request.Method.ToString(), _properties[TelemetryConstants.Method]);
+            Assert.Equal(_request.RequestUri.AbsoluteUri, _properties[TelemetryConstants.Uri]);
+            Assert.Equal(((int)expected.StatusCode).ToString(), _properties[TelemetryConstants.StatusCode]);
+            Assert.Equal("True", _properties[TelemetryConstants.Success]);
+            Assert.Equal(_properties[TelemetryConstants.ContentLength], expected.Content.Headers.ContentLength.Value.ToString());
         }
 
         [Fact]
@@ -123,15 +124,14 @@ namespace CatalogTests
 
             // Assert
             Assert.Same(expected, actual);
-            _telemetryService.Verify(
-                x => x.TrackHttpHeaderDuration(
-                    It.Is<TimeSpan>(ts => ts > TimeSpan.Zero),
-                    _request.Method,
-                    _request.RequestUri,
-                    true,
-                    expected.StatusCode,
-                    null),
-                Times.Once);
+            _telemetryService.Verify(x => x.TrackDuration(It.IsAny<string>(), It.IsAny<IDictionary<string, string>>()), Times.Once);
+
+            Assert.Equal(5, _properties.Count);
+            Assert.Equal(_request.Method.ToString(), _properties[TelemetryConstants.Method]);
+            Assert.Equal(_request.RequestUri.AbsoluteUri, _properties[TelemetryConstants.Uri]);
+            Assert.Equal(((int)expected.StatusCode).ToString(), _properties[TelemetryConstants.StatusCode]);
+            Assert.Equal("True", _properties[TelemetryConstants.Success]);
+            Assert.Equal("0", _properties[TelemetryConstants.ContentLength]);
         }
 
         private class NoLengthStream : Stream

@@ -10,6 +10,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public Uri BaseAddress { get; protected set; }
 
+        // For telemetry only
+        public Uri DestinationAddress { get; protected set; }
+
         public bool Verbose { get; set; }
 
         public override string ToString()

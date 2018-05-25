@@ -489,6 +489,7 @@ namespace Ng.Jobs
                 new Uri(_contentBaseAddress),
                 RegistrationCollector.PartitionSize,
                 RegistrationCollector.PackageCountThreshold,
+                TelemetryService,
                 CancellationToken.None
                 );
 
@@ -501,6 +502,7 @@ namespace Ng.Jobs
                     new Uri(_contentBaseAddress),
                     RegistrationCollector.PartitionSize,
                     RegistrationCollector.PackageCountThreshold,
+                    TelemetryService,
                     CancellationToken.None
                     );
             }

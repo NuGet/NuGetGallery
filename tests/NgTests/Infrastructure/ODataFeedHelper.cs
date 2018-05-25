@@ -50,6 +50,8 @@ namespace NgTests.Infrastructure
                     new XAttribute("type", "application/zip"),
                     new XAttribute("src", downloadUrl)),
                 new XElement(XName.Get("properties", nsMetadata),
+                    new XElement(nsDataService + "Id", package.Id),
+                    new XElement(nsDataService + "NormalizedVersion", package.Version),
                     new XElement(nsDataService + "Version", package.Version),
                     new XElement(nsDataService + "PackageHash", "dummy"),
                     new XElement(nsDataService + "PackageHashAlgorithm", "dummy"),

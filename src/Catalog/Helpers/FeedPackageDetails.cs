@@ -5,13 +5,54 @@ using System;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
 {
-    public class FeedPackageDetails
+    public sealed class FeedPackageDetails
     {
-        public Uri ContentUri { get; set; }
-        public DateTime CreatedDate { get; set; }
-        public DateTime LastEditedDate { get; set; }
-        public DateTime PublishedDate { get; set; }
-        public string LicenseNames { get; set; }
-        public string LicenseReportUrl { get; set; }
+        public Uri ContentUri { get; }
+        public DateTime CreatedDate { get; }
+        public DateTime LastEditedDate { get; }
+        public DateTime PublishedDate { get; }
+        public string PackageId { get; }
+        public string PackageVersion { get; }
+        public string LicenseNames { get; }
+        public string LicenseReportUrl { get; }
+
+        public FeedPackageDetails(
+            Uri contentUri,
+            DateTime createdDate,
+            DateTime lastEditedDate,
+            DateTime publishedDate,
+            string packageId,
+            string packageVersion)
+            : this(
+                contentUri,
+                createdDate,
+                lastEditedDate,
+                publishedDate,
+                packageId,
+                packageVersion,
+                licenseNames: null,
+                licenseReportUrl: null)
+        {
+        }
+
+        public FeedPackageDetails(
+            Uri contentUri,
+            DateTime createdDate,
+            DateTime lastEditedDate,
+            DateTime publishedDate,
+            string packageId,
+            string packageVersion,
+            string licenseNames,
+            string licenseReportUrl)
+        {
+            ContentUri = contentUri;
+            CreatedDate = createdDate;
+            LastEditedDate = lastEditedDate;
+            PublishedDate = publishedDate;
+            PackageId = packageId;
+            PackageVersion = packageVersion;
+            LicenseNames = licenseNames;
+            LicenseReportUrl = licenseReportUrl;
+        }
     }
 }

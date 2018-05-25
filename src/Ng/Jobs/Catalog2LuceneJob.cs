@@ -24,6 +24,7 @@ namespace Ng.Jobs
         private string _catalogBaseAddress;
         private string _storageBaseAddress;
         private Func<HttpMessageHandler> _handlerFunc;
+        private string _destination;
 
         public Catalog2LuceneJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
@@ -51,7 +52,7 @@ namespace Ng.Jobs
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
-            _directory = CommandHelpers.GetLuceneDirectory(arguments);
+            _directory = CommandHelpers.GetLuceneDirectory(arguments, out var destination);
             _source = arguments.GetOrThrow<string>(Arguments.Source);
             _verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
@@ -81,10 +82,15 @@ namespace Ng.Jobs
                 _verbose,
                 _catalogBaseAddress,
                 _storageBaseAddress);
+
+            _destination = destination;
+            TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination;
         }
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
+            using (Logger.BeginScope($"Logging for {TelemetryConstants.Destination}", _destination))
+            using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
             using (var indexWriter = CreateIndexWriter(_directory))
             {
                 var collector = new SearchIndexFromCatalogCollector(

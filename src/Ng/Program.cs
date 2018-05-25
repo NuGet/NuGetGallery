@@ -14,13 +14,14 @@ using Ng.Jobs;
 using NuGet.Services.Configuration;
 using NuGet.Services.Logging;
 using NuGet.Services.Metadata.Catalog;
+using Serilog;
 using Serilog.Events;
 
 namespace Ng
 {
     public class Program
     {
-        private static ILogger _logger;
+        private static Microsoft.Extensions.Logging.ILogger _logger;
 
         public static void Main(string[] args)
         {
@@ -60,6 +61,8 @@ namespace Ng
 
                 // Create an ILoggerFactory
                 var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
+                loggerConfiguration.WriteTo.File("Log.txt", retainedFileCountLimit: 3, fileSizeLimitBytes: 1000000);
+
                 var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration, LogEventLevel.Debug);
 
                 // Create a logger that is scoped to this class (only)
@@ -69,6 +72,9 @@ namespace Ng
 
                 // Create an ITelemetryService
                 var telemetryService = new TelemetryService(new TelemetryClient());
+
+                // Allow jobs to set global custom dimensions
+                TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobPropertiesTelemetryInitializer(telemetryService));
 
                 job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
                 await job.Run(arguments, cancellationTokenSource.Token);
