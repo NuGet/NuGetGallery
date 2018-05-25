@@ -20,10 +20,9 @@ namespace NuGetGallery
             _readAccessGeoRedundant = readAccessGeoRedundant;
         }
 
-        public Task<IReportContainer> GetContainer(string containerName)
+        public IReportContainer GetContainer(string containerName)
         {
-            return Task.FromResult<IReportContainer>(
-                new Container(GetCloudBlobContainer(containerName)));
+            return new Container(GetCloudBlobContainer(containerName));
         }
 
         private CloudBlobContainer GetCloudBlobContainer(string containerName)

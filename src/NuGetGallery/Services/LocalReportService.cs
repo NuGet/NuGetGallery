@@ -20,9 +20,9 @@ namespace NuGetGallery
             _fileStorage = fileStorage;
         }
 
-        public Task<IReportContainer> GetContainer(string containerName)
+        public IReportContainer GetContainer(string containerName)
         {
-            return Task.FromResult<IReportContainer>(new Container(this, containerName));
+            return new Container(this, containerName);
         }
 
         private class Container : IReportContainer

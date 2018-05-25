@@ -1,14 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using System.Web;
-using System.Web.Mvc;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -58,10 +53,21 @@ namespace NuGetGallery
             }
 
             var reportNames = idMap.Keys;
-            var reportService = new Mock<IReportService>();
-            reportService
+            var reportContainer = new Mock<IReportContainer>();
+            reportContainer
                 .Setup(rs => rs.Load(It.IsIn<string>(reportNames)))
                 .Returns<string>(GetReportByName);
+            return CreateReportService(reportContainer);
+        }
+
+        private static Mock<IReportService> CreateReportService(
+            Mock<IReportContainer> reportContainer,
+            string containerName = RelatedPackagesService.ContainerName)
+        {
+            var reportService = new Mock<IReportService>();
+            reportService
+                .Setup(rs => rs.GetContainer(containerName))
+                .Returns(reportContainer.Object);
             return reportService;
         }
 
@@ -82,10 +88,12 @@ namespace NuGetGallery
             [Fact]
             public async void WillReturnEmptyListIfReportIsNotFound()
             {
-                var reportService = new Mock<IReportService>();
-                reportService
+                var reportContainer = new Mock<IReportContainer>();
+                reportContainer
                     .Setup(rs => rs.Load(It.IsAny<string>()))
                     .ThrowsAsync(new ReportNotFoundException());
+                var reportService = CreateReportService(reportContainer);
+
                 var relatedPackagesService = CreateService(
                     reportService: reportService);
 

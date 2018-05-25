@@ -16,22 +16,19 @@ namespace NuGetGallery
         internal const string ContainerName = "nuget-relatedpackages";
 
         private readonly IPackageService _packageService;
-        private readonly IReportService _reportService;
-
-        private IReportContainer _reportContainer;
+        private readonly IReportContainer _reportContainer;
 
         public RelatedPackagesService(
             IPackageService packageService,
             IReportService reportService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
+            _reportContainer = (reportService ?? throw new ArgumentNullException(nameof(reportService)))
+                .GetContainer(ContainerName);
         }
 
         public async Task<IEnumerable<Package>> GetRelatedPackagesAsync(Package package)
         {
-            await EnsureReportContainerLoaded();
-
             RelatedPackages relatedPackages;
             try
             {
@@ -71,16 +68,6 @@ namespace NuGetGallery
 
             string encodedId = GetHexadecimalString(Encoding.UTF8.GetBytes(packageId));
             return $"RelatedPackages/{encodedId}.json";
-        }
-
-        private async Task EnsureReportContainerLoaded()
-        {
-            const string ContainerName = "nuget-relatedpackages";
-
-            if (_reportContainer == null)
-            {
-                _reportContainer = await _reportService.GetContainer(ContainerName);
-            }
         }
     }
 }
