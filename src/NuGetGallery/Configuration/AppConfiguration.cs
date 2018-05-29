@@ -38,6 +38,21 @@ namespace NuGetGallery.Configuration
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] ForceSslExclusion { get; set; }
 
+        [DisplayName("AwsS3Storage.AccessKey")]
+        public string AwsS3Storage_AccessKey { get; set; }
+
+        [DisplayName("AwsS3Storage.SecretKey")]
+        public string AwsS3Storage_SecretKey { get; set; }
+
+        [DisplayName("AwsS3Storage.Bucket")]
+        public string AwsS3Storage_Bucket { get; set; }
+
+        [DisplayName("AwsS3Storage.Region")]
+        public string AwsS3Storage_Region { get; set; }
+
+        [DisplayName("AwsS3Storage.RootDirectory")]
+        public string AwsS3Storage_RootDirectory { get; set; }
+
         [DisplayName("AzureStorage.Auditing.ConnectionString")]
         public string AzureStorage_Auditing_ConnectionString { get; set; }
 

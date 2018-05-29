@@ -41,6 +41,31 @@ namespace NuGetGallery.Configuration
         string[] ForceSslExclusion { get; set; }
 
         /// <summary>
+        /// The AccessKey used to access Amazon's S3 service.
+        /// </summary>
+        string AwsS3Storage_AccessKey { get; set; }
+
+        /// <summary>
+        /// The SecretKey provided to access Amazon's S3 service.
+        /// </summary>
+        string AwsS3Storage_SecretKey { get; set; }
+
+        /// <summary>
+        /// The name of the bucket in which to store files in Amazon's S3 service.
+        /// </summary>
+        string AwsS3Storage_Bucket { get; set; }
+
+        /// <summary>
+        /// The name of the region in which the AwsS3Storage_Bucket resides. (us-east-1)
+        /// </summary>
+        string AwsS3Storage_Region { get; set; }
+
+        /// <summary>
+        /// The name of the directory to use as root inside the bucket in which to store files in Amazon's S3 service. Use if the bucket is not exclusively used by nuget.
+        /// </summary>
+        string AwsS3Storage_RootDirectory { get; set; }
+
+        /// <summary>
         /// The Azure Storage connection string used for auditing.
         /// </summary>
         string AzureStorage_Auditing_ConnectionString { get; set; }
