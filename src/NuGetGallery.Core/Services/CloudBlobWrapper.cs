@@ -16,57 +16,26 @@ namespace NuGetGallery
     {
         private readonly CloudBlockBlob _blob;
 
+        public BlobProperties Properties => _blob.Properties;
+        public IDictionary<string, string> Metadata => _blob.Metadata;
+        public CopyState CopyState => _blob.CopyState;
+        public Uri Uri => _blob.Uri;
+        public string Name => _blob.Name;
+        public DateTime LastModifiedUtc => _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue;
+        public string ETag => _blob.Properties.ETag;
+
         public CloudBlobWrapper(CloudBlockBlob blob)
         {
             _blob = blob;
         }
 
-        public BlobProperties Properties
+        public async Task DeleteIfExistsAsync()
         {
-            get { return _blob.Properties; }
-        }
-
-        public IDictionary<string, string> Metadata
-        {
-            get { return _blob.Metadata; }
-        }
-
-        public CopyState CopyState
-        {
-            get { return _blob.CopyState; }
-        }
-
-        public Uri Uri
-        {
-            get { return _blob.Uri; }
-        }
-
-        public string Name
-        {
-            get { return _blob.Name; }
-        }
-
-        public DateTime LastModifiedUtc
-        {
-            get { return _blob.Properties.LastModified?.UtcDateTime ?? DateTime.MinValue; }
-        }
-
-        public string ETag
-        {
-            get { return _blob.Properties.ETag; }
-        }
-
-        public Task DeleteIfExistsAsync()
-        {
-            return Task.Factory.FromAsync<bool>(
-                    (cb, state) => _blob.BeginDeleteIfExists(deleteSnapshotsOption: DeleteSnapshotsOption.IncludeSnapshots,
-                    accessCondition: null,
-                    options: null,
-                    operationContext: null,
-                    callback: cb,
-                    state: state),
-                    ar => _blob.EndDeleteIfExists(ar),
-                    state: null);
+            await _blob.DeleteIfExistsAsync(
+                DeleteSnapshotsOption.IncludeSnapshots,
+                accessCondition: null,
+                options: null,
+                operationContext: null);
         }
 
         public Task DownloadToStreamAsync(Stream target)
@@ -74,7 +43,7 @@ namespace NuGetGallery
             return DownloadToStreamAsync(target, accessCondition: null);
         }
 
-        public Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition)
+        public async Task DownloadToStreamAsync(Stream target, AccessCondition accessCondition)
         {
             // Note: Overloads of FromAsync that take an AsyncCallback and State to pass through are more efficient:
             //  http://blogs.msdn.com/b/pfxteam/archive/2009/06/09/9716439.aspx
@@ -84,45 +53,22 @@ namespace NuGetGallery
                 RetryPolicy = new DontRetryOnNotModifiedPolicy(new LinearRetry())
             };
 
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginDownloadToStream(
-                    target,
-                    accessCondition,
-                    options: options,
-                    operationContext: null,
-                    callback: cb,
-                    state: state),
-                ar => _blob.EndDownloadToStream(ar),
-                state: null);
+            await _blob.DownloadToStreamAsync(target, accessCondition, options, operationContext: null);
         }
 
-        public Task<bool> ExistsAsync()
+        public async Task<bool> ExistsAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginExists(cb, state),
-                ar => _blob.EndExists(ar),
-                state: null);
+            return await _blob.ExistsAsync();
         }
 
-        public Task SetPropertiesAsync()
+        public async Task SetPropertiesAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginSetProperties(cb, state),
-                ar => _blob.EndSetProperties(ar),
-                state: null);
+            await _blob.SetPropertiesAsync();
         }
 
-        public Task SetMetadataAsync(AccessCondition accessCondition)
+        public async Task SetMetadataAsync(AccessCondition accessCondition)
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginSetMetadata(
-                    accessCondition,
-                    options: null,
-                    operationContext: null,
-                    callback: cb,
-                    state: state),
-                ar => _blob.EndSetMetadata(ar),
-                state: null);
+            await _blob.SetMetadataAsync(accessCondition, options: null, operationContext: null);
         }
 
         public async Task UploadFromStreamAsync(Stream packageFile, bool overwrite)
@@ -141,12 +87,9 @@ namespace NuGetGallery
             }
         }
 
-        public Task FetchAttributesAsync()
+        public async Task FetchAttributesAsync()
         {
-            return Task.Factory.FromAsync(
-                (cb, state) => _blob.BeginFetchAttributes(cb, state),
-                ar => _blob.EndFetchAttributes(ar),
-                state: null);
+            await _blob.FetchAttributesAsync();
         }
 
         public string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess)

@@ -328,6 +328,14 @@ namespace NuGetGallery
                 blob.GetSharedAccessSignature(SharedAccessBlobPermissions.Read, endOfAccess));
         }
 
+        /// <summary>
+        /// Asynchronously sets blob metadata.
+        /// </summary>
+        /// <param name="folderName">The folder (container) name.</param>
+        /// <param name="fileName">The blob file name.</param>
+        /// <param name="updateMetadataAsync">A function which updates a metadata dictionary and returns <c>true</c>
+        /// for changes to be persisted or <c>false</c> for changes to be discarded.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
         public async Task SetMetadataAsync(
             string folderName,
             string fileName,
