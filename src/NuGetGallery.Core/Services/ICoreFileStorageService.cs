@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
@@ -97,5 +98,17 @@ namespace NuGetGallery
             string destFolderName,
             string destFileName,
             IAccessCondition destAccessCondition);
+
+        /// <summary>
+        /// Updates metadata on the file.
+        /// </summary>
+        /// <param name="folderName">The folder name.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <param name="updateMetadataAsync">A function that will update file metadata.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        Task SetMetadataAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync);
     }
 }

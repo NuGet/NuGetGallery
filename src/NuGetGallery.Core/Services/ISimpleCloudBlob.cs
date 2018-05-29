@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -12,6 +13,7 @@ namespace NuGetGallery
     public interface ISimpleCloudBlob
     {
         BlobProperties Properties { get; }
+        IDictionary<string, string> Metadata { get; }
         CopyState CopyState { get; }
         Uri Uri { get; }
         string Name { get; }
@@ -24,6 +26,7 @@ namespace NuGetGallery
 
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
+        Task SetMetadataAsync(AccessCondition accessCondition);
         Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
 
         Task FetchAttributesAsync();
