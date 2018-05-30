@@ -711,5 +711,16 @@ namespace NuGetGallery
                 }
             }
         }
+
+        public class TheSetMetadataAsyncMethod
+        {
+            [Fact]
+            public async Task NoOps()
+            {
+                var service = CreateService();
+
+                await service.SetMetadataAsync(folderName: null, fileName: null, updateMetadataAsync: null);
+            }
+        }
     }
 }
