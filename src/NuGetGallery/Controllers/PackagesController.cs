@@ -29,7 +29,6 @@ using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
-using PoliteCaptcha;
 
 namespace NuGetGallery
 {
@@ -683,7 +682,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [ValidateSpamPrevention]
+        [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ReportAbuse(string id, string version, ReportAbuseViewModel reportForm)
         {
             reportForm.Message = HttpUtility.HtmlEncode(reportForm.Message);
@@ -749,7 +748,7 @@ namespace NuGetGallery
         [UIAuthorize]
         [RequiresAccountConfirmation("contact support about your package")]
         [ValidateAntiForgeryToken]
-        [ValidateSpamPrevention]
+        [ValidateRecaptchaResponse]
         public virtual async Task<ActionResult> ReportMyPackage(string id, string version, ReportMyPackageViewModel reportForm)
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
