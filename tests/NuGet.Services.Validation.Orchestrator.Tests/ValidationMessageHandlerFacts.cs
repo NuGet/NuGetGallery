@@ -201,7 +201,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await handler.HandleAsync(MessageData);
 
             ValidationOutcomeProcessorMock
-                .Verify(vop => vop.ProcessValidationOutcomeAsync(ValidationSet, Package));
+                .Verify(vop => vop.ProcessValidationOutcomeAsync(ValidationSet, Package, It.IsAny<ValidationSetProcessorResult>()));
         }
     }
 

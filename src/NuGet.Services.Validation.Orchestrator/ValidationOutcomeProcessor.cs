@@ -52,7 +52,7 @@ namespace NuGet.Services.Validation.Orchestrator
             _validationConfigurationsByName = _validationConfiguration.Validations.ToDictionary(v => v.Name);
         }
 
-        public async Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, Package package)
+        public async Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, Package package, ValidationSetProcessorResult currentCallStats)
         {
             var failedValidations = GetFailedValidations(validationSet);
 
@@ -102,9 +102,10 @@ namespace NuGet.Services.Validation.Orchestrator
                         validationSet.ValidationTrackingId);
                 }
 
-                await CompleteValidationSetAsync(package, validationSet, isSuccess: false);
+                await CleanupValidationStorageAsync(validationSet);
+                TrackValidationSetCompletion(package, validationSet, isSuccess: false);
             }
-            else if (AllValidationsSucceeded(validationSet))
+            else if (AllRequiredValidationsSucceeded(validationSet))
             {
                 _logger.LogInformation("All validations are complete for the package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                     package.PackageRegistration.Id,
@@ -126,75 +127,28 @@ namespace NuGet.Services.Validation.Orchestrator
                     _messageService.SendPackagePublishedMessage(package);
                 }
 
-                await CompleteValidationSetAsync(package, validationSet, isSuccess: true);
-            }
-            else
-            {
-                // There are no failed validations and some validations are still in progress. Update
-                // the validation set's Updated field and send a notice if the validation set is taking
-                // too long to complete.
-                var previousUpdateTime = validationSet.Updated;
-
-                await _validationStorageService.UpdateValidationSetAsync(validationSet);
-
-                var validationSetDuration = validationSet.Updated - validationSet.Created;
-                var previousDuration = previousUpdateTime - validationSet.Created;
-
-                // Only send a "validating taking too long" notice once. This is ensured by verifying this is
-                // the package's first validation set and that this is the first time the validation set duration
-                // is greater than the configured threshold. Service Bus message duplication for a single validation
-                // set will not cause multiple notices to be sent due to the row version on PackageValidationSet.
-                if (validationSetDuration > _validationConfiguration.ValidationSetNotificationTimeout &&
-                    previousDuration <= _validationConfiguration.ValidationSetNotificationTimeout &&
-                    await _validationStorageService.GetValidationSetCountAsync(package.Key) == 1)
+                if (currentCallStats.AnyRequiredValidationSucceeded)
                 {
-                    _logger.LogWarning("Sending message that validation set {ValidationTrackingId} for package {PackageId} {PackageVersion} is taking too long",
-                        validationSet.ValidationTrackingId,
-                        validationSet.PackageId,
-                        validationSet.PackageNormalizedVersion);
-
-                    _messageService.SendPackageValidationTakingTooLongMessage(package);
-                    _telemetryService.TrackSentValidationTakingTooLongMessage(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+                    TrackValidationSetCompletion(package, validationSet, isSuccess: true);
                 }
 
-                // Track any validations that are past their expected thresholds.
-                var timedOutValidations = GetIncompleteTimedOutValidations(validationSet);
-
-                if (timedOutValidations.Any())
+                if (AreOptionalValidationsRunning(validationSet))
                 {
-                    foreach (var validation in timedOutValidations)
-                    {
-                        var duration = DateTime.UtcNow - validation.Started;
-
-                        _logger.LogWarning("Validation {Validation} for package {PackageId} {PackageVersion} is past its expected duration after {Duration}",
-                            validation.Type,
-                            validationSet.PackageId,
-                            validationSet.PackageNormalizedVersion,
-                            duration);
-
-                        _telemetryService.TrackValidatorTimeout(validation.Type);
-                    }
-                }
-
-                // Schedule another check if we haven't reached the validation set timeout yet.
-                if (validationSetDuration <= _validationConfiguration.TimeoutValidationSetAfter)
-                {
-                    var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
-                    var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
-
-                    await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+                    await ScheduleCheckIfNotTimedOut(validationSet, package, tooLongNotificationAllowed: false);
                 }
                 else
                 {
-                    _telemetryService.TrackValidationSetTimeout(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+                    await CleanupValidationStorageAsync(validationSet);
                 }
+            }
+            else
+            {
+                await ScheduleCheckIfNotTimedOut(validationSet, package, tooLongNotificationAllowed: true);
             }
         }
 
-        private async Task CompleteValidationSetAsync(Package package, PackageValidationSet validationSet, bool isSuccess)
+        private void TrackValidationSetCompletion(Package package, PackageValidationSet validationSet, bool isSuccess)
         {
-            await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
-
             _logger.LogInformation("Done processing {PackageId} {PackageVersion} {ValidationSetId} with IsSuccess = {IsSuccess}.",
                 package.PackageRegistration.Id,
                 package.NormalizedVersion,
@@ -202,6 +156,11 @@ namespace NuGet.Services.Validation.Orchestrator
                 isSuccess);
 
             TrackTotalValidationDuration(validationSet, isSuccess);
+        }
+
+        private async Task CleanupValidationStorageAsync(PackageValidationSet validationSet)
+        {
+            await _packageFileService.DeletePackageForValidationSetAsync(validationSet);
         }
 
         private ValidationConfigurationItem GetValidationConfigurationItemByName(string name)
@@ -218,12 +177,20 @@ namespace NuGet.Services.Validation.Orchestrator
                 isSuccess);
         }
 
-        private bool AllValidationsSucceeded(PackageValidationSet packageValidationSet)
+        private bool AllRequiredValidationsSucceeded(PackageValidationSet packageValidationSet)
         {
             return packageValidationSet
                 .PackageValidations
                 .All(pv => pv.ValidationStatus == ValidationStatus.Succeeded
                     || GetValidationConfigurationItemByName(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
+        }
+
+        private bool AreOptionalValidationsRunning(PackageValidationSet packageValidationSet)
+        {
+            return packageValidationSet
+                .PackageValidations
+                .Any(pv => pv.ValidationStatus == ValidationStatus.Incomplete
+                    && GetValidationConfigurationItemByName(pv.Type)?.FailureBehavior == ValidationFailureBehavior.AllowedToFail);
         }
 
         private List<PackageValidation> GetFailedValidations(PackageValidationSet packageValidationSet)
@@ -250,6 +217,83 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Where(v => v.ValidationStatus == ValidationStatus.Incomplete)
                 .Where(IsPackageValidationTimedOut)
                 .ToList();
+        }
+
+        private async Task<TimeSpan> UpdateValidationDurationAsync(PackageValidationSet validationSet, Package package, bool tooLongNotificationAllowed)
+        {
+            // There are no failed validations and some validations are still in progress. Update
+            // the validation set's Updated field and send a notice if the validation set is taking
+            // too long to complete.
+            var previousUpdateTime = validationSet.Updated;
+
+            await _validationStorageService.UpdateValidationSetAsync(validationSet);
+
+            var validationSetDuration = validationSet.Updated - validationSet.Created;
+            var previousDuration = previousUpdateTime - validationSet.Created;
+
+            // Only send a "validating taking too long" notice once. This is ensured by verifying this is
+            // the package's first validation set and that this is the first time the validation set duration
+            // is greater than the configured threshold. Service Bus message duplication for a single validation
+            // set will not cause multiple notices to be sent due to the row version on PackageValidationSet.
+            if (tooLongNotificationAllowed &&
+                validationSetDuration > _validationConfiguration.ValidationSetNotificationTimeout &&
+                previousDuration <= _validationConfiguration.ValidationSetNotificationTimeout &&
+                await _validationStorageService.GetValidationSetCountAsync(package.Key) == 1)
+            {
+                _logger.LogWarning("Sending message that validation set {ValidationTrackingId} for package {PackageId} {PackageVersion} is taking too long",
+                    validationSet.ValidationTrackingId,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion);
+
+                _messageService.SendPackageValidationTakingTooLongMessage(package);
+                _telemetryService.TrackSentValidationTakingTooLongMessage(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+            }
+
+            // Track any validations that are past their expected thresholds.
+            var timedOutValidations = GetIncompleteTimedOutValidations(validationSet);
+
+            if (timedOutValidations.Any())
+            {
+                foreach (var validation in timedOutValidations)
+                {
+                    var duration = DateTime.UtcNow - validation.Started;
+
+                    _logger.LogWarning("Validation {Validation} for package {PackageId} {PackageVersion} is past its expected duration after {Duration}",
+                        validation.Type,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
+                        duration);
+
+                    _telemetryService.TrackValidatorTimeout(validation.Type);
+                }
+            }
+
+            return validationSetDuration;
+        }
+
+        private async Task ScheduleCheckIfNotTimedOut(PackageValidationSet validationSet, Package package, bool tooLongNotificationAllowed)
+        {
+            var validationSetDuration = await UpdateValidationDurationAsync(validationSet, package, tooLongNotificationAllowed);
+
+            // Schedule another check if we haven't reached the validation set timeout yet.
+            if (validationSetDuration <= _validationConfiguration.TimeoutValidationSetAfter)
+            {
+                var messageData = new PackageValidationMessageData(package.PackageRegistration.Id, package.Version, validationSet.ValidationTrackingId);
+                var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
+
+                await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);
+            }
+            else
+            {
+                _logger.LogWarning("Abandoning checking status of validation set {ValidationTrackingId} for " +
+                    "package {PackageId} {PackageVersion} because it took too long (Duration: {Duration}, CutOffDuration: {CutOffDuration})",
+                    validationSet.ValidationTrackingId,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
+                    validationSetDuration,
+                    _validationConfiguration.TimeoutValidationSetAfter);
+                _telemetryService.TrackValidationSetTimeout(package.PackageRegistration.Id, package.NormalizedVersion, validationSet.ValidationTrackingId);
+            }
         }
     }
 }

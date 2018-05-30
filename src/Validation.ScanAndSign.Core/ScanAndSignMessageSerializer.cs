@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using NuGet.Services.ServiceBus;
 
 namespace NuGet.Jobs.Validation.ScanAndSign
@@ -20,8 +21,9 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             return new ScanAndSignMessage(
                 deserializedMessage.OperationRequestType,
                 deserializedMessage.PackageValidationId,
-                deserializedMessage.BlobUri
-                );
+                deserializedMessage.BlobUri,
+                deserializedMessage.V3ServiceIndexUrl,
+                deserializedMessage.Owners);
         }
 
         public IBrokeredMessage Serialize(ScanAndSignMessage message)
@@ -29,7 +31,9 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             {
                 OperationRequestType = message.OperationRequestType,
                 PackageValidationId = message.PackageValidationId,
-                BlobUri = message.BlobUri
+                BlobUri = message.BlobUri,
+                V3ServiceIndexUrl = message.V3ServiceIndexUrl,
+                Owners = message.Owners
             });
 
         [Schema(Name = SchemaName, Version = 1)]
@@ -38,6 +42,8 @@ namespace NuGet.Jobs.Validation.ScanAndSign
             public OperationRequestType OperationRequestType { get; set; }
             public Guid PackageValidationId { get; set; }
             public Uri BlobUri { get; set; }
+            public string V3ServiceIndexUrl { get; set; }
+            public IReadOnlyList<string> Owners { get; set; }
         }
     }
 }

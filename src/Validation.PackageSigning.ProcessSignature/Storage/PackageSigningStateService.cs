@@ -3,6 +3,7 @@
 
 using System;
 using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
@@ -58,6 +59,13 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                     SigningStatus = status
                 });
             }
+        }
+
+        public async Task<bool> HasValidPackageSigningStateAsync(int packageKey)
+        {
+            return await _validationContext.PackageSigningStates
+                .Where(s => s.PackageKey == packageKey)
+                .AnyAsync(s => s.SigningStatus == PackageSigningStatus.Valid);
         }
     }
 }

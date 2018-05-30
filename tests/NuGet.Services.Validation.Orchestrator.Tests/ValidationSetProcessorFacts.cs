@@ -298,7 +298,6 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             UseDefaultValidatorProvider();
             var validator = AddValidation("validation1", TimeSpan.FromDays(1));
 
-
             IValidationRequest validationRequest = null;
             validator
                 .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
@@ -328,6 +327,42 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             Assert.Contains(ValidationContainerName, validationRequest.NupkgUrl);
             Assert.Equal(Package.PackageRegistration.Id, validationRequest.PackageId);
             Assert.Equal(Package.NormalizedVersion, validationRequest.PackageVersion);
+        }
+
+        private class TestException : Exception { };
+
+        [Fact]
+        public async Task IgnoresExceptionsForAllowedToFailValidations()
+        {
+            UseDefaultValidatorProvider();
+            var validatorMock = AddValidation("throwingValidation", TimeSpan.FromDays(1), failureBehavior: ValidationFailureBehavior.AllowedToFail);
+            validatorMock
+                .Setup(v => v.StartAsync(It.IsAny<IValidationRequest>()))
+                .ThrowsAsync(new TestException());
+            validatorMock
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.NotStarted);
+
+            var processor = CreateProcessor();
+            var ex = await Record.ExceptionAsync(() => processor.ProcessValidationsAsync(ValidationSet, Package));
+
+            Assert.Null(ex);
+        }
+
+        [Fact]
+        public async Task RethrowsExceptionForMustSucceedValidations()
+        {
+            UseDefaultValidatorProvider();
+            var validatorMock = AddValidation("throwingValidation", TimeSpan.FromDays(1), failureBehavior: ValidationFailureBehavior.MustSucceed);
+            validatorMock
+                .Setup(v => v.StartAsync(It.IsAny<IValidationRequest>()))
+                .ThrowsAsync(new TestException());
+            validatorMock
+                .Setup(v => v.GetResultAsync(It.IsAny<IValidationRequest>()))
+                .ReturnsAsync(ValidationResult.NotStarted);
+
+            var processor = CreateProcessor();
+            await Assert.ThrowsAsync<TestException>(() => processor.ProcessValidationsAsync(ValidationSet, Package));
         }
     }
 

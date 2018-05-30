@@ -42,15 +42,16 @@ namespace NuGet.Services.Validation.Orchestrator
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ProcessValidationsAsync(PackageValidationSet validationSet, Package package)
+        public async Task<ValidationSetProcessorResult> ProcessValidationsAsync(PackageValidationSet validationSet, Package package)
         {
             _logger.LogInformation("Starting processing validation request for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
                 package.PackageRegistration.Id,
                 package.NormalizedVersion,
                 validationSet.ValidationTrackingId);
-            bool tryMoreValidations = true;
+            var processorStats = new ValidationSetProcessorResult();
             int loopLimit = MaxProcessAttempts;
-            await ProcessIncompleteValidations(validationSet, package);
+            await ProcessIncompleteValidations(validationSet, package, processorStats);
+            bool hadSucceededValidations = false;
             do
             {
                 // we will try to start more validations in case previous validation start attempts
@@ -59,8 +60,8 @@ namespace NuGet.Services.Validation.Orchestrator
                 // returns false) we move on and will check on progress later.
                 // loopLimit is there to prevent looping here infinitely if there are any bugs that
                 // cause ProcessNotStartedValidations to always return true.
-                tryMoreValidations = await ProcessNotStartedValidations(validationSet, package);
-            } while (tryMoreValidations && loopLimit-- > 0);
+                hadSucceededValidations = await ProcessNotStartedValidations(validationSet, package, processorStats);
+            } while (hadSucceededValidations && loopLimit-- > 0);
             if (loopLimit <= 0)
             {
                 _logger.LogWarning("Too many processing attempts ({NumAttempts}) for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
@@ -69,11 +70,12 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId);
             }
+
+            return processorStats;
         }
 
-        private async Task<bool> ProcessIncompleteValidations(PackageValidationSet validationSet, Package package)
+        private async Task ProcessIncompleteValidations(PackageValidationSet validationSet, Package package, ValidationSetProcessorResult processorStats)
         {
-            bool tryMoreValidations = false;
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.Incomplete))
             {
                 using (_logger.BeginScope("Incomplete {ValidationType} Key {ValidationId}", packageValidation.Type, packageValidation.Key))
@@ -133,8 +135,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         case ValidationStatus.Succeeded:
                             await _validationStorageService.UpdateValidationStatusAsync(packageValidation, validationResult);
                             await validator.CleanUpAsync(validationRequest);
-                            // need another iteration to try running new validations
-                            tryMoreValidations = true;
+                            UpdateStatsForValidationSuccess(processorStats, validationConfiguration);
                             break;
 
                         default:
@@ -144,11 +145,9 @@ namespace NuGet.Services.Validation.Orchestrator
                     }
                 }
             }
-
-            return tryMoreValidations;
         }
 
-        private async Task<bool> ProcessNotStartedValidations(PackageValidationSet validationSet, Package package)
+        private async Task<bool> ProcessNotStartedValidations(PackageValidationSet validationSet, Package package, ValidationSetProcessorResult processorStats)
         {
             bool tryMoreValidations = false;
             foreach (var packageValidation in validationSet.PackageValidations.Where(v => v.ValidationStatus == ValidationStatus.NotStarted))
@@ -198,7 +197,22 @@ namespace NuGet.Services.Validation.Orchestrator
                             validationSet.ValidationTrackingId,
                             packageValidation.Key,
                             validationRequest.NupkgUrl);
-                        validationResult = await validator.StartAsync(validationRequest);
+                        try
+                        {
+                            validationResult = await validator.StartAsync(validationRequest);
+                        }
+                        catch (Exception e) when (validationConfiguration.FailureBehavior != ValidationFailureBehavior.MustSucceed)
+                        {
+                            // ignore exceptions for optional validators
+                            _logger.LogWarning(0, e, "Got exception while running optional validation {ValidationType} for " +
+                                "{PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}, {NupkgUrl}",
+                                packageValidation.Type,
+                                package.PackageRegistration.Id,
+                                package.NormalizedVersion,
+                                validationSet.ValidationTrackingId,
+                                packageValidation.Key,
+                                validationRequest.NupkgUrl);
+                        }
                         _logger.LogInformation("Got validationStatus = {ValidationStatus} for validation {ValidationType} for {PackageId} {PackageVersion}, validation set {ValidationSetId}, {ValidationId}",
                             validationResult.Status,
                             packageValidation.Type,
@@ -226,13 +240,26 @@ namespace NuGet.Services.Validation.Orchestrator
                         }
 
                         _telemetryService.TrackValidatorStarted(packageValidation.Type);
-                    }
 
-                    tryMoreValidations = tryMoreValidations || validationResult.Status == ValidationStatus.Succeeded;
+                        if (validationResult.Status == ValidationStatus.Succeeded)
+                        {
+                            UpdateStatsForValidationSuccess(processorStats, validationConfiguration);
+                            tryMoreValidations = true;
+                        }
+                    }
                 }
             }
 
             return tryMoreValidations;
+        }
+
+        private void UpdateStatsForValidationSuccess(ValidationSetProcessorResult processorStats, ValidationConfigurationItem validationConfiguration)
+        {
+            processorStats.AnyValidationSucceeded = true;
+            if (validationConfiguration.FailureBehavior == ValidationFailureBehavior.MustSucceed)
+            {
+                processorStats.AnyRequiredValidationSucceeded = true;
+            }
         }
 
         private ValidationConfigurationItem GetValidationConfiguration(string validationName)

@@ -72,7 +72,17 @@
       "TopicPath": "",
       "SubscriptionName": ""
     },
-    "MessageDelay": "00:00:05"
+    "PackageCriteria": {
+      "ExcludeOwners": [
+        "NugetTestAccount"
+      ],
+      "IncludeIdPatterns": [
+        "E2E.SemVer1Stable.*"
+      ]
+    },
+    "MessageDelay": "00:00:05",
+    "RepositorySigningEnabled": false,
+    "V3ServiceIndexUrl": "https://api.nuget.org/v3/index.json"
   },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",

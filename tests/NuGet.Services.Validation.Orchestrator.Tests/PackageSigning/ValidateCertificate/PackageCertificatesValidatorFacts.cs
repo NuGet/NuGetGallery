@@ -9,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ValidateCertificate;
 using Validation.PackageSigning.Helpers;

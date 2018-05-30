@@ -58,9 +58,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly int _packageKey;
         private Stream _packageStream;
         private byte[] _savedPackageBytes;
-        private SignatureValidationMessage _message;
         private readonly CancellationToken _token;
         private readonly SignatureValidator _target;
+
+        private SignatureValidationMessage _message;
+        private readonly SignatureValidationMessage _unsignedPackageMessage;
+        private readonly SignatureValidationMessage _signedPackage1Message;
 
         public SignatureValidatorIntegrationTests(CertificateIntegrationTestFixture fixture, ITestOutputHelper output)
         {
@@ -138,11 +141,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             // Initialize data.
             _packageKey = 23;
-            _message = new SignatureValidationMessage(
-                "SomePackageId",
-                "1.2.3",
-                new Uri("https://example/validation/somepackageid.1.2.3.nupkg"),
-                new Guid("8eb5affc-2d0e-4315-9b79-5a194d39ebd1"));
+            _unsignedPackageMessage = new SignatureValidationMessage(
+                TestResources.UnsignedPackageId,
+                TestResources.UnsignedPackageVersion,
+                new Uri($"https://unit.test/validation/{TestResources.UnsignedPackageId.ToLowerInvariant()}"),
+                Guid.NewGuid());
+            _signedPackage1Message = new SignatureValidationMessage(
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                Guid.NewGuid());
+            _message = _signedPackage1Message;
             _token = CancellationToken.None;
 
             // Initialize the subject of testing.
@@ -157,17 +166,17 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _logger);
         }
 
-        public async Task<MemoryStream> GetSignedPackageStream1Async()
+        public async Task<MemoryStream> GetAuthorSignedPackageStream1Async()
         {
             TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, await _fixture.GetSigningCertificateThumbprintAsync());
-            return await _fixture.GetSignedPackageStream1Async(_output);
+            return await _fixture.GetAuthorSignedPackageStream1Async(_output);
         }
 
         [Fact]
         public async Task AcceptsValidSignedPackage()
         {
             // Arrange
-            _packageStream = await GetSignedPackageStream1Async();
+            _packageStream = await GetAuthorSignedPackageStream1Async();
 
             // Act
             var result = await _target.ValidateAsync(
@@ -216,20 +225,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsUntrustedTimestampingCertificate()
         {
             // Arrange
-            var testServer = await _fixture.GetTestServerAsync();
-            var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
-            var untrustedRootCertficate = new X509Certificate2(untrustedRootCa.Certificate.GetEncoded());
-            var timestampService = TimestampService.Create(untrustedRootCa);
-            using (testServer.RegisterDefaultResponders(timestampService))
+            using (var timestampService = await _fixture.CreateUntrustedTimestampServiceAsync())
             {
                 byte[] packageBytes;
-                using (var temporaryTrust = new TrustedTestCert<X509Certificate2>(
-                    untrustedRootCertficate,
-                    x => x,
-                    StoreName.Root,
-                    StoreLocation.LocalMachine))
+                using (timestampService.TemporarilyTrust())
                 {
-                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                    packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
                         TestResources.SignedPackageLeaf1,
                         await _fixture.GetSigningCertificateAsync(),
                         timestampService.Url,
@@ -271,62 +272,53 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task AcceptsTrustedTimestampingCertificateWithUnavailableRevocation()
         {
             // Arrange
-            var testServer = await _fixture.GetTestServerAsync();
-            var trustedRootCa = CertificateAuthority.Create(testServer.Url);
-            var trustedRootCertficate = new X509Certificate2(trustedRootCa.Certificate.GetEncoded());
-            var timestampService = TimestampService.Create(trustedRootCa);
-            using (var trust = new TrustedTestCert<X509Certificate2>(
-                trustedRootCertficate,
-                x => x,
-                StoreName.Root,
-                StoreLocation.LocalMachine))
+            var timestampService = await _fixture.CreateTimestampServiceWithUnavailableRevocationAsync();
+
+            byte[] packageBytes;
+            using (timestampService.TemporarilyRegisterDefaultResponders())
             {
-                byte[] packageBytes;
-                using (testServer.RegisterDefaultResponders(timestampService))
-                {
-                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
-                        TestResources.SignedPackageLeaf1,
-                        await _fixture.GetSigningCertificateAsync(),
-                        timestampService.Url,
-                        _output);
-                }
-
-                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
-                // This can be mitigated by leaving the OCSP unavailable during signing once this work item is done:
-                // https://github.com/NuGet/Home/issues/6508
-                await Task.Delay(TimeSpan.FromSeconds(1));
-
-                TestUtility.RequireSignedPackage(_corePackageService, 
-                    TestResources.SignedPackageLeafId,
-                    await _fixture.GetSigningCertificateThumbprintAsync());
-
-                _packageStream = new MemoryStream(packageBytes);
-
-                _message = new SignatureValidationMessage(
-                    TestResources.SignedPackageLeafId,
-                    TestResources.SignedPackageLeaf1Version,
-                    new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
-                    Guid.NewGuid());
-
-                SignatureValidatorResult result;
-                using (testServer.RegisterResponders(timestampService, addOcsp: false))
-                {
-                    // Act
-                    result = await _target.ValidateAsync(
-                       _packageKey,
-                       _packageStream,
-                       _message,
-                       _token);
-                }
-
-                // Assert
-                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
-                Assert.Empty(result.Issues);
-
-                var allMessages = string.Join(Environment.NewLine, _logger.Messages);
-                Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
-                Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation for the certificate.", allMessages);
+                packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
+                    TestResources.SignedPackageLeaf1,
+                    await _fixture.GetSigningCertificateAsync(),
+                    timestampService.Url,
+                    _output);
             }
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            // This can be mitigated by leaving the OCSP unavailable during signing once this work item is done:
+            // https://github.com/NuGet/Home/issues/6508
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            TestUtility.RequireSignedPackage(_corePackageService,
+                TestResources.SignedPackageLeafId,
+                await _fixture.GetSigningCertificateThumbprintAsync());
+
+            _packageStream = new MemoryStream(packageBytes);
+
+            _message = new SignatureValidationMessage(
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                Guid.NewGuid());
+
+            SignatureValidatorResult result;
+            using (timestampService.TemporarilyRegisterResponders(addOcsp: false))
+            {
+                // Act
+                result = await _target.ValidateAsync(
+                   _packageKey,
+                   _packageStream,
+                   _message,
+                   _token);
+            }
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
+            Assert.Empty(result.Issues);
+
+            var allMessages = string.Join(Environment.NewLine, _logger.Messages);
+            Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
+            Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation for the certificate.", allMessages);
         }
 
         [Fact(Skip = "Appears to be flaky")]
@@ -347,7 +339,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 byte[] packageBytes;
                 using (testServer.RegisterResponders(intermediateCa))
                 {
-                    packageBytes = await _fixture.GenerateSignedPackageBytesAsync(
+                    packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
                         TestResources.SignedPackageLeaf1,
                         signingCertificate,
                         await _fixture.GetTimestampServiceUrlAsync(),
@@ -388,29 +380,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsPackageWithAddedFile()
         {
             // Arrange
-            var packageStream = await GetSignedPackageStream1Async();
+            var packageStream = await GetAuthorSignedPackageStream1Async();
 
-            try
-            {
-                using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
-                using (var entryStream = zipArchive.CreateEntry("new-file.txt").Open())
-                using (var writer = new StreamWriter(entryStream))
-                {
-                    writer.WriteLine("These contents were added after the package was signed.");
-                }
-
-                _packageStream = packageStream;
-            }
-            catch
-            {
-                packageStream?.Dispose();
-                throw;
-            }
+            AddFileToPackageStream(packageStream);
 
             // Act
             var result = await _target.ValidateAsync(
                 _packageKey,
-                _packageStream,
+                packageStream,
                 _message,
                 _token);
 
@@ -423,7 +400,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsPackageWithModifiedFile()
         {
             // Arrange
-            var packageStream = await GetSignedPackageStream1Async();
+            var packageStream = await GetAuthorSignedPackageStream1Async();
 
             try
             {
@@ -517,7 +494,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsAuthorCounterSignatures()
         {
             // Arrange
-            var packageStream = await GetSignedPackageStream1Async();
+            var packageStream = await GetAuthorSignedPackageStream1Async();
             ModifySignatureContent(
                 packageStream,
                 configuredSignedCms: signedCms =>
@@ -547,25 +524,24 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         }
 
         [Fact]
-        public async Task StripsUnacceptableRepositoryCounterSignatures()
+        public async Task AcceptsAcceptableRepositorySignatures()
         {
             // Arrange
-            var signingCertificate = await _fixture.GetSigningCertificateAsync();
-            var packageStream = await _fixture.GenerateRepositoryCounterSignedPackageStreamAsync(signingCertificate, _output);
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
 
-            TestUtility.RequireSignedPackage(
-                _corePackageService,
-                TestResources.SignedPackageLeafId,
-                signingCertificate.ComputeSHA256Thumbprint());
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
 
-            _message = new SignatureValidationMessage(
-                TestResources.SignedPackageLeafId,
-                TestResources.SignedPackageLeaf1Version,
-                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
-                Guid.NewGuid());
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
 
             // Act
-            var result = await _target.ValidateAsync(
+            var result = await target.ValidateAsync(
                 _packageKey,
                 packageStream,
                 _message,
@@ -574,35 +550,28 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
             Assert.Empty(result.Issues);
-            Assert.Equal(_nupkgUri, result.NupkgUri);
-            Assert.NotNull(_savedPackageBytes);
-            using (var savedPackageStream = new MemoryStream(_savedPackageBytes))
-            using (var packageReader = new SignedPackageArchive(savedPackageStream, Stream.Null))
-            {
-                Assert.Equal("TestSigned.leaf-1", packageReader.NuspecReader.GetId());
-                Assert.Equal("1.0.0", packageReader.NuspecReader.GetVersion().ToNormalizedString());
-                Assert.True(await packageReader.IsSignedAsync(CancellationToken.None), "The package should still be signed.");
-                var signature = await packageReader.GetPrimarySignatureAsync(CancellationToken.None);
-                Assert.Equal(SignatureType.Author, signature.Type);
-                Assert.Empty(signature.SignedCms.SignerInfos[0].CounterSignerInfos);
-            }
+            Assert.Null(result.NupkgUri);
         }
 
         [Fact]
-        public async Task StripsUnacceptableRepositorySignatures()
+        public async Task StripsRepositorySignatureWithUnallowedSigningCertificate()
         {
             // Arrange
-            _message = new SignatureValidationMessage(
-                TestResources.UnsignedPackageId,
-                TestResources.UnsignedPackageVersion,
-                new Uri($"https://unit.test/validation/{TestResources.UnsignedPackage.ToLowerInvariant()}"),
-                Guid.NewGuid());
-            var signingCertificate = await _fixture.GetSigningCertificateAsync();
-            var packageStream = await _fixture.GenerateRepositorySignedPackageStreamAsync(signingCertificate, _output);
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
             TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new X509Certificate2[] { });
 
             // Act
-            var result = await _target.ValidateAsync(
+            var result = await target.ValidateAsync(
                 _packageKey,
                 packageStream,
                 _message,
@@ -611,58 +580,127 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
             Assert.Empty(result.Issues);
-            Assert.Equal(_nupkgUri, result.NupkgUri);
-            Assert.NotNull(_savedPackageBytes);
-            using (var savedPackageStream = new MemoryStream(_savedPackageBytes))
-            using (var packageReader = new SignedPackageArchive(savedPackageStream, Stream.Null))
-            {
-                Assert.Equal("TestUnsigned", packageReader.NuspecReader.GetId());
-                Assert.Equal("1.0.0", packageReader.NuspecReader.GetVersion().ToNormalizedString());
-                Assert.False(await packageReader.IsSignedAsync(CancellationToken.None), "The package should no longer be signed.");
-            }
+            Assert.NotNull(result.NupkgUri);
         }
 
-        [Fact(Skip = "TODO: Engineering#1401")]
-        public async Task StripsUntrustedRepositorySignature()
+        [Fact]
+        public async Task StripsRepositorySignatureWithUnallowedRepositoryUrl()
         {
-            // TODO: Make ProcessSignature strip untrusted repository signature.
-            // See: https://github.com/NuGet/Engineering/issues/1401
             // Arrange
-            var testServer = await _fixture.GetTestServerAsync();
-            var untrustedRootCa = CertificateAuthority.Create(testServer.Url);
-            var untrustedRootCertficate = new X509Certificate2(untrustedRootCa.Certificate.GetEncoded());
-            var timestampService = TimestampService.Create(untrustedRootCa);
-            var signingCertificate = await _fixture.GetSigningCertificateAsync();
-            using (testServer.RegisterDefaultResponders(timestampService))
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate },
+                v3ServiceIndexUrl: "https://other-service/v3/index.json");
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositorySignatureWithUntrustedSigningCertificate()
+        {
+            // Arrange
+            var certificate = await _fixture.CreateUntrustedRootSigningCertificateAsync();
+            Stream packageStream;
+
+            packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositorySignatureWithNoTimestamp()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                timestampUri: null,
+                output: _output);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositorySignatureWithUntrustedTimestamp()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            MemoryStream packageStream;
+
+            using (var timestampService = await _fixture.CreateUntrustedTimestampServiceAsync())
             {
-                Stream packageStream;
-                using (var temporaryTrust = new TrustedTestCert<X509Certificate2>(
-                    untrustedRootCertficate,
-                    x => x,
-                    StoreName.Root,
-                    StoreLocation.LocalMachine))
+                using (timestampService.TemporarilyTrust())
                 {
-                    packageStream = await _fixture.GenerateRepositorySignedPackageStreamAsync(
-                        signingCertificate,
-                        timestampService.Url,
-                        _output);
+                    packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                        TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                        certificate,
+                        timestampUri: timestampService.Url,
+                        output: _output);
                 }
 
-                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
-                _configuration.AllowedRepositorySigningCertificates.Add(signingCertificate.ComputeSHA256Thumbprint());
-
-                var formatValidator = new SignatureFormatValidator(_optionsSnapshot.Object);
-
                 // Initialize the subject of testing.
-                var target = new SignatureValidator(
-                    _packageSigningStateService,
-                    formatValidator,
-                    _signaturePartsExtractor,
-                    _packageFileService.Object,
-                    _corePackageService.Object,
-                    _optionsSnapshot.Object,
-                    _telemetryService,
-                    _logger);
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                _message = _unsignedPackageMessage;
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
 
                 // Act
                 var result = await target.ValidateAsync(
@@ -674,32 +712,636 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Assert
                 VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
                 Assert.Empty(result.Issues);
-                Assert.Equal(_nupkgUri, result.NupkgUri);
-                Assert.NotNull(_savedPackageBytes);
-                using (var savedPackageStream = new MemoryStream(_savedPackageBytes))
-                using (var packageReader = new SignedPackageArchive(savedPackageStream, Stream.Null))
-                {
-                    Assert.Equal("TestUnsigned", packageReader.NuspecReader.GetId());
-                    Assert.Equal("1.0.0", packageReader.NuspecReader.GetVersion().ToNormalizedString());
-                    Assert.False(await packageReader.IsSignedAsync(CancellationToken.None), "The package should no longer be signed.");
-                }
+                Assert.NotNull(result.NupkgUri);
             }
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureWithRevokedSigningCertificate_StripsAtIngestion()
+        {
+            // Arrange
+            var revokableCertificate = await _fixture.CreateRevokableSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                revokableCertificate.Certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { revokableCertificate.Certificate });
+
+            revokableCertificate.Revoke();
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureWithRevokedTimestampingCertificate_StripsAtIngestion()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+
+            using (var timestampService = await _fixture.CreateRevokableTimestampServiceAsync())
+            {
+                var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                    certificate,
+                    timestampUri: timestampService.Url,
+                    output: _output);
+
+                // Initialize the subject of testing.
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                _message = _unsignedPackageMessage;
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                timestampService.Revoke();
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+                Assert.Empty(result.Issues);
+                Assert.NotNull(result.NupkgUri);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureIsTampered_StripsAtIngestion()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
+
+            AddFileToPackageStream(packageStream);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Unsigned);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureWithRevokedSigningCertificate_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var revokableCertificate = await _fixture.CreateRevokableSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                revokableCertificate.Certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { revokableCertificate.Certificate });
+
+            revokableCertificate.Revoke();
+
+            _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+            {
+                PackageKey = _packageKey,
+                SigningStatus = PackageSigningStatus.Valid
+            });
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            // Act
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token));
+
+            Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureWithRevokedTimestampingCertificate_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+
+            using (var timestampService = await _fixture.CreateRevokableTimestampServiceAsync())
+            {
+                var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                    certificate,
+                    timestampUri: timestampService.Url,
+                    output: _output);
+
+                // Initialize the subject of testing.
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                _message = _unsignedPackageMessage;
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+                {
+                    PackageKey = _packageKey,
+                    SigningStatus = PackageSigningStatus.Valid
+                });
+
+                timestampService.Revoke();
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // Act
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    target.ValidateAsync(
+                        _packageKey,
+                        packageStream,
+                        _message,
+                        _token));
+
+                Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositorySignatureIsTampered_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.UnsignedPackage),
+                certificate,
+                _output);
+
+            AddFileToPackageStream(packageStream);
+
+            // Initialize the subject of testing.
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            _message = _unsignedPackageMessage;
+
+            _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+            {
+                PackageKey = _packageKey,
+                SigningStatus = PackageSigningStatus.Valid
+            });
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token));
+
+            Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
         }
 
         [Fact]
         public async Task AcceptsAcceptableRepositoryCounterSignatures()
         {
             // Arrange
-            var signingCertificate = await _fixture.GetSigningCertificateAsync();
-            var packageStream = await _fixture.GenerateRepositoryCounterSignedPackageStreamAsync(signingCertificate, _output);
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
 
-            _configuration.AllowedRepositorySigningCertificates.Add(signingCertificate.ComputeSHA256Thumbprint());
-            TestUtility.RequireSignedPackage(
-                _corePackageService,
-                TestResources.SignedPackageLeafId,
-                signingCertificate.ComputeSHA256Thumbprint());
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
 
-            var formatValidator = new SignatureFormatValidator(_optionsSnapshot.Object);
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(
+                result,
+                ValidationStatus.Succeeded,
+                PackageSigningStatus.Valid,
+                repositorySigned: true);
+
+            Assert.Empty(result.Issues);
+            Assert.Null(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatureWithUnallowedSigningCertificate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new X509Certificate2[0]);
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyRepositoryCounterSignatureWasStripped(result);
+
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatureWithUnallowedRepositoryUrl()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate },
+                v3ServiceIndexUrl: "https://other-service/v3/index.json");
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyRepositoryCounterSignatureWasStripped(result);
+
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatureWithUntrustedSigningCertificate()
+        {
+            // Arrange
+            var certificate = await _fixture.CreateUntrustedRootSigningCertificateAsync();
+            Stream packageStream;
+
+            packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyRepositoryCounterSignatureWasStripped(result);
+
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatureWithNoTimestamp()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                timestampUri: null,
+                output: _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyRepositoryCounterSignatureWasStripped(result);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task StripsRepositoryCounterSignatureWithUntrustedTimestamp()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            MemoryStream packageStream;
+
+            using (var timestampService = await _fixture.CreateUntrustedTimestampServiceAsync())
+            {
+                using (timestampService.TemporarilyTrust())
+                {
+                    packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                        await GetAuthorSignedPackageStream1Async(),
+                        certificate,
+                        timestampUri: timestampService.Url,
+                        output: _output);
+                }
+
+                // Initialize the subject of testing.
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyRepositoryCounterSignatureWasStripped(result);
+                Assert.Empty(result.Issues);
+                Assert.NotNull(result.NupkgUri);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureWithRevokedSigningCertificate_StripsAtIngestion()
+        {
+            // Arrange
+            var revokableCertificate = await _fixture.CreateRevokableSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                revokableCertificate.Certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { revokableCertificate.Certificate });
+
+            revokableCertificate.Revoke();
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyRepositoryCounterSignatureWasStripped(result);
+            Assert.Empty(result.Issues);
+            Assert.NotNull(result.NupkgUri);
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureWithRevokedTimestampingCertificate_StripsAtIngestion()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+
+            using (var timestampService = await _fixture.CreateRevokableTimestampServiceAsync())
+            {
+                var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    await GetAuthorSignedPackageStream1Async(),
+                    certificate,
+                    timestampUri: timestampService.Url,
+                    output: _output);
+
+                // Initialize the subject of testing.
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                timestampService.Revoke();
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyRepositoryCounterSignatureWasStripped(result);
+                Assert.Empty(result.Issues);
+                Assert.NotNull(result.NupkgUri);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureIsTampered_RejectsAtIngestion()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
+
+            AddFileToPackageStream(packageStream);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var result = await target.ValidateAsync(
+                _packageKey,
+                packageStream,
+                _message,
+                _token);
+
+            // Assert
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            VerifyNU3008(result);
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureWithRevokedSigningCertificate_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var revokableCertificate = await _fixture.CreateRevokableSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                revokableCertificate.Certificate,
+                _output);
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { revokableCertificate.Certificate });
+
+            revokableCertificate.Revoke();
+
+            _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+            {
+                PackageKey = _packageKey,
+                SigningStatus = PackageSigningStatus.Valid
+            });
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            // Act
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token));
+
+            Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureWithRevokedTimestampingCertificate_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+
+            using (var timestampService = await _fixture.CreateRevokableTimestampServiceAsync())
+            {
+                var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    await GetAuthorSignedPackageStream1Async(),
+                    certificate,
+                    timestampUri: timestampService.Url,
+                    output: _output);
+
+                // Initialize the subject of testing.
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+                {
+                    PackageKey = _packageKey,
+                    SigningStatus = PackageSigningStatus.Valid
+                });
+
+                timestampService.Revoke();
+
+                // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+                await Task.Delay(TimeSpan.FromSeconds(1));
+
+                // Act
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                    target.ValidateAsync(
+                        _packageKey,
+                        packageStream,
+                        _message,
+                        _token));
+
+                Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSignatureIsTampered_ThrowsOnRevalidate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            var packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                await GetAuthorSignedPackageStream1Async(),
+                certificate,
+                _output);
+
+            AddFileToPackageStream(packageStream);
+
+            _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
+            {
+                PackageKey = _packageKey,
+                SigningStatus = PackageSigningStatus.Valid
+            });
+
+            // Initialize the subject of testing.
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            // Act
+            var e = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+                target.ValidateAsync(
+                    _packageKey,
+                    packageStream,
+                    _message,
+                    _token));
+
+            Assert.Equal($"Suspect repository signature for validation id '{_message.ValidationId}'", e.Message);
+        }
+
+        [Fact(Skip = "Current client does not validate author signing certificate on repository counter signed packages")]
+        public async Task WhenRepositoryCounterSigned_RejectsUntrustedSigningCertificate()
+        {
+            // Arrange
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            TestUtility.RequireSignedPackage(_corePackageService, TestResources.SignedPackageLeafId, TestResources.Leaf1Thumbprint);
+            _packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
+                certificate,
+                _output);
 
             _message = new SignatureValidationMessage(
                 TestResources.SignedPackageLeafId,
@@ -707,64 +1349,150 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
                 Guid.NewGuid());
 
-            // Initialize the subject of testing.
-            var target = new SignatureValidator(
-                _packageSigningStateService,
-                formatValidator,
-                _signaturePartsExtractor,
-                _packageFileService.Object,
-                _corePackageService.Object,
-                _optionsSnapshot.Object,
-                _telemetryService,
-                _logger);
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
 
             // Act
             var result = await target.ValidateAsync(
                 _packageKey,
-                packageStream,
+                _packageStream,
                 _message,
                 _token);
 
             // Assert
-            VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
-            Assert.Empty(result.Issues);
-            Assert.Null(result.NupkgUri);
+            VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+            var issue = Assert.Single(result.Issues);
+            var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+            Assert.Equal("NU3018", clientIssue.ClientCode);
+            Assert.Equal(
+                "The author primary signature found a chain building issue: A certificate chain processed, but " +
+                "terminated in a root certificate which is not trusted by the trust provider.",
+                clientIssue.ClientMessage);
         }
 
         [Fact]
-        public async Task AcceptsAcceptableRepositorySignatures()
+        public async Task WhenRepositoryCounterSigned_RejectsUntrustedTimestampingCertificate()
         {
             // Arrange
-            var signingCertificate = await _fixture.GetSigningCertificateAsync();
-            var packageStream = await _fixture.GenerateRepositorySignedPackageStreamAsync(signingCertificate, _output);
+            using (var timestampService = await _fixture.CreateUntrustedTimestampServiceAsync())
+            {
+                MemoryStream packageStream;
+                var certificate = await _fixture.GetSigningCertificateAsync();
+                using (timestampService.TemporarilyTrust())
+                {
+                    var packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
+                        TestResources.SignedPackageLeaf1,
+                        await _fixture.GetSigningCertificateAsync(),
+                        timestampService.Url,
+                        _output);
 
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
-            _configuration.AllowedRepositorySigningCertificates.Add(signingCertificate.ComputeSHA256Thumbprint());
+                    packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                        new MemoryStream(packageBytes),
+                        certificate,
+                        _output);
+                }
 
-            var formatValidator = new SignatureFormatValidator(_optionsSnapshot.Object);
+                TestUtility.RequireSignedPackage(_corePackageService,
+                    TestResources.SignedPackageLeafId,
+                    await _fixture.GetSigningCertificateThumbprintAsync());
 
-            // Initialize the subject of testing.
-            var target = new SignatureValidator(
-                _packageSigningStateService,
-                formatValidator,
-                _signaturePartsExtractor,
-                _packageFileService.Object,
-                _corePackageService.Object,
-                _optionsSnapshot.Object,
-                _telemetryService,
-                _logger);
+                _packageStream = packageStream;
 
-            // Act
-            var result = await target.ValidateAsync(
-                _packageKey,
-                packageStream,
-                _message,
-                _token);
+                _message = new SignatureValidationMessage(
+                    TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
+                    new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                    Guid.NewGuid());
+
+                var target = CreateSignatureValidator(
+                    allowedRepositorySigningCertificates: new[] { certificate });
+
+                // Act
+                var result = await target.ValidateAsync(
+                    _packageKey,
+                    _packageStream,
+                    _message,
+                    _token);
+
+                // Assert
+                VerifyPackageSigningStatus(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
+                var issue = Assert.Single(result.Issues);
+                var clientIssue = Assert.IsType<ClientSigningVerificationFailure>(issue);
+                Assert.Equal("NU3028", clientIssue.ClientCode);
+                Assert.Equal(
+                    "The author primary signature's timestamp found a chain building issue: A certificate chain " +
+                    "processed, but terminated in a root certificate which is not trusted by the trust provider.",
+                    clientIssue.ClientMessage);
+            }
+        }
+
+        [Fact]
+        public async Task WhenRepositoryCounterSigned_AcceptsTrustedTimestampingCertificateWithUnavailableRevocation()
+        {
+            // Arrange
+            var timestampService = await _fixture.CreateTimestampServiceWithUnavailableRevocationAsync();
+
+            Stream packageStream;
+            var certificate = await _fixture.GetSigningCertificateAsync();
+            using (timestampService.TemporarilyRegisterDefaultResponders())
+            {
+                var packageBytes = await _fixture.GenerateAuthorSignedPackageBytesAsync(
+                    TestResources.SignedPackageLeaf1,
+                    await _fixture.GetSigningCertificateAsync(),
+                    timestampService.Url,
+                    _output);
+
+                packageStream = await _fixture.RepositorySignPackageStreamAsync(
+                    new MemoryStream(packageBytes),
+                    certificate,
+                    _output);
+            }
+
+            // Wait one second for the OCSP response cached by the operating system during signing to get stale.
+            // This can be mitigated by leaving the OCSP unavailable during signing once this work item is done:
+            // https://github.com/NuGet/Home/issues/6508
+            await Task.Delay(TimeSpan.FromSeconds(1));
+
+            TestUtility.RequireSignedPackage(_corePackageService,
+                TestResources.SignedPackageLeafId,
+                await _fixture.GetSigningCertificateThumbprintAsync());
+
+            _packageStream = packageStream;
+
+            _message = new SignatureValidationMessage(
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
+                Guid.NewGuid());
+
+            var target = CreateSignatureValidator(
+                allowedRepositorySigningCertificates: new[] { certificate });
+
+            SignatureValidatorResult result;
+            using (timestampService.TemporarilyRegisterResponders(addOcsp: false))
+            {
+                // Act
+                result = await target.ValidateAsync(
+                   _packageKey,
+                   _packageStream,
+                   _message,
+                   _token);
+            }
 
             // Assert
             VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid);
             Assert.Empty(result.Issues);
-            Assert.Null(result.NupkgUri);
+
+            var allMessages = string.Join(Environment.NewLine, _logger.Messages);
+            Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation because the revocation server was offline.", allMessages);
+            Assert.Contains("NU3028: The author primary signature's timestamp found a chain building issue: The revocation function was unable to check revocation for the certificate.", allMessages);
+        }
+
+        [Fact(Skip = "Appears to be flaky")]
+        public async Task WhenRepositoryCounterSigned_AcceptsTrustedSigningCertificateWithUnavailableRevocation()
+        {
+            /// When <see cref="AcceptsTrustedSigningCertificateWithUnavailableRevocation"/> is fixed,
+            /// this test should be written as well.
         }
 
         [Theory]
@@ -773,7 +1501,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         public async Task RejectsMutuallyExclusiveCounterSignaturesCommitmentTypes(SignatureType[] counterSignatureTypes)
         {
             // Arrange
-            var packageStream = await GetSignedPackageStream1Async();
+            var packageStream = await GetAuthorSignedPackageStream1Async();
             ModifySignatureContent(
                 packageStream,
                 configuredSignedCms: signedCms =>
@@ -819,7 +1547,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 TestResources.SignedPackageLeaf1Version,
                 new Uri($"https://unit.test/validation/{TestResources.SignedPackageLeaf1.ToLowerInvariant()}"),
                 Guid.NewGuid());
-            var packageStream = await GetSignedPackageStream1Async();
+            var packageStream = await GetAuthorSignedPackageStream1Async();
             ModifySignatureContent(
                 packageStream,
                 configuredSignedCms: signedCms =>
@@ -951,6 +1679,15 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             Assert.Equal(ValidationIssueCode.PackageIsZip64, issue.IssueCode);
         }
 
+        private IDisposable TemporarilyTrustUntrustedCertificate(X509Certificate2 certificate)
+        {
+            return new TrustedTestCert<X509Certificate2>(
+                certificate,
+                x => x,
+                StoreName.Root,
+                StoreLocation.LocalMachine);
+        }
+
         private void SetSignatureFileContent(Stream packageStream, byte[] fileContent)
         {
             try
@@ -979,6 +1716,28 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 packageStream?.Dispose();
                 throw;
             }
+        }
+
+        private SignatureValidator CreateSignatureValidator(
+            X509Certificate2[] allowedRepositorySigningCertificates,
+            string v3ServiceIndexUrl = TestResources.V3ServiceIndexUrl)
+        {
+            var thumbprints = allowedRepositorySigningCertificates.Select(c => c.ComputeSHA256Thumbprint());
+
+            _configuration.AllowedRepositorySigningCertificates.AddRange(thumbprints);
+            _configuration.V3ServiceIndexUrl = v3ServiceIndexUrl;
+
+            var formatValidator = new SignatureFormatValidator(_optionsSnapshot.Object);
+
+            return new SignatureValidator(
+                _packageSigningStateService,
+                formatValidator,
+                _signaturePartsExtractor,
+                _packageFileService.Object,
+                _corePackageService.Object,
+                _optionsSnapshot.Object,
+                _telemetryService,
+                _logger);
         }
 
         private void ModifySignatureContent(Stream packageStream, Action<SignedCms> configuredSignedCms = null)
@@ -1040,9 +1799,24 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             SetSignatureContent(packageId, packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
         }
 
-      
+        private void AddFileToPackageStream(MemoryStream packageStream)
+        {
+            using (var zipArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+            using (var entryStream = zipArchive.CreateEntry("new-file.txt").Open())
+            using (var writer = new StreamWriter(entryStream))
+            {
+                writer.WriteLine("These contents were added after the package was signed.");
+            }
+        }
 
-        private void VerifyPackageSigningStatus(SignatureValidatorResult result, ValidationStatus validationStatus, PackageSigningStatus packageSigningStatus)
+        private void VerifyRepositoryCounterSignatureWasStripped(SignatureValidatorResult result)
+            => VerifyPackageSigningStatus(result, ValidationStatus.Succeeded, PackageSigningStatus.Valid, repositorySigned: false);
+
+        private void VerifyPackageSigningStatus(
+            SignatureValidatorResult result,
+            ValidationStatus validationStatus,
+            PackageSigningStatus packageSigningStatus,
+            bool? repositorySigned = null)
         {
             Assert.Equal(validationStatus, result.State);
             var state = _validationEntitiesContext
@@ -1050,9 +1824,18 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 .PackageSigningStates
                 .Where(x => x.PackageKey == _packageKey)
                 .SingleOrDefault();
-            Assert.Equal(state.PackageId, _message.PackageId);
-            Assert.Equal(state.PackageNormalizedVersion, _message.PackageVersion);
-            Assert.Equal(state.SigningStatus, packageSigningStatus);
+            Assert.Equal(packageSigningStatus, state.SigningStatus);
+
+            if (repositorySigned.HasValue)
+            {
+                var hasRepositorySignature = _validationEntitiesContext
+                    .Object
+                    .PackageSignatures
+                    .Where(s => s.PackageKey == _packageKey)
+                    .Any(s => s.Type == PackageSignatureType.Repository);
+
+                Assert.Equal(repositorySigned.Value, hasRepositorySignature);
+            }
         }
 
         private static void VerifyNU3008(SignatureValidatorResult result)

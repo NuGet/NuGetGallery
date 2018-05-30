@@ -6,28 +6,32 @@ using System.Globalization;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    public class PackageDimension
+    public class PackageDimension : IEquatable<PackageDimension>
     {
         private static CultureInfo EnUsCulture = CultureInfo.GetCultureInfo("en-US");
+
+        private readonly string _comparablePackageId;
+        private readonly int _hashCode;
 
         public PackageDimension(string packageId, string packageVersion)
         {
             PackageId = packageId;
             PackageVersion = packageVersion;
-        }
+            _comparablePackageId = packageId.ToLower(EnUsCulture);
 
-        protected bool Equals(PackageDimension other)
-        {
-            return string.Equals(PackageId.ToLower(EnUsCulture), other.PackageId.ToLower(EnUsCulture)) && string.Equals(PackageVersion, other.PackageVersion, StringComparison.OrdinalIgnoreCase);
-        }
-
-        public override int GetHashCode()
-        {
             unchecked
             {
-                return ((PackageId != null ? PackageId.ToLower(EnUsCulture).GetHashCode() : 0)*397) ^ (PackageVersion != null ? PackageVersion.GetHashCode() : 0);
+                _hashCode = ((PackageId != null ? _comparablePackageId.GetHashCode() : 0) * 397) ^ (PackageVersion != null ? PackageVersion.GetHashCode() : 0);
             }
         }
+
+        public bool Equals(PackageDimension other)
+        {
+            if (other == null) return false;
+            return string.Equals(_comparablePackageId, other._comparablePackageId) && string.Equals(PackageVersion, other.PackageVersion, StringComparison.OrdinalIgnoreCase);
+        }
+
+        public override int GetHashCode() => _hashCode;
 
         public int Id { get; set; }
         public string PackageId { get; }
@@ -35,10 +39,10 @@ namespace Stats.ImportAzureCdnStatistics
 
         public override bool Equals(object obj)
         {
-            if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != GetType()) return false;
-            return Equals((PackageDimension) obj);
+            var other = obj as PackageDimension;
+            if (other == null) return false;
+            return Equals(other);
         }
     }
 }

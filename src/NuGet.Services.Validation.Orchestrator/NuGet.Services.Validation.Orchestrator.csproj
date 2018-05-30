@@ -67,9 +67,7 @@
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessor.cs" />
     <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureConfiguration.cs" />
     <Compile Include="PackageSigning\ProcessSignature\ProcessSignatureEnqueuer.cs" />
-    <Compile Include="PackageSigning\ScanAndSign\IScanAndSignEnqueuer.cs" />
     <Compile Include="PackageSigning\ScanAndSign\ScanAndSignConfiguration.cs" />
-    <Compile Include="PackageSigning\ScanAndSign\ScanAndSignEnqueuer.cs" />
     <Compile Include="PackageSigning\ScanAndSign\ScanAndSignProcessor.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\IValidateCertificateEnqueuer.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidator.cs" />
@@ -88,6 +86,7 @@
     <Compile Include="Configuration\ValidationConfigurationItem.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
     <Compile Include="ValidationPackageFileService.cs" />
+    <Compile Include="ValidationSetProcessorResult.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
     <Compile Include="Vcs\IPackageCriteriaEvaluator.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluator.cs" />
