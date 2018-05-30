@@ -2152,9 +2152,6 @@
     <PackageReference Include="NuGet.Protocol">
       <Version>4.3.0-preview1-2524</Version>
     </PackageReference>
-    <PackageReference Include="NuGet.Services.Contracts">
-      <Version>2.25.0-master-30191</Version>
-    </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
       <Version>2.25.0-master-30453</Version>
     </PackageReference>
@@ -2174,10 +2171,10 @@
       <Version>2.25.0-master-30453</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.25.0-master-30191</Version>
+      <Version>2.25.0-chenriks-sqlaad-validationdb-32415</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.25.0-master-30191</Version>
+      <Version>2.25.0-chenriks-sqlaad-validationdb-32415</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
       <Version>4.3.0-preview1-2524</Version>
