@@ -22,8 +22,8 @@ namespace NuGet.Services.Metadata.Catalog
         public const string Method = "Method";
         public const string PackageDownloadSeconds = "PackageDownloadSeconds";
         public const string ProcessGraphsSeconds = "ProcessGraphsSeconds";
-        public const string ProcessPackageDelete = "ProcessPackageDelete";
-        public const string ProcessPackageDetails = "ProcessPackageDetails";
+        public const string ProcessPackageDeleteSeconds = "ProcessPackageDeleteSeconds";
+        public const string ProcessPackageDetailsSeconds = "ProcessPackageDetailsSeconds";
         public const string RegistrationDeltaCount = "RegistrationDeltaCount";
         public const string StatusCode = "StatusCode";
         public const string Success = "Success";

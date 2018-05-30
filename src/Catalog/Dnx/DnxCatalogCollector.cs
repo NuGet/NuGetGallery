@@ -49,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 {
                     var properties = GetTelemetryProperties(id, version);
 
-                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetails, properties))
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetailsSeconds, properties))
                     {
                         await ProcessPackageDetailsAsync(client, id, version, cancellationToken);
                     }
@@ -58,7 +58,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 {
                     var properties = GetTelemetryProperties(id, version);
 
-                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDelete, properties))
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDeleteSeconds, properties))
                     {
                         await ProcessPackageDeleteAsync(id, version, cancellationToken);
                     }
