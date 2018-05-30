@@ -11,7 +11,6 @@ using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Orchestrator;
-using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using Xunit;
 
 namespace Validation.PackageSigning.ScanAndSign.Tests
@@ -59,7 +58,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         {
             _configurationAccessorMock
                 .SetupGet(ca => ca.Value)
-                .Returns((ScanAndSignConfiguration)null);
+                .Returns((ScanAndSignEnqueuerConfiguration)null);
 
             var ex = Assert.Throws<ArgumentException>(() => new ScanAndSignEnqueuer(
                 _topicClientMock.Object,
@@ -86,16 +85,16 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
     public class TheEnqueueScanAsyncMethod : ScanAndSignEnqueuerFactsBase
     {
         [Fact]
-        public async Task ThrowsWhenRequestIsNull()
+        public async Task ThrowsWhenUrlIsNull()
         {
-            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.EnqueueScanAsync(null));
-            Assert.Equal("request", ex.ParamName);
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.EnqueueScanAsync(Guid.NewGuid(), null));
+            Assert.Equal("nupkgUrl", ex.ParamName);
         }
 
         [Fact]
         public async Task PassesDataToSerializedMessage()
         {
-            await _target.EnqueueScanAsync(_validationRequest);
+            await _target.EnqueueScanAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl);
 
             _serializerMock
                 .Verify(s => s.Serialize(It.IsAny<ScanAndSignMessage>()), Times.Once);
@@ -113,7 +112,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             const int messageDelayDays = 137;
             _configuration.MessageDelay = TimeSpan.FromDays(messageDelayDays);
 
-            await _target.EnqueueScanAsync(_validationRequest);
+            await _target.EnqueueScanAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl);
 
             Assert.Equal(messageDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
         }
@@ -122,7 +121,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         public async Task SendsMessage()
         {
             var request = new ValidationRequest(Guid.NewGuid(), 42, "somepackage", "someversion", "https://example.com/testpackage.nupkg");
-            await _target.EnqueueScanAsync(request);
+            await _target.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
 
             Assert.Same(_serializedMessage, _capturedBrokeredMessage);
         }
@@ -130,14 +129,19 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
 
     public class TheEnqueueScanAndSignAsyncMethod : ScanAndSignEnqueuerFactsBase
     {
+        public const string V3ServiceIndexUrl = "https://someurl";
+
         [Fact]
         public async Task ThrowsWhenParametersAreMissing()
         {
-            var ex1 = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.EnqueueScanAndSignAsync(null, _configuration.V3ServiceIndexUrl, _owners));
-            var ex2 = await Assert.ThrowsAsync<ArgumentException>(() => _target.EnqueueScanAndSignAsync(_validationRequest, null, _owners));
-            var ex3 = await Assert.ThrowsAsync<ArgumentNullException>(() => _target.EnqueueScanAndSignAsync(_validationRequest, _configuration.V3ServiceIndexUrl, null));
+            var ex1 = await Assert.ThrowsAsync<ArgumentNullException>(()
+                => _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, null, V3ServiceIndexUrl, _owners));
+            var ex2 = await Assert.ThrowsAsync<ArgumentException>(()
+                => _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, null, _owners));
+            var ex3 = await Assert.ThrowsAsync<ArgumentNullException>(()
+                => _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, V3ServiceIndexUrl, null));
 
-            Assert.Equal("request", ex1.ParamName);
+            Assert.Equal("nupkgUrl", ex1.ParamName);
             Assert.Equal("v3ServiceIndexUrl", ex2.ParamName);
             Assert.Equal("owners", ex3.ParamName);
         }
@@ -145,7 +149,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         [Fact]
         public async Task PassesDataToSerializedMessage()
         {
-            await _target.EnqueueScanAndSignAsync(_validationRequest, _configuration.V3ServiceIndexUrl, _owners);
+            await _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, V3ServiceIndexUrl, _owners);
 
             _serializerMock
                 .Verify(s => s.Serialize(It.IsAny<ScanAndSignMessage>()), Times.Once);
@@ -153,7 +157,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             Assert.Equal(_validationRequest.ValidationId, _capturedMessage.PackageValidationId);
             Assert.Equal(OperationRequestType.Sign, _capturedMessage.OperationRequestType);
             Assert.Equal(_validationRequest.NupkgUrl, _capturedMessage.BlobUri.AbsoluteUri);
-            Assert.Equal(_configuration.V3ServiceIndexUrl, _capturedMessage.V3ServiceIndexUrl);
+            Assert.Equal(V3ServiceIndexUrl, _capturedMessage.V3ServiceIndexUrl);
             Assert.Equal(_owners, _capturedMessage.Owners);
         }
 
@@ -163,7 +167,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             const int messageDelayDays = 137;
             _configuration.MessageDelay = TimeSpan.FromDays(messageDelayDays);
 
-            await _target.EnqueueScanAndSignAsync(_validationRequest, _configuration.V3ServiceIndexUrl, _owners);
+            await _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, V3ServiceIndexUrl, _owners);
 
             Assert.Equal(messageDelayDays, (_serializedMessage.ScheduledEnqueueTimeUtc - DateTimeOffset.UtcNow).TotalDays, 0);
         }
@@ -171,7 +175,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         [Fact]
         public async Task SendsMessage()
         {
-            await _target.EnqueueScanAndSignAsync(_validationRequest, _configuration.V3ServiceIndexUrl, _owners);
+            await _target.EnqueueScanAndSignAsync(_validationRequest.ValidationId, _validationRequest.NupkgUrl, V3ServiceIndexUrl, _owners);
 
             Assert.Same(_serializedMessage, _capturedBrokeredMessage);
         }
@@ -181,9 +185,9 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
     {
         protected Mock<ITopicClient> _topicClientMock;
         protected Mock<IBrokeredMessageSerializer<ScanAndSignMessage>> _serializerMock;
-        protected Mock<IOptionsSnapshot<ScanAndSignConfiguration>> _configurationAccessorMock;
         protected ILogger<ScanAndSignEnqueuer> _logger;
-        protected ScanAndSignConfiguration _configuration;
+        protected Mock<IOptionsSnapshot<ScanAndSignEnqueuerConfiguration>> _configurationAccessorMock;
+        protected ScanAndSignEnqueuerConfiguration _configuration;
         protected ScanAndSignEnqueuer _target;
 
         protected ScanAndSignMessage _capturedMessage;
@@ -197,13 +201,10 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         {
             _topicClientMock = new Mock<ITopicClient>();
             _serializerMock = new Mock<IBrokeredMessageSerializer<ScanAndSignMessage>>();
-            _configurationAccessorMock = new Mock<IOptionsSnapshot<ScanAndSignConfiguration>>();
             _logger = Mock.Of<ILogger<ScanAndSignEnqueuer>>();
+            _configurationAccessorMock = new Mock<IOptionsSnapshot<ScanAndSignEnqueuerConfiguration>>();
 
-            _configuration = new ScanAndSignConfiguration();
-
-            _configuration.V3ServiceIndexUrl = "http://awesome.v3/service/index.json";
-
+            _configuration = new ScanAndSignEnqueuerConfiguration();
             _configurationAccessorMock
                 .SetupGet(ca => ca.Value)
                 .Returns(_configuration);

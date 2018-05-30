@@ -6,22 +6,22 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation;
 
-namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
+namespace NuGet.Jobs.Validation.ScanAndSign
 {
     public class ScanAndSignEnqueuer : IScanAndSignEnqueuer
     {
         private readonly ITopicClient _topicClient;
         private readonly IBrokeredMessageSerializer<ScanAndSignMessage> _serializer;
-        private readonly ScanAndSignConfiguration _configuration;
+        private readonly ScanAndSignEnqueuerConfiguration _configuration;
         private readonly ILogger<IScanAndSignEnqueuer> _logger;
 
         public ScanAndSignEnqueuer(
             ITopicClient topicClient,
             IBrokeredMessageSerializer<ScanAndSignMessage> serializer,
-            IOptionsSnapshot<ScanAndSignConfiguration> configurationAccessor,
+            IOptionsSnapshot<ScanAndSignEnqueuerConfiguration> configurationAccessor,
             ILogger<IScanAndSignEnqueuer> logger)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
@@ -39,23 +39,27 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             _configuration = configurationAccessor.Value;
         }
 
-        public Task EnqueueScanAsync(IValidationRequest request)
+        public Task EnqueueScanAsync(Guid validationId, string nupkgUrl)
         {
-            if (request == null)
+            if (nupkgUrl == null)
             {
-                throw new ArgumentNullException(nameof(request));
+                throw new ArgumentNullException(nameof(nupkgUrl));
             }
 
             return SendScanAndSignMessageAsync(
                 new ScanAndSignMessage(
                     OperationRequestType.Scan,
-                    request.ValidationId,
-                    new Uri(request.NupkgUrl)));
+                    validationId,
+                    new Uri(nupkgUrl)));
         }
 
-        public Task EnqueueScanAndSignAsync(IValidationRequest request, string v3ServiceIndexUrl, List<string> owners)
+        public Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, List<string> owners)
         {
-            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (nupkgUrl == null)
+            {
+                throw new ArgumentNullException(nameof(nupkgUrl));
+            }
+
             if (owners == null) throw new ArgumentNullException(nameof(owners));
 
             if (string.IsNullOrEmpty(v3ServiceIndexUrl))
@@ -64,17 +68,17 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             }
 
             _logger.LogInformation(
-                "Requested scan and sign for package {PackageId} {PackageVersion} using service index {ServiceIndex} and owners {Owners}",
-                request.PackageId,
-                request.PackageVersion,
+                "Requested scan and sign for validation {ValidationId} {BlobUrl} using service index {ServiceIndex} and owners {Owners}",
+                validationId,
+                nupkgUrl,
                 v3ServiceIndexUrl,
                 owners);
 
             return SendScanAndSignMessageAsync(
                 new ScanAndSignMessage(
                     OperationRequestType.Sign,
-                    request.ValidationId,
-                    new Uri(request.NupkgUrl),
+                    validationId,
+                    new Uri(nupkgUrl),
                     v3ServiceIndexUrl,
                     owners));
         }

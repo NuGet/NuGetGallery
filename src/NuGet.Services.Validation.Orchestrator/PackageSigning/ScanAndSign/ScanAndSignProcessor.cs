@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 
@@ -131,7 +132,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     _configuration.V3ServiceIndexUrl,
                     owners);
 
-                await _scanAndSignEnqueuer.EnqueueScanAndSignAsync(request, _configuration.V3ServiceIndexUrl, owners);
+                await _scanAndSignEnqueuer.EnqueueScanAndSignAsync(request.ValidationId, request.NupkgUrl, _configuration.V3ServiceIndexUrl, owners);
             }
             else
             {
@@ -140,7 +141,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                     return ValidationResult.Succeeded;
                 }
 
-                await _scanAndSignEnqueuer.EnqueueScanAsync(request);
+                await _scanAndSignEnqueuer.EnqueueScanAsync(request.ValidationId, request.NupkgUrl);
             }
 
             var result = await _validatorStateService.TryAddValidatorStatusAsync(request, validatorStatus, ValidationStatus.Incomplete);

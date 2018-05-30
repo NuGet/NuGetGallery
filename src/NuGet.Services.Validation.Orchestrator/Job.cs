@@ -159,6 +159,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<SmtpConfiguration>(configurationRoot.GetSection(SmtpConfigurationSectionName));
             services.Configure<EmailConfiguration>(configurationRoot.GetSection(EmailConfigurationSectionName));
             services.Configure<ScanAndSignConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
+            services.Configure<ScanAndSignEnqueuerConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
 
             services.AddTransient<ConfigurationValidator>();
             services.AddTransient<OrchestrationRunner>();
