@@ -11,6 +11,7 @@ using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
 using NuGetGallery.Authentication;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery
 {
