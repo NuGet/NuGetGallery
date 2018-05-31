@@ -154,6 +154,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<Credential>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<PackageOwnerRequest>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()

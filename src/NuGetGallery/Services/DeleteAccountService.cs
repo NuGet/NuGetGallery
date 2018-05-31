@@ -24,11 +24,13 @@ namespace NuGetGallery
         private readonly ISecurityPolicyService _securityPolicyService;
         private readonly AuthenticationService _authService;
         private readonly IEntityRepository<User> _userRepository;
+        private readonly IEntityRepository<Scope> _scopeRepository;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
+                                    IEntityRepository<Scope> scopeRepository,
                                     IEntitiesContext entitiesContext,
                                     IPackageService packageService,
                                     IPackageOwnershipManagementService packageOwnershipManagementService,
@@ -41,6 +43,7 @@ namespace NuGetGallery
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _scopeRepository = scopeRepository ?? throw new ArgumentNullException(nameof(scopeRepository));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
@@ -138,17 +141,28 @@ namespace NuGetGallery
 
         private async Task RemoveUserCredentials(User user)
         {
-            var copyOfUserCred = user.Credentials.ToArray();
-            foreach (var uc in copyOfUserCred)
+            // Remove any credential owned by this user.
+            foreach (var uc in user.Credentials.ToArray())
             {
                 await _authService.RemoveCredential(user, uc);
+            }
+
+            // Remove any credential scoped to this user.
+            var userScopes = _scopeRepository
+                .GetAll()
+                .Where(s => s.OwnerKey == user.Key)
+                .ToArray();
+
+            var credentials = userScopes.Select(s => s.Credential).Distinct().ToArray();
+            foreach (var credential in credentials)
+            {
+                await _authService.RemoveCredential(credential.User, credential);
             }
         }
 
         private async Task RemoveSecurityPolicies(User user)
         {
-            var copyOfUserPolicies = user.SecurityPolicies.ToArray();
-            foreach (var usp in copyOfUserPolicies)
+            foreach (var usp in user.SecurityPolicies.ToArray())
             {
                 await _securityPolicyService.UnsubscribeAsync(user, usp.Subscription);
             }
@@ -156,8 +170,7 @@ namespace NuGetGallery
 
         private async Task RemoveReservedNamespaces(User user)
         {
-            var copyOfUserNS = user.ReservedNamespaces.ToArray();
-            foreach (var rn in copyOfUserNS)
+            foreach (var rn in user.ReservedNamespaces.ToArray())
             {
                 await _reservedNamespaceService.DeleteOwnerFromReservedNamespaceAsync(rn.Value, user.Username, commitAsTransaction:false);
             }
