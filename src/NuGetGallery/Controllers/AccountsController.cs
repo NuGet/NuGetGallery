@@ -546,8 +546,8 @@ namespace NuGetGallery
         private bool CanManageCertificates(User currentUser, User account)
         {
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
-            return ActionsRequiringPermissions.ManageAccount
-                .CheckPermissions(currentUser, account) == PermissionsCheckResult.Allowed && wasAADLoginOrMultiFactorAuthenticated;
+            return wasAADLoginOrMultiFactorAuthenticated
+                && ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account) == PermissionsCheckResult.Allowed;
         }
 
         protected abstract RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName);
