@@ -487,7 +487,7 @@ namespace NuGetGallery
         /// This method will add the claim to the OwinContext with default value and update the cookie with the updated claims
         /// </summary>
         /// <returns>True if successfully adds the claim to the context, false otherwise</returns>
-        public static bool AddClaim(this IOwinContext self, string claimType)
+        public static bool AddClaim(this IOwinContext self, string claimType, string claimValue = null)
         {
             var identity = GetIdentity(self);
             if (identity == null || !identity.IsAuthenticated)
@@ -495,7 +495,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            if (identity.TryAddClaim(claimType))
+            if (identity.TryAddClaim(claimType, claimValue))
             {
                 // Update the cookies for the newly added claim
                 self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
