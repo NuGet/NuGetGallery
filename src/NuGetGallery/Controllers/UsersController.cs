@@ -438,17 +438,17 @@ namespace NuGetGallery
                 new ListPackageOwnerViewModel(currentUser)
             }.Concat(currentUser.Organizations.Select(o => new ListPackageOwnerViewModel(o.Organization)));
 
-            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
+            var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
 
             var packages = PackageService.FindPackagesByAnyMatchingOwner(currentUser, includeUnlisted: true);
             var listedPackages = packages
                 .Where(p => p.Listed)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
             var unlistedPackages = packages
                 .Where(p => !p.Listed)
-                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasMultiFactorAuthenticated))
+                .Select(p => new ListPackageItemRequiredSignerViewModel(p, currentUser, SecurityPolicyService, wasAADLoginOrMultiFactorAuthenticated))
                 .OrderBy(p => p.Id)
                 .ToList();
 
