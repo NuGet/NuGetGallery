@@ -15,6 +15,7 @@ using Gallery.CredentialExpiration.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Sql;
@@ -26,8 +27,7 @@ namespace Gallery.CredentialExpiration
     {
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
 
-        private readonly ConcurrentDictionary<string, DateTimeOffset> _contactedUsers = new ConcurrentDictionary<string, DateTimeOffset>();
-        private readonly string _cursorFile = "cursor.json";
+        private readonly string _cursorFile = "cursorv2.json";
 
         private bool _whatIf = false;
 
@@ -39,7 +39,6 @@ namespace Gallery.CredentialExpiration
         private string _mailFrom;
         private SmtpClient _smtpClient;
 
-        private int _allowEmailResendAfterDays = 7;
         private int _warnDaysBeforeExpiration = 10;
 
         private Storage _storage;
@@ -64,9 +63,6 @@ namespace Gallery.CredentialExpiration
             _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration)
                 ?? _warnDaysBeforeExpiration;
 
-            _allowEmailResendAfterDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.AllowEmailResendAfterDays)
-                ?? _allowEmailResendAfterDays;
-
             var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
             var storageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
 
@@ -77,89 +73,61 @@ namespace Gallery.CredentialExpiration
 
         public override async Task Run()
         {
+            var jobRunTime = DateTimeOffset.UtcNow;
+            // Default values
+            var jobCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: jobRunTime );
+            var galleryCredentialExpiration = new GalleryCredentialExpiration(new CredentialExpirationJobMetadata(jobRunTime, _warnDaysBeforeExpiration, jobCursor), _galleryDatabase);
+
             try
             {
-                List<ExpiredCredentialData> expiredCredentials = null;
+                List<ExpiredCredentialData> credentialsInRange = null;
 
-                // Who did we contact before?
+                // Get the most recent date for the emails being sent 
                 if (_storage.Exists(_cursorFile))
                 {
                     string content = await _storage.LoadString(_storage.ResolveUri(_cursorFile), CancellationToken.None);
                     // Load from cursor
-                    var contactedUsers = JsonConvert.DeserializeObject<Dictionary<string, DateTimeOffset>>(content);
-
-                    // Clean older entries (contacted in last _allowEmailResendAfterDays)
-                    var referenceDate = DateTimeOffset.UtcNow.AddDays(-1 * _allowEmailResendAfterDays);
-                    foreach (var kvp in contactedUsers.Where(kvp => kvp.Value >= referenceDate))
-                    {
-                        _contactedUsers.AddOrUpdate(kvp.Key, kvp.Value, (s, offset) => kvp.Value);
-                    }
+                    // Throw if the schema is not correct to ensure that not-intended emails are sent.
+                    jobCursor = JsonConvert.DeserializeObject<JobRunTimeCursor>(content, new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error });
+                    galleryCredentialExpiration = new GalleryCredentialExpiration(new CredentialExpirationJobMetadata(jobRunTime, _warnDaysBeforeExpiration, jobCursor), _galleryDatabase);
                 }
 
                 // Connect to database
-                using (var galleryConnection = await _galleryDatabase.CreateAsync())
-                {
-                    // Fetch credentials that expire in _warnDaysBeforeExpiration days 
-                    // + the user's e-mail address
-                    Logger.LogInformation("Retrieving expired credentials from Gallery database...");
-
-                    expiredCredentials = (await galleryConnection.QueryWithRetryAsync<ExpiredCredentialData>(
-                        Strings.GetExpiredCredentialsQuery,
-                        param: new { DaysBeforeExpiration = _warnDaysBeforeExpiration },
-                        maxRetries: 3,
-                        commandTimeout: _defaultCommandTimeout)).ToList();
-
-                    Logger.LogInformation("Retrieved {ExpiredCredentials} expired credentials.",
-                        expiredCredentials.Count);
-                }
+                Logger.LogInformation("Retrieving expired credentials from Gallery database...");
+                credentialsInRange = await galleryCredentialExpiration.GetCredentialsAsync(_defaultCommandTimeout);
+                Logger.LogInformation("Retrieved {ExpiredCredentials} expired credentials.",
+                       credentialsInRange.Count);
 
                 // Add default description for non-scoped API keys
-                expiredCredentials
+                credentialsInRange
                     .Where(cred => string.IsNullOrEmpty(cred.Description))
                     .ToList()
                     .ForEach(ecd => ecd.Description = Constants.NonScopedApiKeyDescription);
 
                 // Group credentials for each user
-                var userToExpiredCredsMapping = expiredCredentials
+                var userToExpiredCredsMapping = credentialsInRange
                     .GroupBy(x => x.Username)
                     .ToDictionary(user => user.Key, value => value.ToList());
 
-                // Handle expiring credentials
-                var jobRunTime = DateTimeOffset.UtcNow;
                 foreach (var userCredMapping in userToExpiredCredsMapping)
                 {
                     var username = userCredMapping.Key;
                     var credentialList = userCredMapping.Value;
 
                     // Split credentials into two lists: Expired and Expiring to aggregate messages
-                    var expiringCredentialList = credentialList
-                        .Where(x => (x.Expires - jobRunTime).TotalDays > 0)
-                        .ToList();
-                    var expiredCredentialList = credentialList
-                        .Where(x => (x.Expires - jobRunTime).TotalDays <= 0)
-                        .ToList();
+                    var expiringCredentialList = galleryCredentialExpiration.GetExpiringCredentials(credentialList);
+                    var expiredCredentialList = galleryCredentialExpiration.GetExpiredCredentials(credentialList);
 
-                    DateTimeOffset userContactTime;
-                    if (!_contactedUsers.TryGetValue(username, out userContactTime))
-                    {
-                        // send expiring API keys email notification
-                        await HandleExpiredCredentialEmail(username, expiringCredentialList, jobRunTime, expired: false);
+                    await HandleExpiredCredentialEmail(username, expiringCredentialList, jobRunTime, expired: false);
 
-                        // send expired API keys email notification
-                        await HandleExpiredCredentialEmail(username, expiredCredentialList, jobRunTime, expired: true);
-                    }
-                    else
-                    {
-                        Logger.LogDebug("Skipping expired credential for user {Username} - already handled at {JobRuntime}.",
-                            username, userContactTime);
-                    }
+                    // send expired API keys email notification
+                    await HandleExpiredCredentialEmail(username, expiredCredentialList, jobRunTime, expired: true);
                 }
             }
             finally
             {
-                // Make sure we know who has been contacted today, so they do not get double
-                // e-mail notifications.
-                string json = JsonConvert.SerializeObject(_contactedUsers);
+                JobRunTimeCursor newCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: galleryCredentialExpiration.GetMaxNotificationDate());
+                string json = JsonConvert.SerializeObject(newCursor);
                 var content = new StringStorageContent(json, "application/json");
                 await _storage.Save(_storage.ResolveUri(_cursorFile), content, CancellationToken.None);
             }
@@ -172,9 +140,8 @@ namespace Gallery.CredentialExpiration
                 return;
             }
 
-            Logger.LogInformation("Handling {Expired} credential(s) for user {Username} (Keys: {Descriptions})...",
+            Logger.LogInformation("Handling {Expired} credential(s) (Keys: {Descriptions})...",
                 expired ? "expired" : "expiring",
-                username,
                 string.Join(", ", credentialList.Select(x => x.Description).ToList()));
 
             // Build message
@@ -206,21 +173,18 @@ namespace Gallery.CredentialExpiration
                     await _smtpClient.SendMailAsync(mailMessage);
                 }
 
-                Logger.LogInformation("Handled {Expired} credential for user {Username}.",
-                    expired ? "expired" : "expiring",
-                    username);
-
-                _contactedUsers.AddOrUpdate(username, jobRunTime, (s, offset) => jobRunTime);
+                Logger.LogInformation("Handled {Expired} credential .",
+                    expired ? "expired" : "expiring");
             }
             catch (SmtpFailedRecipientException ex)
             {
-                var logMessage = "Failed to handle credential for user {Username} - recipient failed!";
-                Logger.LogWarning(LogEvents.FailedToSendMail, ex, logMessage, username);
+                var logMessage = "Failed to handle credential - recipient failed!";
+                Logger.LogWarning(LogEvents.FailedToSendMail, ex, logMessage);
             }
             catch (Exception ex)
             {
-                var logMessage = "Failed to handle credential for user {Username}.";
-                Logger.LogCritical(LogEvents.FailedToHandleExpiredCredential, ex, logMessage, username);
+                var logMessage = "Failed to handle credential .";
+                Logger.LogCritical(LogEvents.FailedToHandleExpiredCredential, ex, logMessage);
 
                 throw;
             }

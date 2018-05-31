@@ -140,8 +140,9 @@ namespace Gallery.CredentialExpiration {
         ///INNER JOIN Users AS u ON u.[Key] = cr.[UserKey]
         ///WHERE u.[EmailAllowed] = 1
         ///  AND u.[EmailAddress] &lt;&gt; &apos;&apos;
-        ///  AND cr.[Expires] &lt;= DATEADD(day,@DaysBeforeExpiration,GETUTCDATE())
-        ///  AND cr.[Expires] &gt; DATEADD(day,-1 * @DaysBeforeExpiration,GETUTCDATE())
+        ///  AND Expires IS NOT NULL
+        ///  AND cr.[Expires] &lt;= CONVERT(datetime, @MaxNotificationDate)
+        ///  AND cr.[Expires] &gt;= CONVERT(datetime, @MinNotificationDate)
         ///  AND (cr.[Type] = &apos;apikey.v3&apos; or cr.[Type] = &apos;apikey.v4&apos;)
         ///ORDER BY u.[Username].
         /// </summary>
