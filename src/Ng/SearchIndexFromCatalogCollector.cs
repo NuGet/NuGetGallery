@@ -167,7 +167,7 @@ namespace Ng
                 {
                     var properties = GetTelemetryProperties(catalogItem);
 
-                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetailsSeconds, properties))
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDeleteSeconds, properties))
                     {
                         ProcessPackageDelete(indexWriter, catalogItem);
                     }
