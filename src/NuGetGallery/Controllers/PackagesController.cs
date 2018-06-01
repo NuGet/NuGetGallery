@@ -955,6 +955,7 @@ namespace NuGetGallery
         [HttpPost]
         [UIAuthorize]
         [ValidateAntiForgeryToken]
+        [ValidateRecaptchaResponse]
         [RequiresAccountConfirmation("contact package owners")]
         public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
