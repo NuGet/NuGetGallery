@@ -85,6 +85,7 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IContentObjectService _contentObjectService;
+        private readonly IRelatedPackagesService _relatedPackagesService;
 
         public PackagesController(
             IPackageService packageService,
@@ -108,7 +109,8 @@ namespace NuGetGallery
             IReadMeService readMeService,
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IRelatedPackagesService relatedPackagesService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -132,6 +134,7 @@ namespace NuGetGallery
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
+            _relatedPackagesService = relatedPackagesService;
         }
 
         [HttpGet]
@@ -469,6 +472,10 @@ namespace NuGetGallery
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
+            model.RelatedPackages = (await _relatedPackagesService
+                .GetRelatedPackagesAsync(package))
+                // We pass `currentUser: null` so that the administrative action buttons don't show up in the _ListPackage partial
+                .Select(p => new ListPackageItemViewModel(p, currentUser: null));
 
             var externalSearchService = _searchService as ExternalSearchService;
             if (_searchService.ContainsAllVersions && externalSearchService != null)

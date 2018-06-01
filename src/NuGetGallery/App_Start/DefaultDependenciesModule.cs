@@ -381,6 +381,11 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+
+            builder.RegisterType<RelatedPackagesService>()
+                .AsSelf()
+                .As<IRelatedPackagesService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
@@ -521,10 +526,10 @@ namespace NuGetGallery
                 }
             }
 
-            builder.RegisterInstance(NullReportService.Instance)
+            builder.RegisterType<LocalReportService>()
                 .AsSelf()
                 .As<IReportService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder.RegisterInstance(NullStatisticsService.Instance)
                 .AsSelf()

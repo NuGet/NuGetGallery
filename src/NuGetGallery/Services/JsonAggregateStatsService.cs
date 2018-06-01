@@ -36,7 +36,7 @@ namespace NuGetGallery
             //Check if the report blob is present before processing it.
             if (!blob.Exists())
             {
-                throw new StatisticsReportNotFoundException();
+                throw new ReportNotFoundException();
             }
 
             string totals = await blob.DownloadTextAsync();

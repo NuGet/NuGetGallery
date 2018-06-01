@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
+using static NuGetGallery.JsonStatisticsService;
 
 namespace NuGetGallery.Services
 {
@@ -198,44 +199,44 @@ namespace NuGetGallery.Services
                     communityPackageVersionsLastUpdateTimeUtc = communityPackageVersionsLastUpdateTimeUtc ?? LastUpdatedUtcDefault;
                 }
 
-                Task<StatisticsReport> CreateReport(IEnumerable<Dictionary<string, object>> report, DateTime? lastUpdatedUtc)
+                Task<ReportBlob> CreateReport(IEnumerable<Dictionary<string, object>> report, DateTime? lastUpdatedUtc)
                 {
                     var content = JsonConvert.SerializeObject(report);
-                    var result = new StatisticsReport(content, lastUpdatedUtc);
+                    var result = new ReportBlob(content, lastUpdatedUtc);
 
                     return Task.FromResult(result);
                 }
 
                 _reportService
-                    .Setup(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")))
+                    .Setup(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentpopularity.json")))
                     .Returns(CreateReport(packageDownloadsReport, packagesLastUpdateTimeUtc));
 
                 _reportService
-                    .Setup(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")))
+                    .Setup(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentcommunitypopularity.json")))
                     .Returns(CreateReport(communityPackageDownloadsReport, communityPackagesLastUpdateTimeUtc));
 
                 _reportService
-                    .Setup(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")))
+                    .Setup(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentpopularitydetail.json")))
                     .Returns(CreateReport(packageVersionDownloadsReport, packageVersionsLastUpdateTimeUtc));
 
                 _reportService
-                    .Setup(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")))
+                    .Setup(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")))
                     .Returns(CreateReport(communityPackageVersionDownloadsReport, communityPackageVersionsLastUpdateTimeUtc));
             }
 
             protected void VerifyReportsLoadedOnce()
             {
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularity.json")), Times.Once);
+                    .Verify(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentpopularity.json")), Times.Once);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), Times.Once);
+                    .Verify(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentcommunitypopularity.json")), Times.Once);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentpopularitydetail.json")), Times.Once);
+                    .Verify(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentpopularitydetail.json")), Times.Once);
 
                 _reportService
-                    .Verify(s => s.Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), Times.Once);
+                    .Verify(s => s.GetContainer(ContainerName).Load(It.Is<string>(n => n == "recentcommunitypopularitydetail.json")), Times.Once);
             }
         }
     }

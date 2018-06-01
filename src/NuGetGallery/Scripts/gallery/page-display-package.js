@@ -41,14 +41,11 @@ $(function () {
         });
     }
 
+    window.nuget.configureExpanderHeading("related-packages");
+    window.nuget.configureExpanderLink("hidden-packages");
     window.nuget.configureExpanderHeading("dependency-groups");
     window.nuget.configureExpanderHeading("version-history");
-    window.nuget.configureExpander(
-        "hidden-versions",
-        "CalculatorAddition",
-        "Show less",
-        "CalculatorSubtract",
-        "Show more"); 
+    window.nuget.configureExpanderLink("hidden-versions");
 
     for (var i in packageManagers)
     {

@@ -205,6 +205,10 @@
         window.nuget.configureExpander(prefix, "ChevronRight", null, "ChevronDown", null);
     };
 
+    nuget.configureExpanderLink = function (prefix) {
+        window.nuget.configureExpander(prefix, "CalculatorAddition", "Show less", "CalculatorSubtract", "Show more");
+    };
+
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
     nuget.supportsSvg = function () {
