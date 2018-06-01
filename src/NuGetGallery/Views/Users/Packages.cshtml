@@ -90,7 +90,7 @@
 </section>
 
 <script type="text/html" id="manage-packages">
-    @if (Model.IsCertificatesUIEnabled && !Model.WasMultiFactorAuthenticated)
+    @if (Model.IsCertificatesUIEnabled && !Model.WasMultiFactorAuthenticated && !User.WasAzureActiveDirectoryAccountUsedForSignin())
     {
     <div data-bind="visible: Packages.length > 0">
         @if (Model.User.EnableMultiFactorAuthentication)

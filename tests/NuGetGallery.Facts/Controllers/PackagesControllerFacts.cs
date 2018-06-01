@@ -5393,8 +5393,10 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsAuthenticatedOwner_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenCurrentUserIsAuthenticatedOwner_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 var packageService = new Mock<IPackageService>();
                 var userService = new Mock<IUserService>();
@@ -5412,7 +5414,14 @@ namespace NuGetGallery
                     .Returns(_signer);
 
                 controller.SetCurrentUser(_signer);
-                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
 

@@ -1803,9 +1803,12 @@ namespace NuGetGallery
 
             var currentUser = GetCurrentUser();
 
-            if (ActionsRequiringPermissions.ManagePackageRequiredSigner
-                .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration)
-                    != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
+            var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
+            var canManagePackageRequiredSigner = wasAADLoginOrMultiFactorAuthenticated 
+                && ActionsRequiringPermissions
+                    .ManagePackageRequiredSigner
+                    .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) == PermissionsCheckResult.Allowed;
+            if (!canManagePackageRequiredSigner)
             {
                 return Json(HttpStatusCode.Forbidden);
             }

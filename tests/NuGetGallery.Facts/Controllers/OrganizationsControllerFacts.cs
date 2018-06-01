@@ -1472,13 +1472,22 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
             }
 
-            [Fact]
-            public void GetCertificate_WhenOrganizationHasNoCertificates_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void GetCertificate_WhenOrganizationHasNoCertificates_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
                     .Returns(Enumerable.Empty<Certificate>());
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
 
@@ -1490,13 +1499,22 @@ namespace NuGetGallery
                 _certificateService.VerifyAll();
             }
 
-            [Fact]
-            public void GetCertificate_WhenOrganizationHasCertificate_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void GetCertificate_WhenOrganizationHasCertificate_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
                     .Returns(new[] { _certificate });
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.GetCertificate(_organization.Username, _certificate.Thumbprint);
 
@@ -1620,13 +1638,22 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
             }
 
-            [Fact]
-            public void GetCertificates_WhenOrganizationHasNoCertificates_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void GetCertificates_WhenOrganizationHasNoCertificates_ForAllValidClaims_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
                     .Returns(Enumerable.Empty<Certificate>());
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.GetCertificates(_organization.Username);
 
@@ -1638,13 +1665,22 @@ namespace NuGetGallery
                 _certificateService.VerifyAll();
             }
 
-            [Fact]
-            public void GetCertificates_WhenOrganizationHasCertificate_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void GetCertificates_WhenOrganizationHasCertificate_ForAllValidClaims_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 _certificateService.Setup(x => x.GetCertificates(It.Is<User>(u => u == _organization)))
                     .Returns(new[] { _certificate });
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.GetCertificates(_organization.Username);
 
@@ -1802,8 +1838,10 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.BadRequest, _controller.Response.StatusCode);
             }
 
-            [Fact]
-            public void AddCertificate_WhenUploadFileIsValid_ReturnsCreated()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void AddCertificate_WhenUploadFileIsValid_ForAllValidClaims_ReturnsCreated(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 var uploadFile = GetUploadFile();
 
@@ -1816,7 +1854,14 @@ namespace NuGetGallery
                     .Returns(Task.CompletedTask);
 
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.AddCertificate(_organization.Username, uploadFile);
 
@@ -1974,15 +2019,24 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, _controller.Response.StatusCode);
             }
 
-            [Fact]
-            public void DeleteCertificate_WithValidThumbprint_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public void DeleteCertificate_WithValidThumbprint_ForAllValidClaims_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 _certificateService.Setup(x => x.DeactivateCertificateAsync(
                         It.Is<string>(thumbprint => thumbprint == _certificate.Thumbprint),
                         It.Is<User>(user => user == _organization)))
                     .Returns(Task.CompletedTask);
                 _controller.SetCurrentUser(_user);
-                _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    _controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var response = _controller.DeleteCertificate(_organization.Username, _certificate.Thumbprint);
 
