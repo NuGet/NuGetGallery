@@ -790,7 +790,7 @@
     <Compile Include="Extensions\UserExtensions.cs" />
     <Compile Include="Filters\ApiScopeRequiredAttribute.cs" />
     <Compile Include="Filters\UIAuthorizeAttribute.cs" />
-    <Compile Include="Filters\ValidateRecaptchaResponse.cs" />
+    <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />

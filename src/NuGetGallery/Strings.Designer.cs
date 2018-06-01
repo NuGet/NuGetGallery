@@ -923,7 +923,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recaptcha response was not valid. Email support if you need assistance..
+        ///   Looks up a localized string similar to Recaptcha response was not valid. Try again or email support if you need assistance..
         /// </summary>
         public static string InvalidRecaptchaResponse {
             get {

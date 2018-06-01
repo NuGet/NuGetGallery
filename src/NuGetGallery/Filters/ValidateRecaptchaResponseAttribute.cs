@@ -11,13 +11,15 @@ using Newtonsoft.Json;
 
 namespace NuGetGallery.Filters
 {
-    public sealed class ValidateRecaptchaResponse : AuthorizeAttribute
+    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class, Inherited = true, AllowMultiple = true)]
+    public sealed class ValidateRecaptchaResponseAttribute : ActionFilterAttribute
     {
         private const string RecaptchaResponseId = "g-recaptcha-response";
         private const string RecaptchaValidationUrl = "https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}";
         private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
+        private static readonly Lazy<HttpClient> Client = new Lazy<HttpClient>(() => new HttpClient() { Timeout = RequestTimeout });
 
-        public override void OnAuthorization(AuthorizationContext filterContext)
+        public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
             var controller = filterContext.Controller as AppController;
             var privateKey = controller.NuGetContext.Config.Current.ReCaptchaPrivateKey;
@@ -30,22 +32,27 @@ namespace NuGetGallery.Filters
                     if (!(Task.Run(() => RecaptchaIsValid(privateKey, response)).Result))
                     {
                         controller.TempData["Message"] = Strings.InvalidRecaptchaResponse;
-                        controller.SafeRedirect(controller.Url.Home());
+                        filterContext.Result = new RedirectResult(controller.Url.Current());
                     }
                 }
             }
 
-            base.OnAuthorization(filterContext);
+            base.OnActionExecuting(filterContext);
         }
 
         private async Task<bool> RecaptchaIsValid(string privateKey, string response)
         {
             var validationUrl = string.Format(CultureInfo.InvariantCulture, RecaptchaValidationUrl, privateKey, response);
-            using (var client = new HttpClient() { Timeout = RequestTimeout })
+
+            try
             {
-                var reply = await client.GetStringAsync(validationUrl);
+                var reply = await Client.Value.GetStringAsync(validationUrl);
                 var state = JsonConvert.DeserializeObject<RecaptchaState>(reply);
                 return state.Success;
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 
