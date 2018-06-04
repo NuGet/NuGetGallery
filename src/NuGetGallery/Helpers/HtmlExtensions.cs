@@ -58,10 +58,22 @@ namespace NuGetGallery.Helpers
 
             // Turn HTTP and HTTPS URLs into links.
             // Source: https://stackoverflow.com/a/4750468
+            MatchEvaluator anchorEvaluator = match =>
+            {
+                if (match.Value.EndsWith("&quot;"))
+                {
+                    // Remove trailing &quot; from anchor URL
+                    var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - "&quot;".Length);
+                    return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>&quot;";
+                }
+
+                return $"<a href=\"{match.Value}\" rel=\"nofollow\">{match.Value}</a>";
+            };
+
             encodedText = RegexEx.TryReplaceWithTimeout(
                 encodedText,
                 @"((http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
-                match => $"<a href=\"{match.Value}\" rel=\"nofollow\">{match.Value}</a>",
+                anchorEvaluator,
                 RegexOptions.IgnoreCase);
 
             // Replace new lines with the <br /> tag.
