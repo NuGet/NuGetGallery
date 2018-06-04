@@ -7,7 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -21,15 +23,18 @@ namespace NuGet.Services.Validation.Orchestrator
 
         private readonly ICoreFileStorageService _fileStorageService;
         private readonly IPackageDownloader _packageDownloader;
+        private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationPackageFileService> _logger;
 
         public ValidationPackageFileService(
             ICoreFileStorageService fileStorageService,
             IPackageDownloader packageDownloader,
+            ITelemetryService telemetryService,
             ILogger<ValidationPackageFileService> logger) : base(fileStorageService)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
             _packageDownloader = packageDownloader ?? throw new ArgumentNullException(nameof(packageDownloader));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -168,6 +173,50 @@ namespace NuGet.Services.Validation.Orchestrator
                 CoreConstants.ValidationFolderName,
                 destFileName,
                 AccessConditionWrapper.GenerateEmptyCondition());
+        }
+
+        public async Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(Package package)
+        {
+            var fileName = BuildFileName(
+                package,
+                CoreConstants.PackageFileSavePathTemplate,
+                CoreConstants.NuGetPackageFileExtension);
+
+            PackageStreamMetadata streamMetadata = null;
+
+            // This will throw if the ETag changes between read and write operations,
+            // so streamMetadata will never be null.
+            await _fileStorageService.SetMetadataAsync(
+                CoreConstants.PackagesFolderName,
+                fileName,
+                async (lazyStream, metadata) =>
+                {
+                    var packageStream = await lazyStream.Value;
+                    string hash;
+
+                    using (_telemetryService.TrackDurationToHashPackage(
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion,
+                        packageStream.Length,
+                        CoreConstants.Sha512HashAlgorithmId,
+                        packageStream.GetType().FullName))
+                    {
+                        hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
+                    }
+
+                    metadata[CoreConstants.Sha512HashAlgorithmId] = hash;
+
+                    streamMetadata = new PackageStreamMetadata()
+                    {
+                        Size = packageStream.Length,
+                        Hash = hash,
+                        HashAlgorithm = CoreConstants.Sha512HashAlgorithmId
+                    };
+
+                    return true;
+                });
+
+            return streamMetadata;
         }
 
         private Task<string> CopyFileAsync(

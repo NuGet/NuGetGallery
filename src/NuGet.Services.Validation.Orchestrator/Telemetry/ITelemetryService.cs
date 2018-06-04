@@ -116,6 +116,6 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// <summary>
         /// A metric to of how long it took to hash a package.
         /// </summary>
-        void TrackDurationToHashPackage(TimeSpan duration, string packageId, string normalizedVersion, string hashAlgorithm, string streamType);
+        IDisposable TrackDurationToHashPackage(string packageId, string normalizedVersion, long packageSize, string hashAlgorithm, string streamType);
     }
 }

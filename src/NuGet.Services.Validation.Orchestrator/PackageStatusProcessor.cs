@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -94,10 +93,13 @@ namespace NuGet.Services.Validation.Orchestrator
             // 1) Operate on blob storage.
             var copied = await UpdatePublicPackageAsync(validationSet, package);
 
-            // 2) Operate on the database.
-            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, package, copied);
+            // 2) Update the package's blob metadata in the packages blob storage container.
+            var metadata = await _packageFileService.UpdatePackageBlobMetadataAsync(package);
 
-            // 3) Emit telemetry and clean up.
+            // 3) Operate on the database.
+            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, package, metadata, copied);
+
+            // 4) Emit telemetry and clean up.
             if (fromStatus != PackageStatus.Available)
             {
                 _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.Available);
@@ -130,40 +132,24 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private async Task<PackageStatus> MarkPackageAsAvailableAsync(PackageValidationSet validationSet, Package package, bool copied)
+        private async Task<PackageStatus> MarkPackageAsAvailableAsync(
+            PackageValidationSet validationSet,
+            Package package,
+            PackageStreamMetadata streamMetadata,
+            bool copied)
         {
-
             // Use whatever package made it into the packages container. This is what customers will consume so the DB
             // record must match.
-            using (var packageStream = await _packageFileService.DownloadPackageFileToDiskAsync(package))
+            // We don't immediately commit here. Later, we will commit these changes as well as the new package
+            // status as part of the same transaction.
+            if (streamMetadata.Size != package.PackageFileSize
+                || streamMetadata.Hash != package.Hash
+                || streamMetadata.HashAlgorithm != package.HashAlgorithm)
             {
-                var stopwatch = Stopwatch.StartNew();
-                var hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
-                _telemetryService.TrackDurationToHashPackage(
-                    stopwatch.Elapsed,
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    CoreConstants.Sha512HashAlgorithmId,
-                    packageStream.GetType().FullName);
-
-                var streamMetadata = new PackageStreamMetadata
-                {
-                    Size = packageStream.Length,
-                    Hash = hash,
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                };
-
-                // We don't immediately commit here. Later, we will commit these changes as well as the new package
-                // status as part of the same transaction.
-                if (streamMetadata.Size != package.PackageFileSize
-                    || streamMetadata.Hash != package.Hash
-                    || streamMetadata.HashAlgorithm != package.HashAlgorithm)
-                {
-                    await _galleryPackageService.UpdatePackageStreamMetadataAsync(
-                        package,
-                        streamMetadata,
-                        commitChanges: false);
-                }
+                await _galleryPackageService.UpdatePackageStreamMetadataAsync(
+                    package,
+                    streamMetadata,
+                    commitChanges: false);
             }
 
             _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",

@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using NuGetGallery;
+using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -85,5 +86,16 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
         /// <returns>True if file exists, false otherwise</returns>
         Task<bool> DoesValidationSetPackageExistAsync(PackageValidationSet validationSet);
+
+        /// <summary>
+        /// Updates package blob metadata.
+        /// </summary>
+        /// <param name="package">A package that will have its blob metadata updated.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{PackageStreamMetadata}.Result" />) returns
+        /// a <see name="PackageStreamMetadata" />.</returns>
+        /// <exception cref="Microsoft.WindowsAzure.Storage.StorageException">Thrown if the blob has changed between
+        /// successive read and write operations.</exception>
+        Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(Package package);
     }
 }
