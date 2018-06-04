@@ -525,6 +525,10 @@
                     <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                     last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                 </li>
+                <li>
+                    <i class="ms-Icon ms-Icon--Package" aria-hidden="true"></i>
+                    package size @Model.PackageFileSize.ToUserFriendlyBytesLabel()
+                </li>
                 @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
                 {
                     <li>
