@@ -13,7 +13,11 @@
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <div class="breadcrumb-menu">
                 <div>
-                    @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, false, @<text>Packages</text>)
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false,
+                        @<text>Packages&nbsp;<span aria-hidden="true" class="ms-font-xxl packages-divider">|</span>&nbsp;<a href="@Url.UploadPackage()">Add new (upload)</a></text>)
                 </div>
                 <div class="ms-font-xxl">
                     <span>
