@@ -338,6 +338,8 @@ namespace NuGetGallery
         
         private static string NormalizeNewLines(string content)
         {
+            if (content == null) return null;
+
             return NewLineRegex.Replace(content, Environment.NewLine);
         }
     }
