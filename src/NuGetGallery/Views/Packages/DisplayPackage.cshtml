@@ -224,14 +224,23 @@
                 )
             }
 
-            @if (Model.HasNewerPrerelease)
+            @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        There is a newer prerelease version of this package available.
-                        <br /> See the version list below for details.
-                    </text>
-                )
+                        @<text>
+                            There is a newer version of this package available.
+                            <br /> See the version list below for details.
+                        </text>
+                     )
+            }
+            else if (Model.HasNewerPrerelease)
+            {
+                @ViewHelpers.AlertInfo(
+                        @<text>
+                            There is a newer prerelease version of this package available.
+                            <br /> See the version list below for details.
+                        </text>
+                     )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
