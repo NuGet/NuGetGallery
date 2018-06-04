@@ -58,10 +58,6 @@ namespace NuGetGallery
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
                 .As<IGalleryConfigurationService>();
 
             builder.Register(c => configuration.Current)

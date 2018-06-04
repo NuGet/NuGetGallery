@@ -1217,17 +1217,6 @@ button, input[type="submit"], .btn {
         list-style: none;
     }
 
-.PoliteCaptcha.editor-field .field-validation-error {
-    position: static;
-    width: 300px;
-}
-
-/* To fix alignment of generated reCAPTCHA table */
-
-.PoliteCaptcha.editor-field table {
-    margin-left: -3px !important;
-}
-
 .clear-fix {
     clear: both;
 }

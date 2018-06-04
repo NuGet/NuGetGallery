@@ -1,5 +1,4 @@
-﻿@using PoliteCaptcha
-@model ReportAbuseViewModel
+﻿@model ReportAbuseViewModel
 @{
     ViewBag.Title = "Report Abuse by " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
@@ -41,7 +40,6 @@
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
-                @Html.SpamPreventionFields()
 
                 <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
                     @Html.ShowLabelFor(m => m.Reason)
@@ -91,7 +89,7 @@
                         @Html.ShowValidationMessagesFor(m => m.Signature)
                     </div>
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Report" />
+                        <input id="Submit" type="submit" class="btn btn-primary form-control" value="Report" />
                     </div>
                 </div>
             }
@@ -100,7 +98,7 @@
 </section>
 
 @section BottomScripts {
-    @Html.SpamPreventionScript()
+    @ViewHelpers.RecatpchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
     <script>
         function reasonSelected() {
             var $form = $('#Reason').parents('form');

@@ -905,4 +905,7 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="DiscontinuedLogin_PasswordRemoved" xml:space="preserve">
     <value>The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward.</value>
   </data>
+  <data name="InvalidRecaptchaResponse" xml:space="preserve">
+    <value>Recaptcha response was not valid. Try again or email support if you need assistance.</value>
+  </data>
 </root>
