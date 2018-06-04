@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -23,6 +24,10 @@ namespace Ng.Jobs
             // We want to make a logger using the subclass of this job.
             // GetType returns the subclass of this instance which we can then use to create a logger.
             Logger = LoggerFactory.CreateLogger(GetType());
+
+            // Enable greater HTTP parallelization.
+            ServicePointManager.DefaultConnectionLimit = 64;
+            ServicePointManager.MaxServicePointIdleTime = 10000;
         }
 
         public static string GetUsageBase()

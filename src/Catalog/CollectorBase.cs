@@ -26,8 +26,6 @@ namespace NuGet.Services.Metadata.Catalog
             _handlerFunc = handlerFunc;
             _httpClientTimeout = httpClientTimeout;
             Index = index ?? throw new ArgumentNullException(nameof(index));
-            ServicePointManager.DefaultConnectionLimit = 4;
-            ServicePointManager.MaxServicePointIdleTime = 10000;
         }
 
         public Uri Index { get; private set; }

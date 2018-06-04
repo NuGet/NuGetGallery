@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -154,9 +153,6 @@ namespace Ng.Jobs
 
             // Hard code against Azure storage.
             arguments[Arguments.StorageType] = Arguments.AzureStorageType;
-
-            // Enable greater HTTP parallelization.
-            ServicePointManager.DefaultConnectionLimit = CatalogIndexReader.MaxDegreeOfParallelism;
 
             // Configure the package path provider.
             var useFlatContainerAsPackageContent = arguments.GetOrDefault<bool>(Arguments.ContentIsFlatContainer, false);

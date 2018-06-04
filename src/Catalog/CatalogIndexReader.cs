@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGet.Versioning;
@@ -14,8 +15,6 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class CatalogIndexReader
     {
-        public const int MaxDegreeOfParallelism = 32;
-
         private readonly Uri _indexUri;
         private readonly CollectorHttpClient _httpClient;
         private readonly ITelemetryService _telemetryService;
@@ -58,7 +57,7 @@ namespace NuGet.Services.Metadata.Catalog
             var interner = new StringInterner();
 
             var tasks = Enumerable
-                .Range(0, MaxDegreeOfParallelism)
+                .Range(0, ServicePointManager.DefaultConnectionLimit)
                 .Select(i => ProcessPageUris(pageUriBag, entries, interner))
                 .ToList();
 
