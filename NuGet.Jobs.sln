@@ -129,6 +129,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monitoring", "Monitoring", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Monitoring.PackageLag", "src\PackageLagMonitor\Monitoring.PackageLag.csproj", "{B5147169-E941-4CF8-9FCD-1C123ACD3149}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.CredentialExpiration", "tests\Tests.CredentialExpiration\Tests.CredentialExpiration.csproj", "{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -333,6 +335,10 @@ Global
 		{B5147169-E941-4CF8-9FCD-1C123ACD3149}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B5147169-E941-4CF8-9FCD-1C123ACD3149}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B5147169-E941-4CF8-9FCD-1C123ACD3149}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -387,6 +393,7 @@ Global
 		{136411AF-B9FA-438D-B790-9FB78A5F7F54} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{CAE45AC9-F11B-4215-9D1A-C98BC0F1F687} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{B5147169-E941-4CF8-9FCD-1C123ACD3149} = {814F9B31-4AF3-46CC-AD61-CEB40F47083A}
+		{60152AB1-2EB4-4D44-B6D6-EEE24209A1F7} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
