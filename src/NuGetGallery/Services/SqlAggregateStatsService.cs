@@ -13,9 +13,10 @@ namespace NuGetGallery
 
         // Note the NOLOCK hints here!
         private static readonly string GetStatisticsSql = @"SELECT
-                    (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
-                            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
-                    (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
+    (SELECT SUM([DownloadCount]) FROM PackageRegistrations WITH (NOLOCK)) As Downloads,
+    (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
+            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
+    (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
         public SqlAggregateStatsService(IAppConfiguration configuration)
         {
@@ -40,10 +41,11 @@ namespace NuGetGallery
                         }
 
                         return Task.FromResult(new AggregateStats
-                            {
-                                UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                                TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1)
-                            });
+                        {
+                            Downloads = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                            UniquePackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                            TotalPackages = reader.IsDBNull(2) ? 0 : reader.GetInt32(2)
+                        });
                     }
                 }
             }
