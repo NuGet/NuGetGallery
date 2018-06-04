@@ -218,14 +218,19 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="identity">IIdentity from which the claim is to be removed</param>
         /// <param name="claimType">The claim type to be added</param>
+        /// <param name="claimValue">The claim value for the type to be added, null will add default boolean claim</param>
         /// <returns>True if successfully able to add the claim, false otherwise</returns>
-        public static bool TryAddClaim(this IIdentity identity, string claimType)
+        public static bool TryAddClaim(this IIdentity identity, string claimType, string claimValue = null)
         {
             var claimsIdentity = identity as ClaimsIdentity;
             var existingClaim = claimsIdentity?.FindFirst(claimType);
             if (existingClaim == null)
             {
-                claimsIdentity.AddClaim(ClaimsExtensions.CreateBooleanClaim(claimType));
+                var claim = string.IsNullOrEmpty(claimValue)
+                    ? ClaimsExtensions.CreateBooleanClaim(claimType)
+                    : new Claim(claimType, claimValue);
+
+                claimsIdentity.AddClaim(claim);
                 return true;
             }
 

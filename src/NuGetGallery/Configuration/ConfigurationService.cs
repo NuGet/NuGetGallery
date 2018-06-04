@@ -17,7 +17,7 @@ using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
 {
-    public class ConfigurationService : PoliteCaptcha.IConfigurationSource, IGalleryConfigurationService
+    public class ConfigurationService : IGalleryConfigurationService
     {
         protected const string SettingPrefix = "Gallery.";
         protected const string FeaturePrefix = "Feature.";
@@ -51,16 +51,6 @@ namespace NuGetGallery.Configuration
         public static IEnumerable<PropertyDescriptor> GetConfigProperties<T>(T instance)
         {
             return TypeDescriptor.GetProperties(instance).Cast<PropertyDescriptor>().Where(p => !p.IsReadOnly);
-        }
-
-        /// <summary>
-        /// PoliteCaptcha.IConfigurationSource implementation
-        /// </summary>
-        public string GetConfigurationValue(string key)
-        {
-            // Fudge the name because Azure cscfg system doesn't allow : in setting names
-            // Used by PoliteCaptcha
-            return ReadSetting(key.Replace("::", ".")).Result;
         }
 
         public IAppConfiguration Current => _lazyAppConfiguration.Value;

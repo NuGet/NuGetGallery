@@ -30,7 +30,7 @@
         </form>
 
         <div class="list-certificates">
-            @if (!Model.WasMultiFactorAuthenticated)
+            @if (!Model.WasMultiFactorAuthenticated && !User.WasAzureActiveDirectoryAccountUsedForSignin())
             {
                 @WarnFor2FARequirement();
             }
@@ -68,7 +68,7 @@
             </div>
         </div>
 
-        @if (Model.WasMultiFactorAuthenticated && Model.CanManage)
+        @if ((Model.WasMultiFactorAuthenticated || User.WasAzureActiveDirectoryAccountUsedForSignin()) && Model.CanManage)
         {
         <div class="collapse in row" id="upload-certificate-form" aria-expanded="true">
             @Html.ValidationSummary(true)

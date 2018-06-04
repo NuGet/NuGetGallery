@@ -923,6 +923,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Recaptcha response was not valid. Try again or email support if you need assistance..
+        /// </summary>
+        public static string InvalidRecaptchaResponse {
+            get {
+                return ResourceManager.GetString("InvalidRecaptchaResponse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Job Log Blob name is invalid Bob! Expected [jobname].[yyyy-MM-dd].json or [jobname].json. Got: {0}.
         /// </summary>
         public static string JobLogBlobNameInvalid {

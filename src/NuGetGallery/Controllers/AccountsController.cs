@@ -385,8 +385,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.NotFound);
             }
 
-            if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
+            if (!CanManageCertificates(currentUser, account))
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
@@ -444,8 +443,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.NotFound);
             }
 
-            if (ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                != PermissionsCheckResult.Allowed || !User.WasMultiFactorAuthenticated())
+            if (!CanManageCertificates(currentUser, account))
             {
                 return Json(HttpStatusCode.Forbidden, new { Strings.Unauthorized });
             }
@@ -478,9 +476,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
-            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
-            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                == PermissionsCheckResult.Allowed;
+            var canManageCertificates = CanManageCertificates(currentUser, account);
             var template = GetDeleteCertificateForAccountTemplate(accountName);
 
             var certificates = CertificateService.GetCertificates(account)
@@ -488,7 +484,7 @@ namespace NuGetGallery
                 {
                     string deactivateUrl = null;
 
-                    if (wasMultiFactorAuthenticated && canManage)
+                    if (canManageCertificates)
                     {
                         deactivateUrl = template.Resolve(certificate.Thumbprint);
                     }
@@ -527,9 +523,7 @@ namespace NuGetGallery
                 return Json(HttpStatusCode.Forbidden);
             }
 
-            var wasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
-            var canManage = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account)
-                == PermissionsCheckResult.Allowed;
+            var canManageCertificates = CanManageCertificates(currentUser, account);
             var template = GetDeleteCertificateForAccountTemplate(accountName);
 
             var certificates = CertificateService.GetCertificates(account)
@@ -538,7 +532,7 @@ namespace NuGetGallery
                 {
                     string deactivateUrl = null;
 
-                    if (wasMultiFactorAuthenticated && canManage)
+                    if (canManageCertificates)
                     {
                         deactivateUrl = template.Resolve(certificate.Thumbprint);
                     }
@@ -547,6 +541,13 @@ namespace NuGetGallery
                 });
 
             return Json(HttpStatusCode.OK, certificates, JsonRequestBehavior.AllowGet);
+        }
+
+        private bool CanManageCertificates(User currentUser, User account)
+        {
+            var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
+            return wasAADLoginOrMultiFactorAuthenticated
+                && ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, account) == PermissionsCheckResult.Allowed;
         }
 
         protected abstract RouteUrlTemplate<string> GetDeleteCertificateForAccountTemplate(string accountName);

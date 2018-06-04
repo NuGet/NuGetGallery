@@ -41,7 +41,7 @@ namespace NuGetGallery.ViewModels
                     package: null,
                     currentUser: _currentUser,
                     securityPolicyService: _securityPolicyService.Object,
-                    wasMultiFactorAuthenticated: true));
+                    wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("package", exception.ParamName);
         }
@@ -60,7 +60,7 @@ namespace NuGetGallery.ViewModels
                     package,
                     currentUser: null,
                     securityPolicyService: _securityPolicyService.Object,
-                    wasMultiFactorAuthenticated: true));
+                    wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("currentUser", exception.ParamName);
         }
@@ -79,7 +79,7 @@ namespace NuGetGallery.ViewModels
                     package,
                     _currentUser,
                     securityPolicyService: null,
-                    wasMultiFactorAuthenticated: true));
+                    wasAADLoginOrMultiFactorAuthenticated: true));
 
             Assert.Equal("securityPolicyService", exception.ParamName);
         }
@@ -105,7 +105,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -140,7 +140,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -175,7 +175,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -210,7 +210,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
             Assert.Equal("Any", viewModel.RequiredSigner.DisplayText);
@@ -245,7 +245,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: false);
+                wasAADLoginOrMultiFactorAuthenticated: false);
 
             Assert.Equal(string.Empty, viewModel.RequiredSigner.Username);
             Assert.Equal("Any", viewModel.RequiredSigner.DisplayText);
@@ -295,7 +295,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal("c", viewModel.RequiredSigner.Username);
             Assert.Equal($"{organization.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -331,7 +331,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -367,7 +367,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -430,7 +430,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{currentUser.Username} (1 certificate)", viewModel.RequiredSigner.DisplayText);
@@ -466,7 +466,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -507,7 +507,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -559,7 +559,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_currentUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_currentUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);
@@ -622,7 +622,7 @@ namespace NuGetGallery.ViewModels
                 package,
                 _currentUser,
                 _securityPolicyService.Object,
-                wasMultiFactorAuthenticated: true);
+                wasAADLoginOrMultiFactorAuthenticated: true);
 
             Assert.Equal(_otherUser.Username, viewModel.RequiredSigner.Username);
             Assert.Equal($"{_otherUser.Username} (0 certificates)", viewModel.RequiredSigner.DisplayText);

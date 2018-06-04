@@ -58,10 +58,6 @@ namespace NuGetGallery
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
                 .As<IGalleryConfigurationService>();
 
             builder.Register(c => configuration.Current)
@@ -152,6 +148,11 @@ namespace NuGetGallery
             builder.RegisterType<EntityRepository<Credential>>()
                 .AsSelf()
                 .As<IEntityRepository<Credential>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<EntityRepository<PackageOwnerRequest>>()

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -240,6 +241,14 @@ namespace NuGetGallery
         {
             /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
             throw new NotImplementedException();
+        }
+
+        public Task SetMetadataAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync)
+        {
+            return Task.CompletedTask;
         }
 
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)
