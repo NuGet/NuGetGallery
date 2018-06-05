@@ -10,13 +10,16 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
-using System.Web.WebPages;
 using Newtonsoft.Json;
 
 namespace NuGetGallery.Helpers
 {
     public static class HtmlExtensions
     {
+        private const string _htmlQuote = "&quot;";
+        private const string _htmlSingleQuote = "&#39;";
+        private static readonly string[] _htmlEntities = new [] { _htmlQuote, _htmlSingleQuote };
+
         public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText)
             where TEnum : struct // Can't do ": enum" but this is close
         {
@@ -58,17 +61,20 @@ namespace NuGetGallery.Helpers
 
             // Turn HTTP and HTTPS URLs into links.
             // Source: https://stackoverflow.com/a/4750468
-            MatchEvaluator anchorEvaluator = match =>
+            string anchorEvaluator(Match match)
             {
-                if (match.Value.EndsWith("&quot;"))
+                foreach (var htmlEntity in _htmlEntities)
                 {
-                    // Remove trailing &quot; from anchor URL
-                    var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - "&quot;".Length);
-                    return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>&quot;";
+                    if (match.Value.EndsWith(htmlEntity))
+                    {
+                        // Remove trailing html entity from anchor URL
+                        var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - htmlEntity.Length);
+                        return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>" + htmlEntity;
+                    }
                 }
 
                 return $"<a href=\"{match.Value}\" rel=\"nofollow\">{match.Value}</a>";
-            };
+            }
 
             encodedText = RegexEx.TryReplaceWithTimeout(
                 encodedText,
