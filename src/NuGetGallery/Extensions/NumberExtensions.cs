@@ -40,6 +40,16 @@ namespace NuGetGallery
         /// <returns></returns>
         public static string ToUserFriendlyBytesLabel(this long bytes)
         {
+            if (bytes < 0)
+            {
+                throw new ArgumentOutOfRangeException("Negative values are not supported.", nameof(bytes));
+            }
+
+            if (bytes == 1)
+            {
+                return "1 byte";
+            }
+
             const int scale = 1024;
             string[] orders = { "GB", "MB", "KB", "bytes" };
             var max = (long)Math.Pow(scale, orders.Length - 1);
@@ -48,7 +58,7 @@ namespace NuGetGallery
             {
                 if (bytes >= max)
                 {
-                    return string.Format(CultureInfo.CurrentCulture, "{0:##.##} {1}", decimal.Divide(bytes, max), order);
+                    return string.Format(CultureInfo.InvariantCulture, "{0:##.##} {1}", decimal.Divide(bytes, max), order);
                 }
 
                 max /= scale;
