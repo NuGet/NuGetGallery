@@ -47,6 +47,7 @@
     <Compile Include="Entities\EndCertificateUse.cs" />
     <Compile Include="Entities\EndCertificateValidation.cs" />
     <Compile Include="Entities\IValidationContext.cs" />
+    <Compile Include="Entities\PackageRevalidation.cs" />
     <Compile Include="Entities\PackageSignatureType.cs" />
     <Compile Include="Entities\PackageSigningState.cs" />
     <Compile Include="Entities\PackageSignature.cs" />
@@ -118,6 +119,10 @@
     <Compile Include="Migrations\201805222305347_ScanBlobSize.Designer.cs">
       <DependentUpon>201805222305347_ScanBlobSize.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201806050030579_AddPackageRevalidations.cs" />
+    <Compile Include="Migrations\201806050030579_AddPackageRevalidations.Designer.cs">
+      <DependentUpon>201806050030579_AddPackageRevalidations.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -181,6 +186,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201805222305347_ScanBlobSize.resx">
       <DependentUpon>201805222305347_ScanBlobSize.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201806050030579_AddPackageRevalidations.resx">
+      <DependentUpon>201806050030579_AddPackageRevalidations.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
