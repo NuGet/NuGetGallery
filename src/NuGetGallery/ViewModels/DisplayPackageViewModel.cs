@@ -74,6 +74,18 @@ namespace NuGetGallery
                 return latestPrereleaseVersion > NuGetVersion;
             }
         }
+        
+        public bool HasNewerRelease
+        {
+            get
+            {
+                var latestReleaseVersion = PackageVersions
+                    .Where(pv => !pv.Prerelease && pv.Available && pv.Listed)
+                    .Max(pv => pv.NuGetVersion);
+
+                return latestReleaseVersion > NuGetVersion;
+            }
+        }
 
         public bool? IsIndexed { get; set; }
 
