@@ -151,6 +151,33 @@ namespace NuGetGallery
                     x => x.SaveChangesAsync(),
                     commitChanges ? Times.Once() : Times.Never());
             }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task ThrowsArgumentExceptionWhenReadmeUrlHostInvalid(bool commitChanges)
+            {
+                // Arrange
+                _package.HasReadMe = true;
+                _packageFileService.Setup(m => m.DownloadReadMeMdFileAsync(_package)).ReturnsAsync((string)null);
+                _edit.ReadMe = new ReadMeRequest { SourceUrl = "https://github.com/username/markdown-here/blob/master/README.md", SourceType = "url" };
+                _edit.ReadMeState = PackageEditReadMeState.Changed;
+
+                // Act
+                var saveTask = _target.SaveReadMeMdIfChanged(
+                    _package,
+                    _edit,
+                    _encoding,
+                    commitChanges);
+
+                // Assert
+                var exception = await Assert.ThrowsAsync<ArgumentException>(() => saveTask);
+
+                Assert.True(exception.Message.Contains(Strings.ReadMeUrlHostInvalid));
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never());
+            }
         }
 
         public class TheHasReadMeSourceMethod
