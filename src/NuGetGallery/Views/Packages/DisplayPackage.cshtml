@@ -593,7 +593,8 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download</a>
+                        &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
                     </li>
                     <li class="no-clickonce">
                         <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>

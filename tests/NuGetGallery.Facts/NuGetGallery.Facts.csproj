@@ -406,6 +406,7 @@
     <Compile Include="Controllers\AccountsControllerFacts.cs" />
     <Compile Include="Controllers\OrganizationsControllerFacts.cs" />
     <Compile Include="Controllers\SupportControllerFacts.cs" />
+    <Compile Include="Extensions\NumberExtensionsFacts.cs" />
     <Compile Include="Extensions\RouteExtensionsFacts.cs" />
     <Compile Include="Extensions\OrganizationExtensionsFacts.cs" />
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />

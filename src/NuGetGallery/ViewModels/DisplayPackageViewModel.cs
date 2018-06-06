@@ -24,6 +24,7 @@ namespace NuGetGallery
             PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser)));
 
             PushedBy = GetPushedBy(package, currentUser);
+            PackageFileSize = package.PackageFileSize;
 
             if (packageHistory.Any())
             {
@@ -59,6 +60,7 @@ namespace NuGetGallery
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
+        public long PackageFileSize { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
