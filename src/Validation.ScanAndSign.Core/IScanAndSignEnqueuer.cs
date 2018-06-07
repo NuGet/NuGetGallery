@@ -23,6 +23,6 @@ namespace NuGet.Jobs.Validation.ScanAndSign
         /// <param name="nupkgUrl">Url of the package to scan and sign.</param>
         /// <param name="v3ServiceIndexUrl">The service index URL that should be put on the package's repository signature.</param>
         /// <param name="owners">The list of owners that should be put on the package's repository signature.</param>
-        Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, List<string> owners);
+        Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners);
     }
 }
