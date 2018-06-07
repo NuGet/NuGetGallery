@@ -173,7 +173,7 @@ namespace NuGetGallery
                 // Assert
                 var exception = await Assert.ThrowsAsync<ArgumentException>(() => saveTask);
 
-                Assert.True(exception.Message.Contains(Strings.ReadMeUrlHostInvalid));
+                Assert.Contains(Strings.ReadMeUrlHostInvalid, exception.Message);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never());
