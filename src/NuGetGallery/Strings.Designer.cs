@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DeleteAccountRequest.
+        ///   Looks up a localized string similar to Account Deletion Request.
         /// </summary>
         public static string AccountDelete_SupportRequestTitle {
             get {

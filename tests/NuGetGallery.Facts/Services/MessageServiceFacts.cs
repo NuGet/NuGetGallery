@@ -1948,6 +1948,32 @@ namespace NuGetGallery
             }
         }
 
+        public class TheSendAccountDeleteNoticeMethod
+            : TestContainer
+        {
+            [Fact]
+            public void VerifyTheMessageBody()
+            {
+                // Arrange
+                var userName = "deleteduser";
+                var userEmailAddress = "onedeleteduser@hotmail.com";
+                var userToDelete = new User(userName) { EmailAddress = userEmailAddress };
+
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                // Act
+                messageService.SendAccountDeleteNotice(userToDelete);
+
+                // Assert
+                var message = messageService.MockMailSender.Sent.Last();
+
+                Assert.Equal(userToDelete.EmailAddress, message.To[0].Address);
+                Assert.Equal(TestGalleryNoReplyAddress, message.From);
+                Assert.Equal("Account Deletion Request", message.Subject);
+                Assert.Contains($"We received a request to delete your account {userName}.", message.Body);
+            }
+        }
+
         private static void AssertMessageSentToAccountManagersOfOrganizationOnly(MailMessage message, Organization organization)
         {
             AssertMessageSentToMembersOfOrganizationWithPermissionOnly(message, organization, ActionsRequiringPermissions.ManageAccount);
