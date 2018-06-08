@@ -610,7 +610,7 @@ For more information, please contact '{2}'.</value>
     <value>The request failed to be submitted. Please try again or contact support.</value>
   </data>
   <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
-    <value>DeleteAccountRequest</value>
+    <value>Account Deletion Request</value>
   </data>
   <data name="MessageIsRequired" xml:space="preserve">
     <value>Please enter a message.</value>
