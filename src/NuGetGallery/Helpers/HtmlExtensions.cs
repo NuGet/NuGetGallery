@@ -18,7 +18,9 @@ namespace NuGetGallery.Helpers
     {
         private const string _htmlQuote = "&quot;";
         private const string _htmlSingleQuote = "&#39;";
-        private static readonly string[] _htmlEntities = new [] { _htmlQuote, _htmlSingleQuote };
+        private const string _semicolon = ";";
+        private const string _hyphen = "-";
+        private static readonly string[] _trimmedHtmlEntities = new [] { _htmlQuote, _htmlSingleQuote, _semicolon, _hyphen };
 
         public static MvcHtmlString EnumDropDownListFor<TModel, TEnum>(this HtmlHelper<TModel> self, Expression<Func<TModel, TEnum?>> expression, IEnumerable<TEnum> values, string emptyItemText)
             where TEnum : struct // Can't do ": enum" but this is close
@@ -63,13 +65,13 @@ namespace NuGetGallery.Helpers
             // Source: https://stackoverflow.com/a/4750468
             string anchorEvaluator(Match match)
             {
-                foreach (var htmlEntity in _htmlEntities)
+                foreach (var trimmedEntity in _trimmedHtmlEntities)
                 {
-                    if (match.Value.EndsWith(htmlEntity))
+                    if (match.Value.EndsWith(trimmedEntity))
                     {
                         // Remove trailing html entity from anchor URL
-                        var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - htmlEntity.Length);
-                        return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>" + htmlEntity;
+                        var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - trimmedEntity.Length);
+                        return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>" + trimmedEntity;
                     }
                 }
 
