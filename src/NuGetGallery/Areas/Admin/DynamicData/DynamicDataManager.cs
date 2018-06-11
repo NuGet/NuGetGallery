@@ -2,12 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Data;
+using System.Data.Common;
 using System.Data.SqlClient;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using System.Web.DynamicData;
 using System.Web.Routing;
+using Autofac.Features.Indexed;
 using Microsoft.AspNet.DynamicData.ModelProviders;
-using NuGetGallery.Configuration;
+using NuGet.Services.Sql;
 
 namespace NuGetGallery.Areas.Admin.DynamicData
 {
@@ -18,26 +21,31 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static DynamicDataRoute _route;
 
-        public static void Register(RouteCollection routes, string root, IAppConfiguration configuration)
+        public static void Register(RouteCollection routes, string root, IIndex<string, ISqlConnectionFactory> connectionFactories)
         {
             // Set up unobtrusive validation
             InitializeValidation();
 
             // Set up dynamic data
-            InitializeDynamicData(routes, root, configuration);
+            InitializeDynamicData(routes, root, connectionFactories[nameof(EntitiesContext)]);
         }
 
         private static void InitializeValidation()
         {
         }
 
-        private static void InitializeDynamicData(RouteCollection routes, string root, IAppConfiguration configuration)
+        private static DbConnection CreateConnection(ISqlConnectionFactory connectionFactory)
+        {
+            return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void InitializeDynamicData(RouteCollection routes, string root, ISqlConnectionFactory connectionFactory)
         {
             try
             {
                 DefaultModel.RegisterContext(
                     new EFDataModelProvider(
-                        () => new EntitiesContext(configuration.SqlConnectionString, readOnly: false)), // DB Admins do not need to respect read-only mode.
+                        () => new EntitiesContext(CreateConnection(connectionFactory), readOnly: false)), // DB Admins do not need to respect read-only mode.
                         configuration: new ContextConfiguration { ScaffoldAllTables = true });
             }
             catch (SqlException e)
