@@ -1638,50 +1638,58 @@ namespace NuGetGallery
 
                 // Commit the package to storage and to the database.
                 uploadFile.Position = 0;
-                var commitResult = await _packageUploadService.CommitPackageAsync(
-                    package,
-                    uploadFile.AsSeekableStream());
-
-                switch (commitResult)
+                try
                 {
-                    case PackageCommitResult.Success:
-                        break;
-                    case PackageCommitResult.Conflict:
-                        TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                        return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
-                    default:
-                        throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                    var commitResult = await _packageUploadService.CommitPackageAsync(
+                        package,
+                        uploadFile.AsSeekableStream());
+
+                    switch (commitResult)
+                    {
+                        case PackageCommitResult.Success:
+                            break;
+                        case PackageCommitResult.Conflict:
+                            TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                            return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
+                        default:
+                            throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                    }
+
+                    // tell Lucene to update index for the new package
+                    _indexingService.UpdateIndex();
+
+                    // write an audit record
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
+
+                    if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                    {
+                        // notify user unless async validation in blocking mode is used
+                        _messageService.SendPackageAddedNotice(package,
+                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.AccountSettings(relativeUrl: false));
+                    }
+
+                    // delete the uploaded binary in the Uploads container
+                    await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+
+                    _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
+
+                    TempData["Message"] = String.Format(
+                        CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+
+                    return Json(new
+                    {
+                        location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
+                    });
                 }
-
-                // tell Lucene to update index for the new package
-                _indexingService.UpdateIndex();
-
-                // write an audit record
-                await _auditingService.SaveAuditRecordAsync(
-                    new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
-
-                if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                catch (Exception e)
                 {
-                    // notify user unless async validation in blocking mode is used
-                    _messageService.SendPackageAddedNotice(package,
-                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                        Url.AccountSettings(relativeUrl: false));
+                    e.Log();
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
             }
-
-            // delete the uploaded binary in the Uploads container
-            await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-
-            _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
-
-            TempData["Message"] = String.Format(
-                CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
-
-            return Json(new
-            {
-                location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
-            });
         }
 
         private async Task<PackageArchiveReader> SafeCreatePackage(User currentUser, Stream uploadFile)
