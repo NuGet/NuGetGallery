@@ -16,7 +16,7 @@ using NuGet.Services.Validation.Orchestrator;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
-using Validation.PackageSigning.Helpers;
+using Tests.ContextHelpers;
 using Xunit;
 
 namespace Validation.PackageSigning.ScanAndSign.Tests

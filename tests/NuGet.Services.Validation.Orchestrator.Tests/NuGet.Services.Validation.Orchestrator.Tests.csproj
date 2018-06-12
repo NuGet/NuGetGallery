@@ -106,9 +106,9 @@
       <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Validation.PackageSigning.Helpers</Name>
+      <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

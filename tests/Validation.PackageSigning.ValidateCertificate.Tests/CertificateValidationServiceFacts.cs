@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Services.Validation;
-using Validation.PackageSigning.Helpers;
+using Tests.ContextHelpers;
 using Xunit;
 
 namespace Validation.PackageSigning.ValidateCertificate.Tests

@@ -25,12 +25,9 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private readonly Lazy<Task<SigningTestServer>> _testServer;
         private readonly Lazy<Task<CertificateAuthority>> _rootCertificateAuthority;
         private readonly Lazy<Task<CertificateAuthority>> _certificateAuthority;
-        private readonly Lazy<Task<CertificateAuthority>> _untrustedRootCertificateAuthority;
-        private readonly Lazy<Task<CertificateAuthority>> _untrustedCertificateAuthority;
         private readonly Lazy<Task<TimestampService>> _timestampService;
         private readonly Lazy<Task<Uri>> _timestampServiceUrl;
         private readonly Lazy<Task<X509Certificate2>> _signingCertificate;
-        private readonly Lazy<Task<X509Certificate2>> _untrustedSigningCertificate;
         private readonly Lazy<Task<string>> _signingCertificateThumbprint;
         private TrustedTestCert<X509Certificate2> _trustedRoot;
         private readonly DisposableList<IDisposable> _responders;
@@ -122,12 +119,6 @@ namespace Validation.PackageSigning.Core.Tests.Support
         private async Task<X509Certificate2> CreateDefaultTrustedSigningCertificateAsync()
         {
             var ca = await _certificateAuthority.Value;
-            return CreateSigningCertificate(ca);
-        }
-
-        private async Task<X509Certificate2> CreateDefaultUntrustedSigningCertificateAsync()
-        {
-            var ca = await _untrustedCertificateAuthority.Value;
             return CreateSigningCertificate(ca);
         }
 

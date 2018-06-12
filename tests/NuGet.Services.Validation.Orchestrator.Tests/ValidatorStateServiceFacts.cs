@@ -11,7 +11,7 @@ using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation.Orchestrator;
-using Validation.PackageSigning.Helpers;
+using Tests.ContextHelpers;
 using Xunit;
 
 namespace NuGet.Services.Validation

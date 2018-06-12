@@ -16,10 +16,10 @@
         <dependency id="Microsoft.Extensions.DependencyInjection" version="1.1.1" />
         <dependency id="Microsoft.Extensions.Options.ConfigurationExtensions" version="1.1.2" />
         <dependency id="NuGet.Packaging" version="4.8.0-preview1.5195" />
-        <dependency id="NuGet.Services.Configuration" version="2.23.0" />
-        <dependency id="NuGet.Services.Logging" version="2.23.0" />
-        <dependency id="NuGet.Services.Storage" version="2.23.0" />
-        <dependency id="NuGet.Services.Validation" version="2.25.0-master-30453" />
+        <dependency id="NuGet.Services.Configuration" version="2.25.0" />
+        <dependency id="NuGet.Services.Logging" version="2.25.0" />
+        <dependency id="NuGet.Services.Storage" version="2.25.0" />
+        <dependency id="NuGet.Services.Validation" version="2.25.0" />
         <dependency id="NuGetGallery.Core" version="4.4.4-dev-32522" />
         <dependency id="Serilog" version="2.5.0" />
         <dependency id="System.Net.Http" version="4.3.3" />
