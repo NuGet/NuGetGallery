@@ -11,9 +11,10 @@ namespace NuGetGallery.Framework
     {
         public IDictionary<string, string> Settings = new Dictionary<string, string>();
 
-        public TestGalleryConfigurationService() 
-            : base(new EmptySecretReaderFactory())
+        public TestGalleryConfigurationService()
         {
+            var secretReaderFactory = new EmptySecretReaderFactory();
+            SecretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
         }
 
         protected override string GetAppSetting(string settingName)

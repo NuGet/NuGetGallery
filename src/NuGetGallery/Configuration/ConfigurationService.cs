@@ -13,7 +13,6 @@ using System.Web;
 using System.Web.Configuration;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.KeyVault;
-using NuGetGallery.Configuration.SecretReader;
 
 namespace NuGetGallery.Configuration
 {
@@ -27,18 +26,15 @@ namespace NuGetGallery.Configuration
         private bool _notInCloud;
         private readonly Lazy<string> _httpSiteRootThunk;
         private readonly Lazy<string> _httpsSiteRootThunk;
-        private readonly ISecretReaderFactory _secretReaderFactory;
-        private readonly Lazy<ISecretInjector> _secretInjector;
         private readonly Lazy<IAppConfiguration> _lazyAppConfiguration;
         private readonly Lazy<FeatureConfiguration> _lazyFeatureConfiguration;
         private readonly Lazy<IServiceBusConfiguration> _lazyServiceBusConfiguration;
         private readonly Lazy<IPackageDeleteConfiguration> _lazyPackageDeleteConfiguration;
 
-        public ConfigurationService(ISecretReaderFactory secretReaderFactory)
-        {
-            _secretReaderFactory = secretReaderFactory ?? throw new ArgumentNullException(nameof(secretReaderFactory));
-            _secretInjector = new Lazy<ISecretInjector>(InitSecretInjector, isThreadSafe: false);
+        internal ISecretInjector SecretInjector { get; set; }
 
+        public ConfigurationService()
+        {
             _httpSiteRootThunk = new Lazy<string>(GetHttpSiteRoot);
             _httpsSiteRootThunk = new Lazy<string>(GetHttpsSiteRoot);
 
@@ -80,7 +76,7 @@ namespace NuGetGallery.Configuration
                 string baseName = string.IsNullOrEmpty(property.DisplayName) ? property.Name : property.DisplayName;
                 string settingName = prefix + baseName;
 
-                string value = await ReadSetting(settingName);
+                string value = await ReadSettingAsync(settingName);
 
                 if (string.IsNullOrEmpty(value))
                 {
@@ -119,7 +115,19 @@ namespace NuGetGallery.Configuration
             return instance;
         }
 
-        public async Task<string> ReadSetting(string settingName)
+        public async Task<string> ReadSettingAsync(string settingName)
+        {
+            var value = ReadRawSetting(settingName);
+
+            if (!string.IsNullOrEmpty(value))
+            {
+                value = await SecretInjector.InjectAsync(value);
+            }
+
+            return value;
+        }
+
+        public string ReadRawSetting(string settingName)
         {
             string value;
 
@@ -135,22 +143,12 @@ namespace NuGetGallery.Configuration
                 value = cstr != null ? cstr.ConnectionString : GetAppSetting(settingName);
             }
 
-            if (!string.IsNullOrEmpty(value))
-            {
-                value = await _secretInjector.Value.InjectAsync(value);
-            }
-
             return value;
         }
 
         protected virtual HttpRequestBase GetCurrentRequest()
         {
             return new HttpRequestWrapper(HttpContext.Current.Request);
-        }
-
-        private ISecretInjector InitSecretInjector()
-        {
-            return _secretReaderFactory.CreateSecretInjector(_secretReaderFactory.CreateSecretReader(new ConfigurationService(new EmptySecretReaderFactory())));
         }
 
         private async Task<FeatureConfiguration> ResolveFeatures()
