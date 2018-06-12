@@ -15,7 +15,7 @@ namespace NuGetGallery
         private static readonly string GetStatisticsSql = @"SELECT
     (SELECT SUM([DownloadCount]) FROM PackageRegistrations WITH (NOLOCK)) As Downloads,
     (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
-            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
+            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageStatusKey = 0)) AS UniquePackages,
     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
         public SqlAggregateStatsService(IAppConfiguration configuration)
