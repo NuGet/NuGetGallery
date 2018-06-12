@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
 
@@ -99,6 +100,10 @@ namespace NuGet.Services.Validation
         }
 
         public ValidationEntitiesContext(string nameOrConnectionString) : base(nameOrConnectionString)
+        {
+        }
+
+        public ValidationEntitiesContext(DbConnection connection) : base(connection, contextOwnsConnection: true)
         {
         }
 
