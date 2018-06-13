@@ -16,10 +16,10 @@ namespace NuGetGallery.Areas.Admin
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            var config = DependencyResolver.Current.GetService<IIndex<string, ISqlConnectionFactory>>();
+            var galleryDbConnectionFactory = DependencyResolver.Current.GetService<ISqlConnectionFactory>();
 
             context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
-            DynamicDataManager.Register(context.Routes, "Admin/Database", config);
+            DynamicDataManager.Register(context.Routes, "Admin/Database", galleryDbConnectionFactory);
 
             context.MapRoute(
                 "Admin_default",

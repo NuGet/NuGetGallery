@@ -20,10 +20,10 @@ namespace NuGetGallery
                             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
-        public SqlAggregateStatsService(IAppConfiguration configuration, IIndex<string, ISqlConnectionFactory> connectionFactories)
+        public SqlAggregateStatsService(IAppConfiguration configuration, ISqlConnectionFactory galleryDbConnectionFactory)
         {
             _configuration = configuration;
-            _connectionFactory = connectionFactories[nameof(EntitiesContext)];
+            _connectionFactory = galleryDbConnectionFactory;
         }
 
         public Task<AggregateStats> GetAggregateStats()
