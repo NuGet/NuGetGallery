@@ -363,7 +363,7 @@ namespace NuGetGallery
                     if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                     {
                         // Packages that failed validation can be reuploaded.
-                        await _packageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
+                        await _packageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", deleteEmptyPackageRegistration: false, saveAuditRecord: false);
                     }
                     else
                     {

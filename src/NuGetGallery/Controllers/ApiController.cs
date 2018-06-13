@@ -449,7 +449,7 @@ namespace NuGetGallery
                             {
                                 if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                                 {
-                                    await PackageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
+                                    await PackageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", deleteEmptyPackageRegistration: false, saveAuditRecord: false);
                                 }
                                 else
                                 {
