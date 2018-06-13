@@ -7,6 +7,7 @@ using System.Web;
 using Moq;
 using NuGetGallery.Authentication;
 using Xunit;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery.Security
 {

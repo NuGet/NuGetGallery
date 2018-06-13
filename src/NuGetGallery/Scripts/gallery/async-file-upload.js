@@ -269,6 +269,8 @@
             }
 
             bindReadMeData(model);
+
+            document.getElementById("validation-failure-container").scrollIntoView();
         }
 
         function navigateToPage(verifyResponse) {

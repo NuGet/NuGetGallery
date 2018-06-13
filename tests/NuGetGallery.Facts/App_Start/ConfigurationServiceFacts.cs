@@ -18,12 +18,15 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService() : base(new EmptySecretReaderFactory())
+                public TestableConfigurationService() : base()
                 {
                     StubConfiguredSiteRoot = "http://aSiteRoot/";
 
                     StubRequest = new Mock<HttpRequestBase>();
                     StubRequest.Setup(stub => stub.IsLocal).Returns(false);
+
+                    var secretReaderFactory = new EmptySecretReaderFactory();
+                    SecretInjector = secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
                 }
 
                 public string StubConfiguredSiteRoot { get; set; }
@@ -102,9 +105,9 @@ namespace NuGetGallery.App_Start
         {
             private class TestableConfigurationService : ConfigurationService
             {
-                public TestableConfigurationService(ISecretReaderFactory secretReaderFactory = null) 
-                    : base(secretReaderFactory ?? new EmptySecretReaderFactory())
+                public TestableConfigurationService(ISecretInjector secretInjector = null)
                 {
+                    SecretInjector = secretInjector ?? CreateDefaultSecretInjector();
                 }
 
                 public string ConnectionStringStub { get; set; }
@@ -127,6 +130,12 @@ namespace NuGetGallery.App_Start
                 {
                     return AppSettingStub;
                 }
+
+                private static ISecretInjector CreateDefaultSecretInjector()
+                {
+                    var secretReaderFactory = new EmptySecretReaderFactory();
+                    return secretReaderFactory.CreateSecretInjector(secretReaderFactory.CreateSecretReader());
+                }
             }
 
             [Fact]
@@ -139,7 +148,7 @@ namespace NuGetGallery.App_Start
                 configurationService.ConnectionStringStub = "abc";
 
                 // Act 
-                string result = await configurationService.ReadSetting("any");
+                string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert
                 Assert. Null(result);
@@ -155,7 +164,7 @@ namespace NuGetGallery.App_Start
                 configurationService.ConnectionStringStub = "abc";
 
                 // Act 
-                string result = await configurationService.ReadSetting("any");
+                string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert
                 Assert.Equal(configurationService.ConnectionStringStub, result);
@@ -168,18 +177,12 @@ namespace NuGetGallery.App_Start
                 var secretInjectorMock = new Mock<ISecretInjector>();
                 secretInjectorMock.Setup(x => x.InjectAsync(It.IsAny<string>()))
                                   .Returns<string>(s => Task.FromResult(s + "parsed"));
-
-                var secretReaderFactory = new Mock<ISecretReaderFactory>();
-                secretReaderFactory.Setup(x => x.CreateSecretReader(It.IsAny<IGalleryConfigurationService>()))
-                    .Returns(new EmptySecretReader());
-                secretReaderFactory.Setup(x => x.CreateSecretInjector(It.IsAny<ISecretReader>()))
-                    .Returns(secretInjectorMock.Object);
-
-                var configurationService = new TestableConfigurationService(secretReaderFactory.Object);
+                
+                var configurationService = new TestableConfigurationService(secretInjectorMock.Object);
                 configurationService.CloudSettingStub = "somevalue";
 
                 // Act 
-                string result = await configurationService.ReadSetting("any");
+                string result = await configurationService.ReadSettingAsync("any");
 
                 // Assert
                 Assert.Equal("somevalueparsed", result);

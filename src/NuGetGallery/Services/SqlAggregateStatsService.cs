@@ -3,6 +3,8 @@
 
 using System.Data;
 using System.Threading.Tasks;
+using Autofac.Features.Indexed;
+using NuGet.Services.Sql;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -10,21 +12,25 @@ namespace NuGetGallery
     public class SqlAggregateStatsService : IAggregateStatsService
     {
         private readonly IAppConfiguration _configuration;
+        private readonly ISqlConnectionFactory _connectionFactory;
 
         // Note the NOLOCK hints here!
         private static readonly string GetStatisticsSql = @"SELECT
-                    (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
-                            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
-                    (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
+    (SELECT SUM([DownloadCount]) FROM PackageRegistrations WITH (NOLOCK)) As Downloads,
+    (SELECT COUNT([Key]) FROM PackageRegistrations pr WITH (NOLOCK)
+            WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageStatusKey = 0)) AS UniquePackages,
+    (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
-        public SqlAggregateStatsService(IAppConfiguration configuration)
+        public SqlAggregateStatsService(IAppConfiguration configuration, ISqlConnectionFactory galleryDbConnectionFactory)
         {
             _configuration = configuration;
+            _connectionFactory = galleryDbConnectionFactory;
         }
 
         public Task<AggregateStats> GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(_configuration.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
+            var connection = Task.Run(() => _connectionFactory.CreateAsync()).Result;
+            using (var dbContext = new EntitiesContext(connection, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())
@@ -40,10 +46,11 @@ namespace NuGetGallery
                         }
 
                         return Task.FromResult(new AggregateStats
-                            {
-                                UniquePackages = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
-                                TotalPackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1)
-                            });
+                        {
+                            Downloads = reader.IsDBNull(0) ? 0 : reader.GetInt32(0),
+                            UniquePackages = reader.IsDBNull(1) ? 0 : reader.GetInt32(1),
+                            TotalPackages = reader.IsDBNull(2) ? 0 : reader.GetInt32(2)
+                        });
                     }
                 }
             }

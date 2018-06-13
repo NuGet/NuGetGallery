@@ -25,6 +25,18 @@ namespace NuGetGallery.Configuration
         /// <param name="prefix">The prefix of the properties in the config.</param>
         Task<T> ResolveConfigObject<T>(T instance, string prefix);
 
-        Task<string> ReadSetting(string settingName);
+        /// <summary>
+        /// Read a configuration setting with secret injection applied.
+        /// </summary>
+        /// <param name="settingName">Setting name.</param>
+        /// <returns>Setting value.</returns>
+        Task<string> ReadSettingAsync(string settingName);
+
+        /// <summary>
+        /// Read a configuration setting without secret injection applied, used for KeyVault configuration.
+        /// </summary>
+        /// <param name="settingName">Setting name.</param>
+        /// <returns>Setting value.</returns>
+        string ReadRawSetting(string settingName);
     }
 }

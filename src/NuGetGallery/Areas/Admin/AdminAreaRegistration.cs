@@ -2,8 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Web.Mvc;
+using Autofac.Features.Indexed;
+using NuGet.Services.Sql;
 using NuGetGallery.Areas.Admin.DynamicData;
-using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
 {
@@ -15,10 +16,10 @@ namespace NuGetGallery.Areas.Admin
 
         public override void RegisterArea(AreaRegistrationContext context)
         {
-            var config = DependencyResolver.Current.GetService<IAppConfiguration>();
+            var galleryDbConnectionFactory = DependencyResolver.Current.GetService<ISqlConnectionFactory>();
 
             context.Routes.Ignore("Admin/Errors.axd/{*pathInfo}"); // ELMAH owns this root
-            DynamicDataManager.Register(context.Routes, "Admin/Database", config);
+            DynamicDataManager.Register(context.Routes, "Admin/Database", galleryDbConnectionFactory);
 
             context.MapRoute(
                 "Admin_default",
