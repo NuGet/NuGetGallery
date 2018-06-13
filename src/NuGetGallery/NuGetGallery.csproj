@@ -2168,7 +2168,7 @@
       <Version>2.26.0-master-33065</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.26.0-master-33065</Version>
+      <Version>2.26.0-chenriks-sqlconnection-33142</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.26.0-master-33065</Version>
