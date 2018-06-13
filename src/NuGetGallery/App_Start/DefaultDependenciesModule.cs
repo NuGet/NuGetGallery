@@ -406,7 +406,7 @@ namespace NuGetGallery
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
-        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
+        private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
         {
             var connectionString = configuration.Current.SqlConnectionStringValidation;
             var validationDbConnectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
@@ -422,16 +422,10 @@ namespace NuGetGallery
             builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
                 .As<IEntityRepository<PackageValidation>>()
                 .InstancePerLifetimeScope();
-
-            builder.RegisterType<ValidationAdminService>()
-                .AsSelf()
-                .InstancePerLifetimeScope();
         }
 
         private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            ConfigureValidationAdmin(builder, configuration, secretInjector);
-
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();
@@ -442,6 +436,8 @@ namespace NuGetGallery
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
             {
+                ConfigureValidationEntitiesContext(builder, configuration, secretInjector);
+
                 builder
                     .RegisterType<AsynchronousPackageValidationInitiator>()
                     .As<IPackageValidationInitiator>();
@@ -465,6 +461,10 @@ namespace NuGetGallery
                     .RegisterType<ImmediatePackageValidator>()
                     .As<IPackageValidationInitiator>();
             }
+
+            builder.RegisterType<ValidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)

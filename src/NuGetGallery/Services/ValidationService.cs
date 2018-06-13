@@ -24,14 +24,22 @@ namespace NuGetGallery
             IAppConfiguration appConfiguration,
             IPackageService packageService,
             IPackageValidationInitiator initiator,
-            IEntityRepository<PackageValidationSet> validationSets,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            IEntityRepository<PackageValidationSet> validationSets = null)
         {
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
-            _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+
+            _validationSets = validationSets;
+
+            // Validation database should not be accessed when async validation is disabled. Features
+            // which depend on the database should be behind this feature flag.
+            if (_appConfiguration.AsynchronousPackageValidationEnabled && _validationSets == null)
+            {
+                throw new ArgumentNullException(nameof(validationSets));
+            }
         }
 
         public async Task StartValidationAsync(Package package)
