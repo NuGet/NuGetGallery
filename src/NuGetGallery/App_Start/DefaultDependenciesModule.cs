@@ -19,6 +19,7 @@ using Autofac;
 using Autofac.Core;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -59,6 +60,12 @@ namespace NuGetGallery
             var secretReaderFactory = new SecretReaderFactory(configuration, diagnosticsService);
             var secretReader = secretReaderFactory.CreateSecretReader();
             var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISecretInjector>()
+                .SingleInstance();
+
             configuration.SecretInjector = secretInjector;
 
             UrlExtensions.SetConfigurationService(configuration);
@@ -355,7 +362,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, configuration);
+            RegisterAsynchronousValidation(builder, configuration, secretInjector);
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
@@ -399,9 +406,12 @@ namespace NuGetGallery
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
-        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
+        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            builder.Register(c => new ValidationEntitiesContext(configuration.Current.SqlConnectionStringValidation))
+            var connectionString = configuration.Current.SqlConnectionStringValidation;
+            var validationDbConnectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
+
+            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
@@ -418,9 +428,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
+        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            ConfigureValidationAdmin(builder, configuration);
+            ConfigureValidationAdmin(builder, configuration, secretInjector);
 
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
