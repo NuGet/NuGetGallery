@@ -41,11 +41,16 @@ namespace NuGet.Services.Sql
             SecretInjector = secretInjector ?? throw new ArgumentNullException(nameof(secretInjector));
         }
 
-        public async Task<SqlConnection> CreateAsync()
+        public Task<SqlConnection> CreateAsync()
+        {
+            return ConnectAsync();
+        }
+
+        public async Task<SqlConnection> OpenAsync()
         {
             try
             {
-                return await ConnectAsync();
+                return await ConnectAsync(shouldOpen: true);
             }
             catch (Exception e) when (IsAdalException(e))
             {
@@ -53,11 +58,11 @@ namespace NuGet.Services.Sql
                 // in case secrets are refreshed at runtime.
                 await Task.Delay(ConnectRetryInterval * 1000);
 
-                return await ConnectAsync();
+                return await ConnectAsync(shouldOpen: true);
             }
         }
 
-        private async Task<SqlConnection> ConnectAsync()
+        private async Task<SqlConnection> ConnectAsync(bool shouldOpen = false)
         {
             var connectionString = await SecretInjector.InjectAsync(ConnectionStringBuilder.ConnectionString);
             var connection = new SqlConnection(connectionString);
@@ -77,7 +82,10 @@ namespace NuGet.Services.Sql
                 }
             }
 
-            await OpenConnectionAsync(connection);
+            if (shouldOpen)
+            {
+                await OpenConnectionAsync(connection);
+            }
 
             return connection;
         }

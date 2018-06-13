@@ -15,8 +15,13 @@ namespace NuGet.Services.Sql
         string InitialCatalog { get; }
 
         /// <summary>
-        /// Create and open a connection to the SqlServer database.
+        /// Create a connection to the SqlServer database.
         /// </summary>
         Task<SqlConnection> CreateAsync();
+
+        /// <summary>
+        /// Create and open a connection to the SqlServer database.
+        /// </summary>
+        Task<SqlConnection> OpenAsync();
     }
 }

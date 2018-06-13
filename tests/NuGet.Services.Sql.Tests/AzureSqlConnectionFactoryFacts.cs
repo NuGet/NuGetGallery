@@ -50,17 +50,18 @@ namespace NuGet.Services.Sql.Tests
             }
         }
 
-        public class TheCreateAsyncMethod
+        public class TheCreateAndOpenAsyncMethods
         {
-
-            [Fact]
-            public async Task WhenSqlConnectionString_InjectsSecrets()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenSqlConnectionString_InjectsSecrets(bool shouldOpen)
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(SqlConnectionString);
 
                 // Act
-                var connection = await factory.CreateAsync();
+                var connection = shouldOpen ? await factory.OpenAsync() : await factory.CreateAsync();
 
                 // Assert
                 factory.MockSecretReader.Verify(x => x.GetSecretAsync(It.IsAny<string>()), Times.Exactly(2));
@@ -69,16 +70,20 @@ namespace NuGet.Services.Sql.Tests
 
                 Assert.True(connection.ConnectionString.Equals(
                     $"{BaseConnectionString};User ID=user;Password=pass", StringComparison.InvariantCultureIgnoreCase));
+
+                Assert.Equal(shouldOpen, factory.Opened);
             }
 
-            [Fact]
-            public async Task WhenAadConnectionString_InjectsSecrets()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenAadConnectionString_InjectsSecrets(bool shouldOpen)
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(AadSqlConnectionString);
 
                 // Act
-                var connection = await factory.CreateAsync();
+                var connection = shouldOpen ? await factory.OpenAsync() : await factory.CreateAsync();
 
                 // Assert
                 factory.MockSecretReader.Verify(x => x.GetSecretAsync("cert"), Times.Once);
@@ -86,30 +91,38 @@ namespace NuGet.Services.Sql.Tests
                 // Note that AAD keys are extracted for internal use only
                 Assert.True(connection.ConnectionString.Equals(
                     $"{BaseConnectionString}", StringComparison.InvariantCultureIgnoreCase));
+
+                Assert.Equal(shouldOpen, factory.Opened);
             }
 
-            [Fact]
-            public async Task WhenSqlConnectionString_DoesNotAcquireAccessToken()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenSqlConnectionString_DoesNotAcquireAccessToken(bool shouldOpen)
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(SqlConnectionString);
 
                 // Act
-                var connection = await factory.CreateAsync();
+                var connection = shouldOpen ? await factory.OpenAsync() : await factory.CreateAsync();
 
                 // Assert
                 Assert.True(string.IsNullOrEmpty(connection.AccessToken));
                 Assert.Null(factory.AcquireTokenArguments);
+
+                Assert.Equal(shouldOpen, factory.Opened);
             }
 
-            [Fact]
-            public async Task WhenAadConnectionString_AcquiresAccessToken()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenAadConnectionString_AcquiresAccessToken(bool shouldOpen)
             {
                 // Arrange
                 var factory = new TestAzureSqlConnectionFactory(AadSqlConnectionString);
 
                 // Act
-                var connection = await factory.CreateAsync();
+                var connection = shouldOpen ? await factory.OpenAsync() : await factory.CreateAsync();
 
                 // Assert
                 Assert.Equal(TestAccessToken, connection.AccessToken);
@@ -117,6 +130,8 @@ namespace NuGet.Services.Sql.Tests
                 Assert.Equal(AadClientId, factory.AcquireTokenArguments.Item2);
                 Assert.True(factory.AcquireTokenArguments.Item3);
                 Assert.Equal(TestCertificate, factory.AcquireTokenArguments.Item4);
+
+                Assert.Equal(shouldOpen, factory.Opened);
             }
         }
 
@@ -125,6 +140,8 @@ namespace NuGet.Services.Sql.Tests
             public Mock<ISecretReader> MockSecretReader { get; }
 
             public Tuple<string, string, bool, X509Certificate2> AcquireTokenArguments { get; private set; }
+
+            public bool Opened { get; private set; }
 
             public TestAzureSqlConnectionFactory(string connectionString)
                 : this(connectionString, CreateMockSecretReader())
@@ -146,6 +163,7 @@ namespace NuGet.Services.Sql.Tests
 
             protected override Task OpenConnectionAsync(SqlConnection sqlConnection)
             {
+                Opened = true;
                 return Task.CompletedTask;
             }
 
