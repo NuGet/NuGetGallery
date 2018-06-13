@@ -138,6 +138,29 @@ namespace NuGetGallery.Controllers
             }
 
             [Theory]
+            [InlineData("random@address.com", "r**********m@address.com")]
+            [InlineData("rm@address.com", "r**********m@address.com")]
+            [InlineData("r@address.com", "r**********@address.com")]
+            [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
+            public void NullProvidedEmailReturnsFormattedEmailForUnconfirmedAccount(string email, string expectedEmail)
+            {
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
+                var existingUser = new User("existingUser") { UnconfirmedEmailAddress = email, Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                Assert.Equal(expectedEmail, data.EmailAddress);
+            }
+
+            [Theory]
             [InlineData("blarg")]
             [InlineData("wrong@email")]
             [InlineData("nonmatching@emailaddress.com")]
