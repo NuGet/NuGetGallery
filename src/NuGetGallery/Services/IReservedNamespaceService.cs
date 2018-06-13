@@ -57,9 +57,9 @@ namespace NuGetGallery
         /// Remove the specified package registration from the reserved namespace. It is the caller's reponsibility to
         /// commit the changes to the database.
         /// </summary>
-        /// <param name="prefix">The prefix value of the reserved namespace to modify</param>
+        /// <param name="reservedNamespace">The reserved namespace to modify</param>
         /// <param name="packageRegistration">The package registration entity to be removed.</param>
-        void RemovePackageRegistrationFromNamespace(string prefix, PackageRegistration packageRegistration);
+        void RemovePackageRegistrationFromNamespace(ReservedNamespace reservedNamespace, PackageRegistration packageRegistration);
 
         /// <summary>
         /// Retrieves the first reserved namespace which matches the given prefix.

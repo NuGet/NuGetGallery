@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DeleteAccountRequest.
+        ///   Looks up a localized string similar to Account Deletion Request.
         /// </summary>
         public static string AccountDelete_SupportRequestTitle {
             get {
@@ -919,6 +919,15 @@ namespace NuGetGallery {
         public static string InvalidPortableFramework {
             get {
                 return ResourceManager.GetString("InvalidPortableFramework", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recaptcha response was not valid. Try again or email support if you need assistance..
+        /// </summary>
+        public static string InvalidRecaptchaResponse {
+            get {
+                return ResourceManager.GetString("InvalidRecaptchaResponse", resourceCulture);
             }
         }
         

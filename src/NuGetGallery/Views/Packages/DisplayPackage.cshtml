@@ -224,14 +224,23 @@
                 )
             }
 
-            @if (Model.HasNewerPrerelease)
+            @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
-                    @<text>
-                        There is a newer prerelease version of this package available.
-                        <br /> See the version list below for details.
-                    </text>
-                )
+                        @<text>
+                            There is a newer version of this package available.
+                            <br /> See the version list below for details.
+                        </text>
+                     )
+            }
+            else if (Model.HasNewerPrerelease)
+            {
+                @ViewHelpers.AlertInfo(
+                        @<text>
+                            There is a newer prerelease version of this package available.
+                            <br /> See the version list below for details.
+                        </text>
+                     )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
@@ -584,7 +593,8 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Manual download</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download</a>
+                        &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
                     </li>
                     <li class="no-clickonce">
                         <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>

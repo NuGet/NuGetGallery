@@ -73,7 +73,7 @@ namespace NuGetGallery
             }
             userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
-            searchService = searchService ?? CreateSearchService();
+            searchService = searchService ?? new Mock<ISearchService>();
             autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
 
             if (packageFileService == null)
@@ -161,15 +161,6 @@ namespace NuGetGallery
             }
 
             return controller.Object;
-        }
-
-        private static Mock<ISearchService> CreateSearchService()
-        {
-            var searchService = new Mock<ISearchService>();
-            searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns(
-                (IQueryable<Package> p, string searchTerm) => Task.FromResult(new SearchResults(p.Count(), DateTime.UtcNow, p)));
-
-            return searchService;
         }
 
         public class TheCancelVerifyPackageAction
@@ -2103,7 +2094,7 @@ namespace NuGetGallery
                 // Arrange
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
                 packageService.Setup(svc => svc.FindPackageByIdAndVersion(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<bool>()))
-                              .Returns<Package>(null);
+                              .Returns((Package)null);
 
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -4484,7 +4475,7 @@ namespace NuGetGallery
                     fakePackageService.Setup(x => x.MarkPackageUnlistedAsync(fakePackage, false))
                         .Returns(Task.CompletedTask);
                     fakePackageService.Setup(x => x.FindPackageRegistrationById(fakePackage.PackageRegistration.Id))
-                        .Returns<PackageRegistration>(null);
+                        .Returns((PackageRegistration)null);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.0");
 
                     var fakeUserService = new Mock<IUserService>();
@@ -5068,7 +5059,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var cacheService = new Mock<ICacheService>(MockBehavior.Strict);
-                cacheService.Setup(c => c.GetItem(FakeUploadName)).Returns(null);
+                cacheService.Setup(c => c.GetItem(FakeUploadName)).Returns((object)null);
 
                 var controller = CreateController(
                         GetConfigurationService(),
@@ -5469,8 +5460,10 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
             }
 
-            [Fact]
-            public async Task WhenCurrentUserIsAuthenticatedOwner_ReturnsOK()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WhenCurrentUserIsAuthenticatedOwner_ReturnsOK(bool multiFactorAuthenticatedButNotAADLoggedIn)
             {
                 var packageService = new Mock<IPackageService>();
                 var userService = new Mock<IUserService>();
@@ -5488,7 +5481,14 @@ namespace NuGetGallery
                     .Returns(_signer);
 
                 controller.SetCurrentUser(_signer);
-                controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                if (multiFactorAuthenticatedButNotAADLoggedIn)
+                {
+                    controller.OwinContext.AddClaim(NuGetClaims.WasMultiFactorAuthenticated);
+                }
+                else
+                {
+                    controller.OwinContext.AddClaim(NuGetClaims.ExternalLoginCredentialType, NuGetClaims.ExternalLoginCredentialValues.AzureActiveDirectory);
+                }
 
                 var result = await controller.SetRequiredSigner(_packageRegistration.Id, _signer.Username);
 

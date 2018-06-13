@@ -28,7 +28,7 @@ namespace NuGetGallery
             Package package,
             User currentUser,
             ISecurityPolicyService securityPolicyService,
-            bool wasMultiFactorAuthenticated)
+            bool wasAADLoginOrMultiFactorAuthenticated)
             : base(package, currentUser)
         {
             if (package == null)
@@ -144,7 +144,7 @@ namespace NuGetGallery
                     }
                 }
 
-                CanEditRequiredSigner &= wasMultiFactorAuthenticated;
+                CanEditRequiredSigner &= wasAADLoginOrMultiFactorAuthenticated;
             }
         }
 

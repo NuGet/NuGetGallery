@@ -52,7 +52,7 @@
                         @Html.ShowValidationMessagesFor(m => m.CopySender)
                     </div>
                     <div class="form-group">
-                        <input type="submit" class="btn btn-primary form-control" value="Send" />
+                        <input id="Submit" type="submit" class="btn btn-primary form-control" value="Send" />
                     </div>
                 }
             }
@@ -96,3 +96,7 @@
             </div>
     </div>
 </section>
+
+@section BottomScripts {
+    @ViewHelpers.RecatpchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
+}

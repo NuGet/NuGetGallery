@@ -1,5 +1,4 @@
-﻿@using PoliteCaptcha
-@model ReportMyPackageViewModel
+﻿@model ReportMyPackageViewModel
 @{
     ViewBag.Title = "Contact Support about " + Model.PackageId + " " + Model.PackageVersion;
     ViewBag.Tab = "Packages";
@@ -20,7 +19,6 @@
             @using (Html.BeginForm())
             {
                 @Html.AntiForgeryToken()
-                @Html.SpamPreventionFields()
 
                 <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.Reason)">
                     @Html.ShowLabelFor(m => m.Reason)
@@ -65,7 +63,7 @@
 </section>
 
 @section BottomScripts {
-    @Html.SpamPreventionScript()
+    @ViewHelpers.RecatpchaScripts(Config.Current.ReCaptchaPublicKey, "Submit")
     <script type="text/javascript">
         $(function () {
             var $reason = $('#Reason');

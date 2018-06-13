@@ -3,6 +3,8 @@
 
 using System.Data;
 using System.Threading.Tasks;
+using Autofac.Features.Indexed;
+using NuGet.Services.Sql;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery
@@ -10,6 +12,7 @@ namespace NuGetGallery
     public class SqlAggregateStatsService : IAggregateStatsService
     {
         private readonly IAppConfiguration _configuration;
+        private readonly ISqlConnectionFactory _connectionFactory;
 
         // Note the NOLOCK hints here!
         private static readonly string GetStatisticsSql = @"SELECT
@@ -17,14 +20,16 @@ namespace NuGetGallery
                             WHERE EXISTS (SELECT 1 FROM Packages p WITH (NOLOCK) WHERE p.PackageRegistrationKey = pr.[Key] AND p.Listed = 1 AND p.PackageDelete_Key IS NULL)) AS UniquePackages,
                     (SELECT COUNT([Key]) FROM Packages WITH (NOLOCK) WHERE Listed = 1) AS TotalPackages";
 
-        public SqlAggregateStatsService(IAppConfiguration configuration)
+        public SqlAggregateStatsService(IAppConfiguration configuration, IIndex<string, ISqlConnectionFactory> connectionFactories)
         {
             _configuration = configuration;
+            _connectionFactory = connectionFactories[nameof(EntitiesContext)];
         }
 
         public Task<AggregateStats> GetAggregateStats()
         {
-            using (var dbContext = new EntitiesContext(_configuration.SqlConnectionString, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
+            var connection = Task.Run(() => _connectionFactory.CreateAsync()).Result;
+            using (var dbContext = new EntitiesContext(connection, readOnly: true)) // true - set readonly but it is ignored anyway, as this class doesn't call EntitiesContext.SaveChanges()
             {
                 var database = dbContext.Database;
                 using (var command = database.Connection.CreateCommand())

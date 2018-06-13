@@ -10,6 +10,8 @@ using Moq;
 using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 using Xunit;
+using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery.Filters
 {

@@ -610,7 +610,7 @@ For more information, please contact '{2}'.</value>
     <value>The request failed to be submitted. Please try again or contact support.</value>
   </data>
   <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
-    <value>DeleteAccountRequest</value>
+    <value>Account Deletion Request</value>
   </data>
   <data name="MessageIsRequired" xml:space="preserve">
     <value>Please enter a message.</value>
@@ -904,5 +904,8 @@ If you would like to update the linked Microsoft account you can do so from the 
   </data>
   <data name="DiscontinuedLogin_PasswordRemoved" xml:space="preserve">
     <value>The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward.</value>
+  </data>
+  <data name="InvalidRecaptchaResponse" xml:space="preserve">
+    <value>Recaptcha response was not valid. Try again or email support if you need assistance.</value>
   </data>
 </root>

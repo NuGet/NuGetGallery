@@ -652,7 +652,7 @@ Thanks,
             body = String.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                user,
+                user.Username,
                 Config.GalleryOwner.DisplayName,
                 Environment.NewLine);
 

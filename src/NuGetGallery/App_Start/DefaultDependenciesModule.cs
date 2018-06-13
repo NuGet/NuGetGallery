@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -17,7 +19,9 @@ using Autofac;
 using Autofac.Core;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Sql;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -25,13 +29,13 @@ using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
-using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
+using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
 {
@@ -52,13 +56,19 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var configuration = new ConfigurationService();
+            var secretReaderFactory = new SecretReaderFactory(configuration, diagnosticsService);
+            var secretReader = secretReaderFactory.CreateSecretReader();
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISecretInjector>()
+                .SingleInstance();
+
+            configuration.SecretInjector = secretInjector;
 
             UrlExtensions.SetConfigurationService(configuration);
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
@@ -93,7 +103,13 @@ namespace NuGetGallery
                 .As<ICacheService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
+            var galleryDbConnectionFactory = new AzureSqlConnectionFactory(configuration.Current.SqlConnectionString, secretInjector);
+
+            builder.RegisterInstance(galleryDbConnectionFactory)
+                .AsSelf()
+                .Keyed<ISqlConnectionFactory>(nameof(EntitiesContext));
+
+            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory), configuration.Current.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -154,6 +170,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<Credential>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<PackageOwnerRequest>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
@@ -169,7 +190,9 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+            var supportDbConnectionFactory = new AzureSqlConnectionFactory(configuration.Current.SqlConnectionStringSupportRequest, secretInjector);
+
+            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory)))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -339,7 +362,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, configuration);
+            RegisterAsynchronousValidation(builder, configuration, secretInjector);
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
@@ -378,9 +401,17 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
-        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
+        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
-            builder.Register(c => new ValidationEntitiesContext(configuration.Current.SqlConnectionStringValidation))
+            return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
+        {
+            var connectionString = configuration.Current.SqlConnectionStringValidation;
+            var validationDbConnectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
+
+            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
@@ -397,9 +428,9 @@ namespace NuGetGallery
                 .InstancePerLifetimeScope();
         }
 
-        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
+        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            ConfigureValidationAdmin(builder, configuration);
+            ConfigureValidationAdmin(builder, configuration, secretInjector);
 
             builder
                 .RegisterType<ServiceBusMessageSerializer>()

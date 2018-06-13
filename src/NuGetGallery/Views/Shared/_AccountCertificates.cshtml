@@ -3,6 +3,18 @@
     var parent = (WebViewPage)TempData["Parent"];
 }
 
+@helper WarnForUnconfirmedEmailAddress()
+{
+    if (Model.IsOrganization)
+    {
+        @ViewHelpers.AlertWarning(@<text>You must confirm the organization's email address before you can register or manage certificates.</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertWarning(@<text>You must confirm your email address before you can register or manage certificates.</text>)
+    }
+}
+
 @helper WarnFor2FARequirement()
 {
     if (Model.User.EnableMultiFactorAuthentication)
@@ -30,9 +42,14 @@
         </form>
 
         <div class="list-certificates">
-            @if (!Model.WasMultiFactorAuthenticated)
+            @if (!Model.HasConfirmedEmailAddress)
             {
-                @WarnFor2FARequirement();
+                @WarnForUnconfirmedEmailAddress()
+            }
+
+            @if (!Model.WasMultiFactorAuthenticated && !User.WasAzureActiveDirectoryAccountUsedForSignin())
+            {
+                @WarnFor2FARequirement()
             }
 
             <div class="row" data-bind="ifnot: $data && $data.hasCertificates && $data.hasCertificates()">
@@ -68,7 +85,7 @@
             </div>
         </div>
 
-        @if (Model.WasMultiFactorAuthenticated && Model.CanManage)
+        @if ((Model.WasMultiFactorAuthenticated || User.WasAzureActiveDirectoryAccountUsedForSignin()) && Model.CanManage && Model.HasConfirmedEmailAddress)
         {
         <div class="collapse in row" id="upload-certificate-form" aria-expanded="true">
             @Html.ValidationSummary(true)

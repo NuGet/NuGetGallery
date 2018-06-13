@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
@@ -639,7 +640,6 @@ namespace NuGetGallery
             }
         }
 
-
         public class TheGetFileReadUriAsyncMethod
         {
             private const string folderName = "theFolderName";
@@ -1106,6 +1106,110 @@ namespace NuGetGallery
                 typeof(BlobProperties)
                     .GetProperty(nameof(BlobProperties.ContentMD5))
                     .SetValue(properties, contentMD5, null);
+            }
+        }
+
+        public class TheSetMetadataAsyncMethod
+        {
+            private const string _content = "peach";
+
+            private readonly Mock<ICloudBlobClient> _blobClient;
+            private readonly Mock<ICloudBlobContainer> _blobContainer;
+            private readonly Mock<ISimpleCloudBlob> _blob;
+            private readonly CloudBlobCoreFileStorageService _service;
+
+            public TheSetMetadataAsyncMethod()
+            {
+                _blobClient = new Mock<ICloudBlobClient>();
+                _blobContainer = new Mock<ICloudBlobContainer>();
+                _blob = new Mock<ISimpleCloudBlob>();
+
+                _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns(_blobContainer.Object);
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync())
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()))
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
+                    .Returns(_blob.Object);
+
+                _service = CreateService(fakeBlobClient: _blobClient);
+            }
+
+            [Fact]
+            public async Task WhenLazyStreamRead_ReturnsContent()
+            {
+                _blob.Setup(x => x.DownloadToStreamAsync(It.IsAny<Stream>(), It.IsAny<AccessCondition>()))
+                    .Callback<Stream, AccessCondition>((stream, _) =>
+                    {
+                        using (var writer = new StreamWriter(stream, Encoding.UTF8, bufferSize: 4096, leaveOpen: true))
+                        {
+                            writer.Write(_content);
+                        }
+                    })
+                    .Returns(Task.FromResult(0));
+
+                await _service.SetMetadataAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updateMetadataAsync: async (lazyStream, metadata) =>
+                    {
+                        using (var stream = await lazyStream.Value)
+                        using (var reader = new StreamReader(stream))
+                        {
+                            Assert.Equal(_content, reader.ReadToEnd());
+                        }
+
+                        return false;
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenReturnValueIsFalse_MetadataChangesAreNotPersisted()
+            {
+                _blob.SetupGet(x => x.Metadata)
+                    .Returns(new Dictionary<string, string>());
+
+                await _service.SetMetadataAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updateMetadataAsync: (lazyStream, metadata) =>
+                    {
+                        Assert.NotNull(metadata);
+
+                        return Task.FromResult(false);
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
+            }
+
+            [Fact]
+            public async Task WhenReturnValueIsTrue_MetadataChangesAreNotPersisted()
+            {
+                _blob.SetupGet(x => x.Metadata)
+                    .Returns(new Dictionary<string, string>());
+                _blob.Setup(x => x.SetMetadataAsync(It.IsNotNull<AccessCondition>()))
+                    .Returns(Task.FromResult(0));
+
+                await _service.SetMetadataAsync(
+                    folderName: CoreConstants.PackagesFolderName,
+                    fileName: "a",
+                    updateMetadataAsync: (lazyStream, metadata) =>
+                    {
+                        Assert.NotNull(metadata);
+
+                        return Task.FromResult(true);
+                    });
+
+                _blob.VerifyAll();
+                _blobContainer.VerifyAll();
+                _blobClient.VerifyAll();
             }
         }
     }

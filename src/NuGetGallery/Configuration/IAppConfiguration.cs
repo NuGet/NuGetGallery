@@ -201,6 +201,16 @@ namespace NuGetGallery.Configuration
         string SiteRoot { get; set; }
 
         /// <summary>
+        /// Private key for verifying recaptcha user response.
+        /// </summary>
+        string ReCaptchaPrivateKey { get; set; }
+
+        /// <summary>
+        /// Public key for verifying recaptcha user response.
+        /// </summary>
+        string ReCaptchaPublicKey { get; set; }
+
+        /// <summary>
         /// Gets the Google Analytics Property ID being used, if any.
         /// </summary>
         string GoogleAnalyticsPropertyId { get; set; }

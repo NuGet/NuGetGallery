@@ -7,6 +7,7 @@ using System.Security.Claims;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using Xunit;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery.Extensions
 {

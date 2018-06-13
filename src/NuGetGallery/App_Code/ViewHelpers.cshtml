@@ -613,3 +613,23 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
     @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
 }
+
+@helper RecatpchaScripts(string reCaptchaPublicKey, string submitId)
+{
+    if (!string.IsNullOrEmpty(reCaptchaPublicKey))
+    {
+        <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+        <script type="text/javascript">
+            var $submit = $('@("#" + submitId)');
+            $submit.addClass("g-recaptcha");
+            $submit.attr({
+                'data-sitekey': "@reCaptchaPublicKey",
+                'data-size': "invisible",
+                'data-callback': "onSubmit"
+            });
+            function onSubmit(token) {
+                $submit.parents('form').submit();
+            }
+        </script>
+    }
+}
