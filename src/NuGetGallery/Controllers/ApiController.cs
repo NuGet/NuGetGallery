@@ -530,19 +530,19 @@ namespace NuGetGallery
                     }
                     catch (InvalidPackageException ex)
                     {
-                        return HandleExpectedPackagePushFailure(ex);
+                        return BadRequestForExceptionMessage(ex);
                     }
                     catch (InvalidDataException ex)
                     {
-                        return HandleExpectedPackagePushFailure(ex);
+                        return BadRequestForExceptionMessage(ex);
                     }
                     catch (EntityException ex)
                     {
-                        return HandleExpectedPackagePushFailure(ex);
+                        return BadRequestForExceptionMessage(ex);
                     }
                     catch (FrameworkException ex)
                     {
-                        return HandleExpectedPackagePushFailure(ex);
+                        return BadRequestForExceptionMessage(ex);
                     }
                 }
             }
@@ -553,7 +553,7 @@ namespace NuGetGallery
             }
         }
 
-        private ActionResult HandleExpectedPackagePushFailure(Exception ex)
+        private static ActionResult BadRequestForExceptionMessage(Exception ex)
         {
             return new HttpStatusCodeWithBodyResult(
                 HttpStatusCode.BadRequest,
