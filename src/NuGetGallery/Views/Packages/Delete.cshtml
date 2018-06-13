@@ -61,42 +61,45 @@
                     </div>
                 </div>
 
-                <h2>
-                    <a href="#" role="button" data-toggle="collapse" data-target="#list-package" aria-expanded="true" aria-controls="list-package" id="show-list-package">
-                        <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
-                        <span>Package Version Listing</span>
-                    </a>
-                </h2>
+                if (!Model.FailedValidation)
+                {
+                    <h2>
+                        <a href="#" role="button" data-toggle="collapse" data-target="#list-package" aria-expanded="true" aria-controls="list-package" id="show-list-package">
+                            <i class="ms-Icon ms-Icon--ChevronDown" aria-hidden="true"></i>
+                            <span>Package Version Listing</span>
+                        </a>
+                    </h2>
 
-                <div class="panel-collapse collapse in" aria-expanded="true" id="list-package">
+                    <div class="panel-collapse collapse in" aria-expanded="true" id="list-package">
 
-                    @if (!User.IsAdministrator())
-                    {
-                        @ViewHelpers.AlertInfo(
-                    @<text>
-                        You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
-                    </text>
-                              )
-                    }
+                        @if (!User.IsAdministrator())
+                        {
+                            @ViewHelpers.AlertInfo(
+                            @<text>
+                                You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
+                            </text>
+                                   )
+                        }
 
-                    @using (Html.BeginForm("UpdateListed", "Packages"))
-                    {
-                        @Html.AntiForgeryToken()
-                        @Html.Hidden("version", @Model.Version)
-                        <div class="form-group @Html.HasErrorFor(package => package.Listed)">
-                            @Html.ShowCheckboxFor(package => package.Listed)
-                            @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
-                            @Html.ShowValidationMessagesFor(package => package.Listed)
+                        @using (Html.BeginForm("UpdateListed", "Packages"))
+                        {
+                            @Html.AntiForgeryToken()
+                            @Html.Hidden("version", @Model.Version)
+                            <div class="form-group @Html.HasErrorFor(package => package.Listed)">
+                                @Html.ShowCheckboxFor(package => package.Listed)
+                                @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")
+                                @Html.ShowValidationMessagesFor(package => package.Listed)
 
-                            <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
-                        </div>
+                                <p>Unlisted packages cannot be installed directly and do not show up in search results.</p>
+                            </div>
 
-                        <div class="form-group">
-                            <input type="submit" class="btn btn-primary form-control" value="Save" />
-                        </div>
-                    }
-                </div>
-             }
+                            <div class="form-group">
+                                <input type="submit" class="btn btn-primary form-control" value="Save" />
+                            </div>
+                        }
+                    </div>
+                }
+            }
 
             @if (User.IsAdministrator())
             {
