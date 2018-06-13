@@ -9,6 +9,7 @@ using Moq;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using NuGetGallery.Configuration;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
@@ -368,6 +369,147 @@ namespace NuGetGallery
 
                 Assert.Equal(1, issues.Count());
                 Assert.Equal(ValidationIssueCode.PackageIsSigned, issues.First().IssueCode);
+            }
+        }
+
+        public class TheIsPackageReuploadableMethod : FactsBase
+        {
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            public void IgnoresPackagesThatHaventFailedValidations(PackageStatus status)
+            {
+                // Arrange
+                _package.PackageStatusKey = status;
+
+                // Act
+                var isReuploadable = _target.IsPackageReuploadable(_package);
+
+                // Assert
+                _validationSets.Verify(x => x.GetAll(), Times.Never());
+                Assert.False(isReuploadable);
+            }
+
+            [Fact]
+            public void ReturnsFalseIfNoValidationSetFound()
+            {
+                // Arrange
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
+
+                // Act
+                var isReuploadable = _target.IsPackageReuploadable(_package);
+
+                // Assert
+                Assert.False(isReuploadable);
+            }
+
+            public static IEnumerable<object[]> ReturnsFailureIfBlacklistedPackageValidationTypeFailedInMostRecentCompletedPackageValidationSet_Data
+            {
+                get
+                {
+                    foreach (var firstTypeBlacklisted in new[] { false, true })
+                    {
+                        foreach (var secondTypeBlacklisted in new[] { false, true })
+                        {
+                            foreach (var firstTypeFailed in new[] { false, true })
+                            {
+                                foreach (var secondTypeFailed in new[] { false, true })
+                                {
+                                    yield return MemberDataHelper.AsData(
+                                        firstTypeBlacklisted, secondTypeBlacklisted, firstTypeFailed, secondTypeFailed);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ReturnsFailureIfBlacklistedPackageValidationTypeFailedInMostRecentCompletedPackageValidationSet_Data))]
+            public void ReturnsFailureIfBlacklistedPackageValidationTypeFailedInMostRecentCompletedPackageValidationSet(
+                bool firstTypeBlacklisted, 
+                bool secondTypeBlacklisted, 
+                bool firstTypeFailed, 
+                bool secondTypeFailed)
+            {
+                // Arrange
+                _package.Key = 123;
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
+
+                var firstType = "first";
+                var secondType = "second";
+
+                var mostRecentPackageValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 123,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            Type = firstType,
+                            ValidationStatus = firstTypeFailed ? ValidationStatus.Failed : ValidationStatus.Succeeded,
+                            PackageValidationIssues = new PackageValidationIssue[0],
+                        },
+                        new PackageValidation
+                        {
+                            Type = secondType,
+                            ValidationStatus = secondTypeFailed ? ValidationStatus.Failed : ValidationStatus.Succeeded,
+                            PackageValidationIssues = new PackageValidationIssue[0],
+                        }
+                    },
+                    Updated = new DateTime(2018, 6, 12)
+                };
+
+                var oldPackageValidationSet = new PackageValidationSet
+                {
+                    PackageKey = 123,
+                    PackageValidations = new[]
+                    {
+                        new PackageValidation
+                        {
+                            Type = firstType,
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new PackageValidationIssue[0],
+                        },
+                        new PackageValidation
+                        {
+                            Type = secondType,
+                            ValidationStatus = ValidationStatus.Failed,
+                            PackageValidationIssues = new PackageValidationIssue[0],
+                        }
+                    },
+                    Updated = new DateTime(2018, 6, 11)
+                };
+
+                _validationSets
+                    .Setup(x => x.GetAll())
+                    .Returns(new[] { oldPackageValidationSet, mostRecentPackageValidationSet }.AsQueryable());
+
+                var blacklistedTypes = new List<string>();
+                if (firstTypeBlacklisted)
+                {
+                    blacklistedTypes.Add(firstType);
+                }
+
+                if (secondTypeBlacklisted)
+                {
+                    blacklistedTypes.Add(secondType);
+                }
+
+                _appConfiguration
+                    .Setup(x => x.NonreuploadableFailedPackageValidationTypes)
+                    .Returns(string.Join(";", blacklistedTypes));
+
+                // Act
+                var isReuploadable = _target.IsPackageReuploadable(_package);
+
+                // Assert
+                _validationSets.Verify(x => x.GetAll(), Times.Once);
+
+                Assert.Equal(
+                    (firstTypeBlacklisted && firstTypeFailed) || (secondTypeBlacklisted && secondTypeFailed), 
+                    isReuploadable);
             }
         }
 

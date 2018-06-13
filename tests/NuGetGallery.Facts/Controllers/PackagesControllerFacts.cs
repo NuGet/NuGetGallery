@@ -3793,9 +3793,11 @@ namespace NuGetGallery
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                     new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0" });
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: fakePackageService);
+                    packageService: fakePackageService,
+                    packageDeleteService: fakePackageDeleteService);
                 controller.SetCurrentUser(currentUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3805,6 +3807,14 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.0"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
+                    Times.Never());
             }
 
             [Fact]
@@ -3817,9 +3827,11 @@ namespace NuGetGallery
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                     new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: fakePackageService);
+                    packageService: fakePackageService,
+                    packageDeleteService: fakePackageDeleteService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3829,6 +3841,62 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, "theId", "1.0.0+metadata"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
+                    Times.Never());
+            }
+
+            [Theory]
+            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
+            public async Task WillReuploadThePackageWhenValidationServiceReturnsTrue(User currentUser, User existingPackageOwner)
+            {
+                var id = "theId";
+                var version = "1.0.0";
+                Func<Package, bool> isPackage = (Package p) => p.PackageRegistration.Id == id && p.Version == version;
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream(id, version);
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { existingPackageOwner } }, Version = version });
+                var fakeValidationService = new Mock<IValidationService>();
+                fakeValidationService
+                    .Setup(x => x.IsPackageReuploadable(It.Is<Package>(p => isPackage(p))))
+                    .Returns(true);
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(currentUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: fakePackageService,
+                    validationService: fakeValidationService,
+                    packageDeleteService: fakePackageDeleteService,
+                    uploadFileService: fakeUploadFileService);
+                controller.SetCurrentUser(currentUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.True(result.Data is VerifyPackageRequest);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.Is<IEnumerable<Package>>(packages => isPackage(packages.Single())), 
+                        currentUser, 
+                        It.IsAny<string>(), 
+                        It.IsAny<string>(), 
+                        false),
+                    Times.Once());
             }
 
             [Fact]

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using NuGet.Services.Validation;
 using NuGetGallery.Services;
 
 namespace NuGetGallery.Configuration
@@ -333,5 +334,13 @@ namespace NuGetGallery.Configuration
         /// gallery code is being used inside a console application.
         /// </summary>
         bool IsHosted { get; set; }
+
+        /// <summary>
+        /// If a package fails validation with one of these types, it should not be allowed to be reuploaded.
+        /// </summary>
+        /// <remarks>
+        /// A semi-colon delimited list of <see cref="PackageValidation.Type"/>s.
+        /// </remarks>
+        string NonreuploadableFailedPackageValidationTypes { get; set; }
     }
 }

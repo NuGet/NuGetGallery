@@ -336,5 +336,8 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(true)]
         public bool IsHosted { get; set; }
+
+        [DefaultValue("")]
+        public string NonreuploadableFailedPackageValidationTypes { get; set; }
     }
 }

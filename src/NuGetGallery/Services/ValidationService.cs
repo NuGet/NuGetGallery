@@ -68,16 +68,8 @@ namespace NuGetGallery
             // Only query the database for validation issues if the package has failed validation.
             if (package.PackageStatusKey == PackageStatus.FailedValidation)
             {
-                // Grab the most recently completed validation set for this package. Note that the orchestrator will stop
-                // processing a validation set if all validation succeed, OR, one or more validation fails.
-                var validationSet = _validationSets
-                                        .GetAll()
-                                        .Where(s => s.PackageKey == package.Key)
-                                        .Where(s => s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
-                                                    s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
-                                        .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
-                                        .OrderByDescending(s => s.Updated)
-                                        .FirstOrDefault();
+                // Grab the most recently completed validation set for this package.
+                var validationSet = GetMostRecentlyCompletedValidationSet(package);
 
                 if (validationSet != null)
                 {
@@ -105,6 +97,57 @@ namespace NuGetGallery
                 .GroupBy(x => new { x.IssueCode, Data = x.Serialize() })
                 .Select(x => x.First())
                 .ToList();
+        }
+
+        public bool IsPackageReuploadable(Package package)
+        {
+            if (package.PackageStatusKey != PackageStatus.FailedValidation)
+            {
+                return false;
+            }
+
+            // Grab the most recently completed validation set for this package.
+            var validationSet = GetMostRecentlyCompletedValidationSet(package);
+
+            if (validationSet == null)
+            {
+                // If the most recently completed validation set for this package cannot be found, assume the package cannot be reuploaded.
+                return false;
+            }
+            
+            // A package cannot be reuploaded if any package validations fail with a blacklisted type.
+            return validationSet.PackageValidations
+                .Any(v => 
+                    v.ValidationStatus == ValidationStatus.Failed && 
+                    NonreuploadableFailedPackageValidationTypes().Contains(v.Type));
+        }
+
+        private IEnumerable<string> NonreuploadableFailedPackageValidationTypes()
+        {
+            var nonreuploadableFailedPackageValidationTypes = _appConfiguration.NonreuploadableFailedPackageValidationTypes;
+
+            if (string.IsNullOrEmpty(nonreuploadableFailedPackageValidationTypes))
+            {
+                return new string[0];
+            }
+
+            return nonreuploadableFailedPackageValidationTypes.Split(';');
+        }
+
+        private PackageValidationSet GetMostRecentlyCompletedValidationSet(Package package)
+        {
+            return _validationSets
+                .GetAll()
+                .Where(s => s.PackageKey == package.Key)
+                // The orchestrator considers a validation set completed if
+                .Where(s =>
+                    // all validation succeed
+                    s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
+                    // OR one validation fails
+                    s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
+                .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
+                .OrderByDescending(s => s.Updated)
+                .FirstOrDefault();
         }
     }
 }

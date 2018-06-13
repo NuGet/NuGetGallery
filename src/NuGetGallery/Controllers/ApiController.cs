@@ -11,7 +11,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web.Mvc;
-using System.Web.UI;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -53,6 +52,8 @@ namespace NuGetGallery
         protected ISecurityPolicyService SecurityPolicyService { get; set; }
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
+        public IPackageDeleteService PackageDeleteService { get; set; }
+        public IValidationService ValidationService { get; set; }
 
         protected ApiController()
         {
@@ -78,7 +79,9 @@ namespace NuGetGallery
             ICredentialBuilder credentialBuilder,
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
-            IPackageUploadService packageUploadService)
+            IPackageUploadService packageUploadService,
+            IPackageDeleteService packageDeleteService,
+            IValidationService validationService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -122,11 +125,13 @@ namespace NuGetGallery
             ICredentialBuilder credentialBuilder,
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
-            IPackageUploadService packageUploadService)
+            IPackageUploadService packageUploadService,
+            IPackageDeleteService packageDeleteService,
+            IValidationService validationService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, validationService)
         {
             StatisticsService = statisticsService;
         }
@@ -440,22 +445,22 @@ namespace NuGetGallery
                                     HttpStatusCode.Forbidden,
                                     string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                             }
-
-                            // Check if a particular Id-Version combination already exists. We eventually need to remove this check.
-                            string normalizedVersion = version.ToNormalizedString();
-                            bool packageExists =
-                                packageRegistration.Packages.Any(
-                                    p => string.Equals(
-                                        p.NormalizedVersion,
-                                        normalizedVersion,
-                                        StringComparison.OrdinalIgnoreCase));
-
-                            if (packageExists)
+                            
+                            var nuspecVersion = nuspec.GetVersion();
+                            var existingPackage = PackageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
+                            if (existingPackage != null)
                             {
-                                return new HttpStatusCodeWithBodyResult(
-                                    HttpStatusCode.Conflict,
-                                    string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                        id, nuspec.GetVersion().ToNormalizedStringSafe()));
+                                if (ValidationService.IsPackageReuploadable(existingPackage))
+                                {
+                                    await PackageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
+                                }
+                                else
+                                {
+                                    return new HttpStatusCodeWithBodyResult(
+                                        HttpStatusCode.Conflict,
+                                        string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
+                                            id, nuspec.GetVersion().ToNormalizedStringSafe()));
+                                }
                             }
                         }
 

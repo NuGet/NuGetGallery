@@ -360,33 +360,40 @@ namespace NuGetGallery
                 var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
                 if (existingPackage != null)
                 {
-                    // Determine if the package versions only differ by metadata, 
-                    // and provide the most optimal the user-facing error message.
-                    var existingPackageVersion = new NuGetVersion(existingPackage.Version);
-                    String message = string.Empty;
-                    if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata)
-                        && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
+                    if (_validationService.IsPackageReuploadable(existingPackage))
                     {
-                        message = string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified,
-                                existingPackage.PackageRegistration.Id,
-                                existingPackage.Version);
+                        await _packageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
                     }
                     else
                     {
-                        message = string.Format(
-                                CultureInfo.CurrentCulture,
-                                Strings.PackageExistsAndCannotBeModified,
-                                existingPackage.PackageRegistration.Id,
-                                existingPackage.Version);
+                        // Determine if the package versions only differ by metadata, 
+                        // and provide the most optimal the user-facing error message.
+                        var existingPackageVersion = new NuGetVersion(existingPackage.Version);
+                        String message = string.Empty;
+                        if ((existingPackageVersion.HasMetadata || nuspecVersion.HasMetadata)
+                            && !string.Equals(existingPackageVersion.Metadata, nuspecVersion.Metadata))
+                        {
+                            message = string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified,
+                                    existingPackage.PackageRegistration.Id,
+                                    existingPackage.Version);
+                        }
+                        else
+                        {
+                            message = string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.PackageExistsAndCannotBeModified,
+                                    existingPackage.PackageRegistration.Id,
+                                    existingPackage.Version);
+                        }
+
+                        ModelState.AddModelError(
+                            string.Empty,
+                            message);
+
+                        return Json(HttpStatusCode.Conflict, new[] { message });
                     }
-
-                    ModelState.AddModelError(
-                        string.Empty,
-                        message);
-
-                    return Json(HttpStatusCode.Conflict, new[] { message });
                 }
 
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
