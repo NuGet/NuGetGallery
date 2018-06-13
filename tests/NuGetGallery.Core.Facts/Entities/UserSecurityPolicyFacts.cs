@@ -23,7 +23,7 @@ namespace NuGetGallery
             Assert.Equal(policy.Value, copy.Value);
         }
 
-        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsTrue_Data
+        public static IEnumerable<object[]> EqualsReturnsTrue_Data
         {
             get
             {
@@ -46,7 +46,7 @@ namespace NuGetGallery
             Assert.True(first.Equals(second));
         }
 
-        public static IEnumerable<UserSecurityPolicy[]> EqualsReturnsFalse_Data
+        public static IEnumerable<object[]> EqualsReturnsFalse_Data
         {
             get
             {

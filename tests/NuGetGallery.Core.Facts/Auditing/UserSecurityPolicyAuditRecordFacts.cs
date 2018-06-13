@@ -60,7 +60,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("D", record.Username);
             Assert.False(record.Success);
             Assert.Equal("E", record.ErrorMessage);
-            Assert.Equal(1, record.AffectedPolicies.Length);
+            Assert.Single(record.AffectedPolicies);
             Assert.Equal("A", record.AffectedPolicies[0].Name);
             Assert.Equal("B", record.AffectedPolicies[0].Subscription);
             Assert.Equal("C", record.AffectedPolicies[0].Value);
@@ -77,7 +77,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("D", record.Username);
             Assert.True(record.Success);
             Assert.Null(record.ErrorMessage);
-            Assert.Equal(1, record.AffectedPolicies.Length);
+            Assert.Single(record.AffectedPolicies);
             Assert.Equal("A", record.AffectedPolicies[0].Name);
             Assert.Equal("B", record.AffectedPolicies[0].Subscription);
             Assert.Equal("C", record.AffectedPolicies[0].Value);

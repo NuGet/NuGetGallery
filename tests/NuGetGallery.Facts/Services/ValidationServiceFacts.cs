@@ -366,7 +366,7 @@ namespace NuGetGallery
                 // Assert
                 _validationSets.Verify(x => x.GetAll(), Times.Once());
 
-                Assert.Equal(1, issues.Count());
+                Assert.Single(issues);
                 Assert.Equal(ValidationIssueCode.PackageIsSigned, issues.First().IssueCode);
             }
         }

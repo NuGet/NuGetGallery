@@ -111,7 +111,7 @@ namespace NuGetGallery.Infrastructure
                             { "key3", "dumb&dumber?:;,isit" }
                         });
 
-                Assert.Equal(1, cookies.Count);
+                Assert.Single(cookies);
                 Assert.True(cookies[0].HttpOnly);
                 Assert.True(cookies[0].Secure);
                 Assert.Equal(3, cookies[0].Values.Count);
@@ -131,7 +131,7 @@ namespace NuGetGallery.Infrastructure
 
                 provider.SaveTempData(controllerContext, new Dictionary<string, object>());
 
-                Assert.Equal(0, cookies.Count);
+                Assert.Empty(cookies);
             }
 
             [Fact]
@@ -153,7 +153,7 @@ namespace NuGetGallery.Infrastructure
 
                 // Validate
                 provider.SaveTempData(controllerContext, new Dictionary<string, object>());
-                Assert.Equal(1, cookies.Count);
+                Assert.Single(cookies);
                 Assert.True(cookies[0].HttpOnly);
                 Assert.True(cookies[0].Secure);
                 Assert.Equal("", cookies[0].Value);

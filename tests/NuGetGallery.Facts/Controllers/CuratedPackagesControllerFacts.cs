@@ -266,16 +266,14 @@ namespace NuGetGallery
                         Included = true,
                     });
 
-                Assert.False(controller.StubCuratedFeed.Packages.Any(
-                    cp => cp.Included == false));
+                Assert.DoesNotContain(controller.StubCuratedFeed.Packages, cp => !cp.Included);
 
                 var result = await controller.PatchCuratedPackage(
                     "aFeedName",
                     "anId",
                     new ModifyCuratedPackageRequest { Included = false }) as HttpStatusCodeResult;
 
-                Assert.True(controller.StubCuratedFeed.Packages.Any(
-                    cp => cp.Included == false));
+                Assert.Contains(controller.StubCuratedFeed.Packages, cp => !cp.Included);
             }
 
             [Fact]

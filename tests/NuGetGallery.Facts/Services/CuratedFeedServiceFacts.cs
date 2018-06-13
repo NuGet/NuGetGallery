@@ -110,8 +110,8 @@ namespace NuGetGallery.Services
 
                 var curatedPackage = svc.StubCuratedFeed.Packages.First();
                 Assert.Equal(1066, curatedPackage.PackageRegistrationKey);
-                Assert.Equal(false, curatedPackage.Included);
-                Assert.Equal(true, curatedPackage.AutomaticallyCurated);
+                Assert.False(curatedPackage.Included);
+                Assert.True(curatedPackage.AutomaticallyCurated);
                 Assert.Equal("theNotes", curatedPackage.Notes);
             }
 
@@ -145,8 +145,8 @@ namespace NuGetGallery.Services
                     "theNotes");
 
                 Assert.Equal(1066, curatedPackage.PackageRegistrationKey);
-                Assert.Equal(false, curatedPackage.Included);
-                Assert.Equal(true, curatedPackage.AutomaticallyCurated);
+                Assert.False(curatedPackage.Included);
+                Assert.True(curatedPackage.AutomaticallyCurated);
                 Assert.Equal("theNotes", curatedPackage.Notes);
             }
         }

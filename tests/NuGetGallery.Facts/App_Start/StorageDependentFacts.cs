@@ -58,10 +58,10 @@ namespace NuGetGallery
             Assert.Contains(typeof(PackageFileService), implementationToInterface.Keys);
             Assert.Contains(typeof(UploadFileService), implementationToInterface.Keys);
             Assert.Equal(4, implementationToInterface.Count);
-            Assert.Equal(implementationToInterface[typeof(CertificateService)], typeof(ICertificateService));
-            Assert.Equal(implementationToInterface[typeof(ContentService)], typeof(IContentService));
-            Assert.Equal(implementationToInterface[typeof(PackageFileService)], typeof(IPackageFileService));
-            Assert.Equal(implementationToInterface[typeof(UploadFileService)], typeof(IUploadFileService));
+            Assert.Equal(typeof(ICertificateService), implementationToInterface[typeof(CertificateService)]);
+            Assert.Equal(typeof(IContentService), implementationToInterface[typeof(ContentService)]);
+            Assert.Equal(typeof(IPackageFileService), implementationToInterface[typeof(PackageFileService)]);
+            Assert.Equal(typeof(IUploadFileService), implementationToInterface[typeof(UploadFileService)]);
         }
 
         [Fact]

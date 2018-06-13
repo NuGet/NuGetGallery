@@ -100,7 +100,7 @@ namespace NuGetGallery.Services
                 await supportRequestService.TryAddDeleteSupportRequestAsync(user);
 
                 // Assert
-                Assert.Equal(1, auditingService.Records.Count);
+                Assert.Single(auditingService.Records);
                 var deleteRecord = auditingService.Records[0] as DeleteAccountAuditRecord;
                 Assert.True(deleteRecord != null);
                 Assert.Equal(DeleteAccountAuditRecord.ActionStatus.Success, deleteRecord.Status);

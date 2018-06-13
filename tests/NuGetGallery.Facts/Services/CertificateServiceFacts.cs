@@ -517,7 +517,7 @@ namespace NuGetGallery.Services
 
             var certificates = service.GetCertificates(_user);
 
-            Assert.Equal(1, certificates.Count());
+            Assert.Single(certificates);
             Assert.Same(_certificate, certificates.Single());
 
             VerifyMockExpectations();

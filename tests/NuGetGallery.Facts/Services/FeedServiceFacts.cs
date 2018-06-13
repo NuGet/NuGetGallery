@@ -402,7 +402,7 @@ namespace NuGetGallery
                            typeof(V1FeedPackage)),
                            v1Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -416,7 +416,7 @@ namespace NuGetGallery
                            typeof(V1FeedPackage)),
                            service.Request));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 private TestableV1Feed GetService(string host, string arguments = "?$skip=10")
@@ -689,7 +689,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.False(result.Any(p => p.Id == "Baz"));
+                    Assert.DoesNotContain(result, p => p.Id == "Baz");
                 }
             }
 
@@ -1316,7 +1316,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.Equal(1, result.Length);
+                    Assert.Single(result);
                     Assert.Equal("Foo", result[0].Id);
                     Assert.Equal("1.2.0", result[0].Version);
                 }
@@ -1443,7 +1443,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.Equal(0, result.Length);
+                    Assert.Empty(result);
                 }
 
                 [Fact]
@@ -1655,7 +1655,7 @@ namespace NuGetGallery
                            v2Service.Request),
                        "Pid", "Version", false, false));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -1669,7 +1669,7 @@ namespace NuGetGallery
                            typeof(V2FeedPackage)),
                            v2Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -1683,7 +1683,7 @@ namespace NuGetGallery
                            typeof(V2FeedPackage)),
                            v2Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 private TestableV2Feed GetService(string host, string arguments = "?$skip=10")
