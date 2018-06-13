@@ -360,8 +360,9 @@ namespace NuGetGallery
                 var existingPackage = _packageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
                 if (existingPackage != null)
                 {
-                    if (_validationService.IsPackageReuploadable(existingPackage))
+                    if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                     {
+                        // Packages that failed validation can be reuploaded.
                         await _packageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
                     }
                     else

@@ -69,7 +69,6 @@ namespace NuGetGallery
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
-            ValidationService = (MockValidationService = new Mock<IValidationService>()).Object;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -355,8 +354,11 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
             }
 
-            [Fact]
-            public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists(PackageStatus status)
             {
                 var id = "theId";
                 var version = "1.0.42";
@@ -364,7 +366,7 @@ namespace NuGetGallery
 
                 var user = new User() { EmailAddress = "confirmed1@email.com" };
 
-                var conflictingPackage = new Package { Version = version, NormalizedVersion = version };
+                var conflictingPackage = new Package { Version = version, NormalizedVersion = version, PackageStatusKey = status };
                 var packageRegistration = new PackageRegistration
                 {
                     Id = id,
@@ -376,7 +378,6 @@ namespace NuGetGallery
                 controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
-                controller.MockValidationService.Setup(x => x.IsPackageReuploadable(conflictingPackage)).Returns(false);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
@@ -399,7 +400,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillAllowReuploadingPackageIfValidationServiceReturnsTrue()
+            public async Task WillAllowReuploadingPackageIfFailedValidation()
             {
                 var id = "theId";
                 var version = "1.0.42";
@@ -407,7 +408,7 @@ namespace NuGetGallery
 
                 var user = new User() { EmailAddress = "confirmed1@email.com" };
 
-                var conflictingPackage = new Package { Version = version, NormalizedVersion = version };
+                var conflictingPackage = new Package { Version = version, NormalizedVersion = version, PackageStatusKey = PackageStatus.FailedValidation };
                 var packageRegistration = new PackageRegistration
                 {
                     Id = id,
@@ -421,7 +422,6 @@ namespace NuGetGallery
                 controller.SetCurrentUser(currentUser);
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
-                controller.MockValidationService.Setup(x => x.IsPackageReuploadable(conflictingPackage)).Returns(true);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act

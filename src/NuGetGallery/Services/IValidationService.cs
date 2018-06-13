@@ -39,10 +39,5 @@ namespace NuGetGallery
         /// <param name="package">The package whose validation issues should be fetched.</param>
         /// <returns>The validation issues encountered in the latest validation.</returns>
         IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package);
-
-        /// <summary>
-        /// Returns whether <paramref name="package"/> can be reuploaded or not.
-        /// </summary>
-        bool IsPackageReuploadable(Package package);
     }
 }

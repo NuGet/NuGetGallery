@@ -53,7 +53,6 @@ namespace NuGetGallery
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
-        public IValidationService ValidationService { get; set; }
 
         protected ApiController()
         {
@@ -80,8 +79,7 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService,
-            IValidationService validationService)
+            IPackageDeleteService packageDeleteService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -126,12 +124,11 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService,
-            IValidationService validationService)
+            IPackageDeleteService packageDeleteService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, validationService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService)
         {
             StatisticsService = statisticsService;
         }
@@ -450,7 +447,7 @@ namespace NuGetGallery
                             var existingPackage = PackageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
                             if (existingPackage != null)
                             {
-                                if (ValidationService.IsPackageReuploadable(existingPackage))
+                                if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                                 {
                                     await PackageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", false);
                                 }

@@ -99,41 +99,6 @@ namespace NuGetGallery
                 .ToList();
         }
 
-        public bool IsPackageReuploadable(Package package)
-        {
-            if (package.PackageStatusKey != PackageStatus.FailedValidation)
-            {
-                return false;
-            }
-
-            // Grab the most recently completed validation set for this package.
-            var validationSet = GetMostRecentlyCompletedValidationSet(package);
-
-            if (validationSet == null)
-            {
-                // If the most recently completed validation set for this package cannot be found, assume the package cannot be reuploaded.
-                return false;
-            }
-            
-            // A package cannot be reuploaded if any package validations fail with a blacklisted type.
-            return validationSet.PackageValidations
-                .Any(v => 
-                    v.ValidationStatus == ValidationStatus.Failed && 
-                    NonreuploadableFailedPackageValidationTypes().Contains(v.Type));
-        }
-
-        private IEnumerable<string> NonreuploadableFailedPackageValidationTypes()
-        {
-            var nonreuploadableFailedPackageValidationTypes = _appConfiguration.NonreuploadableFailedPackageValidationTypes;
-
-            if (string.IsNullOrEmpty(nonreuploadableFailedPackageValidationTypes))
-            {
-                return new string[0];
-            }
-
-            return nonreuploadableFailedPackageValidationTypes.Split(';');
-        }
-
         private PackageValidationSet GetMostRecentlyCompletedValidationSet(Package package)
         {
             return _validationSets

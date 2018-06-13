@@ -334,13 +334,5 @@ namespace NuGetGallery.Configuration
         /// gallery code is being used inside a console application.
         /// </summary>
         bool IsHosted { get; set; }
-
-        /// <summary>
-        /// If a package fails validation with one of these types, it should not be allowed to be reuploaded.
-        /// </summary>
-        /// <remarks>
-        /// A semi-colon delimited list of <see cref="PackageValidation.Type"/>s.
-        /// </remarks>
-        string NonreuploadableFailedPackageValidationTypes { get; set; }
     }
 }

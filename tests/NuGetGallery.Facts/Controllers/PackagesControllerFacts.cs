@@ -3725,7 +3725,7 @@ namespace NuGetGallery
                 Assert.Equal(reservedNamespaceOwner.Username, model.PossibleOwners.Single());
             }
 
-            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data
+            public static IEnumerable<object[]> PackageAlreadyExists_Data
             {
                 get
                 {
@@ -3737,7 +3737,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
+            [MemberData(nameof(PackageAlreadyExists_Data))]
             public async Task WillUploadThePackageWhenIdMatchesUnownedNamespaceButPackageExists(User currentUser, User existingPackageOwner)
             {
                 var packageId = "Random.Package1";
@@ -3782,9 +3782,14 @@ namespace NuGetGallery
                 Assert.Equal(existingPackageOwner.Username, model.PossibleOwners.Single());
             }
 
+            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data => 
+                MemberDataHelper.Combine(
+                    PackageAlreadyExists_Data, 
+                    MemberDataHelper.AsDataSet(PackageStatus.Available, PackageStatus.Deleted, PackageStatus.Validating));
+
             [Theory]
             [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
-            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExists(User currentUser, User existingPackageOwner)
+            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExists(User currentUser, User existingPackageOwner, PackageStatus status)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -3792,7 +3797,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0" });
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0", PackageStatusKey = status });
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
                 var controller = CreateController(
                     GetConfigurationService(),
@@ -3817,8 +3822,11 @@ namespace NuGetGallery
                     Times.Never());
             }
 
-            [Fact]
-            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata()
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata(PackageStatus status)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -3852,8 +3860,8 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
-            public async Task WillReuploadThePackageWhenValidationServiceReturnsTrue(User currentUser, User existingPackageOwner)
+            [MemberData(nameof(PackageAlreadyExists_Data))]
+            public async Task WillReuploadThePackageWhenPackageFailedValidation(User currentUser, User existingPackageOwner)
             {
                 var id = "theId";
                 var version = "1.0.0";
@@ -3865,11 +3873,7 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { existingPackageOwner } }, Version = version });
-                var fakeValidationService = new Mock<IValidationService>();
-                fakeValidationService
-                    .Setup(x => x.IsPackageReuploadable(It.Is<Package>(p => isPackage(p))))
-                    .Returns(true);
+                    new Package { PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { existingPackageOwner } }, Version = version, PackageStatusKey = PackageStatus.FailedValidation });
                 var fakeUploadFileService = new Mock<IUploadFileService>();
                 fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
                 fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
@@ -3880,7 +3884,6 @@ namespace NuGetGallery
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: fakePackageService,
-                    validationService: fakeValidationService,
                     packageDeleteService: fakePackageDeleteService,
                     uploadFileService: fakeUploadFileService);
                 controller.SetCurrentUser(currentUser);
