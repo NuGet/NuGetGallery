@@ -9,6 +9,12 @@ namespace NuGetGallery
 {
     public static class CredentialTypes
     {
+        public static class Ldap
+        {
+            public const string Prefix = "ldap.";
+            public const string User = Prefix + "user";
+        }
+
         public static class Password
         {
             public const string Prefix = "password.";
@@ -32,6 +38,11 @@ namespace NuGetGallery
             public const string Prefix = "external.";
             public const string MicrosoftAccount = Prefix + "MicrosoftAccount";
             public const string AzureActiveDirectoryAccount = Prefix + "AzureActiveDirectory";
+        }
+
+        public static bool IsLdap(this Credential c)
+        {
+            return c?.Type?.StartsWith(Ldap.Prefix, StringComparison.OrdinalIgnoreCase) ?? false;
         }
 
         public static bool IsPassword(this Credential c)
@@ -59,6 +70,7 @@ namespace NuGetGallery
             Password.Sha1,
             Password.Pbkdf2,
             Password.V3,
+            Ldap.User,
             ApiKey.V1,
             ApiKey.V2,
             ApiKey.V3,

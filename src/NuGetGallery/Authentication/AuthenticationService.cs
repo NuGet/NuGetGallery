@@ -70,6 +70,7 @@ namespace NuGetGallery.Authentication
         {
             _credentialFormatters = new Dictionary<string, Func<string, string>>(StringComparer.OrdinalIgnoreCase) {
                 { "password", _ => Strings.CredentialType_Password },
+                { "ldap", _ => Strings.CredentialType_Ldap },
                 { "apikey", _ => Strings.CredentialType_ApiKey },
                 { "external", FormatExternalCredentialType }
             };
@@ -240,8 +241,15 @@ namespace NuGetGallery.Authentication
         /// <returns>Awaitable task</returns>
         public virtual async Task CreateSessionAsync(IOwinContext owinContext, AuthenticatedUser authenticatedUser, bool wasMultiFactorAuthenticated = false)
         {
+            // Get the correct authentication type
+            string authenticationType = AuthenticationTypes.LocalUser;
+            if (authenticatedUser.CredentialUsed.IsLdap())
+            {
+                authenticationType = AuthenticationTypes.Ldap;
+            }
+
             // Create a claims identity for the session
-            ClaimsIdentity identity = CreateIdentity(authenticatedUser.User, AuthenticationTypes.LocalUser, await GetUserLoginClaims(authenticatedUser, wasMultiFactorAuthenticated));
+            ClaimsIdentity identity = CreateIdentity(authenticatedUser.User, authenticationType, await GetUserLoginClaims(authenticatedUser, wasMultiFactorAuthenticated));
 
             // Issue the session token and clean up the external token if present
             owinContext.Authentication.SignIn(identity);

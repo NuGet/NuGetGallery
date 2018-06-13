@@ -126,6 +126,9 @@
   <data name="UsernameAndPasswordNotFound" xml:space="preserve">
     <value>A unique user with that username or email address and password does not exist. Try logging on with your username if you were using an email address to log on.</value>
   </data>
+  <data name="LdapUserInvalid" xml:space="preserve">
+    <value>The user '{0}' was not validated through LDAP. Please check the LDAP username and password.</value>
+  </data>
   <data name="PackageIdNotAvailable" xml:space="preserve">
     <value>The package ID '{0}' is not available.</value>
   </data>
@@ -215,6 +218,9 @@
   </data>
   <data name="CredentialType_Password" xml:space="preserve">
     <value>Password</value>
+  </data>
+  <data name="CredentialType_Ldap" xml:space="preserve">
+    <value>LDAP</value>
   </data>
   <data name="ApiKeyGenerated" xml:space="preserve">
     <value>A new API key has been generated. Check below and make sure to copy the value, as now is the only time it will be visible.</value>
