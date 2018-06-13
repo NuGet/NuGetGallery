@@ -107,7 +107,8 @@ namespace NuGetGallery
 
             builder.RegisterInstance(galleryDbConnectionFactory)
                 .AsSelf()
-                .Keyed<ISqlConnectionFactory>(nameof(EntitiesContext));
+                .As<ISqlConnectionFactory>()
+                .SingleInstance();
 
             builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory), configuration.Current.ReadOnlyMode))
                 .AsSelf()
