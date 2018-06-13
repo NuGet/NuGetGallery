@@ -1638,7 +1638,9 @@ namespace NuGetGallery
                     {
                         await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
-                    
+
+                    await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
+
                     // Commit the package to storage and to the database.
                     uploadFile.Position = 0;
                     try
