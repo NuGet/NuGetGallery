@@ -3809,6 +3809,7 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
+                        It.IsAny<bool>(),
                         It.IsAny<bool>()),
                     Times.Never());
             }
@@ -3846,6 +3847,7 @@ namespace NuGetGallery
                         It.IsAny<User>(),
                         It.IsAny<string>(),
                         It.IsAny<string>(),
+                        It.IsAny<bool>(),
                         It.IsAny<bool>()),
                     Times.Never());
             }
@@ -3889,6 +3891,7 @@ namespace NuGetGallery
                         currentUser, 
                         It.IsAny<string>(), 
                         It.IsAny<string>(), 
+                        false,
                         false),
                     Times.Once());
             }
