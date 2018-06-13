@@ -47,7 +47,6 @@ namespace NuGetGallery
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
-        public Mock<IValidationService> MockValidationService { get; set; }
 
         private Stream PackageFromInputStream { get; set; }
 
