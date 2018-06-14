@@ -10,7 +10,7 @@ namespace NuGetGallery
     {
         Task<bool> CanPackageBeDeletedByUserAsync(Package package, ReportPackageReason? reportPackageReason, PackageDeleteDecision? packageDeleteDecision);
         Task SoftDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature);
-        Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration, bool saveAuditRecord = true);
+        Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration);
         Task ReflowHardDeletedPackageAsync(string id, string version);
     }
 }

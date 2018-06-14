@@ -286,7 +286,7 @@ namespace NuGetGallery
             UpdateSearchIndex();
         }
 
-        public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration, bool saveAuditRecord = true)
+        public async Task HardDeletePackagesAsync(IEnumerable<Package> packages, User deletedBy, string reason, string signature, bool deleteEmptyPackageRegistration)
         {
             using (var strategy = new SuspendDbExecutionStrategy())
             using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
@@ -314,10 +314,7 @@ namespace NuGetGallery
                         "DELETE pf FROM PackageFrameworks pf JOIN Packages p ON p.[Key] = pf.Package_Key WHERE p.[Key] = @key",
                         new SqlParameter("@key", package.Key));
 
-                    if (saveAuditRecord)
-                    {
-                        await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
-                    }
+                    await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.Delete, reason));
 
                     _telemetryService.TrackPackageDelete(package, isHardDelete: true);
 

@@ -389,7 +389,6 @@ namespace NuGetGallery
                         It.IsAny<User>(), 
                         It.IsAny<string>(), 
                         It.IsAny<string>(), 
-                        It.IsAny<bool>(),
                         It.IsAny<bool>()),
                     Times.Never());
 
@@ -429,7 +428,7 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockPackageDeleteService.Verify(
-                    x => x.HardDeletePackagesAsync(new[] { conflictingPackage }, currentUser, It.IsAny<string>(), It.IsAny<string>(), false, false), 
+                    x => x.HardDeletePackagesAsync(new[] { conflictingPackage }, currentUser, It.IsAny<string>(), It.IsAny<string>(), false), 
                     Times.Once());
 
                 controller.MockPackageUploadService.Verify(
