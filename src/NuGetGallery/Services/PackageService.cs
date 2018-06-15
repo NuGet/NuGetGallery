@@ -65,6 +65,9 @@ namespace NuGetGallery
                 {
                     ValidateSupportedFrameworks(supportedFrameworks);
                 }
+
+                // This will throw if the package contains an entry which will extract outside of the target extraction directory
+                packageArchiveReader.ValidatePackageEntriesAsync(new System.Threading.CancellationToken()).GetAwaiter().GetResult();
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
