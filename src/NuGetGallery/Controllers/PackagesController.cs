@@ -362,8 +362,15 @@ namespace NuGetGallery
                 {
                     if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                     {
+                        _telemetryService.TrackPackageReupload(existingPackage);
+
                         // Packages that failed validation can be reuploaded.
-                        await _packageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", deleteEmptyPackageRegistration: false);
+                        await _packageDeleteService.HardDeletePackagesAsync(
+                            new[] { existingPackage }, 
+                            currentUser,
+                            Strings.FailedValidationHardDeleteReason,
+                            Strings.FailedValidationHardDeleteSignature, 
+                            deleteEmptyPackageRegistration: false);
                     }
                     else
                     {

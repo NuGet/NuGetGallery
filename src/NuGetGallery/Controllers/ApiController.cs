@@ -449,14 +449,21 @@ namespace NuGetGallery
                             {
                                 if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
                                 {
-                                    await PackageDeleteService.HardDeletePackagesAsync(new[] { existingPackage }, currentUser, "", "", deleteEmptyPackageRegistration: false);
+                                    TelemetryService.TrackPackageReupload(existingPackage);
+
+                                    await PackageDeleteService.HardDeletePackagesAsync(
+                                        new[] { existingPackage }, 
+                                        currentUser,
+                                        Strings.FailedValidationHardDeleteReason, 
+                                        Strings.FailedValidationHardDeleteSignature, 
+                                        deleteEmptyPackageRegistration: false);
                                 }
                                 else
                                 {
                                     return new HttpStatusCodeWithBodyResult(
                                         HttpStatusCode.Conflict,
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                            id, nuspec.GetVersion().ToNormalizedStringSafe()));
+                                            id, nuspecVersion.ToNormalizedStringSafe()));
                                 }
                             }
                         }

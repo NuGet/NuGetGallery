@@ -392,6 +392,10 @@ namespace NuGetGallery
                         It.IsAny<bool>()),
                     Times.Never());
 
+                controller.MockTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
+                    Times.Never());
+
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Conflict,
@@ -428,7 +432,16 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockPackageDeleteService.Verify(
-                    x => x.HardDeletePackagesAsync(new[] { conflictingPackage }, currentUser, It.IsAny<string>(), It.IsAny<string>(), false), 
+                    x => x.HardDeletePackagesAsync(
+                        new[] { conflictingPackage }, 
+                        currentUser,
+                        Strings.FailedValidationHardDeleteReason,
+                        Strings.FailedValidationHardDeleteSignature,
+                        false), 
+                    Times.Once());
+
+                controller.MockTelemetryService.Verify(
+                    x => x.TrackPackageReupload(conflictingPackage),
                     Times.Once());
 
                 controller.MockPackageUploadService.Verify(

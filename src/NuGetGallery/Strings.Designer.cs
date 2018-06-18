@@ -896,6 +896,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automatic hard-delete for reupload of package that failed validation.
+        /// </summary>
+        public static string FailedValidationHardDeleteReason {
+            get {
+                return ResourceManager.GetString("FailedValidationHardDeleteReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to NuGet Gallery.
+        /// </summary>
+        public static string FailedValidationHardDeleteSignature {
+            get {
+                return ResourceManager.GetString("FailedValidationHardDeleteSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The API key &apos;{0}&apos; is invalid..
         /// </summary>
         public static string InvalidApiKey {

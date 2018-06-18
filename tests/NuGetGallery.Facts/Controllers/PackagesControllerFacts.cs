@@ -3790,10 +3790,12 @@ namespace NuGetGallery
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                     new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0", PackageStatusKey = status });
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: fakePackageService,
-                    packageDeleteService: fakePackageDeleteService);
+                    packageDeleteService: fakePackageDeleteService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(currentUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3811,6 +3813,10 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<bool>()),
                     Times.Never());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
+                    Times.Never());
             }
 
             [Theory]
@@ -3827,10 +3833,12 @@ namespace NuGetGallery
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                     new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: fakePackageService,
-                    packageDeleteService: fakePackageDeleteService);
+                    packageDeleteService: fakePackageDeleteService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3847,6 +3855,10 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<string>(),
                         It.IsAny<bool>()),
+                    Times.Never());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
                     Times.Never());
             }
 
@@ -3872,11 +3884,13 @@ namespace NuGetGallery
                     .Returns(Task.FromResult(fakeFileStream));
                 fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(currentUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
                 var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
                     GetConfigurationService(),
                     packageService: fakePackageService,
                     packageDeleteService: fakePackageDeleteService,
-                    uploadFileService: fakeUploadFileService);
+                    uploadFileService: fakeUploadFileService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(currentUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3887,9 +3901,13 @@ namespace NuGetGallery
                     x => x.HardDeletePackagesAsync(
                         It.Is<IEnumerable<Package>>(packages => isPackage(packages.Single())), 
                         currentUser, 
-                        It.IsAny<string>(), 
-                        It.IsAny<string>(), 
+                        Strings.FailedValidationHardDeleteReason,
+                        Strings.FailedValidationHardDeleteSignature, 
                         false),
+                    Times.Once());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.Is<Package>(package => isPackage(package))),
                     Times.Once());
             }
 
