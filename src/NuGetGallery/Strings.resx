@@ -631,7 +631,7 @@ For more information, please contact '{2}'.</value>
   <data name="UserPackageDeleteDecisionIsRequired" xml:space="preserve">
     <value>You must choose whether to delete the package or contact support.</value>
   </data>
-  <data name="UserPackageDeleteSignature" xml:space="preserve">
+  <data name="AutomatedPackageDeleteSignature" xml:space="preserve">
     <value>(automated)</value>
   </data>
   <data name="UserPackageDeleteSupportRequestMessage" xml:space="preserve">
@@ -910,8 +910,5 @@ If you would like to update the linked Microsoft account you can do so from the 
   </data>
   <data name="FailedValidationHardDeleteReason" xml:space="preserve">
     <value>Automatic hard-delete for reupload of package that failed validation</value>
-  </data>
-  <data name="FailedValidationHardDeleteSignature" xml:space="preserve">
-    <value>NuGet Gallery</value>
   </data>
 </root>

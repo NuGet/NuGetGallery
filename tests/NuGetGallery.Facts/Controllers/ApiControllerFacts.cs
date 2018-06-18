@@ -436,7 +436,7 @@ namespace NuGetGallery
                         new[] { conflictingPackage }, 
                         currentUser,
                         Strings.FailedValidationHardDeleteReason,
-                        Strings.FailedValidationHardDeleteSignature,
+                        Strings.AutomatedPackageDeleteSignature,
                         false), 
                     Times.Once());
 

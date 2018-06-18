@@ -2998,7 +2998,7 @@ namespace NuGetGallery
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
                         currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        Strings.UserPackageDeleteSignature),
+                        Strings.AutomatedPackageDeleteSignature),
                     Times.Once);
                 _supportRequestService.Verify(
                     x => x.UpdateIssueAsync(
@@ -3058,7 +3058,7 @@ namespace NuGetGallery
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
                         currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        Strings.UserPackageDeleteSignature),
+                        Strings.AutomatedPackageDeleteSignature),
                     Times.Once);
                 _supportRequestService.Verify(
                     x => x.UpdateIssueAsync(
@@ -3902,7 +3902,7 @@ namespace NuGetGallery
                         It.Is<IEnumerable<Package>>(packages => isPackage(packages.Single())), 
                         currentUser, 
                         Strings.FailedValidationHardDeleteReason,
-                        Strings.FailedValidationHardDeleteSignature, 
+                        Strings.AutomatedPackageDeleteSignature, 
                         false),
                     Times.Once());
 

@@ -479,6 +479,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to (automated).
+        /// </summary>
+        public static string AutomatedPackageDeleteSignature {
+            get {
+                return ResourceManager.GetString("AutomatedPackageDeleteSignature", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Azure Active Directory account.
         /// </summary>
         public static string AzureActiveDirectory_AccountNoun {
@@ -901,15 +910,6 @@ namespace NuGetGallery {
         public static string FailedValidationHardDeleteReason {
             get {
                 return ResourceManager.GetString("FailedValidationHardDeleteReason", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to NuGet Gallery.
-        /// </summary>
-        public static string FailedValidationHardDeleteSignature {
-            get {
-                return ResourceManager.GetString("FailedValidationHardDeleteSignature", resourceCulture);
             }
         }
         
@@ -2179,15 +2179,6 @@ namespace NuGetGallery {
         public static string UserPackageDeleteDecisionIsRequired {
             get {
                 return ResourceManager.GetString("UserPackageDeleteDecisionIsRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to (automated).
-        /// </summary>
-        public static string UserPackageDeleteSignature {
-            get {
-                return ResourceManager.GetString("UserPackageDeleteSignature", resourceCulture);
             }
         }
         

@@ -455,7 +455,7 @@ namespace NuGetGallery
                                         new[] { existingPackage }, 
                                         currentUser,
                                         Strings.FailedValidationHardDeleteReason, 
-                                        Strings.FailedValidationHardDeleteSignature, 
+                                        Strings.AutomatedPackageDeleteSignature, 
                                         deleteEmptyPackageRegistration: false);
                                 }
                                 else

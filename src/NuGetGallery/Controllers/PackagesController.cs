@@ -369,7 +369,7 @@ namespace NuGetGallery
                             new[] { existingPackage }, 
                             currentUser,
                             Strings.FailedValidationHardDeleteReason,
-                            Strings.FailedValidationHardDeleteSignature, 
+                            Strings.AutomatedPackageDeleteSignature, 
                             deleteEmptyPackageRegistration: false);
                     }
                     else
@@ -911,7 +911,7 @@ namespace NuGetGallery
                     new[] { package },
                     user,
                     reason,
-                    signature: Strings.UserPackageDeleteSignature);
+                    signature: Strings.AutomatedPackageDeleteSignature);
                 deleted = true;
             }
             catch (Exception e)
