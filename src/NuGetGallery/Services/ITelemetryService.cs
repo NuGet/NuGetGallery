@@ -22,6 +22,8 @@ namespace NuGetGallery
 
         void TrackPackageDelete(Package package, bool isHardDelete);
 
+        void TrackPackageReupload(Package package);
+
         void TrackPackageReflow(Package package);
 
         void TrackPackageHardDeleteReflow(string packageId, string packageVersion);

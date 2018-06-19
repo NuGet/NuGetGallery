@@ -33,6 +33,7 @@ namespace NuGetGallery
             public const string PackageUnlisted = "PackageUnlisted";
             public const string PackageListed = "PackageListed";
             public const string PackageDelete = "PackageDelete";
+            public const string PackageReupload = "PackageReupload";
             public const string PackageHardDeleteReflow = "PackageHardDeleteReflow";
             public const string PackageRevalidate = "PackageRevalidate";
             public const string OrganizationTransformInitiated = "OrganizationTransformInitiated";
@@ -273,6 +274,11 @@ namespace NuGetGallery
             {
                 properties.Add(IsHardDelete, isHardDelete.ToString());
             });
+        }
+
+        public void TrackPackageReupload(Package package)
+        {
+            TrackMetricForPackage(Events.PackageReupload, package);
         }
 
         public void TrackPackageReflow(Package package)

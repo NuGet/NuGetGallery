@@ -8,7 +8,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using System.Web.DynamicData;
 using System.Web.Routing;
-using Autofac.Features.Indexed;
 using Microsoft.AspNet.DynamicData.ModelProviders;
 using NuGet.Services.Sql;
 
@@ -21,13 +20,13 @@ namespace NuGetGallery.Areas.Admin.DynamicData
 
         private static DynamicDataRoute _route;
 
-        public static void Register(RouteCollection routes, string root, IIndex<string, ISqlConnectionFactory> connectionFactories)
+        public static void Register(RouteCollection routes, string root, ISqlConnectionFactory galleryDbSqlConnectionFactory)
         {
             // Set up unobtrusive validation
             InitializeValidation();
 
             // Set up dynamic data
-            InitializeDynamicData(routes, root, connectionFactories[nameof(EntitiesContext)]);
+            InitializeDynamicData(routes, root, galleryDbSqlConnectionFactory);
         }
 
         private static void InitializeValidation()

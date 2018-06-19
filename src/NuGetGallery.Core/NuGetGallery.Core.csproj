@@ -231,19 +231,19 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Common">
-      <Version>4.3.0-preview1-2524</Version>
+      <Version>4.8.0-preview1.5156</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Frameworks">
-      <Version>4.3.0-preview1-2524</Version>
+      <Version>4.8.0-preview1.5156</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.3.0-preview1-2524</Version>
+      <Version>4.8.0-preview1.5156</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging.Core">
-      <Version>4.3.0-preview1-2524</Version>
+      <Version>4.8.0-preview1.5156</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
-      <Version>4.3.0-preview1-2524</Version>
+      <Version>4.8.0-preview1.5156</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>
