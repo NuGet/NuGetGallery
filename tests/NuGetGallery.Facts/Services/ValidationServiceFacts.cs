@@ -395,8 +395,8 @@ namespace NuGetGallery
                     _appConfiguration.Object,
                     _packageService.Object,
                     _initiator.Object,
-                    _validationSets.Object,
-                    _telemetryService.Object);
+                    _telemetryService.Object,
+                    _validationSets.Object);
             }
         }
     }

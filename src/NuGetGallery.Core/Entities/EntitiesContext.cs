@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Data.Common;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure.Annotations;
 using System.Threading.Tasks;
@@ -35,6 +36,12 @@ namespace NuGetGallery
         /// </summary>
         public EntitiesContext(string connectionString, bool readOnly)
             : base(connectionString)
+        {
+            ReadOnly = readOnly;
+        }
+
+        public EntitiesContext(DbConnection connection, bool readOnly)
+            : base(connection, contextOwnsConnection: true)
         {
             ReadOnly = readOnly;
         }

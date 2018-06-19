@@ -46,6 +46,7 @@ namespace NuGetGallery
         public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; private set; }
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
+        public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -66,6 +67,7 @@ namespace NuGetGallery
             SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
+            PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -351,8 +353,11 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
             }
 
-            [Fact]
-            public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists()
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task WillReturnConflictIfAPackageWithTheIdAndSameNormalizedVersionAlreadyExists(PackageStatus status)
             {
                 var id = "theId";
                 var version = "1.0.42";
@@ -360,26 +365,90 @@ namespace NuGetGallery
 
                 var user = new User() { EmailAddress = "confirmed1@email.com" };
 
+                var conflictingPackage = new Package { Version = version, NormalizedVersion = version, PackageStatusKey = status };
                 var packageRegistration = new PackageRegistration
                 {
                     Id = id,
-                    Packages = new List<Package> { new Package { Version = version, NormalizedVersion = version } },
+                    Packages = new List<Package> { conflictingPackage },
                     Owners = new List<User> { user }
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(new User() { EmailAddress = "confirmed2@email.com" });
                 controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 // Act
                 var result = await controller.CreatePackagePut();
 
                 // Assert
+                controller.MockPackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(), 
+                        It.IsAny<User>(), 
+                        It.IsAny<string>(), 
+                        It.IsAny<string>(), 
+                        It.IsAny<bool>()),
+                    Times.Never());
+
+                controller.MockTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
+                    Times.Never());
+
                 ResultAssert.IsStatusCode(
                     result,
                     HttpStatusCode.Conflict,
                     String.Format(Strings.PackageExistsAndCannotBeModified, id, version));
+            }
+
+            [Fact]
+            public async Task WillAllowReuploadingPackageIfFailedValidation()
+            {
+                var id = "theId";
+                var version = "1.0.42";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(id, version);
+
+                var user = new User() { EmailAddress = "confirmed1@email.com" };
+
+                var conflictingPackage = new Package { Version = version, NormalizedVersion = version, PackageStatusKey = PackageStatus.FailedValidation };
+                var packageRegistration = new PackageRegistration
+                {
+                    Id = id,
+                    Packages = new List<Package> { conflictingPackage },
+                    Owners = new List<User> { user }
+                };
+
+                var currentUser = new User() { EmailAddress = "confirmed2@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(currentUser);
+                controller.MockPackageService.Setup(x => x.FindPackageRegistrationById(id)).Returns(packageRegistration);
+                controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(id, version)).Returns(conflictingPackage);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                controller.MockPackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        new[] { conflictingPackage }, 
+                        currentUser,
+                        Strings.FailedValidationHardDeleteReason,
+                        Strings.AutomatedPackageDeleteSignature,
+                        false), 
+                    Times.Once());
+
+                controller.MockTelemetryService.Verify(
+                    x => x.TrackPackageReupload(conflictingPackage),
+                    Times.Once());
+
+                controller.MockPackageUploadService.Verify(
+                    x => x.CommitPackageAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<Stream>()),
+                    Times.Once);
             }
 
             [Fact]

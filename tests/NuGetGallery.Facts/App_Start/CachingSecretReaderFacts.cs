@@ -4,9 +4,9 @@
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Services.KeyVault;
-using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Diagnostics;
 using Xunit;
+using CachingSecretReader = NuGetGallery.Configuration.SecretReader.CachingSecretReader;
 
 namespace NuGetGallery.App_Start
 {

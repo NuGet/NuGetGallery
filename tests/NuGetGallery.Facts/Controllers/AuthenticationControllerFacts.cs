@@ -63,9 +63,11 @@ namespace NuGetGallery.Controllers
                 Assert.NotNull(model.SignIn);
                 Assert.NotNull(model.Register);
                 Assert.Equal(3, model.Providers.Count);
-                Assert.Equal("AzureActiveDirectoryV2", model.Providers[0].ProviderName);
-                Assert.Equal("AzureActiveDirectory", model.Providers[1].ProviderName);
-                Assert.Equal("MicrosoftAccount", model.Providers[2].ProviderName);
+
+                var providerNames = model.Providers.Select(p => p.ProviderName);
+                Assert.Contains("AzureActiveDirectoryV2", providerNames);
+                Assert.Contains("AzureActiveDirectory", providerNames);
+                Assert.Contains("MicrosoftAccount", providerNames);
             }
         }
 
@@ -123,6 +125,29 @@ namespace NuGetGallery.Controllers
             {
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
                 var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
+
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                GetMock<IUserService>()
+                    .Setup(u => u.FindByUsername(It.IsAny<string>(), false))
+                    .Returns(existingUser);
+
+                var controller = GetController<AuthenticationController>();
+
+                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
+                dynamic data = result.Data;
+                Assert.True(data.success);
+                Assert.Equal(expectedEmail, data.EmailAddress);
+            }
+
+            [Theory]
+            [InlineData("random@address.com", "r**********m@address.com")]
+            [InlineData("rm@address.com", "r**********m@address.com")]
+            [InlineData("r@address.com", "r**********@address.com")]
+            [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
+            public void NullProvidedEmailReturnsFormattedEmailForUnconfirmedAccount(string email, string expectedEmail)
+            {
+                var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
+                var existingUser = new User("existingUser") { UnconfirmedEmailAddress = email, Credentials = new[] { cred } };
 
                 GetMock<AuthenticationService>(); // Force a mock to be created
                 GetMock<IUserService>()

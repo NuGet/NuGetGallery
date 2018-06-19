@@ -13,6 +13,11 @@ namespace NuGetGallery.Framework
             return data;
         }
 
+        public static IEnumerable<object[]> AsDataSet(params object[] dataSet)
+        {
+            return dataSet.Select(d => new[] { d });
+        }
+
         public static IEnumerable<object[]> Combine(IEnumerable<object[]> firstDataSet, IEnumerable<object[]> secondDataSet)
         {
             foreach (var firstData in firstDataSet)

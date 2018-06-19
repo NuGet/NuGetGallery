@@ -3,6 +3,7 @@
 
 using System;
 using System.Globalization;
+using System.Security.Cryptography.X509Certificates;
 using NuGet.Services.KeyVault;
 using NuGetGallery.Diagnostics;
 
@@ -15,15 +16,12 @@ namespace NuGetGallery.Configuration.SecretReader
         internal const string ClientIdConfigurationKey = "ClientId";
         internal const string CertificateThumbprintConfigurationKey = "CertificateThumbprint";
         private IDiagnosticsService _diagnosticsService;
+        private IGalleryConfigurationService _configurationService;
 
-        public SecretReaderFactory(IDiagnosticsService diagnosticsService)
+        public SecretReaderFactory(IGalleryConfigurationService configurationService, IDiagnosticsService diagnosticsService)
         {
-            if (diagnosticsService == null)
-            {
-                throw new ArgumentNullException(nameof(diagnosticsService));
-            }
-
-            _diagnosticsService = diagnosticsService;
+            _configurationService = configurationService ?? throw new ArgumentNullException(nameof(configurationService));
+            _diagnosticsService = diagnosticsService ?? throw new ArgumentNullException(nameof(diagnosticsService));
         }
 
         public ISecretInjector CreateSecretInjector(ISecretReader secretReader)
@@ -36,26 +34,24 @@ namespace NuGetGallery.Configuration.SecretReader
             return new SecretInjector(secretReader);
         }
 
-        public ISecretReader CreateSecretReader(IGalleryConfigurationService configurationService)
+        private string ResolveKeyVaultSettingName(string settingName)
         {
-            if (configurationService == null)
-            {
-                throw new ArgumentNullException(nameof(configurationService));
-            }
+            return string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, settingName);
+        }
 
+        public ISecretReader CreateSecretReader()
+        {
             ISecretReader secretReader;
 
-            var vaultName = configurationService.ReadSetting(
-                string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, VaultNameConfigurationKey)).Result;
+            var vaultName = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(VaultNameConfigurationKey));
 
             if (!string.IsNullOrEmpty(vaultName))
             {
-                var clientId = configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, ClientIdConfigurationKey)).Result;
-                var certificateThumbprint = configurationService.ReadSetting(
-                    string.Format(CultureInfo.InvariantCulture, "{0}{1}", KeyVaultConfigurationPrefix, CertificateThumbprintConfigurationKey)).Result;
+                var clientId = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(ClientIdConfigurationKey));
+                var certificateThumbprint = _configurationService.ReadRawSetting(ResolveKeyVaultSettingName(CertificateThumbprintConfigurationKey));
+                var certificate = CertificateUtility.FindCertificateByThumbprint(StoreName.My, StoreLocation.LocalMachine, certificateThumbprint, true);
 
-                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificateThumbprint, validateCertificate: true);
+                var keyVaultConfiguration = new KeyVaultConfiguration(vaultName, clientId, certificate);
 
                 secretReader = new KeyVaultReader(keyVaultConfiguration);
             }

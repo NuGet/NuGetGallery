@@ -337,7 +337,7 @@ namespace NuGetGallery
                     throw new ArgumentException(Strings.UserNotFound);
                 }
 
-                var email = user.EmailAddress;
+                var email = user.EmailAddress ?? user.UnconfirmedEmailAddress;
                 if (string.IsNullOrWhiteSpace(providedEmailAddress))
                 {
                     var formattedEmail = FormatEmailAddressForAssistance(email);

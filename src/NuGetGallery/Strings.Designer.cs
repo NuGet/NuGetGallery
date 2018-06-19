@@ -106,7 +106,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to DeleteAccountRequest.
+        ///   Looks up a localized string similar to Account Deletion Request.
         /// </summary>
         public static string AccountDelete_SupportRequestTitle {
             get {
@@ -475,6 +475,15 @@ namespace NuGetGallery {
         public static string AuthenticationProviderDisabled {
             get {
                 return ResourceManager.GetString("AuthenticationProviderDisabled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (automated).
+        /// </summary>
+        public static string AutomatedPackageDeleteSignature {
+            get {
+                return ResourceManager.GetString("AutomatedPackageDeleteSignature", resourceCulture);
             }
         }
         
@@ -892,6 +901,15 @@ namespace NuGetGallery {
         public static string FailedToReadUploadFile {
             get {
                 return ResourceManager.GetString("FailedToReadUploadFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Automatic hard-delete for reupload of package that failed validation.
+        /// </summary>
+        public static string FailedValidationHardDeleteReason {
+            get {
+                return ResourceManager.GetString("FailedValidationHardDeleteReason", resourceCulture);
             }
         }
         
@@ -2161,15 +2179,6 @@ namespace NuGetGallery {
         public static string UserPackageDeleteDecisionIsRequired {
             get {
                 return ResourceManager.GetString("UserPackageDeleteDecisionIsRequired", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to (automated).
-        /// </summary>
-        public static string UserPackageDeleteSignature {
-            get {
-                return ResourceManager.GetString("UserPackageDeleteSignature", resourceCulture);
             }
         }
         

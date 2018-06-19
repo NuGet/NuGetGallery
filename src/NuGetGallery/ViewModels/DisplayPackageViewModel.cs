@@ -24,6 +24,7 @@ namespace NuGetGallery
             PackageVersions = packageHistory.Select(p => new DisplayPackageViewModel(p, currentUser, GetPushedBy(p, currentUser)));
 
             PushedBy = GetPushedBy(package, currentUser);
+            PackageFileSize = package.PackageFileSize;
 
             if (packageHistory.Any())
             {
@@ -33,6 +34,7 @@ namespace NuGetGallery
                 TotalDaysSinceCreated = Convert.ToInt32(Math.Max(1, Math.Round((DateTime.UtcNow - packageHistory.Min(p => p.Created)).TotalDays)));
                 DownloadsPerDay = TotalDownloadCount / TotalDaysSinceCreated; // for the package
                 DownloadsPerDayLabel = DownloadsPerDay < 1 ? "<1" : DownloadsPerDay.ToNuGetNumberString();
+                IsDotnetToolPackageType = package.PackageTypes.Any(e => e.Name.Equals("DotnetTool", StringComparison.OrdinalIgnoreCase));
             }
         }
 
@@ -59,9 +61,11 @@ namespace NuGetGallery
         public DateTime? LastEdited { get; set; }
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
+        public long PackageFileSize { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
+        public bool IsDotnetToolPackageType { get; set; }
 
         public bool HasNewerPrerelease
         {
@@ -72,6 +76,18 @@ namespace NuGetGallery
                     .Max(pv => pv.NuGetVersion);
 
                 return latestPrereleaseVersion > NuGetVersion;
+            }
+        }
+        
+        public bool HasNewerRelease
+        {
+            get
+            {
+                var latestReleaseVersion = PackageVersions
+                    .Where(pv => !pv.Prerelease && pv.Available && pv.Listed)
+                    .Max(pv => pv.NuGetVersion);
+
+                return latestReleaseVersion > NuGetVersion;
             }
         }
 
