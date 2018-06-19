@@ -181,7 +181,6 @@ namespace NuGetGallery
             TrackMetric(Events.PackagePushFailure, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(AccountCreationDate, GetAccountCreationDate(user));
                 properties.Add(PackageId, id);
                 properties.Add(PackageVersion, version.ToNormalizedString());
             });
