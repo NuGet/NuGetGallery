@@ -118,6 +118,9 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="SerializedPackageValidationMessageData1" xml:space="preserve">
-    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
+  </data>
+  <data name="SerializedPackageValidationMessageData2" xml:space="preserve">
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
 </root>

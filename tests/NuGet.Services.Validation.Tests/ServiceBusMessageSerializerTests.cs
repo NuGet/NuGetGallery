@@ -14,7 +14,8 @@ namespace NuGet.Services.Validation.Tests
         private const string SchemaName = "SchemaName";
         private const string SchemaVersionKey = "SchemaVersion";
         private const string PackageId = "NuGet.Versioning";
-        private const string PackageVersion = "4.3.0";
+        private const string PackageVersion = "4.3";
+        private const string PackageNormalizedVersion = "4.3.0";
         private static readonly Guid ValidationTrackingId = new Guid("14b4c1b8-40e2-4d60-9db7-4b7195e807f5");
         private const string PackageValidationMessageDataType = "PackageValidationMessageData";
         private const int SchemaVersion1 = 1;
@@ -37,7 +38,7 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Contains(SchemaName, output.Properties.Keys);
                 Assert.Equal(PackageValidationMessageDataType, output.Properties[SchemaName]);
                 var body = output.GetBody();
-                Assert.Equal(TestData.SerializedPackageValidationMessageData1, body);
+                Assert.Equal(TestData.SerializedPackageValidationMessageData2, body);
             }
         }
 
@@ -57,6 +58,24 @@ namespace NuGet.Services.Validation.Tests
                 // Assert
                 Assert.Equal(PackageId, output.PackageId);
                 Assert.Equal(PackageVersion, output.PackageVersion);
+                Assert.Equal(PackageNormalizedVersion, output.PackageNormalizedVersion);
+                Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
+                Assert.Equal(DeliveryCount, output.DeliveryCount);
+            }
+
+            [Fact]
+            public void ProducesExpectedMessageForPreviousVersion()
+            {
+                // Arrange
+                var brokeredMessage = GetBrokeredMessagePrevious();
+
+                // Act
+                var output = _target.DeserializePackageValidationMessageData(brokeredMessage.Object);
+
+                // Assert
+                Assert.Equal(PackageId, output.PackageId);
+                Assert.Equal(PackageVersion, output.PackageVersion);
+                Assert.Equal(PackageNormalizedVersion, output.PackageNormalizedVersion);
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
             }
@@ -140,6 +159,25 @@ namespace NuGet.Services.Validation.Tests
             }
 
             private static Mock<IBrokeredMessage> GetBrokeredMessage()
+            {
+                var brokeredMessage = new Mock<IBrokeredMessage>();
+                brokeredMessage
+                    .Setup(x => x.GetBody())
+                    .Returns(TestData.SerializedPackageValidationMessageData2);
+                brokeredMessage
+                    .Setup(x => x.DeliveryCount)
+                    .Returns(DeliveryCount);
+                brokeredMessage
+                    .Setup(x => x.Properties)
+                    .Returns(new Dictionary<string, object>
+                    {
+                        { SchemaName, PackageValidationMessageDataType },
+                        { SchemaVersionKey, SchemaVersion1 }
+                    });
+                return brokeredMessage;
+            }
+
+            private static Mock<IBrokeredMessage> GetBrokeredMessagePrevious()
             {
                 var brokeredMessage = new Mock<IBrokeredMessage>();
                 brokeredMessage
