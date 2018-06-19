@@ -234,17 +234,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void TrackPackagePushFailureEventThrowsIfUserIsNull()
-            {
-                // Arrange
-                var service = CreateService();
-
-                // Act & Assert
-                Assert.Throws<ArgumentNullException>(() =>
-                    service.TrackPackagePushFailureEvent(null, null));
-            }
-
-            [Fact]
             public void TrackPackagePushEventThrowsIfUserIsNull()
             {
                 // Arrange
