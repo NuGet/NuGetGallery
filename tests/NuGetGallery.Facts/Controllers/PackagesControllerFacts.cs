@@ -2998,7 +2998,7 @@ namespace NuGetGallery
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
                         currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        Strings.UserPackageDeleteSignature),
+                        Strings.AutomatedPackageDeleteSignature),
                     Times.Once);
                 _supportRequestService.Verify(
                     x => x.UpdateIssueAsync(
@@ -3058,7 +3058,7 @@ namespace NuGetGallery
                         It.Is<IEnumerable<Package>>(p => p.First() == _package),
                         currentUser,
                         EnumHelper.GetDescription(_viewModel.Reason.Value),
-                        Strings.UserPackageDeleteSignature),
+                        Strings.AutomatedPackageDeleteSignature),
                     Times.Once);
                 _supportRequestService.Verify(
                     x => x.UpdateIssueAsync(
@@ -3716,7 +3716,7 @@ namespace NuGetGallery
                 Assert.Equal(reservedNamespaceOwner.Username, model.PossibleOwners.Single());
             }
 
-            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data
+            public static IEnumerable<object[]> PackageAlreadyExists_Data
             {
                 get
                 {
@@ -3728,7 +3728,7 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
+            [MemberData(nameof(PackageAlreadyExists_Data))]
             public async Task WillUploadThePackageWhenIdMatchesUnownedNamespaceButPackageExists(User currentUser, User existingPackageOwner)
             {
                 var packageId = "Random.Package1";
@@ -3773,9 +3773,14 @@ namespace NuGetGallery
                 Assert.Equal(existingPackageOwner.Username, model.PossibleOwners.Single());
             }
 
+            public static IEnumerable<object[]> WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data => 
+                MemberDataHelper.Combine(
+                    PackageAlreadyExists_Data, 
+                    MemberDataHelper.AsDataSet(PackageStatus.Available, PackageStatus.Deleted, PackageStatus.Validating));
+
             [Theory]
             [MemberData(nameof(WillShowTheViewWithErrorsWhenThePackageAlreadyExists_Data))]
-            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExists(User currentUser, User existingPackageOwner)
+            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExists(User currentUser, User existingPackageOwner, PackageStatus status)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -3783,10 +3788,14 @@ namespace NuGetGallery
                 fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
-                    new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0" });
+                    new Package { PackageRegistration = new PackageRegistration { Id = "theId", Owners = new[] { existingPackageOwner } }, Version = "1.0.0", PackageStatusKey = status });
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: fakePackageService);
+                    packageService: fakePackageService,
+                    packageDeleteService: fakePackageDeleteService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(currentUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3796,10 +3805,25 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(Strings.PackageExistsAndCannotBeModified, "theId", "1.0.0"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
+                    Times.Never());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
+                    Times.Never());
             }
 
-            [Fact]
-            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata()
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task WillShowTheViewWithErrorsWhenThePackageAlreadyExistsAndOnlyDiffersByMetadata(PackageStatus status)
             {
                 var fakeUploadedFile = new Mock<HttpPostedFileBase>();
                 fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
@@ -3808,9 +3832,13 @@ namespace NuGetGallery
                 var fakePackageService = new Mock<IPackageService>();
                 fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
                     new Package { PackageRegistration = new PackageRegistration { Id = "theId" }, Version = "1.0.0+metadata" });
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
                 var controller = CreateController(
                     GetConfigurationService(),
-                    packageService: fakePackageService);
+                    packageService: fakePackageService,
+                    packageDeleteService: fakePackageDeleteService,
+                    telemetryService: fakeTelemetryService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
                 var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
@@ -3820,6 +3848,67 @@ namespace NuGetGallery
                 Assert.Equal(
                     String.Format(Strings.PackageVersionDiffersOnlyByMetadataAndCannotBeModified, "theId", "1.0.0+metadata"),
                     controller.ModelState[String.Empty].Errors[0].ErrorMessage);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<bool>()),
+                    Times.Never());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.IsAny<Package>()),
+                    Times.Never());
+            }
+
+            [Theory]
+            [MemberData(nameof(PackageAlreadyExists_Data))]
+            public async Task WillReuploadThePackageWhenPackageFailedValidation(User currentUser, User existingPackageOwner)
+            {
+                var id = "theId";
+                var version = "1.0.0";
+                Func<Package, bool> isPackage = (Package p) => p.PackageRegistration.Id == id && p.Version == version;
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.nupkg");
+                var fakeFileStream = TestPackage.CreateTestPackageStream(id, version);
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakePackageService = new Mock<IPackageService>();
+                fakePackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(
+                    new Package { PackageRegistration = new PackageRegistration { Id = id, Owners = new[] { existingPackageOwner } }, Version = version, PackageStatusKey = PackageStatus.FailedValidation });
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.SetupSequence(x => x.GetUploadFileAsync(currentUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult(fakeFileStream));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(currentUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+                var fakePackageDeleteService = new Mock<IPackageDeleteService>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: fakePackageService,
+                    packageDeleteService: fakePackageDeleteService,
+                    uploadFileService: fakeUploadFileService,
+                    telemetryService: fakeTelemetryService);
+                controller.SetCurrentUser(currentUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.True(result.Data is VerifyPackageRequest);
+                fakePackageDeleteService.Verify(
+                    x => x.HardDeletePackagesAsync(
+                        It.Is<IEnumerable<Package>>(packages => isPackage(packages.Single())), 
+                        currentUser, 
+                        Strings.FailedValidationHardDeleteReason,
+                        Strings.AutomatedPackageDeleteSignature, 
+                        false),
+                    Times.Once());
+
+                fakeTelemetryService.Verify(
+                    x => x.TrackPackageReupload(It.Is<Package>(package => isPackage(package))),
+                    Times.Once());
             }
 
             [Fact]

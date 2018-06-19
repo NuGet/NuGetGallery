@@ -30,7 +30,6 @@ namespace NuGetGallery.Framework
             {
                 var updater = new ContainerBuilder();
                 updater.RegisterType<TController>().PropertiesAutowired().AsSelf();
-                updater.Update(Container);
             }
 
             var c = Container.Resolve<TController>();
@@ -63,7 +62,6 @@ namespace NuGetGallery.Framework
         {
             var updater = new ContainerBuilder();
             updater.RegisterType<TService>().AsImplementedInterfaces().AsSelf();
-            updater.Update(Container);
 
             return Get<TService>();
         }
@@ -89,7 +87,9 @@ namespace NuGetGallery.Framework
             updater.RegisterInstance(new EntityRepository<PackageRegistration>(fakeContext))
                 .As<IEntityRepository<PackageRegistration>>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
             updater.Update(Container);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             return fakeContext;
         }
@@ -125,7 +125,9 @@ namespace NuGetGallery.Framework
 
                 var updater = new ContainerBuilder();
                 updater.RegisterInstance(mockInstance).As<T>();
+#pragma warning disable CS0618 // Type or member is obsolete
                 updater.Update(Container);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             T instance = Container.Resolve<T>();
