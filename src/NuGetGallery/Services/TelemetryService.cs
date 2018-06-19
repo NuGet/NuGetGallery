@@ -171,13 +171,8 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackagePush, package.PackageRegistration.Id, package.NormalizedVersion, user, identity);
         }
 
-        public void TrackPackagePushFailureEvent(User user, string id, NuGetVersion version)
+        public void TrackPackagePushFailureEvent(string id, NuGetVersion version)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
-
             TrackMetric(Events.PackagePushFailure, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());

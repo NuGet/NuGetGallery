@@ -1698,7 +1698,7 @@ namespace NuGetGallery
             }
             catch (Exception)
             {
-                _telemetryService.TrackPackagePushFailureEvent(GetCurrentUser(), packageId, packageVersion);
+                _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
                 throw;
             }
         }

@@ -14,7 +14,7 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
-        void TrackPackagePushFailureEvent(User user, string id, NuGetVersion version);
+        void TrackPackagePushFailureEvent(string id, NuGetVersion version);
 
         void TrackPackageUnlisted(Package package);
 

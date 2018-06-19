@@ -192,7 +192,7 @@ namespace NuGetGallery
                 await Assert.ThrowsAnyAsync<Exception>(() => controller.CreatePackagePut());
 
                 // Assert
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user, null, null), Times.Once());
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Once());
             }
 
             [Fact]
@@ -230,7 +230,7 @@ namespace NuGetGallery
                 await Assert.ThrowsAnyAsync<Exception>(() => controller.CreatePackagePut());
 
                 // Assert
-                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user, packageRegistration.Id, new NuGetVersion(package.Version)), Times.Once());
+                controller.MockTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(packageRegistration.Id, new NuGetVersion(package.Version)), Times.Once());
             }
 
             [Fact]

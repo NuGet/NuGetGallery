@@ -3924,7 +3924,7 @@ namespace NuGetGallery
                 await Assert.ThrowsAnyAsync<Exception>(() => controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = user.Username }));
 
                 // Assert
-                fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(user, null, null), Times.Once());
+                fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Once());
             }
 
             [Fact]
@@ -3976,7 +3976,7 @@ namespace NuGetGallery
                     await Assert.ThrowsAnyAsync<Exception>(() => controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = ownerInForm.Username }));
 
                     // Assert
-                    fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(currentUser, packageId, new NuGetVersion(packageVersion)), Times.Once());
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(packageId, new NuGetVersion(packageVersion)), Times.Once());
                 }
             }
 

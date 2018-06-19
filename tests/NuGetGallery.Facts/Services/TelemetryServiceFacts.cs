@@ -62,7 +62,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "PackagePushFailure",
-                        (TrackAction)(s => s.TrackPackagePushFailureEvent(fakes.User, "id", new NuGetVersion("1.2.3")))
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent("id", new NuGetVersion("1.2.3")))
                     };
 
                     yield return new object[] { "PackageUnlisted",
@@ -241,7 +241,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
-                    service.TrackPackagePushFailureEvent(null, null, null));
+                    service.TrackPackagePushFailureEvent(null, null));
             }
 
             [Fact]
