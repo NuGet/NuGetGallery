@@ -42,12 +42,12 @@ namespace NuGetGallery.Auditing
             var record = entry["Record"];
             var actor = entry["Actor"];
 
-            Assert.Equal<string>("-1", record["PackageRecord"]["UserKey"].ToString());
-            Assert.Equal<string>(string.Empty, record["PackageRecord"]["FlattenedAuthors"].ToString());
-            Assert.Equal<string>("ObfuscatedUserName", actor["UserName"].ToString());
-            Assert.Equal<string>("2.2.2.0", actor["MachineIP"].ToString());
-            Assert.Equal<string>("ObfuscatedUserName", actor["OnBehalfOf"]["UserName"].ToString());
-            Assert.Equal<string>("3.3.3.0", actor["OnBehalfOf"]["MachineIP"].ToString());
+            Assert.Equal("-1", record["PackageRecord"]["UserKey"].ToString());
+            Assert.Equal(string.Empty, record["PackageRecord"]["FlattenedAuthors"].ToString());
+            Assert.Equal("ObfuscatedUserName", actor["UserName"].ToString());
+            Assert.Equal("2.2.2.0", actor["MachineIP"].ToString());
+            Assert.Equal("ObfuscatedUserName", actor["OnBehalfOf"]["UserName"].ToString());
+            Assert.Equal("3.3.3.0", actor["OnBehalfOf"]["MachineIP"].ToString());
         }
 
         [Theory]

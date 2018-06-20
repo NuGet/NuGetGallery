@@ -296,6 +296,7 @@ namespace NuGetGallery
             }
 
             reservedNamespace.PackageRegistrations.Remove(packageRegistration);
+            packageRegistration.ReservedNamespaces.Remove(reservedNamespace);
         }
 
         public virtual ReservedNamespace FindReservedNamespaceForPrefix(string prefix)

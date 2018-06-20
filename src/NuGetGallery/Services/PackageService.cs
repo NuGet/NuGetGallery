@@ -391,6 +391,12 @@ namespace NuGetGallery
             {
                 throw new InvalidOperationException("A deleted package should never be listed!");
             }
+
+            if (package.PackageStatusKey == PackageStatus.FailedValidation)
+            {
+                throw new InvalidOperationException("A package that failed validation should never be listed!");
+            }
+
             if (!package.Listed && (package.IsLatestStable || package.IsLatest))
             {
                 throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");

@@ -62,7 +62,7 @@ namespace NuGetGallery
                 var currentUser = mockOwinContext.Object.GetCurrentUser();
 
                 // Assert
-                Assert.Equal(null, currentUser);
+                Assert.Null(currentUser);
             }
 
             [Fact]
@@ -85,7 +85,7 @@ namespace NuGetGallery
                 var currentUser = mockOwinContext.Object.GetCurrentUser();
 
                 // Assert
-                Assert.Equal(null, currentUser);
+                Assert.Null(currentUser);
             }
         }
     }

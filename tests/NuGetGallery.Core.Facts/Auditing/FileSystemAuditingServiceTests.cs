@@ -66,7 +66,7 @@ namespace NuGetGallery.Auditing
                 var actualFilePath = files.Single();
                 var expectedFilePathPattern = new Regex(@"package\\b\\1.0.0\\[0-9a-f]{32}-create.audit.v1.json$");
 
-                Assert.True(expectedFilePathPattern.IsMatch(actualFilePath));
+                Assert.Matches(expectedFilePathPattern, actualFilePath);
             }
         }
 

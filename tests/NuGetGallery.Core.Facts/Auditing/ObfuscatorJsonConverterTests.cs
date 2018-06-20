@@ -64,19 +64,19 @@ namespace NuGetGallery.Auditing
             var result = JObject.Parse(resultString);
 
             // Assert
-            Assert.Equal<string>("ObfuscatedUserName", result["UserName"].ToString());
-            Assert.Equal<string>("1.1.1.0", result["IP"].ToString());
-            Assert.Equal<string>(string.Empty, result["Authors"].ToString());
-            Assert.Equal<string>("-1", result["UserKey"].ToString());
-            Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", Convert.ToString(result["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
+            Assert.Equal("ObfuscatedUserName", result["UserName"].ToString());
+            Assert.Equal("1.1.1.0", result["IP"].ToString());
+            Assert.Equal(string.Empty, result["Authors"].ToString());
+            Assert.Equal("-1", result["UserKey"].ToString());
+            Assert.Equal("abc", result["SupportedTypeRandom"].ToString());
+            Assert.Equal("2.5", Convert.ToString(result["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
 
-            Assert.Equal<string>("ObfuscatedUserName", result["OtherData"]["UserName"].ToString());
-            Assert.Equal<string>("1.1.1.0", result["OtherData"]["IP"].ToString());
-            Assert.Equal<string>(string.Empty, result["OtherData"]["Authors"].ToString());
-            Assert.Equal<string>("-1", result["OtherData"]["UserKey"].ToString());
-            Assert.Equal<string>("abc", result["SupportedTypeRandom"].ToString());
-            Assert.Equal<string>("2.5", Convert.ToString(result["OtherData"]["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
+            Assert.Equal("ObfuscatedUserName", result["OtherData"]["UserName"].ToString());
+            Assert.Equal("1.1.1.0", result["OtherData"]["IP"].ToString());
+            Assert.Equal(string.Empty, result["OtherData"]["Authors"].ToString());
+            Assert.Equal("-1", result["OtherData"]["UserKey"].ToString());
+            Assert.Equal("abc", result["SupportedTypeRandom"].ToString());
+            Assert.Equal("2.5", Convert.ToString(result["OtherData"]["NotSupportedTypeRandom"], CultureInfo.InvariantCulture));
         }
 
         public class Data

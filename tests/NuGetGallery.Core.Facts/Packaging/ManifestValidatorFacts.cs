@@ -480,7 +480,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecDependencySetContainsEmptyTargetFramework);
             
-            Assert.Equal(GetErrors(nuspecStream).Length, 0);
+            Assert.Empty(GetErrors(nuspecStream));
         }
 
         [Fact]
@@ -504,7 +504,7 @@ namespace NuGetGallery.Packaging
         {
             var nuspecStream = CreateNuspecStream(NuSpecFrameworkAssemblyReferenceContainsEmptyTargetFramework);
             
-            Assert.Equal(GetErrors(nuspecStream).Length, 0);
+            Assert.Empty(GetErrors(nuspecStream));
         }
 
         [Theory]

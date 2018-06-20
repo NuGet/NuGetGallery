@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -13,11 +14,15 @@ namespace NuGetGallery
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
 
+        void TrackPackagePushFailureEvent(string id, NuGetVersion version);
+
         void TrackPackageUnlisted(Package package);
 
         void TrackPackageListed(Package package);
 
         void TrackPackageDelete(Package package, bool isHardDelete);
+
+        void TrackPackageReupload(Package package);
 
         void TrackPackageReflow(Package package);
 

@@ -19,9 +19,9 @@ namespace NuGetGallery.Infrastructure
             var elmahException = new ElmahException(exception, serverVariables);
 
             // Assert
-            Assert.Equal(elmahException.ServerVariables["AUTH_USER"], "booUser");
-            Assert.Equal(elmahException.InnerException.Message, "Inner Boo");
-            Assert.Equal(elmahException.Message, "Boo");
+            Assert.Equal("booUser", elmahException.ServerVariables["AUTH_USER"]);
+            Assert.Equal("Inner Boo", elmahException.InnerException.Message);
+            Assert.Equal("Boo", elmahException.Message);
             Assert.Equal(elmahException.Message, exception.Message);
             Assert.Equal(elmahException.ToString(), exception.ToString());
             Assert.Equal(elmahException.InnerException.ToString(), exception.InnerException.ToString());
@@ -37,7 +37,7 @@ namespace NuGetGallery.Infrastructure
             var elmahException = new ElmahException(exception, null);
 
             // Assert
-            Assert.Equal(elmahException.ServerVariables.Keys.Count, 0);
+            Assert.Empty(elmahException.ServerVariables.Keys);
         }
     }
 }
