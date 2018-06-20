@@ -36,12 +36,12 @@ namespace NuGetGallery.Auditing
             Assert.Equal("a", record.Username);
             Assert.Equal("b", record.EmailAddress);
             Assert.Equal("c", record.UnconfirmedEmailAddress);
-            Assert.Equal(1, record.Roles.Length);
+            Assert.Single(record.Roles);
             Assert.Equal("d", record.Roles[0]);
-            Assert.Equal(1, record.Credentials.Length);
+            Assert.Single(record.Credentials);
             Assert.Equal(CredentialTypes.Password.V3, record.Credentials[0].Type);
             Assert.Null(record.Credentials[0].Value);
-            Assert.Equal(1, record.AffectedCredential.Length);
+            Assert.Single(record.AffectedCredential);
             Assert.Equal("h", record.AffectedCredential[0].Type);
             Assert.Null(record.AffectedCredential[0].Value);
         }
@@ -86,13 +86,13 @@ namespace NuGetGallery.Auditing
             Assert.Equal("a", record.Username);
             Assert.Equal("b", record.EmailAddress);
             Assert.Equal("c", record.UnconfirmedEmailAddress);
-            Assert.Equal(1, record.Roles.Length);
+            Assert.Single(record.Roles);
             Assert.Equal("d", record.Roles[0]);
-            Assert.Equal(1, record.Credentials.Length);
+            Assert.Single(record.Credentials);
             Assert.Equal(CredentialTypes.Password.V3, record.Credentials[0].Type);
             Assert.Null(record.Credentials[0].Value);
-            Assert.Equal(0, record.AffectedCredential.Length);
-            Assert.Equal(1, record.AffectedPolicies.Length);
+            Assert.Empty(record.AffectedCredential);
+            Assert.Single(record.AffectedPolicies);
             Assert.Equal("A", record.AffectedPolicies[0].Name);
             Assert.Equal("B", record.AffectedPolicies[0].Subscription);
             Assert.Equal("C", record.AffectedPolicies[0].Value);

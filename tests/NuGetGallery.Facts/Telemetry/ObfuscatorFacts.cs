@@ -20,11 +20,11 @@ namespace NuGetGallery.Telemetry
             // Act and Assert
             foreach (var action in lowerInvariant)
             {
-                Assert.True(Obfuscator.ObfuscatedActions.Contains(action));
+                Assert.Contains(action, Obfuscator.ObfuscatedActions);
             }
             foreach (var action in upperInvariant)
             {
-                Assert.True(Obfuscator.ObfuscatedActions.Contains(action));
+                Assert.Contains(action, Obfuscator.ObfuscatedActions);
             }
         }
     }

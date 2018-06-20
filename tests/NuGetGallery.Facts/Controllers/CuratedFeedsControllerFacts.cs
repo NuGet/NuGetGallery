@@ -172,7 +172,7 @@ namespace NuGetGallery
                 var viewModel = (controller.CuratedFeed("aName") as ViewResult).Model as CuratedFeedViewModel;
 
                 Assert.NotNull(viewModel);
-                Assert.Equal(1, viewModel.ExcludedPackages.Count());
+                Assert.Single(viewModel.ExcludedPackages);
                 Assert.Equal("theExcludedId", viewModel.ExcludedPackages.First());
             }
         }
@@ -230,7 +230,7 @@ namespace NuGetGallery
                 Assert.IsType<ViewResult>(result);
                 Assert.IsType<PackageListViewModel>(((ViewResult)result).Model);
                 var model = (result as ViewResult).Model as PackageListViewModel;
-                Assert.Equal(1, model.Items.Count());
+                Assert.Single(model.Items);
             }
         }
     }

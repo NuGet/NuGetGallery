@@ -90,7 +90,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -103,7 +103,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -116,7 +116,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 

@@ -111,7 +111,7 @@ namespace NuGetGallery.Filters
             {
                 var context = BuildAuthorizationContext(
                     BuildClaimsIdentity(
-                        AuthenticationTypes.LocalUser, 
+                        authType, 
                         authenticated: true, 
                         hasDiscontinuedLoginClaim: true).Object).Object;
                 var attribute = new UIAuthorizeAttribute();
@@ -122,8 +122,8 @@ namespace NuGetGallery.Filters
                 // Assert
                 var redirectResult = context.Result as RedirectToRouteResult;
                 Assert.NotNull(redirectResult);
-                Assert.True(redirectResult.RouteValues.Contains(new KeyValuePair<string, object>("controller", "Pages")));
-                Assert.True(redirectResult.RouteValues.Contains(new KeyValuePair<string, object>("action", "Home")));
+                Assert.Contains(new KeyValuePair<string, object>("controller", "Pages"), redirectResult.RouteValues);
+                Assert.Contains(new KeyValuePair<string, object>("action", "Home"), redirectResult.RouteValues);
             }
 
             private static Mock<ClaimsIdentity> BuildClaimsIdentity(string authType, bool authenticated, bool hasDiscontinuedLoginClaim)

@@ -231,7 +231,7 @@ namespace NuGetGallery
                 // assert
                 Assert.Equal(2, messages.Count);
                 Assert.Equal(package.PackageRegistration.Owners.Count, messages[0].To.Count);
-                Assert.Equal(1, messages[1].To.Count);
+                Assert.Single(messages[1].To);
                 Assert.Equal(ownerAddress, messages[0].To[0].Address);
                 Assert.Equal(ownerAddress2, messages[0].To[1].Address);
                 Assert.Equal(messages[1].ReplyToList.Single(), messages[1].To.First());
@@ -315,7 +315,7 @@ namespace NuGetGallery
 
                 // assert
                 Assert.Equal(ownerAddress, message.To[0].Address);
-                Assert.Equal(1, message.To.Count);
+                Assert.Single(message.To);
             }
 
             [Fact]
@@ -772,7 +772,7 @@ namespace NuGetGallery
                 {
                     Assert.Equal(toUser.EmailAddress, message.To[0].Address);
                 }
-                Assert.Equal(TestGalleryNoReplyAddress.Address, "noreply@example.com");
+                Assert.Equal("noreply@example.com", TestGalleryNoReplyAddress.Address);
                 Assert.Contains($"Package ownership update for '{package.Id}'", message.Subject);
                 Assert.Contains($"User '{newUser.Username}' is now an owner of the package ['{package.Id}']({packageUrl}).", message.Body);
             }
@@ -1079,7 +1079,7 @@ namespace NuGetGallery
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal(1, message.To.Count);
+                Assert.Single(message.To);
             }
 
             [Fact]

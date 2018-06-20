@@ -212,7 +212,7 @@ namespace NuGetGallery.Security
             var result = await service.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, CreateHttpContext(user));
 
             // Assert
-            Assert.Equal(false, result.Success);
+            Assert.False(result.Success);
             
             // The error indicates which subscription failed
             Assert.Contains(policyData.DefaultSubscription.Object.SubscriptionName, result.ErrorMessage);

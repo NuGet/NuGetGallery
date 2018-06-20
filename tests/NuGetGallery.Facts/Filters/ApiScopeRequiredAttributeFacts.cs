@@ -26,7 +26,7 @@ namespace NuGetGallery.Filters
                 var resolvedAttribute = container.Resolve<ApiScopeRequiredAttribute>();
 
                 // Assert
-                Assert.Equal(1, resolvedAttribute.ScopeActions.Length);
+                Assert.Single(resolvedAttribute.ScopeActions);
                 Assert.Equal(NuGetScopes.PackagePush, resolvedAttribute.ScopeActions.First());
             }
         }

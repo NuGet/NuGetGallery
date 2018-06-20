@@ -55,7 +55,7 @@ namespace NuGetGallery.SearchClient
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(response.StatusCode, HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.True(response.Headers.Contains(WebApiCorrelationHandler.CorrelationIdHttpHeaderName));
             Assert.Equal(correlationId.ToString(),
                 response.Headers.GetValues(WebApiCorrelationHandler.CorrelationIdHttpHeaderName).FirstOrDefault());
@@ -82,7 +82,7 @@ namespace NuGetGallery.SearchClient
 
             // Assert
             Assert.NotNull(response);
-            Assert.Equal(response.StatusCode, HttpStatusCode.OK);
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             Assert.True(response.Headers.Contains(WebApiCorrelationHandler.CorrelationIdHttpHeaderName));
             Assert.Equal(correlationId.ToString(),
                 response.Headers.GetValues(WebApiCorrelationHandler.CorrelationIdHttpHeaderName).FirstOrDefault());

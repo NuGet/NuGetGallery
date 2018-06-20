@@ -269,7 +269,7 @@ namespace NuGetGallery
                 Assert.Equal("http://theiconurl/", package.IconUrl);
                 Assert.Equal("http://thelicenseurl/", package.LicenseUrl);
                 Assert.Equal("http://theprojecturl/", package.ProjectUrl);
-                Assert.Equal(true, package.RequiresLicenseAcceptance);
+                Assert.True(package.RequiresLicenseAcceptance);
                 Assert.Equal("theSummary", package.Summary);
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
@@ -358,19 +358,6 @@ namespace NuGetGallery
 
                 Assert.Equal(expectedHash, package.Hash);
                 Assert.Equal(CoreConstants.Sha512HashAlgorithmId, package.HashAlgorithm);
-            }
-
-            [Fact]
-            public async Task WillNotCreateThePackageInAnUnpublishedState()
-            {
-                var service = CreateService(setup:
-                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
-                var currentUser = new User();
-
-                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
-
-                Assert.NotNull(package.Published);
             }
 
             [Fact]
@@ -1183,7 +1170,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Equal(1, packages.Count());
+                Assert.Single(packages);
             }
 
             [Theory]
@@ -1199,7 +1186,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Equal(0, packages.Count());
+                Assert.Empty(packages);
             }
 
             [Theory]
@@ -1215,7 +1202,7 @@ namespace NuGetGallery
                 context.Packages.Add(package);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: true);
-                Assert.Equal(1, packages.Count());
+                Assert.Single(packages);
             }
 
             [Theory]
@@ -1274,7 +1261,7 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
-                Assert.Equal(1, packages.Count);
+                Assert.Single(packages);
                 Assert.Contains(latestStablePackage, packages);
             }
 
@@ -1294,7 +1281,7 @@ namespace NuGetGallery
                 context.Packages.Add(latestStablePackage);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false).ToList();
-                Assert.Equal(1, packages.Count);
+                Assert.Single(packages);
                 Assert.Contains(latestStablePackage, packages);
             }
 
@@ -1377,7 +1364,7 @@ namespace NuGetGallery
                 context.Packages.Add(package1);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false);
-                Assert.Equal(1, packages.Count());
+                Assert.Single(packages);
                 Assert.Contains(package2, packages);
             }
 
@@ -1435,7 +1422,7 @@ namespace NuGetGallery
                 context.Packages.Add(package2);
 
                 var packages = InvokeFindPackagesByOwner(currentUser, includeUnlisted: false, includeVersions: true);
-                Assert.Equal(1, packages.Count());
+                Assert.Single(packages);
             }
         }
 
@@ -1738,7 +1725,7 @@ namespace NuGetGallery
 
                 await service.PublishPackageAsync("theId", "1.0.42");
 
-                Assert.NotNull(package.Published);
+                Assert.NotEqual(default(DateTime), package.Published);
                 packageRepository.Verify(x => x.CommitChangesAsync());
             }
 
@@ -1761,7 +1748,7 @@ namespace NuGetGallery
 
                 await service.PublishPackageAsync(package, commitChanges: false);
 
-                Assert.NotNull(package.Published);
+                Assert.NotEqual(default(DateTime), package.Published);
                 packageRepository.Verify(x => x.CommitChangesAsync(), Times.Never());
             }
 

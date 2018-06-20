@@ -15,7 +15,7 @@ namespace NuGetGallery
             var attributes = typeof(Package).GetProperty("HasReadMeInternal").GetCustomAttributes(typeof(ColumnAttribute), true) as ColumnAttribute[];
 
             // Assert
-            Assert.Equal(1, attributes.Length);
+            Assert.Single(attributes);
             Assert.Equal("HasReadMe", attributes[0].Name);
         }
 

@@ -50,7 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var model = ResultAssert.IsView<SecurityPolicyViewModel>(result);
             Assert.NotNull(model);
             Assert.NotNull(model.SubscriptionNames);
-            Assert.Equal(1, model.SubscriptionNames.Count());
+            Assert.Single(model.SubscriptionNames);
         }
 
         [Theory]
@@ -137,7 +137,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
             var subscription = policyService.Mocks.Subscription.Object;
 
-            Assert.False(users.Any(u => policyService.IsSubscribed(u, subscription)));
+            Assert.DoesNotContain(users, u => policyService.IsSubscribed(u, subscription));
 
             // Act.
             var model = new List<string>

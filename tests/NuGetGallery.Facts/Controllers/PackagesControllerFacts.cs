@@ -1254,7 +1254,7 @@ namespace NuGetGallery
                 Assert.Equal(packageId, model.PackageId);
                 Assert.Equal(packageVersion, model.PackageVersion);
                 Assert.Equal(projectUrl, model.ProjectUrl);
-                Assert.Equal(1, model.Owners.Count());
+                Assert.Single(model.Owners);
                 Assert.True(model.HasOwners);
             }
 
@@ -2086,10 +2086,8 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
             }
 
-            [Theory]
-            [MemberData(nameof(Owner_Data))]
-            [MemberData(nameof(NotOwner_Data))]
-            public async Task WhenPackageIsNotFoundReturns404(User currentUser, User owner)
+            [Fact]
+            public async Task WhenPackageIsNotFoundReturns404()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);

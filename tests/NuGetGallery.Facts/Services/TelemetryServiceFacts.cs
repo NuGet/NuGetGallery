@@ -555,7 +555,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<int>()),
                     Times.Once);
-                Assert.True(service.LastTraceMessage.Contains("InvalidOperationException"));
+                Assert.Contains("InvalidOperationException", service.LastTraceMessage);
             }
         }
 

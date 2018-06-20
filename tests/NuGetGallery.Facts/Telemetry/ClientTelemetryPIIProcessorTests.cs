@@ -139,7 +139,7 @@ namespace NuGetGallery.Telemetry
             return url.ToLower().Contains("username") || url.ToLower().Contains("accountname");
         }
 
-        public static IEnumerable<string[]> PIIUrlDataGenerator()
+        public static IEnumerable<object[]> PIIUrlDataGenerator()
         {
             foreach (var user in GenerateUserNames())
             {

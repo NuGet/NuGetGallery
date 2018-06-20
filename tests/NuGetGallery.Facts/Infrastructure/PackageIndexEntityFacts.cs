@@ -43,20 +43,21 @@ namespace NuGetGallery.Infrastructure
             Assert.Equal(result, tokens);
         }
 
+        [Theory]
         [InlineData("Sys-netFX", "Sys netFX")]
         [InlineData("xUnit", "xUnit")]
         [InlineData("jQueryUI", "jQueryUI")]
-        [InlineData("jQuery-UI", "jQuery UI")]
-        [InlineData("NuGetPowerTools", "NuGet Power Tools")]
+        [InlineData("jQuery-UI", "jQuery")]
+        [InlineData("NuGetPowerTools", "Tools Power NuGet NuGetPowerTools")]
         [InlineData("microsoft-web-helpers", "microsoft web helpers" )]
-        [InlineData("EntityFramework.sample", "Entity Framework sample" )]
-        [InlineData("SignalR.MicroSliver", "SignalR Micro Sliver")]
-        [InlineData("ABCMicroFramework", "ABC Micro Framework")]
-        [InlineData("SignalR.Hosting.AspNet", "SignalR Hosting Asp Net")]
+        [InlineData("EntityFramework.sample", "Framework Entity EntityFramework sample" )]
+        [InlineData("SignalR.MicroSliver", "SignalR Sliver Micro MicroSliver")]
+        [InlineData("ABCMicroFramework", "Framework Micro ABC ABCMicroFramework")]
+        [InlineData("SignalR.Hosting.AspNet", "SignalR Hosting Net Asp AspNet")]
         public void CamelIdSplitter(string term, string tokens)
         {
             var result = PackageIndexEntity.CamelSplitId(term);
-            Assert.Equal(result, tokens);
+            Assert.Equal(tokens, result);
         }
     }
 }
