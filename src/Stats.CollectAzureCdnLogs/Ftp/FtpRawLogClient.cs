@@ -186,12 +186,11 @@ namespace Stats.CollectAzureCdnLogs.Ftp
         {
             if (contentOffset == 0)
             {
-                Logger.LogInformation("Beginning download from '{FtpBlobUri}'.", uri.ToString());
                 Logger.LogInformation("Downloading file '{FtpBlobUri}'.", uri);
             }
             else
             {
-                Logger.LogInformation("Resuming download from '{FtpBlobUri}' at content offset {ContentOffset}.", uri.ToString(), contentOffset);
+                Logger.LogInformation("Resuming download from '{FtpBlobUri}' at content offset {ContentOffset}.", uri, contentOffset);
             }
 
             var request = CreateRequest(uri);
