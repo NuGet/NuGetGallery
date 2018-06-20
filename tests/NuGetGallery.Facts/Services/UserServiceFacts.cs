@@ -517,7 +517,8 @@ namespace NuGetGallery
                 Fakes.Organization.MemberRequests.Add(new MembershipRequest
                 {
                     NewMember = Fakes.User,
-                    ConfirmationToken = token
+                    ConfirmationToken = token,
+                    IsAdmin = isAdmin
                 });
 
                 Fakes.User.EmailAddress = string.Empty;
@@ -952,7 +953,7 @@ namespace NuGetGallery
                 var result = await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationAdmin.Username, false);
 
                 // Assert
-                Assert.Equal(false, result.IsAdmin);
+                Assert.False(result.IsAdmin);
                 Assert.Equal(fakes.OrganizationAdmin, result.Member);
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
@@ -975,7 +976,7 @@ namespace NuGetGallery
                 var result = await service.UpdateMemberAsync(fakes.Organization, fakes.OrganizationCollaborator.Username, true);
 
                 // Assert
-                Assert.Equal(true, result.IsAdmin);
+                Assert.True(result.IsAdmin);
                 Assert.Equal(fakes.OrganizationCollaborator, result.Member);
 
                 service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
@@ -1349,33 +1350,33 @@ namespace NuGetGallery
                 
                 // Disable notifications
                 await service.ChangeEmailSubscriptionAsync(user, false, false);
-                Assert.Equal(false, user.EmailAllowed);
-                Assert.Equal(false, user.NotifyPackagePushed);
+                Assert.False(user.EmailAllowed);
+                Assert.False(user.NotifyPackagePushed);
                 
                 // Enable contact notifications
                 await service.ChangeEmailSubscriptionAsync(user, true, false);
-                Assert.Equal(true, user.EmailAllowed);
-                Assert.Equal(false, user.NotifyPackagePushed);
+                Assert.True(user.EmailAllowed);
+                Assert.False(user.NotifyPackagePushed);
 
                 // Disable notifications
                 await service.ChangeEmailSubscriptionAsync(user, false, false);
-                Assert.Equal(false, user.EmailAllowed);
-                Assert.Equal(false, user.NotifyPackagePushed);
+                Assert.False(user.EmailAllowed);
+                Assert.False(user.NotifyPackagePushed);
 
                 // Enable package pushed notifications
                 await service.ChangeEmailSubscriptionAsync(user, false, true);
-                Assert.Equal(false, user.EmailAllowed);
-                Assert.Equal(true, user.NotifyPackagePushed);
+                Assert.False(user.EmailAllowed);
+                Assert.True(user.NotifyPackagePushed);
 
                 // Disable notifications
                 await service.ChangeEmailSubscriptionAsync(user, false, false);
-                Assert.Equal(false, user.EmailAllowed);
-                Assert.Equal(false, user.NotifyPackagePushed);
+                Assert.False(user.EmailAllowed);
+                Assert.False(user.NotifyPackagePushed);
 
                 // Enable all notifications
                 await service.ChangeEmailSubscriptionAsync(user, true, true);
-                Assert.Equal(true, user.EmailAllowed);
-                Assert.Equal(true, user.NotifyPackagePushed);
+                Assert.True(user.EmailAllowed);
+                Assert.True(user.NotifyPackagePushed);
 
                 service.MockUserRepository
                        .Verify(r => r.CommitChangesAsync());
@@ -1935,9 +1936,7 @@ namespace NuGetGallery
 
                 // Both the organization and the admin must have a membership to each other.
                 Func<Membership, bool> hasMembership = m => m.Member.Username == AdminName && m.Organization.Username == OrgName && m.IsAdmin;
-                Assert.True(
-                    org.Members.Any(
-                        m => hasMembership(m) && m.Member.Organizations.Any(hasMembership)));
+                Assert.Contains(org.Members, m => hasMembership(m) && m.Member.Organizations.Any(hasMembership));
 
                 _service.MockOrganizationRepository.Verify(x => x.InsertOnCommit(It.IsAny<Organization>()), Times.Once());
                 _service.MockSecurityPolicyService.Verify(

@@ -1269,8 +1269,8 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<DeleteOrganizationViewModel>(result, "DeleteAccount");
                 Assert.Equal(testOrganization.Username, model.AccountName);
-                Assert.Equal(1, model.Packages.Count());
-                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Single(model.Packages);
+                Assert.True(model.HasOrphanPackages);
                 Assert.Equal(withAdditionalMembers, model.HasAdditionalMembers);
             }
 

@@ -17,7 +17,7 @@ namespace NuGetGallery
             public void Works()
             {
                 string fixedUrl = UrlExtensions.EnsureTrailingSlash("http://nuget.org/packages/FooPackage.CS");
-                Assert.True(fixedUrl.EndsWith("/", StringComparison.Ordinal));
+                Assert.EndsWith("/", fixedUrl);
             }
 
             [Fact]

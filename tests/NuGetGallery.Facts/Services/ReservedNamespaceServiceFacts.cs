@@ -574,11 +574,13 @@ namespace NuGetGallery.Services
                 var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 existingNamespace.PackageRegistrations.Add(existingReg);
+                existingReg.ReservedNamespaces.Add(existingNamespace);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
                 service.RemovePackageRegistrationFromNamespace(existingNamespace, existingReg);
 
                 Assert.False(existingNamespace.PackageRegistrations.Contains(existingReg));
+                Assert.False(existingReg.ReservedNamespaces.Contains(existingNamespace));
             }
 
             [Fact]
@@ -589,6 +591,7 @@ namespace NuGetGallery.Services
                 var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 existingNamespace.PackageRegistrations.Add(existingReg);
+                existingReg.ReservedNamespaces.Add(existingNamespace);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
                 service.RemovePackageRegistrationFromNamespace(existingNamespace, existingReg);

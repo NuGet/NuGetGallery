@@ -117,7 +117,7 @@ namespace NuGetGallery.ViewModels
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(description, listPackageItemViewModel.ShortDescription);
-            Assert.Equal(false, listPackageItemViewModel.IsDescriptionTruncated);
+            Assert.False(listPackageItemViewModel.IsDescriptionTruncated);
         }
 
         [Fact]
@@ -137,9 +137,9 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.NotEqual(description, listPackageItemViewModel.ShortDescription);
-            Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
-            Assert.True(listPackageItemViewModel.ShortDescription.EndsWith(omission));
-            Assert.True(description.Contains(listPackageItemViewModel.ShortDescription.Substring(0, listPackageItemViewModel.ShortDescription.Length - 1 - omission.Length)));
+            Assert.True(listPackageItemViewModel.IsDescriptionTruncated);
+            Assert.EndsWith(omission, listPackageItemViewModel.ShortDescription);
+            Assert.Contains(listPackageItemViewModel.ShortDescription.Substring(0, listPackageItemViewModel.ShortDescription.Length - 1 - omission.Length), description);
         }
 
         [Fact]
@@ -158,8 +158,8 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(charLimit + omission.Length, listPackageItemViewModel.ShortDescription.Length);
-            Assert.Equal(true, listPackageItemViewModel.IsDescriptionTruncated);
-            Assert.True(listPackageItemViewModel.ShortDescription.EndsWith(omission));
+            Assert.True(listPackageItemViewModel.IsDescriptionTruncated);
+            Assert.EndsWith(omission, listPackageItemViewModel.ShortDescription);
         }
 
         [Fact]
@@ -172,7 +172,7 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
 
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
-            Assert.Equal(null, listPackageItemViewModel.Tags);
+            Assert.Null(listPackageItemViewModel.Tags);
         }
 
         [Fact]
@@ -187,9 +187,9 @@ At mei iriure dignissim theophrastus.Meis nostrud te sit, equidem maiorum pri ex
             var listPackageItemViewModel = new ListPackageItemViewModel(package, currentUser: null);
 
             Assert.Equal(3, listPackageItemViewModel.Tags.Count());
-            Assert.True(listPackageItemViewModel.Tags.Contains("tag1"));
-            Assert.True(listPackageItemViewModel.Tags.Contains("tag2"));
-            Assert.True(listPackageItemViewModel.Tags.Contains("tag3"));
+            Assert.Contains("tag1", listPackageItemViewModel.Tags);
+            Assert.Contains("tag2", listPackageItemViewModel.Tags);
+            Assert.Contains("tag3", listPackageItemViewModel.Tags);
         }
 
         [Fact]

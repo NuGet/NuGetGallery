@@ -178,7 +178,7 @@ namespace NuGetGallery.SearchClient
                 }
             }, comparer).ToList();
 
-            Assert.True(orderList.Select(u => u.AbsoluteUri).Contains(dummyUrl));
+            Assert.Contains(dummyUrl, orderList.Select(u => u.AbsoluteUri));
         }
     }
 }

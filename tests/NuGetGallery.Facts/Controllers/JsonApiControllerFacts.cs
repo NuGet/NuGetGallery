@@ -18,7 +18,7 @@ namespace NuGetGallery.Controllers
         {
             public class ThePackageOwnerModificationMethods : TestContainer
             {
-                public static IEnumerable<object> ThrowsArgumentNullIfMissing_Data
+                public static IEnumerable<object[]> ThrowsArgumentNullIfMissing_Data
                 {
                     get
                     {
@@ -650,6 +650,7 @@ namespace NuGetGallery.Controllers
 
                 public static IEnumerable<object[]> AllCannotManagePackageOwners_Data => ThePackageOwnerMethods.AllCannotManagePackageOwners_Data;
                 
+                [Fact]
                 public void ReturnsFailureIfPackageNotFound()
                 {
                     // Arrange
@@ -660,7 +661,6 @@ namespace NuGetGallery.Controllers
                     dynamic data = ((JsonResult)result).Data;
 
                     // Assert
-                    Assert.False(data.success);
                     Assert.Equal("Package not found.", data.message);
                 }
 
@@ -678,27 +678,29 @@ namespace NuGetGallery.Controllers
                     var result = controller.GetPackageOwners(fakes.Package.Id, fakes.Package.Packages.First().Version);
 
                     // Assert
-                    Assert.IsType(typeof(HttpUnauthorizedResult), result);
+                    Assert.IsType<HttpUnauthorizedResult>(result);
                 }
 
+                [Fact]
                 public void ReturnsExpectedDataAsOwner()
                 {
                     var fakes = Get<Fakes>();
                     var currentUser = fakes.Owner;
                     var result = InvokeAsUser(currentUser);
 
-                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: true, isCurrentUserIsAdminOfOrganization: false)));
-                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: false, isCurrentUserIsAdminOfOrganization: false)));
+                    Assert.Contains(result, m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: true, isCurrentUserAdminOfOrganization: false));
+                    Assert.Contains(result, m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: false, isCurrentUserAdminOfOrganization: false));
                 }
 
+                [Fact]
                 public void ReturnsExpectedDataAsOrganizationAdmin()
                 {
                     var fakes = Get<Fakes>();
-                    var currentUser = fakes.Owner;
+                    var currentUser = fakes.OrganizationOwnerAdmin;
                     var result = InvokeAsUser(currentUser);
 
-                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: false, isCurrentUserIsAdminOfOrganization: false)));
-                    Assert.True(result.Any(m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: true, isCurrentUserIsAdminOfOrganization: true)));
+                    Assert.Contains(result, m => ModelMatchesUser(m, fakes.Owner, grantsCurrentUserAccess: false, isCurrentUserAdminOfOrganization: false));
+                    Assert.Contains(result, m => ModelMatchesUser(m, fakes.OrganizationOwner, grantsCurrentUserAccess: true, isCurrentUserAdminOfOrganization: true));
                 }
 
                 private IEnumerable<PackageOwnersResultViewModel> InvokeAsUser(User currentUser)
@@ -706,17 +708,17 @@ namespace NuGetGallery.Controllers
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(currentUser);
                     
-                    var result = controller.GetPackageOwners("fakeId", "2.0.0");
+                    var result = controller.GetPackageOwners("FakePackage", "2.0");
                     return ((JsonResult)result).Data as IEnumerable<PackageOwnersResultViewModel>;
                 }
 
-                private bool ModelMatchesUser(PackageOwnersResultViewModel model, User user, bool grantsCurrentUserAccess, bool isCurrentUserIsAdminOfOrganization)
+                private bool ModelMatchesUser(PackageOwnersResultViewModel model, User user, bool grantsCurrentUserAccess, bool isCurrentUserAdminOfOrganization)
                 {
                     return 
                         user.Username == model.Name &&
                         user.EmailAddress == model.EmailAddress &&
                         grantsCurrentUserAccess == model.GrantsCurrentUserAccess &&
-                        isCurrentUserIsAdminOfOrganization == model.IsCurrentUserAdminOfOrganization;
+                        isCurrentUserAdminOfOrganization == model.IsCurrentUserAdminOfOrganization;
                 }
             }
 

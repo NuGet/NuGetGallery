@@ -34,7 +34,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             // Assert
             var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
+            Assert.Empty(data);
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             // Assert
             var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
+            Assert.Empty(data);
         }
 
         [Fact]
@@ -74,7 +74,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             // Assert
             var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
+            Assert.Empty(data);
         }
 
         [Fact]
@@ -97,7 +97,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             // Assert
             var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(1, data.Count);
+            Assert.Single(data);
         }
     }
 }

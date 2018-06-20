@@ -64,7 +64,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal(test.PackageRegistration.Id, record.RegistrationRecord.Id);
         }
 
-        public static IEnumerable<RequiredSignerTest[]> RequiredSignerTests
+        public static IEnumerable<object[]> RequiredSignerTests
         {
             get
             {

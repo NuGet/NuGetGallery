@@ -26,7 +26,7 @@ namespace NuGetGallery.Security
             Assert.Equal(nameof(AutomaticallyOverwriteRequiredSignerPolicy), policy.Name);
             Assert.Equal(nameof(AutomaticallyOverwriteRequiredSignerPolicy), policy.SubscriptionName);
             Assert.Equal(SecurityPolicyAction.AutomaticallyOverwriteRequiredSigner, policy.Action);
-            Assert.Equal(1, policy.Policies.Count());
+            Assert.Single(policy.Policies);
             Assert.Equal(nameof(AutomaticallyOverwriteRequiredSignerPolicy), policy.Policies.Single().Name);
             Assert.Equal(nameof(AutomaticallyOverwriteRequiredSignerPolicy), policy.Policies.Single().Subscription);
         }

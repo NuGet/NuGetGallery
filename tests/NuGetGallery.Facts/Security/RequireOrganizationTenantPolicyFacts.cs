@@ -18,7 +18,7 @@ namespace NuGetGallery.Security
             [InlineData("different-tenant")]
             public void WhenNoMatchingTargetCredential_ReturnsError(string tenantId)
             {
-                var result = Evaluate(null);
+                var result = Evaluate(tenantId);
 
                 Assert.False(result.Success);
                 Assert.Equal(

@@ -28,7 +28,7 @@ namespace NuGetGallery.Telemetry
 
             // Assert
             Assert.True(result);
-            Assert.Equal<string>($"{controller}/{action}", operation);
+            Assert.Equal($"{controller}/{action}", operation);
         }
 
         [Theory]
@@ -46,11 +46,11 @@ namespace NuGetGallery.Telemetry
             var serverVariables = QuietLog.GetObfuscatedServerVariables(context);
 
             // Assert
-            Assert.Equal<string>(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["HTTP_REFERER"]);
-            Assert.Equal<string>(context.Operation, serverVariables["PATH_INFO"]);
-            Assert.Equal<string>(context.Operation, serverVariables["PATH_TRANSLATED"]);
-            Assert.Equal<string>(context.Operation, serverVariables["SCRIPT_NAME"]);
-            Assert.Equal<string>(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["URL"]);
+            Assert.Equal(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["HTTP_REFERER"]);
+            Assert.Equal(context.Operation, serverVariables["PATH_INFO"]);
+            Assert.Equal(context.Operation, serverVariables["PATH_TRANSLATED"]);
+            Assert.Equal(context.Operation, serverVariables["SCRIPT_NAME"]);
+            Assert.Equal(Obfuscator.DefaultObfuscatedUrl(context.Request.Url), serverVariables["URL"]);
         }
 
         [Fact]
@@ -103,7 +103,7 @@ namespace NuGetGallery.Telemetry
         }
 
 
-        public static IEnumerable<string[]> IsPIIRouteFactsValidDataGenerator()
+        public static IEnumerable<object[]> IsPIIRouteFactsValidDataGenerator()
         {
             return Obfuscator.ObfuscatedActions.Select(o => o.Split('/'));
         }

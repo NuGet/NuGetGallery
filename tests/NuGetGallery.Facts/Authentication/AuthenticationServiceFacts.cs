@@ -101,7 +101,7 @@ namespace NuGetGallery.Authentication
                 // Assert
                 var expectedCred = user.Credentials.SingleOrDefault(
                     c => string.Equals(c.Type, CredentialBuilder.LatestPasswordType, StringComparison.OrdinalIgnoreCase));
-                Assert.Equal(result.Result, PasswordAuthenticationResult.AuthenticationResult.Success);
+                Assert.Equal(PasswordAuthenticationResult.AuthenticationResult.Success, result.Result);
                 Assert.Same(user, result.AuthenticatedUser.User);
                 Assert.Same(expectedCred, result.AuthenticatedUser.CredentialUsed);
             }
