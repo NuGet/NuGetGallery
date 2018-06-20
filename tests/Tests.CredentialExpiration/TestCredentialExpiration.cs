@@ -15,8 +15,7 @@ namespace Tests.CredentialExpiration
         private CredentialExpirationJobMetadata _jobMetadata;
         private DateTimeOffset _maxNotificationDate;
         private DateTimeOffset _minNotificationDate;
-
-        private TimeSpan _skipHours;
+        
         private GalleryCredentialExpiration _galleryCredentialsExpiration;
         List<ExpiredCredentialData> _credentialSet;
 

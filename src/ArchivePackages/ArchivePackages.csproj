@@ -38,14 +38,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Net" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Net.Http.WebRequest" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ArchivePackages.Job.cs" />
@@ -83,6 +77,9 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
       <Version>2.25.0-master-30453</Version>
+    </PackageReference>
+    <PackageReference Include="System.Net.Http">
+      <Version>4.3.3</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>

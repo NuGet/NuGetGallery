@@ -1493,6 +1493,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             /// When <see cref="AcceptsTrustedSigningCertificateWithUnavailableRevocation"/> is fixed,
             /// this test should be written as well.
+            await Task.CompletedTask;
         }
 
         [Theory]

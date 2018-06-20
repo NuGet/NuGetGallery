@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.Common;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -30,6 +31,7 @@ using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Sql;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -80,7 +82,10 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
             _validateOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, ValidateArgument, defaultValue: false);
-            _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename, _validateOnly));
+
+            var configurationRoot = GetConfigurationRoot(configurationFilename, _validateOnly, out var secretInjector);
+            _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
+
             ConfigurationValidated = false;
         }
 
@@ -100,7 +105,7 @@ namespace NuGet.Services.Validation.Orchestrator
             await runner.RunOrchestrationAsync();
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly)
+        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly, out ISecretInjector secretInjector)
         {
             Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
             var builder = new ConfigurationBuilder()
@@ -109,6 +114,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var uninjectedConfiguration = builder.Build();
 
+            secretInjector = null;
             if (validateOnly)
             {
                 // don't try to access KeyVault if only validation is requested:
@@ -119,7 +125,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
+            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
 
             builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
@@ -128,9 +134,14 @@ namespace NuGet.Services.Validation.Orchestrator
             return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
+        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector)
         {
             var services = new ServiceCollection();
+            if (!_validateOnly)
+            {
+                services.AddSingleton(secretInjector);
+            }
+
             ConfigureLibraries(services);
             ConfigureJobServices(services, configurationRoot);
 
@@ -144,6 +155,15 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.AddSingleton(LoggerFactory);
             services.AddLogging();
+        }
+
+        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
+        {
+            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
+            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
+                serviceProvider.GetRequiredService<ISecretInjector>());
+
+            return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -166,11 +186,13 @@ namespace NuGet.Services.Validation.Orchestrator
 
             services.AddScoped<NuGetGallery.IEntitiesContext>(serviceProvider =>
                 new NuGetGallery.EntitiesContext(
-                    serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
-                    readOnly: false));
+                    CreateDbConnection<GalleryDbConfiguration>(serviceProvider),
+                    readOnly: false)
+                    );
             services.AddScoped(serviceProvider =>
                 new ValidationEntitiesContext(
-                    serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>().Value.ConnectionString));
+                    CreateDbConnection<ValidationDbConfiguration>(serviceProvider)));
+
             services.AddScoped<IValidationEntitiesContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<ValidationEntitiesContext>());
             services.AddScoped<IValidationStorageService, ValidationStorageService>();

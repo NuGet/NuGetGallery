@@ -32,10 +32,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
-            services.AddScoped<IEntitiesContext>(serviceProvider =>
-                new EntitiesContext(
-                    serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
-                    readOnly: false));
+            services.AddScoped<IEntitiesContext>(p =>
+            {
+                return new EntitiesContext(CreateDbConnection<GalleryDbConfiguration>(p), readOnly: false);
+            });
+
             services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));
             services.AddTransient<ICorePackageService, CorePackageService>();
 
