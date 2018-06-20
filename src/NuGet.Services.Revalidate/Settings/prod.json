@@ -12,10 +12,10 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Integrated Security=False;User ID=$$Prod-GalleryDBReadOnly-UserName$$;Password=$$Prod-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Jobs.validation.GalleryDatabaseAadTenant};AadClientId=#{Jobs.validation.GalleryDatabaseAadClientId};AadCertificate=$$prod-gallerydb-writer$$"
   },
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Integrated Security=False;User ID=$$Prod-ValidationDBWriter-UserName$$;Password=$$Prod-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Jobs.validation.DatabaseAadTenant};AadClientId=#{Jobs.validation.DatabaseAadClientId};AadCertificate=$$prod-validationdb-writer$$"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetprod.servicebus.windows.net/;SharedAccessKeyName=package-certificates-validator;SharedAccessKey=$$Prod-ServiceBus-SharedAccessKey-Validation-CertificatesValidator$$",
