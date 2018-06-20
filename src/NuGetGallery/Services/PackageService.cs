@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -67,7 +68,7 @@ namespace NuGetGallery
                 }
 
                 // This will throw if the package contains an entry which will extract outside of the target extraction directory
-                await packageArchiveReader.ValidatePackageEntriesAsync(new System.Threading.CancellationToken());
+                await packageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
