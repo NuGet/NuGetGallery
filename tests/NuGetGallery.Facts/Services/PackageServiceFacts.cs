@@ -1540,6 +1540,23 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task ThrowsWhenPackageFailedValidation()
+            {
+                var packageRegistration = new PackageRegistration { Id = "theId" };
+                var package = new Package
+                {
+                    Version = "1.0",
+                    PackageRegistration = packageRegistration,
+                    Listed = false,
+                    PackageStatusKey = PackageStatus.FailedValidation,
+                };
+                var packageRepository = new Mock<IEntityRepository<Package>>();
+                var service = CreateService(packageRepository: packageRepository);
+
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.MarkPackageListedAsync(package));
+            }
+
+            [Fact]
             public async Task WritesAnAuditRecord()
             {
                 // Arrange
