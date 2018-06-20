@@ -294,6 +294,7 @@
       <SubType>Designer</SubType>
     </None>
     <EmbeddedResource Include="sparql\SelectDistinctDependencyVersionRanges.rq" />
+    <Compile Include="RetryWithExponentialBackoff.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
