@@ -365,7 +365,7 @@ namespace NuGetGallery
                     {
                         try
                         {
-                            PackageService.EnsureValid(packageToPush);
+                            await PackageService.EnsureValid(packageToPush);
                         }
                         catch (Exception ex)
                         {

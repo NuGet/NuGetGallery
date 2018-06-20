@@ -48,7 +48,7 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public void EnsureValid(PackageArchiveReader packageArchiveReader)
+        public async Task EnsureValid(PackageArchiveReader packageArchiveReader)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace NuGetGallery
                 }
 
                 // This will throw if the package contains an entry which will extract outside of the target extraction directory
-                packageArchiveReader.ValidatePackageEntriesAsync(new System.Threading.CancellationToken()).GetAwaiter().GetResult();
+                await packageArchiveReader.ValidatePackageEntriesAsync(new System.Threading.CancellationToken());
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {

@@ -273,7 +273,7 @@ namespace NuGetGallery
                 {
                     packageArchiveReader = CreatePackage(uploadStream);
 
-                    _packageService.EnsureValid(packageArchiveReader);
+                    await _packageService.EnsureValid(packageArchiveReader);
                 }
                 catch (Exception ex)
                 {
