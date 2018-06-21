@@ -765,20 +765,12 @@ namespace NuGetGallery
 
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string versionString)
         {
-            if (NuGetVersion.TryParse(versionString, out var version))
-            {
-
-                return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, version);
-            }
-            else
-            {
-                return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, versionString);
-            }
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(evaluationResult, id, versionString, HttpStatusCode.Forbidden);
         }
 
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Forbidden);
+            return GetHttpResultFromFailedApiScopeEvaluation(result, id, ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(version));
         }
 
         /// <remarks>
@@ -787,12 +779,12 @@ namespace NuGetGallery
         /// </remarks>
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Unauthorized);
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(version), HttpStatusCode.Unauthorized);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, NuGetVersion version, HttpStatusCode statusCodeOnFailure)
+        private string ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version.ToNormalizedString(), HttpStatusCode.Unauthorized);
+            return version.ToNormalizedString();
         }
 
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, string versionString, HttpStatusCode statusCodeOnFailure)
