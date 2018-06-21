@@ -1024,17 +1024,45 @@ namespace NuGetGallery
                 };
                 var invalidatedPackage = new Package
                 {
-                    Version = "1.1.1",
+                    Version = "1.0.0",
 
                     PackageRegistration = new PackageRegistration
                     {
-                        Id = "package",
+                        Id = "packageFailedValidation",
                         Owners = new[] { owner },
-                        DownloadCount = 150
+                        DownloadCount = 0
                     },
 
-                    DownloadCount = 100,
+                    DownloadCount = 0,
                     PackageStatusKey = PackageStatus.FailedValidation
+                };
+                var validatingPackage = new Package
+                {
+                    Version = "1.0.0",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "packageValidating",
+                        Owners = new[] { owner },
+                        DownloadCount = 0
+                    },
+
+                    DownloadCount = 0,
+                    PackageStatusKey = PackageStatus.Validating
+                };
+                var deletedPackage = new Package
+                {
+                    Version = "1.0.0",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "packageDeleted",
+                        Owners = new[] { owner },
+                        DownloadCount = 0
+                    },
+
+                    DownloadCount = 0,
+                    PackageStatusKey = PackageStatus.Deleted
                 };
 
                 GetMock<IUserService>()
@@ -1043,7 +1071,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package, invalidatedPackage });
+                    .Returns(new[] { package, invalidatedPackage, validatingPackage, deletedPackage });
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
