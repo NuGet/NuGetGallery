@@ -1019,7 +1019,22 @@ namespace NuGetGallery
                         DownloadCount = 150
                     },
 
-                    DownloadCount = 100
+                    DownloadCount = 100,
+                    PackageStatusKey = PackageStatus.Available
+                };
+                var invalidatedPackage = new Package
+                {
+                    Version = "1.1.1",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "package",
+                        Owners = new[] { owner },
+                        DownloadCount = 150
+                    },
+
+                    DownloadCount = 100,
+                    PackageStatusKey = PackageStatus.FailedValidation
                 };
 
                 GetMock<IUserService>()
@@ -1028,7 +1043,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package });
+                    .Returns(new[] { package, invalidatedPackage });
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
@@ -1115,6 +1130,7 @@ namespace NuGetGallery
                 User currentUser,
                 Package package)
             {
+                Assert.Equal(package.PackageStatusKey, PackageStatus.Available);
                 Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
                 Assert.Equal(package.Version, packageModel.Version);
                 Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);
