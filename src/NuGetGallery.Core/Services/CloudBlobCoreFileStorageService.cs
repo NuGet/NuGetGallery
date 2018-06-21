@@ -178,6 +178,14 @@ namespace NuGetGallery
                 IfMatchETag = destAccessCondition.IfMatchETag,
             };
 
+            if (!await srcBlob.ExistsAsync())
+            {
+                _trace.TraceEvent(
+                    TraceEventType.Warning,
+                    id: 0,
+                    message: $"Before calling FetchAttributesAsync(), the source blob '{srcBlob.Name}' does not exist.");
+            }
+
             // Determine the source blob etag.
             await srcBlob.FetchAttributesAsync();
             var srcAccessCondition = AccessCondition.GenerateIfMatchCondition(srcBlob.ETag);
@@ -247,6 +255,14 @@ namespace NuGetGallery
             while (destBlob.CopyState.Status == CopyStatus.Pending
                    && stopwatch.Elapsed < MaxCopyDuration)
             {
+                if (!await destBlob.ExistsAsync())
+                {
+                    _trace.TraceEvent(
+                        TraceEventType.Warning,
+                        id: 0,
+                        message: $"Before calling FetchAttributesAsync(), the destination blob '{destBlob.Name}' does not exist.");
+                }
+
                 await destBlob.FetchAttributesAsync();
                 await Task.Delay(CopyPollFrequency);
             }
