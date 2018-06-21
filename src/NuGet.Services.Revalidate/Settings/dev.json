@@ -12,10 +12,10 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-dev-0-v2gallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Jobs.validation.GalleryDatabaseAadTenant};AadClientId=#{Jobs.validation.GalleryDatabaseAadClientId};AadCertificate=$$dev-gallerydb-writer$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-dev-0-v2gallery;Integrated Security=False;User ID=$$Dev-GalleryDBReadOnly-UserName$$;Password=$$Dev-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Jobs.validation.DatabaseAadTenant};AadClientId=#{Jobs.validation.DatabaseAadClientId};AadCertificate=$$dev-validationdb-writer$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Integrated Security=False;User ID=$$Dev-ValidationDBWriter-UserName$$;Password=$$Dev-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=package-certificates-validator;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-CertificatesValidator$$",
