@@ -273,7 +273,7 @@ namespace NuGetGallery
                 {
                     packageArchiveReader = CreatePackage(uploadStream);
 
-                    _packageService.EnsureValid(packageArchiveReader);
+                    await _packageService.EnsureValid(packageArchiveReader);
                 }
                 catch (Exception ex)
                 {
@@ -1474,236 +1474,247 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            if (!ModelState.IsValid)
+            string packageId = null;
+            NuGetVersion packageVersion = null;
+
+            try
             {
-                var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
-                return Json(HttpStatusCode.BadRequest, errorMessages);
-            }
-
-            var currentUser = GetCurrentUser();
-
-            // Check that the owner specified in the form is valid
-            var owner = _userService.FindByUsername(formData.Owner);
-
-            if (owner == null)
-            {
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
-                return Json(HttpStatusCode.BadRequest, new[] { message });
-            }
-
-            if (!owner.Confirmed)
-            {
-                var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerUnconfirmed, formData.Owner);
-                return Json(HttpStatusCode.BadRequest, new[] { message });
-            }
-
-            Package package;
-            using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
-            {
-                if (uploadFile == null)
+                if (!ModelState.IsValid)
                 {
-                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UploadNotFound });
+                    var errorMessages = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage));
+                    return Json(HttpStatusCode.BadRequest, errorMessages);
                 }
 
-                var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
-                if (nugetPackage == null)
+                var currentUser = GetCurrentUser();
+
+                // Check that the owner specified in the form is valid
+                var owner = _userService.FindByUsername(formData.Owner);
+
+                if (owner == null)
                 {
-                    // Send the user back
-                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_UserNonExistent, formData.Owner);
+                    return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
 
-                Debug.Assert(nugetPackage != null);
-
-                var packageMetadata = PackageMetadata.FromNuspecReader(
-                    nugetPackage.GetNuspecReader(),
-                    strict: true);
-
-                // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
-                // viewing a different package to what was actually most recently uploaded
-                if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
+                if (!owner.Confirmed)
                 {
-                    if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
-                        && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
+                    var message = string.Format(CultureInfo.CurrentCulture, Strings.VerifyPackage_OwnerUnconfirmed, formData.Owner);
+                    return Json(HttpStatusCode.BadRequest, new[] { message });
+                }
+
+                Package package;
+                using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
+                {
+                    if (uploadFile == null)
                     {
-                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_PackageFileModified });
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UploadNotFound });
                     }
-                }
 
-                var packageStreamMetadata = new PackageStreamMetadata
-                {
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                    Hash = CryptographyService.GenerateHash(
-                        uploadFile.AsSeekableStream(),
-                        CoreConstants.Sha512HashAlgorithmId),
-                    Size = uploadFile.Length,
-                };
-
-                var packageId = packageMetadata.Id;
-                var packageVersion = packageMetadata.Version;
-
-                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
-                if (existingPackageRegistration == null)
-                {
-                    var checkPermissionsOfUploadNewId = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(currentUser, owner, new ActionOnNewPackageContext(packageId, _reservedNamespaceService));
-                    if (checkPermissionsOfUploadNewId != PermissionsCheckResult.Allowed)
+                    var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
+                    if (nugetPackage == null)
                     {
-                        if (checkPermissionsOfUploadNewId == PermissionsCheckResult.AccountFailure)
-                        {
-                            // The user is not allowed to upload a new ID on behalf of the owner specified in the form
-                            var message = string.Format(CultureInfo.CurrentCulture,
-                                Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
-                                currentUser.Username, owner.Username);
-                            return Json(HttpStatusCode.BadRequest, new[] { message });
-                        }
-                        else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
-                        {
-                            // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
-                            var version = packageVersion.ToNormalizedString();
-                            _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
-
-                            var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                            return Json(HttpStatusCode.Conflict, new string[] { message });
-                        }
-
-                        // An unknown error occurred.
+                        // Send the user back
                         return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
-                }
-                else
-                {
-                    var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
-                    if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+
+                    Debug.Assert(nugetPackage != null);
+
+                    var packageMetadata = PackageMetadata.FromNuspecReader(
+                        nugetPackage.GetNuspecReader(),
+                        strict: true);
+
+                    // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
+                    // viewing a different package to what was actually most recently uploaded
+                    if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
                     {
-                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
+                        if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
+                            && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
+                            && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                         {
-                            // The user is not allowed to upload a new version on behalf of the owner specified in the form
-                            var message = string.Format(CultureInfo.CurrentCulture,
-                                Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
-                                currentUser.Username, owner.Username);
-                            return Json(HttpStatusCode.BadRequest, new[] { message });
+                            return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_PackageFileModified });
                         }
-
-                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
-                        {
-                            // The owner specified in the form is not allowed to upload a new version of the package
-                            var message = string.Format(CultureInfo.CurrentCulture,
-                                Strings.VerifyPackage_OwnerInvalid,
-                                owner.Username, existingPackageRegistration.Id);
-                            return Json(HttpStatusCode.BadRequest, new[] { message });
-                        }
-
-                        // An unknown error occurred.
-                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
-                }
 
-                // update relevant database tables
-                try
-                {
-                    package = await _packageUploadService.GeneratePackageAsync(
-                        packageMetadata.Id,
-                        nugetPackage,
-                        packageStreamMetadata,
-                        owner,
-                        currentUser);
+                    var packageStreamMetadata = new PackageStreamMetadata
+                    {
+                        HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                        Hash = CryptographyService.GenerateHash(
+                            uploadFile.AsSeekableStream(),
+                            CoreConstants.Sha512HashAlgorithmId),
+                        Size = uploadFile.Length,
+                    };
 
-                    Debug.Assert(package.PackageRegistration != null);
-                }
-                catch (InvalidPackageException ex)
-                {
-                    _telemetryService.TraceException(ex);
+                    packageId = packageMetadata.Id;
+                    packageVersion = packageMetadata.Version;
 
-                    return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
-                }
+                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
+                    if (existingPackageRegistration == null)
+                    {
+                        var checkPermissionsOfUploadNewId = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(currentUser, owner, new ActionOnNewPackageContext(packageId, _reservedNamespaceService));
+                        if (checkPermissionsOfUploadNewId != PermissionsCheckResult.Allowed)
+                        {
+                            if (checkPermissionsOfUploadNewId == PermissionsCheckResult.AccountFailure)
+                            {
+                                // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                                var message = string.Format(CultureInfo.CurrentCulture,
+                                    Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                                    currentUser.Username, owner.Username);
+                                return Json(HttpStatusCode.BadRequest, new[] { message });
+                            }
+                            else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
+                            {
+                                // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                                var version = packageVersion.ToNormalizedString();
+                                _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
 
-                if (formData.Edit != null)
-                {
+                                var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                                return Json(HttpStatusCode.Conflict, new string[] { message });
+                            }
+
+                            // An unknown error occurred.
+                            return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                        }
+                    }
+                    else
+                    {
+                        var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                        if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+                        {
+                            if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
+                            {
+                                // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                                var message = string.Format(CultureInfo.CurrentCulture,
+                                    Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                                    currentUser.Username, owner.Username);
+                                return Json(HttpStatusCode.BadRequest, new[] { message });
+                            }
+
+                            if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
+                            {
+                                // The owner specified in the form is not allowed to upload a new version of the package
+                                var message = string.Format(CultureInfo.CurrentCulture,
+                                    Strings.VerifyPackage_OwnerInvalid,
+                                    owner.Username, existingPackageRegistration.Id);
+                                return Json(HttpStatusCode.BadRequest, new[] { message });
+                            }
+
+                            // An unknown error occurred.
+                            return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                        }
+                    }
+
+                    // update relevant database tables
                     try
                     {
-                        if (await _readMeService.SaveReadMeMdIfChanged(
-                            package,
-                            formData.Edit,
-                            Request.ContentEncoding,
-                            commitChanges: false))
-                        {
-                            _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
-                        }
+                        package = await _packageUploadService.GeneratePackageAsync(
+                            packageMetadata.Id,
+                            nugetPackage,
+                            packageStreamMetadata,
+                            owner,
+                            currentUser);
+
+                        Debug.Assert(package.PackageRegistration != null);
                     }
-                    catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
+                    catch (InvalidPackageException ex)
                     {
-                        // Thrown when ReadmeUrlHost is invalid.
-                        return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
-                    }
-                    catch (InvalidOperationException ex)
-                    {
-                        // Thrown when readme max length exceeded, or unexpected file extension.
+                        _telemetryService.TraceException(ex);
+
                         return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
-                }
 
-                await _packageService.PublishPackageAsync(package, commitChanges: false);
-
-                if (!formData.Listed)
-                {
-                    await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
-                }
-
-                await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
-
-                // Commit the package to storage and to the database.
-                uploadFile.Position = 0;
-                try
-                {
-                    var commitResult = await _packageUploadService.CommitPackageAsync(
-                        package,
-                        uploadFile.AsSeekableStream());
-
-                    switch (commitResult)
+                    if (formData.Edit != null)
                     {
-                        case PackageCommitResult.Success:
-                            break;
-                        case PackageCommitResult.Conflict:
-                            TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                            return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
-                        default:
-                            throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                        try
+                        {
+                            if (await _readMeService.SaveReadMeMdIfChanged(
+                                package,
+                                formData.Edit,
+                                Request.ContentEncoding,
+                                commitChanges: false))
+                            {
+                                _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                            }
+                        }
+                        catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
+                        {
+                            // Thrown when ReadmeUrlHost is invalid.
+                            return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
+                        }
+                        catch (InvalidOperationException ex)
+                        {
+                            // Thrown when readme max length exceeded, or unexpected file extension.
+                            return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
+                        }
                     }
 
-                    // tell Lucene to update index for the new package
-                    _indexingService.UpdateIndex();
+                    await _packageService.PublishPackageAsync(package, commitChanges: false);
 
-                    // write an audit record
-                    await _auditingService.SaveAuditRecordAsync(
-                        new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
-
-                    if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                    if (!formData.Listed)
                     {
-                        // notify user unless async validation in blocking mode is used
-                        _messageService.SendPackageAddedNotice(package,
-                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                            Url.AccountSettings(relativeUrl: false));
+                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
 
-                    // delete the uploaded binary in the Uploads container
-                    await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                    await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
 
-                    _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
-
-                    TempData["Message"] = String.Format(
-                        CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
-
-                    return Json(new
+                    // Commit the package to storage and to the database.
+                    uploadFile.Position = 0;
+                    try
                     {
-                        location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
-                    });
+                        var commitResult = await _packageUploadService.CommitPackageAsync(
+                            package,
+                            uploadFile.AsSeekableStream());
+
+                        switch (commitResult)
+                        {
+                            case PackageCommitResult.Success:
+                                break;
+                            case PackageCommitResult.Conflict:
+                                TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                                return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
+                            default:
+                                throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                        }
+
+                        // tell Lucene to update index for the new package
+                        _indexingService.UpdateIndex();
+
+                        // write an audit record
+                        await _auditingService.SaveAuditRecordAsync(
+                            new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
+
+                        if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                        {
+                            // notify user unless async validation in blocking mode is used
+                            _messageService.SendPackageAddedNotice(package,
+                                Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                Url.AccountSettings(relativeUrl: false));
+                        }
+
+                        // delete the uploaded binary in the Uploads container
+                        await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+
+                        _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
+
+                        TempData["Message"] = String.Format(
+                            CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
+
+                        return Json(new
+                        {
+                            location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
+                        });
+                    }
+                    catch (Exception e)
+                    {
+                        e.Log();
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                    }
                 }
-                catch (Exception e)
-                {
-                    e.Log();
-                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
-                }
+            }
+            catch (Exception)
+            {
+                _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
+                throw;
             }
         }
 

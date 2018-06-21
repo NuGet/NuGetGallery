@@ -306,7 +306,7 @@ namespace NuGetGallery
                 var result = await controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
-                Assert.IsNotType(typeof(RedirectResult), result);
+                Assert.IsNotType<RedirectResult>(result);
                 Assert.Contains(Strings.CouldNotFindAnyoneWithThatUsernameOrEmail, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
             }
 
@@ -324,7 +324,7 @@ namespace NuGetGallery
                 var result = await controller.ForgotPassword(model) as ViewResult;
 
                 Assert.NotNull(result);
-                Assert.IsNotType(typeof(RedirectResult), result);
+                Assert.IsNotType<RedirectResult>(result);
                 Assert.Contains(Strings.UserIsNotYetConfirmed, result.ViewData.ModelState[string.Empty].Errors.Select(e => e.ErrorMessage));
             }
 
@@ -2120,7 +2120,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(userName, model.AccountName);
-                Assert.Equal(1, model.Packages.Count());
+                Assert.Single(model.Packages);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
@@ -2180,8 +2180,8 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.Equal(testUser.Username, model.AccountName);
-                Assert.Equal(1, model.Packages.Count());
-                Assert.Equal(true, model.HasOrphanPackages);
+                Assert.Single(model.Packages);
+                Assert.True(model.HasOrphanPackages);
                 Assert.Equal(withPendingIssues, model.HasPendingRequests);
             }
         }
@@ -2384,7 +2384,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(1, controller.ModelState[string.Empty].Errors.Count);
+                Assert.Single(controller.ModelState[string.Empty].Errors);
                 Assert.Equal("error", controller.ModelState[string.Empty].Errors.First().ErrorMessage);
 
                 GetMock<IMessageService>()
@@ -2426,7 +2426,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(1, controller.ModelState[string.Empty].Errors.Count);
+                Assert.Single(controller.ModelState[string.Empty].Errors);
                 Assert.Equal(
                     String.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_AdminAccountDoesNotExist, "AdminThatDoesNotExist"),

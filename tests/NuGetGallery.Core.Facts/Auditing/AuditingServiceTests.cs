@@ -67,7 +67,7 @@ namespace NuGetGallery.Auditing
                 Assert.Equal(CredentialTypes.Password.V3, affectedCredential["Type"].Value<string>());
                 Assert.Equal(JTokenType.Null, affectedCredential["Value"].Type);
                 Assert.Equal(JTokenType.Null, affectedCredential["Description"].Type);
-                Assert.Equal(0, affectedCredential["Scopes"].AsJEnumerable().Count());
+                Assert.Empty(affectedCredential["Scopes"].AsJEnumerable());
                 Assert.Equal(JTokenType.Null, affectedCredential["Identity"].Type);
                 Assert.Equal(DateTime.MinValue, affectedCredential["Created"].Value<DateTime>());
                 Assert.Equal(user.Credentials.First().Expires.Value, affectedCredential["Expires"].Value<DateTime>());

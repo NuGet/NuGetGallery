@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
+using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
@@ -58,6 +59,10 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackagePush",
                         (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
+                    };
+
+                    yield return new object[] { "PackagePushFailure",
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent("id", new NuGetVersion("1.2.3")))
                     };
 
                     yield return new object[] { "PackageUnlisted",
@@ -550,7 +555,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<int>()),
                     Times.Once);
-                Assert.True(service.LastTraceMessage.Contains("InvalidOperationException"));
+                Assert.Contains("InvalidOperationException", service.LastTraceMessage);
             }
         }
 

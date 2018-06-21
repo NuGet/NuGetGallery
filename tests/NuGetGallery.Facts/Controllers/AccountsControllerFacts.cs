@@ -53,6 +53,7 @@ namespace NuGetGallery
 
         public abstract class TheAccountBaseAction : AccountsControllerTestContainer
         {
+
             [Theory]
             [MemberData(AllowedCurrentUsersDataName)]
             public void WillGetCuratedFeedsManagedByTheCurrentUser(Func<Fakes, User> getCurrentUser)

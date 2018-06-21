@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -48,7 +49,7 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public void EnsureValid(PackageArchiveReader packageArchiveReader)
+        public async Task EnsureValid(PackageArchiveReader packageArchiveReader)
         {
             try
             {
@@ -65,6 +66,9 @@ namespace NuGetGallery
                 {
                     ValidateSupportedFrameworks(supportedFrameworks);
                 }
+
+                // This will throw if the package contains an entry which will extract outside of the target extraction directory
+                await packageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -387,6 +391,12 @@ namespace NuGetGallery
             {
                 throw new InvalidOperationException("A deleted package should never be listed!");
             }
+
+            if (package.PackageStatusKey == PackageStatus.FailedValidation)
+            {
+                throw new InvalidOperationException("A package that failed validation should never be listed!");
+            }
+
             if (!package.Listed && (package.IsLatestStable || package.IsLatest))
             {
                 throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");

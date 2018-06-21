@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Principal;
 using System.Web;
+using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
 
@@ -16,6 +17,7 @@ namespace NuGetGallery
         {
             public const string ODataQueryFilter = "ODataQueryFilter";
             public const string PackagePush = "PackagePush";
+            public const string PackagePushFailure = "PackagePushFailure";
             public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
             public const string VerifyPackageKey = "VerifyPackageKey";
             public const string PackageReadMeChanged = "PackageReadMeChanged";
@@ -168,6 +170,16 @@ namespace NuGetGallery
             }
 
             TrackMetricForPackage(Events.PackagePush, package.PackageRegistration.Id, package.NormalizedVersion, user, identity);
+        }
+
+        public void TrackPackagePushFailureEvent(string id, NuGetVersion version)
+        {
+            TrackMetric(Events.PackagePushFailure, 1, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(PackageId, id);
+                properties.Add(PackageVersion, version.ToNormalizedString());
+            });
         }
 
         public void TrackPackagePushNamespaceConflictEvent(string packageId, string packageVersion, User user, IIdentity identity)

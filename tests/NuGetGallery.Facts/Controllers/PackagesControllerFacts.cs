@@ -1254,7 +1254,7 @@ namespace NuGetGallery
                 Assert.Equal(packageId, model.PackageId);
                 Assert.Equal(packageVersion, model.PackageVersion);
                 Assert.Equal(projectUrl, model.ProjectUrl);
-                Assert.Equal(1, model.Owners.Count());
+                Assert.Single(model.Owners);
                 Assert.True(model.HasOwners);
             }
 
@@ -2086,10 +2086,8 @@ namespace NuGetGallery
                 packageFileService.Verify(s => s.DownloadReadMeMdFileAsync(It.IsAny<Package>()), Times.Never);
             }
 
-            [Theory]
-            [MemberData(nameof(Owner_Data))]
-            [MemberData(nameof(NotOwner_Data))]
-            public async Task WhenPackageIsNotFoundReturns404(User currentUser, User owner)
+            [Fact]
+            public async Task WhenPackageIsNotFoundReturns404()
             {
                 // Arrange
                 var packageService = new Mock<IPackageService>(MockBehavior.Strict);
@@ -3993,6 +3991,82 @@ namespace NuGetGallery
         public class TheVerifyPackageActionForPostRequests
             : TestContainer
         {
+            [Fact]
+            public async Task WillTrackFailureIfUnexpectedExceptionWithoutIdVersion()
+            {
+                // Arrange
+                var fakeUserService = new Mock<IUserService>();
+                fakeUserService
+                    .Setup(x => x.FindByUsername(It.IsAny<string>(), false))
+                    .Throws<Exception>();
+                var fakeTelemetryService = new Mock<ITelemetryService>();
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    userService: fakeUserService,
+                    telemetryService: fakeTelemetryService);
+                var user = TestUtility.FakeUser;
+                controller.SetCurrentUser(user);
+
+                // Act
+                await Assert.ThrowsAnyAsync<Exception>(() => controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = user.Username }));
+
+                // Assert
+                fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(null, null), Times.Once());
+            }
+
+            [Fact]
+            public async Task WillTrackFailureIfUnexpectedExceptionWithIdVersion()
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageVersion = "1.0.0";
+                var currentUser = TestUtility.FakeUser;
+                var ownerInForm = currentUser;
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var fakePackageService = new Mock<IPackageService>();
+                    fakePackageService
+                        .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                        .Throws<Exception>();
+
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(currentUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(currentUser.Key)).Returns(Task.FromResult(0));
+                    var fakePackageUploadService = new Mock<IPackageUploadService>();
+                    fakePackageUploadService
+                        .Setup(x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()))
+                        .Returns(Task.FromResult(new Package { PackageRegistration = new PackageRegistration { Id = packageId }, Version = packageVersion }));
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(ownerInForm.Username, false)).Returns(ownerInForm);
+
+                    var fakeTelemetryService = new Mock<ITelemetryService>();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService,
+                        packageService: fakePackageService,
+                        telemetryService: fakeTelemetryService);
+                    controller.SetCurrentUser(currentUser);
+
+                    // Act
+                    await Assert.ThrowsAnyAsync<Exception>(() => controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = ownerInForm.Username }));
+
+                    // Assert
+                    fakeTelemetryService.Verify(x => x.TrackPackagePushFailureEvent(packageId, new NuGetVersion(packageVersion)), Times.Once());
+                }
+            }
+
             [Fact]
             public async Task WillRedirectToUploadPageWhenThereIsNoUploadInProgress()
             {

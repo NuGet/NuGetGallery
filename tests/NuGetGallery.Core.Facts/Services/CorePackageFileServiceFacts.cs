@@ -55,7 +55,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.SavePackageFileAsync(package, CreatePackageFileStream()).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -68,7 +68,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.SavePackageFileAsync(package, CreatePackageFileStream()).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -81,7 +81,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.SavePackageFileAsync(package, CreatePackageFileStream()).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -529,7 +529,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -542,7 +542,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -555,7 +555,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 

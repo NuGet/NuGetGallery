@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Principal;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
@@ -12,6 +13,8 @@ namespace NuGetGallery
         void TrackODataQueryFilterEvent(string callContext, bool isEnabled, bool isAllowed, string queryPattern);
 
         void TrackPackagePushEvent(Package package, User user, IIdentity identity);
+
+        void TrackPackagePushFailureEvent(string id, NuGetVersion version);
 
         void TrackPackageUnlisted(Package package);
 
