@@ -61,7 +61,7 @@ namespace Ng
 
                 // Create an ILoggerFactory
                 var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: true);
-                loggerConfiguration.WriteTo.File("Log.txt", retainedFileCountLimit: 3, fileSizeLimitBytes: 1000000);
+                loggerConfiguration.WriteTo.File("Log.txt", retainedFileCountLimit: 3, fileSizeLimitBytes: 1000000, rollOnFileSizeLimit: true);
 
                 var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration, LogEventLevel.Debug);
 
