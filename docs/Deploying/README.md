@@ -66,7 +66,7 @@ Replacing '[servername]', 'sa' and '[sapassword]' with the name of your Azure SQ
 In the Package Manager console, type the following command
 
 ```PowerShell
-Update-Database -ConnectionString "[ConnectionString]" -ConnectionProviderName System.Data.SqlClient
+Update-Database -ConnectionString "[ConnectionString]" -ConnectionProviderName System.Data.SqlClient -ConfigurationTypeName MigrationsConfiguration
 ```
 
 Replacing '[ConnectionString]' with the connection string you just crafted. The command should succeed and you should have a fully prepared database!
