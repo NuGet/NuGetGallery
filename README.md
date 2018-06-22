@@ -45,7 +45,9 @@ You can undo this with this command:
     git update-index --no-assume-unchanged .vs/config/applicationhost.config
 
 This should help prevent unwanted file commits.
-    
+
+6. Follow the steps listed [here](https://github.com/NuGet/NuGetGallery/wiki/Configuring-MSA-AAD-for-your-on-prem-gallery-instance), for configuring MSA/AAD with your gallery instance.
+
 ## Contribute
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
 create an issue. If you're feeling generous, please search to see if the issue is already logged before creating a 
