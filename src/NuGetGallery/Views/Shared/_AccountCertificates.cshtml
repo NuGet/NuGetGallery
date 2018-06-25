@@ -57,9 +57,7 @@
                 @WarnFor2FARequirement()
             }
             
-            <div class="alert-container">
-                @InformAboutOrgSettingsPage()
-            </div>
+            @InformAboutOrgSettingsPage()
             
             <div class="row" data-bind="ifnot: $data && $data.hasCertificates && $data.hasCertificates()">
                 <div class="col-xs-12 clearfix">
