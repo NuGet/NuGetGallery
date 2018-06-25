@@ -1019,7 +1019,50 @@ namespace NuGetGallery
                         DownloadCount = 150
                     },
 
-                    DownloadCount = 100
+                    DownloadCount = 100,
+                    PackageStatusKey = PackageStatus.Available
+                };
+                var invalidatedPackage = new Package
+                {
+                    Version = "1.0.0",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "packageFailedValidation",
+                        Owners = new[] { owner },
+                        DownloadCount = 0
+                    },
+
+                    DownloadCount = 0,
+                    PackageStatusKey = PackageStatus.FailedValidation
+                };
+                var validatingPackage = new Package
+                {
+                    Version = "1.0.0",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "packageValidating",
+                        Owners = new[] { owner },
+                        DownloadCount = 0
+                    },
+
+                    DownloadCount = 0,
+                    PackageStatusKey = PackageStatus.Validating
+                };
+                var deletedPackage = new Package
+                {
+                    Version = "1.0.0",
+
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "packageDeleted",
+                        Owners = new[] { owner },
+                        DownloadCount = 0
+                    },
+
+                    DownloadCount = 0,
+                    PackageStatusKey = PackageStatus.Deleted
                 };
 
                 GetMock<IUserService>()
@@ -1028,7 +1071,7 @@ namespace NuGetGallery
 
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package });
+                    .Returns(new[] { package, invalidatedPackage, validatingPackage, deletedPackage });
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
@@ -1115,6 +1158,7 @@ namespace NuGetGallery
                 User currentUser,
                 Package package)
             {
+                Assert.Equal(package.PackageStatusKey, PackageStatus.Available);
                 Assert.Equal(package.PackageRegistration.Id, packageModel.Id);
                 Assert.Equal(package.Version, packageModel.Version);
                 Assert.Equal(package.PackageRegistration.DownloadCount, packageModel.DownloadCount);

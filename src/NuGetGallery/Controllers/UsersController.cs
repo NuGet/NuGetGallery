@@ -615,6 +615,7 @@ namespace NuGetGallery
             }
 
             var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
+                .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .OrderByDescending(p => p.PackageRegistration.DownloadCount)
                 .Select(p => new ListPackageItemViewModel(p, currentUser)
                 {
