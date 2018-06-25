@@ -122,6 +122,24 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output);
         }
 
+        public async Task<MemoryStream> AuthorSignPackageStreamAsync(
+            Stream inputPackageStream,
+            X509Certificate2 signingCertificate,
+            ITestOutputHelper output)
+        {
+            var timestampUri = await GetTimestampServiceUrlAsync();
+
+            var packageBytes = await GenerateSignedPackageBytesAsync(
+                inputPackageStream,
+                new AuthorSignPackageRequest(signingCertificate, HashAlgorithmName.SHA256),
+                timestampUri,
+                output);
+
+            var memoryStream = new MemoryStream();
+            memoryStream.Write(packageBytes, 0, packageBytes.Length);
+            return memoryStream;
+        }
+
         public async Task<MemoryStream> RepositorySignPackageStreamAsync(
             Stream inputPackageStream,
             X509Certificate2 signingCertificate,

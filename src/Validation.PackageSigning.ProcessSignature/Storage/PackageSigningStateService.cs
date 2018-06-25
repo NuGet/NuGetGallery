@@ -39,9 +39,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
                 throw new ArgumentException(nameof(packageVersion));
             }
 
-            // It is possible this package has already been validated. If so, the package's state will already exist
-            // in the database. Updates to this state should only be requested on explicit revalidation gestures. However,
-            // this invariant may be broken due to message duplication.
+            // Update the signing state if it already exists, otherwise, create a new record.
             var signatureState = await _validationContext.PackageSigningStates.FirstOrDefaultAsync(s => s.PackageKey == packageKey);
 
             if (signatureState != null)
@@ -50,7 +48,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
             else
             {
-                // This package does not have a persisted record for its state. Create a new one.
                 _validationContext.PackageSigningStates.Add(new PackageSigningState
                 {
                     PackageId = packageId,
@@ -61,11 +58,11 @@ namespace NuGet.Jobs.Validation.PackageSigning.Storage
             }
         }
 
-        public async Task<bool> HasValidPackageSigningStateAsync(int packageKey)
+        public async Task<bool> HasPackageSigningStateAsync(int packageKey)
         {
             return await _validationContext.PackageSigningStates
                 .Where(s => s.PackageKey == packageKey)
-                .AnyAsync(s => s.SigningStatus == PackageSigningStatus.Valid);
+                .AnyAsync();
         }
     }
 }

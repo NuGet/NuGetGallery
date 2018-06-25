@@ -22,19 +22,32 @@ namespace Validation.PackageSigning.Core.Tests.Support
             bool addOcsp = true)
         {
             var responders = new DisposableList<IDisposable>();
+
+            if (addCa)
+            {
+                responders.Add(testServer.RegisterResponder(ca));
+            }
+
+            if (addOcsp)
+            {
+                responders.Add(testServer.RegisterResponder(ca.OcspResponder));
+            }
+
+            return responders;
+        }
+
+        public static DisposableList<IDisposable> RegisterRespondersForEntireChain(
+            this ISigningTestServer testServer,
+            CertificateAuthority ca,
+            bool addCa = true,
+            bool addOcsp = true)
+        {
+            var responders = new DisposableList<IDisposable>();
             var currentCa = ca;
 
             while (currentCa != null)
             {
-                if (addCa)
-                {
-                    responders.Add(testServer.RegisterResponder(currentCa));
-                }
-
-                if (addOcsp)
-                {
-                    responders.Add(testServer.RegisterResponder(currentCa.OcspResponder));
-                }
+                responders.AddRange(testServer.RegisterResponders(currentCa, addCa, addOcsp));
 
                 currentCa = currentCa.Parent;
             }
@@ -42,14 +55,14 @@ namespace Validation.PackageSigning.Core.Tests.Support
             return responders;
         }
 
-        public static DisposableList<IDisposable> RegisterResponders(
+        public static DisposableList<IDisposable> RegisterRespondersForTimestampServiceAndEntireChain(
             this ISigningTestServer testServer,
             TimestampService timestampService,
             bool addCa = true,
             bool addOcsp = true,
             bool addTimestamper = true)
         {
-            var responders = testServer.RegisterResponders(
+            var responders = testServer.RegisterRespondersForEntireChain(
                 timestampService.CertificateAuthority,
                 addCa,
                 addOcsp);
