@@ -9,21 +9,48 @@ using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public interface IValidationPackageFileService : ICorePackageFileService
+    public interface IValidationFileService
     {
+        /// <summary>
+        /// The action to delete the package file in the validation container.
+        /// </summary>
+        /// <param name="validationSet">The <see cref="PackageValidationSet"/> for the file to be deleted.</param>
+        /// <returns></returns>
+        Task DeleteValidationPackageFileAsync(PackageValidationSet validationSet);
+
+        /// <summary>
+        /// The action to delete the package file.
+        /// </summary>
+        /// <param name="validationSet">The <see cref="PackageValidationSet"/> for the file to be deleted.</param>
+        /// <returns></returns>
+        Task DeletePackageFileAsync(PackageValidationSet validationSet);
+
+        /// <summary>
+        /// It will return true if the package associated with this validation set exists.
+        /// </summary>
+        /// <param name="validationSet">The <see cref="PackageValidationSet"/> for the file to be found.</param>
+        /// <returns></returns>
+        Task<bool> DoesPackageFileExistAsync(PackageValidationSet validationSet);
+
+        /// <summary>
+        /// It will return true if the package in the validation container associated with this validation set exists.
+        /// </summary>
+        /// <param name="validationSet"></param>
+        /// <returns></returns>
+        Task<bool> DoesValidationPackageFileExistAsync(PackageValidationSet validationSet);
+
         /// <summary>
         /// Download the package content from the packages container to a temporary location on disk.
         /// </summary>
         /// <param name="package">The package metadata.</param>
         /// <returns>The package stream.</returns>
-        Task<Stream> DownloadPackageFileToDiskAsync(Package package);
+        Task<Stream> DownloadPackageFileToDiskAsync(PackageValidationSet package);
 
         /// <summary>
         /// Backs up the package file from the location specific for the validation set.
         /// </summary>
-        /// <param name="package">The package metadata.</param>
         /// <param name="validationSet">The validation set, containing validation set and package identifiers.</param>
-        Task BackupPackageFileFromValidationSetPackageAsync(Package package, PackageValidationSet validationSet);
+        Task BackupPackageFileFromValidationSetPackageAsync(PackageValidationSet validationSet);
 
         /// <summary>
         /// Copy a package from the validation container to a location specific for the validation set. This allows the
@@ -54,9 +81,8 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <summary>
         /// Copy a package from the validation container to the packages container.
         /// </summary>
-        /// <param name="id">The package ID.</param>
-        /// <param name="normalizedVersion">The normalized package version.</param>
-        Task CopyValidationPackageToPackageFileAsync(string id, string normalizedVersion);
+        /// <param name="validationSet">The validation set.</param>
+        Task CopyValidationPackageToPackageFileAsync(PackageValidationSet validationSet);
 
         /// <summary>
         /// Copy a package URL to a location specific for the validation set.
@@ -90,12 +116,12 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <summary>
         /// Updates package blob metadata.
         /// </summary>
-        /// <param name="package">A package that will have its blob metadata updated.</param>
+        /// <param name="validationSet">A validationSet that will identify the package that will have its blob metadata updated.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{PackageStreamMetadata}.Result" />) returns
         /// a <see name="PackageStreamMetadata" />.</returns>
         /// <exception cref="Microsoft.WindowsAzure.Storage.StorageException">Thrown if the blob has changed between
         /// successive read and write operations.</exception>
-        Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(Package package);
+        Task<PackageStreamMetadata> UpdatePackageBlobMetadataAsync(PackageValidationSet validationSet);
     }
 }

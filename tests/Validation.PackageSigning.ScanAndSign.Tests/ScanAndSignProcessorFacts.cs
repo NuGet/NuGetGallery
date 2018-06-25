@@ -134,7 +134,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             };
 
             _criteriaEvaluatorMock
-                .Setup(ce => ce.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                .Setup(ce => ce.IsMatch(It.IsAny<ICriteria>(), It.IsAny<Package>()))
                 .Returns(false);
 
             _validatorStateServiceMock
@@ -308,7 +308,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             });
 
             _criteriaEvaluatorMock
-                .Setup(ce => ce.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                .Setup(ce => ce.IsMatch(It.IsAny<ICriteria>(), It.IsAny<Package>()))
                 .Returns(false);
 
             var result = await _target.StartAsync(_request);
@@ -332,7 +332,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                 .Returns(_packageRegistration);
 
             _criteriaEvaluatorMock
-                .Setup(ce => ce.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                .Setup(ce => ce.IsMatch(It.IsAny<ICriteria>(), It.IsAny<Package>()))
                 .Returns(false);
 
             await _target.StartAsync(_request);
@@ -357,7 +357,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                 .Returns(_packageRegistration);
 
             _criteriaEvaluatorMock
-                .Setup(ce => ce.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                .Setup(ce => ce.IsMatch(It.IsAny<ICriteria>(), It.IsAny<Package>()))
                 .Returns(false);
 
             var result = await _target.StartAsync(_request);
@@ -405,7 +405,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         protected readonly Mock<IValidationEntitiesContext> _validationContext;
         protected readonly Mock<IValidatorStateService> _validatorStateServiceMock;
         protected readonly Mock<ICorePackageService> _packageServiceMock;
-        protected Mock<IPackageCriteriaEvaluator> _criteriaEvaluatorMock;
+        protected Mock<ICriteriaEvaluator<Package>> _criteriaEvaluatorMock;
         protected readonly Mock<IScanAndSignEnqueuer> _enqueuerMock;
         protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
         protected readonly Mock<IOptionsSnapshot<ScanAndSignConfiguration>> _optionsMock;
@@ -418,7 +418,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             _validationContext = new Mock<IValidationEntitiesContext>();
             _validatorStateServiceMock = new Mock<IValidatorStateService>();
             _packageServiceMock = new Mock<ICorePackageService>();
-            _criteriaEvaluatorMock = new Mock<IPackageCriteriaEvaluator>();
+            _criteriaEvaluatorMock = new Mock<ICriteriaEvaluator<Package>>();
             _enqueuerMock = new Mock<IScanAndSignEnqueuer>();
             _loggerMock = new Mock<ILogger<ScanAndSignProcessor>>();
             _blobProvider = new Mock<ISimpleCloudBlobProvider>();
@@ -426,7 +426,7 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
             _loggerMock = new Mock<ILogger<ScanAndSignProcessor>>();
 
             _criteriaEvaluatorMock
-                .Setup(ce => ce.IsMatch(It.IsAny<IPackageCriteria>(), It.IsAny<Package>()))
+                .Setup(ce => ce.IsMatch(It.IsAny<ICriteria>(), It.IsAny<Package>()))
                 .Returns(true);
 
             _config = new ScanAndSignConfiguration();

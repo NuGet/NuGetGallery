@@ -47,6 +47,7 @@
     <Compile Include="Configuration\TopologicalSortFacts.cs" />
     <Compile Include="MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
+    <Compile Include="PackageValidatingEntityFacts.cs" />
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidatorFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\CertificateVerificationEnqueuerFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidatorFacts.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="ValidationSetProcessorFacts.cs" />
     <Compile Include="ValidationSetProviderFacts.cs" />
     <Compile Include="ValidationStorageServiceFacts.cs" />
+    <Compile Include="PackageEntityServiceFacts.cs" />
     <Compile Include="ValidatorStateServiceFacts.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
     <Compile Include="Vcs\VcsValidatorFacts.cs" />

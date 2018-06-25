@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NuGetGallery;
 using NuGet.Services.Validation.Issues;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using Validation.PackageSigning.Core.Tests.Support;
@@ -129,7 +130,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             public async Task ReturnsZeroWhenThereAreNoMatchingValidationSets()
             {
                 // Arrange & Act
-                var actual = await _target.GetValidationSetCountAsync(_packageKey);
+                var actual = await _target.GetValidationSetCountAsync(_packageValidatingEntity);
 
                 // Assert
                 Assert.Equal(0, actual);
@@ -148,7 +149,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         new PackageValidationSet { PackageKey = _packageKey },
                         new PackageValidationSet { PackageKey = _packageKey + 1 }));
 
-                var actual = await _target.GetValidationSetCountAsync(_packageKey);
+                var actual = await _target.GetValidationSetCountAsync(_packageValidatingEntity);
 
                 Assert.Equal(3, actual);
             }
@@ -182,7 +183,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 // Act
                 var actual = await _target.OtherRecentValidationSetForPackageExists(
-                    _packageKey,
+                    _packageValidatingEntity,
                     _duration,
                     _idA);
 
@@ -201,7 +202,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 // Act
                 var actual = await _target.OtherRecentValidationSetForPackageExists(
-                    _packageKey,
+                    _packageValidatingEntity,
                     _duration,
                     _idA);
 
@@ -220,7 +221,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
                 // Act
                 var actual = await _target.OtherRecentValidationSetForPackageExists(
-                    _packageKey,
+                    _packageValidatingEntity,
                     _duration,
                     _idA);
 
@@ -274,7 +275,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.CopyPackageUrlForValidationSetAsync(It.IsAny<PackageValidationSet>(), It.IsAny<string>()))
                     .Returns(Task.CompletedTask)
                     .Callback<PackageValidationSet, string>((_, __) => operations.Add(
-                        nameof(IValidationPackageFileService.CopyPackageUrlForValidationSetAsync)));
+                        nameof(IValidationFileService.CopyPackageUrlForValidationSetAsync)));
                 _entitiesContext
                     .Setup(x => x.SaveChangesAsync())
                     .ReturnsAsync(1)
@@ -286,7 +287,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 // Assert
                 Assert.Equal(new List<string>
                 {
-                    nameof(IValidationPackageFileService.CopyPackageUrlForValidationSetAsync),
+                    nameof(IValidationFileService.CopyPackageUrlForValidationSetAsync),
                     nameof(IValidationEntitiesContext.SaveChangesAsync),
                 }, operations);
             }
@@ -446,11 +447,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             protected PackageValidation _packageValidation;
             protected string _nupkgUrl;
             protected Mock<IValidationEntitiesContext> _entitiesContext;
-            protected Mock<IValidationPackageFileService> _packageFileService;
+            protected Mock<IValidationFileService> _packageFileService;
             protected Mock<IValidatorProvider> _validatorProvider;
             protected Mock<ITelemetryService> _telemetryService;
             protected LoggerFactory _loggerFactory;
             protected ValidationStorageService _target;
+            protected IValidatingEntity<Package> _packageValidatingEntity;
 
             public Facts(ITestOutputHelper output)
             {
@@ -465,6 +467,13 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     PackageValidationIssues = new List<PackageValidationIssue>(),
                     PackageValidationSet = new PackageValidationSet(),
                 };
+
+                var package = new Package()
+                {
+                    Key = _packageKey
+                };
+
+                _packageValidatingEntity = new PackageValidatingEntity(package);
                 _nupkgUrl = "https://example/nuget.versioning.4.3.0.nupkg";
 
                 _entitiesContext = new Mock<IValidationEntitiesContext>();
@@ -472,7 +481,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Setup(x => x.PackageValidationSets)
                     .Returns(DbSetMockFactory.Create<PackageValidationSet>());
 
-                _packageFileService = new Mock<IValidationPackageFileService>();
+                _packageFileService = new Mock<IValidationFileService>();
 
                 _validatorProvider = new Mock<IValidatorProvider>();
 

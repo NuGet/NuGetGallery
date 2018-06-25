@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 
 namespace NuGet.Jobs.Validation
 {
-    public class PackageDownloader : IPackageDownloader
+    public class PackageDownloader : IFileDownloader
     {
         private readonly HttpClient _httpClient;
         private readonly ICommonTelemetryService _telemetryService;

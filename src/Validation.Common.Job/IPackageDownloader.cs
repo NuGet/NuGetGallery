@@ -8,8 +8,8 @@ using System.Threading.Tasks;
 
 namespace NuGet.Jobs.Validation
 {
-    public interface IPackageDownloader
+    public interface IFileDownloader
     {
-        Task<Stream> DownloadAsync(Uri packageUri, CancellationToken cancellationToken);
+        Task<Stream> DownloadAsync(Uri fileUri, CancellationToken cancellationToken);
     }
 }

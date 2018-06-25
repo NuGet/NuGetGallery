@@ -51,8 +51,12 @@
     <Compile Include="DiskMailSender.cs" />
     <Compile Include="Configuration\EmailConfiguration.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="Services\IEntityService.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
+    <Compile Include="Services\PackageValidationFileServiceMetadata.cs" />
+    <Compile Include="Services\IValidationFileServiceMetadata.cs" />
+    <Compile Include="ValidatingEntitites\IValidatingEntity.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
     <Compile Include="IValidationPackageFileService.cs" />
     <Compile Include="IValidationSetProcessor.cs" />
@@ -62,6 +66,7 @@
     <Compile Include="MessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />
     <Compile Include="Configuration\OrchestrationRunnerConfiguration.cs" />
+    <Compile Include="Services\PackageEntityService.cs" />
     <Compile Include="PackageSigning\ProcessSignature\BaseSignatureProcessor.cs" />
     <Compile Include="PackageSigning\ProcessSignature\IProcessSignatureEnqueuer.cs" />
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessor.cs" />
@@ -84,6 +89,7 @@
     <Compile Include="Telemetry\TelemetryService.cs" />
     <Compile Include="Configuration\ValidationConfiguration.cs" />
     <Compile Include="Configuration\ValidationConfigurationItem.cs" />
+    <Compile Include="ValidatingEntitites\PackageValidatingEntity.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
     <Compile Include="ValidationPackageFileService.cs" />
     <Compile Include="ValidationSetProcessorResult.cs" />

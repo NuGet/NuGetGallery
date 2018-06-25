@@ -23,7 +23,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
         private readonly ICorePackageService _packageService;
-        private readonly IPackageCriteriaEvaluator _criteriaEvaluator;
+        private readonly ICriteriaEvaluator<Package> _criteriaEvaluator;
         private readonly IScanAndSignEnqueuer _scanAndSignEnqueuer;
         private readonly ISimpleCloudBlobProvider _blobProvider;
         private readonly ScanAndSignConfiguration _configuration;
@@ -33,7 +33,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             IValidationEntitiesContext validationContext,
             IValidatorStateService validatorStateService,
             ICorePackageService packageService,
-            IPackageCriteriaEvaluator criteriaEvaluator,
+            ICriteriaEvaluator<Package> criteriaEvaluator,
             IScanAndSignEnqueuer scanAndSignEnqueuer,
             ISimpleCloudBlobProvider blobProvider,
             IOptionsSnapshot<ScanAndSignConfiguration> configurationAccessor,

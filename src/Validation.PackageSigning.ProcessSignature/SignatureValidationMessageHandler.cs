@@ -25,7 +25,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
     public class SignatureValidationMessageHandler
         : IMessageHandler<SignatureValidationMessage>
     {
-        private readonly IPackageDownloader _packageDownloader;
+        private readonly IFileDownloader _packageDownloader;
         private readonly IValidatorStateService _validatorStateService;
         private readonly ISignatureValidator _signatureValidator;
         private readonly ILogger<SignatureValidationMessageHandler> _logger;
@@ -38,7 +38,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         /// <param name="packageSigningStateService">The service used to retrieve and persist package signing state.</param>
         /// <param name="logger">The logger that should be used.</param>
         public SignatureValidationMessageHandler(
-            IPackageDownloader packageDownloader,
+            IFileDownloader packageDownloader,
             IValidatorStateService validatorStateService,
             ISignatureValidator signatureValidator,
             ILogger<SignatureValidationMessageHandler> logger)

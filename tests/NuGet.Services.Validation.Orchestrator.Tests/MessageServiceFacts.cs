@@ -18,21 +18,21 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public void ConstructorThrowsWhenCoreMessageServiceIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => new MessageService(null, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
+            var ex = Assert.Throws<ArgumentNullException>(() => new PackageMessageService(null, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
             Assert.Equal("coreMessageService", ex.ParamName);
         }
 
         [Fact]
         public void ConstructorThrowsWhenEmailConfigurationAccessorIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => new MessageService(CoreMessageServiceMock.Object, null, LoggerMock.Object));
+            var ex = Assert.Throws<ArgumentNullException>(() => new PackageMessageService(CoreMessageServiceMock.Object, null, LoggerMock.Object));
             Assert.Equal("emailConfigurationAccessor", ex.ParamName);
         }
 
         [Fact]
         public void ConstructorThrowsWhenLoggerIsNull()
         {
-            var ex = Assert.Throws<ArgumentNullException>(() => new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, null));
+            var ex = Assert.Throws<ArgumentNullException>(() => new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, null));
             Assert.Equal("logger", ex.ParamName);
         }
 
@@ -43,7 +43,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .SetupGet(eca => eca.Value)
                 .Returns((EmailConfiguration)null);
 
-            var ex = Assert.Throws<ArgumentException>(() => new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
+            var ex = Assert.Throws<ArgumentException>(() => new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
             Assert.Equal("emailConfigurationAccessor", ex.ParamName);
         }
 
@@ -76,7 +76,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     EmailSettingsUrl = emailSettingsUrl
                 });
 
-            var ex = Assert.Throws<ArgumentException>(() => new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
+            var ex = Assert.Throws<ArgumentException>(() => new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
             Assert.Equal("emailConfigurationAccessor", ex.ParamName);
             Assert.Contains(expectedProperty, ex.Message);
         }
@@ -93,7 +93,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     EmailSettingsUrl = "someRandomValue"
                 });
 
-            var ex = Assert.Throws<ArgumentException>(() => new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
+            var ex = Assert.Throws<ArgumentException>(() => new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object));
             Assert.Equal("emailConfigurationAccessor", ex.ParamName);
             Assert.Contains("EmailSettingsUrl", ex.Message);
             Assert.Contains(" url", ex.Message, StringComparison.OrdinalIgnoreCase);
@@ -105,9 +105,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var expectedPackageUrl = string.Format(EmailConfiguration.PackageUrlTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
             var expectedSupportUrl = string.Format(EmailConfiguration.PackageSupportTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
 
-            var service = new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
+            var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
-            var ex = Record.Exception(() => service.SendPackagePublishedMessage(Package));
+            var ex = Record.Exception(() => service.SendPublishedMessage(Package));
             Assert.Null(ex);
 
             CoreMessageServiceMock
@@ -119,8 +119,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public void SendPackagePublishedEmailThrowsWhenPackageIsNull()
         {
-            var service = new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendPackagePublishedMessage(null));
+            var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
+            var ex = Assert.Throws<ArgumentNullException>(() => service.SendPublishedMessage(null));
             Assert.Equal("package", ex.ParamName);
         }
 
@@ -130,9 +130,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var expectedPackageUrl = string.Format(EmailConfiguration.PackageUrlTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
             var expectedSupportUrl = string.Format(EmailConfiguration.PackageSupportTemplate, Package.PackageRegistration.Id, Package.NormalizedVersion);
 
-            var service = new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
+            var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
-            var ex = Record.Exception(() => service.SendPackageValidationFailedMessage(Package));
+            var ex = Record.Exception(() => service.SendValidationFailedMessage(Package));
             Assert.Null(ex);
 
             CoreMessageServiceMock
@@ -144,8 +144,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact]
         public void SendPackageValidationFailedMessageThrowsWhenPackageIsNull()
         {
-            var service = new MessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendPackageValidationFailedMessage(null));
+            var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
+            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(null));
             Assert.Equal("package", ex.ParamName);
         }
 
@@ -173,7 +173,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         private Mock<ICoreMessageService> CoreMessageServiceMock { get; set; } = new Mock<ICoreMessageService>();
         private Mock<IOptionsSnapshot<EmailConfiguration>> EmailConfigurationAccessorMock { get; set; } = new Mock<IOptionsSnapshot<EmailConfiguration>>();
-        private Mock<ILogger<MessageService>> LoggerMock { get; set; } = new Mock<ILogger<MessageService>>();
+        private Mock<ILogger<PackageMessageService>> LoggerMock { get; set; } = new Mock<ILogger<PackageMessageService>>();
         private Package Package { get; set; }
         private EmailConfiguration EmailConfiguration { get; set; }
     }

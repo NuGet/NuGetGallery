@@ -24,16 +24,16 @@ namespace NuGet.Services.Validation.Vcs
 
         private readonly IPackageValidationService _validationService;
         private readonly IPackageValidationAuditor _validationAuditor;
-        private readonly ICorePackageService _packageService;
-        private readonly IPackageCriteriaEvaluator _criteriaEvaluator;
+        private readonly IEntityService<Package> _packageService;
+        private readonly ICriteriaEvaluator<Package> _criteriaEvaluator;
         private readonly IOptionsSnapshot<VcsConfiguration> _config;
         private readonly ILogger<VcsValidator> _logger;
 
         public VcsValidator(
             IPackageValidationService validationService,
             IPackageValidationAuditor validationAuditor,
-            ICorePackageService packageService,
-            IPackageCriteriaEvaluator criteriaEvaluator,
+            IEntityService<Package> packageService,
+            ICriteriaEvaluator<Package> criteriaEvaluator,
             IOptionsSnapshot<VcsConfiguration> config,
             ILogger<VcsValidator> logger)
         {
@@ -166,7 +166,7 @@ namespace NuGet.Services.Validation.Vcs
         {
             var package = _packageService.FindPackageByIdAndVersionStrict(
                 request.PackageId,
-                request.PackageVersion);
+                request.PackageVersion)?.EntityRecord;
 
             if (!_criteriaEvaluator.IsMatch(_config.Value.PackageCriteria, package))
             {

@@ -33,10 +33,11 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private readonly MemoryStream _packageStream;
         private readonly DateTimeOffset _endOfAccess;
         private readonly Mock<ICoreFileStorageService> _fileStorageService;
-        private readonly Mock<IPackageDownloader> _packageDownloader;
+        private readonly Mock<IFileDownloader> _packageDownloader;
         private readonly Mock<ITelemetryService> _telemetryService;
-        private readonly Mock<ILogger<ValidationPackageFileService>> _logger;
-        private readonly ValidationPackageFileService _target;
+        private readonly Mock<ILogger<ValidationFileService>> _logger;
+        private readonly ValidationFileService _target;
+
 
         public ValidationPackageFileServiceFacts()
         {
@@ -69,15 +70,17 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             _endOfAccess = new DateTimeOffset(2018, 1, 3, 8, 30, 0, TimeSpan.Zero);
 
             _fileStorageService = new Mock<ICoreFileStorageService>(MockBehavior.Strict);
-            _packageDownloader = new Mock<IPackageDownloader>(MockBehavior.Strict);
-            _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
-            _logger = new Mock<ILogger<ValidationPackageFileService>>();
 
-            _target = new ValidationPackageFileService(
+            _packageDownloader = new Mock<IFileDownloader>(MockBehavior.Strict);
+            _telemetryService = new Mock<ITelemetryService>(MockBehavior.Strict);
+            _logger = new Mock<ILogger<ValidationFileService>>();
+
+            _target = new ValidationFileService(
                 _fileStorageService.Object,
                 _packageDownloader.Object,
                 _telemetryService.Object,
-                _logger.Object);
+                _logger.Object,
+		new PackageValidationFileServiceMetadata());
         }
 
         [Fact]
@@ -109,7 +112,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verifiable();
 
             var before = DateTimeOffset.UtcNow;
-            await _target.BackupPackageFileFromValidationSetPackageAsync(_package, _validationSet);
+            await _target.BackupPackageFileFromValidationSetPackageAsync(_validationSet);
             var after = DateTimeOffset.UtcNow;
 
             _fileStorageService.Verify();
@@ -135,7 +138,14 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(_packageStream)
                 .Verifiable();
 
-            var actual = await _target.DownloadPackageFileToDiskAsync(_package);
+            var validationSet = new PackageValidationSet()
+            {
+                PackageNormalizedVersion = _package.NormalizedVersion,
+                PackageKey = _package.Key,
+                PackageId = _package.PackageRegistration.Id
+            };
+
+            var actual = await _target.DownloadPackageFileToDiskAsync(validationSet);
 
             Assert.Same(_packageStream, actual);
             _fileStorageService.Verify();
@@ -192,7 +202,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .ReturnsAsync(_etag)
                 .Verifiable();
 
-            await _target.CopyValidationPackageToPackageFileAsync(_validationSet.PackageId, _validationSet.PackageNormalizedVersion);
+            await _target.CopyValidationPackageToPackageFileAsync(_validationSet);
 
             _fileStorageService.Verify();
         }
@@ -312,7 +322,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                         "System.IO.MemoryStream"))
                     .Returns(Mock.Of<IDisposable>());
 
-                var streamMetadata = await _target.UpdatePackageBlobMetadataAsync(_package);
+                var streamMetadata = await _target.UpdatePackageBlobMetadataAsync(_validationSet);
 
                 Assert.True(wasUpdated);
                 Assert.Single(metadata);
@@ -359,7 +369,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                     .Returns(Mock.Of<IDisposable>());
 
                 await Assert.ThrowsAsync<StorageException>(
-                    () => _target.UpdatePackageBlobMetadataAsync(_package));
+                    () => _target.UpdatePackageBlobMetadataAsync(_validationSet));
 
                 Assert.True(wasUpdated);
                 Assert.Single(metadata);

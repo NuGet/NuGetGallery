@@ -9,11 +9,11 @@ namespace NuGet.Services.Validation.Orchestrator
     /// <summary>
     /// This interface manages the state of gallery artifacts: gallery DB and packages container.
     /// </summary>
-    public interface IPackageStatusProcessor
+    public interface IStatusProcessor<T> where T : class, IEntity
     {
-        Task SetPackageStatusAsync(
-            Package package,
+        Task SetStatusAsync(
+            IValidatingEntity<T> validatingEntity,
             PackageValidationSet validationSet,
-            PackageStatus packageStatus);
+            PackageStatus status);
     }
 }
