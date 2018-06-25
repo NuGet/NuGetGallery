@@ -924,4 +924,10 @@ If you would like to update the linked Microsoft account you can do so from the 
     <value>The package was signed. The owner '{0}' must register the signing certificate to publish signed packages.</value>
     <comment>{0} is the signer name.</comment>
   </data>
+  <data name="SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush" xml:space="preserve">
+    <value>Package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to &lt;insert URL here&gt; for more information.</value>
+  </data>
+  <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Learn more about Package ID prefix reservation.</value>
+  </data>
 </root>

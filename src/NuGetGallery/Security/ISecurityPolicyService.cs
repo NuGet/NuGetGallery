@@ -72,5 +72,17 @@ namespace NuGetGallery.Security
         /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult" />
         /// instance.</returns>
         Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(SecurityPolicyAction action, Organization organization, User account);
+
+        /// <summary>
+        /// Evaluate any package security policies that may apply to the current context.
+        /// </summary>
+        /// <param name="action">Security policy action.</param>
+        /// <param name="httpContext">Http context.</param>
+        /// <param name="package">The package to evaluate.</param>
+        /// <param name="packageRegistration">The package registration. Will be <code>null</code> if the <paramref name="package"/> has a new package ID.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult"/>
+        /// instance.</returns>
+        Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(SecurityPolicyAction action, HttpContextBase httpContext, Package package, PackageRegistration packageRegistration);
     }
 }

@@ -18,26 +18,29 @@ namespace NuGetGallery.Security
 {
     public class SecurityPolicyServiceFacts
     {
-        private static IEntitiesContext _entities = new Mock<IEntitiesContext>().Object;
-        private static IAuditingService _auditing = new Mock<IAuditingService>().Object;
-        private static IDiagnosticsService _diagnostics = new Mock<IDiagnosticsService>().Object;
-        private static IAppConfiguration _configuration = new Mock<IAppConfiguration>().Object;
+        private static readonly IEntitiesContext _entities = new Mock<IEntitiesContext>().Object;
+        private static readonly IAuditingService _auditing = new Mock<IAuditingService>().Object;
+        private static readonly IDiagnosticsService _diagnostics = new Mock<IDiagnosticsService>().Object;
+        private static readonly IAppConfiguration _configuration = new Mock<IAppConfiguration>().Object;
 
         public static IEnumerable<object[]> CtorThrowNullReference_Data
         {
             get
             {
-                yield return new object[] { null, _auditing, _diagnostics, _configuration};
+                yield return new object[] { null, _auditing, _diagnostics, _configuration };
                 yield return new object[] { _entities, null, _diagnostics, _configuration };
                 yield return new object[] { _entities, _auditing, null, _configuration };
                 yield return new object[] { _entities, _auditing, _diagnostics, null };
             }
         }
-        
+
         [Theory]
         [MemberData(nameof(CtorThrowNullReference_Data))]
         public void Constructor_ThrowsArgumentNullIfArgumentMissing(
-            IEntitiesContext entities, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration)
+            IEntitiesContext entities,
+            IAuditingService auditing,
+            IDiagnosticsService diagnostics,
+            IAppConfiguration configuration)
         {
             Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration));
         }
@@ -61,6 +64,24 @@ namespace NuGetGallery.Security
             Assert.Equal(typeof(RequireOrganizationTenantPolicy), handlers[2].GetType());
             Assert.Equal(typeof(ControlRequiredSignerPolicy), handlers[3].GetType());
             Assert.Equal(typeof(AutomaticallyOverwriteRequiredSignerPolicy), handlers[4].GetType());
+        }
+
+        [Fact]
+        public void PackageHandlers_ReturnsRegisteredPackageSecurityPolicyHandlers()
+        {
+            // Arrange.
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration);
+
+            // Act.
+            var handlers = ((IEnumerable<PackageSecurityPolicyHandler>)service.GetType()
+                .GetProperty("PackageHandlers", BindingFlags.GetProperty | BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(service))
+                .OfType<PackageSecurityPolicyHandler>().ToList();
+
+            // Assert
+            Assert.NotNull(handlers);
+            Assert.Equal(1, handlers.Count);
+            Assert.Equal(typeof(RequireMicrosoftPackageCompliancePolicy), handlers[0].GetType());
         }
 
         [Fact]
@@ -213,7 +234,7 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.False(result.Success);
-            
+
             // The error indicates which subscription failed
             Assert.Contains(policyData.DefaultSubscription.Object.SubscriptionName, result.ErrorMessage);
 

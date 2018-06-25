@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
@@ -31,6 +32,36 @@ namespace NuGetGallery.Services
         {
             string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
             string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+
+-----------------------------------------------
+<em style=""font-size: 0.8em;"">
+    To stop receiving emails as an owner of this package, sign in to the {CoreConfiguration.GalleryOwner.DisplayName} and
+    [change your email notification settings]({emailSettingsUrl}).
+</em>";
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    SendMessage(mailMessage, copySender: false);
+                }
+            }
+        }
+
+        public void SendPackageAddedWithWarningsNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages)
+        {
+            string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with Warnings - {package.PackageRegistration.Id} {package.Version}";
+            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. 
+
+{string.Join(Environment.NewLine, warningMessages)}
+
+If this was not intended, please [contact support]({packageSupportUrl}).
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">

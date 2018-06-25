@@ -1715,11 +1715,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to &lt;insert URL here&gt; for more information..
+        /// </summary>
+        public static string SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A client version &apos;{0}&apos; or higher is required to be able to push packages. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
                 return ResourceManager.GetString("SecurityPolicy_RequireMinProtocolVersionForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Learn more about Package ID prefix reservation..
+        /// </summary>
+        public static string SecurityPolicy_RequirePackagePrefixReserved {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequirePackagePrefixReserved", resourceCulture);
             }
         }
         
