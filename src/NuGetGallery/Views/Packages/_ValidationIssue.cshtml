@@ -6,8 +6,7 @@
 {
     case ValidationIssueCode.PackageIsSigned:
         <text>
-            <b>Package publishing failed.</b> This package could not be published since it is signed. We do not accept
-            signed packages at this moment. To be notified about package signing and more, watch our
+            We do not accept signed packages at this moment. To be notified about package signing and more, watch our
             <a href="https://github.com/nuget/announcements/issues">Announcements</a> page or follow us on
             <a href="https://twitter.com/nuget">Twitter</a>.
         </text>
@@ -47,21 +46,21 @@
         break;
     case ValidationIssueCode.PackageIsNotSigned:
         <text>
-            <b>Package publishing failed.</b> The package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+            This package must be signed with a registered certificate. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
         </text>
         break;
     case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
         {
             var typedIssue = (UnauthorizedCertificateFailure)Model;
             <text>
-                <b>Package publishing failed.</b> The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account. You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
+                The package was signed, but the signing certificate (SHA-1 thumbprint @typedIssue.Sha1Thumbprint) is not associated with your account.
+                You must register this certificate to publish signed packages. <a href="https://aka.ms/nuget-signed-ref">Read more...</a>
             </text>
             break;
         }
     default:
         <text>
-            <strong>Package publishing failed.</strong> This package could not be published since package validation
-            failed. Please contact <a href="mailto:support@nuget.org">support@nuget.org</a>.
+            There was an unknown failure when validating your package.
         </text>
         break;
 }
