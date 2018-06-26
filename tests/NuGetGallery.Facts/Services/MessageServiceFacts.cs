@@ -14,6 +14,8 @@ using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
 using NuGet.Versioning;
+using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery
 {
@@ -1115,62 +1117,42 @@ namespace NuGetGallery
         public class TheSendPackageValidationFailedNoticeMethod
             : TestContainer
         {
-            [Theory]
-            [InlineData("1.2.3")]
-            [InlineData("1.2.3-alpha")]
-            [InlineData("1.2.3-alpha.1")]
-            [InlineData("1.2.3+metadata")]
-            [InlineData("1.2.3-alpha+metadata")]
-            [InlineData("1.2.3-alpha.1+metadata")]
-            public void WillSendEmailToAllOwners(string version)
+            public static IEnumerable<object[]> WillSendEmailToAllOwners_Data
             {
-                // Arrange
-                var nugetVersion = new NuGetVersion(version);
-                var packageRegistration = new PackageRegistration
+                get
                 {
-                    Id = "smangit",
-                    Owners = new[]
+                    foreach (var user1PushAllowed in new[] { false, true })
                     {
-                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
-                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = true }
+                        foreach (var user2PushAllowed in new[] { false, true })
+                        {
+                            foreach (var user1EmailAllowed in new[] { false, true })
+                            {
+                                foreach (var user2EmailAllowed in new[] { false, true })
+                                {
+                                    foreach (var validationIssue in new[] {
+                                        ValidationIssue.AuthorAndRepositoryCounterSignaturesNotSupported,
+                                        ValidationIssue.AuthorCounterSignaturesNotSupported,
+                                        ValidationIssue.OnlyAuthorSignaturesSupported,
+                                        ValidationIssue.OnlySignatureFormatVersion1Supported,
+                                        ValidationIssue.PackageIsNotSigned,
+                                        ValidationIssue.PackageIsSigned,
+                                        ValidationIssue.PackageIsZip64,
+                                        ValidationIssue.Unknown,
+                                        new ClientSigningVerificationFailure("NU9999", "test message"),
+                                        new UnauthorizedCertificateFailure("asdfasdfasdf")})
+                                    {
+                                        yield return MemberDataHelper.AsData(validationIssue, user1PushAllowed, user2PushAllowed, user1EmailAllowed, user2EmailAllowed);
+                                    }
+                                }
+                            }
+                        }
                     }
-                };
-                var package = new Package
-                {
-                    Version = version,
-                    PackageRegistration = packageRegistration
-                };
-                packageRegistration.Packages.Add(package);
-
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
-                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
-                messageService.SendPackageValidationFailedNotice(package, packageUrl, supportUrl);
-
-                // Assert
-                var message = messageService.MockMailSender.Sent.Last();
-
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
-                Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) failed validation and was therefore not published on {TestGalleryOwner.DisplayName}. " +
-                    $"Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. " +
-                    $"Please [contact support]({supportUrl}) for next steps.", message.Body);
+                }
             }
 
-            public static IEnumerable<object[]> EmailSettingsCombinations
-                => from u1pa in new[] { true, false }
-                   from u2pa in new[] { true, false }
-                   from u1ea in new[] { true, false }
-                   from u2ea in new[] { true, false }
-                   select new object[] { u1pa, u2pa, u1ea, u2ea };
-
             [Theory]
-            [MemberData(nameof(EmailSettingsCombinations))]
-            public void WillSendEmailToOwnersRegardlessOfSettings(bool user1PushAllowed, bool user2PushAllowed, bool user1EmailAllowed, bool user2EmailAllowed)
+            [MemberData(nameof(WillSendEmailToAllOwners_Data))]
+            public void WillSendEmailToAllOwners(ValidationIssue validationIssue, bool user1PushAllowed, bool user2PushAllowed, bool user1EmailAllowed, bool user2EmailAllowed)
             {
                 // Arrange
                 var packageRegistration = new PackageRegistration
@@ -1189,9 +1171,32 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
+                var packageValidationSet = new PackageValidationSet()
+                {
+                    PackageValidations = new[] 
+                    {
+                        new PackageValidation()
+                        {
+                            PackageValidationIssues = new[] 
+                            {
+                                new PackageValidationIssue()
+                                {
+                                    Key = 0,
+                                    IssueCode = validationIssue.IssueCode,
+                                    Data = validationIssue.Serialize()
+                                }
+                            }
+                        }
+                    }
+                };
+
                 // Act
                 var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendPackageValidationFailedNotice(package, "http://dummy1", "http://dummy2");
+                var packageUrl = $"https://packageUrl";
+                var supportUrl = $"https://supportUrl";
+                var announcementsUrl = "https://announcementsUrl";
+                var twitterUrl = "https://twitterUrl";
+                messageService.SendPackageValidationFailedNotice(package, packageValidationSet, packageUrl, supportUrl, announcementsUrl, twitterUrl);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1199,98 +1204,49 @@ namespace NuGetGallery
                 Assert.Equal("yung@example.com", message.To[0].Address);
                 Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(2, message.To.Count);
-            }
-        }
-
-        public class TheSendSignedPackageNotAllowedNoticeMethod
-            : TestContainer
-        {
-            [Theory]
-            [InlineData("1.2.3")]
-            [InlineData("1.2.3-alpha")]
-            [InlineData("1.2.3-alpha.1")]
-            [InlineData("1.2.3+metadata")]
-            [InlineData("1.2.3-alpha+metadata")]
-            [InlineData("1.2.3-alpha.1+metadata")]
-            public void WillSendEmailToAllOwners(string version)
-            {
-                // Arrange
-                var nugetVersion = new NuGetVersion(version);
-                var packageRegistration = new PackageRegistration
-                {
-                    Id = "smangit",
-                    Owners = new[]
-                    {
-                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = true },
-                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = true }
-                    }
-                };
-                var package = new Package
-                {
-                    Version = version,
-                    PackageRegistration = packageRegistration
-                };
-                packageRegistration.Packages.Add(package);
-
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
-                var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
-                var announcementsUrl = "https://example.com/announcements";
-                var twitterUrl = "https://example.com/twitter";
-                messageService.SendSignedPackageNotAllowedNotice(package, packageUrl, announcementsUrl, twitterUrl);
-
-                // Assert
-                var message = messageService.MockMailSender.Sent.Last();
-
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
-                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation failed - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
-                Assert.Contains(
-                    $"The package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) could not be published since it is signed. " +
-                    $"{TestGalleryOwner.DisplayName} does not accept signed packages at this moment. To be notified when {TestGalleryOwner.DisplayName} starts accepting signed packages, " +
-                    $"and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).", message.Body);
+                Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation failed - {packageRegistration.Id} {package.Version}", message.Subject);
+                Assert.Contains($"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) failed validation because of the following reason(s):", message.Body);
+                Assert.Contains(ParseValidationIssue(validationIssue, announcementsUrl, twitterUrl), message.Body);
+                Assert.Contains($"Your package was not published on {TestGalleryOwner.DisplayName} and is not available for consumption.", message.Body);
+
+                if (validationIssue.IssueCode == ValidationIssueCode.Unknown)
+                {
+                    Assert.Contains($"Please [contact support]({supportUrl}) to help fix your package.", message.Body);
+                }
+                else
+                {
+                    Assert.Contains($"Once you've fixed the issue with your package, you can reupload it with the same ID and version.", message.Body);
+                }
             }
 
-            public static IEnumerable<object[]> EmailSettingsCombinations
-                => from u1pa in new[] { true, false }
-                   from u2pa in new[] { true, false }
-                   from u1ea in new[] { true, false }
-                   from u2ea in new[] { true, false }
-                   select new object[] { u1pa, u2pa, u1ea, u2ea };
-
-            [Theory]
-            [MemberData(nameof(EmailSettingsCombinations))]
-            public void WillSendEmailToOwnersRegardlessOfSettings(bool user1PushAllowed, bool user2PushAllowed, bool user1EmailAllowed, bool user2EmailAllowed)
+            private static string ParseValidationIssue(ValidationIssue validationIssue, string announcementsUrl, string twitterUrl)
             {
-                // Arrange
-                var packageRegistration = new PackageRegistration
+                switch (validationIssue.IssueCode)
                 {
-                    Id = "smangit",
-                    Owners = new[]
-                    {
-                        new User { EmailAddress = "yung@example.com", NotifyPackagePushed = user1PushAllowed, EmailAllowed = user1EmailAllowed },
-                        new User { EmailAddress = "flynt@example.com", NotifyPackagePushed = user2PushAllowed, EmailAllowed = user2EmailAllowed }
-                    }
-                };
-                var package = new Package
-                {
-                    Version = "1.2.3",
-                    PackageRegistration = packageRegistration
-                };
-                packageRegistration.Packages.Add(package);
-
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                messageService.SendSignedPackageNotAllowedNotice(package, "http://dummy1", "http://dummy2", "http://dummy3");
-
-                // Assert
-                var message = messageService.MockMailSender.Sent.Last();
-
-                Assert.Equal("yung@example.com", message.To[0].Address);
-                Assert.Equal("flynt@example.com", message.To[1].Address);
-                Assert.Equal(2, message.To.Count);
+                    case ValidationIssueCode.PackageIsSigned:
+                        return $"This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).";
+                    case ValidationIssueCode.ClientSigningVerificationFailure:
+                        var clientIssue = (ClientSigningVerificationFailure)validationIssue;
+                        return $"*{clientIssue.ClientCode}*: {clientIssue.ClientMessage}";
+                    case ValidationIssueCode.PackageIsZip64:
+                        return "Zip64 packages are not supported.";
+                    case ValidationIssueCode.OnlyAuthorSignaturesSupported:
+                        return "Signed packages must only have an author signature. Other signature types are not supported.";
+                    case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
+                        return "Author countersignatures and repository countersignatures are not supported.";
+                    case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
+                        return "*NU3007:* Package signatures must have format version 1.";
+                    case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
+                        return "Author countersignatures are not supported.";
+                    case ValidationIssueCode.PackageIsNotSigned:
+                        return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
+                        var certIssue = (UnauthorizedCertificateFailure)validationIssue;
+                        return $"The package was signed, but the signing certificate (SHA-1 thumbprint {certIssue.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    default:
+                        return "There was an unknown failure when validating your package.";
+                }
             }
         }
 
