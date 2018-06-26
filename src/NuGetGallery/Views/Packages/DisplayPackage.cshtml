@@ -1,3 +1,5 @@
+@using NuGet.Services.Validation;
+
 @model DisplayPackageViewModel
 @{
     ViewBag.Title = Model.Id + " " + Model.Version;
@@ -196,13 +198,25 @@
 
             @if (Model.FailedValidation)
             {
-                foreach (var issue in Model.ValidationIssues)
-                {
-                    @ViewHelpers.AlertDanger(
-                        @<text>
-                            @Html.Partial("_ValidationIssue", issue)
-                        </text>)
-                }
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Package publishing failed.</strong> This package could not be published due to the following reason(s):
+                        <ul class="failed-validation-alert-list">
+                            @foreach (var issue in Model.ValidationIssues)
+                            {
+                                <li>@Html.Partial("_ValidationIssue", issue)</li>
+                            }
+                        </ul>
+                        @if (!Model.ValidationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+                        {
+                            var issuePluralString = Model.ValidationIssues.Count() > 1 ? "all the issues" : "the issue";
+                            <text>Once you've fixed @issuePluralString with your package, you can reupload it with the same ID and version.</text>
+                        }
+                        else
+                        {
+                            <text>Please contact <a href="mailto:support@nuget.org">support@nuget.org</a> to help fix your package.</text>
+                        }
+                    </text>)
             }
 
             @if (Model.Deleted)
