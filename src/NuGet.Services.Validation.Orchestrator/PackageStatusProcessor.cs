@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,20 +11,20 @@ using NuGetGallery.Packaging;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class PackageStatusProcessor : IPackageStatusProcessor
+    public class EntityStatusProcessor<T> : IStatusProcessor<T> where T : class, IEntity
     {
-        private readonly ICorePackageService _galleryPackageService;
-        private readonly IValidationPackageFileService _packageFileService;
+        private readonly IEntityService<T> _galleryPackageService;
+        private readonly IValidationFileService _packageFileService;
         private readonly IValidatorProvider _validatorProvider;
         private readonly ITelemetryService _telemetryService;
-        private readonly ILogger<PackageStatusProcessor> _logger;
+        private readonly ILogger<EntityStatusProcessor<T>> _logger;
 
-        public PackageStatusProcessor(
-            ICorePackageService galleryPackageService,
-            IValidationPackageFileService packageFileService,
+        public EntityStatusProcessor(
+            IEntityService<T> galleryPackageService,
+            IValidationFileService packageFileService,
             IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
-            ILogger<PackageStatusProcessor> logger)
+            ILogger<EntityStatusProcessor<T>> logger)
         {
             _galleryPackageService = galleryPackageService ?? throw new ArgumentNullException(nameof(galleryPackageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -34,14 +33,14 @@ namespace NuGet.Services.Validation.Orchestrator
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public Task SetPackageStatusAsync(
-            Package package,
+        public Task SetStatusAsync(
+            IValidatingEntity<T> validatingEntity,
             PackageValidationSet validationSet,
-            PackageStatus packageStatus)
+            PackageStatus status)
         {
-            if (package == null)
+            if (validatingEntity == null)
             {
-                throw new ArgumentNullException(nameof(package));
+                throw new ArgumentNullException(nameof(validatingEntity));
             }
 
             if (validationSet == null)
@@ -49,39 +48,39 @@ namespace NuGet.Services.Validation.Orchestrator
                 throw new ArgumentNullException(nameof(validationSet));
             }
 
-            if (package.PackageStatusKey == PackageStatus.Deleted)
+            if (validatingEntity.Status == PackageStatus.Deleted)
             {
                 throw new ArgumentException(
                     $"A package in the {nameof(PackageStatus.Deleted)} state cannot be processed.",
-                    nameof(package));
+                    nameof(validatingEntity));
             }
 
-            if (package.PackageStatusKey == PackageStatus.Available &&
-                packageStatus == PackageStatus.FailedValidation)
+            if (validatingEntity.Status == PackageStatus.Available &&
+                status == PackageStatus.FailedValidation)
             {
                 throw new ArgumentException(
                     $"A package cannot transition from {nameof(PackageStatus.Available)} to {nameof(PackageStatus.FailedValidation)}.",
-                    nameof(packageStatus));
+                    nameof(status));
             }
 
-            switch (packageStatus)
+            switch (status)
             {
                 case PackageStatus.Available:
-                    return MakePackageAvailableAsync(package, validationSet);
+                    return MakePackageAvailableAsync(validatingEntity, validationSet);
                 case PackageStatus.FailedValidation:
-                    return MakePackageFailedValidationAsync(package, validationSet);
+                    return MakePackageFailedValidationAsync(validatingEntity, validationSet);
                 default:
                     throw new ArgumentException(
                         $"A package can only transition to the {nameof(PackageStatus.Available)} or " +
-                        $"{nameof(PackageStatus.FailedValidation)} states.", nameof(packageStatus));
+                        $"{nameof(PackageStatus.FailedValidation)} states.", nameof(status));
             }
         }
 
-        private async Task MakePackageFailedValidationAsync(Package package, PackageValidationSet validationSet)
+        private async Task MakePackageFailedValidationAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
         {
-            var fromStatus = package.PackageStatusKey;
+            var fromStatus = validatingEntity.Status;
 
-            await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.FailedValidation, commitChanges: true);
+            await _galleryPackageService.UpdateStatusAsync(validatingEntity.EntityRecord, PackageStatus.FailedValidation, commitChanges: true);
 
             if (fromStatus != PackageStatus.FailedValidation)
             {
@@ -89,37 +88,40 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private async Task MakePackageAvailableAsync(Package package, PackageValidationSet validationSet)
+        private async Task MakePackageAvailableAsync(IValidatingEntity<T> validatingEntity, PackageValidationSet validationSet)
         {
             // 1) Operate on blob storage.
-            var copied = await UpdatePublicPackageAsync(validationSet, package);
+            var copied = await UpdatePublicPackageAsync(validationSet);
 
-            // 2) Operate on the database.
-            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, package, copied);
+            // 2) Update the package's blob metadata in the packages blob storage container.
+            var metadata = await _packageFileService.UpdatePackageBlobMetadataAsync(validationSet);
 
-            // 3) Emit telemetry and clean up.
+            // 3) Operate on the database.
+            var fromStatus = await MarkPackageAsAvailableAsync(validationSet, validatingEntity, metadata, copied);
+
+            // 4) Emit telemetry and clean up.
             if (fromStatus != PackageStatus.Available)
             {
                 _telemetryService.TrackPackageStatusChange(fromStatus, PackageStatus.Available);
 
                 _logger.LogInformation("Deleting from the source for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId);
 
-                await _packageFileService.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version);
+                await _packageFileService.DeleteValidationPackageFileAsync(validationSet);
             }
 
             // 4) Verify the package still exists (we've had bugs here before).
-            if (package.PackageStatusKey == PackageStatus.Available
-                && !await _packageFileService.DoesPackageFileExistAsync(package))
+            if (validatingEntity.Status == PackageStatus.Available
+                && !await _packageFileService.DoesPackageFileExistAsync(validationSet))
             {
-                var validationPackageAvailable = await _packageFileService.DoesValidationPackageFileExistAsync(package);
+                var validationPackageAvailable = await _packageFileService.DoesValidationPackageFileExistAsync(validationSet);
 
                 _logger.LogWarning("Package {PackageId} {PackageVersion} is marked as available, but does not exist " +
                     "in public container. Does package exist in validation container: {ExistsInValidation}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
                     validationPackageAvailable);
 
                 // Report missing package, don't try to fix up anything. This shouldn't happen and needs an investigation.
@@ -130,54 +132,34 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        private async Task<PackageStatus> MarkPackageAsAvailableAsync(PackageValidationSet validationSet, Package package, bool copied)
+        private async Task<PackageStatus> MarkPackageAsAvailableAsync(
+            PackageValidationSet validationSet,
+            IValidatingEntity<T> validatingEntity,
+            PackageStreamMetadata streamMetadata,
+            bool copied)
         {
-
             // Use whatever package made it into the packages container. This is what customers will consume so the DB
             // record must match.
-            using (var packageStream = await _packageFileService.DownloadPackageFileToDiskAsync(package))
-            {
-                var stopwatch = Stopwatch.StartNew();
-                var hash = CryptographyService.GenerateHash(packageStream, CoreConstants.Sha512HashAlgorithmId);
-                _telemetryService.TrackDurationToHashPackage(
-                    stopwatch.Elapsed,
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
-                    CoreConstants.Sha512HashAlgorithmId,
-                    packageStream.GetType().FullName);
 
-                var streamMetadata = new PackageStreamMetadata
-                {
-                    Size = packageStream.Length,
-                    Hash = hash,
-                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                };
-
-                // We don't immediately commit here. Later, we will commit these changes as well as the new package
-                // status as part of the same transaction.
-                if (streamMetadata.Size != package.PackageFileSize
-                    || streamMetadata.Hash != package.Hash
-                    || streamMetadata.HashAlgorithm != package.HashAlgorithm)
-                {
-                    await _galleryPackageService.UpdatePackageStreamMetadataAsync(
-                        package,
-                        streamMetadata,
-                        commitChanges: false);
-                }
-            }
+            // We don't immediately commit here. Later, we will commit these changes as well as the new package
+            // status as part of the same transaction.
+            await _galleryPackageService.UpdateMetadataAsync(
+                    validatingEntity.EntityRecord,
+                    streamMetadata,
+                    commitChanges: false);
 
             _logger.LogInformation("Marking package {PackageId} {PackageVersion}, validation set {ValidationSetId} as {PackageStatus} in DB",
-                package.PackageRegistration.Id,
-                package.NormalizedVersion,
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
                 validationSet.ValidationTrackingId,
                 PackageStatus.Available);
 
-            var fromStatus = package.PackageStatusKey;
+            var fromStatus = validatingEntity.Status;
 
             try
             {
                 // Make the package available and commit any other pending changes (e.g. updated hash).
-                await _galleryPackageService.UpdatePackageStatusAsync(package, PackageStatus.Available, commitChanges: true);
+                await _galleryPackageService.UpdateStatusAsync(validatingEntity.EntityRecord, PackageStatus.Available, commitChanges: true);
             }
             catch (Exception e)
             {
@@ -185,8 +167,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     Error.UpdatingPackageDbStatusFailed,
                     e,
                     "Failed to update package status in Gallery Db. Package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId);
 
                 // If this execution was not the one to copy the package, then don't delete the package on failure.
@@ -195,7 +177,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 // container!
                 if (copied && fromStatus != PackageStatus.Available)
                 {
-                    await _packageFileService.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version);
+                    await _packageFileService.DeletePackageFileAsync(validationSet);
                 }
 
                 throw;
@@ -204,11 +186,11 @@ namespace NuGet.Services.Validation.Orchestrator
             return fromStatus;
         }
 
-        private async Task<bool> UpdatePublicPackageAsync(PackageValidationSet validationSet, Package package)
+        private async Task<bool> UpdatePublicPackageAsync(PackageValidationSet validationSet)
         {
             _logger.LogInformation("Copying .nupkg to public storage for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                package.PackageRegistration.Id,
-                package.NormalizedVersion,
+                validationSet.PackageId,
+                validationSet.PackageNormalizedVersion,
                 validationSet.ValidationTrackingId);
 
             // If the validation set contains any processors, we must use the copy of the package that is specific to
@@ -236,8 +218,8 @@ namespace NuGet.Services.Validation.Orchestrator
                         "Attempting to copy validation set {ValidationSetId} package {PackageId} {PackageVersion} to" +
                         " the packages container, assuming that the package does not already exist.",
                         validationSet.ValidationTrackingId,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion);
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion);
                 }
                 else
                 {
@@ -250,8 +232,8 @@ namespace NuGet.Services.Validation.Orchestrator
                         "Attempting to copy validation set {ValidationSetId} package {PackageId} {PackageVersion} to" +
                         " the packages container, assuming that the package has etag {PackageETag}.",
                         validationSet.ValidationTrackingId,
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
                         validationSet.PackageETag);
                 }
 
@@ -269,15 +251,13 @@ namespace NuGet.Services.Validation.Orchestrator
                 _logger.LogInformation(
                     "The package specific to the validation set does not exist. Falling back to the validation " +
                     "container for package {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                    package.PackageRegistration.Id,
-                    package.NormalizedVersion,
+                    validationSet.PackageId,
+                    validationSet.PackageNormalizedVersion,
                     validationSet.ValidationTrackingId);
 
                 try
                 {
-                    await _packageFileService.CopyValidationPackageToPackageFileAsync(
-                        validationSet.PackageId,
-                        validationSet.PackageNormalizedVersion);
+                    await _packageFileService.CopyValidationPackageToPackageFileAsync(validationSet);
 
                     copied = true;
                 }
@@ -290,8 +270,8 @@ namespace NuGet.Services.Validation.Orchestrator
                     // we know the package has not been modified.
                     _logger.LogInformation(
                         "Package already exists in packages container for {PackageId} {PackageVersion}, validation set {ValidationSetId}",
-                        package.PackageRegistration.Id,
-                        package.NormalizedVersion,
+                        validationSet.PackageId,
+                        validationSet.PackageNormalizedVersion,
                         validationSet.ValidationTrackingId);
 
                     copied = false;

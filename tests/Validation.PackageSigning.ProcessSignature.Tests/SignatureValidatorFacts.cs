@@ -4,9 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -65,14 +62,14 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _packageSigningStateService = new Mock<IPackageSigningStateService>();
                 _formatValidator = new Mock<ISignatureFormatValidator>();
 
-                _minimalVerifyResult = new VerifySignaturesResult(true);
+                _minimalVerifyResult = new VerifySignaturesResult(valid: true, signed: true);
                 _formatValidator
                     .Setup(x => x.ValidateMinimalAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _minimalVerifyResult);
 
-                _fullVerifyResult = new VerifySignaturesResult(true);
+                _fullVerifyResult = new VerifySignaturesResult(valid: true, signed: true);
                 _formatValidator
-                    .Setup(x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
+                    .Setup(x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                     .ReturnsAsync(() => _fullVerifyResult);
 
                 _signaturePartsExtractor = new Mock<ISignaturePartsExtractor>();
@@ -89,7 +86,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _optionsSnapshot = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
                 _configuration = new ProcessSignatureConfiguration
                 {
-                    AllowedRepositorySigningCertificates = new List<string>(),
+                    AllowedRepositorySigningCertificates = new List<string> { "fake-thumbprint" },
                     V3ServiceIndexUrl = "http://example/v3/index.json",
                 };
                 _optionsSnapshot.Setup(x => x.Value).Returns(() => _configuration);
@@ -252,7 +249,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             {
                 // Arrange
                 _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
-                _minimalVerifyResult = new VerifySignaturesResult(valid: false);
+                _minimalVerifyResult = new VerifySignaturesResult(valid: false, signed: true);
                 _message = new SignatureValidationMessage(
                     TestResources.SignedPackageLeafId,
                     TestResources.SignedPackageLeaf1Version,
@@ -270,7 +267,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Validate(result, ValidationStatus.Failed, PackageSigningStatus.Invalid);
                 Assert.Empty(result.Issues);
                 _formatValidator.Verify(
-                    x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
+                    x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
                     Times.Never);
             }
 
@@ -281,10 +278,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _packageStream = TestResources.GetResourceStream(TestResources.SignedPackageLeaf1);
                 _minimalVerifyResult = new VerifySignaturesResult(
                     valid: false,
+                    signed: true,
                     results: new[]
                     {
                         new InvalidSignaturePackageVerificationResult(
-                            SignatureVerificationStatus.Illegal,
+                            SignatureVerificationStatus.Suspect,
                             new[]
                             {
                                 SignatureLog.Issue(
@@ -323,7 +321,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     _corePackageService,
                     TestResources.SignedPackageLeafId,
                     TestResources.Leaf1Thumbprint);
-                _fullVerifyResult = new VerifySignaturesResult(valid: false);
+                _fullVerifyResult = new VerifySignaturesResult(valid: false, signed: true);
                 _message = new SignatureValidationMessage(
                     TestResources.SignedPackageLeafId,
                     TestResources.SignedPackageLeaf1Version,
@@ -353,10 +351,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     TestResources.Leaf1Thumbprint);
                 _fullVerifyResult = new VerifySignaturesResult(
                     valid: false,
+                    signed: true,
                     results: new[]
                     {
                         new InvalidSignaturePackageVerificationResult(
-                            SignatureVerificationStatus.Illegal,
+                            SignatureVerificationStatus.Suspect,
                             new[]
                             {
                                 SignatureLog.Issue(
@@ -588,13 +587,13 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 if (signingStatus == PackageSigningStatus.Valid)
                 {
                     _formatValidator.Verify(
-                        x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
+                        x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), false, It.IsAny<CancellationToken>()),
                         Times.Once);
                 }
                 else
                 {
                     _formatValidator.Verify(
-                        x => x.ValidateFullAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
+                        x => x.ValidateAllSignaturesAsync(It.IsAny<ISignedPackageReader>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()),
                         Times.Never);
                 }
             }

@@ -28,7 +28,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly ValidatorStatus _validation;
             private readonly Mock<IValidationIssue> _validationIssue;
             private SignatureValidatorResult _validatorResult;
-            private readonly Mock<IPackageDownloader> _packageDownloader;
+            private readonly Mock<IFileDownloader> _packageDownloader;
             private readonly Mock<IValidatorStateService> _validatorStateService;
             private readonly Mock<ISignatureValidator> _signatureValidator;
             private readonly Mock<ILogger<SignatureValidationMessageHandler>> _logger;
@@ -51,7 +51,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _validationIssue = new Mock<IValidationIssue>();
                 _validatorResult = new SignatureValidatorResult(ValidationStatus.Succeeded, nupkgUri: null);
 
-                _packageDownloader = new Mock<IPackageDownloader>();
+                _packageDownloader = new Mock<IFileDownloader>();
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _signatureValidator = new Mock<ISignatureValidator>();
                 _logger = new Mock<ILogger<SignatureValidationMessageHandler>>();

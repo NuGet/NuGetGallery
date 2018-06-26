@@ -2,14 +2,15 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGetGallery;
+using NuGet.Services.Validation.Orchestrator;
 
 namespace NuGet.Services.Validation.Vcs
 {
     /// <summary>
-    /// Evaluates whether a given package matches some criteria.
+    /// Evaluates whether a given entity matches some criteria.
     /// </summary>
-    public interface IPackageCriteriaEvaluator
+    public interface ICriteriaEvaluator<T> where T: class, IEntity
     {
-        bool IsMatch(IPackageCriteria criteria, Package package);
+        bool IsMatch(ICriteria criteria, T entity);
     }
 }

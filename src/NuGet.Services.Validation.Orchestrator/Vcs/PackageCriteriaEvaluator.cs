@@ -8,9 +8,9 @@ using NuGetGallery;
 
 namespace NuGet.Services.Validation.Vcs
 {
-    public class PackageCriteriaEvaluator : IPackageCriteriaEvaluator
+    public class PackageCriteriaEvaluator : ICriteriaEvaluator<Package>
     {
-        public bool IsMatch(IPackageCriteria criteria, Package package)
+        public bool IsMatch(ICriteria criteria, Package package)
         {
             // By default, match the package.
             var isMatch = true;

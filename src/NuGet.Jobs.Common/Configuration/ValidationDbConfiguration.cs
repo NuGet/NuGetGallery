@@ -3,7 +3,7 @@
 
 namespace NuGet.Jobs.Configuration
 {
-    public class ValidationDbConfiguration
+    public class ValidationDbConfiguration : IDbConfiguration
     {
         public string ConnectionString { get; set; }
     }

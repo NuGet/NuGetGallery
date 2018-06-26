@@ -9,8 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>NuGet.Services.Validation.Orchestrator.Tests</RootNamespace>
     <AssemblyName>NuGet.Services.Validation.Orchestrator.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -46,6 +47,7 @@
     <Compile Include="Configuration\TopologicalSortFacts.cs" />
     <Compile Include="MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
+    <Compile Include="PackageValidatingEntityFacts.cs" />
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidatorFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\CertificateVerificationEnqueuerFacts.cs" />
     <Compile Include="PackageSigning\ValidateCertificate\PackageCertificatesValidatorFacts.cs" />
@@ -53,6 +55,7 @@
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessorFacts.cs" />
     <Compile Include="PackageStatusProcessorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TelemetryServiceFacts.cs" />
     <Compile Include="ValidationMessageHandlerFacts.cs" />
     <Compile Include="ValidationOutcomeProcessorFacts.cs" />
     <Compile Include="ValidationPackageFileServiceFacts.cs" />
@@ -60,6 +63,7 @@
     <Compile Include="ValidationSetProcessorFacts.cs" />
     <Compile Include="ValidationSetProviderFacts.cs" />
     <Compile Include="ValidationStorageServiceFacts.cs" />
+    <Compile Include="PackageEntityServiceFacts.cs" />
     <Compile Include="ValidatorStateServiceFacts.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
     <Compile Include="Vcs\VcsValidatorFacts.cs" />
@@ -105,9 +109,9 @@
       <Project>{b4b7564a-965b-447b-927f-6749e2c08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Validation.PackageSigning.Helpers</Name>
+      <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

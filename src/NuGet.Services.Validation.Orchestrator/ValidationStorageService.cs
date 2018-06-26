@@ -7,6 +7,7 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using NuGetGallery;
 using NuGet.Services.Validation.Issues;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 
@@ -18,14 +19,14 @@ namespace NuGet.Services.Validation.Orchestrator
     public class ValidationStorageService : IValidationStorageService
     {
         private readonly IValidationEntitiesContext _validationContext;
-        private readonly IValidationPackageFileService _packageFileService;
+        private readonly IValidationFileService _packageFileService;
         private readonly IValidatorProvider _validatorProvider;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationStorageService> _logger;
 
         public ValidationStorageService(
             IValidationEntitiesContext validationContext,
-            IValidationPackageFileService packageFileService,
+            IValidationFileService packageFileService,
             IValidatorProvider validatorProvider,
             ITelemetryService telemetryService,
             ILogger<ValidationStorageService> logger)
@@ -200,24 +201,24 @@ namespace NuGet.Services.Validation.Orchestrator
             }
         }
 
-        public async Task<bool> OtherRecentValidationSetForPackageExists(
-            int packageKey,
+        public async Task<bool> OtherRecentValidationSetForPackageExists<T>(
+            IValidatingEntity<T> validatingEntity,
             TimeSpan recentDuration,
-            Guid currentValidationSetTrackingId)
+            Guid currentValidationSetTrackingId) where T : class, IEntity
         {
             var cutoffTimestamp = DateTime.UtcNow - recentDuration;
             return await _validationContext
                 .PackageValidationSets
-                .AnyAsync(pvs => pvs.PackageKey == packageKey
+                .AnyAsync(pvs => pvs.PackageKey == validatingEntity.Key
                     && pvs.Created > cutoffTimestamp
                     && pvs.ValidationTrackingId != currentValidationSetTrackingId);
         }
 
-        public async Task<int> GetValidationSetCountAsync(int packageKey)
+        public async Task<int> GetValidationSetCountAsync<T>(IValidatingEntity<T> validatingEntity) where T : class, IEntity
         {
             return await _validationContext
                 .PackageValidationSets
-                .CountAsync(x => x.PackageKey == packageKey);
+                .CountAsync(x => x.PackageKey == validatingEntity.Key);
         }
 
         private void AddValidationIssues(PackageValidation packageValidation, IReadOnlyList<IValidationIssue> validationIssues)

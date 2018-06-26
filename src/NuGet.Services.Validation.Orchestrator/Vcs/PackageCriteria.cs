@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace NuGet.Services.Validation.Vcs
 {
-    public class PackageCriteria : IPackageCriteria
+    public class PackageCriteria : ICriteria
     {
         public IList<string> ExcludeOwners { get; set; } = new List<string>();
 

@@ -27,7 +27,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
     public class SignatureValidator : ISignatureValidator
     {
         private const string FormatVerificationName = "format verification";
-        private const string SignatureVerificationName = "signature integrity and trust verification";
+        private const string AuthorSignatureVerificationName = "author signature integrity and trust verification";
+        private const string FullSignatureVerificationName = "full signature integrity and trust verification";
 
         private readonly IPackageSigningStateService _packageSigningStateService;
         private readonly ISignatureFormatValidator _formatValidator;
@@ -410,11 +411,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         private async Task<bool> IsValidRepositorySignatureAsync<T>(Context context, T signature)
             where T : Signature, IRepositorySignature
         {
+            // Strip repository signatures that do not match the configurations.
             if (signature.V3ServiceIndexUrl?.AbsoluteUri != _configuration.Value.V3ServiceIndexUrl)
             {
                 _logger.LogInformation(
                     "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has invalid V3 index " +
-                    "URL {V3ServiceIndexUrl} in the repository signature.",
+                    "URL {V3ServiceIndexUrl} in the repository signature",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
@@ -429,7 +431,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             {
                 _logger.LogInformation(
                     "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has unacceptable " +
-                    "signing certificate {Fingerprint} for the repository signature.",
+                    "signing certificate {Fingerprint} for the repository signature",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
@@ -438,41 +440,69 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 return false;
             }
 
-            var status = await _formatValidator.VerifyRepositorySignatureAsync(context.PackageReader, context.CancellationToken);
+            // Strip repository signatures that do not pass verification.
+            var verifyResult = await _formatValidator.ValidateRepositorySignatureAsync(context.PackageReader, context.CancellationToken);
 
-            if (status == SignatureVerificationStatus.Valid)
+            if (!verifyResult.Valid)
             {
+                var warningsForLogs = verifyResult
+                    .Results
+                    .SelectMany(x => x.GetWarningIssues())
+                    .Select(x => $"{x.Code}: {x.Message}")
+                    .ToList();
+                var errorsForLogs = verifyResult
+                    .Results
+                    .SelectMany(x => x.GetErrorIssues())
+                    .Select(x => $"{x.Code}: {x.Message}")
+                    .ToList();
+
+                // The repository signature matches our service's configuration but did not pass verification. This could mean that:
+                //
+                // 1. The customer attempted to forge our repository signature on a newly uploaded package
+                // 2. The customer downloaded a repository signed package, modified the package, and reuploaded it
+                // 3. The customer downloaded a repository signed package, reuploaded it, and the package failed trust verification
+                // 4. We repository signed this package and our repository signature does not pass trust or integrity verification
+                //
+                // For cases #1 and #2, we can strip the repository signature and apply a new one. Cases #3 and #4 are highly suspicious
+                // and an on-call engineer should investigate.
+                if (await _packageSigningStateService.HasPackageSigningStateAsync(context.PackageKey))
+                {
+                    // This package failed verification and has a PackageSigningState. This is case #4 as
+                    // we extract the package's signing state before we repository sign packages.
+                    _logger.LogCritical(
+                        "Package {PackageId} {PackageVersion} was repository signed with a signature that fails verification on " +
+                        "validation {ValidationId}. Errors: {Errors} Warnings: {Warnings}",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId,
+                        errorsForLogs,
+                        warningsForLogs);
+
+                    throw new InvalidOperationException(
+                        $"Package was repository signed with a signature that fails verification for validation id '{context.Message.ValidationId}'");
+                }
+
+                // For all other cases, strip the repository signature so that a new repository signature will be applied. Note that for
+                // case #3, the newly applied repository signature may still fail verification, thus triggering case #4.
                 _logger.LogInformation(
-                    "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has a valid repository signature",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId);
-
-                return true;
-            }
-            else if (status == SignatureVerificationStatus.Suspect && await _packageSigningStateService.HasValidPackageSigningStateAsync(context.PackageKey))
-            {
-                _logger.LogCritical(
-                    "Detected suspect repository signature on revalidation of package {PackageId} {PackageVersion} for " +
-                    "validation {ValidationId}",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId);
-
-                throw new InvalidOperationException($"Suspect repository signature for validation id '{context.Message.ValidationId}'");
-            }
-            else
-            {
-                _logger.LogInformation(
-                    "Package {PackageId} {PackageVersion} for validation {ValidationId} has an unacceptable repository " +
-                    "signature with status {Status} and will be stripped",
+                    "Repository signature failed verification and will be stripped for package {PackageId} and {PackageVersion} on validation {ValidationId}. " +
+                    "Errors: {Errors} Warnings: {Warnings}",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
-                    status);
+                    errorsForLogs,
+                    warningsForLogs);
 
                 return false;
             }
+
+            _logger.LogInformation(
+                "Signed package {PackageId} {PackageVersion} for validation {ValidationId} has a valid repository signature",
+                context.Message.PackageId,
+                context.Message.PackageVersion,
+                context.Message.ValidationId);
+
+            return true;
         }
 
         private async Task<SignatureValidatorResult> PerformFinalValidationAsync(Context context)
@@ -512,14 +542,31 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 return await RejectAsync(context, ValidationIssue.OnlyAuthorSignaturesSupported);
             }
 
-            // Call the "verify" API, which does the main logic of signature validation.
-            var verifyResult = await _formatValidator.ValidateFullAsync(
+            // If the package has both an author and repository signature, verify the author signature independently.
+            if (context.HasAuthorSignature && context.HasRepositorySignature)
+            {
+                var authorVerificationResult = await _formatValidator.ValidateAuthorSignatureAsync(
+                    context.PackageReader,
+                    context.CancellationToken);
+                var authorFailureResult = await GetVerifyResult(
+                    context,
+                    AuthorSignatureVerificationName,
+                    authorVerificationResult);
+
+                if (authorFailureResult != null)
+                {
+                    return authorFailureResult;
+                }
+            }
+
+            // Do a full verification of all signatures.
+            var verifyResult = await _formatValidator.ValidateAllSignaturesAsync(
                 context.PackageReader,
                 context.HasRepositorySignature,
                 context.CancellationToken);
             var failureResult = await GetVerifyResult(
                 context,
-                SignatureVerificationName,
+                FullSignatureVerificationName,
                 verifyResult);
             if (failureResult != null)
             {
@@ -676,6 +723,8 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             public PrimarySignature Signature { get; set; }
             public SignatureValidationMessage Message { get; }
             public CancellationToken CancellationToken { get; }
+
+            public bool HasAuthorSignature => Signature?.Type == SignatureType.Author;
 
             public bool HasRepositorySignature
             {

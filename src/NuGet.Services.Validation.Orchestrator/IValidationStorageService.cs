@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
@@ -26,11 +27,11 @@ namespace NuGet.Services.Validation.Orchestrator
         Task<PackageValidationSet> GetValidationSetAsync(Guid validationTrackingId);
 
         /// <summary>
-        /// Gets the number of validation sets that the provided package key has.
+        /// Gets the number of validation sets that the provided entity has.
         /// </summary>
-        /// <param name="packageKey">The package key.</param>
+        /// <param name="entity">The entity.</param>
         /// <returns>The count.</returns>
-        Task<int> GetValidationSetCountAsync(int packageKey);
+        Task<int> GetValidationSetCountAsync<T>(IValidatingEntity<T> entity) where T : class, IEntity;
 
         /// <summary>
         /// Updates the passed <see cref="PackageValidation"/> with the validation result's status,
@@ -75,9 +76,9 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="recentDuration">Max amount of time to look back.</param>
         /// <param name="currentValidationSetTrackingId">Validation set tracking for the currently processed request.</param>
         /// <returns>True if validation set exists, false otherwise.</returns>
-        Task<bool> OtherRecentValidationSetForPackageExists(
-            int packageKey,
+        Task<bool> OtherRecentValidationSetForPackageExists<T>(
+            IValidatingEntity<T> entity,
             TimeSpan recentDuration,
-            Guid currentValidationSetTrackingId);
+            Guid currentValidationSetTrackingId) where T : class, IEntity;
     }
 }

@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Validation.PackageSigning.ValidateCertificate.Tests</RootNamespace>
     <AssemblyName>Validation.PackageSigning.ValidateCertificate.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TargetFrameworkProfile />
@@ -66,9 +67,9 @@
       <Project>{B4B7564A-965B-447B-927F-6749E2C08880}</Project>
       <Name>Validation.PackageSigning.Core.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Validation.PackageSigning.Helpers.csproj">
+    <ProjectReference Include="..\Validation.PackageSigning.Helpers\Tests.ContextHelpers.csproj">
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
-      <Name>Validation.PackageSigning.Helpers</Name>
+      <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

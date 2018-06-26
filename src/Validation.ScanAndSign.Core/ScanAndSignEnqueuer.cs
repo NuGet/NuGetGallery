@@ -53,7 +53,7 @@ namespace NuGet.Jobs.Validation.ScanAndSign
                     new Uri(nupkgUrl)));
         }
 
-        public Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, List<string> owners)
+        public Task EnqueueScanAndSignAsync(Guid validationId, string nupkgUrl, string v3ServiceIndexUrl, IReadOnlyList<string> owners)
         {
             if (nupkgUrl == null)
             {

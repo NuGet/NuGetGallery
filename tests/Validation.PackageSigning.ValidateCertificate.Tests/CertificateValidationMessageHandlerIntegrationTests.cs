@@ -11,7 +11,7 @@ using Moq;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Services.Validation;
-using Validation.PackageSigning.Helpers;
+using Tests.ContextHelpers;
 using Validation.PackageSigning.ValidateCertificate.Tests.Support;
 using Xunit;
 

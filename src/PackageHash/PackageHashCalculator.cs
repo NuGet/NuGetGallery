@@ -12,9 +12,9 @@ namespace NuGet.Services.PackageHash
 {
     public class PackageHashCalculator : IPackageHashCalculator
     {
-        private readonly IPackageDownloader _packageDownloader;
+        private readonly IFileDownloader _packageDownloader;
 
-        public PackageHashCalculator(IPackageDownloader packageDownloader)
+        public PackageHashCalculator(IFileDownloader packageDownloader)
         {
             _packageDownloader = packageDownloader ?? throw new ArgumentNullException(nameof(packageDownloader));
         }

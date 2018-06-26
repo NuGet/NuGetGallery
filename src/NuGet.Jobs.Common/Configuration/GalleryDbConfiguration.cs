@@ -3,7 +3,7 @@
 
 namespace NuGet.Jobs.Configuration
 {
-    public class GalleryDbConfiguration
+    public class GalleryDbConfiguration : IDbConfiguration
     {
         public string ConnectionString { get; set; }
     }

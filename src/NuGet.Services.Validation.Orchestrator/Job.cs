@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.Common;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -18,6 +19,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
+using NuGetGallery;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
@@ -30,6 +32,7 @@ using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Sql;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -80,7 +83,10 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var configurationFilename = JobConfigurationManager.GetArgument(jobArgsDictionary, ConfigurationArgument);
             _validateOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, ValidateArgument, defaultValue: false);
-            _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename, _validateOnly));
+
+            var configurationRoot = GetConfigurationRoot(configurationFilename, _validateOnly, out var secretInjector);
+            _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
+
             ConfigurationValidated = false;
         }
 
@@ -100,7 +106,7 @@ namespace NuGet.Services.Validation.Orchestrator
             await runner.RunOrchestrationAsync();
         }
 
-        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly)
+        private IConfigurationRoot GetConfigurationRoot(string configurationFilename, bool validateOnly, out ISecretInjector secretInjector)
         {
             Logger.LogInformation("Using the {ConfigurationFilename} configuration file", configurationFilename);
             var builder = new ConfigurationBuilder()
@@ -109,6 +115,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var uninjectedConfiguration = builder.Build();
 
+            secretInjector = null;
             if (validateOnly)
             {
                 // don't try to access KeyVault if only validation is requested:
@@ -119,7 +126,7 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var secretReaderFactory = new ConfigurationRootSecretReaderFactory(uninjectedConfiguration);
             var cachingSecretReaderFactory = new CachingSecretReaderFactory(secretReaderFactory, KeyVaultSecretCachingTimeout);
-            var secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
+            secretInjector = cachingSecretReaderFactory.CreateSecretInjector(cachingSecretReaderFactory.CreateSecretReader());
 
             builder = new ConfigurationBuilder()
                 .SetBasePath(Environment.CurrentDirectory)
@@ -128,9 +135,14 @@ namespace NuGet.Services.Validation.Orchestrator
             return builder.Build();
         }
 
-        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot)
+        private IServiceProvider GetServiceProvider(IConfigurationRoot configurationRoot, ISecretInjector secretInjector)
         {
             var services = new ServiceCollection();
+            if (!_validateOnly)
+            {
+                services.AddSingleton(secretInjector);
+            }
+
             ConfigureLibraries(services);
             ConfigureJobServices(services, configurationRoot);
 
@@ -144,6 +156,15 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.AddSingleton(LoggerFactory);
             services.AddLogging();
+        }
+
+        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
+        {
+            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
+            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
+                serviceProvider.GetRequiredService<ISecretInjector>());
+
+            return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
@@ -166,16 +187,19 @@ namespace NuGet.Services.Validation.Orchestrator
 
             services.AddScoped<NuGetGallery.IEntitiesContext>(serviceProvider =>
                 new NuGetGallery.EntitiesContext(
-                    serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value.ConnectionString,
-                    readOnly: false));
+                    CreateDbConnection<GalleryDbConfiguration>(serviceProvider),
+                    readOnly: false)
+                    );
             services.AddScoped(serviceProvider =>
                 new ValidationEntitiesContext(
-                    serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>().Value.ConnectionString));
+                    CreateDbConnection<ValidationDbConfiguration>(serviceProvider)));
+
             services.AddScoped<IValidationEntitiesContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<ValidationEntitiesContext>());
             services.AddScoped<IValidationStorageService, ValidationStorageService>();
             services.Add(ServiceDescriptor.Transient(typeof(NuGetGallery.IEntityRepository<>), typeof(NuGetGallery.EntityRepository<>)));
             services.AddTransient<NuGetGallery.ICorePackageService, NuGetGallery.CorePackageService>();
+            services.AddTransient<IEntityService<Package>, PackageEntityService>();
             services.AddTransient<ISubscriptionClient>(serviceProvider =>
             {
                 var configuration = serviceProvider.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
@@ -188,11 +212,11 @@ namespace NuGet.Services.Validation.Orchestrator
             });
             services.AddTransient<IPackageValidationEnqueuer, PackageValidationEnqueuer>();
             services.AddTransient<IValidatorProvider, ValidatorProvider>();
-            services.AddTransient<IValidationSetProvider, ValidationSetProvider>();
-            services.AddTransient<IMessageHandler<PackageValidationMessageData>, ValidationMessageHandler>();
+            services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
+            services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandler>();
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
-            services.AddTransient<IPackageCriteriaEvaluator, PackageCriteriaEvaluator>();
+            services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
             services.AddTransient<VcsValidator>();
             services.AddTransient<IProcessSignatureEnqueuer, ProcessSignatureEnqueuer>();
             services.AddTransient<NuGetGallery.ICloudBlobClient>(c =>
@@ -203,10 +227,11 @@ namespace NuGet.Services.Validation.Orchestrator
                         readAccessGeoRedundant: false);
                 });
             services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
-            services.AddTransient<IValidationPackageFileService, ValidationPackageFileService>();
-            services.AddTransient<IPackageDownloader, PackageDownloader>();
-            services.AddTransient<IPackageStatusProcessor, PackageStatusProcessor>();
-            services.AddTransient<IValidationSetProvider, ValidationSetProvider>();
+            services.AddTransient<IValidationFileServiceMetadata, PackageValidationFileServiceMetadata>();
+            services.AddTransient<IValidationFileService, ValidationFileService>();
+            services.AddTransient<IFileDownloader, PackageDownloader>();
+            services.AddTransient<IStatusProcessor<Package>, EntityStatusProcessor<Package>>();
+            services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
             services.AddTransient<IValidationSetProcessor, ValidationSetProcessor>();
             services.AddTransient<IBrokeredMessageSerializer<SignatureValidationMessage>, SignatureValidationMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<CertificateValidationMessage>, CertificateValidationMessageSerializer>();
@@ -245,13 +270,13 @@ namespace NuGet.Services.Validation.Orchestrator
             });
             services.AddTransient<ICoreMessageServiceConfiguration, CoreMessageServiceConfiguration>();
             services.AddTransient<ICoreMessageService, CoreMessageService>();
-            services.AddTransient<IMessageService, MessageService>();
+            services.AddTransient<IMessageService<Package>, PackageMessageService>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddSingleton(new TelemetryClient());
-            services.AddTransient<IValidationOutcomeProcessor, ValidationOutcomeProcessor>();
+            services.AddTransient<IValidationOutcomeProcessor<Package>, ValidationOutcomeProcessor<Package>>();
             services.AddSingleton(p =>
             {
                 var assembly = Assembly.GetEntryAssembly();

@@ -1,0 +1,32 @@
+﻿{
+  "RevalidateJob": {
+    "Initialization": {
+      "PreinstalledPaths": [
+        "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages",
+        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder",
+        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder\\.tools"
+      ],
+      "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
+      "SleepDurationBetweenBatches": "00:00:01"
+    }
+  },
+
+  "GalleryDb": {
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-dev-0-v2gallery;Integrated Security=False;User ID=$$Dev-GalleryDBReadOnly-UserName$$;Password=$$Dev-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "ValidationDb": {
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Integrated Security=False;User ID=$$Dev-ValidationDBWriter-UserName$$;Password=$$Dev-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "ServiceBus": {
+    "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=package-certificates-validator;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-CertificatesValidator$$",
+    "TopicPath": "validate-certificate",
+    "SubscriptionName": "validate-certificate"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

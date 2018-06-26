@@ -9,7 +9,7 @@ namespace NuGet.Services.Validation.Orchestrator
     /// <summary>
     /// Interface for the code that deals with any changes that happened in the validation set
     /// </summary>
-    public interface IValidationOutcomeProcessor
+    public interface IValidationOutcomeProcessor<T> where T : class, IEntity
     {
         /// <summary>
         /// Processes the changes in validation statuses:
@@ -18,10 +18,10 @@ namespace NuGet.Services.Validation.Orchestrator
         /// * Otherwise, queues another check for the package
         /// </summary>
         /// <param name="validationSet">Current state of validation set</param>
-        /// <param name="package">Package information from Gallery DB</param>
+        /// <param name="validatingEntity">The validating entity.</param>
         /// <param name="currentCallStats">Contains information about what happened during current message processing in
         /// the validation set processor.</param>
         /// <returns>A task that completes when the outcome has been processed</returns>
-        Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, Package package, ValidationSetProcessorResult currentCallStats);
+        Task ProcessValidationOutcomeAsync(PackageValidationSet validationSet, IValidatingEntity<T> validatingEntity, ValidationSetProcessorResult currentCallStats);
     }
 }

@@ -11,24 +11,24 @@ using NuGetGallery;
 
 namespace NuGet.Services.Validation.Orchestrator
 {
-    public class ValidationMessageHandler : IMessageHandler<PackageValidationMessageData>
+    public class PackageValidationMessageHandler : IMessageHandler<PackageValidationMessageData>
     {
         private readonly ValidationConfiguration _configs;
-        private readonly ICorePackageService _galleryPackageService;
-        private readonly IValidationSetProvider _validationSetProvider;
+        private readonly IEntityService<Package> _galleryPackageService;
+        private readonly IValidationSetProvider<Package> _validationSetProvider;
         private readonly IValidationSetProcessor _validationSetProcessor;
-        private readonly IValidationOutcomeProcessor _validationOutcomeProcessor;
+        private readonly IValidationOutcomeProcessor<Package> _validationOutcomeProcessor;
         private readonly ITelemetryService _telemetryService;
-        private readonly ILogger<ValidationMessageHandler> _logger;
+        private readonly ILogger<PackageValidationMessageHandler> _logger;
 
-        public ValidationMessageHandler(
+        public PackageValidationMessageHandler(
             IOptionsSnapshot<ValidationConfiguration> validationConfigsAccessor,
-            ICorePackageService galleryPackageService,
-            IValidationSetProvider validationSetProvider,
+            IEntityService<Package> galleryPackageService,
+            IValidationSetProvider<Package> validationSetProvider,
             IValidationSetProcessor validationSetProcessor,
-            IValidationOutcomeProcessor validationOutcomeProcessor,
+            IValidationOutcomeProcessor<Package> validationOutcomeProcessor,
             ITelemetryService telemetryService,
-            ILogger<ValidationMessageHandler> logger)
+            ILogger<PackageValidationMessageHandler> logger)
         {
             if (validationConfigsAccessor == null)
             {
@@ -67,63 +67,63 @@ namespace NuGet.Services.Validation.Orchestrator
 
             using (_logger.BeginScope("Handling message for {PackageId} {PackageVersion} validation set {ValidationSetId}",
                 message.PackageId,
-                message.PackageVersion,
+                message.PackageNormalizedVersion,
                 message.ValidationTrackingId))
             {
-                var package = _galleryPackageService.FindPackageByIdAndVersionStrict(message.PackageId, message.PackageVersion);
+                var package = _galleryPackageService.FindPackageByIdAndVersionStrict(message.PackageId, message.PackageNormalizedVersion);
 
                 if (package == null)
                 {
                     // no package in DB yet. Might have received message a bit early, need to retry later
                     if (message.DeliveryCount - 1 >= _configs.MissingPackageRetryCount)
                     {
-                        _logger.LogWarning("Could not find package {PackageId} {PackageVersion} in DB after {DeliveryCount} tries, dropping message",
+                        _logger.LogWarning("Could not find package {PackageId} {PackageNormalizedVersion} in DB after {DeliveryCount} tries, dropping message",
                             message.PackageId,
-                            message.PackageVersion,
+                            message.PackageNormalizedVersion,
                             message.DeliveryCount);
 
                         _telemetryService.TrackMissingPackageForValidationMessage(
                             message.PackageId,
-                            message.PackageVersion,
+                            message.PackageNormalizedVersion,
                             message.ValidationTrackingId.ToString());
 
                         return true;
                     }
                     else
                     {
-                        _logger.LogInformation("Could not find package {PackageId} {PackageVersion} in DB, retrying",
+                        _logger.LogInformation("Could not find package {PackageId} {PackageNormalizedVersion} in DB, retrying",
                             message.PackageId,
-                            message.PackageVersion);
+                            message.PackageNormalizedVersion);
 
                         return false;
                     }
                 }
 
                 // Immediately halt validation of a soft deleted package.
-                if (package.PackageStatusKey == PackageStatus.Deleted)
+                if (package.Status == PackageStatus.Deleted)
                 {
                     _logger.LogWarning(
-                        "Package {PackageId} {PackageVersion} (package key {PackageKey}) is soft deleted. Dropping message for validation set {ValidationSetId}.",
+                        "Package {PackageId} {PackageNormalizedVersion} (package key {PackageKey}) is soft deleted. Dropping message for validation set {ValidationSetId}.",
                         message.PackageId,
-                        message.PackageVersion,
+                        message.PackageNormalizedVersion,
                         package.Key,
                         message.ValidationTrackingId);
 
                     return true;
                 }
 
-                var validationSet = await _validationSetProvider.TryGetOrCreateValidationSetAsync(message.ValidationTrackingId, package);
+                var validationSet = await _validationSetProvider.TryGetOrCreateValidationSetAsync(message, package);
 
                 if (validationSet == null)
                 {
-                    _logger.LogInformation("The validation request for {PackageId} {PackageVersion} validation set {ValidationSetId} is a duplicate. Discarding.",
+                    _logger.LogInformation("The validation request for {PackageId} {PackageNormalizedVersion} validation set {ValidationSetId} is a duplicate. Discarding.",
                         message.PackageId,
-                        message.PackageVersion,
+                        message.PackageNormalizedVersion,
                         message.ValidationTrackingId);
                     return true;
                 }
 
-                var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet, package);
+                var processorStats = await _validationSetProcessor.ProcessValidationsAsync(validationSet);
                 await _validationOutcomeProcessor.ProcessValidationOutcomeAsync(validationSet, package, processorStats);
             }
             return true;

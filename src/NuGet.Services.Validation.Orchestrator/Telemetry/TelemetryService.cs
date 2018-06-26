@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.ApplicationInsights;
 using NuGet.Services.Logging;
 using NuGetGallery;
 
@@ -54,16 +53,20 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
             _telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
         }
 
-        public void TrackDurationToHashPackage(TimeSpan duration, string packageId, string normalizedVersion, string hashAlgorithm, string streamType)
+        public IDisposable TrackDurationToHashPackage(
+            string packageId,
+            string normalizedVersion,
+            long packageSize,
+            string hashAlgorithm,
+            string streamType)
         {
-            _telemetryClient.TrackMetric(
+            return _telemetryClient.TrackDuration(
                 DurationToHashPackageSeconds,
-                duration.TotalSeconds,
                 new Dictionary<string, string>
                 {
                     { PackageId, packageId },
                     { NormalizedVersion, normalizedVersion },
-                    { PackageSize, PackageSize.ToString() },
+                    { PackageSize, packageSize.ToString() },
                     { HashAlgorithm, hashAlgorithm },
                     { StreamType, streamType },
                 });

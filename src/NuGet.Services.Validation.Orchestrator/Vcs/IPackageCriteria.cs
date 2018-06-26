@@ -8,7 +8,7 @@ namespace NuGet.Services.Validation.Vcs
     /// <summary>
     /// Generic criteria used to include or exclude packages from a process.
     /// </summary>
-    public interface IPackageCriteria
+    public interface ICriteria
     {
         /// <summary>
         /// A list of package owner usernames to exclude. This configuration takes precedence over

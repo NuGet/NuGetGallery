@@ -16,7 +16,6 @@ namespace Stats.CollectAzureCdnLogs.Ftp
         private readonly Uri _uri;
         private Stream _stream;
         private int _totalDone;
-        private bool _disposing;
 
         public Exception CaughtException { get; private set; }
 
@@ -31,12 +30,11 @@ namespace Stats.CollectAzureCdnLogs.Ftp
             var attempts = 0;
             while (attempts++ < 5)
             {
-                var uriString = _uri.ToString();
                 if (_stream == null)
                 {
                     _stream = await _client.StartOrResumeFtpDownload(_uri, _totalDone);
 
-                    _client.Logger.LogInformation("Finishing download from '{FtpBlobUri}'", uriString);
+                    _client.Logger.LogInformation("Finishing download from '{FtpBlobUri}'", _uri);
                 }
                 try
                 {
@@ -51,11 +49,11 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 {
                     CaughtException = ex;
 
-                    _client.Logger.LogError("Failed to download file.", ex);
+                    _client.Logger.LogError(0, ex, "Failed to download file after {Attempts} attempts", attempts);
 
-                    // Close ftp resources if possible.
-                    // Set instances to null to force restart.
-                    Close();
+                    // Close ftp resources and set instance to null to restart the download.
+                    _stream?.Dispose();
+                    _stream = null;
                 }
             }
             return 0;
@@ -86,34 +84,22 @@ namespace Stats.CollectAzureCdnLogs.Ftp
                 {
                     CaughtException = ex;
 
-                    // Close ftp resources if possible. Set instances to null to force restart.
-                    Close();
+                    _client.Logger.LogError(0, ex, "Failed to download file after {Attempts}", attempts);
+
+                    // Close ftp resources and set instance to null to restart the download.
+                    _stream?.Dispose();
+                    _stream = null;
                 }
             }
             return 0;
         }
 
-        public override void Close()
+        protected override void Dispose(bool disposing)
         {
-            if (_disposing)
+            if (disposing)
             {
-                return;
+                _stream?.Dispose();
             }
-
-            _disposing = true;
-
-            if (_stream != null)
-            {
-                try
-                {
-                    _stream.Close();
-                }
-                catch
-                {
-                    // No action required
-                }
-            }
-            _stream = null;
         }
 
         public override void Flush()
