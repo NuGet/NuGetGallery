@@ -1228,7 +1228,7 @@ namespace NuGetGallery
                         return $"This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).";
                     case ValidationIssueCode.ClientSigningVerificationFailure:
                         var clientIssue = (ClientSigningVerificationFailure)validationIssue;
-                        return $"*{clientIssue.ClientCode}*: {clientIssue.ClientMessage}";
+                        return $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}";
                     case ValidationIssueCode.PackageIsZip64:
                         return "Zip64 packages are not supported.";
                     case ValidationIssueCode.OnlyAuthorSignaturesSupported:
@@ -1236,7 +1236,7 @@ namespace NuGetGallery
                     case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
                         return "Author countersignatures and repository countersignatures are not supported.";
                     case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
-                        return "*NU3007:* Package signatures must have format version 1.";
+                        return "**NU3007:** Package signatures must have format version 1.";
                     case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
                         return "Author countersignatures are not supported.";
                     case ValidationIssueCode.PackageIsNotSigned:
