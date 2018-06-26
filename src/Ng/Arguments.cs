@@ -133,6 +133,11 @@ namespace Ng
         /// Default value of <see cref="PackageStatusFolder"/>.
         /// </summary>
         public const string PackageStatusFolderDefault = "status";
+
+        /// <summary>
+        /// If the queue contains more messages than this, the job will not requeue any invalid packages.
+        /// </summary>
+        public const string MaxRequeueQueueSize = "maxRequeueQueueSize";
         #endregion
 
         #region KeyVault

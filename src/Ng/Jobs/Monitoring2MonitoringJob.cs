@@ -22,6 +22,9 @@ namespace Ng.Jobs
         private IPackageMonitoringStatusService _statusService;
         private IStorageQueue<PackageValidatorContext> _queue;
 
+        private const int DefaultMaxQueueSize = 100;
+        private int _maxRequeueQueueSize;
+
         public Monitoring2MonitoringJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
         {
@@ -30,6 +33,7 @@ namespace Ng.Jobs
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
+            _maxRequeueQueueSize = arguments.GetOrDefault(Arguments.MaxRequeueQueueSize, DefaultMaxQueueSize);
 
             CommandHelpers.AssertAzureStorage(arguments);
 
@@ -42,6 +46,15 @@ namespace Ng.Jobs
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
+            var currentMessageCount = await _queue.GetMessageCount(cancellationToken);
+            if (currentMessageCount > _maxRequeueQueueSize)
+            {
+                Logger.LogInformation(
+                    "Can't requeue any invalid packages because the queue has too many messages ({CurrentMessageCount} > {MaxRequeueQueueSize})!", 
+                    currentMessageCount, _maxRequeueQueueSize);
+                return;
+            }
+
             var invalidPackages = await _statusService.GetAsync(PackageState.Invalid, cancellationToken);
 
             await Task.WhenAll(invalidPackages.Select(invalidPackage =>

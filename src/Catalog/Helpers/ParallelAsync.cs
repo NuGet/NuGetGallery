@@ -3,25 +3,24 @@
 
 using System;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public static class ParallelAsync
     {
-        public const int DefaultDegreeOfParallelism = 32;
-
         /// <summary>
         /// Creates a number of tasks specified by <paramref name="degreeOfParallelism"/> using <paramref name="taskFactory"/> and then runs them in parallel.
         /// </summary>
         /// <param name="taskFactory">Creates each task to run.</param>
-        /// <param name="degreeOfParallelism">The number of tasks to create.</param>
+        /// <param name="degreeOfParallelism">The number of tasks to create. Defaults to <see cref="ServicePointManager.DefaultConnectionLimit"/></param>
         /// <returns>A task that completes when all tasks have completed.</returns>
-        public static Task Repeat(Func<Task> taskFactory, int degreeOfParallelism = DefaultDegreeOfParallelism)
+        public static Task Repeat(Func<Task> taskFactory, int? degreeOfParallelism = null)
         {
             return Task.WhenAll(
                 Enumerable
-                    .Repeat(taskFactory, degreeOfParallelism)
+                    .Repeat(taskFactory, degreeOfParallelism ?? ServicePointManager.DefaultConnectionLimit)
                     .Select(f => f()));
         }
     }
