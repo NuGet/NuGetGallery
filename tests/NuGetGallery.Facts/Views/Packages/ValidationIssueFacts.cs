@@ -16,9 +16,7 @@ namespace NuGetGallery.Views.Packages
 {
     public class ValidationIssueFacts
     {
-        private const string UnknownIssueMessage = "<strong>Package publishing failed.</strong> This package could " +
-            "not be published since package validation failed. Please contact <a href=\"mailto:support@nuget.org\">" +
-            "support@nuget.org</a>.";
+        private const string UnknownIssueMessage = "There was an unknown failure when validating your package.";
         private readonly ITestOutputHelper _output;
 
         public ValidationIssueFacts(ITestOutputHelper output)
