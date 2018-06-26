@@ -40,7 +40,7 @@ namespace CatalogTests
         }
 
         [Fact]
-        public async Task ReturnsParsedJson()
+        public async Task GetJObjectAsync_WhenStatusIsOK_ReturnsParsedJson()
         {
             // Arrange
             AddResponse(HttpStatusCode.OK);
@@ -50,6 +50,59 @@ namespace CatalogTests
 
             // Assert
             Assert.Equal(JObject.Parse(TestRawJson), json);
+        }
+
+        [Fact]
+        public async Task GetJObjectAsync_WhenStatusIsNotFound_Throws()
+        {
+            AddResponse(HttpStatusCode.NotFound);
+
+            var exception = await Assert.ThrowsAsync<Exception>(() => _target.GetJObjectAsync(TestUri));
+
+            Assert.Equal($"GetStringAsync({TestUri})", exception.Message);
+            Assert.Equal("Response status code does not indicate success: 404 (Not Found).", exception.InnerException.Message);
+        }
+
+        [Fact]
+        public async Task GetJObjectAsync_WhenStatusIsInternalServerErrorAndFailureIsPersistent_Throws()
+        {
+            AddResponse(HttpStatusCode.InternalServerError);
+
+            var exception = await Assert.ThrowsAsync<Exception>(() => _target.GetJObjectAsync(TestUri));
+
+            Assert.Equal($"GetStringAsync({TestUri})", exception.Message);
+            Assert.Equal("Maximum retry attempts exhausted.", exception.InnerException.Message);
+        }
+
+        [Fact]
+        public async Task GetJObjectAsync_WhenStatusIsFirstInternalServerErrorThenOK_ReturnsParsedJson()
+        {
+            _handler.SetAction(TestRelativePath, _ =>
+            {
+                _handler.Actions.Clear();
+
+                AddResponse(HttpStatusCode.OK);
+
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError));
+            });
+
+            var json = await _target.GetJObjectAsync(TestUri);
+
+            Assert.Equal(JObject.Parse(TestRawJson), json);
+        }
+
+        [Fact]
+        public async Task GetJObjectAsync_WhenStatusIsOKButResponseIsNotJson_Throws()
+        {
+            _handler.SetAction(TestRelativePath, _ => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("<a/>")
+            }));
+
+            var exception = await Assert.ThrowsAsync<Exception>(() => _target.GetJObjectAsync(TestUri));
+
+            Assert.Equal($"GetJObjectAsync({TestUri})", exception.Message);
+            Assert.Equal("Unexpected character encountered while parsing value: <. Path '', line 0, position 0.", exception.InnerException.Message);
         }
     }
 }

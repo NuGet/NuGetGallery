@@ -71,13 +71,19 @@ namespace NuGet.Services.Metadata.Catalog
                         Trace.TraceInformation("CommitCatalog.Fetch front.Value saved since timestamp changed from previous: {0}", front);
                     }
 
-                    acceptNextBatch = await OnProcessBatch(
-                        client,
-                        batch.Items.Select(item => item.Value),
-                        context,
-                        batch.CommitTimeStamp,
-                        batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
-                        cancellationToken);
+                    using (_telemetryService.TrackDuration(TelemetryConstants.ProcessBatchSeconds, new Dictionary<string, string>()
+                    {
+                        { TelemetryConstants.BatchItemCount, batch.Items.Count.ToString() }
+                    }))
+                    {
+                        acceptNextBatch = await OnProcessBatch(
+                            client,
+                            batch.Items.Select(item => item.Value),
+                            context,
+                            batch.CommitTimeStamp,
+                            batch.CommitTimeStamp == lastBatch.CommitTimeStamp,
+                            cancellationToken);
+                    }
 
                     // If this is the last batch, commit the cursor.
                     if (ReferenceEquals(batch, lastBatch))

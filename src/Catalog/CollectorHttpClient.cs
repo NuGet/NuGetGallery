@@ -15,6 +15,7 @@ namespace NuGet.Services.Metadata.Catalog
     public class CollectorHttpClient : HttpClient
     {
         private int _requestCount;
+        private readonly RetryWithExponentialBackoff _retryStrategy;
 
         public CollectorHttpClient()
             : this(new WebRequestHandler { AllowPipelining = true })
@@ -25,6 +26,7 @@ namespace NuGet.Services.Metadata.Catalog
             : base(handler ?? new WebRequestHandler { AllowPipelining = true })
         {
             _requestCount = 0;
+            _retryStrategy = new RetryWithExponentialBackoff();
         }
 
         public int RequestCount
@@ -42,27 +44,25 @@ namespace NuGet.Services.Metadata.Catalog
             return GetJObjectAsync(address, CancellationToken.None);
         }
 
-        public virtual Task<JObject> GetJObjectAsync(Uri address, CancellationToken token)
+        public virtual async Task<JObject> GetJObjectAsync(Uri address, CancellationToken token)
         {
             InReqCount();
 
-            var task = GetStringAsync(address, token);
-            return task.ContinueWith((t) =>
+            var json = await GetStringAsync(address, token);
+
+            try
             {
-                try
-                {
-                    return ParseJObject(t.Result);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(string.Format("GetJObjectAsync({0})", address), e);
-                }
-            }, token);
+                return ParseJObject(json);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"{nameof(GetJObjectAsync)}({address})", e);
+            }
         }
 
         private JObject ParseJObject(string json)
         {
-            using (JsonReader reader = new JsonTextReader(new StringReader(json)))
+            using (var reader = new JsonTextReader(new StringReader(json)))
             {
                 reader.DateParseHandling = DateParseHandling.DateTimeOffset; // make sure we always preserve timezone info
 
@@ -78,6 +78,7 @@ namespace NuGet.Services.Metadata.Catalog
         public virtual Task<IGraph> GetGraphAsync(Uri address, bool readOnly, CancellationToken token)
         {
             var task = GetJObjectAsync(address, token);
+
             return task.ContinueWith((t) =>
             {
                 try
@@ -86,25 +87,24 @@ namespace NuGet.Services.Metadata.Catalog
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(string.Format("GetGraphAsync({0})", address), e);
+                    throw new Exception($"{nameof(GetGraphAsync)}({address})", e);
                 }
             }, token);
         }
 
-        public virtual Task<string> GetStringAsync(Uri address, CancellationToken token)
+        public virtual async Task<string> GetStringAsync(Uri address, CancellationToken token)
         {
-            var task = GetAsync(address, token);
-            return task.ContinueWith((t) =>
+            try
             {
-                try
+                using (var httpResponse = await _retryStrategy.SendAsync(this, address, token))
                 {
-                    return task.Result.Content.ReadAsStringAsync().Result;
+                    return await httpResponse.Content.ReadAsStringAsync();
                 }
-                catch (Exception e)
-                {
-                    throw new Exception(string.Format("GetStringAsync({0})", address), e);
-                }
-            }, token);
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"{nameof(GetStringAsync)}({address})", e);
+            }
         }
     }
 }
