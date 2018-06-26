@@ -29,7 +29,7 @@
 
 @helper InformAboutOrgSettingsPage()
 {
-    @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, you would need to go to the organization's settings page.</text>)
+    @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, you would need to go to the <a href="@Url.ManageMyOrganizations()">organization's settings page</a>.</text>)
 }
 
 @ViewHelpers.Section(
