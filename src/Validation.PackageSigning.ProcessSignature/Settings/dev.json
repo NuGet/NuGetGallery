@@ -19,7 +19,7 @@
   },
   "ProcessSignature": {
     "AllowedRepositorySigningCertificates": [
-      "0e5f38f57dc1bcc806d8494f4f90fbcedd988b46760709cbeec6f4219aa6157d"
+      "cf6ce6768ef858a3a667be1af8aa524d386c7f59a34542713f5dfb0d79acf3dd"
     ],
     "V3ServiceIndexUrl": "https://apidev.nugettest.org/v3/index.json"
   },
