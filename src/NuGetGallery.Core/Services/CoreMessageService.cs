@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using AnglicanGeek.MarkdownMailer;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -57,35 +58,36 @@ namespace NuGetGallery.Services
             var validationIssues = validationSet.GetValidationIssues();
 
             var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package validation failed - {package.PackageRegistration.Id} {package.Version}";
-            var body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) failed validation because of the following reason(s):
-";
+            var bodyBuilder = new StringBuilder();
+            bodyBuilder.Append($@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) failed validation because of the following reason(s):
+");
 
             foreach (var validationIssue in validationIssues)
             {
-                body += $@"
-- {ParseValidationIssue(validationIssue, announcementsUrl, twitterUrl)}";
+                bodyBuilder.Append($@"
+- {ParseValidationIssue(validationIssue, announcementsUrl, twitterUrl)}");
             }
 
-            body += $@"
+            bodyBuilder.Append($@"
 
 Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} and is not available for consumption.
 
-";
+");
 
             if (validationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
             {
-                body += $"Please [contact support]({packageSupportUrl}) to help fix your package.";
+                bodyBuilder.Append($"Please [contact support]({packageSupportUrl}) to help fix your package.");
             }
             else
             {
                 var issuePluralString = validationIssues.Count() > 1 ? "all the issues" : "the issue";
-                body += $"Once you've fixed {issuePluralString} with your package, you can reupload it with the same ID and version.";
+                bodyBuilder.Append($"You can reupload your package once you've fixed {issuePluralString} with it.");
             }
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
-                mailMessage.Body = body;
+                mailMessage.Body = bodyBuilder.ToString();
                 mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
 
                 AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
@@ -105,7 +107,9 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
                     return $"This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).";
                 case ValidationIssueCode.ClientSigningVerificationFailure:
                     var clientIssue = (ClientSigningVerificationFailure)validationIssue;
-                    return $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}";
+                    return clientIssue != null 
+                        ? $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}" 
+                        : "This package's signature was unable to be verified.";
                 case ValidationIssueCode.PackageIsZip64:
                     return "Zip64 packages are not supported.";
                 case ValidationIssueCode.OnlyAuthorSignaturesSupported:
@@ -120,7 +124,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
                     return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
                     var certIssue = (UnauthorizedCertificateFailure)validationIssue;
-                    return $"The package was signed, but the signing certificate (SHA-1 thumbprint {certIssue.Sha1Thumbprint}) is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
                 default:
                     return "There was an unknown failure when validating your package.";
             }
