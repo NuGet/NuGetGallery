@@ -20,10 +20,18 @@ namespace NuGetGallery
 
             // Filter out unknown issues and deduplicate the issues by code and data. This also deduplicates cases
             // where there is extraneous data in the serialized data field or if the issue code is unknown.
-            return issues
+            IReadOnlyList<ValidationIssue> groupedIssues = issues
                 .GroupBy(x => new { x.IssueCode, Data = x.Serialize() })
                 .Select(x => x.First())
                 .ToList();
+
+            // If the package failed validation but we could not find an issue that explains why, use a generic error message.
+            if (groupedIssues == null || !groupedIssues.Any())
+            {
+                groupedIssues = new[] { ValidationIssue.Unknown };
+            }
+
+            return groupedIssues;
         }
     }
 }
