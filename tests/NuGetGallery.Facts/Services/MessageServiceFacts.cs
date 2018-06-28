@@ -1216,7 +1216,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    Assert.Contains($"Once you've fixed the issue with your package, you can reupload it with the same ID and version.", message.Body);
+                    Assert.Contains($"You can reupload your package once you've fixed the issue with it.", message.Body);
                 }
             }
 
