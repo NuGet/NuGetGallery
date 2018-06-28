@@ -2,18 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Newtonsoft.Json.Linq;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -25,11 +25,15 @@ namespace NgTests
 {
     public class DnxCatalogCollectorTests
     {
+        private const string _nuspecData = "nuspec data";
+        private static readonly HttpContent _noContent = new ByteArrayContent(new byte[0]);
+
         private MemoryStorage _catalogToDnxStorage;
         private TestStorageFactory _catalogToDnxStorageFactory;
         private MockServerHttpClientHandler _mockServer;
         private ILogger<DnxCatalogCollector> _logger;
         private DnxCatalogCollector _target;
+        private Uri _cursorJsonUri;
 
         public DnxCatalogCollectorTests()
         {
@@ -51,206 +55,207 @@ namespace NgTests
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages/")
             };
+
+            _cursorJsonUri = _catalogToDnxStorage.ResolveUri("cursor.json");
         }
 
         [Fact]
-        public async Task SkipsPackagesWhenCannotFindNuspecInNupkg()
+        public async Task Run_WhenPackageDoesNotHaveNuspec_SkipsPackage()
         {
-            // Arrange
-            // This package has no nuspec, and should be ignored.
-            var zipWithNoNuspec = CreateZipStreamWithEntry("readme.txt");
-
-            // This package has a nuspec with the wrong name, which should be accepted.
-            var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec");
-            
+            var zipWithNoNuspec = CreateZipStreamWithEntry("readme.txt", "content");
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
+
             await _mockServer.AddStorage(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(zipWithNoNuspec) }));
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.1.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(indexJsonUri));
+        }
+
+        [Fact]
+        public async Task Run_WhenPackageHasNuspecWithWrongName_ProcessesPackage()
+        {
+            var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec", _nuspecData);
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.nuspec");
+            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
+
+            await _mockServer.AddStorage(catalogStorage);
+
             _mockServer.SetAction(
                 "/packages/unlistedpackage.1.0.0.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(zipWithWrongNameNuspec) }));
 
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            // Act
             await _target.Run(front, back, CancellationToken.None);
 
-            // Assert
-            Assert.Equal(7, _catalogToDnxStorage.Content.Count);
-
-            // Ensure storage has cursor.json
-            var cursorJson = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
-            Assert.NotNull(cursorJson.Key);
-
-            // Check package entries - ListedPackage
-            var package1Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
-            Assert.NotNull(package1Index.Key);
-            Assert.DoesNotContain("\"1.0.0\"", package1Index.Value.GetContentString());
-            Assert.Contains("\"1.0.1\"", package1Index.Value.GetContentString());
-
-            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.PathAndQuery.Contains("/listedpackage/1.0.0")));
-
-            var packageNuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.nuspec"));
-            var packageNupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg"));
-            Assert.NotNull(packageNuspec.Key);
-            Assert.NotNull(packageNupkg.Key);
-
-            // Check package entries - UnlistedPackage
-            var package2Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/index.json"));
-            Assert.NotNull(package2Index.Key);
-            Assert.Contains("\"1.0.0\"", package2Index.Value.GetContentString());
-
-            var package2Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.nuspec"));
-            var package2Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"));
-            Assert.NotNull(package2Nuspec.Key);
-            Assert.NotNull(package2Nupkg.Key);
-        }
-
-        private static MemoryStream CreateZipStreamWithEntry(string name)
-        {
-            var zipWithNoNuspec = new MemoryStream();
-            using (var zipArchive = new ZipArchive(zipWithNoNuspec, ZipArchiveMode.Create, leaveOpen: true))
-            {
-                var entry = zipArchive.CreateEntry(name);
-                using (var entryStream = entry.Open())
-                using (var entryWriter = new StreamWriter(entryStream))
-                {
-                    entryWriter.WriteLine("Hello, world.");
-                }
-            }
-            zipWithNoNuspec.Position = 0;
-            return zipWithNoNuspec;
-        }
-
-        [Fact]
-        public async Task SkipsPackagesWhenSourceNupkgIsNotFound()
-        {
-            // Arrange
-            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
-            await _mockServer.AddStorage(catalogStorage);
-
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { Content = new StringContent("Nothing.") }));
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.1.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            _mockServer.SetAction(
-                "/packages/unlistedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { Content = new StringContent("Nothing.") }));
-
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
-            ReadCursor back = MemoryCursor.CreateMax();
-
-            // Act
-            await _target.Run(front, back, CancellationToken.None);
-
-            // Assert
             Assert.Equal(4, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nupkgUri, out var nupkg));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nuspecUri, out var nuspec));
 
-            // Ensure storage has cursor.json
-            var cursorJson = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
-            Assert.NotNull(cursorJson.Key);
-
-            // Check package entries - ListedPackage
-            var package1Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
-            Assert.NotNull(package1Index.Key);
-            Assert.DoesNotContain("\"1.0.0\"", package1Index.Value.GetContentString());
-            Assert.Contains("\"1.0.1\"", package1Index.Value.GetContentString());
-
-            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.PathAndQuery.Contains("/listedpackage/1.0.0")));
-
-            var packageNuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.nuspec"));
-            var packageNupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg"));
-            Assert.NotNull(packageNuspec.Key);
-            Assert.NotNull(packageNupkg.Key);
-
-            // Check package entries - UnlistedPackage
-            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.PathAndQuery.Contains("unlistedpackage")));
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.0"), Encoding.UTF8.GetString(indexJson));
+            Assert.Equal(zipWithWrongNameNuspec.ToArray(), nupkg);
+            Assert.Equal(_nuspecData, Encoding.UTF8.GetString(nuspec));
         }
 
         [Fact]
-        public async Task CreatesFlatContainerAndRespectsDeletes()
+        public async Task Run_WhenSourceNupkgIsNotFound_SkipsPackage()
         {
-            // Arrange
-            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.nuspec");
+            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
+
             await _mockServer.AddStorage(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound) { Content = _noContent }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
+        }
+
+        [Fact]
+        public async Task Run_WithValidPackage_CreatesFlatContainer()
+        {
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
+            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
+
+            await _mockServer.AddStorage(catalogStorage);
+
             _mockServer.SetAction(
-                "/packages/listedpackage.1.0.1.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            _mockServer.SetAction(
-                "/packages/unlistedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
+                "/packages/listedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(4, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nupkgUri, out var nupkg));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(nuspecUri, out var nuspec));
+
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.0"), Encoding.UTF8.GetString(indexJson));
+            Assert.Equal(expectedNupkg, nupkg);
+            Assert.Equal(
+                "<?xml version=\"1.0\" encoding=\"utf-8\"?>\r\n<package xmlns=\"http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd\">\r\n    <metadata>\r\n        <id>ListedPackage</id>\r\n        <version>1.0.0</version>\r\n        <authors>NuGet</authors>\r\n        <requireLicenseAcceptance>false</requireLicenseAcceptance>\r\n        <description>Package description.</description>\r\n    </metadata>\r\n</package>",
+                Encoding.UTF8.GetString(nuspec));
+        }
+
+        [Fact]
+        public async Task Run_WithValidPackage_RespectsDeletion()
+        {
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/otherpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.nuspec");
+            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+
+            await _mockServer.AddStorage(catalogStorage);
+
             _mockServer.SetAction(
                 "/packages/otherpackage.1.0.0.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            // Act
             await _target.Run(front, back, CancellationToken.None);
 
-            // Assert
-            Assert.Equal(9, _catalogToDnxStorage.Content.Count);
-
-            // Ensure storage has cursor.json
-            var cursorJson = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
-            Assert.NotNull(cursorJson.Key);
-
-            // Check package entries - ListedPackage
-            var package1Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
-            Assert.NotNull(package1Index.Key);
-            Assert.Contains("\"1.0.0\"", package1Index.Value.GetContentString());
-            Assert.Contains("\"1.0.1\"", package1Index.Value.GetContentString());
-
-            var package1Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.nuspec"));
-            var package1Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg"));
-            Assert.NotNull(package1Nuspec.Key);
-            Assert.NotNull(package1Nupkg.Key);
-
-            var package2Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.nuspec"));
-            var package2Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg"));
-            Assert.NotNull(package2Nuspec.Key);
-            Assert.NotNull(package2Nupkg.Key);
-
-            // Check package entries - UnlistedPackage
-            var package3Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/index.json"));
-            Assert.NotNull(package3Index.Key);
-            Assert.Contains("\"1.0.0\"", package3Index.Value.GetContentString());
-
-            var package3Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.nuspec"));
-            var package3Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"));
-            Assert.NotNull(package3Nuspec.Key);
-            Assert.NotNull(package3Nupkg.Key);
-
-            // Ensure storage does not have the deleted "OtherPackage"
-            var otherPackageIndex = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/index.json"));
-            var otherPackageNuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/1.0.0/otherpackage.nuspec"));
-            var otherPackageNupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg"));
-            Assert.Null(otherPackageIndex.Key);
-            Assert.Null(otherPackageNuspec.Key);
-            Assert.Null(otherPackageNupkg.Key);
+            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
         }
 
         [Fact]
-        public async Task SkipsPackagesThatAreAlreadySynchronized()
+        public async Task Run_WithPackageCreatedThenDeleted_LeavesNoArtifacts()
         {
-            // Arrange
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/otherpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.nuspec");
+            var catalogStorage = Catalogs.CreateTestCatalogWithPackageCreatedThenDeleted();
+
+            await _mockServer.AddStorage(catalogStorage);
+
+            _mockServer.SetAction(
+                "/packages/otherpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(1, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
+        }
+
+        [Fact]
+        public async Task Run_WhenPackageIsAlreadySynchronized_SkipsPackage()
+        {
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
+            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.1.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
+
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
                 new Uri("http://tempuri.org/packages/listedpackage.1.0.1.nupkg"),
@@ -259,10 +264,9 @@ namespace NgTests
 
             await _catalogToDnxStorage.Save(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
-                new StringStorageContent("{\"versions\":[\"1.0.1\"]}"),
+                new StringStorageContent(GetExpectedIndexJsonContent("1.0.1")),
                 CancellationToken.None);
 
-            // Setup collector
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
@@ -277,72 +281,34 @@ namespace NgTests
             await _mockServer.AddStorage(catalogStorage);
 
             _mockServer.SetAction(
-                "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
                 "/packages/listedpackage.1.0.1.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            _mockServer.SetAction(
-                "/packages/unlistedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
-                "/packages/otherpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
 
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            // Act
             await _target.Run(front, back, CancellationToken.None);
 
-            // Assert
-            Assert.Equal(7, _catalogToDnxStorage.Content.Count);
+            Assert.Equal(2, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
 
-            Assert.NotEmpty(_mockServer.Requests.Where(x => x.RequestUri.AbsoluteUri.Contains("unlistedpackage.1.0.0.nupkg")));
-            Assert.NotEmpty(_mockServer.Requests.Where(x => x.RequestUri.AbsoluteUri.Contains("listedpackage.1.0.0.nupkg")));
-            Assert.Empty(_mockServer.Requests.Where(x => x.RequestUri.AbsoluteUri.Contains("listedpackage.1.0.1.nupkg")));
-
-            // Ensure storage has cursor.json
-            var cursorJson = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
-            Assert.NotNull(cursorJson.Key);
-
-            // Check package entries - ListedPackage
-            var package1Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/index.json"));
-            Assert.NotNull(package1Index.Key);
-            Assert.Contains("\"1.0.0\"", package1Index.Value.GetContentString());
-            Assert.Contains("\"1.0.1\"", package1Index.Value.GetContentString());
-
-            var package1Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.nuspec"));
-            var package1Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg"));
-            Assert.NotNull(package1Nuspec.Key);
-            Assert.NotNull(package1Nupkg.Key);
-
-            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.PathAndQuery.Contains("listedpackage/1.0.1")));
-
-            // Check package entries - UnlistedPackage
-            var package2Index = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/index.json"));
-            Assert.NotNull(package2Index.Key);
-            Assert.Contains("\"1.0.0\"", package2Index.Value.GetContentString());
-
-            var package2Nuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.nuspec"));
-            var package2Nupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"));
-            Assert.NotNull(package2Nuspec.Key);
-            Assert.NotNull(package2Nupkg.Key);
-
-            // Ensure storage does not have the deleted "OtherPackage"
-            var otherPackageIndex = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/index.json"));
-            var otherPackageNuspec = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/1.0.0/otherpackage.nuspec"));
-            var otherPackageNupkg = _catalogToDnxStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg"));
-            Assert.Null(otherPackageIndex.Key);
-            Assert.Null(otherPackageNuspec.Key);
-            Assert.Null(otherPackageNupkg.Key);
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.1"), Encoding.UTF8.GetString(indexJson));
         }
 
         [Fact]
-        public async Task ProcessesPackagesThatAreAlreadySynchronizedButNotInIndex()
+        public async Task Run_WhenPackageIsAlreadySynchronizedButNotInIndex_ProcessesPackage()
         {
-            // Arrange
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
+
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
                 new Uri("http://tempuri.org/packages/listedpackage.1.0.1.nupkg"),
@@ -351,7 +317,6 @@ namespace NgTests
             _mockServer = new MockServerHttpClientHandler();
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
-            // Setup collector
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
@@ -363,42 +328,29 @@ namespace NgTests
             };
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+
             await _mockServer.AddStorage(catalogStorage);
 
             _mockServer.SetAction(
-                "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
                 "/packages/listedpackage.1.0.1.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            _mockServer.SetAction(
-                "/packages/unlistedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
-                "/packages/otherpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            // Act
             await _target.Run(front, back, CancellationToken.None);
 
-            // Assert
-            Assert.Equal(7, _catalogToDnxStorage.Content.Count);
-            
-            // There is no need to save the .nuspec and .nupokg since they are already synchronized.
-            Assert.Empty(_mockServer.Requests.Where(x => x.RequestUri.AbsoluteUri.Contains("listedpackage.1.0.1.nupkg")));
-            Assert.Empty(_catalogToDnxStorage.Content.Where(x => x.Key.AbsoluteUri.Contains("/listedpackage/1.0.1")));
-            var index = Assert.Single(_catalogToDnxStorage.Content.Where(x => x.Key.AbsoluteUri.Contains("/listedpackage/index.json")));
-            var content = index.Value.GetContentString();
-            Assert.Equal(@"{
-  ""versions"": [
-    ""1.0.0"",
-    ""1.0.1""
-  ]
-}", content);
+            Assert.Equal(2, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
+
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.1"), Encoding.UTF8.GetString(indexJson));
         }
 
         [Theory]
@@ -408,32 +360,31 @@ namespace NgTests
         [InlineData(HttpStatusCode.NoContent)]
         [InlineData(HttpStatusCode.InternalServerError)]
         [InlineData(HttpStatusCode.ServiceUnavailable)]
-        public async Task RejectsUnexpectedHttpStatusCodeWhenDownloadingPackage(HttpStatusCode statusCode)
+        public async Task Run_WhenDownloadingPackage_RejectsUnexpectedHttpStatusCode(HttpStatusCode statusCode)
         {
-            // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
+
             await _mockServer.AddStorage(catalogStorage);
+
             _mockServer.Return404OnUnknownAction = true;
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(statusCode) { Content = new ByteArrayContent(new byte[0]) }));
+                request => Task.FromResult(new HttpResponseMessage(statusCode) { Content = _noContent }));
 
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
                 () => _target.Run(front, back, CancellationToken.None));
             Assert.Equal(
                 $"Expected status code OK for package download, actual: {statusCode}",
-                ex.Message);
+                exception.Message);
             Assert.Equal(0, _catalogToDnxStorage.Content.Count);
         }
 
         [Fact]
-        public async Task OnlyDownloadsNupkgOncePerCatalogLeaf()
+        public async Task Run_WhenDownloadingPackage_OnlyDownloadsNupkgOncePerCatalogLeaf()
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
@@ -453,7 +404,7 @@ namespace NgTests
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
             // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadWriteCursor front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
@@ -470,70 +421,11 @@ namespace NgTests
             Assert.Contains("/listedpackage.1.0.1.nupkg", _mockServer.Requests[4].RequestUri.AbsoluteUri);
         }
 
-        [Fact]
-        public async Task StoresCorrectPackageContent()
-        {
-            // Arrange
-            var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
-            await _mockServer.AddStorage(catalogStorage);
-
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
-                "/packages/listedpackage.1.0.1.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\ListedPackage.1.0.1.zip")) }));
-            _mockServer.SetAction(
-                "/packages/unlistedpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\UnlistedPackage.1.0.0.zip")) }));
-            _mockServer.SetAction(
-                "/packages/otherpackage.1.0.0.nupkg",
-                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
-
-            // Setup collector
-            ReadWriteCursor front = new DurableCursor(_catalogToDnxStorage.ResolveUri("cursor.json"), _catalogToDnxStorage, MemoryCursor.MinValue);
-            ReadCursor back = MemoryCursor.CreateMax();
-
-            // Act
-            await _target.Run(front, back, CancellationToken.None);
-
-            // Assert
-            Assert.Equal(9, _catalogToDnxStorage.Content.Count);
-
-            VerifyContentBytes(
-                "Packages\\ListedPackage.1.0.0.zip",
-                new Uri("http://tempuri.org/listedpackage/1.0.0/listedpackage.1.0.0.nupkg"));
-            VerifyContentBytes(
-                "Packages\\ListedPackage.1.0.1.zip",
-                new Uri("http://tempuri.org/listedpackage/1.0.1/listedpackage.1.0.1.nupkg"));
-            VerifyContentBytes(
-                "Packages\\UnlistedPackage.1.0.0.zip",
-                new Uri("http://tempuri.org/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg"));
-        }
-
-        private void VerifyContentBytes(string srcFilePath, Uri destUri)
-        {
-            var srcBytes = GetStreamBytes(File.OpenRead(srcFilePath));
-            var destBytes = _catalogToDnxStorage.ContentBytes[destUri];
-
-            Assert.Equal(srcBytes, destBytes);
-        }
-
-        private byte[] GetStreamBytes(Stream srcStream)
-        {
-            using (srcStream)
-            using (var memoryStream = new MemoryStream())
-            {
-                srcStream.CopyTo(memoryStream);
-                return memoryStream.ToArray();
-            }
-        }
-
         [Theory]
         [InlineData("/packages/unlistedpackage.1.0.0.nupkg", null)]
         [InlineData("/packages/listedpackage.1.0.1.nupkg", "2015-10-12T10:08:54.1506742Z")]
         [InlineData("/packages/anotherpackage.1.0.0.nupkg", "2015-10-12T10:08:54.1506742Z")]
-        public async Task DoesNotSkipPackagesWhenExceptionOccurs(string catalogUri, string expectedCursorBeforeRetry)
+        public async Task Run_WhenExceptionOccurs_DoesNotSkipPackage(string catalogUri, string expectedCursorBeforeRetry)
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
@@ -555,8 +447,8 @@ namespace NgTests
 
             expectedCursorBeforeRetry = expectedCursorBeforeRetry ?? MemoryCursor.MinValue.ToString("O");
 
-            ReadWriteCursor front = new DurableCursor(
-                _catalogToDnxStorage.ResolveUri("cursor.json"),
+            var front = new DurableCursor(
+                _cursorJsonUri,
                 _catalogToDnxStorage,
                 MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -587,6 +479,25 @@ namespace NgTests
             Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
         }
 
+        private static byte[] GetStreamBytes(Stream srcStream)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                srcStream.Position = 0;
+
+                srcStream.CopyTo(memoryStream);
+
+                srcStream.Position = 0;
+
+                return memoryStream.ToArray();
+            }
+        }
+
+        private static string GetExpectedIndexJsonContent(string version)
+        {
+            return $"{{\r\n  \"versions\": [\r\n    \"{version}\"\r\n  ]\r\n}}";
+        }
+
         private void FailFirstRequest(string relativeUri)
         {
             var originalAction = _mockServer.Actions[relativeUri];
@@ -604,102 +515,29 @@ namespace NgTests
             _mockServer.SetAction(relativeUri, failFirst);
         }
 
-        [Theory]
-        [InlineData("1.2.0")]
-        [InlineData("0.1.2")]
-        [InlineData("1.2.3.4")]
-        [InlineData("1.2.3-beta1")]
-        [InlineData("1.2.3-beta.1")]
-        [Description("Test the dnxmaker save and delete scenarios.")]
-        public async Task DnxMakerTestVersion(string version)
+        private static MemoryStream CreateZipStreamWithEntry(string name, string content)
         {
-            // Arrange
-            string id = "testid";
-            var catalogToDnxStorage = new MemoryStorage();
-            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            DnxMaker maker = new DnxMaker(catalogToDnxStorageFactory);
+            var zipWithNoNuspec = new MemoryStream();
 
-            var nupkg = new MemoryStream();
-            StreamWriter writer = new StreamWriter(nupkg);
-            writer.Write("nupkg data");
-            writer.Flush();
-            nupkg.Position = 0;
+            using (var zipArchive = new ZipArchive(zipWithNoNuspec, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                var entry = zipArchive.CreateEntry(name);
 
-            //Act
-            var dnxEntry = await maker.AddPackage(nupkg, "nuspec data", id, version, CancellationToken.None);
-            string expectedNuspec = $"{catalogToDnxStorage.BaseAddress}{id}/{version}/{id}.nuspec";
-            string expectedNupkg = $"{catalogToDnxStorage.BaseAddress}{id}/{version}/{id}.{version}.nupkg";
+                using (var entryStream = entry.Open())
+                using (var entryWriter = new StreamWriter(entryStream))
+                {
+                    entryWriter.Write(content);
+                }
+            }
 
-            var storageForPackage = catalogToDnxStorageFactory.Create(id);
-            var indexJson = await storageForPackage.Load(new Uri(storageForPackage.BaseAddress, "index.json"), new CancellationToken());
+            zipWithNoNuspec.Position = 0;
 
-            var indexObject = JObject.Parse(indexJson.GetContentString());
-
-            var versions = indexObject["versions"].ToObject<string[]>();
-
-            //Assert
-            Assert.True(versions.Length > 0);
-            Assert.Equal(version, versions[0]);
-            Assert.Equal(expectedNuspec, dnxEntry.Nuspec.ToString());
-            Assert.Equal(expectedNupkg, dnxEntry.Nupkg.ToString());
-            //three items : nuspec, nupkg, and index.json
-            Assert.Equal(catalogToDnxStorage.Content.Count, 3);
-
-            //Act
-            await maker.DeletePackage(id, version, CancellationToken.None);
-            //Assert
-            Assert.Equal(catalogToDnxStorage.Content.Count, 0);
-        }
-
-        [Theory]
-        [InlineData("1.2")]
-        [InlineData("1.2.3.0")]
-        [InlineData("1.02.3")]
-        [Description("Test the dnxmaker save and delete scenarios.")]
-        public async Task DnxMakerFailsTestVersion(string version)
-        {
-            // Arrange
-            string id = "testid";
-            var catalogToDnxStorage = new MemoryStorage();
-            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
-            DnxMaker maker = new DnxMaker(catalogToDnxStorageFactory);
-
-            var nupkg = new MemoryStream();
-            StreamWriter writer = new StreamWriter(nupkg);
-            writer.Write("nupkg data");
-            writer.Flush();
-            nupkg.Position = 0;
-
-            //Act
-            var dnxEntry = await maker.AddPackage(nupkg, "nuspec data", id, version, CancellationToken.None);
-            string expectedNuspec = $"{catalogToDnxStorage.BaseAddress}{id}/{version}/{id}.nuspec";
-            string expectedNupkg = $"{catalogToDnxStorage.BaseAddress}{id}/{version}/{id}.{version}.nupkg";
-
-            var storageForPackage = catalogToDnxStorageFactory.Create(id);
-            var indexJson = await storageForPackage.Load(new Uri(storageForPackage.BaseAddress, "index.json"), new CancellationToken());
-
-            var indexObject = JObject.Parse(indexJson.GetContentString());
-
-            var versions = indexObject["versions"].ToObject<string[]>();
-
-            //Assert
-            Assert.True(versions.Length > 0);
-            Assert.Equal(version, versions[0]);
-            Assert.NotEqual(expectedNuspec, dnxEntry.Nuspec.ToString());
-            Assert.NotEqual(expectedNupkg, dnxEntry.Nupkg.ToString());
-            //three items : nuspec, nupkg, and index.json
-            Assert.Equal(catalogToDnxStorage.Content.Count, 3);
-
-            //Act
-            await maker.DeletePackage(id, version, CancellationToken.None);
-            //Assert
-            Assert.Equal(catalogToDnxStorage.Content.Count, 0);
+            return zipWithNoNuspec;
         }
 
         private class SynchronizedMemoryStorage : MemoryStorage
         {
             private readonly HashSet<Uri> _synchronizedUris;
-            private Dictionary<Uri, StorageContent> content;
 
             public SynchronizedMemoryStorage(IEnumerable<Uri> synchronizedUris)
             {
@@ -708,8 +546,8 @@ namespace NgTests
 
             protected SynchronizedMemoryStorage(
                 Uri baseAddress,
-                Dictionary<Uri, StorageContent> content,
-                Dictionary<Uri, byte[]> contentBytes,
+                ConcurrentDictionary<Uri, StorageContent> content,
+                ConcurrentDictionary<Uri, byte[]> contentBytes,
                 HashSet<Uri> synchronizedUris)
                 : base(baseAddress, content, contentBytes)
             {

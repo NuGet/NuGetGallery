@@ -467,7 +467,6 @@ namespace NgTests
                 CreateStatusWithException("NUnit", "3.6.1")
             };
 
-            // Run in order so we know the expected order they were added to storage.
             foreach (var expectedValidStatus in expectedValidStatuses)
             {
                 await statusService.UpdateAsync(expectedValidStatus, CancellationToken.None);
@@ -482,8 +481,14 @@ namespace NgTests
             var invalidStatuses = await statusService.GetAsync(PackageState.Invalid, CancellationToken.None);
 
             // Assert
-            AssertAll(expectedValidStatuses, validStatuses, AssertStatus);
-            AssertAll(expectedInvalidStatuses, invalidStatuses, AssertStatus);
+            AssertAll(
+                expectedValidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                validStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                AssertStatus);
+            AssertAll(
+                expectedInvalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                invalidStatuses.OrderBy(s => s.Package.Id).ThenBy(s => s.Package.Version),
+                AssertStatus);
         }
     }
 }

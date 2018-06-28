@@ -13,23 +13,23 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesIndex));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesPage));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/listedpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesUnlistedPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage101));
 
@@ -40,23 +40,23 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitIndex));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitPage));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesUnlistedPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage101));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/anotherpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithCommitThenTwoPackageCommitAnotherPackage100));
 
@@ -67,26 +67,50 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesAndDeleteIndex));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesAndDeletePage));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/listedpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/unlistedpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesUnlistedPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.55/listedpackage.1.0.1.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage101));
-            catalogStorage.Content.Add(
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesOtherPackage100));
+
+            return catalogStorage;
+        }
+
+        public static MemoryStorage CreateTestCatalogWithPackageCreatedThenDeleted()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithPackageCreatedThenDeletedIndex));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithPackageCreatedThenDeletedPage));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/otherpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithPackageCreatedThenDeletedPageOtherPackage100Created));
+
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesOtherPackage100));
 
@@ -97,23 +121,23 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesIndex));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(pageContent));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.48/mypackage.3.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageCreated));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2017.02.08.16.49.59/mypackage.3.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageUnlisted));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2017.02.08.17.16.18/mypackage.3.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageMyPackageListed));
 
@@ -124,15 +148,15 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Index));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Page000));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/testpackage.semver2.1.0.0-alpha.1.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithSemVer2Package));
 
@@ -143,21 +167,21 @@ namespace NgTests.Data
         {
             var catalogStorage = new MemoryStorage();
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "index.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeleteIndex));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "page0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeletePage));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/otherpackage.1.0.0.json"),
                 new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeleteOtherPackage100));
 
-            catalogStorage.Content.Add(
+            catalogStorage.Content.TryAdd(
                 new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/otherpackage.1.0.json"),
-                new StringStorageContent(TestCatalogEntries.TestCatalogWitnNonNormalizedDeleteOtherPackageDelete));
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithNonNormalizedDeleteOtherPackageDelete));
 
             return catalogStorage;
         }

@@ -296,8 +296,8 @@ namespace NgTests
             }
 
             var auditRecord = new Uri(storage.BaseAddress, $"package/{packageId}/{packageVersion}/{auditTimestamp.ToFileTimeUtc()}{fileSuffix}");
-            storage.Content.Add(auditRecord, MakeDeleteAuditRecord(packageId, packageVersion, auditTimestamp));
-            storage.ListMock.Add(auditRecord, new StorageListItem(auditRecord, auditTimestamp));
+            storage.Content.TryAdd(auditRecord, MakeDeleteAuditRecord(packageId, packageVersion, auditTimestamp));
+            storage.ListMock.TryAdd(auditRecord, new StorageListItem(auditRecord, auditTimestamp));
         }
 
         private StringStorageContent MakeDeleteAuditRecord(string packageId, string packageVersion, DateTime timestamp)

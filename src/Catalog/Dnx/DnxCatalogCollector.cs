@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog.Dnx
 {
@@ -81,7 +82,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             var isNupkgSynchronized = await destinationStorage.AreSynchronized(sourceUri, destinationUri);
             if (isNupkgSynchronized
-                && await _dnxMaker.HasPackageInIndex(destinationStorage, id, version, cancellationToken))
+                && await _dnxMaker.HasPackageInIndexAsync(destinationStorage, id, version, cancellationToken))
             {
                 _logger.LogInformation("No changes detected: {Id}/{Version}", id, version);
                 return;
@@ -94,9 +95,9 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                     id,
                     version);
 
-                await _dnxMaker.AddPackageToIndex(
+                await _dnxMaker.UpdatePackageVersionIndexAsync(
                     id,
-                    version,
+                    versions => versions.Add(NuGetVersion.Parse(version)),
                     cancellationToken);
             }
             else
@@ -121,11 +122,16 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
                     stream.Position = 0;
 
-                    await _dnxMaker.AddPackage(
+                    await _dnxMaker.AddPackageAsync(
                         stream,
                         nuspec,
                         id,
                         version,
+                        cancellationToken);
+
+                    await _dnxMaker.UpdatePackageVersionIndexAsync(
+                        id,
+                        versions => versions.Add(NuGetVersion.Parse(version)),
                         cancellationToken);
                 }
             }
@@ -135,7 +141,12 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private async Task ProcessPackageDeleteAsync(string id, string version, CancellationToken cancellationToken)
         {
-            await _dnxMaker.DeletePackage(id, version, cancellationToken);
+            await _dnxMaker.UpdatePackageVersionIndexAsync(
+                id,
+                versions => versions.Remove(NuGetVersion.Parse(version)),
+                cancellationToken);
+
+            await _dnxMaker.DeletePackageAsync(id, version, cancellationToken);
 
             _logger.LogInformation("Commit delete: {Id}/{Version}", id, version);
         }

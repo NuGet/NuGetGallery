@@ -271,6 +271,7 @@
       <DependentUpon>TestRegistrationEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="DnxCatalogCollectorTests.cs" />
+    <Compile Include="DnxMakerTests.cs" />
     <Compile Include="Feed2CatalogTests.cs" />
     <Compile Include="Infrastructure\MemoryStorage.cs" />
     <Compile Include="Infrastructure\MemoryStorageFactory.cs" />

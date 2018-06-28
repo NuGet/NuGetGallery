@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,14 +12,14 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NgTests.Infrastructure
 {
-    public class MemoryStorage 
+    public class MemoryStorage
         : Storage
     {
-        public Dictionary<Uri, StorageContent> Content { get; }
+        public ConcurrentDictionary<Uri, StorageContent> Content { get; }
 
-        public Dictionary<Uri, byte[]> ContentBytes { get; }
+        public ConcurrentDictionary<Uri, byte[]> ContentBytes { get; }
 
-        public Dictionary<Uri, StorageListItem> ListMock { get; }
+        public ConcurrentDictionary<Uri, StorageListItem> ListMock { get; }
 
         public MemoryStorage()
             : this(new Uri("http://tempuri.org"))
@@ -28,20 +29,21 @@ namespace NgTests.Infrastructure
         public MemoryStorage(Uri baseAddress)
           : base(baseAddress)
         {
-            Content = new Dictionary<Uri, StorageContent>();
-            ContentBytes = new Dictionary<Uri, byte[]>();
-            ListMock = new Dictionary<Uri, StorageListItem>();
+            Content = new ConcurrentDictionary<Uri, StorageContent>();
+            ContentBytes = new ConcurrentDictionary<Uri, byte[]>();
+            ListMock = new ConcurrentDictionary<Uri, StorageListItem>();
         }
 
         protected MemoryStorage(
             Uri baseAddress,
-            Dictionary<Uri, StorageContent> content,
-            Dictionary<Uri, byte[]> contentBytes)
+            ConcurrentDictionary<Uri, StorageContent> content,
+            ConcurrentDictionary<Uri, byte[]> contentBytes)
           : base(baseAddress)
         {
             Content = content;
             ContentBytes = contentBytes;
-            ListMock = new Dictionary<Uri, StorageListItem>();
+            ListMock = new ConcurrentDictionary<Uri, StorageListItem>();
+
             foreach (var resourceUri in Content.Keys)
             {
                 ListMock[resourceUri] = CreateStorageListItem(resourceUri);
@@ -66,6 +68,9 @@ namespace NgTests.Infrastructure
             {
                 var contentStream = content.GetContentStream();
                 await contentStream.CopyToAsync(memoryStream);
+
+                contentStream.Position = 0;
+
                 ContentBytes[resourceUri] = memoryStream.ToArray();
             }
 
@@ -75,23 +80,21 @@ namespace NgTests.Infrastructure
         protected override Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
             StorageContent content;
+
             Content.TryGetValue(resourceUri, out content);
+
             return Task.FromResult(content);
         }
 
         protected override Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
         {
-            if (Content.ContainsKey(resourceUri))
-            {
-                Content.Remove(resourceUri);
-            }
-            if (ListMock.ContainsKey(resourceUri))
-            {
-                ListMock.Remove(resourceUri);
-            }
+            Content.TryRemove(resourceUri, out var content);
+            ContentBytes.TryRemove(resourceUri, out var contentBytes);
+            ListMock.TryRemove(resourceUri, out var item);
+
             return Task.FromResult(true);
         }
-        
+
         public override bool Exists(string fileName)
         {
             return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName));
@@ -99,7 +102,7 @@ namespace NgTests.Infrastructure
 
         public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
         {
-            return Task.FromResult(Content.Keys.AsEnumerable().Select(x => 
+            return Task.FromResult(Content.Keys.AsEnumerable().Select(x =>
                 ListMock.ContainsKey(x) ? ListMock[x] : new StorageListItem(x, DateTime.UtcNow)));
         }
     }
