@@ -882,7 +882,7 @@ The {Config.GalleryOwner.DisplayName} Team");
 
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}'";
 
-            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'.
+            string body = string.Format(CultureInfo.CurrentCulture, $@"The user '{requestingUser.Username}' has requested that user '{pendingUser.Username}' be added as {membershipLevel} of organization '{organization.Username}'. A confirmation mail has been sent to user '{pendingUser.Username}' to accept the membership request. This mail is to inform you of the membership changes to organization '{organization.Username}' and there is no action required from you.
 
 Thanks,
 The {Config.GalleryOwner.DisplayName} Team");
