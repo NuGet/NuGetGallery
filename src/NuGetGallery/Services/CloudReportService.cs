@@ -11,49 +11,47 @@ namespace NuGetGallery
 {
     public class CloudReportService : IReportService
     {
-        private readonly string _connectionString;
-        private readonly bool _readAccessGeoRedundant;
-
         public CloudReportService(string connectionString, bool readAccessGeoRedundant)
         {
-            _connectionString = connectionString;
-            _readAccessGeoRedundant = readAccessGeoRedundant;
+            ConnectionString = connectionString;
+            ReadAccessGeoRedundant = readAccessGeoRedundant;
         }
+
+        private string ConnectionString { get; }
+        private bool ReadAccessGeoRedundant { get; }
 
         public IReportContainer GetContainer(string containerName)
         {
-            return new Container(GetCloudBlobContainer(containerName));
-        }
-
-        private CloudBlobContainer GetCloudBlobContainer(string containerName)
-        {
-            var storageAccount = CloudStorageAccount.Parse(_connectionString);
-            var blobClient = storageAccount.CreateCloudBlobClient();
-
-            if (_readAccessGeoRedundant)
-            {
-                blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
-            }
-
-            return blobClient.GetContainerReference(containerName);
+            return new Container(this, containerName);
         }
 
         private class Container : IReportContainer
         {
-            private readonly CloudBlobContainer _container;
+            private readonly CloudReportService _parent;
+            private readonly string _name;
 
-            public Container(CloudBlobContainer container)
+            public Container(CloudReportService parent, string name)
             {
-                _container = container ?? throw new ArgumentNullException(nameof(container));
+                _parent = parent ?? throw new ArgumentNullException(nameof(parent));
+                // NOTE: Do not call GetCloudBlobContainer() and store the result in a field here.
+                // We want to reinitialize the container on each method call. See
+                // https://github.com/NuGet/NuGetGallery/pull/5841#discussion_r193898969
+                _name = name;
             }
 
-            public Task<bool> IsAvailableAsync() => _container.ExistsAsync();
+            public Task<bool> IsAvailableAsync()
+            {
+                var container = GetCloudBlobContainer();
+                return container.ExistsAsync();
+            }
 
             public async Task<ReportBlob> Load(string reportName)
             {
                 // In NuGet we always use lowercase names for all blobs in Azure Storage
                 reportName = reportName.ToLowerInvariant();
-                var blob = _container.GetBlockBlobReference(reportName);
+
+                var container = GetCloudBlobContainer();
+                var blob = container.GetBlockBlobReference(reportName);
 
                 // Check if the report blob is present before processing it.
                 if (!blob.Exists())
@@ -65,6 +63,19 @@ namespace NuGetGallery
                 string content = await blob.DownloadTextAsync();
 
                 return new ReportBlob(content, blob.Properties.LastModified?.UtcDateTime);
+            }
+
+            private CloudBlobContainer GetCloudBlobContainer()
+            {
+                var storageAccount = CloudStorageAccount.Parse(_parent.ConnectionString);
+                var blobClient = storageAccount.CreateCloudBlobClient();
+
+                if (_parent.ReadAccessGeoRedundant)
+                {
+                    blobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+                }
+
+                return blobClient.GetContainerReference(_name);
             }
         }
     }
