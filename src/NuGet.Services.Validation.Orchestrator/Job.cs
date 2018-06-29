@@ -66,6 +66,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageSignatureBindingKey = PackageSigningSectionName;
         private const string PackageCertificatesBindingKey = PackageCertificatesSectionName;
         private const string ScanAndSignBindingKey = ScanAndSignSectionName;
+        private const string ScanBindingKey = "Scan";
         private const string ValidationStorageBindingKey = "ValidationStorage";
         private const string OrchestratorBindingKey = "Orchestrator";
 
@@ -362,6 +363,7 @@ namespace NuGet.Services.Validation.Orchestrator
             ConfigurePackageSigningValidators(containerBuilder);
             ConfigurePackageCertificatesValidator(containerBuilder);
             ConfigureScanAndSignProcessor(containerBuilder);
+            ConfigureScanValidator(containerBuilder);
 
             return new AutofacServiceProvider(containerBuilder.Build());
         }
@@ -465,6 +467,21 @@ namespace NuGet.Services.Validation.Orchestrator
             builder
                 .RegisterType<ScanAndSignProcessor>()
                 .WithKeyedParameter(typeof(IValidatorStateService), ScanAndSignBindingKey)
+                .AsSelf();
+        }
+
+        private static void ConfigureScanValidator(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ValidatorStateService>()
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.ScanOnly)
+                .Keyed<IValidatorStateService>(ScanBindingKey);
+
+            builder
+                .RegisterType<ScanValidator>()
+                .WithKeyedParameter(typeof(IValidatorStateService), ScanBindingKey)
                 .AsSelf();
         }
 
