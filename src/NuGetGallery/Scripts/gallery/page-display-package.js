@@ -58,16 +58,19 @@ $(function () {
             ga('send', 'event', 'dependencies', e.type);
         });
 
+        // Fires when the user shows/hides the Related Packages section.
         $("#related-packages").on('hide.bs.collapse show.bs.collapse', function (e) {
             var action = (e.type === 'hide.bs.collapse' ? 'hide' : 'show');
             ga('send', 'event', 'related packages', action);
         });
 
+        // Fires when the user clicks 'Show less/more' inside the Related Packages section.
         $("#hidden-packages").on('hide.bs.collapse show.bs.collapse', function (e) {
             var action = (e.type === 'hide.bs.collapse' ? 'show less' : 'show more');
             ga('send', 'event', 'related packages', action);
         });
 
+        // Fires when the user clicks on the link to a related package.
         $("#related-packages .package .package-title").on('click', function (e) {
             var label = e.target.href;
             ga('send', 'event', 'related packages', 'click', label);
