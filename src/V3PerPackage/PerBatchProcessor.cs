@@ -206,12 +206,14 @@ namespace NuGet.Services.V3PerPackage
 
             var storageFactory = serviceProvider.GetRequiredService<StorageFactory>();
             var httpClientTimeout = TimeSpan.FromMinutes(10);
+            var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
 
             var collector = new DnxCatalogCollector(
                 catalogIndexUri,
                 storageFactory,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
                 serviceProvider.GetRequiredService<ILogger>(),
+                maxDegreeOfParallelism,
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>(),
                 httpClientTimeout)
             {

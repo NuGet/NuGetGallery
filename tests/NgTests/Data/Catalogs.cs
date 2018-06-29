@@ -185,5 +185,24 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
+
+        public static MemoryStorage CreateTestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatch()
+        {
+            var catalogStorage = new MemoryStorage(new Uri("http://nuget.test"));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchIndex));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchPage));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.13.06.40.07/listedpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchListedPackage100));
+
+            return catalogStorage;
+        }
     }
 }

@@ -186,6 +186,7 @@
   <ItemGroup>
     <Compile Include="CatalogIndexReaderTests.cs" />
     <Compile Include="CollectorHttpClientTests.cs" />
+    <Compile Include="Helpers\AsyncExtensionsTests.cs" />
     <Compile Include="Helpers\CatalogPropertiesTests.cs" />
     <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />

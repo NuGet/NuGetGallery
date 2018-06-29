@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -55,6 +56,7 @@ namespace Ng.Jobs
             var storageFactory = CommandHelpers.CreateStorageFactory(arguments, verbose);
             var httpClientTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.HttpClientTimeoutInSeconds);
             var httpClientTimeout = httpClientTimeoutInSeconds.HasValue ? (TimeSpan?)TimeSpan.FromSeconds(httpClientTimeoutInSeconds.Value) : null;
+            var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
 
             Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
             Logger.LogInformation("HTTP client timeout: {Timeout}", httpClientTimeout);
@@ -64,6 +66,7 @@ namespace Ng.Jobs
                 storageFactory,
                 TelemetryService,
                 Logger,
+                maxDegreeOfParallelism,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
                 httpClientTimeout)
             {

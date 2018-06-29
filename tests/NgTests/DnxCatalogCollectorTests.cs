@@ -26,6 +26,7 @@ namespace NgTests
     public class DnxCatalogCollectorTests
     {
         private const string _nuspecData = "nuspec data";
+        private const int _maxDegreeOfParallelism = 20;
         private static readonly HttpContent _noContent = new ByteArrayContent(new byte[0]);
 
         private MemoryStorage _catalogToDnxStorage;
@@ -51,12 +52,147 @@ namespace NgTests
                 _catalogToDnxStorageFactory,
                 new Mock<ITelemetryService>().Object,
                 _logger,
+                _maxDegreeOfParallelism,
                 () => _mockServer)
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages/")
             };
 
             _cursorJsonUri = _catalogToDnxStorage.ResolveUri("cursor.json");
+        }
+
+        [Fact]
+        public void Constructor_WhenIndexIsNull_Throws()
+        {
+            Uri index = null;
+
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new DnxCatalogCollector(
+                        index,
+                        new TestStorageFactory(),
+                        Mock.Of<ITelemetryService>(),
+                        Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism: 1,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("index", exception.ParamName);
+            }
+        }
+
+        [Fact]
+        public void Constructor_WhenStorageFactoryIsNull_Throws()
+        {
+            StorageFactory storageFactory = null;
+
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new DnxCatalogCollector(
+                        new Uri("https://nuget.test"),
+                        storageFactory,
+                        Mock.Of<ITelemetryService>(),
+                        Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism: 1,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("storageFactory", exception.ParamName);
+            }
+        }
+
+        [Fact]
+        public void Constructor_WhenTelemetryServiceIsNull_Throws()
+        {
+            ITelemetryService telemetryService = null;
+
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new DnxCatalogCollector(
+                        new Uri("https://nuget.test"),
+                        new TestStorageFactory(),
+                        telemetryService,
+                        Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism: 1,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("telemetryService", exception.ParamName);
+            }
+        }
+
+        [Fact]
+        public void Constructor_WhenLoggerIsNull_Throws()
+        {
+            ILogger logger = null;
+
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentNullException>(
+                    () => new DnxCatalogCollector(
+                        new Uri("https://nuget.test"),
+                        new TestStorageFactory(),
+                        Mock.Of<ITelemetryService>(),
+                        logger,
+                        maxDegreeOfParallelism: 1,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("logger", exception.ParamName);
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void Constructor_WhenMaxDegreeOfParallelismIsLessThanOne_Throws(int maxDegreeOfParallelism)
+        {
+            using (var clientHandler = new HttpClientHandler())
+            {
+                var exception = Assert.Throws<ArgumentOutOfRangeException>(
+                    () => new DnxCatalogCollector(
+                        new Uri("https://nuget.test"),
+                        new TestStorageFactory(),
+                        Mock.Of<ITelemetryService>(),
+                        Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism,
+                        handlerFunc: () => clientHandler,
+                        httpClientTimeout: TimeSpan.Zero));
+
+                Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
+            }
+        }
+
+        [Fact]
+        public void Constructor_WhenHandlerFuncIsNull_InstantiatesClass()
+        {
+            new DnxCatalogCollector(
+                new Uri("https://nuget.test"),
+                new TestStorageFactory(),
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<ILogger>(),
+                maxDegreeOfParallelism: 1,
+                handlerFunc: null,
+                httpClientTimeout: TimeSpan.Zero);
+        }
+
+        [Fact]
+        public void Constructor_WhenHttpClientTimeoutIsNull_InstantiatesClass()
+        {
+            using (var clientHandler = new HttpClientHandler())
+            {
+                new DnxCatalogCollector(
+                    new Uri("https://nuget.test"),
+                    new TestStorageFactory(),
+                    Mock.Of<ITelemetryService>(),
+                    Mock.Of<ILogger>(),
+                    maxDegreeOfParallelism: 1,
+                    handlerFunc: () => clientHandler,
+                    httpClientTimeout: null);
+            }
         }
 
         [Fact]
@@ -272,6 +408,7 @@ namespace NgTests
                 _catalogToDnxStorageFactory,
                 new Mock<ITelemetryService>().Object,
                 _logger,
+                _maxDegreeOfParallelism,
                 () => _mockServer)
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages/")
@@ -322,6 +459,7 @@ namespace NgTests
                 _catalogToDnxStorageFactory,
                 new Mock<ITelemetryService>().Object,
                 new Mock<ILogger>().Object,
+                _maxDegreeOfParallelism,
                 () => _mockServer)
             {
                 ContentBaseAddress = new Uri("http://tempuri.org/packages/")
@@ -416,9 +554,18 @@ namespace NgTests
             Assert.Equal(5, _mockServer.Requests.Count);
             Assert.EndsWith("/index.json", _mockServer.Requests[0].RequestUri.AbsoluteUri);
             Assert.EndsWith("/page0.json", _mockServer.Requests[1].RequestUri.AbsoluteUri);
-            Assert.Contains("/unlistedpackage.1.0.0.nupkg", _mockServer.Requests[2].RequestUri.AbsoluteUri);
-            Assert.Contains("/listedpackage.1.0.0.nupkg", _mockServer.Requests[3].RequestUri.AbsoluteUri);
-            Assert.Contains("/listedpackage.1.0.1.nupkg", _mockServer.Requests[4].RequestUri.AbsoluteUri);
+
+            // The packages were processed in random order.
+            var remainingRequests = _mockServer.Requests
+                .Skip(2)
+                .Take(3)
+                .Select(request => request.RequestUri.AbsoluteUri)
+                .OrderBy(uri => uri)
+                .ToArray();
+
+            Assert.Contains("/listedpackage.1.0.0.nupkg", remainingRequests[0]);
+            Assert.Contains("/listedpackage.1.0.1.nupkg", remainingRequests[1]);
+            Assert.Contains("/unlistedpackage.1.0.0.nupkg", remainingRequests[2]);
         }
 
         [Theory]
@@ -477,6 +624,32 @@ namespace NgTests
 
             Assert.Equal(DateTime.Parse(expectedCursorBeforeRetry).ToUniversalTime(), cursorBeforeRetry);
             Assert.Equal(DateTime.Parse("2015-10-12T10:08:55.3335317Z").ToUniversalTime(), cursorAfterRetry);
+        }
+
+        [Fact]
+        public async Task Run_WhenMultipleEntriesWithSamePackageIdentityInSameBatch_Throws()
+        {
+            var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec", _nuspecData);
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
+            var nupkgStream = File.OpenRead(@"Packages\ListedPackage.1.0.1.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
+            var catalogStorage = Catalogs.CreateTestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatch();
+
+            await _mockServer.AddStorage(catalogStorage);
+
+            _mockServer.SetAction(
+                "/packages/listedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+                () => _target.Run(front, back, CancellationToken.None));
+
+            Assert.Equal("The catalog batch 10/13/2015 6:40:07 AM contains multiple entries for the same package identity.  Package(s):  listedpackage 1.0.0", exception.Message);
         }
 
         private static byte[] GetStreamBytes(Stream srcStream)

@@ -173,6 +173,7 @@
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
+    <Compile Include="Helpers\AsyncExtensions.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />

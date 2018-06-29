@@ -609,6 +609,80 @@ namespace NgTests.Data {
         
         /// <summary>
         ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://nuget.test/index.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;CatalogRoot&quot;,
+        ///    &quot;AppendOnlyCatalog&quot;,
+        ///    &quot;Permalink&quot;
+        ///  ],
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://nuget.test/page0.json&quot;,
+        ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///      &quot;count&quot;: 2
+        ///    }
+        ///  ],
+        ///  &quot;nuget:lastC [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchIndex {
+            get {
+                return ResourceManager.GetString("TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://nuget.test/data/2015.10.13.06.40.07/listedpackage.1.0.0.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;PackageDetails&quot;,
+        ///    &quot;catalog:Permalink&quot;
+        ///  ],
+        ///  &quot;authors&quot;: &quot;NuGet&quot;,
+        ///  &quot;catalog:commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;catalog:commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;created&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;description&quot;: &quot;Package description.&quot;,
+        ///  &quot;id&quot;: &quot;ListedPackage&quot;,
+        ///  &quot;isPrerelease&quot;: false,
+        ///  &quot;lastEdited&quot;: &quot;2015-01-01T00:00:00Z&quot;,
+        ///  &quot;licenseNames&quot;: &quot;&quot;,
+        ///  &quot;licenseReport [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchListedPackage100 {
+            get {
+                return ResourceManager.GetString("TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchListedPackage100", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://nuget.test/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///  &quot;count&quot;: 2,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://nuget.test/data/2015.10.13.06.40.07/listedpackage.1.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;ListedPackage&quot;,
+        ///      &quot;nuget:vers [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchPage {
+            get {
+                return ResourceManager.GetString("TestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatchPage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
         ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
         ///  &quot;@type&quot;: [
         ///    &quot;CatalogRoot&quot;,
