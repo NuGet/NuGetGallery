@@ -529,7 +529,7 @@
                 </h2>
                 <div class="panel-collapse collapse in related-packages" aria-expanded="true" id="related-packages">
                     <div class="list-packages" role="list">
-                            @foreach (var package in Model.RelatedPackages.Take(3))
+                        @foreach (var package in Model.RelatedPackages.Take(3))
                         {
                             @Html.Partial("_ListPackage", package)
                         }

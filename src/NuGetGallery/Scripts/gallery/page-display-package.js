@@ -19,13 +19,7 @@ $(function () {
     if (readmeContainer[0])
     {
         window.nuget.configureExpanderHeading("readme-container");
-
-        window.nuget.configureExpander(
-            "readme-more",
-            "CalculatorAddition",
-            "Show less",
-            "CalculatorSubtract",
-            "Show more");
+        window.nuget.configureExpanderLink("readme-more");
 
         var showLess = $("#readme-less");
         $clamp(showLess[0], { clamp: 10, useNativeClamp: false });
@@ -58,10 +52,25 @@ $(function () {
         $(this).closest('form').submit();
     })
 
-    // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
     if (window.nuget.isGaAvailable()) {
+        // Emit a Google Analytics event when the user expands or collapses the Dependencies section.
         $("#dependency-groups").on('hide.bs.collapse show.bs.collapse', function (e) {
             ga('send', 'event', 'dependencies', e.type);
+        });
+
+        $("#related-packages").on('hide.bs.collapse show.bs.collapse', function (e) {
+            var action = (e.type === 'hide.bs.collapse' ? 'hide' : 'show');
+            ga('send', 'event', 'related packages', action);
+        });
+
+        $("#hidden-packages").on('hide.bs.collapse show.bs.collapse', function (e) {
+            var action = (e.type === 'hide.bs.collapse' ? 'show less' : 'show more');
+            ga('send', 'event', 'related packages', action);
+        });
+
+        $("#related-packages .package .package-title").on('click', function (e) {
+            var label = e.target.href;
+            ga('send', 'event', 'related packages', 'click', label);
         });
     }
 });
