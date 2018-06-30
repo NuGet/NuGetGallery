@@ -71,11 +71,11 @@ namespace NuGet.Services.ServiceBus
 
             Interlocked.Increment(ref _numberOfMessagesInProgress);
 
-            try
+            using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}}",
+                Guid.NewGuid(),
+                DateTimeOffset.UtcNow.ToString("O")))
             {
-                using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}}",
-                    Guid.NewGuid(),
-                    DateTimeOffset.UtcNow.ToString("O")))
+                try
                 {
                     _logger.LogInformation("Received message from Service Bus subscription, processing");
 
@@ -92,15 +92,18 @@ namespace NuGet.Services.ServiceBus
                         _logger.LogInformation("Handler did not finish processing message, requeueing message to be reprocessed");
                     }
                 }
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(Event.SubscriptionMessageHandlerException, e, "Requeueing message as it was unsuccessfully processed due to exception");
-                throw;
-            }
-            finally
-            {
-                Interlocked.Decrement(ref _numberOfMessagesInProgress);
+                catch (Exception e)
+                {
+                    _logger.LogError(Event.SubscriptionMessageHandlerException, e, "Requeueing message as it was unsuccessfully processed due to exception");
+                    // exception should not be propagated to the topic client, because it will
+                    // abandon the message and will cause the retry to happen immediately, which,
+                    // in turn, have higher chances of failing again if we, for example, experiencing
+                    // transitive network issues.
+                }
+                finally
+                {
+                    Interlocked.Decrement(ref _numberOfMessagesInProgress);
+                }
             }
         }
 

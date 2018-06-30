@@ -38,9 +38,10 @@ namespace NuGet.Services.ServiceBus.Tests
                 // Start processing messages and trigger the OnMessageAsync callback.
                 _target.Start();
 
-                await Assert.ThrowsAsync<Exception>(() => onMessageAsync(_brokeredMessage.Object));
+                var ex = await Record.ExceptionAsync(() => onMessageAsync(_brokeredMessage.Object));
 
                 // Assert
+                Assert.Null(ex);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
                 _serializer.Verify(s => s.Deserialize(It.IsAny<IBrokeredMessage>()), Times.Once);
@@ -139,9 +140,10 @@ namespace NuGet.Services.ServiceBus.Tests
                 // Start processing messages and trigger the OnMessageAsync callback.
                 _target.Start();
 
-                await Assert.ThrowsAsync<Exception>(() => onMessageAsync(_brokeredMessage.Object));
+                var ex = await Record.ExceptionAsync(() => onMessageAsync(_brokeredMessage.Object));
 
                 // Assert
+                Assert.Null(ex);
                 Assert.Equal(1, messagesInProgressDuringHandler);
                 Assert.Equal(0, _target.NumberOfMessagesInProgress);
 
