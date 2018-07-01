@@ -117,7 +117,6 @@ namespace NuGetGallery.Services
                 Assert.False(registration.Packages.ElementAt(0).Listed);
                 Assert.Null(testUser.EmailAddress);
                 Assert.Single(testableService.DeletedAccounts);
-                Assert.Equal(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
                 Assert.Single(testableService.SupportRequests);
                 Assert.Empty(testableService.PackageOwnerRequests);
                 Assert.True(testableService.HasDeletedOwnerScope);
@@ -451,7 +450,8 @@ namespace NuGetGallery.Services
                     SetupSecurityPolicyService().Object,
                     SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
-                    AuditService);
+                    AuditService,
+                    SetupTelemetryService().Object);
             }
 
             public class FakeAuditingService : IAuditingService
@@ -635,6 +635,10 @@ namespace NuGetGallery.Services
                 }
 
                 return packageOwnershipManagementService;
+            }
+            private Mock<ITelemetryService> SetupTelemetryService()
+            {
+                return new Mock<ITelemetryService>();
             }
         }
     }

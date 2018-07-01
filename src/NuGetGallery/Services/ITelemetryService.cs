@@ -122,5 +122,19 @@ namespace NuGetGallery
         /// Create a log for an exception. These are warnings for live site.
         /// </summary>
         void TrackException(Exception exception, Action<Dictionary<string, string>> addProperties);
+
+        /// <summary>
+        /// A telemetry event emitted when an account is deleted.
+        /// </summary>
+        /// <param name="deletedUser">The <see cref="User"/> that was deleted.</param>
+        /// <param name="deletedBy">The <see cref="User"/> that performed the delete.</param>
+        /// <param name="success">The success of the operation.</param>
+        void TrackAccountDeletedCompleted(User deletedUser, User deletedBy, bool success);
+
+        /// <summary>
+        /// A telemetry event emitted when a request to have an account deleted is submitted.
+        /// </summary>
+        /// <param name="user">The <see cref="User"/> requesting the delete.</param>
+        void TrackRequestForAccountDeleted(User user);
     }
 }

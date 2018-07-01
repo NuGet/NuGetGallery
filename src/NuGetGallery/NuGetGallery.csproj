@@ -336,6 +336,10 @@
     <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.Designer.cs">
       <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807011920472_RemoveDeleteAccountSignature.cs" />
+    <Compile Include="Migrations\201807011920472_RemoveDeleteAccountSignature.Designer.cs">
+      <DependentUpon>201807011920472_RemoveDeleteAccountSignature.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1498,6 +1502,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.resx">
       <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807011920472_RemoveDeleteAccountSignature.resx">
+      <DependentUpon>201807011920472_RemoveDeleteAccountSignature.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

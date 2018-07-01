@@ -293,6 +293,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+            TelemetryService.TrackRequestForAccountDeleted(user);
 
             if (!user.Confirmed)
             {
