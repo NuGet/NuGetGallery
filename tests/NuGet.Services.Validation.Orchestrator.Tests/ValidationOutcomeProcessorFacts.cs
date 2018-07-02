@@ -40,6 +40,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [InlineData(new[] { ValidationIssueCode.PackageIsSigned, ValidationIssueCode.Unknown })]
         [InlineData(new[] { ValidationIssueCode.Unknown, ValidationIssueCode.Unknown })]
         [InlineData(new[] { ValidationIssueCode.Unknown, ValidationIssueCode.PackageIsSigned })]
+        [InlineData(new[] { ValidationIssueCode.PackageIsSigned })]
+        [InlineData(new[] { ValidationIssueCode.PackageIsSigned, ValidationIssueCode.PackageIsSigned })]
         public async Task SendsFailureEmailOnFailedValidation(ValidationIssueCode[] issueCodes)
         {
             AddValidation("validation1", ValidationStatus.Failed);
@@ -51,28 +53,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
 
             MessageServiceMock
-                .Verify(ms => ms.SendValidationFailedMessage(Package), Times.Once());
+                .Verify(ms => ms.SendValidationFailedMessage(Package, ValidationSet), Times.Once());
             MessageServiceMock
-                .Verify(ms => ms.SendValidationFailedMessage(It.IsAny<Package>()), Times.Once());
-        }
-
-        [Theory]
-        [InlineData(new[] { ValidationIssueCode.PackageIsSigned })]
-        [InlineData(new[] { ValidationIssueCode.PackageIsSigned, ValidationIssueCode.PackageIsSigned })]
-        public async Task SendsPackageSignedFailureEmail(ValidationIssueCode[] issueCodes)
-        {
-            AddValidation("validation1", ValidationStatus.Failed);
-            ValidationSet.PackageValidations.First().PackageValidationIssues = issueCodes
-                .Select(ic => new PackageValidationIssue { IssueCode = ic })
-                .ToList();
-
-            var processor = CreateProcessor();
-            await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
-
-            MessageServiceMock
-                .Verify(ms => ms.SendSignedValidationFailedMessage(Package), Times.Once());
-            MessageServiceMock
-                .Verify(ms => ms.SendSignedValidationFailedMessage(It.IsAny<Package>()), Times.Once());
+                .Verify(ms => ms.SendValidationFailedMessage(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()), Times.Once());
         }
 
         [Fact]
@@ -484,10 +467,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.SetStatusAsync(It.IsAny<PackageValidatingEntity>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
                 Times.Never);
             MessageServiceMock.Verify(
-                x => x.SendSignedValidationFailedMessage(It.IsAny<Package>()),
-                Times.Never);
-            MessageServiceMock.Verify(
-                x => x.SendValidationFailedMessage(It.IsAny<Package>()),
+                x => x.SendValidationFailedMessage(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()),
                 Times.Never);
             MessageServiceMock.Verify(
                 x => x.SendPublishedMessage(It.IsAny<Package>()),

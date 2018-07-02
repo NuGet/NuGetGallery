@@ -72,22 +72,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (validatingEntity.Status == PackageStatus.Validating)
                 {
                     await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.FailedValidation);
-
-                    var issuesExistAndAllPackageSigned = validationSet
-                        .PackageValidations
-                        .SelectMany(pv => pv.PackageValidationIssues)
-                        .Select(pvi => pvi.IssueCode == ValidationIssueCode.PackageIsSigned)
-                        .DefaultIfEmpty(false)
-                        .All(v => v);
-
-                    if (issuesExistAndAllPackageSigned)
-                    {
-                        _messageService.SendSignedValidationFailedMessage(validatingEntity.EntityRecord);
-                    }
-                    else
-                    {
-                        _messageService.SendValidationFailedMessage(validatingEntity.EntityRecord);
-                    }
+                    _messageService.SendValidationFailedMessage(validatingEntity.EntityRecord, validationSet);
                 }
                 else
                 {
