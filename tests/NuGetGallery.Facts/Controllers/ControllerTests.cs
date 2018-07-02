@@ -141,11 +141,11 @@ namespace NuGetGallery.Controllers
         {
             return Assembly.GetAssembly(typeof(AppController)).GetTypes()
                 // Get all types that are controllers.
-                .Where(t => typeof(Controller).IsAssignableFrom(t))
+                .Where(typeof(Controller).IsAssignableFrom)
                 // Get all public methods of those types.
                 .SelectMany(t => t.GetMethods(BindingFlags.Instance | BindingFlags.DeclaredOnly | BindingFlags.Public))
                 // Filter out compiler generated methods.
-                .Where(m => !m.GetCustomAttributes(typeof(CompilerGeneratedAttribute), true).Any())
+                .Where(m => !m.GetCustomAttributes(typeof(CompilerGeneratedAttribute), inherit: true).Any())
                 // Filter out exceptions.
                 .Where(m =>
                 {
