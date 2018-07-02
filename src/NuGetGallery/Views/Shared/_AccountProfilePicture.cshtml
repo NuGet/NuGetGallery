@@ -6,13 +6,13 @@
     {
         ViewBag.UnconfirmedEmailAddressMessage = "This is a preview of how the profile picture will look once the organization email address is verified.";
         ViewBag.GravatarProfileMessage = "We use the verified email address for your organization and {0} to get the publicly visible profile picture. "
-            + "{1} to change the profile picture for your organization.";
+            + "Go to {0} to change the profile picture for your organization.";
     }
     else
     {
         ViewBag.UnconfirmedEmailAddressMessage = "This is a preview of how your profile picture will look once you have verified your current email address.";
         ViewBag.GravatarProfileMessage = "We use your verified email address and {0} to get the publicly visible profile picture. "
-            + "{1} to change your profile picture";
+            + "Go to {0} to change your profile picture";
     }
 }
 
@@ -32,8 +32,7 @@
         }
 
         @Html.Raw(string.Format(@ViewBag.GravatarProfileMessage,
-             GravatarLink("gravatar.com"),
-             GravatarLink("Go to gravatar.com")))
+             GravatarLink("gravatar.com")))
     </text>,
     disabled: !Model.CanManage)
 
