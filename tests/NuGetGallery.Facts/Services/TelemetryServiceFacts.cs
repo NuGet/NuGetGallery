@@ -36,144 +36,142 @@ namespace NuGetGallery
                 {
                     var package = fakes.Package.Packages.First();
                     var identity = Fakes.ToIdentity(fakes.User);
-                    /*
-                                        yield return new object[] { "CertificateActivated",
-                                            (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
-                                        };
+                    yield return new object[] { "CertificateActivated",
+                        (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
+                    };
 
-                                        yield return new object[] { "CertificateAdded",
-                                            (TrackAction)(s => s.TrackCertificateAdded("thumbprint"))
-                                        };
+                    yield return new object[] { "CertificateAdded",
+                        (TrackAction)(s => s.TrackCertificateAdded("thumbprint"))
+                    };
 
-                                        yield return new object[] { "CertificateDeactivated",
+                    yield return new object[] { "CertificateDeactivated",
                                             (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint"))
-                                        };
+                    };
 
-                                        yield return new object[] { "PackageRegistrationRequiredSignerSet",
-                                            (TrackAction)(s => s.TrackRequiredSignerSet(package.PackageRegistration.Id))
-                                        };
+                    yield return new object[] { "PackageRegistrationRequiredSignerSet",
+                        (TrackAction)(s => s.TrackRequiredSignerSet(package.PackageRegistration.Id))
+                    };
 
-                                        yield return new object[] { "ODataQueryFilter",
-                                            (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
-                                        };
+                    yield return new object[] { "ODataQueryFilter",
+                        (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
+                    };
 
-                                        yield return new object[] { "PackagePush",
-                                            (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
-                                        };
+                    yield return new object[] { "PackagePush",
+                        (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
+                    };
 
-                                        yield return new object[] { "PackagePushFailure",
-                                            (TrackAction)(s => s.TrackPackagePushFailureEvent("id", new NuGetVersion("1.2.3")))
-                                        };
+                    yield return new object[] { "PackagePushFailure",
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent("id", new NuGetVersion("1.2.3")))
+                    };
 
-                                        yield return new object[] { "PackageUnlisted",
-                                            (TrackAction)(s => s.TrackPackageUnlisted(package))
-                                        };
+                    yield return new object[] { "PackageUnlisted",
+                        (TrackAction)(s => s.TrackPackageUnlisted(package))
+                    };
 
-                                        yield return new object[] { "PackageListed",
-                                            (TrackAction)(s => s.TrackPackageListed(package))
-                                        };
+                    yield return new object[] { "PackageListed",
+                        (TrackAction)(s => s.TrackPackageListed(package))
+                    };
 
-                                        yield return new object[] { "PackageDelete",
-                                            (TrackAction)(s => s.TrackPackageDelete(package, isHardDelete: true))
-                                        };
+                    yield return new object[] { "PackageDelete",
+                        (TrackAction)(s => s.TrackPackageDelete(package, isHardDelete: true))
+                    };
 
-                                        yield return new object[] { "PackageReupload",
-                                            (TrackAction)(s => s.TrackPackageReupload(package))
-                                        };
+                    yield return new object[] { "PackageReupload",
+                        (TrackAction)(s => s.TrackPackageReupload(package))
+                    };
 
-                                        yield return new object[] { "PackageReflow",
-                                            (TrackAction)(s => s.TrackPackageReflow(package))
-                                        };
+                    yield return new object[] { "PackageReflow",
+                        (TrackAction)(s => s.TrackPackageReflow(package))
+                    };
 
-                                        yield return new object[] { "PackageHardDeleteReflow",
-                                            (TrackAction)(s => s.TrackPackageHardDeleteReflow(fakes.Package.Id, package.Version))
-                                        };
+                    yield return new object[] { "PackageHardDeleteReflow",
+                        (TrackAction)(s => s.TrackPackageHardDeleteReflow(fakes.Package.Id, package.Version))
+                    };
 
-                                        yield return new object[] { "PackageRevalidate",
-                                            (TrackAction)(s => s.TrackPackageRevalidate(package))
-                                        };
+                    yield return new object[] { "PackageRevalidate",
+                        (TrackAction)(s => s.TrackPackageRevalidate(package))
+                    };
 
-                                        yield return new object[] { "CreatePackageVerificationKey",
-                                            (TrackAction)(s => s.TrackCreatePackageVerificationKeyEvent(fakes.Package.Id, package.Version, fakes.User, identity))
-                                        };
+                    yield return new object[] { "CreatePackageVerificationKey",
+                        (TrackAction)(s => s.TrackCreatePackageVerificationKeyEvent(fakes.Package.Id, package.Version, fakes.User, identity))
+                    };
 
-                                        yield return new object[] { "VerifyPackageKey",
-                                            (TrackAction)(s => s.TrackVerifyPackageKeyEvent(fakes.Package.Id, package.Version, fakes.User, identity, 0))
-                                        };
+                    yield return new object[] { "VerifyPackageKey",
+                        (TrackAction)(s => s.TrackVerifyPackageKeyEvent(fakes.Package.Id, package.Version, fakes.User, identity, 0))
+                    };
 
-                                        yield return new object[] { "PackageReadMeChanged",
-                                            (TrackAction)(s => s.TrackPackageReadMeChangeEvent(package, "written", PackageEditReadMeState.Changed))
-                                        };
+                    yield return new object[] { "PackageReadMeChanged",
+                        (TrackAction)(s => s.TrackPackageReadMeChangeEvent(package, "written", PackageEditReadMeState.Changed))
+                    };
 
-                                        yield return new object[] { "PackagePushNamespaceConflict",
-                                            (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
-                                        };
+                    yield return new object[] { "PackagePushNamespaceConflict",
+                        (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
+                    };
 
-                                        yield return new object[] { "NewUserRegistration",
-                                            (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
-                                        };
+                    yield return new object[] { "NewUserRegistration",
+                        (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
+                    };
 
-                                        yield return new object[] { "UserMultiFactorAuthenticationEnabled",
-                                            (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: true))
-                                        };
+                    yield return new object[] { "UserMultiFactorAuthenticationEnabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: true))
+                    };
+                    yield return new object[] { "UserMultiFactorAuthenticationDisabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: false))
+                    };
 
-                                        yield return new object[] { "UserMultiFactorAuthenticationDisabled",
-                                            (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: false))
-                                        };
+                    yield return new object[] { "CredentialAdded",
+                        (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
+                    };
 
-                                        yield return new object[] { "CredentialAdded",
-                                            (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
-                                        };
+                    yield return new object[] { "CredentialUsed",
+                        (TrackAction)(s => s.TrackUserLogin(fakes.User, fakes.User.Credentials.First(), wasMultiFactorAuthenticated: true))
+                    };
 
-                                        yield return new object[] { "CredentialUsed",
-                                            (TrackAction)(s => s.TrackUserLogin(fakes.User, fakes.User.Credentials.First(), wasMultiFactorAuthenticated: true))
-                                        };
+                    yield return new object[] { "UserPackageDeleteCheckedAfterHours",
+                        (TrackAction)(s => s.TrackUserPackageDeleteChecked(
+                            new UserPackageDeleteEvent(
+                                TimeSpan.FromHours(3),
+                                11,
+                                "NuGet.Versioning",
+                                "4.5.0",
+                                124101,
+                                124999,
+                                23,
+                                42,
+                                reportPackageReason: ReportPackageReason.ReleasedInPublicByAccident,
+                                packageDeleteDecision: PackageDeleteDecision.DeletePackage),
+                            UserPackageDeleteOutcome.Accepted))
+                    };
 
-                                        yield return new object[] { "UserPackageDeleteCheckedAfterHours",
-                                            (TrackAction)(s => s.TrackUserPackageDeleteChecked(
-                                                new UserPackageDeleteEvent(
-                                                    TimeSpan.FromHours(3),
-                                                    11,
-                                                    "NuGet.Versioning",
-                                                    "4.5.0",
-                                                    124101,
-                                                    124999,
-                                                    23,
-                                                    42,
-                                                    reportPackageReason: ReportPackageReason.ReleasedInPublicByAccident,
-                                                    packageDeleteDecision: PackageDeleteDecision.DeletePackage),
-                                                UserPackageDeleteOutcome.Accepted))
-                                        };
+                    yield return new object[] { "UserPackageDeleteExecuted",
+                        (TrackAction)(s => s.TrackUserPackageDeleteExecuted(
+                            11,
+                            "NuGet.Versioning",
+                            "4.5.0",
+                            ReportPackageReason.ReleasedInPublicByAccident,
+                            success: true))
+                    };
 
-                                        yield return new object[] { "UserPackageDeleteExecuted",
-                                            (TrackAction)(s => s.TrackUserPackageDeleteExecuted(
-                                                11,
-                                                "NuGet.Versioning",
-                                                "4.5.0",
-                                                ReportPackageReason.ReleasedInPublicByAccident,
-                                                success: true))
-                                        };
+                    yield return new object[] { "OrganizationTransformInitiated",
+                        (TrackAction)(s => s.TrackOrganizationTransformInitiated(fakes.User))
+                    };
 
-                                        yield return new object[] { "OrganizationTransformInitiated",
-                                            (TrackAction)(s => s.TrackOrganizationTransformInitiated(fakes.User))
-                                        };
+                    yield return new object[] { "OrganizationTransformCompleted",
+                        (TrackAction)(s => s.TrackOrganizationTransformCompleted(fakes.Organization))
+                    };
 
-                                        yield return new object[] { "OrganizationTransformCompleted",
-                                            (TrackAction)(s => s.TrackOrganizationTransformCompleted(fakes.Organization))
-                                        };
+                    yield return new object[] { "OrganizationTransformDeclined",
+                        (TrackAction)(s => s.TrackOrganizationTransformDeclined(fakes.User))
+                    };
 
-                                        yield return new object[] { "OrganizationTransformDeclined",
-                                            (TrackAction)(s => s.TrackOrganizationTransformDeclined(fakes.User))
-                                        };
+                    yield return new object[] { "OrganizationTransformCancelled",
+                        (TrackAction)(s => s.TrackOrganizationTransformCancelled(fakes.User))
+                    };
 
-                                        yield return new object[] { "OrganizationTransformCancelled",
-                                            (TrackAction)(s => s.TrackOrganizationTransformCancelled(fakes.User))
-                                        };
+                    yield return new object[] { "OrganizationAdded",
+                        (TrackAction)(s => s.TrackOrganizationAdded(fakes.Organization))
+                    };
 
-                                        yield return new object[] { "OrganizationAdded",
-                                            (TrackAction)(s => s.TrackOrganizationAdded(fakes.Organization))
-                                        };
-                    */
                     yield return new object[] { "AccountDeleteCompleted",
                         (TrackAction)(s => s.TrackAccountDeletedCompleted(fakes.User, fakes.User, true))
                     };
