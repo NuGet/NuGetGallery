@@ -44,6 +44,7 @@
     <Compile Include="ScanAndSignEnqueuerFacts.cs" />
     <Compile Include="ScanAndSignMessageFacts.cs" />
     <Compile Include="ScanAndSignProcessorFacts.cs" />
+    <Compile Include="ScanValidatorFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
