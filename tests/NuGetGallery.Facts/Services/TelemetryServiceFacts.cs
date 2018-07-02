@@ -45,7 +45,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "CertificateDeactivated",
-                                            (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint"))
+                        (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint"))
                     };
 
                     yield return new object[] { "PackageRegistrationRequiredSignerSet",
