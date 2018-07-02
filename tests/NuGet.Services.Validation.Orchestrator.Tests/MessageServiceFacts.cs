@@ -52,8 +52,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         private const string ValidSettingsUrl = "https://example.com";
         public static IEnumerable<object[]> EmailConfigurationPropertyValuesCombinations =>
             (from invalidValue in InvalidValuesToTest
-            select new [] 
-            {
+             select new[]
+             {
                 new object[] { invalidValue,   ValidValue, ValidSettingsUrl, "PackageUrlTemplate" },
                 new object[] {   ValidValue, invalidValue, ValidSettingsUrl, "PackageSupportTemplate" },
                 new object[] {   ValidValue,   ValidValue,     invalidValue, "EmailSettingsUrl" }
@@ -132,21 +132,29 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
-            var ex = Record.Exception(() => service.SendValidationFailedMessage(Package));
+            var ex = Record.Exception(() => service.SendValidationFailedMessage(Package, ValidationSet));
             Assert.Null(ex);
 
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNotice(Package, expectedPackageUrl, expectedSupportUrl), Times.Once());
+                .Verify(cms => cms.SendPackageValidationFailedNotice(Package, ValidationSet, expectedPackageUrl, expectedSupportUrl, EmailConfiguration.AnnouncementsUrl, EmailConfiguration.TwitterUrl), Times.Once());
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNotice(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+                .Verify(cms => cms.SendPackageValidationFailedNotice(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
 
         [Fact]
         public void SendPackageValidationFailedMessageThrowsWhenPackageIsNull()
         {
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(null));
+            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(null, new PackageValidationSet()));
             Assert.Equal("package", ex.ParamName);
+        }
+
+        [Fact]
+        public void SendPackageValidationFailedMessageThrowsWhenValidationSetIsNull()
+        {
+            var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
+            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(new Package(), null));
+            Assert.Equal("validationSet", ex.ParamName);
         }
 
         public MessageServiceFacts()
@@ -155,7 +163,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             {
                 PackageUrlTemplate = "https://example.com/package/{0}/{1}",
                 PackageSupportTemplate = "https://example.com/packageSupport/{0}/{1}",
-                EmailSettingsUrl = ValidSettingsUrl
+                EmailSettingsUrl = ValidSettingsUrl,
+                AnnouncementsUrl = "https://announcements.com",
+                TwitterUrl = "https://twitter.com/nuget"
             };
 
             EmailConfigurationAccessorMock
@@ -169,12 +179,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 NormalizedVersion = "1.2.3"
             };
             Package.PackageRegistration.Packages = new List<Package> { Package };
+
+            ValidationSet = new PackageValidationSet();
         }
 
         private Mock<ICoreMessageService> CoreMessageServiceMock { get; set; } = new Mock<ICoreMessageService>();
         private Mock<IOptionsSnapshot<EmailConfiguration>> EmailConfigurationAccessorMock { get; set; } = new Mock<IOptionsSnapshot<EmailConfiguration>>();
         private Mock<ILogger<PackageMessageService>> LoggerMock { get; set; } = new Mock<ILogger<PackageMessageService>>();
         private Package Package { get; set; }
+        private PackageValidationSet ValidationSet { get; set; }
         private EmailConfiguration EmailConfiguration { get; set; }
     }
 }

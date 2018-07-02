@@ -55,23 +55,15 @@ namespace NuGet.Services.Validation.Orchestrator
             _coreMessageService.SendPackageAddedNotice(package, galleryPackageUrl, packageSupportUrl, _emailConfiguration.EmailSettingsUrl);
         }
 
-        public void SendValidationFailedMessage(Package package)
+        public void SendValidationFailedMessage(Package package, PackageValidationSet validationSet)
         {
             package = package ?? throw new ArgumentNullException(nameof(package));
+            validationSet = validationSet ?? throw new ArgumentNullException(nameof(validationSet));
 
             var galleryPackageUrl = GalleryPackageUrl(package);
             var packageSupportUrl = PackageSupportUrl(package);
 
-            _coreMessageService.SendPackageValidationFailedNotice(package, galleryPackageUrl, packageSupportUrl);
-        }
-
-        public void SendSignedValidationFailedMessage(Package package)
-        {
-            package = package ?? throw new ArgumentNullException(nameof(package));
-
-            var galleryPackageUrl = GalleryPackageUrl(package);
-
-            _coreMessageService.SendSignedPackageNotAllowedNotice(package, galleryPackageUrl, _emailConfiguration.AnnouncementsUrl, _emailConfiguration.TwitterUrl);
+            _coreMessageService.SendPackageValidationFailedNotice(package, validationSet, galleryPackageUrl, packageSupportUrl, _emailConfiguration.AnnouncementsUrl, _emailConfiguration.TwitterUrl);
         }
 
         public void SendValidationTakingTooLongMessage(Package package)

@@ -8,8 +8,7 @@ namespace NuGet.Services.Validation.Orchestrator
     public interface IMessageService<T> where T : class, IEntity
     {
         void SendPublishedMessage(T entity);
-        void SendValidationFailedMessage(T entity);
-        void SendSignedValidationFailedMessage(T entity);
+        void SendValidationFailedMessage(T entity, PackageValidationSet validationSet);
         void SendValidationTakingTooLongMessage(T entity);
     }
 }
