@@ -36,7 +36,6 @@ namespace NuGetGallery.Services
                     null, 
                     new User("AdminUser") { Key = Key++ },
                     commitAsTransaction: false,
-                    signature: "signature",
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -54,7 +53,6 @@ namespace NuGetGallery.Services
                     new User("TestUser") { Key = Key++ },
                     null,
                     commitAsTransaction: false,
-                    signature: "signature",
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -72,12 +70,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
-                var signature = "Hello";
                 var result = await deleteAccountService.
                     DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: signature,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 string expected = $"The account:{testUser.Username} was already deleted. No action was performed.";
                 Assert.Equal(expected, result.Description);
@@ -103,12 +99,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
-                var signature = "Hello";
                 await deleteAccountService.
                     DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: signature,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 
                 Assert.Empty(registration.Owners);
@@ -155,7 +149,6 @@ namespace NuGetGallery.Services
                 var status = await deleteAccountService.DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: testUser.Username,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 //Assert

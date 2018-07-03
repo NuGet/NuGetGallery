@@ -173,11 +173,11 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "AccountDeleteCompleted",
-                        (TrackAction)(s => s.TrackAccountDeletedCompleted(fakes.User, fakes.User, true))
+                        (TrackAction)(s => s.TrackAccountDeletionCompleted(fakes.User, fakes.User, true))
                     };
 
                     yield return new object[] { "AccountDeleteRequested",
-                        (TrackAction)(s => s.TrackRequestForAccountDeleted(fakes.User))
+                        (TrackAction)(s => s.TrackRequestForAccountDeletion(fakes.User))
                     };
                 }
             }
@@ -523,10 +523,10 @@ namespace NuGetGallery
 
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
-                    service.TrackAccountDeletedCompleted(null, fakes.User, true));
+                    service.TrackAccountDeletionCompleted(null, fakes.User, true));
 
                 Assert.Throws<ArgumentNullException>(() =>
-                   service.TrackAccountDeletedCompleted(fakes.User, null, true));
+                   service.TrackAccountDeletionCompleted(fakes.User, null, true));
             }
 
             [Fact]
@@ -546,7 +546,7 @@ namespace NuGetGallery
                                properties["AccountDeleteSucceeded"] == "True")
                                ));
 
-                service.TrackAccountDeletedCompleted(fakes.Organization, fakes.Admin, true);
+                service.TrackAccountDeletionCompleted(fakes.Organization, fakes.Admin, true);
 
                 service.TelemetryClient.VerifyAll();
             }
@@ -559,7 +559,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 Assert.Throws<ArgumentNullException>(() =>
-                    service.TrackRequestForAccountDeleted(null));
+                    service.TrackRequestForAccountDeletion(null));
             }
 
             [Fact]
@@ -570,14 +570,14 @@ namespace NuGetGallery
 
                 service.TelemetryClient.Setup(
                    x => x.TrackMetric(
-                       It.Is<string>(name => name == "AccountDeletedRequested"),
+                       It.Is<string>(name => name == "AccountDeleteRequested"),
                        It.Is<double>(value => value == 1),
                        It.Is<IDictionary<string, string>>(
                            properties => properties.Count == 1 &&
                                properties["CreatedDateForAccountToBeDeleted"] == $"{user.CreatedUtc}"
                                )));
 
-                service.TrackRequestForAccountDeleted(fakes.User);
+                service.TrackRequestForAccountDeletion(fakes.User);
 
                 service.TelemetryClient.VerifyAll();
             }

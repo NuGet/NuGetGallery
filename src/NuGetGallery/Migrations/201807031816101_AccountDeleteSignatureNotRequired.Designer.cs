@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class RemoveDeleteAccountSignature : IMigrationMetadata
+    public sealed partial class AccountDeleteSignatureNotRequired : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(RemoveDeleteAccountSignature));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AccountDeleteSignatureNotRequired));
         
         string IMigrationMetadata.Id
         {
-            get { return "201807011920472_RemoveDeleteAccountSignature"; }
+            get { return "201807031816101_AccountDeleteSignatureNotRequired"; }
         }
         
         string IMigrationMetadata.Source

@@ -559,7 +559,7 @@ namespace NuGetGallery
             TrackMetricForOrganization(Events.OrganizationAdded, organization);
         }
 
-        public void TrackAccountDeletedCompleted(User deletedUser, User deletedBy, bool success)
+        public void TrackAccountDeletionCompleted(User deletedUser, User deletedBy, bool success)
         {
             if (deletedUser == null)
             {
@@ -571,14 +571,14 @@ namespace NuGetGallery
             }
 
             TrackMetric(Events.AccountDeleteCompleted, 1, properties => {
-                properties.Add(AccountDeletedByRole, string.Join(",", deletedBy.Roles?.Select((role) => role.Name) ?? new List<string>()));
+                properties.Add(AccountDeletedByRole, string.Join(",", deletedBy.Roles?.Select( role => role.Name) ?? new List<string>()));
                 properties.Add(AccountIsSelfDeleted, $"{deletedUser.Key == deletedBy.Key}");
                 properties.Add(AccountDeletedIsOrganization, $"{deletedUser is Organization}");
                 properties.Add(AccountDeleteSucceeded, $"{success}");
             });
         }
 
-        public void TrackRequestForAccountDeleted(User user)
+        public void TrackRequestForAccountDeletion(User user)
         {
             if (user == null)
             {

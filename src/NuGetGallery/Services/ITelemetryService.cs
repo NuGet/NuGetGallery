@@ -129,12 +129,12 @@ namespace NuGetGallery
         /// <param name="deletedUser">The <see cref="User"/> that was deleted.</param>
         /// <param name="deletedBy">The <see cref="User"/> that performed the delete.</param>
         /// <param name="success">The success of the operation.</param>
-        void TrackAccountDeletedCompleted(User deletedUser, User deletedBy, bool success);
+        void TrackAccountDeletionCompleted(User deletedUser, User deletedBy, bool success);
 
         /// <summary>
-        /// A telemetry event emitted when a request to have an account deleted is submitted.
+        /// A telemetry event emitted when an account deletion is requested.
         /// </summary>
         /// <param name="user">The <see cref="User"/> requesting the delete.</param>
-        void TrackRequestForAccountDeleted(User user);
+        void TrackRequestForAccountDeletion(User user);
     }
 }

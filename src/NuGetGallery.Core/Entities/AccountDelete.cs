@@ -36,5 +36,10 @@ namespace NuGetGallery
         /// The User(admin) that executed the delete action.
         /// </summary>
         public User DeletedBy { get; set; }
+
+         /// <summary>
+         /// The signature of the admin.
+         /// </summary>
+         public string Signature { get; set; }
     }
 }
