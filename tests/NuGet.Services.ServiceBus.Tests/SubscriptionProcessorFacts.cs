@@ -151,6 +151,27 @@ namespace NuGet.Services.ServiceBus.Tests
                 _handler.Verify(h => h.HandleAsync(It.IsAny<TestMessage>()), Times.Once);
                 _brokeredMessage.Verify(m => m.CompleteAsync(), Times.Never);
             }
+
+            [Fact]
+            public async Task TracksMessageLag()
+            {
+                Func<IBrokeredMessage, Task> onMessageAsync = null;
+                _client
+                    .Setup(c => c.OnMessageAsync(
+                                    It.IsAny<Func<IBrokeredMessage, Task>>(),
+                                    It.IsAny<IOnMessageOptions>()))
+                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((callback, options) => onMessageAsync = callback);
+
+
+                _target.Start();
+
+                await onMessageAsync(_brokeredMessage.Object);
+
+                _telemetryService
+                    .Verify(ts => ts.TrackMessageDeliveryLag<TestMessage>(It.IsAny<TimeSpan>()), Times.Once);
+                _telemetryService
+                    .Verify(ts => ts.TrackEnqueueLag<TestMessage>(It.IsAny<TimeSpan>()), Times.Once);
+            }
         }
 
         public class TheShutdownAsyncMethod : Base
@@ -207,6 +228,7 @@ namespace NuGet.Services.ServiceBus.Tests
             protected readonly Mock<ISubscriptionClient> _client;
             protected readonly Mock<IBrokeredMessageSerializer<TestMessage>> _serializer;
             protected readonly Mock<IMessageHandler<TestMessage>> _handler;
+            protected readonly Mock<ISubscriptionProcessorTelemetryService> _telemetryService;
             protected readonly SubscriptionProcessor<TestMessage> _target;
 
             protected readonly Mock<IBrokeredMessage> _brokeredMessage;
@@ -216,6 +238,7 @@ namespace NuGet.Services.ServiceBus.Tests
                 _client = new Mock<ISubscriptionClient>();
                 _serializer = new Mock<IBrokeredMessageSerializer<TestMessage>>();
                 _handler = new Mock<IMessageHandler<TestMessage>>();
+                _telemetryService = new Mock<ISubscriptionProcessorTelemetryService>();
 
                 _brokeredMessage = new Mock<IBrokeredMessage>();
 
@@ -225,6 +248,7 @@ namespace NuGet.Services.ServiceBus.Tests
                     _client.Object,
                     _serializer.Object,
                     _handler.Object,
+                    _telemetryService.Object,
                     logger.Object);
             }
         }

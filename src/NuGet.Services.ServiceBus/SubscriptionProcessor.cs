@@ -6,7 +6,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Microsoft.ServiceBus.Messaging;
 
 namespace NuGet.Services.ServiceBus
 {
@@ -20,6 +19,7 @@ namespace NuGet.Services.ServiceBus
         private readonly ISubscriptionClient _client;
         private readonly IBrokeredMessageSerializer<TMessage> _serializer;
         private readonly IMessageHandler<TMessage> _handler;
+        private readonly ISubscriptionProcessorTelemetryService _telemetryService;
         private readonly ILogger<SubscriptionProcessor<TMessage>> _logger;
 
         private bool _running;
@@ -33,16 +33,19 @@ namespace NuGet.Services.ServiceBus
         /// <param name="client">The client used to receive messages from the subscription.</param>
         /// <param name="serializer">The serializer used to deserialize received messages.</param>
         /// <param name="handler">The handler used to handle received messages.</param>
+        /// <param name="telemetryService">The telemetry service reference to which this class submits telemetry.</param>
         /// <param name="logger">The logger used to record debug information.</param>
         public SubscriptionProcessor(
             ISubscriptionClient client,
             IBrokeredMessageSerializer<TMessage> serializer,
             IMessageHandler<TMessage> handler,
+            ISubscriptionProcessorTelemetryService telemetryService,
             ILogger<SubscriptionProcessor<TMessage>> logger)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _running = false;
@@ -70,6 +73,8 @@ namespace NuGet.Services.ServiceBus
             }
 
             Interlocked.Increment(ref _numberOfMessagesInProgress);
+
+            TrackMessageLags(brokeredMessage);
 
             using (var scope = _logger.BeginScope($"{nameof(SubscriptionProcessor<TMessage>)}.{nameof(OnMessageAsync)} {{CallGuid}} {{CallStartTimestamp}}",
                 Guid.NewGuid(),
@@ -158,6 +163,14 @@ namespace NuGet.Services.ServiceBus
                     "Timeout reached when starting shutdown of subscription processor after {StartShutdownTimeout}",
                     timeout);
             }
+        }
+
+        private void TrackMessageLags(IBrokeredMessage brokeredMessage)
+        {
+            _telemetryService.TrackMessageDeliveryLag<TMessage>(DateTimeOffset.UtcNow - brokeredMessage.ScheduledEnqueueTimeUtc);
+            // we expect the "enqueue lag" to be zero or really close to zero pretty much all the time, logging it just in case it is not
+            // and for historical perspective if we need one.
+            _telemetryService.TrackEnqueueLag<TMessage>(brokeredMessage.EnqueuedTimeUtc - brokeredMessage.ScheduledEnqueueTimeUtc);
         }
     }
 }

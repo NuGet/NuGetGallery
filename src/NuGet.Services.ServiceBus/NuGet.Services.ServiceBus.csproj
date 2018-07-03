@@ -46,6 +46,7 @@
     <Compile Include="IBrokeredMessageSerializer.cs" />
     <Compile Include="IMessageHandler.cs" />
     <Compile Include="ISubscriptionProcessor.cs" />
+    <Compile Include="ISubscriptionProcessorTelemetryService.cs" />
     <Compile Include="OnMessageOptionsWrapper.cs" />
     <Compile Include="ScopedMessageHandler.cs" />
     <Compile Include="SubscriptionProcessor.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="SchemaAttribute.cs" />
     <Compile Include="SubscriptionClientWrapper.cs" />
+    <Compile Include="SubscriptionProcessorNoTelemetryService.cs" />
     <Compile Include="TopicClientWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
