@@ -103,6 +103,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
         public virtual ActionResult Home()
         {
             var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
@@ -121,6 +122,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.OK, "Empty Home");
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> Terms()
         {
             if (_contentService != null)
@@ -132,6 +134,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> Privacy()
         {
             if (_contentService != null)

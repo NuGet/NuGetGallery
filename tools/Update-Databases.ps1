@@ -5,7 +5,7 @@ param(
 
 function Initialize-MigrateExe() {
     [string] $migrateDirectory = [System.IO.Path]::Combine($PSScriptRoot, '__temp_migrate_directory_' + [guid]::NewGuid().ToString("N") )
-    [string] $efDirectory = [System.IO.Path]::Combine($PSScriptRoot, '${env:userprofile}\.nuget\packages\EntityFramework\6.1.3')
+    [string] $efDirectory = [System.IO.Path]::Combine($PSScriptRoot, "${env:userprofile}\.nuget\packages\EntityFramework\6.1.3")
     [string] $migrate = ([System.IO.Path]::Combine($migrateDirectory, 'migrate.exe'))
 
     if (-not (New-Item -ItemType Directory -Path $migrateDirectory -Force).Exists) {
