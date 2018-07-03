@@ -68,8 +68,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            const string validateSignatureBindingKey = "ValidateSignatureKey";
-            var signatureValidationMessageHandlerType = typeof(IMessageHandler<SignatureValidationMessage>);
+            ConfigureDefaultSubscriptionProcessor(containerBuilder);
 
             containerBuilder
                 .RegisterType<ValidatorStateService>()
@@ -77,17 +76,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     (pi, ctx) => pi.ParameterType == typeof(string),
                     (pi, ctx) => ValidatorName.PackageSignatureProcessor)
                 .As<IValidatorStateService>();
-
-            containerBuilder
-                .RegisterType<ScopedMessageHandler<SignatureValidationMessage>>()
-                .Keyed<IMessageHandler<SignatureValidationMessage>>(validateSignatureBindingKey);
-
-            containerBuilder
-                .RegisterType<SubscriptionProcessor<SignatureValidationMessage>>()
-                .WithParameter(
-                    (parameter, context) => parameter.ParameterType == signatureValidationMessageHandlerType,
-                    (parameter, context) => context.ResolveKeyed(validateSignatureBindingKey, signatureValidationMessageHandlerType))
-                .As<ISubscriptionProcessor<SignatureValidationMessage>>();
         }
     }
 }
