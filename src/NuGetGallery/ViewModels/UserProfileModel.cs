@@ -14,37 +14,28 @@ namespace NuGetGallery
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
-            AllPackages = allPackages;
             TotalPackages = allPackages.Count;
-            PackagePage = pageIndex;
-            PackagePageSize = pageSize;
-            
-            TotalPackageDownloadCount = AllPackages.Sum(p => ((long)p.TotalDownloadCount));
 
-            PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
+            TotalPackageDownloadCount = allPackages.Sum(p => ((long)p.TotalDownloadCount));
 
-            var pager = new PreviousNextPagerViewModel(pageIndex, PackagePageTotalCount,
+            var packagePageTotalCount = (TotalPackages + pageSize - 1) / pageSize;
+
+            Pager = new PreviousNextPagerViewModel(pageIndex, packagePageTotalCount,
                 page => url.User(user, page));
-
-            Pager = pager;
-            PagedPackages = AllPackages.Skip(PackagePageSize * pageIndex)
-                                       .Take(PackagePageSize).ToList();
+            PagedPackages = allPackages.Skip(pageSize * pageIndex)
+                                       .Take(pageSize).ToList();
 
             CanManageAccount = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
             CanViewAccount = ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
         }
 
-        public int PackagePageTotalCount { get; private set; }
         public User User { get; private set; }
         public string Username { get; private set; }
         public string EmailAddress { get; private set; }
         public string UnconfirmedEmailAddress { get; set; }
-        public ICollection<ListPackageItemViewModel> AllPackages { get; private set; }
         public ICollection<ListPackageItemViewModel> PagedPackages { get; private set; }
         public long TotalPackageDownloadCount { get; private set; }
         public int TotalPackages { get; private set; }
-        public int PackagePage { get; private set; }
-        public int PackagePageSize { get; private set; }
         public IPreviousNextPager Pager { get; private set; }
         public bool CanManageAccount { get; private set; }
         public bool CanViewAccount { get; private set; }

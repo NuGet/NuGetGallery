@@ -11,8 +11,8 @@
             @ViewHelpers.GravatarImage(Model.EmailAddress ?? Model.UnconfirmedEmailAddress, Model.Username, Constants.GravatarImageSizeLarge, responsive: true)
             <div class="statistics">
                 <div class="statistic">
-                    <div class="value">@Model.AllPackages.Count.ToNuGetNumberString()</div>
-                    <div class="description">@(Model.AllPackages.Count == 1 ? "Package" : "Packages")</div>
+                    <div class="value">@Model.TotalPackages.ToNuGetNumberString()</div>
+                    <div class="description">@(Model.TotalPackages == 1 ? "Package" : "Packages")</div>
                 </div>
                 <div class="statistic">
                     <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>

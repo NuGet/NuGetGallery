@@ -1147,7 +1147,7 @@ namespace NuGetGallery
                 Assert.Equal(orderedPackages.Sum(p => p.PackageRegistration.DownloadCount), model.TotalPackageDownloadCount);
 
                 var orderedPackagesIndex = 0;
-                foreach (var package in model.AllPackages)
+                foreach (var package in model.PagedPackages)
                 {
                     AssertListPackageItemViewModel(package, currentUser, orderedPackages[orderedPackagesIndex++]);
                 }
