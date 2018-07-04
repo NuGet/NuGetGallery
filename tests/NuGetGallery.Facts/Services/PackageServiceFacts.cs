@@ -987,8 +987,11 @@ namespace NuGetGallery
             }
         }
 
-        public class TheFindPackagesByOwnerMethod : TheFindPackagesByOwnersMethodsBase
+        public class TheGetPagedPackagesByOwnerMethod : TheFindPackagesByOwnersMethodsBase
         {
+            private int skip = 0;
+            private int maxResults = 10;
+
             public static IEnumerable<object[]> TestData_RoleVariants
             {
                 get
@@ -1002,7 +1005,7 @@ namespace NuGetGallery
 
             public override IEnumerable<Package> InvokeFindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
             {
-                return PackageService.FindPackagesByOwner(user, includeUnlisted, includeVersions);
+                return PackageService.GetPagedPackagesByOwner(user, skip, maxResults, includeUnlisted, includeVersions);
             }
 
             [MemberData(nameof(TestData_RoleVariants))]
@@ -1044,6 +1047,62 @@ namespace NuGetGallery
             [MemberData(nameof(TestData_RoleVariants))]
             public override void ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(User currentUser, User packageOwner)
               => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
+
+            [Fact]
+            public void SortsPackagesByDownloadCount()
+            {
+                User packageOwner = new User() { Key = 1 };
+
+                var packageRegistration1 = new PackageRegistration { Id = "package1", Owners = { packageOwner }, DownloadCount = 100 };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration1, Listed = true, IsLatest = true, PackageStatusKey = PackageStatus.Available, PackageRegistrationKey = 1 };
+                packageRegistration1.Packages.Add(package1);
+                var packageRegistration2 = new PackageRegistration { Id = "package2", Owners = { packageOwner }, DownloadCount = 200 };
+                var package2 = new Package { Version = "1.0", PackageRegistration = packageRegistration2, Listed = true, IsLatest = true, PackageStatusKey = PackageStatus.Available, PackageRegistrationKey = 2 };
+                packageRegistration2.Packages.Add(package2);
+
+                var context = GetFakeContext();
+                context.Users.Add(packageOwner);
+                context.PackageRegistrations.Add(packageRegistration1);
+                context.PackageRegistrations.Add(packageRegistration2);
+                context.Packages.Add(package1);
+                context.Packages.Add(package2);
+
+                var packages = InvokeFindPackagesByOwner(packageOwner, false).ToList();
+
+                Assert.Equal(2, packages.Count);
+                Assert.Equal(200, packages[0].PackageRegistration.DownloadCount);
+                Assert.Equal(100, packages[1].PackageRegistration.DownloadCount);
+            }
+
+            [Theory]
+            [InlineData(0, "package2")]
+            [InlineData(1, "package1")]
+            public void PaginationWhenContextContainsMoreThanPageSizeResults(int skip, string expectedPackage)
+            {
+                this.skip = skip;
+                this.maxResults = 1;
+
+                User packageOwner = new User() { Key = 1 };
+
+                var packageRegistration1 = new PackageRegistration { Id = "package1", Owners = { packageOwner }, DownloadCount = 100 };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration1, Listed = true, IsLatest = true, PackageStatusKey = PackageStatus.Available, PackageRegistrationKey = 1 };
+                packageRegistration1.Packages.Add(package1);
+                var packageRegistration2 = new PackageRegistration { Id = "package2", Owners = { packageOwner }, DownloadCount = 200 };
+                var package2 = new Package { Version = "1.0", PackageRegistration = packageRegistration2, Listed = true, IsLatest = true, PackageStatusKey = PackageStatus.Available, PackageRegistrationKey = 2 };
+                packageRegistration2.Packages.Add(package2);
+
+                var context = GetFakeContext();
+                context.Users.Add(packageOwner);
+                context.PackageRegistrations.Add(packageRegistration1);
+                context.PackageRegistrations.Add(packageRegistration2);
+                context.Packages.Add(package1);
+                context.Packages.Add(package2);
+
+                var packages = InvokeFindPackagesByOwner(packageOwner, false).ToList();
+
+                Assert.Equal(maxResults, packages.Count);
+                Assert.Equal(expectedPackage, packages[0].PackageRegistration.Id);
+            }
         }
 
         public class TheGetTotalPackagesStatisticsForOwnerMethod
