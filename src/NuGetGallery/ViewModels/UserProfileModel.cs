@@ -8,22 +8,21 @@ namespace NuGetGallery
 {
     public class UserProfileModel
     {
-        public UserProfileModel(User user, User currentUser, List<ListPackageItemViewModel> allPackages, int pageIndex, int pageSize, UrlHelper url)
+        public UserProfileModel(User user, User currentUser, List<ListPackageItemViewModel> pagedPackages, int totalPackages, long totalPackageDownloadCount, int pageIndex, int pageSize, UrlHelper url)
         {
             User = user;
             Username = user.Username;
             EmailAddress = user.EmailAddress;
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
-            TotalPackages = allPackages.Count;
 
-            TotalPackageDownloadCount = allPackages.Sum(p => ((long)p.TotalDownloadCount));
+            PagedPackages = pagedPackages;
+            TotalPackages = totalPackages;
+            TotalPackageDownloadCount = totalPackageDownloadCount;
 
             var packagePageTotalCount = (TotalPackages + pageSize - 1) / pageSize;
 
             Pager = new PreviousNextPagerViewModel(pageIndex, packagePageTotalCount,
                 page => url.User(user, page));
-            PagedPackages = allPackages.Skip(pageSize * pageIndex)
-                                       .Take(pageSize).ToList();
 
             CanManageAccount = ActionsRequiringPermissions.ManageAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
             CanViewAccount = ActionsRequiringPermissions.ViewAccount.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;

@@ -239,7 +239,6 @@
     <Compile Include="ViewModels\PackageViewModelFacts.cs" />
     <Compile Include="ViewModels\PreviousNextPagerViewModelFacts.cs" />
     <Compile Include="ViewModels\SignerViewModelFacts.cs" />
-    <Compile Include="ViewModels\UserProfileModelFacts.cs" />
     <Compile Include="Views\Packages\ValidationIssueFacts.cs" />
     <Compile Include="Views\UrlHelperFacts.cs" />
   </ItemGroup>

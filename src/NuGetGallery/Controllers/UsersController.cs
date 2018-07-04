@@ -621,7 +621,13 @@ namespace NuGetGallery
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
 
-            var model = new UserProfileModel(user, currentUser, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            var pagedPackages = packages.Skip(Constants.DefaultPackageListPageSize * page)
+                .Take(Constants.DefaultPackageListPageSize)
+                .ToList();
+            var totalPackages = packages.Count;
+            var totalPackageDownloadCount = packages.Sum(p => (long)p.TotalDownloadCount);
+
+            var model = new UserProfileModel(user, currentUser, pagedPackages, totalPackages, totalPackageDownloadCount, page - 1, Constants.DefaultPackageListPageSize, Url);
 
             return View(model);
         }
