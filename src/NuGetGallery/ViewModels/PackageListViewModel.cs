@@ -36,8 +36,6 @@ namespace NuGetGallery
             string curatedFeed,
             bool includePrerelease)
         {
-            // TODO: Implement actual sorting
-            IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv, currentUser));
             PageIndex = pageIndex;
             IndexTimestampUtc = indexTimestampUtc;
             PageSize = pageSize;
@@ -45,15 +43,14 @@ namespace NuGetGallery
             SearchTerm = searchTerm;
             int pageCount = (TotalCount + PageSize - 1) / PageSize;
 
-            var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(
-                items,
+            var pager = new PreviousNextPagerViewModel(
                 PageIndex,
                 pageCount,
                 page => curatedFeed == null ?
                     url.PackageList(page, searchTerm, includePrerelease) :
                     url.CuratedPackageList(page, searchTerm, curatedFeed)
                 );
-            Items = pager.Items;
+            Items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv, currentUser)); ;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;
             Pager = pager;

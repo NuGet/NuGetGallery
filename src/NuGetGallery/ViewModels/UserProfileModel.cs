@@ -23,7 +23,7 @@ namespace NuGetGallery
 
             PackagePageTotalCount = (TotalPackages + PackagePageSize - 1) / PackagePageSize;
 
-            var pager = new PreviousNextPagerViewModel<ListPackageItemViewModel>(allPackages, pageIndex, PackagePageTotalCount,
+            var pager = new PreviousNextPagerViewModel(pageIndex, PackagePageTotalCount,
                 page => url.User(user, page));
 
             Pager = pager;
