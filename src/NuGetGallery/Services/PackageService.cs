@@ -228,7 +228,25 @@ namespace NuGetGallery
 
         public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions).ToList();
+        }
+
+        public ProfilePackageStatistics GetTotalPackagesStatisticsForOwner(User user, bool includeUnlisted, bool includeVersions = false)
+        {
+            var packages = GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
+            var result = packages
+                .Select(p => new
+                {
+                    TotalPackages = packages.Count(),
+                    TotalPackageDownloadCount = packages.Sum(p2 => (long)p2.PackageRegistration.DownloadCount)
+                })
+                .First();
+
+            return new ProfilePackageStatistics
+            {
+                TotalPackages = result.TotalPackages,
+                TotalPackageDownloadCount = result.TotalPackageDownloadCount
+            };
         }
 
         /// <summary>
@@ -242,10 +260,10 @@ namespace NuGetGallery
             var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
             ownerKeys.Insert(0, user.Key);
 
-            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions).ToList();
         }
 
-        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
+        private IQueryable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
         {
             IQueryable<Package> packages = _packageRepository.GetAll()
                 .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
@@ -259,8 +277,7 @@ namespace NuGetGallery
             {
                 return packages
                 .Include(p => p.PackageRegistration)
-                .Include(p => p.PackageRegistration.Owners)
-                .ToList();
+                .Include(p => p.PackageRegistration.Owners);
             }
 
             // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
@@ -278,8 +295,7 @@ namespace NuGetGallery
                     .ThenByDescending(p => p.Key)
                     .FirstOrDefault())
                 .Include(p => p.PackageRegistration)
-                .Include(p => p.PackageRegistration.Owners)
-                .ToList();
+                .Include(p => p.PackageRegistration.Owners);
         }
 
         /// <summary>

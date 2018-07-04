@@ -1046,6 +1046,58 @@ namespace NuGetGallery
               => base.ReturnsVersionsWhenIncludedVersionsIsTrue_IncludeUnlistedFalse(currentUser, packageOwner);
         }
 
+        public class TheGetTotalPackagesStatisticsForOwnerMethod
+        {
+            [Fact]
+            public virtual void CountsOnePackageRegistrationWhenThereAreMultiplePackages()
+            {
+                // Arrange
+                var owner = new User { Key = 1 };
+
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration = new PackageRegistration { Owners = new List<User> { owner } };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration, Listed = true };
+                var package2 = new Package { Version = "2.0.0-alpha", PackageRegistration = packageRegistration, IsPrerelease = true, Listed = true };
+                var package3 = new Package { Version = "2.0.0", PackageRegistration = packageRegistration, Listed = true, IsLatest = true };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2, package3 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.GetTotalPackagesStatisticsForOwner(owner, false);
+
+                // Assert
+                Assert.Equal(1, result.TotalPackages);
+            }
+
+            [Fact]
+            public virtual void TotalDownloadCount_DoesNotThrowIntegerOverflow()
+            {
+                // Arrange
+                var owner = new User { Key = 1 };
+
+                var repository = new Mock<IEntityRepository<Package>>(MockBehavior.Strict);
+                var packageRegistration1 = new PackageRegistration { Owners = new List<User> { owner }, DownloadCount = int.MaxValue };
+                var package1 = new Package { Version = "1.0", PackageRegistration = packageRegistration1, Listed = true, PackageRegistrationKey = 1 };
+                var packageRegistration2 = new PackageRegistration { Owners = packageRegistration1.Owners, DownloadCount = int.MaxValue };
+                var package2 = new Package { Version = "1.0", PackageRegistration = packageRegistration2, Listed = true, PackageRegistrationKey = 2 };
+
+                repository
+                    .Setup(repo => repo.GetAll())
+                    .Returns(new[] { package1, package2 }.AsQueryable());
+                var service = CreateService(packageRepository: repository);
+
+                // Act
+                var result = service.GetTotalPackagesStatisticsForOwner(owner, false);
+
+                // Assert
+                long expected = (long)int.MaxValue * 2;
+                Assert.Equal(expected, result.TotalPackageDownloadCount);
+            }
+        }
+
         public class TheFindPackagesByAnyMatchingOwnerMethod : TheFindPackagesByOwnersMethodsBase
         {
             public static IEnumerable<object[]> TestData_RoleVariants

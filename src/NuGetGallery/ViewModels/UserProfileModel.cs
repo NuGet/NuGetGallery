@@ -8,7 +8,13 @@ namespace NuGetGallery
 {
     public class UserProfileModel
     {
-        public UserProfileModel(User user, User currentUser, List<ListPackageItemViewModel> pagedPackages, int totalPackages, long totalPackageDownloadCount, int pageIndex, int pageSize, UrlHelper url)
+        public UserProfileModel(User user,
+                                User currentUser,
+                                List<ListPackageItemViewModel> pagedPackages,
+                                ProfilePackageStatistics profilePackageStatistics,
+                                int pageIndex,
+                                int pageSize,
+                                UrlHelper url)
         {
             User = user;
             Username = user.Username;
@@ -16,8 +22,8 @@ namespace NuGetGallery
             UnconfirmedEmailAddress = user.UnconfirmedEmailAddress;
 
             PagedPackages = pagedPackages;
-            TotalPackages = totalPackages;
-            TotalPackageDownloadCount = totalPackageDownloadCount;
+            TotalPackages = profilePackageStatistics.TotalPackages;
+            TotalPackageDownloadCount = profilePackageStatistics.TotalPackageDownloadCount;
 
             var packagePageTotalCount = (TotalPackages + pageSize - 1) / pageSize;
 

@@ -31,6 +31,8 @@ namespace NuGetGallery
 
         IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
+        ProfilePackageStatistics GetTotalPackagesStatisticsForOwner(User user, bool includeUnlisted, bool includeVersions = false);
+
         IEnumerable<Package> FindPackagesByAnyMatchingOwner(User user, bool includeUnlisted, bool includeVersions = false);
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);

@@ -1073,6 +1073,14 @@ namespace NuGetGallery
                     .Setup(x => x.FindPackagesByOwner(owner, false, false))
                     .Returns(new[] { package, invalidatedPackage, validatingPackage, deletedPackage });
 
+                GetMock<IPackageService>()
+                    .Setup(x => x.GetTotalPackagesStatisticsForOwner(owner, false, false))
+                    .Returns(new ProfilePackageStatistics
+                    {
+                        TotalPackages = 1,
+                        TotalPackageDownloadCount = package.PackageRegistration.DownloadCount
+                    });
+
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
 
@@ -1123,9 +1131,19 @@ namespace NuGetGallery
                     .Setup(x => x.FindByUsername(username, false))
                     .Returns(owner);
 
+                var packages = new[] { package1, package2 };
+
                 GetMock<IPackageService>()
                     .Setup(x => x.FindPackagesByOwner(owner, false, false))
-                    .Returns(new[] { package1, package2 });
+                    .Returns(packages);
+
+                GetMock<IPackageService>()
+                    .Setup(x => x.GetTotalPackagesStatisticsForOwner(owner, false, false))
+                    .Returns(new ProfilePackageStatistics
+                    {
+                        TotalPackages = packages.Length,
+                        TotalPackageDownloadCount = packages.Sum(p => p.PackageRegistration.DownloadCount)
+                    });
 
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(currentUser);
