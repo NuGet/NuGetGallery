@@ -293,13 +293,13 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
+            TelemetryService.TrackRequestForAccountDeletion(user);
 
             if (!user.Confirmed)
             {
                 // Unconfirmed users can be deleted immediately without creating a support request.
                 DeleteUserAccountStatus accountDeleteStatus = await _deleteAccountService.DeleteAccountAsync(userToBeDeleted: user,
                     userToExecuteTheDelete: user,
-                    signature: user.Username,
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans,
                     commitAsTransaction: true);
                 if (!accountDeleteStatus.Success)
@@ -359,7 +359,6 @@ namespace NuGetGallery
                 var status = await _deleteAccountService.DeleteAccountAsync(
                     userToBeDeleted: user,
                     userToExecuteTheDelete: admin,
-                    signature: model.Signature,
                     orphanPackagePolicy: model.ShouldUnlist ? AccountDeletionOrphanPackagePolicy.UnlistOrphans : AccountDeletionOrphanPackagePolicy.KeepOrphans,
                     commitAsTransaction: true);
                 return View("DeleteUserAccountStatus", status);

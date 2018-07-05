@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Security.Principal;
 using System.Web;
 using NuGet.Versioning;
@@ -45,6 +46,8 @@ namespace NuGetGallery
             public const string CertificateActivated = "CertificateActivated";
             public const string CertificateDeactivated = "CertificateDeactivated";
             public const string PackageRegistrationRequiredSignerSet = "PackageRegistrationRequiredSignerSet";
+            public const string AccountDeleteCompleted = "AccountDeleteCompleted";
+            public const string AccountDeleteRequested = "AccountDeleteRequested";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -102,6 +105,13 @@ namespace NuGetGallery
 
         // Certificate properties
         public const string Sha256Thumbprint = "Sha256Thumbprint";
+
+        //Account Delete Properties
+        public const string AccountDeletedByRole = "AccountDeletedByRole";
+        public const string AccountIsSelfDeleted = "AccountIsSelfDeleted";
+        public const string AccountDeletedIsOrganization = "AccountDeletedIsOrganization";
+        public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
+        public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -359,7 +369,6 @@ namespace NuGetGallery
                 properties.Add(Sha256Thumbprint, thumbprint);
             });
         }
-
         private static string GetClientVersion()
         {
             return HttpContext.Current?.Request?.Headers[Constants.ClientVersionHeaderName];
@@ -548,6 +557,37 @@ namespace NuGetGallery
         public void TrackOrganizationAdded(Organization organization)
         {
             TrackMetricForOrganization(Events.OrganizationAdded, organization);
+        }
+
+        public void TrackAccountDeletionCompleted(User deletedUser, User deletedBy, bool success)
+        {
+            if (deletedUser == null)
+            {
+                throw new ArgumentNullException(nameof(deletedUser));
+            }
+            if (deletedBy == null)
+            {
+                throw new ArgumentNullException(nameof(deletedBy));
+            }
+
+            TrackMetric(Events.AccountDeleteCompleted, 1, properties => {
+                properties.Add(AccountDeletedByRole, string.Join(",", deletedBy.Roles?.Select( role => role.Name) ?? new List<string>()));
+                properties.Add(AccountIsSelfDeleted, $"{deletedUser.Key == deletedBy.Key}");
+                properties.Add(AccountDeletedIsOrganization, $"{deletedUser is Organization}");
+                properties.Add(AccountDeleteSucceeded, $"{success}");
+            });
+        }
+
+        public void TrackRequestForAccountDeletion(User user)
+        {
+            if (user == null)
+            {
+                throw new ArgumentNullException(nameof(user));
+            }
+           
+            TrackMetric(Events.AccountDeleteRequested, 1, properties => {
+                properties.Add(CreatedDateForAccountToBeDeleted, $"{user.CreatedUtc}");
+            });
         }
 
         /// <summary>

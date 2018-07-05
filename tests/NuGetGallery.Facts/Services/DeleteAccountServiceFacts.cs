@@ -36,7 +36,6 @@ namespace NuGetGallery.Services
                     null, 
                     new User("AdminUser") { Key = Key++ },
                     commitAsTransaction: false,
-                    signature: "signature",
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -54,7 +53,6 @@ namespace NuGetGallery.Services
                     new User("TestUser") { Key = Key++ },
                     null,
                     commitAsTransaction: false,
-                    signature: "signature",
                     orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans));
             }
 
@@ -72,12 +70,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
-                var signature = "Hello";
                 var result = await deleteAccountService.
                     DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: signature,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 string expected = $"The account:{testUser.Username} was already deleted. No action was performed.";
                 Assert.Equal(expected, result.Description);
@@ -103,12 +99,10 @@ namespace NuGetGallery.Services
                 var deleteAccountService = testableService.GetDeleteAccountService();
 
                 // Act
-                var signature = "Hello";
                 await deleteAccountService.
                     DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: signature,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
                 
                 Assert.Empty(registration.Owners);
@@ -117,7 +111,6 @@ namespace NuGetGallery.Services
                 Assert.False(registration.Packages.ElementAt(0).Listed);
                 Assert.Null(testUser.EmailAddress);
                 Assert.Single(testableService.DeletedAccounts);
-                Assert.Equal(signature, testableService.DeletedAccounts.ElementAt(0).Signature);
                 Assert.Single(testableService.SupportRequests);
                 Assert.Empty(testableService.PackageOwnerRequests);
                 Assert.True(testableService.HasDeletedOwnerScope);
@@ -156,7 +149,6 @@ namespace NuGetGallery.Services
                 var status = await deleteAccountService.DeleteAccountAsync(userToBeDeleted: testUser,
                                                 userToExecuteTheDelete: testUser,
                                                 commitAsTransaction: false,
-                                                signature: testUser.Username,
                                                 orphanPackagePolicy: AccountDeletionOrphanPackagePolicy.UnlistOrphans);
 
                 //Assert
@@ -451,7 +443,8 @@ namespace NuGetGallery.Services
                     SetupSecurityPolicyService().Object,
                     SetupAuthenticationService().Object,
                     SetupSupportRequestService().Object,
-                    AuditService);
+                    AuditService,
+                    SetupTelemetryService().Object);
             }
 
             public class FakeAuditingService : IAuditingService
@@ -635,6 +628,10 @@ namespace NuGetGallery.Services
                 }
 
                 return packageOwnershipManagementService;
+            }
+            private Mock<ITelemetryService> SetupTelemetryService()
+            {
+                return new Mock<ITelemetryService>();
             }
         }
     }
