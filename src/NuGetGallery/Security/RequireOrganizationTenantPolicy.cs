@@ -12,7 +12,7 @@ namespace NuGetGallery.Security
 {
     public class RequireOrganizationTenantPolicy : UserSecurityPolicyHandler, IUserSecurityPolicySubscription
     {
-        public const string _SubscriptionName = "AzureActiveDirectoryTenant";
+        public const string _SubscriptionName = nameof(RequireOrganizationTenantPolicy);
         public const string PolicyName = nameof(RequireOrganizationTenantPolicy);
 
         public string SubscriptionName => _SubscriptionName;
@@ -25,18 +25,13 @@ namespace NuGetGallery.Security
             public string Tenant { get; set; }
         }
 
-        public RequireOrganizationTenantPolicy()
-            : base(PolicyName, SecurityPolicyAction.JoinOrganization)
-        {
-        }
-
         private RequireOrganizationTenantPolicy(IEnumerable<UserSecurityPolicy> policies)
             : base(PolicyName, SecurityPolicyAction.JoinOrganization)
         {
             Policies = policies;
         }
 
-        public static IUserSecurityPolicySubscription Create(string tenantId)
+        public static RequireOrganizationTenantPolicy Create(string tenantId = "")
         {
             var value = JsonConvert.SerializeObject(new State()
             {
@@ -45,7 +40,7 @@ namespace NuGetGallery.Security
 
             return new RequireOrganizationTenantPolicy(new []
             {
-                new UserSecurityPolicy(PolicyName, PolicyName, value)
+                new UserSecurityPolicy(PolicyName, _SubscriptionName, value)
             });
         }
 

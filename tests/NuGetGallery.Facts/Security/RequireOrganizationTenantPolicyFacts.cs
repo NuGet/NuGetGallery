@@ -61,7 +61,9 @@ namespace NuGetGallery.Security
                     targetAccount: fakes.User
                     );
 
-                return new RequireOrganizationTenantPolicy().Evaluate(context);
+                return RequireOrganizationTenantPolicy
+                    .Create()
+                    .Evaluate(context);
             }
         }
     }
