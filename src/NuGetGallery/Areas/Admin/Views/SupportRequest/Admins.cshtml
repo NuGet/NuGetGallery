@@ -300,6 +300,7 @@
 
                     var addViewModel = new AddAdminViewModel();
 
+                    ko.cleanNode($self.addAdminForm);
                     ko.applyBindings(addViewModel, $self.addAdminForm);
 
                     $self.addAdminDialog.dialog('open');
@@ -312,6 +313,7 @@
                     editViewModel.admin = admin;
                     editViewModel.editGalleryUsername = admin.GalleryUsername;
 
+                    ko.cleanNode($self.editAdminForm);
                     ko.applyBindings(editViewModel, $self.editAdminForm);
 
                     $self.editAdminDialog.dialog('option', 'title', 'Edit SR-Admin #' + admin.Key);
