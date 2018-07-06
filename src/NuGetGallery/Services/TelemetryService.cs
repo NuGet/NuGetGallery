@@ -113,6 +113,8 @@ namespace NuGetGallery
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
+        public const string ValueUnknown = "Unknown";
+
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
             if (diagnosticsService == null)
@@ -184,11 +186,13 @@ namespace NuGetGallery
 
         public void TrackPackagePushFailureEvent(string id, NuGetVersion version)
         {
+            var normalizedVersion = version?.ToNormalizedString();
+
             TrackMetric(Events.PackagePushFailure, 1, properties => {
                 properties.Add(ClientVersion, GetClientVersion());
                 properties.Add(ProtocolVersion, GetProtocolVersion());
-                properties.Add(PackageId, id);
-                properties.Add(PackageVersion, version.ToNormalizedString());
+                properties.Add(PackageId, id ?? ValueUnknown);
+                properties.Add(PackageVersion, normalizedVersion ?? ValueUnknown);
             });
         }
 

@@ -278,6 +278,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\HttpExceptionExtensions.cs" />
     <Compile Include="Extensions\OrganizationExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />

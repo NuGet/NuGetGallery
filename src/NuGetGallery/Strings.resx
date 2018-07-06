@@ -911,4 +911,7 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="FailedValidationHardDeleteReason" xml:space="preserve">
     <value>Automatic hard-delete for reupload of package that failed validation</value>
   </data>
+  <data name="PackageFileTooLarge" xml:space="preserve">
+    <value>The package file exceeds the size limit of 250MB.</value>
+  </data>
 </root>
