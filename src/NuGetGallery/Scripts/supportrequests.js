@@ -172,6 +172,7 @@ var SupportRequestsViewModel = (function () {
             editViewModel.editAssignedToId = supportRequestViewModel.AssignedTo;
             editViewModel.editIssueStatusId = supportRequestViewModel.IssueStatusId;
 
+            ko.cleanNode($self.editSupportRequestForm);
             ko.applyBindings(editViewModel, $self.editSupportRequestForm);
 
             $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Key);
