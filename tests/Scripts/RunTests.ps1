@@ -36,9 +36,12 @@ if ($LastExitCode) {
 
 # Run web UI tests
 $webTestsDirectory = "$rootName\NuGetGallery.WebUITests.$TestCategory\bin\$Config"
-& $msTest "/TestContainer:$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/resultsfile:$webUITestResults"
-if ($LastExitCode) {
-    $exitCode = 1
+
+if(Test-Path $webTestsDirectory -PathType Container) { 
+	& $msTest "/TestContainer:$webTestsDirectory\NuGetGallery.WebUITests.$TestCategory.dll" "/TestSettings:$rootName\Local.testsettings" "/detail:stdout" "/resultsfile:$webUITestResults"
+	if ($LastExitCode) {
+		$exitCode = 1
+	}
 }
 
 # Run load tests
