@@ -123,4 +123,10 @@
   <data name="SerializedPackageValidationMessageData2" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
+  <data name="SerializedPackageValidationMessageDataPackage" xml:space="preserve">
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":0}</value>
+  </data>
+  <data name="SerializedPackageValidationMessageDataSymbols" xml:space="preserve">
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":1}</value>
+  </data>
 </root>

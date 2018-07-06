@@ -47,5 +47,10 @@ namespace NuGet.Services.Validation
         /// The validation issues found by this validation.
         /// </summary>
         public virtual ICollection<ValidatorIssue> ValidatorIssues { get; set; }
+
+        /// <summary>
+        /// The entity type to be validated.
+        /// </summary>
+        public ValidatingType ValidatingType { get; set; }
     }
 }

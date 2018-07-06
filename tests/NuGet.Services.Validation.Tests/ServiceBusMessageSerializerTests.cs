@@ -38,7 +38,25 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Contains(SchemaName, output.Properties.Keys);
                 Assert.Equal(PackageValidationMessageDataType, output.Properties[SchemaName]);
                 var body = output.GetBody();
-                Assert.Equal(TestData.SerializedPackageValidationMessageData2, body);
+                Assert.Equal(TestData.SerializedPackageValidationMessageDataPackage, body);
+            }
+
+            [Fact]
+            public void ProducesExpectedMessageForSymbols()
+            {
+                // Arrange
+                var input = new PackageValidationMessageData(PackageId, PackageVersion, ValidationTrackingId, ValidatingType.SymbolPackage);
+
+                // Act
+                var output = _target.SerializePackageValidationMessageData(input);
+
+                // Assert
+                Assert.Contains(SchemaVersionKey, output.Properties.Keys);
+                Assert.Equal(SchemaVersion1, output.Properties[SchemaVersionKey]);
+                Assert.Contains(SchemaName, output.Properties.Keys);
+                Assert.Equal(PackageValidationMessageDataType, output.Properties[SchemaName]);
+                var body = output.GetBody();
+                Assert.Equal(TestData.SerializedPackageValidationMessageDataSymbols, body);
             }
         }
 
@@ -61,6 +79,7 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(PackageNormalizedVersion, output.PackageNormalizedVersion);
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
+                Assert.Equal(ValidatingType.Package, output.ValidatingType);
             }
 
             [Fact]
@@ -78,7 +97,27 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(PackageNormalizedVersion, output.PackageNormalizedVersion);
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
+                Assert.Equal(ValidatingType.Package, output.ValidatingType);
             }
+
+            [Fact]
+            public void ProducesExpectedMessageForSymbols()
+            {
+                // Arrange
+                var brokeredMessage = GetBrokeredSymbolMessage();
+
+                // Act
+                var output = _target.DeserializePackageValidationMessageData(brokeredMessage.Object);
+
+                // Assert
+                Assert.Equal(PackageId, output.PackageId);
+                Assert.Equal(PackageVersion, output.PackageVersion);
+                Assert.Equal(PackageNormalizedVersion, output.PackageNormalizedVersion);
+                Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
+                Assert.Equal(DeliveryCount, output.DeliveryCount);
+                Assert.Equal(ValidatingType.SymbolPackage, output.ValidatingType);
+            }
+
 
             [Fact]
             public void RejectsInvalidType()
@@ -183,6 +222,25 @@ namespace NuGet.Services.Validation.Tests
                 brokeredMessage
                     .Setup(x => x.GetBody())
                     .Returns(TestData.SerializedPackageValidationMessageData1);
+                brokeredMessage
+                    .Setup(x => x.DeliveryCount)
+                    .Returns(DeliveryCount);
+                brokeredMessage
+                    .Setup(x => x.Properties)
+                    .Returns(new Dictionary<string, object>
+                    {
+                        { SchemaName, PackageValidationMessageDataType },
+                        { SchemaVersionKey, SchemaVersion1 }
+                    });
+                return brokeredMessage;
+            }
+
+            private static Mock<IBrokeredMessage> GetBrokeredSymbolMessage()
+            {
+                var brokeredMessage = new Mock<IBrokeredMessage>();
+                brokeredMessage
+                    .Setup(x => x.GetBody())
+                    .Returns(TestData.SerializedPackageValidationMessageDataSymbols);
                 brokeredMessage
                     .Setup(x => x.DeliveryCount)
                     .Returns(DeliveryCount);

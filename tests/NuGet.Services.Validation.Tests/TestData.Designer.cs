@@ -77,5 +77,23 @@ namespace NuGet.Services.Validation.Tests {
                 return ResourceManager.GetString("SerializedPackageValidationMessageData2", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ValidatingType&quot;:0}.
+        /// </summary>
+        internal static string SerializedPackageValidationMessageDataPackage {
+            get {
+                return ResourceManager.GetString("SerializedPackageValidationMessageDataPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {&quot;PackageId&quot;:&quot;NuGet.Versioning&quot;,&quot;PackageVersion&quot;:&quot;4.3&quot;,&quot;PackageNormalizedVersion&quot;:&quot;4.3.0&quot;,&quot;ValidationTrackingId&quot;:&quot;14b4c1b8-40e2-4d60-9db7-4b7195e807f5&quot;,&quot;ValidatingType&quot;:1}.
+        /// </summary>
+        internal static string SerializedPackageValidationMessageDataSymbols {
+            get {
+                return ResourceManager.GetString("SerializedPackageValidationMessageDataSymbols", resourceCulture);
+            }
+        }
     }
 }

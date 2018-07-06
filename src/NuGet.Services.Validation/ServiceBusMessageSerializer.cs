@@ -20,6 +20,7 @@ namespace NuGet.Services.Validation
                 PackageVersion = message.PackageVersion,
                 PackageNormalizedVersion = message.PackageNormalizedVersion,
                 ValidationTrackingId = message.ValidationTrackingId,
+                ValidatingType = message.ValidatingType
             });
         }
 
@@ -31,6 +32,7 @@ namespace NuGet.Services.Validation
                 data.PackageId,
                 data.PackageVersion,
                 data.ValidationTrackingId,
+                data.ValidatingType,
                 message.DeliveryCount);
         }
 
@@ -41,6 +43,7 @@ namespace NuGet.Services.Validation
             public string PackageVersion { get; set; }
             public string PackageNormalizedVersion { get; set; }
             public Guid ValidationTrackingId { get; set; }
+            public ValidatingType ValidatingType { get; set; }
         }
     }
 }
