@@ -42,6 +42,7 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ICertificateVerifier, OnlineCertificateVerifier>();
             services.AddTransient<ICertificateValidationService, CertificateValidationService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddSingleton(new TelemetryClient());
         }
 

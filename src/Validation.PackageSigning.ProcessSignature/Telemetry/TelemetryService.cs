@@ -5,14 +5,17 @@ using System;
 using System.Collections.Generic;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Logging;
+using NuGet.Services.ServiceBus;
 
 namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
 {
-    public class TelemetryService : ITelemetryService
+    public class TelemetryService : ITelemetryService, ISubscriptionProcessorTelemetryService
     {
         private const string Prefix = "ProcessSignature.";
         private const string StrippedRepositorySignatures = Prefix + "StrippedRepositorySignatures";
         private const string DurationToStripRepositorySignaturesSeconds = Prefix + "DurationToStripRepositorySignaturesSeconds";
+        private const string MessageDeliveryLag = Prefix + "MessageDeliveryLag";
+        private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
 
         private const string PackageId = "PackageId";
         private const string NormalizedVersion = "NormalizedVersion";
@@ -22,6 +25,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
         private const string OutputSignatureType = "OutputSignatureType";
         private const string OutputCounterSignatureCount = "OutputCounterSignatureCount";
         private const string Changed = "Changed";
+        private const string MessageType = "MessageType";
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -78,5 +82,23 @@ namespace NuGet.Jobs.Validation.PackageSigning.Telemetry
                 duration.TotalSeconds,
                 properties);
         }
+
+        public void TrackMessageDeliveryLag<TMessage>(TimeSpan deliveryLag)
+            => _telemetryClient.TrackMetric(
+                MessageDeliveryLag,
+                deliveryLag.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name }
+                });
+
+        public void TrackEnqueueLag<TMessage>(TimeSpan enqueueLag)
+            => _telemetryClient.TrackMetric(
+                MessageEnqueueLag,
+                enqueueLag.TotalSeconds,
+                new Dictionary<string, string>
+                {
+                    { MessageType, typeof(TMessage).Name }
+                });
     }
 }

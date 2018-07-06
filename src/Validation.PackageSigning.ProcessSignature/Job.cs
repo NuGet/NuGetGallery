@@ -41,6 +41,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<ICorePackageService, CorePackageService>();
 
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
 
             services.AddTransient<ICertificateStore>(p =>
             {

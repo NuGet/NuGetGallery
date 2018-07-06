@@ -274,6 +274,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IMessageService<Package>, PackageMessageService>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddSingleton(new TelemetryClient());
