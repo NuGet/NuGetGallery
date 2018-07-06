@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using System.Xml;
 using Xunit;
@@ -31,13 +30,11 @@ namespace NuGetGallery.FunctionalTests.ApiManagement
             // Arrange
             string url = UrlHelper.V2FeedRootUrl + suffix;
 
-            Action<HttpResponseHeaders> verifyHeaders = (headers) => Assert.False(headers.Contains(CacheHeaderName));
-
             // Act
             var firstResponse = await MakeODataRequest(url);
 
             // sleep for 5 seconds so the clock will shift
-            await Task.Delay(5000);
+            await Task.Delay(TimeSpan.FromSeconds(5));
 
             var secondResponse = await MakeODataRequest(url);
 
@@ -67,7 +64,7 @@ namespace NuGetGallery.FunctionalTests.ApiManagement
             var firstResponse = await MakeODataRequest(url);
 
             // sleep for 5 seconds so the clock will shift
-            await Task.Delay(5000);
+            await Task.Delay(TimeSpan.FromSeconds(5));
 
             var secondResponse = await MakeODataRequest(url);
 
@@ -96,10 +93,10 @@ namespace NuGetGallery.FunctionalTests.ApiManagement
                 response.Headers.TryGetValues(CacheHeaderName, out IEnumerable<string> cacheHeaders);
 
                 string content = await response.Content.ReadAsStringAsync();
+
                 using (var stringReader = new StringReader(content))
+                using (var xmlReader = XmlReader.Create(stringReader))
                 {
-                    using (var xmlReader = XmlReader.Create(stringReader))
-                    {
                         var xmlConfig = new XmlDocument();
                         xmlConfig.XmlResolver = null;
 
@@ -107,7 +104,6 @@ namespace NuGetGallery.FunctionalTests.ApiManagement
                         var updatedTime = xmlConfig.GetElementsByTagName("updated")[0].InnerText;
 
                         return (DateTime.Parse(updatedTime), cacheHeaders);
-                    }
                 }
             }
         }
