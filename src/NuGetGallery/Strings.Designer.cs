@@ -1256,6 +1256,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package file exceeds the size limit. Please try again..
+        /// </summary>
+        public static string PackageFileTooLarge {
+            get {
+                return ResourceManager.GetString("PackageFileTooLarge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package ID &apos;{0}&apos; is not available..
         /// </summary>
         public static string PackageIdNotAvailable {

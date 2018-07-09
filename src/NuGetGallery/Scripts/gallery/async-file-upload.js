@@ -174,6 +174,12 @@
                 case "abort":
                     displayErrors(["The operation was aborted. Please try again."]);
                     break;
+                case "error":
+                    // IIS returns 404.13 (NotFound) when maxAllowedContentLength limit is exceeded.
+                    if (fullResponse === "Not Found") {
+                        displayErrors(["The package file exceeds the size limit. Please try again."]);
+                    }
+                    break;
                 default:
                     displayErrors(model.responseJSON);
                     break;
