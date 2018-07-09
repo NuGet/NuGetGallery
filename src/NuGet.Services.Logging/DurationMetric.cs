@@ -34,4 +34,41 @@ namespace NuGet.Services.Logging
 
         public void Dispose() => _telemetry.TrackMetric(_name, _timer.Elapsed.TotalSeconds, _properties);
     }
+
+    /// <summary>
+    /// An object that records the duration of its existence.
+    /// </summary>
+    public class DurationMetric<TProperties> : IDisposable
+    {
+        private readonly ITelemetryClient _telemetry;
+
+        private readonly string _name;
+        private readonly Stopwatch _timer;
+
+        private readonly Func<TProperties, IDictionary<string, string>> _serializeFunc;
+
+        public DurationMetric(
+            ITelemetryClient telemetry,
+            string name,
+            TProperties properties,
+            Func<TProperties, IDictionary<string, string>> serializeFunc)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            _telemetry = telemetry ?? throw new ArgumentNullException(nameof(telemetry));
+            _serializeFunc = serializeFunc ?? throw new ArgumentNullException(nameof(serializeFunc));
+
+            _name = name;
+            _timer = Stopwatch.StartNew();
+
+            Properties = properties;
+        }
+
+        public TProperties Properties { get; }
+
+        public void Dispose() => _telemetry.TrackMetric(_name, _timer.Elapsed.TotalSeconds, _serializeFunc(Properties));
+    }
 }

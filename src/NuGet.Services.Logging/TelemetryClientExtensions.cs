@@ -15,5 +15,14 @@ namespace NuGet.Services.Logging
         {
             return new DurationMetric(telemetry, metricName, properties);
         }
+
+        public static DurationMetric<TProperties> TrackDuration<TProperties>(
+            this ITelemetryClient telemetry,
+            string metricName,
+            TProperties properties,
+            Func<TProperties, IDictionary<string, string>> serializeFunc)
+        {
+            return new DurationMetric<TProperties>(telemetry, metricName, properties, serializeFunc);
+        }
     }
 }
