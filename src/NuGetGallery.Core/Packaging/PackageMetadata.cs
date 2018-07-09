@@ -188,7 +188,7 @@ namespace NuGetGallery.Packaging
         /// Whether or not to be strict when reading the <see cref="NuspecReader"/>. This should be <code>true</code>
         /// on initial ingestion but false when a package that has already been accepted is being processed.</param>
         /// <exception cref="PackagingException">
-        /// We default to use a strict version-check on dependency groups. 
+        /// We default to use a strict version-check on dependency groups.
         /// When an invalid dependency version range is detected, a <see cref="PackagingException"/> will be thrown.
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
@@ -235,7 +235,6 @@ namespace NuGetGallery.Packaging
                     }
                 }
             }
-
 
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
