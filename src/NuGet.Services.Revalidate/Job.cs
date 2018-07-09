@@ -13,6 +13,9 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
+using NuGet.Services.Logging;
+using NuGet.Services.ServiceBus;
+using NuGet.Services.Validation;
 using NuGetGallery;
 
 namespace NuGet.Services.Revalidate
@@ -25,6 +28,8 @@ namespace NuGet.Services.Revalidate
         private const string InitializeArgumentName = "Initialize";
         private const string VerifyInitializationArgumentName = "VerifyInitialization";
         private const string JobConfigurationSectionName = "RevalidateJob";
+
+        private static readonly TimeSpan RetryLaterSleepDuration = TimeSpan.FromMinutes(5);
 
         private bool _initialize;
         private bool _verifyInitialization;
@@ -75,9 +80,13 @@ namespace NuGet.Services.Revalidate
                 }
                 else
                 {
-                    // TODO: https://github.com/NuGet/Engineering/issues/1443
-                    // Send revalidation requests to the Orchestrator.
-                    throw new NotImplementedException();
+                    Logger.LogInformation("Running the revalidation service...");
+
+                    await scope.ServiceProvider
+                        .GetRequiredService<IRevalidationService>()
+                        .RunAsync();
+
+                    Logger.LogInformation("Revalidation service finished running");
                 }
             }
         }
@@ -85,7 +94,9 @@ namespace NuGet.Services.Revalidate
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<RevalidationConfiguration>(configurationRoot.GetSection(JobConfigurationSectionName));
+            services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Initialization);
+            services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Queue);
 
             services.AddScoped<IGalleryContext>(provider =>
             {
@@ -94,9 +105,31 @@ namespace NuGet.Services.Revalidate
                 return new GalleryContext(config.ConnectionString, readOnly: false);
             });
 
-            services.AddScoped<IRevalidationStateService, RevalidationStateService>();
-            services.AddScoped<IPackageFinder, PackageFinder>();
-            services.AddScoped<InitializationManager>();
+            // Core
+            services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
+
+            services.AddTransient<IRevalidationStateService, RevalidationStateService>();
+
+            // Initialization
+            services.AddTransient<IPackageFinder, PackageFinder>();
+            services.AddTransient<InitializationManager>();
+
+            // Revalidation
+            services.AddTransient<IHealthService, HealthService>();
+            services.AddTransient<IRevalidationQueue, RevalidationQueue>();
+            services.AddTransient<IRevalidationService, RevalidationService>();
+            services.AddTransient<IRevalidationThrottler, RevalidationThrottler>();
+            services.AddTransient<ISingletonService, SingletonService>();
+
+            services.AddTransient<IPackageValidationEnqueuer, PackageValidationEnqueuer>();
+            services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
+            services.AddTransient<ITopicClient>(provider =>
+            {
+                var config = provider.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
+
+                return new TopicClientWrapper(config.ConnectionString, config.TopicPath);
+            });
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)

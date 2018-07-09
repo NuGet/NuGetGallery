@@ -4,7 +4,9 @@
       {
         "name": "VcsValidator",
         "TrackAfter": "1:00:00:00",
-        "requiredValidations": [ "PackageSigningValidator" ],
+        "requiredValidations": [
+          "PackageSigningValidator"
+        ],
         "ShouldStart": true,
         "FailureBehavior": "MustSucceed"
       },
@@ -18,14 +20,18 @@
       {
         "name": "PackageSigningValidator2",
         "TrackAfter": "00:10:00",
-        "requiredValidations": [ "PackageSigningValidator" ],
+        "requiredValidations": [
+          "PackageSigningValidator"
+        ],
         "ShouldStart": true,
         "FailureBehavior": "AllowedToFail"
       },
       {
         "name": "PackageCertificatesValidator",
         "TrackAfter": "00:10:00",
-        "requiredValidations": [ "PackageSigningValidator2" ],
+        "requiredValidations": [
+          "PackageSigningValidator2"
+        ],
         "ShouldStart": true,
         "FailureBehavior": "MustSucceed"
       }

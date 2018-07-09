@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -20,6 +21,12 @@ namespace NuGet.Services.Revalidate
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public Task<bool> IsKillswitchActiveAsync()
+        {
+            // TODO
+            return Task.FromResult(false);
         }
 
         public async Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
@@ -68,6 +75,25 @@ namespace NuGet.Services.Revalidate
         public async Task<int> PackageRevalidationCountAsync()
         {
             return await _context.PackageRevalidations.CountAsync();
+        }
+
+        public async Task MarkRevalidationAsEnqueuedAsync(PackageRevalidation revalidation)
+        {
+            try
+            {
+                revalidation.Enqueued = DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                _logger.LogWarning(
+                    "Failed to update revalidation as enqueued for {PackageId} {PackageNormalizedVersion}",
+                    revalidation.PackageId,
+                    revalidation.PackageNormalizedVersion);
+
+                throw;
+            }
         }
     }
 }
