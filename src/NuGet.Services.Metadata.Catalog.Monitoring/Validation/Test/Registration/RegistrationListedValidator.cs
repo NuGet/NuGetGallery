@@ -18,12 +18,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override async Task<bool> ShouldRunLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task<bool> ShouldRunLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
         {
-            return v2 != null && v3 != null;
+            return Task.FromResult(v2 != null && v3 != null);
         }
 
-        public override async Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
         {
             if (v2.Listed != v3.Listed)
             {
@@ -32,6 +32,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     nameof(PackageRegistrationLeafMetadata.Listed),
                     m => m.Listed);
             }
+
+            return Task.FromResult(0);
         }
     }
 }

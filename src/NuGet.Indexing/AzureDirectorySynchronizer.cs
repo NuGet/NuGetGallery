@@ -92,11 +92,11 @@ namespace NuGet.Indexing
                     {
                         try
                         {
-                            indexOutput?.Close();
+                            indexOutput?.Dispose();
                         }
                         finally
                         {
-                            indexInput?.Close();
+                            indexInput?.Dispose();
                         }
                     }
                 }
