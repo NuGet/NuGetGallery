@@ -34,6 +34,7 @@ namespace NuGetGallery
             IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
             LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
             ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
+            RepositoryUrl = packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull();
             ReleaseNotes = packageMetadata.ReleaseNotes;
             RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
             Summary = packageMetadata.Summary;
@@ -105,6 +106,7 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
+        public string RepositoryUrl { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }

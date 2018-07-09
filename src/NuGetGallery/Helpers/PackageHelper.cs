@@ -18,8 +18,7 @@ namespace NuGetGallery
 
         public static bool ShouldRenderUrl(string url)
         {
-            Uri uri = null;
-            if (!string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out uri))
+            if (!string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
             {
                 return uri.Scheme == Uri.UriSchemeHttps
                     || uri.Scheme == Uri.UriSchemeHttp;

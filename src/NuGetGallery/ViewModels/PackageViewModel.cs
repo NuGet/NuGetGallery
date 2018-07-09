@@ -38,6 +38,7 @@ namespace NuGetGallery
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
+            RepositoryUrl = package.RepositoryUrl;
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
@@ -62,6 +63,7 @@ namespace NuGetGallery
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
+        public string RepositoryUrl { get; set; }
         public string LicenseUrl { get; set; }
         public Boolean HideLicenseReport { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }

@@ -50,7 +50,8 @@ namespace NuGetGallery.Packaging
             IEnumerable<PackageDependencyGroup> dependencyGroups,
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
-            NuGetVersion minClientVersion)
+            NuGetVersion minClientVersion,
+            RepositoryMetadata repositoryMetadata)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
@@ -59,6 +60,12 @@ namespace NuGetGallery.Packaging
 
             SetPropertiesFromMetadata();
             MinClientVersion = minClientVersion;
+
+            if (repositoryMetadata != null)
+            {
+                Uri.TryCreate(repositoryMetadata.Url, UriKind.Absolute, out var repoUrl);
+                RepositoryUrl = repoUrl;
+            }
         }
 
         private void SetPropertiesFromMetadata()
@@ -100,6 +107,7 @@ namespace NuGetGallery.Packaging
 
         public Uri IconUrl { get; private set; }
         public Uri ProjectUrl { get; private set; }
+        public Uri RepositoryUrl { get; private set; }
         public Uri LicenseUrl { get; private set; }
         public string Copyright { get; private set; }
         public string Description { get; private set; }
@@ -228,13 +236,14 @@ namespace NuGetGallery.Packaging
                 }
             }
 
+
             return new PackageMetadata(
                 nuspecReader.GetMetadata().ToDictionary(kvp => kvp.Key, kvp => kvp.Value),
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
-                nuspecReader.GetMinClientVersion()
-           );
+                nuspecReader.GetMinClientVersion(),
+                nuspecReader.GetRepositoryMetadata());
         }
 
         private class StrictNuspecReader : NuspecReader
