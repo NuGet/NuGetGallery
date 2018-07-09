@@ -177,7 +177,7 @@
                 case "error":
                     // IIS returns 404.13 (NotFound) when maxAllowedContentLength limit is exceeded.
                     if (fullResponse === "Not Found") {
-                        displayErrors(["The package file exceeds the size limit of 250MB. Please try again."]);
+                        displayErrors(["The package file exceeds the size limit. Please try again."]);
                     }
                     break;
                 default:

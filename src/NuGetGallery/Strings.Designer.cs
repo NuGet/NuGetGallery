@@ -1256,7 +1256,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package file exceeds the size limit of 250MB..
+        ///   Looks up a localized string similar to The package file exceeds the size limit. Please try again..
         /// </summary>
         public static string PackageFileTooLarge {
             get {
