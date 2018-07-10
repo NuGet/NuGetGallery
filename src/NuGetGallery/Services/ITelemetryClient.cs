@@ -14,5 +14,14 @@ namespace NuGetGallery
         void TrackMetric(string metricName, double value, IDictionary<string, string> properties = null);
 
         void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null);
+
+        void TrackDependency(string dependencyTypeName,
+                             string target,
+                             string dependencyName,
+                             string data,
+                             DateTimeOffset startTime,
+                             TimeSpan duration,
+                             string resultCode,
+                             bool success);
     }
 }

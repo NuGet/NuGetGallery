@@ -2005,12 +2005,12 @@ namespace NuGetGallery
             : MessageService
         {
             private TestableMessageService(IGalleryConfigurationService configurationService)
+                : base(new TestMailSender(), configurationService.Current, new Mock<ITelemetryClient>().Object)
             {
                 configurationService.Current.GalleryOwner = TestGalleryOwner;
                 configurationService.Current.GalleryNoReplyAddress = TestGalleryNoReplyAddress;
 
-                Config = configurationService.Current;
-                MailSender = MockMailSender = new TestMailSender();
+                MockMailSender = (TestMailSender)MailSender;
             }
 
             public Mock<AuthenticationService> MockAuthService { get; protected set; }
@@ -2018,6 +2018,7 @@ namespace NuGetGallery
 
             public static TestableMessageService Create(IGalleryConfigurationService configurationService)
             {
+                configurationService.Current.SmtpUri = new Uri("smtp://fake.mail.server");
                 return new TestableMessageService(configurationService);
             }
         }

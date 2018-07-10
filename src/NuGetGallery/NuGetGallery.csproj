@@ -361,6 +361,7 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\BackgroundMessageService.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />

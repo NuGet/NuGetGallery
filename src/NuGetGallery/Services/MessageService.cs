@@ -3,10 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Configuration;
@@ -16,14 +18,15 @@ namespace NuGetGallery
 {
     public class MessageService : CoreMessageService, IMessageService
     {
-        protected MessageService()
-        {
-        }
-
-        public MessageService(IMailSender mailSender, IAppConfiguration config)
+        public MessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryClient telemetryClient)
             : base(mailSender, config)
         {
+            this.telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            smtpUri = config.SmtpUri?.Host ?? throw new ArgumentNullException(nameof(config) + "." + nameof(config.SmtpUri));
         }
+
+        private readonly ITelemetryClient telemetryClient;
+        private readonly string smtpUri;
 
         public IAppConfiguration Config
         {
@@ -168,7 +171,11 @@ namespace NuGetGallery
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender);
+                    SendMessage(mailMessage);
+                    if (copySender)
+                    {
+                        SendMessageToSender(mailMessage);
+                    }
                 }
             }
         }
@@ -1014,21 +1021,20 @@ The {Config.GalleryOwner.DisplayName} Team");
             return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.ManageAccount);
         }
 
-        protected override void SendMessage(MailMessage mailMessage, bool copySender)
+        protected override void AttemptSendMessage(MailMessage mailMessage)
         {
+            bool success = false;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            Stopwatch sw = Stopwatch.StartNew();
             try
             {
-                base.SendMessage(mailMessage, copySender);
+                base.AttemptSendMessage(mailMessage);
+                success = true;
             }
-            catch (InvalidOperationException ex)
+            finally
             {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
-            }
-            catch (SmtpException ex)
-            {
-                // Log but swallow the exception
-                QuietLog.LogHandledException(ex);
+                sw.Stop();
+                telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, now, sw.Elapsed, null, success);
             }
         }
 

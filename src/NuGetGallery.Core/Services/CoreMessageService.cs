@@ -2,10 +2,12 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
+using System.Threading;
 using AnglicanGeek.MarkdownMailer;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -14,9 +16,11 @@ namespace NuGetGallery.Services
 {
     public class CoreMessageService : ICoreMessageService
     {
-        protected CoreMessageService()
-        {
-        }
+        private static readonly ReadOnlyCollection<TimeSpan> RetryDelays = Array.AsReadOnly(new[] {
+            TimeSpan.FromSeconds(0.1),
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(10)
+        });
 
         public CoreMessageService(IMailSender mailSender, ICoreMessageServiceConfiguration coreConfiguration)
         {
@@ -48,7 +52,7 @@ namespace NuGetGallery.Services
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    SendMessage(mailMessage);
                 }
             }
         }
@@ -94,7 +98,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    SendMessage(mailMessage);
                 }
             }
         }
@@ -162,7 +166,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    SendMessage(mailMessage);
                 }
             }
         }
@@ -192,31 +196,52 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        protected void SendMessage(MailMessage mailMessage)
+        protected virtual void SendMessage(MailMessage mailMessage)
         {
-            SendMessage(mailMessage, copySender: false);
+            int attempt = 0;
+            for (;;)
+            {
+                try
+                {
+                    AttemptSendMessage(mailMessage);
+                    break;
+                }
+                catch (SmtpException)
+                {
+                    if (attempt < RetryDelays.Count)
+                    {
+                        Thread.Sleep(RetryDelays[attempt]);
+                        attempt++;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
-        virtual protected void SendMessage(MailMessage mailMessage, bool copySender)
+        protected virtual void AttemptSendMessage(MailMessage mailMessage)
         {
             MailSender.Send(mailMessage);
-            if (copySender)
+        }
+
+        protected void SendMessageToSender(MailMessage mailMessage)
+        {
+            var senderCopy = new MailMessage(
+                CoreConfiguration.GalleryOwner,
+                mailMessage.ReplyToList.First())
             {
-                var senderCopy = new MailMessage(
-                    CoreConfiguration.GalleryOwner,
-                    mailMessage.ReplyToList.First())
-                {
-                    Subject = mailMessage.Subject + " [Sender Copy]",
-                    Body = string.Format(
-                            CultureInfo.CurrentCulture,
-                            "You sent the following message via {0}: {1}{1}{2}",
-                            CoreConfiguration.GalleryOwner.DisplayName,
-                            Environment.NewLine,
-                            mailMessage.Body),
-                };
-                senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
-                MailSender.Send(senderCopy);
-            }
+                Subject = mailMessage.Subject + " [Sender Copy]",
+                Body = string.Format(
+                        CultureInfo.CurrentCulture,
+                        "You sent the following message via {0}: {1}{1}{2}",
+                        CoreConfiguration.GalleryOwner.DisplayName,
+                        Environment.NewLine,
+                        mailMessage.Body),
+            };
+            senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
+            SendMessage(senderCopy);
         }
     }
 }

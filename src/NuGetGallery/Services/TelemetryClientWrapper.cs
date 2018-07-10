@@ -52,5 +52,24 @@ namespace NuGetGallery
                 // logging failed, don't allow exception to escape
             }
         }
+
+        public void TrackDependency(string dependencyTypeName,
+                                    string target,
+                                    string dependencyName,
+                                    string data,
+                                    DateTimeOffset startTime,
+                                    TimeSpan duration,
+                                    string resultCode,
+                                    bool success)
+        {
+            try
+            {
+                UnderlyingClient.TrackDependency(dependencyTypeName, target, dependencyName, data, startTime, duration, resultCode, success);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
     }
 }
