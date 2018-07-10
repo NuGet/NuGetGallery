@@ -3,7 +3,7 @@
 
 namespace NuGetGallery
 {
-    public class PackageFileServiceMetadata : IFileServiceMetadata
+    public class PackageFileMetadataService : IFileMetadataService
     {
         public string FileFolderName => CoreConstants.PackagesFolderName;
 

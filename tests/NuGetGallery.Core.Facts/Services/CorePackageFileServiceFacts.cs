@@ -772,7 +772,7 @@ namespace NuGetGallery
             fileStorageService = fileStorageService ?? new Mock<ICoreFileStorageService>();
 
             return new CorePackageFileService(
-                fileStorageService.Object, new PackageFileServiceMetadata());
+                fileStorageService.Object, new PackageFileMetadataService());
         }
 
         public abstract class FactsBase

@@ -22,7 +22,7 @@ namespace NuGetGallery
         private readonly IFileStorageService _fileStorageService;
 
         public PackageFileService(IFileStorageService fileStorageService)
-            : base(fileStorageService, new PackageFileServiceMetadata())
+            : base(fileStorageService, new PackageFileMetadataService())
         {
             _fileStorageService = fileStorageService;
         }

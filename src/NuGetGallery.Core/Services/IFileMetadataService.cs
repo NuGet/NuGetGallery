@@ -3,7 +3,7 @@
 
 namespace NuGetGallery
 {
-    public interface IFileServiceMetadata
+    public interface IFileMetadataService
     {
         /// <summary>
         /// This is the public folder name where files will be copied. For example <see cref="CoreConstants.PackagesFolderName"/>

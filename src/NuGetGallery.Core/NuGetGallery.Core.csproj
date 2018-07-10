@@ -188,7 +188,7 @@
     <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
-    <Compile Include="Services\IMetadataFileService.cs" />
+    <Compile Include="Services\IFileMetadataService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
