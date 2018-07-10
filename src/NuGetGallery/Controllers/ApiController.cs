@@ -549,23 +549,12 @@ namespace NuGetGallery
 
                             if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
                             {
-                                if (!packagePolicyResult.HasWarnings)
-                                {
-                                    // Notify user of push with warnings unless async validation in blocking mode is used
-                                    MessageService.SendPackageAddedNotice(package,
-                                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                        Url.AccountSettings(relativeUrl: false));
-                                }
-                                else
-                                {
-                                    // Notify user of push unless async validation in blocking mode is used
-                                    MessageService.SendPackageAddedWithWarningsNotice(package,
-                                        Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                        Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                        Url.AccountSettings(relativeUrl: false),
-                                        packagePolicyResult.WarningMessages);
-                                }
+                                // Notify user of push unless async validation in blocking mode is used
+                                MessageService.SendPackageAddedNotice(package,
+                                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.AccountSettings(relativeUrl: false),
+                                    packagePolicyResult.WarningMessages);
                             }
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);

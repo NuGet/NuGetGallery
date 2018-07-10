@@ -25,8 +25,7 @@ namespace NuGetGallery
         void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel);
         void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel);
         void SendContactSupportEmail(ContactSupportRequest request);
-        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
-        void SendPackageAddedWithWarningsNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages);
+        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null);
         void SendAccountDeleteNotice(User user);
         void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
         void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials);

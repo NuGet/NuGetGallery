@@ -41,7 +41,7 @@ namespace NuGetGallery.Security
             }
 
             // This particular package policy assumes the existence of a 'Microsoft' user.
-            // Succeed silentely (effectively ignoring this policy when enabled) when that user does not exist.
+            // Succeed silently (effectively ignoring this policy when enabled) when that user does not exist.
             var microsoftUser = context.EntitiesContext.Users.SingleOrDefault(u => u.Username == MicrosoftUsername);
             if (microsoftUser == null)
             {
@@ -55,14 +55,14 @@ namespace NuGetGallery.Security
             if (context.ExistingPackageRegistration == null)
             {
                 // We are evaluating a newly pushed package with a new ID.
-                var packageId = context.Package.PackageRegistration.Id;
+                var packageRegistrationId = context.Package.PackageRegistration.Id;
 
                 // If the generated PackageRegistration is not marked as verified (by `PackageUploadService.GeneratePackageAsync`),
                 // the account pushing the package has not registered the prefix yet.
                 if (!context.Package.PackageRegistration.IsVerified)
                 {
                     // The owner has not reserved the prefix. Check whether the Microsoft user has.
-                    var prefixIsReservedByMicrosoft = IsPrefixReservedByAccount(context.EntitiesContext, microsoftUser, packageId);
+                    var prefixIsReservedByMicrosoft = IsPrefixReservedByAccount(context.EntitiesContext, microsoftUser, packageRegistrationId);
 
                     // If the prefix has not been reserved by the 'Microsoft' user either,
                     // then generate a warning which will result in an alternate email being sent to the package owners when validation of the metadata succeeds, and the package is pushed.

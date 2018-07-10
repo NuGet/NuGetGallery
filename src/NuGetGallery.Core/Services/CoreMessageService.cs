@@ -28,40 +28,24 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
         {
-            string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
-            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+            bool hasWarnings = warningMessages != null && warningMessages.Any();
 
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving emails as an owner of this package, sign in to the {CoreConfiguration.GalleryOwner.DisplayName} and
-    [change your email notification settings]({emailSettingsUrl}).
-</em>";
-
-            using (var mailMessage = new MailMessage())
+            string subject;
+            var warningMessagesPlaceholder = string.Empty;
+            if (hasWarnings)
             {
-                mailMessage.Subject = subject;
-                mailMessage.Body = body;
-                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
-
-                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
-
-                if (mailMessage.To.Any())
-                {
-                    SendMessage(mailMessage, copySender: false);
-                }
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with Warnings - {package.PackageRegistration.Id} {package.Version}";
+                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
             }
-        }
+            else
+            {
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
+            }
 
-        public void SendPackageAddedWithWarningsNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages)
-        {
-            string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with Warnings - {package.PackageRegistration.Id} {package.Version}";
-            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. 
-
-{string.Join(Environment.NewLine, warningMessages)}
-
-If this was not intended, please [contact support]({packageSupportUrl}).
+            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+{warningMessagesPlaceholder}
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
