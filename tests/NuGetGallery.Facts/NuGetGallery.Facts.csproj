@@ -130,6 +130,7 @@
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\ContentObjectServiceFacts.cs" />
+    <Compile Include="Services\PackageFileServiceMetadataFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
     <Compile Include="Services\LoginDiscontinuationConfigurationFacts.cs" />
