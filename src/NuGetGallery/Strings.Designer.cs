@@ -1715,7 +1715,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to &lt;insert URL here&gt; for more information..
+        ///   Looks up a localized string similar to The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to http://aka.ms/Microsoft-NuGet-Compliance for more information..
         /// </summary>
         public static string SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush {
             get {
