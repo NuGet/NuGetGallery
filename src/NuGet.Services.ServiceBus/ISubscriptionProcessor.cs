@@ -20,7 +20,16 @@ namespace NuGet.Services.ServiceBus
         /// <summary>
         /// Start handling messages emitted to the Service Bus subscription.
         /// </summary>
+        /// <remarks>
+        /// MaxConcurrentMessages is defaulted to the number set by the ServiceBus library (seems to be 1)
+        /// </remarks>
         void Start();
+
+        /// <summary>
+        /// Start handling messages emitted to the Service Bus subscription.
+        /// </summary>
+        /// <param name="maxConcurrentCalls">Maximum number of messages processed in parallel.</param>
+        void Start(int maxConcurrentCalls);
 
         /// <summary>
         /// Deregisters the message handler and waits until currently in-flight messages have been handled.

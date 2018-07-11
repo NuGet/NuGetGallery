@@ -172,6 +172,23 @@ namespace NuGet.Services.ServiceBus.Tests
                 _telemetryService
                     .Verify(ts => ts.TrackEnqueueLag<TestMessage>(It.IsAny<TimeSpan>()), Times.Once);
             }
+
+            [Fact]
+            public void PassesMaxConcurrentCallsFurther()
+            {
+                IOnMessageOptions capturedOptions = null;
+                _client
+                    .Setup(c => c.OnMessageAsync(It.IsAny<Func<IBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()))
+                    .Callback<Func<IBrokeredMessage, Task>, IOnMessageOptions>((_, opt) => capturedOptions = opt);
+
+                const int expectedConcurrentCalls = 42;
+                _target.Start(expectedConcurrentCalls);
+
+                _client
+                    .Verify(c => c.OnMessageAsync(It.IsAny<Func<IBrokeredMessage, Task>>(), It.IsAny<IOnMessageOptions>()), Times.Once);
+                Assert.NotNull(capturedOptions);
+                Assert.Equal(expectedConcurrentCalls, capturedOptions.MaxConcurrentCalls);
+            }
         }
 
         public class TheShutdownAsyncMethod : Base

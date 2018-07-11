@@ -6,5 +6,6 @@ namespace NuGet.Services.ServiceBus
     public interface IOnMessageOptions
     {
         bool AutoComplete { get; set; }
+        int MaxConcurrentCalls { get; set; }
     }
 }

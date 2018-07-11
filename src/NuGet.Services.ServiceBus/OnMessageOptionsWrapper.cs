@@ -16,6 +16,12 @@ namespace NuGet.Services.ServiceBus
             set => OnMessageOptions.AutoComplete = value;
         }
 
+        public int MaxConcurrentCalls
+        {
+            get => OnMessageOptions.MaxConcurrentCalls;
+            set => OnMessageOptions.MaxConcurrentCalls = value;
+        }
+
         public OnMessageOptionsWrapper(OnMessageOptions options = null)
         {
             OnMessageOptions = OnMessageOptions ?? new OnMessageOptions();
