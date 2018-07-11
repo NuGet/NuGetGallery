@@ -117,7 +117,9 @@ namespace NuGetGallery.Security
         private bool IsPackageMetadataCompliant(Package package)
         {
             // Author validation
-            if (!package.FlattenedAuthors.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).Contains(MicrosoftUsername))
+            if (!package.FlattenedAuthors
+                .Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Contains(MicrosoftUsername, StringComparer.InvariantCultureIgnoreCase))
             {
                 return false;
             }
