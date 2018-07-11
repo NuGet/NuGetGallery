@@ -63,8 +63,8 @@ namespace NuGetGallery.Security
         /// </summary>
         public string ErrorMessage { get; }
 
-        public bool HasWarnings { get { return _warningMessages.Any(); } }
+        public bool HasWarnings => _warningMessages.Any();
 
-        public IReadOnlyCollection<string> WarningMessages { get { return _warningMessages; } }
+        public IReadOnlyCollection<string> WarningMessages => _warningMessages;
     }
 }
