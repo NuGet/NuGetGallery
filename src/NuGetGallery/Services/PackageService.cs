@@ -59,8 +59,6 @@ namespace NuGetGallery
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
-                ValidatePackageTitle(packageMetadata);
-
                 var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
                 if (!supportedFrameworks.AnySafe(sf => sf == null))
                 {
@@ -100,8 +98,6 @@ namespace NuGetGallery
                     strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
-
-                ValidatePackageTitle(packageMetadata);
 
                 packageRegistration = CreateOrGetPackageRegistration(owner, currentUser, packageMetadata, isVerified);
             }
@@ -456,10 +452,6 @@ namespace NuGetGallery
 
             if (packageRegistration == null)
             {
-                if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
-                {
-                    throw new EntityException(Strings.NewRegistrationIdMatchesExistingPackageTitle, packageMetadata.Id);
-                }
 
                 packageRegistration = new PackageRegistration
                 {
@@ -676,14 +668,6 @@ namespace NuGetGallery
             {
                 throw new EntityException(
                     Strings.InvalidPortableFramework, invalidPortableFramework);
-            }
-        }
-
-        private void ValidatePackageTitle(PackageMetadata packageMetadata)
-        {
-            if (_packageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(packageMetadata.Id, packageMetadata.Title))
-            {
-                throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
             }
         }
 
