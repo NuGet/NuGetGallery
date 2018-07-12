@@ -191,48 +191,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillThrowWhenCreateANewPackageRegistrationWithAnIdThatMatchesAnExistingPackageTitle()
-            {
-                // Arrange
-                var idThatMatchesExistingTitle = "AwesomePackage";
-
-                var currentUser = new User();
-                var existingPackageRegistration = new PackageRegistration
-                {
-                    Id = "SomePackageId",
-                    Owners = new HashSet<User>()
-                };
-                var existingPackage = new Package
-                {
-                    PackageRegistration = existingPackageRegistration,
-                    Version = "1.0.0",
-                    Title = idThatMatchesExistingTitle
-                };
-
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                packageRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackage }.AsQueryable());
-
-                var service = CreateService(
-                    packageRegistrationRepository: packageRegistrationRepository,
-                    packageRepository: packageRepository,
-                    setup: mockPackageService =>
-                    {
-                        mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                    });
-
-                // Act
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: idThatMatchesExistingTitle);
-
-                // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
-
-                Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
-            }
-
-            [Fact]
             public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
@@ -442,34 +400,6 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
-            }
-
-            [Theory]
-            [InlineData("Microsoft.FooBar", "Microsoft.FooBar")]
-            [InlineData("Microsoft.FooBar", "microsoft.foobar")]
-            [InlineData("Microsoft.FooBar", " microsoft.foObar ")]
-            private async Task WillThrowIfThePackageTitleMatchesAnExistingPackageRegistrationId(string existingRegistrationId, string newPackageTitle)
-            {
-                // Arrange
-                var currentUser = new User();
-                var existingPackageRegistration = new PackageRegistration
-                {
-                    Id = existingRegistrationId,
-                    Owners = new HashSet<User>()
-                };
-
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository);
-
-                // Act
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: newPackageTitle);
-
-                // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
-
-                Assert.Equal(String.Format(Strings.TitleMatchesExistingRegistration, newPackageTitle), ex.Message);
             }
 
             [Fact]
