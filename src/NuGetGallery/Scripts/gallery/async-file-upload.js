@@ -179,6 +179,9 @@
                     if (fullResponse === "Not Found") {
                         displayErrors(["The package file exceeds the size limit. Please try again."]);
                     }
+                    else {
+                        displayErrors(model.responseJSON);
+                    }
                     break;
                 default:
                     displayErrors(model.responseJSON);
