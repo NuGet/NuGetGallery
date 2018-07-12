@@ -228,7 +228,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         readAccessGeoRedundant: false);
                 });
             services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
-            services.AddTransient<IValidationFileServiceMetadata, PackageValidationFileServiceMetadata>();
+            services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
             services.AddTransient<IValidationFileService, ValidationFileService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
             services.AddTransient<IStatusProcessor<Package>, EntityStatusProcessor<Package>>();

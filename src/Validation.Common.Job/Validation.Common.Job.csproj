@@ -108,10 +108,10 @@
       <Version>2.26.0-master-34394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.26.0-master-34394</Version>
+      <Version>2.26.0-master-34584</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
-      <Version>4.4.5-dev-34153</Version>
+      <Version>4.4.5-dev-34648</Version>
     </PackageReference>
     <PackageReference Include="Serilog">
       <Version>2.5.0</Version>

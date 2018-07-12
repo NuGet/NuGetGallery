@@ -55,8 +55,6 @@
     <Compile Include="Services\IEntityService.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
-    <Compile Include="Services\PackageValidationFileServiceMetadata.cs" />
-    <Compile Include="Services\IValidationFileServiceMetadata.cs" />
     <Compile Include="ValidatingEntitites\IValidatingEntity.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
     <Compile Include="IValidationPackageFileService.cs" />

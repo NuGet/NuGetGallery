@@ -21,8 +21,8 @@
       <dependency id="NuGet.Services.ServiceBus" version="2.26.0-master-34394" />
       <dependency id="NuGet.Services.Sql" version="2.26.0-master-34394" />
       <dependency id="NuGet.Services.Storage" version="2.26.0-master-34394" />
-      <dependency id="NuGet.Services.Validation" version="2.26.0-master-34394" />
-      <dependency id="NuGetGallery.Core" version="4.4.5-dev-34153" />
+      <dependency id="NuGet.Services.Validation" version="2.26.0-master-34584" />
+      <dependency id="NuGetGallery.Core" version="4.4.5-dev-34648" />
       <dependency id="Serilog" version="2.5.0" />
       <dependency id="System.Net.Http" version="4.3.3" />
     </dependencies>
