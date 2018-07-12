@@ -62,6 +62,7 @@
     <Compile Include="Storage\ValidatorStatusExtensions.cs" />
     <Compile Include="SubcriptionProcessorJob.cs" />
     <Compile Include="JsonConfigurationJob.cs" />
+    <Compile Include="SubscriptionProcessorConfiguration.cs" />
     <Compile Include="Validation\IValidatorProvider.cs" />
     <Compile Include="Validation\ValidatorName.cs" />
     <Compile Include="Validation\ValidatorNameAttribute.cs" />
@@ -99,7 +100,7 @@
       <Version>2.26.0-master-34394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.26.0-master-34394</Version>
+      <Version>2.26.0-master-34736</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
       <Version>2.26.0-master-34394</Version>
@@ -108,7 +109,7 @@
       <Version>2.26.0-master-34394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.26.0-master-34584</Version>
+      <Version>2.26.0-master-34736</Version>
     </PackageReference>
     <PackageReference Include="NuGetGallery.Core">
       <Version>4.4.5-dev-34648</Version>

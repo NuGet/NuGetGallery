@@ -29,6 +29,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
             services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(ProcessSignatureConfigurationSectionName));
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 

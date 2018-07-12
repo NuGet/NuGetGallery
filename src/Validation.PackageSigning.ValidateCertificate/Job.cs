@@ -24,6 +24,7 @@ namespace Validation.PackageSigning.ValidateCertificate
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<IBrokeredMessageSerializer<CertificateValidationMessage>, CertificateValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<CertificateValidationMessage>, CertificateValidationMessageHandler>();
