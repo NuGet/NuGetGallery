@@ -199,12 +199,13 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
         protected virtual void SendMessage(MailMessage mailMessage)
         {
             int attempt = 0;
-            for (;;)
+            bool success = false;
+            while (!success)
             {
                 try
                 {
                     AttemptSendMessage(mailMessage);
-                    break;
+                    success = true;
                 }
                 catch (SmtpException)
                 {
