@@ -1733,7 +1733,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Learn more about Package ID prefix reservation..
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
         /// </summary>
         public static string SecurityPolicy_RequirePackagePrefixReserved {
             get {

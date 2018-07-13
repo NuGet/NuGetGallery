@@ -36,7 +36,7 @@ namespace NuGetGallery.Services
             var warningMessagesPlaceholder = string.Empty;
             if (hasWarnings)
             {
-                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with Warnings - {package.PackageRegistration.Id} {package.Version}";
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with warnings - {package.PackageRegistration.Id} {package.Version}";
                 warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
             }
             else
