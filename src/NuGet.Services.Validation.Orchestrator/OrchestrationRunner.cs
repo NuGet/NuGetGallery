@@ -38,7 +38,7 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             _logger.LogInformation("Starting up the orchestration");
 
-            _subscriptionProcessor.Start();
+            _subscriptionProcessor.Start(_configuration.MaxConcurrentCalls);
             await Task.Delay(_configuration.ProcessRecycleInterval);
 
             _logger.LogInformation("Recycling the process...");

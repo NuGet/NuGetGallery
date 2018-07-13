@@ -13,13 +13,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 {
     public class OrchestrationRunnerFacts
     {
+        private const int DefaultMaxConcurrentCalls = 24;
+
         [Fact]
         public async Task StartsMessageProcessing()
         {
             var runner = CreateRunner();
             await runner.RunOrchestrationAsync();
 
-            SubscriptionProcessorMock.Verify(o => o.Start(), Times.Once());
+            SubscriptionProcessorMock.Verify(o => o.Start(DefaultMaxConcurrentCalls), Times.Once());
         }
 
         [Fact]
@@ -27,7 +29,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             var startCalled = false;
             SubscriptionProcessorMock
-                .Setup(o => o.Start())
+                .Setup(o => o.Start(DefaultMaxConcurrentCalls))
                 .Callback(() => startCalled = true);
 
             SubscriptionProcessorMock
@@ -43,7 +45,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         [Fact(Skip = "Flaky test. Won't run it as part of CI.")]
         public async Task WaitsOrchestratorToShutDown()
         {
-            SetupOptionsAccessorMock(TimeSpan.Zero, TimeSpan.FromSeconds(3));
+            SetupOptionsAccessorMock(TimeSpan.Zero, TimeSpan.FromSeconds(3), 2);
 
             int numberOfRequestsInProgress = 2;
             SubscriptionProcessorMock
@@ -58,7 +60,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
         private Mock<IOptionsSnapshot<OrchestrationRunnerConfiguration>> SetupOptionsAccessorMock(
             TimeSpan processRecycleInterval,
-            TimeSpan shutdownWaitInterval)
+            TimeSpan shutdownWaitInterval,
+            int maxConcurrentCalls)
         {
             OrchestrationRunnerConfigurationAccessorMock = new Mock<IOptionsSnapshot<OrchestrationRunnerConfiguration>>();
             OrchestrationRunnerConfigurationAccessorMock
@@ -66,7 +69,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Returns(new OrchestrationRunnerConfiguration
                 {
                     ProcessRecycleInterval = processRecycleInterval,
-                    ShutdownWaitInterval = shutdownWaitInterval
+                    ShutdownWaitInterval = shutdownWaitInterval,
+                    MaxConcurrentCalls = maxConcurrentCalls
                 });
             return OrchestrationRunnerConfigurationAccessorMock;
         }
@@ -81,7 +85,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
         {
             SubscriptionProcessorMock = new Mock<ISubscriptionProcessor<PackageValidationMessageData>>();
             LoggerMock = new Mock<ILogger<OrchestrationRunner>>();
-            SetupOptionsAccessorMock(TimeSpan.Zero, TimeSpan.Zero);
+            SetupOptionsAccessorMock(TimeSpan.Zero, TimeSpan.Zero, DefaultMaxConcurrentCalls);
         }
 
         private Mock<ISubscriptionProcessor<PackageValidationMessageData>> SubscriptionProcessorMock { get; }

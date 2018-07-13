@@ -17,5 +17,10 @@ namespace NuGet.Services.Validation.Orchestrator
         /// if not done by the interval end, process would be terminated forcefully with log record about the incident.
         /// </summary>
         public TimeSpan ShutdownWaitInterval { get; set; }
+
+        /// <summary>
+        /// Max number of concurrent calls to be handled by the service bus library
+        /// </summary>
+        public int MaxConcurrentCalls { get; set; }
     }
 }

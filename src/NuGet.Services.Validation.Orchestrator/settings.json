@@ -92,7 +92,8 @@
   },
   "RunnerConfiguration": {
     "ProcessRecycleInterval": "1:00:00:00",
-    "ShutdownWaitInterval": "00:01:00"
+    "ShutdownWaitInterval": "00:01:00",
+    "MaxConcurrentCalls": 10
   },
   "GalleryDb": {
     "ConnectionString": "Data Source=(localdb)\\mssqllocaldb; Initial Catalog=NuGetGallery; Integrated Security=True; MultipleActiveResultSets=True"
