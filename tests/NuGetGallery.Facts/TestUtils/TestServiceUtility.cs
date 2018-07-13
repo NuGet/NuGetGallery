@@ -290,9 +290,6 @@ namespace NuGetGallery.TestUtils
 
             var packageRepository = new Mock<IEntityRepository<Package>>();
             var certificateRepository = new Mock<IEntityRepository<Certificate>>();
-            var packageNamingConflictValidator = new PackageNamingConflictValidator(
-                    packageRegistrationRepository.Object,
-                    packageRepository.Object);
             var auditingService = new TestAuditingService();
 
             var telemetryService = new Mock<ITelemetryService>();
@@ -303,7 +300,6 @@ namespace NuGetGallery.TestUtils
                  packageRegistrationRepository.Object,
                  packageRepository.Object,
                  certificateRepository.Object,
-                 packageNamingConflictValidator,
                  auditingService,
                  telemetryService.Object,
                  securityPolicyService.Object);

@@ -1331,8 +1331,6 @@
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Services\IPackageNamingConflictValidator.cs" />
-    <Compile Include="Services\PackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
