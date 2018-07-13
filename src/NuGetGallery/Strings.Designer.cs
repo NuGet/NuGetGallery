@@ -1112,15 +1112,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ID of your package, &apos;{0}&apos;, is similar to the title of an existing package, which can cause confusion with our users. Please modify the ID of your package and try uploading again..
-        /// </summary>
-        public static string NewRegistrationIdMatchesExistingPackageTitle {
-            get {
-                return ResourceManager.GetString("NewRegistrationIdMatchesExistingPackageTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
