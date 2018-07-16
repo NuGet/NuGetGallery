@@ -24,6 +24,7 @@ namespace Validation.PackageSigning.ValidateCertificate
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<IBrokeredMessageSerializer<CertificateValidationMessage>, CertificateValidationMessageSerializer>();
             services.AddTransient<IMessageHandler<CertificateValidationMessage>, CertificateValidationMessageHandler>();
@@ -42,24 +43,13 @@ namespace Validation.PackageSigning.ValidateCertificate
             services.AddTransient<ICertificateVerifier, OnlineCertificateVerifier>();
             services.AddTransient<ICertificateValidationService, CertificateValidationService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddSingleton(new TelemetryClient());
         }
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            const string validateCertificateBindingKey = "ValidateCertificateKey";
-            var certificateValidationMessageHandlerType = typeof(IMessageHandler<CertificateValidationMessage>);
-
-            containerBuilder
-                .RegisterType<ScopedMessageHandler<CertificateValidationMessage>>()
-                .Keyed<IMessageHandler<CertificateValidationMessage>>(validateCertificateBindingKey);
-
-            containerBuilder
-                .RegisterType<SubscriptionProcessor<CertificateValidationMessage>>()
-                .WithParameter(
-                    (parameter, context) => parameter.ParameterType == certificateValidationMessageHandlerType,
-                    (parameter, context) => context.ResolveKeyed(validateCertificateBindingKey, certificateValidationMessageHandlerType))
-                .As<ISubscriptionProcessor<CertificateValidationMessage>>();
+            ConfigureDefaultSubscriptionProcessor(containerBuilder);
         }
     }
 }

@@ -189,7 +189,6 @@ namespace NuGet.Services.Revalidate
                     .ToList();
 
                 result.UnionWith(batchResults);
-                start = batchResults.Last();
 
                 _logger.LogInformation("Found {Results} results for package set {SetName}", result.Count, setName);
 
@@ -199,6 +198,8 @@ namespace NuGet.Services.Revalidate
                 }
                 else
                 {
+                    start = batchResults.Last();
+
                     _logger.LogInformation(
                         "Sleeping for {SleepDuration} before searching for more package set {SetName} results",
                         _config.SleepDurationBetweenBatches,

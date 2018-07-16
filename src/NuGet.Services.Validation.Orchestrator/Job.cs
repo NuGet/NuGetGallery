@@ -228,7 +228,7 @@ namespace NuGet.Services.Validation.Orchestrator
                         readAccessGeoRedundant: false);
                 });
             services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
-            services.AddTransient<IValidationFileServiceMetadata, PackageValidationFileServiceMetadata>();
+            services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
             services.AddTransient<IValidationFileService, ValidationFileService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
             services.AddTransient<IStatusProcessor<Package>, EntityStatusProcessor<Package>>();
@@ -274,6 +274,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IMessageService<Package>, PackageMessageService>();
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddSingleton(new TelemetryClient());

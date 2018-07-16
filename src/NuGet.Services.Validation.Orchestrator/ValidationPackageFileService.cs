@@ -26,7 +26,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private readonly IFileDownloader _fileDownloader;
         private readonly ITelemetryService _telemetryService;
         private readonly ILogger<ValidationFileService> _logger;
-        private IValidationFileServiceMetadata _validationFileServiceMetadata;
+        private IFileMetadataService _fileMetadataService;
 
 
         public ValidationFileService(
@@ -34,13 +34,13 @@ namespace NuGet.Services.Validation.Orchestrator
             IFileDownloader fileDownloader,
             ITelemetryService telemetryService,
             ILogger<ValidationFileService> logger,
-            IValidationFileServiceMetadata validationFileServiceMetadata) : base(fileStorageService)
+            IFileMetadataService fileMetadataService) : base(fileStorageService, fileMetadataService)
         {
             _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
             _fileDownloader = fileDownloader ?? throw new ArgumentNullException(nameof(fileDownloader));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _validationFileServiceMetadata = validationFileServiceMetadata;
+            _fileMetadataService = fileMetadataService ?? throw new ArgumentNullException(nameof(fileMetadataService));
         }
 
         #region Core methods to be to be invoked 
@@ -54,21 +54,21 @@ namespace NuGet.Services.Validation.Orchestrator
         public Task<Uri> GetPackageReadUriAsync(PackageValidationSet validationSet)
         {
             var fileName = BuildFileName(validationSet,
-                _validationFileServiceMetadata.FileSavePathTemplate,
-                _validationFileServiceMetadata.FileExtension);
-            return _fileStorageService.GetFileReadUriAsync(_validationFileServiceMetadata.FilePublicFolderName, fileName, endOfAccess: null);
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
+            return _fileStorageService.GetFileReadUriAsync(_fileMetadataService.FileFolderName, fileName, endOfAccess: null);
         }
 
         public Task DeleteValidationPackageFileAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildFileName(validationSet, _validationFileServiceMetadata.FileSavePathTemplate, _validationFileServiceMetadata.FileExtension);
-            return _fileStorageService.DeleteFileAsync(_validationFileServiceMetadata.ValidationFolderName, fileName);
+            var fileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
+            return _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
         public Task<bool> DoesPackageFileExistAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildFileName(validationSet, _validationFileServiceMetadata.FileSavePathTemplate, _validationFileServiceMetadata.FileExtension);
-            return _fileStorageService.FileExistsAsync(_validationFileServiceMetadata.FilePublicFolderName, fileName);
+            var fileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
+            return _fileStorageService.FileExistsAsync(_fileMetadataService.FileFolderName, fileName);
         }
 
         public async Task StorePackageFileInBackupLocationAsync(PackageValidationSet validationSet, Stream packageFile)
@@ -85,14 +85,14 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public Task<bool> DoesValidationPackageFileExistAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildFileName(validationSet, _validationFileServiceMetadata.FileSavePathTemplate, _validationFileServiceMetadata.FileExtension);
-            return _fileStorageService.FileExistsAsync(_validationFileServiceMetadata.ValidationFolderName, fileName);
+            var fileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
+            return _fileStorageService.FileExistsAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildFileName(validationSet, _validationFileServiceMetadata.FileSavePathTemplate, _validationFileServiceMetadata.FileExtension);
-            return _fileStorageService.DeleteFileAsync(_validationFileServiceMetadata.FilePublicFolderName, fileName);
+            var fileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
+            return _fileStorageService.DeleteFileAsync(_fileMetadataService.FileFolderName, fileName);
         }
         #endregion
 
@@ -106,14 +106,14 @@ namespace NuGet.Services.Validation.Orchestrator
         public Task CopyValidationPackageForValidationSetAsync(PackageValidationSet validationSet)
         {
             var srcFileName = BuildFileName(validationSet,
-                _validationFileServiceMetadata.FileSavePathTemplate,
-                _validationFileServiceMetadata.FileExtension);
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
 
             return CopyFileAsync(
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 srcFileName,
-                _validationFileServiceMetadata.ValidationFolderName,
-                BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension),
+                _fileMetadataService.ValidationFolderName,
+                BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension),
                 AccessConditionWrapper.GenerateEmptyCondition());
         }
 
@@ -137,26 +137,26 @@ namespace NuGet.Services.Validation.Orchestrator
 
         public Task<string> CopyPackageFileForValidationSetAsync(PackageValidationSet validationSet)
         {
-            var srcFileName = BuildFileName(validationSet, _validationFileServiceMetadata.FileSavePathTemplate, _validationFileServiceMetadata.FileExtension);
+            var srcFileName = BuildFileName(validationSet, _fileMetadataService.FileSavePathTemplate, _fileMetadataService.FileExtension);
 
             return CopyFileAsync(
-                _validationFileServiceMetadata.FilePublicFolderName,
+                _fileMetadataService.FileFolderName,
                 srcFileName,
-                _validationFileServiceMetadata.ValidationFolderName,
-                BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension),
+                _fileMetadataService.ValidationFolderName,
+                BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension),
                 AccessConditionWrapper.GenerateEmptyCondition());
         }
 
         public Task CopyValidationPackageToPackageFileAsync(PackageValidationSet validationSet)
         {
             var fileName = BuildFileName(validationSet,
-                _validationFileServiceMetadata.FileSavePathTemplate,
-                _validationFileServiceMetadata.FileExtension);
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
 
             return CopyFileAsync(
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 fileName,
-                _validationFileServiceMetadata.FilePublicFolderName,
+                _fileMetadataService.FileFolderName,
                 fileName,
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
         }
@@ -166,60 +166,60 @@ namespace NuGet.Services.Validation.Orchestrator
             IAccessCondition destAccessCondition)
         {
             var srcFileName = BuildValidationSetPackageFileName(validationSet,
-                _validationFileServiceMetadata.FileExtension);
+                _fileMetadataService.FileExtension);
 
             var destFileName = BuildFileName(validationSet,
-                _validationFileServiceMetadata.FileSavePathTemplate,
-                _validationFileServiceMetadata.FileExtension);
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
 
             return CopyFileAsync(
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 srcFileName,
-                _validationFileServiceMetadata.FilePublicFolderName,
+                _fileMetadataService.FileFolderName,
                 destFileName,
                 destAccessCondition);
         }
 
         public Task<bool> DoesValidationSetPackageExistAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension);
+            var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
             
-            return _fileStorageService.FileExistsAsync(_validationFileServiceMetadata.ValidationFolderName, fileName);
+            return _fileStorageService.FileExistsAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
         public Task DeletePackageForValidationSetAsync(PackageValidationSet validationSet)
         {
-            var fileName = BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension);
+            var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
 
             _logger.LogInformation(
                 "Deleting package for validation set {ValidationTrackingId} from {FolderName}/{FileName}.",
                 validationSet.ValidationTrackingId,
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 fileName);
 
-            return _fileStorageService.DeleteFileAsync(_validationFileServiceMetadata.ValidationFolderName, fileName);
+            return _fileStorageService.DeleteFileAsync(_fileMetadataService.ValidationFolderName, fileName);
         }
 
         public Task<Uri> GetPackageForValidationSetReadUriAsync(PackageValidationSet validationSet, DateTimeOffset endOfAccess)
         {
-            var fileName = BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension);
+            var fileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
 
-            return _fileStorageService.GetFileReadUriAsync(_validationFileServiceMetadata.ValidationFolderName, fileName, endOfAccess);
+            return _fileStorageService.GetFileReadUriAsync(_fileMetadataService.ValidationFolderName, fileName, endOfAccess);
         }
 
         public Task CopyPackageUrlForValidationSetAsync(PackageValidationSet validationSet, string srcPackageUrl)
         {
-            var destFileName = BuildValidationSetPackageFileName(validationSet, _validationFileServiceMetadata.FileExtension);
+            var destFileName = BuildValidationSetPackageFileName(validationSet, _fileMetadataService.FileExtension);
 
             _logger.LogInformation(
                 "Copying URL {SrcPackageUrl} to {DestFolderName}/{DestFileName}.",
                 srcPackageUrl,
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 srcPackageUrl);
 
             return _fileStorageService.CopyFileAsync(
                 new Uri(srcPackageUrl),
-                _validationFileServiceMetadata.ValidationFolderName,
+                _fileMetadataService.ValidationFolderName,
                 destFileName,
                 AccessConditionWrapper.GenerateEmptyCondition());
         }
@@ -228,15 +228,15 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var fileName = BuildFileName(
                 validationSet,
-                _validationFileServiceMetadata.FileSavePathTemplate,
-                _validationFileServiceMetadata.FileExtension);
+                _fileMetadataService.FileSavePathTemplate,
+                _fileMetadataService.FileExtension);
 
             PackageStreamMetadata streamMetadata = null;
 
             // This will throw if the ETag changes between read and write operations,
             // so streamMetadata will never be null.
             await _fileStorageService.SetMetadataAsync(
-                _validationFileServiceMetadata.FilePublicFolderName,
+                _fileMetadataService.FileFolderName,
                 fileName,
                 async (lazyStream, metadata) =>
                 {

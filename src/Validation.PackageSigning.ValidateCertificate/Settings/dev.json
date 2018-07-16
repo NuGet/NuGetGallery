@@ -5,7 +5,8 @@
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=validate-certificate;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-ValidateCertificate$$",
     "TopicPath": "validate-certificate",
-    "SubscriptionName": "validate-certificate"
+    "SubscriptionName": "validate-certificate",
+    "MaxConcurrentCalls": 10
   },
   "CertificateStore": {
     "ContainerName": "certificates",

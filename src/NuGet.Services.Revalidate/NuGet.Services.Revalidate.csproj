@@ -44,16 +44,28 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\InitializationConfiguration.cs" />
+    <Compile Include="Configuration\RevalidationQueueConfiguration.cs" />
     <Compile Include="Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Initialization\InitializationManager.cs" />
     <Compile Include="Configuration\RevalidationConfiguration.cs" />
     <Compile Include="Initialization\IPackageFinder.cs" />
     <Compile Include="Initialization\PackageFinder.cs" />
     <Compile Include="Initialization\PackageRegistrationInformation.cs" />
-    <Compile Include="IRevalidationStateService.cs" />
-    <Compile Include="RevalidationStateService.cs" />
-    <Compile Include="TelemetryService.cs" />
-    <Compile Include="ITelemetryService.cs" />
+    <Compile Include="Services\HealthService.cs" />
+    <Compile Include="Services\IHealthService.cs" />
+    <Compile Include="Services\IRevalidationQueue.cs" />
+    <Compile Include="Services\IRevalidationStateService.cs" />
+    <Compile Include="Services\IRevalidationService.cs" />
+    <Compile Include="Services\IRevalidationThrottler.cs" />
+    <Compile Include="Services\ISingletonService.cs" />
+    <Compile Include="Services\RevalidationQueue.cs" />
+    <Compile Include="Services\RevalidationResult.cs" />
+    <Compile Include="Services\RevalidationService.cs" />
+    <Compile Include="Services\RevalidationStateService.cs" />
+    <Compile Include="Services\RevalidationThrottler.cs" />
+    <Compile Include="Services\SingletonService.cs" />
+    <Compile Include="Services\TelemetryService.cs" />
+    <Compile Include="Services\ITelemetryService.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

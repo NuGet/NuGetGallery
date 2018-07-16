@@ -80,7 +80,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 _packageDownloader.Object,
                 _telemetryService.Object,
                 _logger.Object,
-		new PackageValidationFileServiceMetadata());
+                new PackageFileMetadataService());
         }
 
         [Fact]

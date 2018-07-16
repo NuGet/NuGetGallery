@@ -8,7 +8,8 @@
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=extract-and-validate-signature;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-ExtractAndValidatePackageSignature$$",
     "TopicPath": "validate-signature",
-    "SubscriptionName": "extract-and-validate-signature"
+    "SubscriptionName": "extract-and-validate-signature",
+    "MaxConcurrentCalls": 10
   },
   "CertificateStore": {
     "ContainerName": "certificates",

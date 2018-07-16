@@ -29,6 +29,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             services.Configure<CertificateStoreConfiguration>(configurationRoot.GetSection(CertificateStoreConfigurationSectionName));
             services.Configure<ProcessSignatureConfiguration>(configurationRoot.GetSection(ProcessSignatureConfigurationSectionName));
+            SetupDefaultSubscriptionProcessorConfiguration(services, configurationRoot);
 
             services.AddTransient<ISubscriptionProcessor<SignatureValidationMessage>, SubscriptionProcessor<SignatureValidationMessage>>();
 
@@ -41,6 +42,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             services.AddTransient<ICorePackageService, CorePackageService>();
 
             services.AddTransient<ITelemetryService, TelemetryService>();
+            services.AddTransient<ISubscriptionProcessorTelemetryService, TelemetryService>();
 
             services.AddTransient<ICertificateStore>(p =>
             {
@@ -68,8 +70,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            const string validateSignatureBindingKey = "ValidateSignatureKey";
-            var signatureValidationMessageHandlerType = typeof(IMessageHandler<SignatureValidationMessage>);
+            ConfigureDefaultSubscriptionProcessor(containerBuilder);
 
             containerBuilder
                 .RegisterType<ValidatorStateService>()
@@ -77,17 +78,6 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     (pi, ctx) => pi.ParameterType == typeof(string),
                     (pi, ctx) => ValidatorName.PackageSignatureProcessor)
                 .As<IValidatorStateService>();
-
-            containerBuilder
-                .RegisterType<ScopedMessageHandler<SignatureValidationMessage>>()
-                .Keyed<IMessageHandler<SignatureValidationMessage>>(validateSignatureBindingKey);
-
-            containerBuilder
-                .RegisterType<SubscriptionProcessor<SignatureValidationMessage>>()
-                .WithParameter(
-                    (parameter, context) => parameter.ParameterType == signatureValidationMessageHandlerType,
-                    (parameter, context) => context.ResolveKeyed(validateSignatureBindingKey, signatureValidationMessageHandlerType))
-                .As<ISubscriptionProcessor<SignatureValidationMessage>>();
         }
     }
 }

@@ -7,5 +7,10 @@ namespace NuGet.Services.Revalidate
 {
     public interface ITelemetryService
     {
+        IDisposable TrackDurationToStartNextRevalidation();
+
+        void TrackPackageRevalidationMarkedAsCompleted(string packageId, string normalizedVersion);
+
+        void TrackPackageRevalidationStarted(string packageId, string normalizedVersion);
     }
 }
