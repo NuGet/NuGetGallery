@@ -182,7 +182,7 @@ namespace NuGet.Services.Metadata.Catalog
             catch (TaskCanceledException tce)
             {
                 // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2Catalog)}.", tce);
+                throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2CatalogAsync)}.", tce);
             }
 
             if (response.IsSuccessStatusCode)

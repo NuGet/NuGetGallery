@@ -247,13 +247,14 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns the latest
         /// <see cref="DateTime}" /> that was processed.</returns>
-        public static async Task<DateTime> DownloadMetadata2Catalog(
+        public static async Task<DateTime> DownloadMetadata2CatalogAsync(
             PackageCatalogItemCreator packageCatalogItemCreator,
             SortedList<DateTime, IList<FeedPackageDetails>> packages,
             IStorage storage,
             DateTime lastCreated,
             DateTime lastEdited,
             DateTime lastDeleted,
+            int maxDegreeOfParallelism,
             bool? createdPackages,
             CancellationToken cancellationToken,
             ITelemetryService telemetryService,
@@ -262,6 +263,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             if (packageCatalogItemCreator == null)
             {
                 throw new ArgumentNullException(nameof(packageCatalogItemCreator));
+            }
+
+            if (maxDegreeOfParallelism < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxDegreeOfParallelism),
+                    string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
             }
 
             var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
@@ -273,21 +281,28 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 return lastDate;
             }
 
-            foreach (var entry in packages)
+            // Flatten the sorted list.
+            var workItems = packages.SelectMany(
+                    pair => pair.Value.Select(
+                        details => new PackageWorkItem(pair.Key, details)))
+                .ToArray();
+
+            await workItems.ForEachAsync(maxDegreeOfParallelism, async workItem =>
             {
-                foreach (var packageItem in entry.Value)
-                {
-                    PackageCatalogItem item = await packageCatalogItemCreator.CreateAsync(packageItem, entry.Key, cancellationToken);
+                workItem.PackageCatalogItem = await packageCatalogItemCreator.CreateAsync(
+                    workItem.FeedPackageDetails,
+                    workItem.Timestamp,
+                    cancellationToken);
+            });
 
-                    if (item != null)
-                    {
-                        writer.Add(item);
+            lastDate = packages.Last().Key;
 
-                        logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
-                    }
-                }
+            // AppendOnlyCatalogWriter.Add(...) is not thread-safe, so add them all at once on one thread.
+            foreach (var workItem in workItems.Where(workItem => workItem.PackageCatalogItem != null))
+            {
+                writer.Add(workItem.PackageCatalogItem);
 
-                lastDate = entry.Key;
+                logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", workItem.FeedPackageDetails.ContentUri);
             }
 
             if (createdPackages.HasValue)
@@ -312,6 +327,19 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 return DateTime.MinValue;
             }
             return createdPackages.Value ? lastCreated : lastEdited;
+        }
+
+        private sealed class PackageWorkItem
+        {
+            internal DateTime Timestamp { get; }
+            internal FeedPackageDetails FeedPackageDetails { get; }
+            internal PackageCatalogItem PackageCatalogItem { get; set; }
+
+            internal PackageWorkItem(DateTime timestamp, FeedPackageDetails feedPackageDetails)
+            {
+                Timestamp = timestamp;
+                FeedPackageDetails = feedPackageDetails;
+            }
         }
     }
 }

@@ -20,7 +20,9 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             if (maxDegreeOfParallelism < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxDegreeOfParallelism),
+                    string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
             }
 
             if (func == null)

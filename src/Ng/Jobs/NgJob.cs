@@ -17,6 +17,8 @@ namespace Ng.Jobs
         protected ILoggerFactory LoggerFactory;
         protected ILogger Logger;
 
+        protected int MaxDegreeOfParallelism { get; }
+
         protected NgJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
         {
             TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
@@ -28,6 +30,8 @@ namespace Ng.Jobs
             // Enable greater HTTP parallelization.
             ServicePointManager.DefaultConnectionLimit = 64;
             ServicePointManager.MaxServicePointIdleTime = 10000;
+
+            MaxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
         }
 
         public static string GetUsageBase()

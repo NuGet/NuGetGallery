@@ -152,8 +152,9 @@ namespace NuGet.Services.V3PerPackage
 
             var now = DateTime.UtcNow;
             var offset = 0;
-
             var packages = new SortedList<DateTime, IList<FeedPackageDetails>>();
+            var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
+
             foreach (var packageContext in packageContexts)
             {
                 // These timestamps don't matter too much since the order that items are processed within a catalog
@@ -190,13 +191,14 @@ namespace NuGet.Services.V3PerPackage
                     logger,
                     storage: null);
 
-                await FeedHelpers.DownloadMetadata2Catalog(
+                await FeedHelpers.DownloadMetadata2CatalogAsync(
                     packageCatalogItemCreator,
                     packages,
                     storage,
                     now,
                     now,
                     now,
+                    maxDegreeOfParallelism,
                     createdPackages,
                     CancellationToken.None,
                     telemetryService,

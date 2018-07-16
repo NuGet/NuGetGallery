@@ -68,5 +68,14 @@ namespace NuGet.Services.Metadata.Catalog {
                 return ResourceManager.GetString("ArgumentMustNotBeNullOrEmpty", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument must be within the range from {0} (inclusive) to {1} (inclusive)..
+        /// </summary>
+        internal static string ArgumentOutOfRange {
+            get {
+                return ResourceManager.GetString("ArgumentOutOfRange", resourceCulture);
+            }
+        }
     }
 }

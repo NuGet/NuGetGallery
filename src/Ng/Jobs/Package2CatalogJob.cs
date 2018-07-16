@@ -101,13 +101,14 @@ namespace Ng.Jobs
                     Logger,
                     storage: null);
 
-                await FeedHelpers.DownloadMetadata2Catalog(
+                await FeedHelpers.DownloadMetadata2CatalogAsync(
                     packageCatalogItemCreator,
                     packages,
                     _storage,
                     lastCreated,
                     lastEdited,
                     lastDeleted,
+                    MaxDegreeOfParallelism,
                     createdPackages: null,
                     cancellationToken: cancellationToken,
                     telemetryService: TelemetryService,

@@ -254,24 +254,54 @@ namespace CatalogTests.Helpers
         }
 
         [Fact]
-        public async Task DownloadMetadata2Catalog_WhenPackageCatalogItemCreatorIsNull_Throws()
+        public async Task DownloadMetadata2CatalogAsync_WhenPackageCatalogItemCreatorIsNull_Throws()
         {
             PackageCatalogItemCreator creator = null;
 
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(
-                () => FeedHelpers.DownloadMetadata2Catalog(
+                () => FeedHelpers.DownloadMetadata2CatalogAsync(
                     creator,
                     new SortedList<DateTime, IList<FeedPackageDetails>>(),
                     Mock.Of<IStorage>(),
                     DateTime.MinValue,
                     DateTime.MinValue,
                     DateTime.MinValue,
+                    maxDegreeOfParallelism: 1,
                     createdPackages: null,
                     cancellationToken: CancellationToken.None,
                     telemetryService: Mock.Of<ITelemetryService>(),
                     logger: Mock.Of<ILogger>()));
 
             Assert.Equal("packageCatalogItemCreator", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(0)]
+        public async Task DownloadMetadata2CatalogAsync_WhenMaxDegreeOfParallelismIsOutOfRange_Throws(int maxDegreeOfParallelism)
+        {
+            var creator = PackageCatalogItemCreator.Create(
+                Mock.Of<HttpClient>(),
+                Mock.Of<ITelemetryService>(),
+                Mock.Of<ILogger>(),
+                Mock.Of<IStorage>());
+
+            var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+                () => FeedHelpers.DownloadMetadata2CatalogAsync(
+                    creator,
+                    new SortedList<DateTime, IList<FeedPackageDetails>>(),
+                    Mock.Of<IStorage>(),
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow,
+                    maxDegreeOfParallelism,
+                    createdPackages: false,
+                    cancellationToken: CancellationToken.None,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: Mock.Of<ILogger>()));
+
+            Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
+            Assert.StartsWith($"The argument must be within the range from 1 (inclusive) to {int.MaxValue} (inclusive).", exception.Message);
         }
 
         private Task<IList<FeedPackageDetails>> TestGetPackagesAsync(IEnumerable<ODataPackage> oDataPackages)

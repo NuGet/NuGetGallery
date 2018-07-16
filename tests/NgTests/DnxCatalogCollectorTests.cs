@@ -163,6 +163,7 @@ namespace NgTests
                         httpClientTimeout: TimeSpan.Zero));
 
                 Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
+                Assert.StartsWith($"The argument must be within the range from 1 (inclusive) to {int.MaxValue} (inclusive).", exception.Message);
             }
         }
 

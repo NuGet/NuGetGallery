@@ -192,13 +192,14 @@ namespace Ng.Jobs
                             Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackagesCount);
                             packagesCreated += (uint)createdPackagesCount;
 
-                            lastCreated = await FeedHelpers.DownloadMetadata2Catalog(
+                            lastCreated = await FeedHelpers.DownloadMetadata2CatalogAsync(
                                 packageCatalogItemCreator,
                                 createdPackages,
                                 CatalogStorage,
                                 lastCreated,
                                 lastEdited,
                                 lastDeleted,
+                                MaxDegreeOfParallelism,
                                 createdPackages: true,
                                 cancellationToken: cancellationToken,
                                 telemetryService: TelemetryService,
@@ -227,13 +228,14 @@ namespace Ng.Jobs
                             Logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", editedPackagesCount);
                             packagesEdited += (uint)editedPackagesCount;
 
-                            lastEdited = await FeedHelpers.DownloadMetadata2Catalog(
+                            lastEdited = await FeedHelpers.DownloadMetadata2CatalogAsync(
                                 packageCatalogItemCreator,
                                 editedPackages,
                                 CatalogStorage,
                                 lastCreated,
                                 lastEdited,
                                 lastDeleted,
+                                MaxDegreeOfParallelism,
                                 createdPackages: false,
                                 cancellationToken: cancellationToken,
                                 telemetryService: TelemetryService,

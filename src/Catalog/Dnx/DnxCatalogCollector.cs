@@ -41,7 +41,9 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
             if (maxDegreeOfParallelism < 1)
             {
-                throw new ArgumentOutOfRangeException(nameof(maxDegreeOfParallelism));
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxDegreeOfParallelism),
+                    string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
             }
 
             _maxDegreeOfParallelism = maxDegreeOfParallelism;

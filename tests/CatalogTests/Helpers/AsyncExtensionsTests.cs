@@ -33,6 +33,7 @@ namespace CatalogTests.Helpers
                 () => AsyncExtensions.ForEachAsync(Enumerable.Empty<string>(), maxDegreeOfParallelism, func: _ => Task.FromResult(0)));
 
             Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
+            Assert.StartsWith($"The argument must be within the range from 1 (inclusive) to {int.MaxValue} (inclusive).", exception.Message);
         }
 
         [Fact]
