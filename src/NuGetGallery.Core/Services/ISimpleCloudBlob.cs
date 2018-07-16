@@ -30,7 +30,6 @@ namespace NuGetGallery
         Task UploadFromStreamAsync(Stream source, bool overwrite);
         Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition);
 
-
         Task FetchAttributesAsync();
 
         Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition);

@@ -81,19 +81,17 @@ namespace NuGetGallery
             }
 
             using (var fileStream = fileReference.OpenRead())
+            using (var reader = new StreamReader(fileStream))
+            using (var jsonReader = new JsonTextReader(reader))
             {
-                using (var reader = new StreamReader(fileStream))
-                using (var jsonReader = new JsonTextReader(reader))
+                var settings = _serializer.Deserialize<RevalidationSettings>(jsonReader);
+
+                if (settings == null)
                 {
-                    var settings = _serializer.Deserialize<RevalidationSettings>(jsonReader);
-
-                    if (settings == null)
-                    {
-                        throw new InvalidOperationException($"Settings blob '{SettingsFileName}' in folder '{CoreConstants.RevalidationFolderName}' is malformed");
-                    }
-
-                    return Tuple.Create(fileReference, settings);
+                    throw new InvalidOperationException($"Settings blob '{SettingsFileName}' in folder '{CoreConstants.RevalidationFolderName}' is malformed");
                 }
+
+                return Tuple.Create(fileReference, settings);
             }
         }
     }
