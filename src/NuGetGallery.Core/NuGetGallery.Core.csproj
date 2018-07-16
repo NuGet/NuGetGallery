@@ -147,6 +147,7 @@
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
+    <Compile Include="Extensions\StorageExceptionExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
@@ -189,8 +190,11 @@
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
     <Compile Include="Services\IFileMetadataService.cs" />
+    <Compile Include="Services\IRevalidationSettingsService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
+    <Compile Include="Services\RevalidationSettings.cs" />
+    <Compile Include="Services\RevalidationSettingsService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="CoreStrings.Designer.cs">

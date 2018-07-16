@@ -71,20 +71,25 @@ namespace NuGetGallery
             await _blob.SetMetadataAsync(accessCondition, options: null, operationContext: null);
         }
 
-        public async Task UploadFromStreamAsync(Stream packageFile, bool overwrite)
+        public async Task UploadFromStreamAsync(Stream source, bool overwrite)
         {
             if (overwrite)
             {
-                await _blob.UploadFromStreamAsync(packageFile);
+                await _blob.UploadFromStreamAsync(source);
             }
             else
             {
-                await _blob.UploadFromStreamAsync(
-                    packageFile,
-                    AccessCondition.GenerateIfNoneMatchCondition("*"),
-                    new BlobRequestOptions(),
-                    new OperationContext());
+                await UploadFromStreamAsync(source, AccessCondition.GenerateIfNoneMatchCondition("*"));
             }
+        }
+
+        public async Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition)
+        {
+            await _blob.UploadFromStreamAsync(
+                source,
+                accessCondition,
+                new BlobRequestOptions(),
+                new OperationContext());
         }
 
         public async Task FetchAttributesAsync()

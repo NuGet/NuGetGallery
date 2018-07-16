@@ -27,7 +27,9 @@ namespace NuGetGallery
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
         Task SetMetadataAsync(AccessCondition accessCondition);
-        Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
+        Task UploadFromStreamAsync(Stream source, bool overwrite);
+        Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition);
+
 
         Task FetchAttributesAsync();
 

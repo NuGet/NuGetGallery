@@ -48,6 +48,9 @@ namespace NuGetGallery
 
         public bool IsLoginDiscontinued(AuthenticatedUser authUser)
         {
+            return false;
+
+            /*
             if (authUser == null || authUser.User == null)
             {
                 return false;
@@ -57,7 +60,7 @@ namespace NuGetGallery
             return
                 authUser.CredentialUsed.IsPassword() &&
                 (IsPasswordDiscontinuedForAll || IsUserOnWhitelist(authUser.User)) &&
-                !ExceptionsForEmailAddresses.Contains(email.Address);
+                !ExceptionsForEmailAddresses.Contains(email.Address);*/
         }
 
         public bool IsUserOnWhitelist(User user)
@@ -91,7 +94,7 @@ namespace NuGetGallery
 
         public bool IsPasswordLoginDiscontinuedForAll()
         {
-            return IsPasswordDiscontinuedForAll;
+            return false && IsPasswordDiscontinuedForAll;
         }
     }
 

@@ -423,6 +423,10 @@ namespace NuGetGallery
             builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
                 .As<IEntityRepository<PackageValidation>>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageRevalidation>>()
+                .As<IEntityRepository<PackageRevalidation>>()
+                .InstancePerLifetimeScope();
         }
 
         private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
@@ -465,6 +469,14 @@ namespace NuGetGallery
 
             builder.RegisterType<ValidationAdminService>()
                 .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationSettingsService>()
+                .As<IRevalidationSettingsService>()
                 .InstancePerLifetimeScope();
         }
 
@@ -530,6 +542,7 @@ namespace NuGetGallery
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
                 .As<IFileStorageService>()
+                .As<ICoreFileStorageService>()
                 .SingleInstance();
 
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
@@ -603,6 +616,7 @@ namespace NuGetGallery
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
                         .As<IFileStorageService>()
+                        .As<ICoreFileStorageService>()
                         .As<ICloudStorageStatusDependency>()
                         .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
