@@ -103,6 +103,11 @@ namespace Ng
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
+        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
+        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
+        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
+
+        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
         #endregion
 
         #region Monitoring

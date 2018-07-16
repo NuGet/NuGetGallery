@@ -172,8 +172,11 @@
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
+    <Compile Include="Helpers\PackageUtility.cs" />
+    <Compile Include="PackageCatalogItemCreator.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />
@@ -184,6 +187,9 @@
     <Compile Include="Helpers\UriUtils.cs" />
     <Compile Include="LogEvents.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
+    <Compile Include="Persistence\AzureCloudBlockBlob.cs" />
+    <Compile Include="Persistence\IAzureStorage.cs" />
+    <Compile Include="Persistence\ICloudBlockBlob.cs" />
     <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />

@@ -235,7 +235,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <summary>
         /// Asynchronously writes package metadata to the catalog.
         /// </summary>
-        /// <param name="client">An HTTP client.</param>
+        /// <param name="packageCatalogItemCreator">A package catalog item creator.</param>
         /// <param name="packages">Packages to download metadata for.</param>
         /// <param name="storage">Storage.</param>
         /// <param name="lastCreated">The catalog's last created datetime.</param>
@@ -248,7 +248,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// The task result (<see cref="Task{TResult}.Result" />) returns the latest
         /// <see cref="DateTime}" /> that was processed.</returns>
         public static async Task<DateTime> DownloadMetadata2Catalog(
-            HttpClient client,
+            PackageCatalogItemCreator packageCatalogItemCreator,
             SortedList<DateTime, IList<FeedPackageDetails>> packages,
             IStorage storage,
             DateTime lastCreated,
@@ -259,6 +259,11 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             ITelemetryService telemetryService,
             ILogger logger)
         {
+            if (packageCatalogItemCreator == null)
+            {
+                throw new ArgumentNullException(nameof(packageCatalogItemCreator));
+            }
+
             var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
@@ -272,68 +277,13 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             {
                 foreach (var packageItem in entry.Value)
                 {
-                    // When downloading the package binary, add a query string parameter
-                    // that corresponds to the operation's timestamp.
-                    // This query string will ensure the package is not cached
-                    // (e.g. on the CDN) and returns the "latest and greatest" package metadata.
-                    var packageUri = Utilities.GetNugetCacheBustingUri(packageItem.ContentUri, entry.Key.ToString("O"));
-                    HttpResponseMessage response = null;
-                    try
-                    {
-                        using (telemetryService.TrackDuration(
-                            TelemetryConstants.PackageDownloadSeconds,
-                            new Dictionary<string, string>()
-                            {
-                                { TelemetryConstants.Id, packageItem.PackageId?.ToLowerInvariant() },
-                                { TelemetryConstants.Version, packageItem.PackageVersion?.ToLowerInvariant() },
-                            }))
-                        {
-                            response = await client.GetAsync(packageUri, cancellationToken);
-                        }
-                    }
-                    catch (TaskCanceledException tce)
-                    {
-                        // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                        throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2Catalog)}.", tce);
-                    }
+                    PackageCatalogItem item = await packageCatalogItemCreator.CreateAsync(packageItem, entry.Key, cancellationToken);
 
-                    if (response.IsSuccessStatusCode)
+                    if (item != null)
                     {
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        {
-                            PackageCatalogItem item = Utils.CreateCatalogItem(
-                                packageItem.ContentUri.ToString(),
-                                stream,
-                                packageItem.CreatedDate,
-                                packageItem.LastEditedDate,
-                                packageItem.PublishedDate);
+                        writer.Add(item);
 
-                            if (item != null)
-                            {
-                                writer.Add(item);
-
-                                logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
-                            }
-                            else
-                            {
-                                logger?.LogWarning("Unable to extract metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        {
-                            //  the feed is out of sync with the actual package storage - if we don't have the package there is nothing to be done we might as well move onto the next package
-                            logger?.LogWarning("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
-                        }
-                        else
-                        {
-                            //  this should trigger a restart - of this program - and not move the cursor forward
-                            logger?.LogError("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
-                            throw new Exception(
-                                $"Unable to download: {packageItem.ContentUri} http status: {response.StatusCode}");
-                        }
+                        logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
                     }
                 }
 

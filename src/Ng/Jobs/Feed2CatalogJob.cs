@@ -24,6 +24,7 @@ namespace Ng.Jobs
         protected string Gallery;
         protected IStorage CatalogStorage;
         protected IStorage AuditingStorage;
+        protected IStorage PreferredPackageSourceStorage;
         protected DateTime? StartDate;
         protected TimeSpan Timeout;
         protected int Top;
@@ -57,6 +58,11 @@ namespace Ng.Jobs
                    + $"-{Arguments.StorageKeyValueAuditing} <azure-key> "
                    + $"-{Arguments.StorageContainerAuditing} <azure-container> "
                    + $"-{Arguments.StoragePathAuditing} <path>] "
+                   + "|"
+                   + $"[-{Arguments.PreferAlternatePackageSourceStorage} true|false "
+                   + $"-{Arguments.StorageAccountNamePreferredPackageSourceStorage} <azure-acc> "
+                   + $"-{Arguments.StorageKeyValuePreferredPackageSourceStorage} <azure-key> "
+                   + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>] "
                    + $"[-{Arguments.StartDate} <DateTime>]";
@@ -68,13 +74,30 @@ namespace Ng.Jobs
             Verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             StartDate = arguments.GetOrDefault(Arguments.StartDate, DateTimeMinValueUtc);
 
+            StorageFactory preferredPackageSourceStorageFactory = null;
+
+            var preferAlternatePackageSourceStorage = arguments.GetOrDefault(Arguments.PreferAlternatePackageSourceStorage, false);
+
+            if (preferAlternatePackageSourceStorage)
+            {
+                preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("PreferredPackageSourceStorage", arguments, Verbose);
+            }
+
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, Verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, Verbose);
 
-            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", Gallery, catalogStorageFactory);
+            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
+                Gallery,
+                catalogStorageFactory,
+                preferredPackageSourceStorageFactory);
 
             CatalogStorage = catalogStorageFactory.Create();
             AuditingStorage = auditingStorageFactory.Create();
+
+            if (preferAlternatePackageSourceStorage)
+            {
+                PreferredPackageSourceStorage = preferredPackageSourceStorageFactory.Create();
+            }
 
             Destination = catalogStorageFactory.BaseAddress;
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = Destination.AbsoluteUri;
@@ -94,6 +117,12 @@ namespace Ng.Jobs
                 uint packagesEdited = 0;
 
                 client.Timeout = Timeout;
+
+                var packageCatalogItemCreator = PackageCatalogItemCreator.Create(
+                    client,
+                    TelemetryService,
+                    Logger,
+                    PreferredPackageSourceStorage);
 
                 // baseline timestamps
                 var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, TelemetryService, cancellationToken);
@@ -164,7 +193,7 @@ namespace Ng.Jobs
                             packagesCreated += (uint)createdPackagesCount;
 
                             lastCreated = await FeedHelpers.DownloadMetadata2Catalog(
-                                client,
+                                packageCatalogItemCreator,
                                 createdPackages,
                                 CatalogStorage,
                                 lastCreated,
@@ -199,7 +228,7 @@ namespace Ng.Jobs
                             packagesEdited += (uint)editedPackagesCount;
 
                             lastEdited = await FeedHelpers.DownloadMetadata2Catalog(
-                                client,
+                                packageCatalogItemCreator,
                                 editedPackages,
                                 CatalogStorage,
                                 lastCreated,

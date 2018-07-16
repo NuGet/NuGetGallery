@@ -95,9 +95,14 @@ namespace Ng.Jobs
                 var lastCreated = catalogProperties.LastCreated ?? DateTime.MinValue.ToUniversalTime();
                 var lastEdited = catalogProperties.LastEdited ?? DateTime.MinValue.ToUniversalTime();
                 var lastDeleted = catalogProperties.LastDeleted ?? DateTime.MinValue.ToUniversalTime();
+                var packageCatalogItemCreator = PackageCatalogItemCreator.Create(
+                    client,
+                    TelemetryService,
+                    Logger,
+                    storage: null);
 
                 await FeedHelpers.DownloadMetadata2Catalog(
-                    client,
+                    packageCatalogItemCreator,
                     packages,
                     _storage,
                     lastCreated,

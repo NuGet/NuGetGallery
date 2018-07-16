@@ -191,7 +191,11 @@
     <Compile Include="Helpers\FeedHelpersTests.cs" />
     <Compile Include="Helpers\FeedPackageIdentityTests.cs" />
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
+    <Compile Include="Helpers\PackageUtilityTests.cs" />
+    <Compile Include="Helpers\UtilsTests.cs" />
+    <Compile Include="PackageCatalogItemCreatorTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
+    <Compile Include="Persistence\AzureCloudBlockBlobTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />
     <Compile Include="Registration\FlatContainerPackagePathProviderTests.cs" />
     <Compile Include="Registration\RegistrationEntryKeyTests.cs" />
@@ -203,6 +207,7 @@
     <Compile Include="StringInternerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TelemetryHandlerTests.cs" />
+    <Compile Include="TestHelper.cs" />
     <None Include="TestData\DependencyMissingId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

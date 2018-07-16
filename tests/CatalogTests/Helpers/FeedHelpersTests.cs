@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Moq;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
@@ -250,6 +251,27 @@ namespace CatalogTests.Helpers
                     Assert.Equal(packageKeyDate.Ticks, currentTimestamp.Ticks);
                 }
             }
+        }
+
+        [Fact]
+        public async Task DownloadMetadata2Catalog_WhenPackageCatalogItemCreatorIsNull_Throws()
+        {
+            PackageCatalogItemCreator creator = null;
+
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+                () => FeedHelpers.DownloadMetadata2Catalog(
+                    creator,
+                    new SortedList<DateTime, IList<FeedPackageDetails>>(),
+                    Mock.Of<IStorage>(),
+                    DateTime.MinValue,
+                    DateTime.MinValue,
+                    DateTime.MinValue,
+                    createdPackages: null,
+                    cancellationToken: CancellationToken.None,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: Mock.Of<ILogger>()));
+
+            Assert.Equal("packageCatalogItemCreator", exception.ParamName);
         }
 
         private Task<IList<FeedPackageDetails>> TestGetPackagesAsync(IEnumerable<ODataPackage> oDataPackages)

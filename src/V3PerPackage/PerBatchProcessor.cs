@@ -181,8 +181,17 @@ namespace NuGet.Services.V3PerPackage
 
             using (var httpClient = serviceProvider.GetRequiredService<HttpClient>())
             {
-                await FeedHelpers.DownloadMetadata2Catalog(
+                var telemetryService = serviceProvider.GetRequiredService<ITelemetryService>();
+                var logger = serviceProvider.GetRequiredService<ILogger>();
+
+                var packageCatalogItemCreator = PackageCatalogItemCreator.Create(
                     httpClient,
+                    telemetryService,
+                    logger,
+                    storage: null);
+
+                await FeedHelpers.DownloadMetadata2Catalog(
+                    packageCatalogItemCreator,
                     packages,
                     storage,
                     now,
@@ -190,8 +199,8 @@ namespace NuGet.Services.V3PerPackage
                     now,
                     createdPackages,
                     CancellationToken.None,
-                    serviceProvider.GetRequiredService<ITelemetryService>(),
-                    serviceProvider.GetRequiredService<ILogger>());
+                    telemetryService,
+                    logger);
             }
 
             return storage.ResolveUri("index.json");

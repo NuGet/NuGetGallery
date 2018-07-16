@@ -14,9 +14,9 @@ using Ng;
 using Ng.Jobs;
 using NgTests.Data;
 using NgTests.Infrastructure;
-using NuGet.IndexingTests.TestSupport;
 using NuGet.Services.Metadata.Catalog;
 using Xunit;
+using Constants = NuGet.IndexingTests.TestSupport.Constants;
 
 namespace NgTests
 {

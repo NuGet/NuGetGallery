@@ -9,9 +9,18 @@ using NuGet.Services.Metadata.Catalog;
 
 namespace NgTests.Infrastructure
 {
-    internal sealed class MockTelemetryService : ITelemetryService
+    public sealed class MockTelemetryService : ITelemetryService
     {
         public IDictionary<string, string> GlobalDimensions => throw new NotImplementedException();
+
+        public List<TelemetryCall> TrackDurationCalls { get; }
+        public List<TrackMetricCall> TrackMetricCalls { get; }
+
+        public MockTelemetryService()
+        {
+            TrackDurationCalls = new List<TelemetryCall>();
+            TrackMetricCalls = new List<TrackMetricCall>();
+        }
 
         public void TrackCatalogIndexReadDuration(TimeSpan duration, Uri uri)
         {
@@ -23,11 +32,14 @@ namespace NgTests.Infrastructure
 
         public DurationMetric TrackDuration(string name, IDictionary<string, string> properties = null)
         {
+            TrackDurationCalls.Add(new TelemetryCall(name, properties));
+
             return new DurationMetric(Mock.Of<ITelemetryClient>(), name, properties);
         }
 
         public void TrackMetric(string name, ulong metric, IDictionary<string, string> properties = null)
         {
+            TrackMetricCalls.Add(new TrackMetricCall(name, metric, properties));
         }
     }
 }
