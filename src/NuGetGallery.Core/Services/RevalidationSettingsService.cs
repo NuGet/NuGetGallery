@@ -13,12 +13,12 @@ namespace NuGetGallery
     {
         private const string SettingsFileName = "settings.json";
 
-        private readonly ICoreFileStorageService _fileService;
+        private readonly ICoreFileStorageService _storage;
         private readonly JsonSerializer _serializer;
 
-        public RevalidationSettingsService(ICoreFileStorageService fileService)
+        public RevalidationSettingsService(ICoreFileStorageService storage)
         {
-            _fileService = fileService ?? throw new ArgumentNullException(nameof(fileService));
+            _storage = storage ?? throw new ArgumentNullException(nameof(storage));
             _serializer = new JsonSerializer();
         }
 
@@ -60,7 +60,7 @@ namespace NuGetGallery
                     jsonWriter.Flush();
                     stream.Position = 0;
 
-                    await _fileService.SaveFileAsync(CoreConstants.RevalidationFolderName, SettingsFileName, stream, accessCondition);
+                    await _storage.SaveFileAsync(CoreConstants.RevalidationFolderName, SettingsFileName, stream, accessCondition);
                 }
 
                 return settings;
@@ -73,7 +73,7 @@ namespace NuGetGallery
 
         private async Task<Tuple<IFileReference, RevalidationSettings>> GetSettingsInternalAsync()
         {
-            var fileReference = await _fileService.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, SettingsFileName);
+            var fileReference = await _storage.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, SettingsFileName);
 
             if (fileReference == null)
             {

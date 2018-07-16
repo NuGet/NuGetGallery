@@ -95,6 +95,7 @@
     <Compile Include="SemVerLevelKeyFacts.cs" />
     <Compile Include="Services\AccessConditionWrapperFacts.cs" />
     <Compile Include="Services\FileUriPermissionsFacts.cs" />
+    <Compile Include="Services\RevalidationSettingsServiceFacts.cs" />
     <Compile Include="TestUtils\BlobStorageCollection.cs" />
     <Compile Include="TestUtils\BlobStorageFact.cs" />
     <Compile Include="TestUtils\BlobStorageFixture.cs" />
