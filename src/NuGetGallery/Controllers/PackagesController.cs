@@ -1691,18 +1691,10 @@ namespace NuGetGallery
                                 Url.AccountSettings(relativeUrl: false));
                         }
 
-                        // delete the uploaded binary in the Uploads container
-                        await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-
                         _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
                         TempData["Message"] = String.Format(
                             CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
-
-                        return Json(new
-                        {
-                            location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
-                        });
                     }
                     catch (Exception e)
                     {
@@ -1710,6 +1702,25 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
                 }
+
+                try
+                {
+                    // delete the uploaded binary in the Uploads container
+                    await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                }
+                catch(Exception e)
+                {
+                    // Log the exception here and swallow it for now.
+                    // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
+                    // Note that this will still lead to the strange behavioru where the next time a user comes to the upload page, an upload will be "in progress"
+                    //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
+                    e.Log();
+                }
+
+                return Json(new
+                {
+                    location = Url.Package(package.PackageRegistration.Id, package.NormalizedVersion)
+                });
             }
             catch (Exception)
             {
