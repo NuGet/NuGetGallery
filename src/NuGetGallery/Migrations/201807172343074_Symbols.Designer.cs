@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201807172121054_Symbols"; }
+            get { return "201807172343074_Symbols"; }
         }
         
         string IMigrationMetadata.Source

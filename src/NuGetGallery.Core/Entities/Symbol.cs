@@ -9,10 +9,6 @@ namespace NuGetGallery
     public class Symbol
         : IEntity
     {
-        public Symbol()
-        {
-        }
-
         public int Key { get; set; }
 
         public Package Package { get; set; }
@@ -29,6 +25,11 @@ namespace NuGetGallery
         /// Time when this symbol package is available for consumption. It will be updated after validations are complete.
         /// </summary>
         public DateTime? Published { get; set; }
+
+        /// <summary>
+        /// The size of the snupkg file in bytes.
+        /// </summary>
+        public long FileSize { get; set; }
 
         /// <summary>
         /// Hash value of the symbol package

@@ -14,6 +14,7 @@ namespace NuGetGallery.Migrations
                         PackageKey = c.Int(nullable: false),
                         Created = c.DateTime(nullable: false),
                         Published = c.DateTime(),
+                        FileSize = c.Long(nullable: false),
                         Hash = c.String(),
                         StatusKey = c.Int(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
