@@ -8,8 +8,26 @@ namespace NuGet.Services.AzureManagement
 {
     public interface IAzureManagementAPIWrapper
     {
-        Task<string> GetCloudServicePropertiesAsync(string subscription, string resourceGroup, string name, string slot, CancellationToken token);
+        Task RebootCloudServiceRoleInstanceAsync(
+            string subscription,
+            string resourceGroup,
+            string name,
+            string slot,
+            string role,
+            string roleInstance,
+            CancellationToken token);
 
-        Task<string> GetTrafficManagerPropertiesAsync(string subscription, string resourceGroup, string profileName, CancellationToken token);
+        Task<string> GetCloudServicePropertiesAsync(
+            string subscription,
+            string resourceGroup,
+            string name,
+            string slot,
+            CancellationToken token);
+
+        Task<string> GetTrafficManagerPropertiesAsync(
+            string subscription,
+            string resourceGroup,
+            string profileName,
+            CancellationToken token);
     }
 }
