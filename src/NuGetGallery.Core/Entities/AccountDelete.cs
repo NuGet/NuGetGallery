@@ -37,10 +37,9 @@ namespace NuGetGallery
         /// </summary>
         public User DeletedBy { get; set; }
 
-        /// <summary>
-        /// The signature of the admin.
-        /// </summary>
-        [Required]
-        public string Signature { get; set; }
+         /// <summary>
+         /// The signature of the admin.
+         /// </summary>
+         public string Signature { get; set; }
     }
 }

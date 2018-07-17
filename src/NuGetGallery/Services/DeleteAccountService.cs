@@ -27,6 +27,7 @@ namespace NuGetGallery
         private readonly IEntityRepository<Scope> _scopeRepository;
         private readonly ISupportRequestService _supportRequestService;
         private readonly IAuditingService _auditingService;
+        private readonly ITelemetryService _telemetryService;
 
         public DeleteAccountService(IEntityRepository<AccountDelete> accountDeleteRepository,
                                     IEntityRepository<User> userRepository,
@@ -38,7 +39,8 @@ namespace NuGetGallery
                                     ISecurityPolicyService securityPolicyService,
                                     AuthenticationService authService,
                                     ISupportRequestService supportRequestService,
-                                    IAuditingService auditingService
+                                    IAuditingService auditingService,
+                                    ITelemetryService telemetryService
             )
         {
             _accountDeleteRepository = accountDeleteRepository ?? throw new ArgumentNullException(nameof(accountDeleteRepository));
@@ -52,13 +54,13 @@ namespace NuGetGallery
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         public async Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
             bool commitAsTransaction,
-            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans,
-            string signature = null)
+            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans)
         {
             if (userToBeDeleted == null)
             {
@@ -82,22 +84,24 @@ namespace NuGetGallery
                 };
             }
             
-            return await RunAccountDeletionTask(
+            var deleteUserAccountStatus = await RunAccountDeletionTask(
                 () => DeleteAccountImplAsync(
                     userToBeDeleted, 
                     userToExecuteTheDelete,
-                    orphanPackagePolicy,
-                    signature ?? userToExecuteTheDelete.Username),
+                    orphanPackagePolicy),
                 userToBeDeleted,
                 userToExecuteTheDelete,
                 commitAsTransaction);
+
+            _telemetryService.TrackAccountDeletionCompleted(userToBeDeleted, userToExecuteTheDelete, deleteUserAccountStatus.Success);
+            return deleteUserAccountStatus;
         }
 
-        private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature)
+        private async Task DeleteAccountImplAsync(User userToBeDeleted, User userToExecuteTheDelete, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
             await RemoveReservedNamespaces(userToBeDeleted);
             await RemovePackageOwnership(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
-            await RemoveMemberships(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy, signature);
+            await RemoveMemberships(userToBeDeleted, userToExecuteTheDelete, orphanPackagePolicy);
             await RemoveSecurityPolicies(userToBeDeleted);
             await RemoveUserCredentials(userToBeDeleted);
             await RemovePackageOwnershipRequests(userToBeDeleted);
@@ -121,19 +125,17 @@ namespace NuGetGallery
                 await RemoveUserDataInUserTable(userToBeDeleted);
                 await InsertDeleteAccount(
                     userToBeDeleted, 
-                    userToExecuteTheDelete, 
-                    signature);
+                    userToExecuteTheDelete);
             }
         }
 
-        private async Task InsertDeleteAccount(User user, User admin, string signature)
+        private async Task InsertDeleteAccount(User user, User admin)
         {
             var accountDelete = new AccountDelete
             {
                 DeletedOn = DateTime.UtcNow,
                 DeletedAccountKey = user.Key,
                 DeletedByKey = admin.Key,
-                Signature = signature
             };
             _accountDeleteRepository.InsertOnCommit(accountDelete);
             await _accountDeleteRepository.CommitChangesAsync();
@@ -218,7 +220,7 @@ namespace NuGetGallery
             }
         }
         
-        private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy, string signature)
+        private async Task RemoveMemberships(User user, User requestingUser, AccountDeletionOrphanPackagePolicy orphanPackagePolicy)
         {
             foreach (var membership in user.Organizations.ToArray())
             {
@@ -232,7 +234,7 @@ namespace NuGetGallery
                 {
                     // The user we are deleting is the only member of the organization.
                     // We should delete the entire organization.
-                    await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy, signature);
+                    await DeleteAccountImplAsync(organization, requestingUser, orphanPackagePolicy);
                 }
                 else if (memberCount - 1 <= collaborators.Count())
                 {

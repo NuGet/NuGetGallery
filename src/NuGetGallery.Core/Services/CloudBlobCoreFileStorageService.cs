@@ -470,7 +470,7 @@ namespace NuGetGallery
                 {
                     return new StorageResult(HttpStatusCode.NotModified, null);
                 }
-                else if (ex.RequestInformation.ExtendedErrorInformation.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
+                else if (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
                 {
                     return new StorageResult(HttpStatusCode.NotFound, null);
                 }

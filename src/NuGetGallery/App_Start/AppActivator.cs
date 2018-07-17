@@ -171,9 +171,8 @@ namespace NuGetGallery
 
             var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
                 .Include("~/Scripts/jquery-ui-{version}.js")
-                .Include("~/Scripts/moment.js")
-                .Include("~/Scripts/knockout-2.2.1.js")
-                .Include("~/Scripts/knockout.mapping-latest.js")
+                .Include("~/Scripts/gallery/moment-2.18.1.js")
+                .Include("~/Scripts/gallery/knockout-3.4.2.js")
                 .Include("~/Scripts/knockout-projections.js")
                 .Include("~/Scripts/supportrequests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);

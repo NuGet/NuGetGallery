@@ -21,11 +21,9 @@ namespace NuGetGallery
         /// <param name="userToExecuteTheDelete">The user deleting the account.</param>
         /// <param name="orphanPackagePolicy">If deleting the account creates any orphaned packages, a <see cref="AccountDeletionOrphanPackagePolicy"/> that describes how those orphans should be handled.</param>
         /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
-        /// <param name="signature">The signature of the user deleting the account.</param>
         Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
             User userToExecuteTheDelete,
             bool commitAsTransaction,
-            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans,
-            string signature = null);
+            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans);
     }
 }

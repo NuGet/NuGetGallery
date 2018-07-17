@@ -94,7 +94,7 @@ namespace NuGetGallery.Security
             // Arrange
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -115,7 +115,7 @@ namespace NuGetGallery.Security
             var policyData = new TestUserSecurityPolicyData(policy1Result: false, policy2Result: true);
             var service = new TestSecurityPolicyService(policyData);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -134,7 +134,7 @@ namespace NuGetGallery.Security
             var policyData = new TestUserSecurityPolicyData(policy1Result: success, policy2Result: success);
             var service = new TestSecurityPolicyService(policyData);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -158,7 +158,7 @@ namespace NuGetGallery.Security
 
             var service = new TestSecurityPolicyService(policyData, policyHandlers);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
 
             var userSecurityPolicies = new List<UserSecurityPolicy>(subscription.Policies);
             userSecurityPolicies.Add(new UserSecurityPolicy(extraPolicyName, "ExtraSubscription"));
@@ -183,7 +183,7 @@ namespace NuGetGallery.Security
             var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: true, defaultPolicy1Result: false, defaultPolicy2Result: false);
             var service = new TestSecurityPolicyService(policyData);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -203,9 +203,9 @@ namespace NuGetGallery.Security
             // Arrange
             var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: true, defaultPolicy1Result: true, defaultPolicy2Result: false);
             var configuration = new AppConfiguration() { EnforceDefaultSecurityPolicies = true };
-            var service = new TestSecurityPolicyService(policyData, null, null, null, null, configuration);
+            var service = new TestSecurityPolicyService(policyData, configuration: configuration);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -233,9 +233,9 @@ namespace NuGetGallery.Security
             // Arrange
             var policyData = new TestUserSecurityPolicyData(policy1Result: true, policy2Result: userPolicyMet, defaultPolicy1Result: true, defaultPolicy2Result: true);
             var configuration = new AppConfiguration() { EnforceDefaultSecurityPolicies = true };
-            var service = new TestSecurityPolicyService(policyData, null, null, null, null, configuration);
+            var service = new TestSecurityPolicyService(policyData, configuration: configuration);
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act
@@ -277,7 +277,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act & Assert.
@@ -291,7 +291,7 @@ namespace NuGetGallery.Security
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
             user.SecurityPolicies.Add(new UserSecurityPolicy("OtherPolicy", "OtherSubscription"));
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(policy);
@@ -307,7 +307,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             user.SecurityPolicies.Add(subscription.Policies.First());
 
             // Act & Assert.
@@ -352,7 +352,7 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
-            service.Mocks.Subscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
         }
 
@@ -363,7 +363,7 @@ namespace NuGetGallery.Security
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
             var subscriptionName2 = "MockSubscription2";
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(new UserSecurityPolicy(policy.Name, subscriptionName2));
@@ -381,7 +381,7 @@ namespace NuGetGallery.Security
             Assert.Equal(subscriptionName2, policies[0].Subscription);
             service.Mocks.VerifySubscriptionPolicies(policies.Skip(2));
 
-            service.Mocks.Subscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
         }
 
@@ -391,7 +391,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(new UserSecurityPolicy(policy));
@@ -406,7 +406,7 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
             service.Mocks.VerifySubscriptionPolicies(user.SecurityPolicies);
 
-            service.Mocks.Subscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Never);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnSubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Never);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
         }
 
@@ -471,7 +471,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(new UserSecurityPolicy(policy));
@@ -484,7 +484,7 @@ namespace NuGetGallery.Security
             // Act & Assert.
             Assert.Equal(0, user.SecurityPolicies.Count);
 
-            service.Mocks.Subscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             service.MockUserSecurityPolicies.Verify(p => p.Remove(It.IsAny<UserSecurityPolicy>()), Times.Exactly(2));
         }
@@ -496,7 +496,7 @@ namespace NuGetGallery.Security
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
             var subscriptionName2 = "MockSubscription2";
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(new UserSecurityPolicy(policy));
@@ -513,7 +513,7 @@ namespace NuGetGallery.Security
             Assert.Equal(subscriptionName2, policies[0].Subscription);
             Assert.Equal(subscriptionName2, policies[1].Subscription);
 
-            service.Mocks.Subscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
             service.MockUserSecurityPolicies.Verify(p => p.Remove(It.IsAny<UserSecurityPolicy>()), Times.Exactly(2));
         }
@@ -525,7 +525,7 @@ namespace NuGetGallery.Security
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
             var subscriptionName2 = "MockSubscription2";
-            var subscription = service.Mocks.Subscription.Object;
+            var subscription = service.Mocks.UserPoliciesSubscription.Object;
             foreach (var policy in subscription.Policies)
             {
                 user.SecurityPolicies.Add(new UserSecurityPolicy(policy.Name, subscriptionName2));
@@ -538,7 +538,7 @@ namespace NuGetGallery.Security
             // Act & Assert.
             Assert.Equal(2, user.SecurityPolicies.Count);
 
-            service.Mocks.Subscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Never);
+            service.Mocks.UserPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Never);
             service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
             service.MockUserSecurityPolicies.Verify(p => p.Remove(It.IsAny<UserSecurityPolicy>()), Times.Never);
         }
@@ -573,6 +573,30 @@ namespace NuGetGallery.Security
 
             // Act & Assert.
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UnsubscribeAsync_RemovesAllOrganizationSubscriptionPolicies()
+        {
+            // Arrange.
+            var service = new TestSecurityPolicyService();
+            var organization = new Organization("testOrganization");
+            var subscription = service.Mocks.OrganizationPoliciesSubscription.Object;
+            foreach (var policy in subscription.Policies)
+            {
+                organization.SecurityPolicies.Add(new UserSecurityPolicy(policy));
+            }
+            Assert.Equal(2, organization.SecurityPolicies.Count);
+
+            // Act.
+            await service.UnsubscribeAsync(organization, service.OrganizationSubscriptions.First());
+
+            // Act & Assert.
+            Assert.Equal(0, organization.SecurityPolicies.Count);
+
+            service.Mocks.OrganizationPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
+            service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
+            service.MockUserSecurityPolicies.Verify(p => p.Remove(It.IsAny<UserSecurityPolicy>()), Times.Exactly(2));
         }
 
         private HttpContextBase CreateHttpContext(User user)
