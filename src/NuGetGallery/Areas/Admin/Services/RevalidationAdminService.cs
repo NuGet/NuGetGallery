@@ -3,7 +3,6 @@
 
 using System;
 using System.Data.Entity;
-using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Services.Validation;
 
@@ -20,21 +19,26 @@ namespace NuGetGallery.Areas.Admin.Services
 
         public async Task<RevalidationStatistics> GetStatisticsAsync()
         {
+            var recentCutoff = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
+
             var pending = await _revalidations.GetAll().CountAsync(r => !r.Enqueued.HasValue);
             var started = await _revalidations.GetAll().CountAsync(r => r.Enqueued.HasValue);
+            var recent = await _revalidations.GetAll().CountAsync(r => r.Enqueued.HasValue && r.Enqueued >= recentCutoff);
 
-            return new RevalidationStatistics(started, pending);
+            return new RevalidationStatistics(started, pending, recent);
         }
 
         public class RevalidationStatistics
         {
-            public RevalidationStatistics(int started, int pending)
+            public RevalidationStatistics(int started, int pending, int startedInLastHour)
             {
                 StartedRevalidations = started;
+                StartedRevalidationsInLastHour = startedInLastHour;
                 PendingRevalidations = pending;
             }
 
             public int StartedRevalidations { get; }
+            public int StartedRevalidationsInLastHour { get; }
             public int PendingRevalidations { get; }
         }
     }
