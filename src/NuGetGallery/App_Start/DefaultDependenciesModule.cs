@@ -208,11 +208,6 @@ namespace NuGetGallery
                 .As<IUserService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<PackageNamingConflictValidator>()
-                .AsSelf()
-                .As<IPackageNamingConflictValidator>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()

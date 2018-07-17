@@ -13,10 +13,12 @@ namespace NuGetGallery
     public class CorePackageFileService : ICorePackageFileService
     {
         private readonly ICoreFileStorageService _fileStorageService;
+        private readonly IFileMetadataService _metadata;
 
-        public CorePackageFileService(ICoreFileStorageService fileStorageService)
+        public CorePackageFileService(ICoreFileStorageService fileStorageService, IFileMetadataService metadata)
         {
-            _fileStorageService = fileStorageService;
+            _fileStorageService = fileStorageService ?? throw new ArgumentNullException(nameof(fileStorageService));
+            _metadata = metadata ?? throw new ArgumentNullException(nameof(metadata));
         }
 
         public Task SavePackageFileAsync(Package package, Stream packageFile)
@@ -26,26 +28,26 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
-            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.SaveFileAsync(CoreConstants.PackagesFolderName, fileName, packageFile, overwrite: false);
+            var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.SaveFileAsync(_metadata.FileFolderName, fileName, packageFile, overwrite: false);
         }
 
         public Task<Stream> DownloadPackageFileAsync(Package package)
         {
-            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.GetFileAsync(CoreConstants.PackagesFolderName, fileName);
+            var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.GetFileAsync(_metadata.FileFolderName, fileName);
         }
 
         public Task<Uri> GetPackageReadUriAsync(Package package)
         {
-            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.GetFileReadUriAsync(CoreConstants.PackagesFolderName, fileName, endOfAccess: null);
+            var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.GetFileReadUriAsync(_metadata.FileFolderName, fileName, endOfAccess: null);
         }
 
         public Task<bool> DoesPackageFileExistAsync(Package package)
         {
-            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.FileExistsAsync(CoreConstants.PackagesFolderName, fileName);
+            var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.FileExistsAsync(_metadata.FileFolderName, fileName);
         }
 
         public Task SaveValidationPackageFileAsync(Package package, Stream packageFile)
@@ -57,11 +59,11 @@ namespace NuGetGallery
 
             var fileName = BuildFileName(
                 package,
-                CoreConstants.PackageFileSavePathTemplate,
-                CoreConstants.NuGetPackageFileExtension);
+                _metadata.FileSavePathTemplate,
+                _metadata.FileExtension);
 
             return _fileStorageService.SaveFileAsync(
-                CoreConstants.ValidationFolderName,
+                _metadata.ValidationFolderName,
                 fileName,
                 packageFile,
                 overwrite: false);
@@ -71,10 +73,10 @@ namespace NuGetGallery
         {
             var fileName = BuildFileName(
                 package,
-                CoreConstants.PackageFileSavePathTemplate,
-                CoreConstants.NuGetPackageFileExtension);
+                _metadata.FileSavePathTemplate,
+                _metadata.FileExtension);
 
-            return _fileStorageService.GetFileAsync(CoreConstants.ValidationFolderName, fileName);
+            return _fileStorageService.GetFileAsync(_metadata.ValidationFolderName, fileName);
         }
 
         public Task DeleteValidationPackageFileAsync(string id, string version)
@@ -88,10 +90,10 @@ namespace NuGetGallery
             var fileName = BuildFileName(
                 id,
                 normalizedVersion,
-                CoreConstants.PackageFileSavePathTemplate,
-                CoreConstants.NuGetPackageFileExtension);
+                _metadata.FileSavePathTemplate,
+                _metadata.FileExtension);
             
-            return _fileStorageService.DeleteFileAsync(CoreConstants.ValidationFolderName, fileName);
+            return _fileStorageService.DeleteFileAsync(_metadata.ValidationFolderName, fileName);
         }
 
         public Task DeletePackageFileAsync(string id, string version)
@@ -108,8 +110,8 @@ namespace NuGetGallery
 
             var normalizedVersion = NuGetVersionFormatter.Normalize(version);
 
-            var fileName = BuildFileName(id, normalizedVersion, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.DeleteFileAsync(CoreConstants.PackagesFolderName, fileName);
+            var fileName = BuildFileName(id, normalizedVersion, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.DeleteFileAsync(_metadata.FileFolderName, fileName);
         }
 
         public Task<Uri> GetValidationPackageReadUriAsync(Package package, DateTimeOffset endOfAccess)
@@ -118,16 +120,16 @@ namespace NuGetGallery
 
             var fileName = BuildFileName(
                 package,
-                CoreConstants.PackageFileSavePathTemplate,
-                CoreConstants.NuGetPackageFileExtension);
+                _metadata.FileSavePathTemplate,
+                _metadata.FileExtension);
 
-            return _fileStorageService.GetFileReadUriAsync(CoreConstants.ValidationFolderName, fileName, endOfAccess);
+            return _fileStorageService.GetFileReadUriAsync(_metadata.ValidationFolderName, fileName, endOfAccess);
         }
 
         public Task<bool> DoesValidationPackageFileExistAsync(Package package)
         {
-            var fileName = BuildFileName(package, CoreConstants.PackageFileSavePathTemplate, CoreConstants.NuGetPackageFileExtension);
-            return _fileStorageService.FileExistsAsync(CoreConstants.ValidationFolderName, fileName);
+            var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
+            return _fileStorageService.FileExistsAsync(_metadata.ValidationFolderName, fileName);
         }
 
         public async Task StorePackageFileInBackupLocationAsync(Package package, Stream packageFile)
@@ -169,18 +171,20 @@ namespace NuGetGallery
             var fileName = BuildBackupFileName(
                 package.PackageRegistration.Id,
                 version,
-                hash);
+                hash,
+                _metadata.FileExtension,
+                _metadata.FileBackupSavePathTemplate);
 
             // If the package already exists, don't even bother uploading it. The file name is based off of the hash so
             // we know the upload isn't necessary.
-            if (await _fileStorageService.FileExistsAsync(CoreConstants.PackageBackupsFolderName, fileName))
+            if (await _fileStorageService.FileExistsAsync(_metadata.FileBackupsFolderName, fileName))
             {
                 return;
             }
 
             try
             {
-                await _fileStorageService.SaveFileAsync(CoreConstants.PackageBackupsFolderName, fileName, packageFile);
+                await _fileStorageService.SaveFileAsync(_metadata.FileBackupsFolderName, fileName, packageFile);
             }
             catch (FileAlreadyExistsException)
             {
@@ -189,7 +193,7 @@ namespace NuGetGallery
             }
         }
 
-        private static string BuildBackupFileName(string id, string version, string hash)
+        private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)
         {
             if (id == null)
             {
@@ -210,11 +214,11 @@ namespace NuGetGallery
 
             return string.Format(
                 CultureInfo.InvariantCulture,
-                CoreConstants.PackageFileBackupSavePathTemplate,
+                fileBackupSavePathTemplate,
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
                 HttpServerUtility.UrlTokenEncode(hashBytes),
-                CoreConstants.NuGetPackageFileExtension);
+                extension);
         }
 
         protected static string BuildFileName(Package package, string format, string extension)

@@ -5,7 +5,10 @@ using System;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
+using System.Text;
 using AnglicanGeek.MarkdownMailer;
+using NuGet.Services.Validation;
+using NuGet.Services.Validation.Issues;
 
 namespace NuGetGallery.Services
 {
@@ -50,26 +53,41 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendPackageValidationFailedNotice(Package package, string packageUrl, string packageSupportUrl)
+        public void SendPackageValidationFailedNotice(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
         {
-            string subject = "[{0}] Package validation failed - {1} {2}";
-            string body = @"The package [{1} {2}]({3}) failed validation and was therefore not published on {0}. Note that the package will not be available for consumption and you will not be able to push the same package ID and version until further action is taken. Please [contact support]({4}) for next steps.";
+            var validationIssues = validationSet.GetValidationIssues();
 
-            body = string.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                CoreConfiguration.GalleryOwner.DisplayName,
-                package.PackageRegistration.Id,
-                package.Version,
-                packageUrl,
-                packageSupportUrl);
+            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package validation failed - {package.PackageRegistration.Id} {package.Version}";
+            var bodyBuilder = new StringBuilder();
+            bodyBuilder.Append($@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) failed validation because of the following reason(s):
+");
 
-            subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
+            foreach (var validationIssue in validationIssues)
+            {
+                bodyBuilder.Append($@"
+- {ParseValidationIssue(validationIssue, announcementsUrl, twitterUrl)}");
+            }
+
+            bodyBuilder.Append($@"
+
+Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} and is not available for consumption.
+
+");
+
+            if (validationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+            {
+                bodyBuilder.Append($"Please [contact support]({packageSupportUrl}) to help fix your package.");
+            }
+            else
+            {
+                var issuePluralString = validationIssues.Count() > 1 ? "all the issues" : "the issue";
+                bodyBuilder.Append($"You can reupload your package once you've fixed {issuePluralString} with it.");
+            }
 
             using (var mailMessage = new MailMessage())
             {
                 mailMessage.Subject = subject;
-                mailMessage.Body = body;
+                mailMessage.Body = bodyBuilder.ToString();
                 mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
 
                 AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
@@ -81,35 +99,34 @@ namespace NuGetGallery.Services
             }
         }
 
-        public void SendSignedPackageNotAllowedNotice(Package package, string packageUrl, string announcementsUrl, string twitterUrl)
+        private static string ParseValidationIssue(ValidationIssue validationIssue, string announcementsUrl, string twitterUrl)
         {
-            string subject = "[{0}] Package validation failed - {1} {2}";
-            string body = @"The package [{1} {2}]({3}) could not be published since it is signed. {0} does not accept signed packages at this moment. To be notified when {0} starts accepting signed packages, and more, watch our [Announcements]({4}) page or follow us on [Twitter]({5}).";
-
-            body = string.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                CoreConfiguration.GalleryOwner.DisplayName,
-                package.PackageRegistration.Id,
-                package.Version,
-                packageUrl,
-                announcementsUrl,
-                twitterUrl);
-
-            subject = string.Format(CultureInfo.CurrentCulture, subject, CoreConfiguration.GalleryOwner.DisplayName, package.PackageRegistration.Id, package.Version);
-
-            using (var mailMessage = new MailMessage())
+            switch (validationIssue.IssueCode)
             {
-                mailMessage.Subject = subject;
-                mailMessage.Body = body;
-                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
-
-                AddAllOwnersToMailMessage(package.PackageRegistration, mailMessage);
-
-                if (mailMessage.To.Any())
-                {
-                    SendMessage(mailMessage, copySender: false);
-                }
+                case ValidationIssueCode.PackageIsSigned:
+                    return $"This package could not be published since it is signed. We do not accept signed packages at this moment. To be notified about package signing and more, watch our [Announcements]({announcementsUrl}) page or follow us on [Twitter]({twitterUrl}).";
+                case ValidationIssueCode.ClientSigningVerificationFailure:
+                    var clientIssue = (ClientSigningVerificationFailure)validationIssue;
+                    return clientIssue != null 
+                        ? $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}" 
+                        : "This package's signature was unable to be verified.";
+                case ValidationIssueCode.PackageIsZip64:
+                    return "Zip64 packages are not supported.";
+                case ValidationIssueCode.OnlyAuthorSignaturesSupported:
+                    return "Signed packages must only have an author signature. Other signature types are not supported.";
+                case ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported:
+                    return "Author countersignatures and repository countersignatures are not supported.";
+                case ValidationIssueCode.OnlySignatureFormatVersion1Supported:
+                    return "**NU3007:** Package signatures must have format version 1.";
+                case ValidationIssueCode.AuthorCounterSignaturesNotSupported:
+                    return "Author countersignatures are not supported.";
+                case ValidationIssueCode.PackageIsNotSigned:
+                    return "This package must be signed with a registered certificate. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
+                    var certIssue = (UnauthorizedCertificateFailure)validationIssue;
+                    return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                default:
+                    return "There was an unknown failure when validating your package.";
             }
         }
 

@@ -130,6 +130,7 @@
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\ContentObjectServiceFacts.cs" />
+    <Compile Include="Services\PackageFileServiceMetadataFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
     <Compile Include="Services\LoginDiscontinuationConfigurationFacts.cs" />
@@ -178,7 +179,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="Services\PackageNamingConflictValidatorFacts.cs" />
     <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />

@@ -27,13 +27,11 @@ namespace NuGetGallery.Filters
             if (!string.IsNullOrEmpty(privateKey))
             {
                 var response = controller.HttpContext.Request.Form[RecaptchaResponseId];
-                if (!string.IsNullOrEmpty(response))
+
+                if (!(Task.Run(() => RecaptchaIsValid(privateKey, response)).Result))
                 {
-                    if (!(Task.Run(() => RecaptchaIsValid(privateKey, response)).Result))
-                    {
-                        controller.TempData["Message"] = Strings.InvalidRecaptchaResponse;
-                        filterContext.Result = new RedirectResult(controller.Url.Current());
-                    }
+                    controller.TempData["Message"] = Strings.InvalidRecaptchaResponse;
+                    filterContext.Result = new RedirectResult(controller.Url.Current());
                 }
             }
 
@@ -42,6 +40,11 @@ namespace NuGetGallery.Filters
 
         private async Task<bool> RecaptchaIsValid(string privateKey, string response)
         {
+            if (string.IsNullOrEmpty(response))
+            {
+                return false;
+            }
+
             var validationUrl = string.Format(CultureInfo.InvariantCulture, RecaptchaValidationUrl, privateKey, response);
 
             try

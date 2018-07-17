@@ -278,6 +278,7 @@
     <Compile Include="Controllers\AppController.cs" />
     <Compile Include="Controllers\ErrorsController.cs" />
     <Compile Include="Controllers\PagesController.cs" />
+    <Compile Include="Extensions\HttpExceptionExtensions.cs" />
     <Compile Include="Extensions\OrganizationExtensions.cs" />
     <Compile Include="Extensions\PrincipalExtensions.cs" />
     <Compile Include="Extensions\RouteExtensions.cs" />
@@ -335,6 +336,10 @@
     <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.cs" />
     <Compile Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.Designer.cs">
       <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.cs" />
+    <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.Designer.cs">
+      <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1326,8 +1331,6 @@
     <Compile Include="Services\NullStatisticsService.cs" />
     <Compile Include="Services\PackageDeleteService.cs" />
     <Compile Include="Services\PackageFileService.cs" />
-    <Compile Include="Services\IPackageNamingConflictValidator.cs" />
-    <Compile Include="Services\PackageNamingConflictValidator.cs" />
     <Compile Include="Services\PackageSearchResults.cs" />
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
@@ -1499,6 +1502,9 @@
     <EmbeddedResource Include="Migrations\201805091846502_MakeCertificatesSha1ThumbprintRequired.resx">
       <DependentUpon>201805091846502_MakeCertificatesSha1ThumbprintRequired.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.resx">
+      <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1534,17 +1540,9 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
-    <Content Include="Scripts\knockout-2.2.1.debug.js" />
-    <Content Include="Scripts\knockout-2.2.1.js" />
     <Content Include="Scripts\knockout-projections.js" />
     <Content Include="Scripts\knockout-projections.min.js" />
-    <Content Include="Scripts\knockout.mapping-latest.debug.js" />
-    <Content Include="Scripts\knockout.mapping-latest.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
-    <Content Include="Scripts\moment-with-locales.js" />
-    <Content Include="Scripts\moment-with-locales.min.js" />
-    <Content Include="Scripts\moment.js" />
-    <Content Include="Scripts\moment.min.js" />
     <Content Include="Scripts\supportrequests.js" />
     <Content Include="Views\Shared\LayoutFooter.cshtml" />
     <Content Include="Views\Shared\SiteMenu.cshtml">

@@ -1112,15 +1112,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ID of your package, &apos;{0}&apos;, is similar to the title of an existing package, which can cause confusion with our users. Please modify the ID of your package and try uploading again..
-        /// </summary>
-        public static string NewRegistrationIdMatchesExistingPackageTitle {
-            get {
-                return ResourceManager.GetString("NewRegistrationIdMatchesExistingPackageTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
@@ -1252,6 +1243,15 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package file exceeds the size limit. Please try again..
+        /// </summary>
+        public static string PackageFileTooLarge {
+            get {
+                return ResourceManager.GetString("PackageFileTooLarge", resourceCulture);
             }
         }
         

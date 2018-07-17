@@ -801,6 +801,10 @@ img.reserved-indicator-icon {
 .page-package-details .package-title .reserved-indicator {
   width: 25px;
 }
+.page-package-details .failed-validation-alert-list {
+  margin-top: 15px;
+  margin-bottom: 15px;
+}
 .page-package-details .package-details-main {
   word-break: normal;
   word-break: break-word;
@@ -1153,7 +1157,8 @@ img.reserved-indicator-icon {
 .page-manage-owners .current-owner .remove-owner-disabled .icon-link:hover span {
   text-decoration: none;
 }
-.page-manage-packages .organizations-divider {
+.page-manage-packages .organizations-divider,
+.page-manage-packages .packages-divider {
   color: #dbdbdb;
 }
 .page-manage-packages h1 {

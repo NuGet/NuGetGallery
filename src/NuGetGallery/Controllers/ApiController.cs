@@ -10,6 +10,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
@@ -554,6 +555,13 @@ namespace NuGetGallery
                         return BadRequestForExceptionMessage(ex);
                     }
                 }
+            }
+            catch (HttpException ex) when (ex.IsMaxRequestLengthExceeded())
+            {
+                // ASP.NET throws HttpException when maxRequestLength limit is exceeded.
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.RequestEntityTooLarge,
+                    Strings.PackageFileTooLarge);
             }
             catch (Exception)
             {
