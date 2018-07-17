@@ -24,7 +24,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public async virtual Task<ActionResult> Index()
         {
             var settings = await _settings.GetSettingsAsync();
-            var statistics = await _revalidationAdminService.GetStatisticsAsync();
+            var statistics = _revalidationAdminService.GetStatistics();
 
             return View(nameof(Index), new RevalidationPageViewModel(settings, statistics));
         }

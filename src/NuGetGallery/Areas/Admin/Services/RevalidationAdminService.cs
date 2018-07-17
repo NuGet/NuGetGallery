@@ -2,8 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Data.Entity;
-using System.Threading.Tasks;
+using System.Linq;
 using NuGet.Services.Validation;
 
 namespace NuGetGallery.Areas.Admin.Services
@@ -17,13 +16,13 @@ namespace NuGetGallery.Areas.Admin.Services
             _revalidations = revalidations ?? throw new ArgumentNullException(nameof(revalidations));
         }
 
-        public async Task<RevalidationStatistics> GetStatisticsAsync()
+        public RevalidationStatistics GetStatistics()
         {
             var recentCutoff = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
 
-            var pending = await _revalidations.GetAll().CountAsync(r => !r.Enqueued.HasValue);
-            var started = await _revalidations.GetAll().CountAsync(r => r.Enqueued.HasValue);
-            var recent = await _revalidations.GetAll().CountAsync(r => r.Enqueued.HasValue && r.Enqueued >= recentCutoff);
+            var pending = _revalidations.GetAll().Count(r => !r.Enqueued.HasValue);
+            var started = _revalidations.GetAll().Count(r => r.Enqueued.HasValue);
+            var recent = _revalidations.GetAll().Count(r => r.Enqueued.HasValue && r.Enqueued >= recentCutoff);
 
             return new RevalidationStatistics(started, pending, recent);
         }
