@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -151,7 +150,7 @@ namespace NuGetGallery
 
         [UIAuthorize]
         [RequiresAccountConfirmation("upload a package")]
-        public async virtual Task<ActionResult> UploadPackage()
+        public virtual async Task<ActionResult> UploadPackage()
         {
             var currentUser = GetCurrentUser();
             var model = new SubmitPackageRequest();
@@ -366,10 +365,10 @@ namespace NuGetGallery
 
                         // Packages that failed validation can be reuploaded.
                         await _packageDeleteService.HardDeletePackagesAsync(
-                            new[] { existingPackage }, 
+                            new[] { existingPackage },
                             currentUser,
                             Strings.FailedValidationHardDeleteReason,
-                            Strings.AutomatedPackageDeleteSignature, 
+                            Strings.AutomatedPackageDeleteSignature,
                             deleteEmptyPackageRegistration: false);
                     }
                     else
@@ -1708,11 +1707,11 @@ namespace NuGetGallery
                     // delete the uploaded binary in the Uploads container
                     await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     // Log the exception here and swallow it for now.
                     // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
-                    // Note that this will still lead to the strange behavioru where the next time a user comes to the upload page, an upload will be "in progress"
+                    // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
                     //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
                     e.Log();
                 }
@@ -1849,7 +1848,7 @@ namespace NuGetGallery
             var currentUser = GetCurrentUser();
 
             var wasAADLoginOrMultiFactorAuthenticated = User.WasMultiFactorAuthenticated() || User.WasAzureActiveDirectoryAccountUsedForSignin();
-            var canManagePackageRequiredSigner = wasAADLoginOrMultiFactorAuthenticated 
+            var canManagePackageRequiredSigner = wasAADLoginOrMultiFactorAuthenticated
                 && ActionsRequiringPermissions
                     .ManagePackageRequiredSigner
                     .CheckPermissionsOnBehalfOfAnyAccount(currentUser, packageRegistration) == PermissionsCheckResult.Allowed;
