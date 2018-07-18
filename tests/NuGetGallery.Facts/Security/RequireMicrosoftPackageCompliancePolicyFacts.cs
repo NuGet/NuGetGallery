@@ -96,43 +96,6 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async Task Evaluate_CompliantPackage_MarksPackageAsVerifiedWhenPrefixReservationByMicrosoftExists()
-        {
-            // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
-
-            var nugetUser = new User("NuGet");
-            var newPackageRegistration = new PackageRegistration { Id = "Prefix.NewPackageId", Owners = new List<User> { nugetUser } };
-            var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
-
-            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-            packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
-
-            var context = CreateTestContext(
-                true,
-                policyHandler.Policies,
-                newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */,
-                packageOwnershipManagementService.Object);
-
-            var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
-            var reservedNamespace = new ReservedNamespace("Prefix.", isSharedNamespace: true, isPrefix: true);
-            reservedNamespace.Owners.Add(microsoftUser);
-            context.EntitiesContext.ReservedNamespaces.Add(reservedNamespace);
-
-            // Act
-            var result = await policyHandler.EvaluateAsync(context);
-
-            // Assert
-            Assert.True(result.Success);
-            Assert.Null(result.ErrorMessage);
-            Assert.False(result.HasWarnings);
-            Assert.Empty(result.WarningMessages);
-            Assert.True(newPackageRegistration.IsVerified);
-            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
-        }
-
-        [Fact]
         public async Task Evaluate_CompliantPackage_AddsMicrosoftOwner()
         {
             // Arrange
@@ -194,11 +157,13 @@ namespace NuGetGallery.Security
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             PackageRegistration packageRegistration,
-            IPackageOwnershipManagementService packageOwnershipManagementService = null)
+            IPackageOwnershipManagementService packageOwnershipManagementService = null,
+            IReservedNamespaceService reservedNamespaceService = null)
         {
             var entitiesContext = new FakeEntitiesContext();
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>().Object;
+            reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>().Object;
 
             if (microsoftUserExists)
             {
@@ -209,6 +174,7 @@ namespace NuGetGallery.Security
             var context = new PackageSecurityPolicyEvaluationContext(
                 entitiesContext,
                 packageOwnershipManagementService,
+                reservedNamespaceService,
                 policies,
                 package,
                 packageRegistration,

@@ -63,14 +63,14 @@ namespace NuGetGallery.Security
                 if (!context.Package.PackageRegistration.IsVerified)
                 {
                     // The owner has not reserved the prefix. Check whether the Microsoft user has.
-                    var prefixIsReservedByMicrosoft = IsPrefixReservedByAccount(context.EntitiesContext, microsoftUser, packageRegistrationId);
+                    var prefixIsReservedByMicrosoft = context.ReservedNamespaceService.ShouldMarkNewPackageIdVerified(
+                        microsoftUser, 
+                        packageRegistrationId, 
+                        out var ownedMatchingReservedNamespaces);
 
                     // If the prefix has not been reserved by the 'Microsoft' user either,
                     // then generate a warning which will result in an alternate email being sent to the package owners when validation of the metadata succeeds, and the package is pushed.
                     isWarning = !prefixIsReservedByMicrosoft;
-
-                    // Mark the package as verified if the prefix has been reserved by Microsoft.
-                    context.Package.PackageRegistration.IsVerified = prefixIsReservedByMicrosoft;
                 }
             }
 
@@ -85,6 +85,7 @@ namespace NuGetGallery.Security
             // Automatically add 'Microsoft' as co-owner when metadata is compliant.
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(MicrosoftUsername, StringComparer.OrdinalIgnoreCase))
             {
+                // This will also mark the package as verified if the prefix has been reserved by Microsoft.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
                 await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, microsoftUser, commitChanges: false);
             }
@@ -96,22 +97,6 @@ namespace NuGetGallery.Security
 
             // All good!
             return SecurityPolicyResult.SuccessResult;
-        }
-
-        private bool IsPrefixReservedByAccount(IEntitiesContext entitiesContext, User account, string id)
-        {
-            var reservedNamespacesForId = (from request in entitiesContext.Set<ReservedNamespace>()
-                                           where (request.IsPrefix && id.StartsWith(request.Value))
-                                               || (!request.IsPrefix && id.Equals(request.Value))
-                                           select request).ToList();
-
-            var ownedMatchingReservedNamespaces =
-                reservedNamespacesForId
-                    .Where(rn => rn.Owners.AnySafe(o => account.MatchesUser(o)))
-                    .ToList()
-                    .AsReadOnly();
-
-            return ownedMatchingReservedNamespaces.Any();
         }
 
         private bool IsPackageMetadataCompliant(Package package)

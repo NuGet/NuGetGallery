@@ -208,6 +208,7 @@ namespace NuGetGallery.Security
                     var context = new PackageSecurityPolicyEvaluationContext(
                         EntitiesContext,
                         _componentContext.Resolve<IPackageOwnershipManagementService>(),
+                        _componentContext.Resolve<IReservedNamespaceService>(),
                         foundPolicies, 
                         package, 
                         packageRegistration, 
