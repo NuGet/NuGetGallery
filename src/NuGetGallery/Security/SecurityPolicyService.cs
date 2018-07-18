@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
+using Autofac;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -31,6 +32,8 @@ namespace NuGetGallery.Security
         private static readonly RequireMicrosoftPackageCompliancePolicy _requireMicrosoftPackageCompliancePolicy
             = new RequireMicrosoftPackageCompliancePolicy();
 
+        private readonly IComponentContext _componentContext;
+
         protected IEntitiesContext EntitiesContext { get; set; }
 
         protected IAuditingService Auditing { get; set; }
@@ -49,7 +52,8 @@ namespace NuGetGallery.Security
             IEntitiesContext entitiesContext, 
             IAuditingService auditing, 
             IDiagnosticsService diagnostics, 
-            IAppConfiguration configuration)
+            IAppConfiguration configuration,
+            IComponentContext componentContext)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
@@ -62,6 +66,7 @@ namespace NuGetGallery.Security
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             DefaultSubscription = new DefaultSubscription();
+            _componentContext = componentContext ?? throw new ArgumentNullException(nameof(componentContext));
         }
 
         /// <summary>
@@ -202,6 +207,7 @@ namespace NuGetGallery.Security
                 {
                     var context = new PackageSecurityPolicyEvaluationContext(
                         EntitiesContext,
+                        _componentContext.Resolve<IPackageOwnershipManagementService>(),
                         foundPolicies, 
                         package, 
                         packageRegistration, 
@@ -209,7 +215,7 @@ namespace NuGetGallery.Security
                         targetAccount, 
                         httpContext);
 
-                    var result = handler.Evaluate(context);
+                    var result = await handler.EvaluateAsync(context);
 
                     if (auditSuccess || !result.Success)
                     {
@@ -264,7 +270,7 @@ namespace NuGetGallery.Security
                 if (foundPolicies.Any())
                 {
                     var context = new UserSecurityPolicyEvaluationContext(foundPolicies, sourceAccount, targetAccount, httpContext);
-                    var result = handler.Evaluate(context);
+                    var result = await handler.EvaluateAsync(context);
 
                     if (auditSuccess || !result.Success)
                     {

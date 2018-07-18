@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Web;
+using Autofac;
+using Autofac.Core;
 using Moq;
 using Xunit;
 
@@ -39,11 +42,11 @@ namespace NuGetGallery.Security
 
             // Act
             // Assert
-            Assert.Throws<ArgumentNullException>(() => policyHandler.Evaluate(null));
+            Assert.ThrowsAsync<ArgumentNullException>(() => policyHandler.EvaluateAsync(null));
         }
 
         [Fact]
-        public void Evaluate_SilentlySucceedsWhenMicrosoftUserDoesNotExist()
+        public async Task Evaluate_SilentlySucceedsWhenMicrosoftUserDoesNotExist()
         {
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
@@ -51,14 +54,14 @@ namespace NuGetGallery.Security
             var context = CreateTestContext(false, policyHandler.Policies, fakes.NewPackageVersion, null);
 
             // Act
-            var result = policyHandler.Evaluate(context);
+            var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.Equal(SecurityPolicyResult.SuccessResult, result);
         }
 
         [Fact]
-        public void Evaluate_CompliantPackage_CreatesWarningResultWhenPrefixReservationForNewIdIsMissing()
+        public async Task Evaluate_CompliantPackage_CreatesWarningResultWhenPrefixReservationForNewIdIsMissing()
         {
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
@@ -67,14 +70,20 @@ namespace NuGetGallery.Security
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
             var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
 
+            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+            packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
+
             var context = CreateTestContext(
                 true,
                 policyHandler.Policies,
                 newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */);
+                null /* The new Package registration does not exist yet */,
+                packageOwnershipManagementService.Object);
+
+            var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
 
             // Act
-            var result = policyHandler.Evaluate(context);
+            var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.True(result.Success);
@@ -83,10 +92,11 @@ namespace NuGetGallery.Security
             Assert.NotEmpty(result.WarningMessages);
             Assert.Contains(Strings.SecurityPolicy_RequirePackagePrefixReserved, result.WarningMessages);
             Assert.False(newPackageRegistration.IsVerified);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
         }
 
         [Fact]
-        public void Evaluate_CompliantPackage_MarksPackageAsVerifiedWhenPrefixReservationByMicrosoftExists()
+        public async Task Evaluate_CompliantPackage_MarksPackageAsVerifiedWhenPrefixReservationByMicrosoftExists()
         {
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
@@ -95,11 +105,15 @@ namespace NuGetGallery.Security
             var newPackageRegistration = new PackageRegistration { Id = "Prefix.NewPackageId", Owners = new List<User> { nugetUser } };
             var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
 
+            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+            packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
+
             var context = CreateTestContext(
                 true,
                 policyHandler.Policies,
                 newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */);
+                null /* The new Package registration does not exist yet */,
+                packageOwnershipManagementService.Object);
 
             var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
             var reservedNamespace = new ReservedNamespace("Prefix.", isSharedNamespace: true, isPrefix: true);
@@ -107,7 +121,7 @@ namespace NuGetGallery.Security
             context.EntitiesContext.ReservedNamespaces.Add(reservedNamespace);
 
             // Act
-            var result = policyHandler.Evaluate(context);
+            var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.True(result.Success);
@@ -115,10 +129,11 @@ namespace NuGetGallery.Security
             Assert.False(result.HasWarnings);
             Assert.Empty(result.WarningMessages);
             Assert.True(newPackageRegistration.IsVerified);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
         }
 
         [Fact]
-        public void Evaluate_CompliantPackage_AddsMicrosoftOwner()
+        public async Task Evaluate_CompliantPackage_AddsMicrosoftOwner()
         {
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
@@ -127,25 +142,29 @@ namespace NuGetGallery.Security
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
             var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
 
+            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
+            packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
+
             var context = CreateTestContext(
                 true,
                 policyHandler.Policies,
                 newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */);
+                null /* The new Package registration does not exist yet */,
+                packageOwnershipManagementService.Object);
 
             var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
 
             // Act
-            var result = policyHandler.Evaluate(context);
+            var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.True(result.Success);
-            Assert.Contains(microsoftUser, newPackageRegistration.Owners);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
         }
 
         [Theory]
         [MemberData(nameof(NonCompliantPackageMemberData))]
-        public void Evaluate_NonCompliantPackage_CreatesErrorResult(Package nonCompliantPackage)
+        public async Task Evaluate_NonCompliantPackage_CreatesErrorResult(Package nonCompliantPackage)
         {
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
@@ -161,7 +180,7 @@ namespace NuGetGallery.Security
                 null /* The new Package registration does not exist yet */);
 
             // Act
-            var result = policyHandler.Evaluate(context);
+            var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.False(result.Success);
@@ -174,9 +193,12 @@ namespace NuGetGallery.Security
             bool microsoftUserExists,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            PackageRegistration packageRegistration)
+            PackageRegistration packageRegistration,
+            IPackageOwnershipManagementService packageOwnershipManagementService = null)
         {
             var entitiesContext = new FakeEntitiesContext();
+
+            packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>().Object;
 
             if (microsoftUserExists)
             {
@@ -186,6 +208,7 @@ namespace NuGetGallery.Security
 
             var context = new PackageSecurityPolicyEvaluationContext(
                 entitiesContext,
+                packageOwnershipManagementService,
                 policies,
                 package,
                 packageRegistration,
@@ -288,7 +311,7 @@ namespace NuGetGallery.Security
 
                 return nonCompliantPackages;
             }
-
+            
             public User Owner { get; }
 
             public Package NewPackageVersion { get; }

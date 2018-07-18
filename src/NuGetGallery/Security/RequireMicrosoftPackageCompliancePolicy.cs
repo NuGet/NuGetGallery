@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 
 namespace NuGetGallery.Security
 {
@@ -33,7 +34,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Evaluate if this package compliance policy is met.
         /// </summary>
-        public override SecurityPolicyResult Evaluate(PackageSecurityPolicyEvaluationContext context)
+        public override async Task<SecurityPolicyResult> EvaluateAsync(PackageSecurityPolicyEvaluationContext context)
         {
             if (context == null)
             {
@@ -84,9 +85,8 @@ namespace NuGetGallery.Security
             // Automatically add 'Microsoft' as co-owner when metadata is compliant.
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(MicrosoftUsername, StringComparer.OrdinalIgnoreCase))
             {
-                context.Package.PackageRegistration.Owners.Add(microsoftUser);
-
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
+                await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, microsoftUser, commitChanges: false);
             }
 
             if (isWarning)

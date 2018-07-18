@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 
 namespace NuGetGallery.Security
 {
@@ -22,6 +23,6 @@ namespace NuGetGallery.Security
             Action = action;
         }
 
-        public abstract SecurityPolicyResult Evaluate(TContext context);
+        public abstract Task<SecurityPolicyResult> EvaluateAsync(TContext context);
     }
 }

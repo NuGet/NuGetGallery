@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
+using Autofac;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -22,15 +23,17 @@ namespace NuGetGallery.Security
         private static readonly IAuditingService _auditing = new Mock<IAuditingService>().Object;
         private static readonly IDiagnosticsService _diagnostics = new Mock<IDiagnosticsService>().Object;
         private static readonly IAppConfiguration _configuration = new Mock<IAppConfiguration>().Object;
+        private static readonly IContainer _container = new Mock<IContainer>().Object;
 
         public static IEnumerable<object[]> CtorThrowNullReference_Data
         {
             get
             {
-                yield return new object[] { null, _auditing, _diagnostics, _configuration };
-                yield return new object[] { _entities, null, _diagnostics, _configuration };
-                yield return new object[] { _entities, _auditing, null, _configuration };
-                yield return new object[] { _entities, _auditing, _diagnostics, null };
+                yield return new object[] { null, _auditing, _diagnostics, _configuration, _container };
+                yield return new object[] { _entities, null, _diagnostics, _configuration, _container };
+                yield return new object[] { _entities, _auditing, null, _configuration, _container };
+                yield return new object[] { _entities, _auditing, _diagnostics, null, _container };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, null };
             }
         }
 
@@ -40,16 +43,17 @@ namespace NuGetGallery.Security
             IEntitiesContext entities,
             IAuditingService auditing,
             IDiagnosticsService diagnostics,
-            IAppConfiguration configuration)
+            IAppConfiguration configuration,
+            IContainer container)
         {
-            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration));
+            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration, container));
         }
 
         [Fact]
         public void UserHandlers_ReturnsRegisteredUserSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _container);
 
             // Act.
             var handlers = ((IEnumerable<UserSecurityPolicyHandler>)service.GetType()
@@ -70,7 +74,7 @@ namespace NuGetGallery.Security
         public void PackageHandlers_ReturnsRegisteredPackageSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _container);
 
             // Act.
             var handlers = ((IEnumerable<PackageSecurityPolicyHandler>)service.GetType()
@@ -105,8 +109,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
         }
 
         [Fact]
@@ -125,8 +129,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Fact]
@@ -192,9 +196,9 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            extraPolicyHandlerMock.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            extraPolicyHandlerMock.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Never);
         }
 
         [Fact]
@@ -214,8 +218,8 @@ namespace NuGetGallery.Security
             Assert.True(result.Success);
             Assert.Null(result.ErrorMessage);
 
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Fact]
@@ -242,8 +246,8 @@ namespace NuGetGallery.Security
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Once);
 
             // Policies are evaluated only once
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
         }
 
         [Theory]
@@ -266,8 +270,8 @@ namespace NuGetGallery.Security
             Assert.Equal(userPolicyMet, result.Success);
 
             // Default policies and user policies are evaluated
-            service.Mocks.MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
-            service.Mocks.MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
+            service.Mocks.MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
+            service.Mocks.MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Exactly(2));
         }
 
         [Theory]
