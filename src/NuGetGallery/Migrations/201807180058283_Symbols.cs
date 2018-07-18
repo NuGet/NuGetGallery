@@ -1,7 +1,8 @@
 namespace NuGetGallery.Migrations
 {
+    using System;
     using System.Data.Entity.Migrations;
-
+    
     public partial class Symbols : DbMigration
     {
         public override void Up()
@@ -15,15 +16,17 @@ namespace NuGetGallery.Migrations
                         Created = c.DateTime(nullable: false),
                         Published = c.DateTime(),
                         FileSize = c.Long(nullable: false),
-                        Hash = c.String(),
+                        HashAlgorithm = c.String(maxLength: 10),
+                        Hash = c.String(nullable: false, maxLength: 256),
                         StatusKey = c.Int(nullable: false),
                         RowVersion = c.Binary(nullable: false, fixedLength: true, timestamp: true, storeType: "rowversion"),
                     })
                 .PrimaryKey(t => t.Key)
                 .ForeignKey("dbo.Packages", t => t.PackageKey, cascadeDelete: true)
                 .Index(t => t.PackageKey);
+            
         }
-
+        
         public override void Down()
         {
             DropForeignKey("dbo.Symbols", "PackageKey", "dbo.Packages");
