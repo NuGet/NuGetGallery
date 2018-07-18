@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using NuGetGallery.FunctionalTests.Helpers;
@@ -196,47 +197,64 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
             var response = await request.GetResponseAsync();
 
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
+            string responseText = await new StreamReader(response.GetResponseStream())
+                .ReadToEndAsync();
 
-            // Grab the top 10 package names in the feed.
-            string[] packageName = new string[10];
-            responseText = packageName[0] = responseText.Substring(responseText.IndexOf(@"""PackageId"": """, StringComparison.Ordinal) + 14);
-            packageName[0] = packageName[0].Substring(0, responseText.IndexOf(@"""", StringComparison.Ordinal));
-            for (int i = 1; i < 10; i++)
-            {
-                responseText = packageName[i] = responseText.Substring(responseText.IndexOf(@"""PackageId"": """, StringComparison.Ordinal) + 14);
-                packageName[i] = packageName[i].Substring(0, responseText.IndexOf(@"""", StringComparison.Ordinal));
-                // Sometimes two versions of a single package appear in the top 10.  Stripping second and later instances for this test.
-                for (int j = 0; j < i; j++)
-                {
-                    if (packageName[j] == packageName[i])
-                    {
-                        packageName[i] = null;
-                        i--;
-                    }
-                }
-            }
+            // Search Gallery v2 feed for the top 10 unique package ids, or as many as exist.
+            string[] topPackages = GetTopPackageNames(responseText);
 
+            // Ensure at least 1 package was found.
+            Assert.NotEmpty(topPackages);
+
+            // Search Gallery statistics for the top downloaded packages.
             request = WebRequest.Create(UrlHelper.BaseUrl + @"stats/packageversions");
-
-            // Get the response.
             response = await request.GetResponseAsync();
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
+            responseText = await new StreamReader(response.GetResponseStream())
+                .ReadToEndAsync();
 
-            for (int i = 1; i < 10; i++)
+            var expectedNames = String.Join(", ", topPackages);
+            var last = topPackages.First();
+            foreach (var current in topPackages.Skip(1))
             {
                 // Check to make sure the top 10 packages are in the same order as the feed.
                 // We add angle brackets to prevent false failures due to duplicate package names in the page.
-                var condition = responseText.IndexOf(">" + packageName[i - 1] + "<", StringComparison.Ordinal) < responseText.IndexOf(">" + packageName[i] + "<", StringComparison.Ordinal);
-                Assert.True(condition, "Expected string " + packageName[i - 1] + " to come before " + packageName[i] + ".  Expected list is: " + packageName[0] + ", " + packageName[1] + ", " + packageName[2] + ", " + packageName[3] + ", " + packageName[4] + ", " + packageName[5] + ", " + packageName[6] + ", " + packageName[7] + ", " + packageName[8] + ", " + packageName[9]);
+                var condition = responseText.IndexOf(">" + last + "<", StringComparison.Ordinal)
+                    < responseText.IndexOf(">" + current + "<", StringComparison.Ordinal);
+                Assert.True(condition, $"Expected string {last} to come before {current}.  Expected list is: {expectedNames}.");
             }
+        }
+
+        private string[] GetTopPackageNames(string feedResponseText)
+        {
+            var results = new List<string>();
+
+            Func<string, int> seekStart = s => s.IndexOf(@"""PackageId"": """, StringComparison.Ordinal);
+            Func<string, int> seekEnd = s => s.IndexOf(@"""", StringComparison.Ordinal);
+
+            do
+            {
+                var start = seekStart(feedResponseText);
+                if (start < 0)
+                {
+                    break;
+                }
+
+                // skip over `"PackageId": `
+                feedResponseText = feedResponseText.Substring(start + 14);
+                var end = seekEnd(feedResponseText);
+                if (end >= 0)
+                {
+                    var name = feedResponseText.Substring(0, end);
+                    if (!results.Contains(name, StringComparer.Ordinal))
+                    {
+                        results.Add(name);
+                    }
+                    feedResponseText = feedResponseText.Substring(end);
+                }
+            }
+            while (results.Count < 10);
+
+            return results.ToArray();
         }
     }
 }
