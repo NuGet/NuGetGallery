@@ -221,6 +221,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 var condition = responseText.IndexOf(">" + last + "<", StringComparison.Ordinal)
                     < responseText.IndexOf(">" + current + "<", StringComparison.Ordinal);
                 Assert.True(condition, $"Expected string {last} to come before {current}.  Expected list is: {expectedNames}.");
+
+                Assert.NotEqual(last, current);
+                last = current;
             }
         }
 
