@@ -6,7 +6,7 @@ namespace NuGetGallery
     /// <summary>
     /// The settings for the revalidation job.
     /// </summary>
-    public class RevalidationSettings
+    public class RevalidationState
     {
         /// <summary>
         /// Whether the revalidation job has been deactivated.

@@ -475,8 +475,8 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<RevalidationSettingsService>()
-                .As<IRevalidationSettingsService>()
+            builder.RegisterType<RevalidationStateService>()
+                .As<IRevalidationStateService>()
                 .InstancePerLifetimeScope();
         }
 

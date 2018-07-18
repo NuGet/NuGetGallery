@@ -10,13 +10,13 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 
     public class RevalidationPageViewModel
     {
-        public RevalidationPageViewModel(RevalidationSettings settings, RevalidationStatistics statistics)
+        public RevalidationPageViewModel(RevalidationState state, RevalidationStatistics statistics)
         {
-            Settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            State = state ?? throw new ArgumentNullException(nameof(state));
             Statistics = statistics ?? throw new ArgumentNullException(nameof(statistics));
         }
         
-        public RevalidationSettings Settings { get; }
+        public RevalidationState State { get; }
         public RevalidationStatistics Statistics { get; }
     }
 }

@@ -190,11 +190,11 @@
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
     <Compile Include="Services\IFileMetadataService.cs" />
-    <Compile Include="Services\IRevalidationSettingsService.cs" />
+    <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
-    <Compile Include="Services\RevalidationSettings.cs" />
-    <Compile Include="Services\RevalidationSettingsService.cs" />
+    <Compile Include="Services\RevalidationState.cs" />
+    <Compile Include="Services\RevalidationStateService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="CoreStrings.Designer.cs">

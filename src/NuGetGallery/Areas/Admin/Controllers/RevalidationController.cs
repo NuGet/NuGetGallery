@@ -12,28 +12,28 @@ namespace NuGetGallery.Areas.Admin.Controllers
     public class RevalidationController : AdminControllerBase
     {
         private readonly RevalidationAdminService _revalidationAdminService;
-        private readonly IRevalidationSettingsService _settings;
+        private readonly IRevalidationStateService _state;
 
-        public RevalidationController(RevalidationAdminService revalidationAdminService, IRevalidationSettingsService settings)
+        public RevalidationController(RevalidationAdminService revalidationAdminService, IRevalidationStateService state)
         {
             _revalidationAdminService = revalidationAdminService ?? throw new ArgumentNullException(nameof(revalidationAdminService));
-            _settings = settings ?? throw new ArgumentNullException(nameof(settings));
+            _state = state ?? throw new ArgumentNullException(nameof(state));
         }
 
         [HttpGet]
         public async virtual Task<ActionResult> Index()
         {
-            var settings = await _settings.GetSettingsAsync();
+            var state = await _state.GetStateAsync();
             var statistics = _revalidationAdminService.GetStatistics();
 
-            return View(nameof(Index), new RevalidationPageViewModel(settings, statistics));
+            return View(nameof(Index), new RevalidationPageViewModel(state, statistics));
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SetKillswitch(bool killswitch)
         {
-            await _settings.UpdateSettingsAsync(settings => settings.IsKillswitchActive = killswitch);
+            await _state.UpdateStateAsync(state => state.IsKillswitchActive = killswitch);
 
             return Redirect(Url.Action(actionName: "Index", controllerName: "Revalidation"));
         }
