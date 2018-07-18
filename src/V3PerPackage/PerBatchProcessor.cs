@@ -152,8 +152,9 @@ namespace NuGet.Services.V3PerPackage
 
             var now = DateTime.UtcNow;
             var offset = 0;
-
             var packages = new SortedList<DateTime, IList<FeedPackageDetails>>();
+            var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
+
             foreach (var packageContext in packageContexts)
             {
                 // These timestamps don't matter too much since the order that items are processed within a catalog
@@ -178,20 +179,32 @@ namespace NuGet.Services.V3PerPackage
 
             var storage = serviceProvider.GetRequiredService<IStorage>();
             var createdPackages = true;
+            var updateCreatedFromEdited = false;
 
             using (var httpClient = serviceProvider.GetRequiredService<HttpClient>())
             {
-                await FeedHelpers.DownloadMetadata2Catalog(
+                var telemetryService = serviceProvider.GetRequiredService<ITelemetryService>();
+                var logger = serviceProvider.GetRequiredService<ILogger>();
+
+                var packageCatalogItemCreator = PackageCatalogItemCreator.Create(
                     httpClient,
+                    telemetryService,
+                    logger,
+                    storage: null);
+
+                await FeedHelpers.DownloadMetadata2CatalogAsync(
+                    packageCatalogItemCreator,
                     packages,
                     storage,
                     now,
                     now,
                     now,
+                    maxDegreeOfParallelism,
                     createdPackages,
+                    updateCreatedFromEdited,
                     CancellationToken.None,
-                    serviceProvider.GetRequiredService<ITelemetryService>(),
-                    serviceProvider.GetRequiredService<ILogger>());
+                    telemetryService,
+                    logger);
             }
 
             return storage.ResolveUri("index.json");
@@ -206,12 +219,14 @@ namespace NuGet.Services.V3PerPackage
 
             var storageFactory = serviceProvider.GetRequiredService<StorageFactory>();
             var httpClientTimeout = TimeSpan.FromMinutes(10);
+            var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
 
             var collector = new DnxCatalogCollector(
                 catalogIndexUri,
                 storageFactory,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
                 serviceProvider.GetRequiredService<ILogger>(),
+                maxDegreeOfParallelism,
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>(),
                 httpClientTimeout)
             {

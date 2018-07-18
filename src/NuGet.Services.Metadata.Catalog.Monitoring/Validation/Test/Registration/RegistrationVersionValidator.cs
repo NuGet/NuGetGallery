@@ -18,12 +18,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        public override async Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
         {
-            return v2 != null && v3 != null;
+            return Task.FromResult(v2 != null && v3 != null);
         }
 
-        public override async Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
         {
             var isEqual =
                 v2.Version ==
@@ -36,6 +36,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                     nameof(PackageRegistrationIndexMetadata.Version),
                     m => m.Version.ToFullString());
             }
+
+            return Task.FromResult(0);
         }
     }
 }

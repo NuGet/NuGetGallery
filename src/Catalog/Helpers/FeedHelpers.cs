@@ -235,115 +235,115 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <summary>
         /// Asynchronously writes package metadata to the catalog.
         /// </summary>
-        /// <param name="client">An HTTP client.</param>
+        /// <param name="packageCatalogItemCreator">A package catalog item creator.</param>
         /// <param name="packages">Packages to download metadata for.</param>
         /// <param name="storage">Storage.</param>
         /// <param name="lastCreated">The catalog's last created datetime.</param>
         /// <param name="lastEdited">The catalog's last edited datetime.</param>
         /// <param name="lastDeleted">The catalog's last deleted datetime.</param>
+        /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism for package processing.</param>
         /// <param name="createdPackages"><c>true</c> to include created packages; otherwise, <c>false</c>.</param>
+        /// <param name="updateCreatedFromEdited"><c>true</c> to update the created cursor from the last edited cursor;
+        /// otherwise, <c>false</c>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="telemetryService">A telemetry service.</param>
         /// <param name="logger">A logger.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns the latest
         /// <see cref="DateTime}" /> that was processed.</returns>
-        public static async Task<DateTime> DownloadMetadata2Catalog(
-            HttpClient client,
+        public static async Task<DateTime> DownloadMetadata2CatalogAsync(
+            IPackageCatalogItemCreator packageCatalogItemCreator,
             SortedList<DateTime, IList<FeedPackageDetails>> packages,
             IStorage storage,
             DateTime lastCreated,
             DateTime lastEdited,
             DateTime lastDeleted,
+            int maxDegreeOfParallelism,
             bool? createdPackages,
+            bool updateCreatedFromEdited,
             CancellationToken cancellationToken,
             ITelemetryService telemetryService,
             ILogger logger)
         {
+            if (packageCatalogItemCreator == null)
+            {
+                throw new ArgumentNullException(nameof(packageCatalogItemCreator));
+            }
+
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            if (storage == null)
+            {
+                throw new ArgumentNullException(nameof(storage));
+            }
+
+            if (maxDegreeOfParallelism < 1)
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(maxDegreeOfParallelism),
+                    string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
+            }
+
+            if (telemetryService == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryService));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 
-            if (packages == null || packages.Count == 0)
+            if (packages.Count == 0)
             {
                 return lastDate;
             }
 
-            foreach (var entry in packages)
+            // Flatten the sorted list.
+            var workItems = packages.SelectMany(
+                    pair => pair.Value.Select(
+                        details => new PackageWorkItem(pair.Key, details)))
+                .ToArray();
+
+            await workItems.ForEachAsync(maxDegreeOfParallelism, async workItem =>
             {
-                foreach (var packageItem in entry.Value)
-                {
-                    // When downloading the package binary, add a query string parameter
-                    // that corresponds to the operation's timestamp.
-                    // This query string will ensure the package is not cached
-                    // (e.g. on the CDN) and returns the "latest and greatest" package metadata.
-                    var packageUri = Utilities.GetNugetCacheBustingUri(packageItem.ContentUri, entry.Key.ToString("O"));
-                    HttpResponseMessage response = null;
-                    try
-                    {
-                        using (telemetryService.TrackDuration(
-                            TelemetryConstants.PackageDownloadSeconds,
-                            new Dictionary<string, string>()
-                            {
-                                { TelemetryConstants.Id, packageItem.PackageId?.ToLowerInvariant() },
-                                { TelemetryConstants.Version, packageItem.PackageVersion?.ToLowerInvariant() },
-                            }))
-                        {
-                            response = await client.GetAsync(packageUri, cancellationToken);
-                        }
-                    }
-                    catch (TaskCanceledException tce)
-                    {
-                        // If the HTTP request timed out, a TaskCanceledException will be thrown.
-                        throw new HttpClientTimeoutException($"HttpClient request timed out in {nameof(FeedHelpers.DownloadMetadata2Catalog)}.", tce);
-                    }
+                workItem.PackageCatalogItem = await packageCatalogItemCreator.CreateAsync(
+                    workItem.FeedPackageDetails,
+                    workItem.Timestamp,
+                    cancellationToken);
+            });
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        using (var stream = await response.Content.ReadAsStreamAsync())
-                        {
-                            PackageCatalogItem item = Utils.CreateCatalogItem(
-                                packageItem.ContentUri.ToString(),
-                                stream,
-                                packageItem.CreatedDate,
-                                packageItem.LastEditedDate,
-                                packageItem.PublishedDate);
+            lastDate = packages.Last().Key;
 
-                            if (item != null)
-                            {
-                                writer.Add(item);
+            // AppendOnlyCatalogWriter.Add(...) is not thread-safe, so add them all at once on one thread.
+            foreach (var workItem in workItems.Where(workItem => workItem.PackageCatalogItem != null))
+            {
+                writer.Add(workItem.PackageCatalogItem);
 
-                                logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
-                            }
-                            else
-                            {
-                                logger?.LogWarning("Unable to extract metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-                        {
-                            //  the feed is out of sync with the actual package storage - if we don't have the package there is nothing to be done we might as well move onto the next package
-                            logger?.LogWarning("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
-                        }
-                        else
-                        {
-                            //  this should trigger a restart - of this program - and not move the cursor forward
-                            logger?.LogError("Unable to download: {PackageDetailsContentUri}. Http status: {HttpStatusCode}", packageItem.ContentUri, response.StatusCode);
-                            throw new Exception(
-                                $"Unable to download: {packageItem.ContentUri} http status: {response.StatusCode}");
-                        }
-                    }
-                }
-
-                lastDate = entry.Key;
+                logger?.LogInformation("Add metadata from: {PackageDetailsContentUri}", workItem.FeedPackageDetails.ContentUri);
             }
 
             if (createdPackages.HasValue)
             {
-                lastCreated = createdPackages.Value ? lastDate : lastCreated;
                 lastEdited = !createdPackages.Value ? lastDate : lastEdited;
+
+                if (updateCreatedFromEdited)
+                {
+                    lastCreated = lastEdited;
+                }
+                else
+                {
+                    lastCreated = createdPackages.Value ? lastDate : lastCreated;
+                }
             }
 
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));
@@ -362,6 +362,19 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 return DateTime.MinValue;
             }
             return createdPackages.Value ? lastCreated : lastEdited;
+        }
+
+        private sealed class PackageWorkItem
+        {
+            internal DateTime Timestamp { get; }
+            internal FeedPackageDetails FeedPackageDetails { get; }
+            internal PackageCatalogItem PackageCatalogItem { get; set; }
+
+            internal PackageWorkItem(DateTime timestamp, FeedPackageDetails feedPackageDetails)
+            {
+                Timestamp = timestamp;
+                FeedPackageDetails = feedPackageDetails;
+            }
         }
     }
 }

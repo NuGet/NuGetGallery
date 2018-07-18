@@ -24,10 +24,12 @@ namespace Ng.Jobs
         protected string Gallery;
         protected IStorage CatalogStorage;
         protected IStorage AuditingStorage;
+        protected IStorage PreferredPackageSourceStorage;
         protected DateTime? StartDate;
         protected TimeSpan Timeout;
         protected int Top;
         protected Uri Destination;
+        protected bool SkipCreatedPackagesProcessing;
 
         public Feed2CatalogJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
             : base(telemetryService, loggerFactory)
@@ -57,6 +59,12 @@ namespace Ng.Jobs
                    + $"-{Arguments.StorageKeyValueAuditing} <azure-key> "
                    + $"-{Arguments.StorageContainerAuditing} <azure-container> "
                    + $"-{Arguments.StoragePathAuditing} <path>] "
+                   + "|"
+                   + $"[-{Arguments.PreferAlternatePackageSourceStorage} true|false "
+                   + $"-{Arguments.StorageAccountNamePreferredPackageSourceStorage} <azure-acc> "
+                   + $"-{Arguments.StorageKeyValuePreferredPackageSourceStorage} <azure-key> "
+                   + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>] "
+                   + $"[-{Arguments.SkipCreatedPackagesProcessing} true|false] "
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>] "
                    + $"[-{Arguments.StartDate} <DateTime>]";
@@ -67,14 +75,32 @@ namespace Ng.Jobs
             Gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
             Verbose = arguments.GetOrDefault(Arguments.Verbose, false);
             StartDate = arguments.GetOrDefault(Arguments.StartDate, DateTimeMinValueUtc);
+            SkipCreatedPackagesProcessing = arguments.GetOrDefault(Arguments.SkipCreatedPackagesProcessing, false);
+
+            StorageFactory preferredPackageSourceStorageFactory = null;
+
+            var preferAlternatePackageSourceStorage = arguments.GetOrDefault(Arguments.PreferAlternatePackageSourceStorage, false);
+
+            if (preferAlternatePackageSourceStorage)
+            {
+                preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("PreferredPackageSourceStorage", arguments, Verbose);
+            }
 
             var catalogStorageFactory = CommandHelpers.CreateStorageFactory(arguments, Verbose);
             var auditingStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("Auditing", arguments, Verbose);
 
-            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", Gallery, catalogStorageFactory);
+            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
+                Gallery,
+                catalogStorageFactory,
+                preferredPackageSourceStorageFactory);
 
             CatalogStorage = catalogStorageFactory.Create();
             AuditingStorage = auditingStorageFactory.Create();
+
+            if (preferAlternatePackageSourceStorage)
+            {
+                PreferredPackageSourceStorage = preferredPackageSourceStorageFactory.Create();
+            }
 
             Destination = catalogStorageFactory.BaseAddress;
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = Destination.AbsoluteUri;
@@ -94,6 +120,12 @@ namespace Ng.Jobs
                 uint packagesEdited = 0;
 
                 client.Timeout = Timeout;
+
+                var packageCatalogItemCreator = PackageCatalogItemCreator.Create(
+                    client,
+                    TelemetryService,
+                    Logger,
+                    PreferredPackageSourceStorage);
 
                 // baseline timestamps
                 var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, TelemetryService, cancellationToken);
@@ -148,39 +180,44 @@ namespace Ng.Jobs
                         }
                     }
 
-                    using (TelemetryService.TrackDuration(TelemetryConstants.CreatedPackagesSeconds))
+                    if (!SkipCreatedPackagesProcessing)
                     {
-                        //  THEN fetch and add all newly CREATED packages - in order
-                        SortedList<DateTime, IList<FeedPackageDetails>> createdPackages;
-                        var previousLastCreated = DateTime.MinValue;
-                        do
+                        using (TelemetryService.TrackDuration(TelemetryConstants.CreatedPackagesSeconds))
                         {
-                            Logger.LogInformation("CATALOG LastCreated: {CatalogLastCreatedTime}", lastCreated.ToString("O"));
-
-                            createdPackages = await GetCreatedPackages(client, Gallery, lastCreated, Top);
-
-                            var createdPackagesCount = createdPackages.SelectMany(x => x.Value).Count();
-                            Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackagesCount);
-                            packagesCreated += (uint)createdPackagesCount;
-
-                            lastCreated = await FeedHelpers.DownloadMetadata2Catalog(
-                                client,
-                                createdPackages,
-                                CatalogStorage,
-                                lastCreated,
-                                lastEdited,
-                                lastDeleted,
-                                createdPackages: true,
-                                cancellationToken: cancellationToken,
-                                telemetryService: TelemetryService,
-                                logger: Logger);
-                            if (previousLastCreated == lastCreated)
+                            //  THEN fetch and add all newly CREATED packages - in order
+                            SortedList<DateTime, IList<FeedPackageDetails>> createdPackages;
+                            var previousLastCreated = DateTime.MinValue;
+                            do
                             {
-                                break;
+                                Logger.LogInformation("CATALOG LastCreated: {CatalogLastCreatedTime}", lastCreated.ToString("O"));
+
+                                createdPackages = await GetCreatedPackages(client, Gallery, lastCreated, Top);
+
+                                var createdPackagesCount = createdPackages.SelectMany(x => x.Value).Count();
+                                Logger.LogInformation("FEED CreatedPackages: {CreatedPackagesCount}", createdPackagesCount);
+                                packagesCreated += (uint)createdPackagesCount;
+
+                                lastCreated = await FeedHelpers.DownloadMetadata2CatalogAsync(
+                                    packageCatalogItemCreator,
+                                    createdPackages,
+                                    CatalogStorage,
+                                    lastCreated,
+                                    lastEdited,
+                                    lastDeleted,
+                                    MaxDegreeOfParallelism,
+                                    createdPackages: true,
+                                    updateCreatedFromEdited: false,
+                                    cancellationToken: cancellationToken,
+                                    telemetryService: TelemetryService,
+                                    logger: Logger);
+                                if (previousLastCreated == lastCreated)
+                                {
+                                    break;
+                                }
+                                previousLastCreated = lastCreated;
                             }
-                            previousLastCreated = lastCreated;
+                            while (createdPackages.Count > 0);
                         }
-                        while (createdPackages.Count > 0);
                     }
 
                     using (TelemetryService.TrackDuration(TelemetryConstants.EditedPackagesSeconds))
@@ -198,14 +235,16 @@ namespace Ng.Jobs
                             Logger.LogInformation("FEED EditedPackages: {EditedPackagesCount}", editedPackagesCount);
                             packagesEdited += (uint)editedPackagesCount;
 
-                            lastEdited = await FeedHelpers.DownloadMetadata2Catalog(
-                                client,
+                            lastEdited = await FeedHelpers.DownloadMetadata2CatalogAsync(
+                                packageCatalogItemCreator,
                                 editedPackages,
                                 CatalogStorage,
                                 lastCreated,
                                 lastEdited,
                                 lastDeleted,
+                                MaxDegreeOfParallelism,
                                 createdPackages: false,
+                                updateCreatedFromEdited: SkipCreatedPackagesProcessing,
                                 cancellationToken: cancellationToken,
                                 telemetryService: TelemetryService,
                                 logger: Logger);
@@ -221,7 +260,12 @@ namespace Ng.Jobs
                 finally
                 {
                     TelemetryService.TrackMetric(TelemetryConstants.DeletedPackagesCount, packagesDeleted);
-                    TelemetryService.TrackMetric(TelemetryConstants.CreatedPackagesCount, packagesCreated);
+
+                    if (!SkipCreatedPackagesProcessing)
+                    {
+                        TelemetryService.TrackMetric(TelemetryConstants.CreatedPackagesCount, packagesCreated);
+                    }
+
                     TelemetryService.TrackMetric(TelemetryConstants.EditedPackagesCount, packagesEdited);
                 }
             }

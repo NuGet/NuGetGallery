@@ -103,6 +103,12 @@ namespace Ng
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
+        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
+        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
+        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
+
+        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
+        public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
         #endregion
 
         #region Monitoring
@@ -133,6 +139,11 @@ namespace Ng
         /// Default value of <see cref="PackageStatusFolder"/>.
         /// </summary>
         public const string PackageStatusFolderDefault = "status";
+
+        /// <summary>
+        /// If the queue contains more messages than this, the job will not requeue any invalid packages.
+        /// </summary>
+        public const string MaxRequeueQueueSize = "maxRequeueQueueSize";
         #endregion
 
         #region KeyVault

@@ -15,7 +15,7 @@ using Microsoft.WindowsAzure.Storage.RetryPolicies;
 
 namespace NuGet.Services.Metadata.Catalog.Persistence
 {
-    public class AzureStorage : Storage
+    public class AzureStorage : Storage, IAzureStorage
     {
         private readonly CloudBlobDirectory _directory;
         private readonly BlobRequestOptions _blobRequestOptions;
@@ -290,6 +290,27 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 return true;
             }
             return !(await source.ExistsAsync());
+        }
+
+        public async Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(string name)
+        {
+            Uri uri = ResolveUri(name);
+            string blobName = GetName(uri);
+            CloudBlockBlob blob = _directory.GetBlockBlobReference(blobName);
+
+            if (await blob.ExistsAsync())
+            {
+                return new AzureCloudBlockBlob(blob);
+            }
+
+            if (Verbose)
+            {
+                Trace.WriteLine($"The blob {uri} does not exist.");
+            }
+
+            // We could return a reference even when the blob does not exist;
+            // however, there's currently no scenario for this.
+            return null;
         }
     }
 }

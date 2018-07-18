@@ -23,10 +23,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             return Task.FromResult(true);
         }
 
-        public override async Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
         {
             var v2Exists = v2 != null;
             var v3Exists = v3 != null;
+            var completedTask = Task.FromResult(0);
 
             if (v2Exists != v3Exists)
             {
@@ -36,7 +37,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 if (v3Exists && !(v3 is PackageRegistrationIndexMetadata))
                 {
                     Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in V2 but has a leaf node in V3!", data.Package.Id, data.Package.Version);
-                    return;
+                    return completedTask;
                 }
 
                 const string existsString = "exists";
@@ -45,6 +46,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 throw new MetadataInconsistencyException<PackageRegistrationLeafMetadata>(v2, v3,
                     $"V2 {(v2Exists ? existsString : doesNotExistString)} but V3 {(v3Exists ? existsString : doesNotExistString)}!");
             }
+
+            return completedTask;
         }
     }
 }

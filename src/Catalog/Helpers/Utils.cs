@@ -443,7 +443,8 @@ namespace NuGet.Services.Metadata.Catalog
         public static string GenerateHash(Stream stream)
         {
             stream.Seek(0, SeekOrigin.Begin);
-            using (HashAlgorithm hashAlgorithm = HashAlgorithm.Create("SHA512"))
+
+            using (var hashAlgorithm = HashAlgorithm.Create(Constants.Sha512))
             {
                 return Convert.ToBase64String(hashAlgorithm.ComputeHash(stream));
             }
@@ -476,41 +477,52 @@ namespace NuGet.Services.Metadata.Catalog
             return result;
         }
 
-        public static NupkgMetadata GetNupkgMetadata(Stream stream)
+        public static NupkgMetadata GetNupkgMetadata(Stream stream, string packageHash)
         {
-            var nupkgMetadata = new NupkgMetadata
+            if (stream == null)
             {
-                PackageSize = stream.Length,
-                PackageHash = GenerateHash(stream)
-            };
+                throw new ArgumentNullException(nameof(stream));
+            }
+
+            var packageSize = stream.Length;
+
+            packageHash = packageHash ?? GenerateHash(stream);
 
             stream.Seek(0, SeekOrigin.Begin);
 
-            using (ZipArchive package = new ZipArchive(stream, ZipArchiveMode.Read, true))
+            using (var package = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
             {
-                nupkgMetadata.Nuspec = GetNuspec(package);
+                var nuspec = GetNuspec(package);
 
-                if (nupkgMetadata.Nuspec == null)
+                if (nuspec == null)
                 {
                     throw new InvalidDataException("Unable to find nuspec");
                 }
 
-                nupkgMetadata.Entries = GetEntries(package);
+                var entries = GetEntries(package);
 
-                return nupkgMetadata;
+                return new NupkgMetadata(nuspec, entries, packageSize, packageHash);
             }
         }
 
-        public static PackageCatalogItem CreateCatalogItem(string origin, Stream stream, DateTime createdDate, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
+        public static PackageCatalogItem CreateCatalogItem(
+            string origin,
+            Stream stream,
+            DateTime createdDate,
+            DateTime? lastEditedDate = null,
+            DateTime? publishedDate = null,
+            string licenseNames = null,
+            string licenseReportUrl = null,
+            string packageHash = null)
         {
             try
             {
-                NupkgMetadata nupkgMetadata = GetNupkgMetadata(stream);
+                NupkgMetadata nupkgMetadata = GetNupkgMetadata(stream, packageHash);
                 return new PackageCatalogItem(nupkgMetadata, createdDate, lastEditedDate, publishedDate);
             }
             catch (InvalidDataException e)
             {
-                Trace.TraceError("Exception: {0} {1} {2}", origin, e.GetType().Name, e.Message);
+                Trace.TraceError("Exception: {0} {1} {2}", origin, e.GetType().Name, e);
                 return null;
             }
             catch (Exception e)

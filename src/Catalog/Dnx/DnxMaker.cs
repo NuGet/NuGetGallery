@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 
@@ -17,78 +18,120 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
     {
         private readonly StorageFactory _storageFactory;
 
-        public class DnxEntry
-        {
-            public Uri Nupkg { get; set; }
-            public Uri Nuspec { get; set; }
-        }
-
         public DnxMaker(StorageFactory storageFactory)
         {
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
         }
 
-        public Task AddPackageToIndex(
-            string id,
-            string version,
-            CancellationToken cancellationToken)
-        {
-            var storage = _storageFactory.Create(id);
-
-            return AddPackageToIndex(storage, id, version, cancellationToken);
-        }
-
-        public async Task<DnxEntry> AddPackage(
+        public async Task<DnxEntry> AddPackageAsync(
             Stream nupkgStream,
             string nuspec,
             string id,
             string version,
             CancellationToken cancellationToken)
         {
+            if (nupkgStream == null)
+            {
+                throw new ArgumentNullException(nameof(nupkgStream));
+            }
+
+            if (string.IsNullOrEmpty(nuspec))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(nuspec));
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(version));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var storage = _storageFactory.Create(id);
+            var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
-            var nuspecUri = await SaveNuspec(storage, id, version, nuspec, cancellationToken);
-            var nupkgUri = await SaveNupkg(nupkgStream, storage, id, version, cancellationToken);
-            await AddPackageToIndex(storage, id, version, cancellationToken);
+            var nuspecUri = await SaveNuspecAsync(storage, id, normalizedVersion, nuspec, cancellationToken);
+            var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, id, normalizedVersion, cancellationToken);
 
-            return new DnxEntry { Nupkg = nupkgUri, Nuspec = nuspecUri };
+            return new DnxEntry(nupkgUri, nuspecUri);
         }
 
-        private Task AddPackageToIndex(
-            Storage storage,
-            string id,
-            string version,
-            CancellationToken cancellationToken)
+        public async Task DeletePackageAsync(string id, string version, CancellationToken cancellationToken)
         {
-            return UpdateMetadata(storage, versions => versions.Add(NuGetVersion.Parse(version)), cancellationToken);
-        }
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
 
-        public async Task DeletePackage(string id, string version, CancellationToken cancellationToken)
-        {
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(version));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var storage = _storageFactory.Create(id);
+            var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
 
-            await UpdateMetadata(storage, versions => versions.Remove(NuGetVersion.Parse(version)), cancellationToken);
-            await DeleteNuspec(storage, id, version, cancellationToken);
-            await DeleteNupkg(storage, id, version, cancellationToken);
+            await DeleteNuspecAsync(storage, id, normalizedVersion, cancellationToken);
+            await DeleteNupkgAsync(storage, id, normalizedVersion, cancellationToken);
         }
 
-        public async Task<bool> HasPackageInIndex(Storage storage, string id, string version, CancellationToken cancellationToken)
+        public async Task<bool> HasPackageInIndexAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
+            if (storage == null)
+            {
+                throw new ArgumentNullException(nameof(storage));
+            }
+
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(version));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var versionsContext = await GetVersionsAsync(storage, cancellationToken);
             var parsedVersion = NuGetVersion.Parse(version);
+
             return versionsContext.Versions.Contains(parsedVersion);
         }
 
-        private async Task<Uri> SaveNuspec(Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
+        private async Task<Uri> SaveNuspecAsync(Storage storage, string id, string version, string nuspec, CancellationToken cancellationToken)
         {
             var relativeAddress = GetRelativeAddressNuspec(id, version);
             var nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
+
             await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
+
             return nuspecUri;
         }
 
-        private async Task UpdateMetadata(Storage storage, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
+        public async Task UpdatePackageVersionIndexAsync(string id, Action<HashSet<NuGetVersion>> updateAction, CancellationToken cancellationToken)
         {
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
+
+            if (updateAction == null)
+            {
+                throw new ArgumentNullException(nameof(updateAction));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var storage = _storageFactory.Create(id);
             var versionsContext = await GetVersionsAsync(storage, cancellationToken);
             var relativeAddress = versionsContext.RelativeAddress;
             var resourceUri = versionsContext.ResourceUri;
@@ -101,7 +144,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             {
                 // Store versions (sorted)
                 result.Sort();
-                await storage.Save(resourceUri, CreateContent(result.Select((v) => v.ToString())), cancellationToken);
+
+                await storage.Save(resourceUri, CreateContent(result.Select(version => version.ToNormalizedString())), cancellationToken);
             }
             else
             {
@@ -148,14 +192,14 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return new StringStorageContent(obj.ToString(), "application/json", "no-store");
         }
 
-        private async Task<Uri> SaveNupkg(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             Uri nupkgUri = new Uri(storage.BaseAddress, GetRelativeAddressNupkg(id, version));
             await storage.Save(nupkgUri, new StreamStorageContent(nupkgStream, "application/octet-stream", "max-age=120"), cancellationToken);
             return nupkgUri;
         }
 
-        private async Task DeleteNuspec(Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task DeleteNuspecAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNuspec(id, version);
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -165,7 +209,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             }
         }
 
-        private async Task DeleteNupkg(Storage storage, string id, string version, CancellationToken cancellationToken)
+        private async Task DeleteNupkgAsync(Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             string relativeAddress = GetRelativeAddressNupkg(id, version);
             Uri nupkgUri = new Uri(storage.BaseAddress, relativeAddress);
@@ -177,12 +221,24 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
         private static string GetRelativeAddressNuspec(string id, string version)
         {
-            return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.nuspec"; 
+            return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.nuspec";
         }
 
         public static string GetRelativeAddressNupkg(string id, string version)
         {
-            return $"{NuGetVersion.Parse(version).ToNormalizedString()}/{id}.{NuGetVersion.Parse(version).ToNormalizedString()}.nupkg";
+            if (string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(version));
+            }
+
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+
+            return $"{normalizedVersion}/{id}.{normalizedVersion}.nupkg";
         }
 
         private class VersionsResult

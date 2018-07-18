@@ -28,7 +28,7 @@ namespace NgTests
             // Arrange
             var catalogStorage = new MemoryStorage();
             var auditingStorage = new MemoryStorage();
-            auditingStorage.Content.Add(
+            auditingStorage.Content.TryAdd(
                 new Uri(auditingStorage.BaseAddress, "package/OtherPackage/1.0.0/2015-01-01T00:01:01-deleted.audit.v1.json"),
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
 
@@ -129,9 +129,9 @@ namespace NgTests
             var firstAuditingRecord = new Uri(auditingStorage.BaseAddress, $"package/OtherPackage/1.0.0/{Guid.NewGuid()}-deleted.audit.v1.json");
             var secondAuditingRecord = new Uri(auditingStorage.BaseAddress, $"package/AnotherPackage/1.0.0/{Guid.NewGuid()}-deleted.audit.v1.json");
 
-            auditingStorage.Content.Add(firstAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
-            auditingStorage.Content.Add(secondAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100.Replace("OtherPackage", "AnotherPackage")));
-            auditingStorage.ListMock.Add(secondAuditingRecord, new StorageListItem(secondAuditingRecord, new DateTime(2010, 1, 1)));
+            auditingStorage.Content.TryAdd(firstAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
+            auditingStorage.Content.TryAdd(secondAuditingRecord, new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100.Replace("OtherPackage", "AnotherPackage")));
+            auditingStorage.ListMock.TryAdd(secondAuditingRecord, new StorageListItem(secondAuditingRecord, new DateTime(2010, 1, 1)));
 
             var mockServer = new MockServerHttpClientHandler();
 
@@ -214,7 +214,7 @@ namespace NgTests
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
             var auditingStorage = new MemoryStorage();
-            auditingStorage.Content.Add(
+            auditingStorage.Content.TryAdd(
                 new Uri(auditingStorage.BaseAddress, "package/OtherPackage/1.0.0/2015-01-01T00:01:01-deleted.audit.v1.json"),
                 new StringStorageContent(TestCatalogEntries.DeleteAuditRecordForOtherPackage100));
 

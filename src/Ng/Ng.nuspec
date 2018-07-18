@@ -11,36 +11,8 @@
   </metadata>
   <files>
     <file src="bin\$configuration$\*.*" target="Ng"/>
-		
-    <file src="Scripts\Catalog2DnxV3.cmd" />
-    <file src="Scripts\Catalog2DnxV3China.cmd" />
-    <file src="Scripts\Catalog2DnxV3Secondary.cmd" />
-    <file src="Scripts\Catalog2LuceneV3-Reg1.cmd" />
-    <file src="Scripts\Catalog2LuceneV3-Reg1-Secondary.cmd" />
-    <file src="Scripts\Catalog2LuceneV3-Reg2.cmd" />
-    <file src="Scripts\Catalog2LuceneV3-Reg2-Secondary.cmd" />
-    <file src="Scripts\Catalog2LuceneV3-Asia.cmd" />
-	
-    <file src="Scripts\Catalog2RegistrationV3-Reg1.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg1-Secondary.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg2.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg2-Secondary.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg3.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg3-Secondary.cmd" />
-    <file src="Scripts\Catalog2RegistrationV3-Reg3-China.cmd" />
-	
-    <file src="Scripts\DB2Catalog.cmd" />
-
-    <file src="Scripts\Catalog2Monitoring.cmd" />
-    <file src="Scripts\Monitoring2Monitoring.cmd " />
-    <file src="Scripts\MonitoringProcessor.cmd " />
-	
-    <file src="Scripts\Feed2CatalogV3.cmd" />
-    <file src="Scripts\Feed2CatalogV3-Secondary.cmd" />
-	
-    <file src="Scripts\Functions.ps1" />
-    <file src="Scripts\PreDeploy.ps1" />
-    <file src="Scripts\PostDeploy.ps1" />
+    <file src="Scripts\*.cmd" />
+    <file src="Scripts\*.ps1" />
     <file src="Scripts\nssm.exe" />
   </files>
 </package>

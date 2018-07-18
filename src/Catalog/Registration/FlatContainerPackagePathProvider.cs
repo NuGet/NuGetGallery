@@ -17,7 +17,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             version = NuGetVersionUtility.NormalizeVersion(version);
 
-            return $"{_container}/{id.ToLowerInvariant()}/{version.ToLowerInvariant()}/{id.ToLowerInvariant()}.{version.ToLowerInvariant()}.nupkg";
+            var packageFileName = PackageUtility.GetPackageFileNameLowercase(id, version);
+
+            return $"{_container}/{id.ToLowerInvariant()}/{version.ToLowerInvariant()}/{packageFileName}";
         }
     }
 }

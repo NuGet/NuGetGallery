@@ -262,8 +262,8 @@
     <Reference Include="NuGet.Services.Logging, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Services.Logging.2.25.0-master-30088\lib\net452\NuGet.Services.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="NuGet.Services.Storage, Version=2.3.1.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NuGet.Services.Storage.2.3.1-master-15426\lib\net452\NuGet.Services.Storage.dll</HintPath>
+    <Reference Include="NuGet.Services.Storage, Version=2.25.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\NuGet.Services.Storage.2.25.0-sb-queuesize-32353\lib\net452\NuGet.Services.Storage.dll</HintPath>
     </Reference>
     <Reference Include="NuGet.Versioning, Version=4.3.0.5, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NuGet.Versioning.4.3.0\lib\net45\NuGet.Versioning.dll</HintPath>

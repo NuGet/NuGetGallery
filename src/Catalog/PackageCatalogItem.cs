@@ -12,25 +12,27 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class PackageCatalogItem : AppendOnlyCatalogItem
     {
-        private readonly NupkgMetadata _nupkgMetadata;
-        private readonly DateTime? _createdDate;
-        private readonly DateTime? _lastEditedDate;
-        private readonly DateTime? _publishedDate;
         private string _id;
         private string _fullVersion;
         private string _normalizedVersion;
 
+        // These properties are public only to facilitate testing.
+        public NupkgMetadata NupkgMetadata { get; }
+        public DateTime? CreatedDate { get; }
+        public DateTime? LastEditedDate { get; }
+        public DateTime? PublishedDate { get; }
+
         public PackageCatalogItem(NupkgMetadata nupkgMetadata, DateTime? createdDate = null, DateTime? lastEditedDate = null, DateTime? publishedDate = null, string licenseNames = null, string licenseReportUrl = null)
         {
-            _nupkgMetadata = nupkgMetadata;
-            _createdDate = createdDate;
-            _lastEditedDate = lastEditedDate;
-            _publishedDate = publishedDate;
+            NupkgMetadata = nupkgMetadata;
+            CreatedDate = createdDate;
+            LastEditedDate = lastEditedDate;
+            PublishedDate = publishedDate;
         }
 
         public override IGraph CreateContentGraph(CatalogContext context)
         {
-            IGraph graph = Utils.CreateNuspecGraph(_nupkgMetadata.Nuspec, GetBaseAddress().ToString(), normalizeXml: true);
+            IGraph graph = Utils.CreateNuspecGraph(NupkgMetadata.Nuspec, GetBaseAddress().ToString(), normalizeXml: true);
 
             //  catalog infrastructure fields
             INode rdfTypePredicate = graph.CreateUriNode(Schema.Predicates.Type);
@@ -40,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  published
             INode publishedPredicate = graph.CreateUriNode(Schema.Predicates.Published);
-            DateTime published = _publishedDate ?? TimeStamp;
+            DateTime published = PublishedDate ?? TimeStamp;
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
 
             //  listed
@@ -50,17 +52,17 @@ namespace NuGet.Services.Metadata.Catalog
 
             //  created
             INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
-            DateTime created = _createdDate ?? TimeStamp;
+            DateTime created = CreatedDate ?? TimeStamp;
             graph.Assert(resource.Subject, createdPredicate, graph.CreateLiteralNode(created.ToString("O"), Schema.DataTypes.DateTime));
 
             //  lastEdited
             INode lastEditedPredicate = graph.CreateUriNode(Schema.Predicates.LastEdited);
-            DateTime lastEdited = _lastEditedDate ?? DateTime.MinValue;
+            DateTime lastEdited = LastEditedDate ?? DateTime.MinValue;
             graph.Assert(resource.Subject, lastEditedPredicate, graph.CreateLiteralNode(lastEdited.ToString("O"), Schema.DataTypes.DateTime));
 
             //  entries
 
-            if (_nupkgMetadata.Entries != null)
+            if (NupkgMetadata.Entries != null)
             {
                 INode packageEntryPredicate = graph.CreateUriNode(Schema.Predicates.PackageEntry);
                 INode packageEntryType = graph.CreateUriNode(Schema.DataTypes.PackageEntry);
@@ -69,7 +71,7 @@ namespace NuGet.Services.Metadata.Catalog
                 INode lengthPredicate = graph.CreateUriNode(Schema.Predicates.Length);
                 INode compressedLengthPredicate = graph.CreateUriNode(Schema.Predicates.CompressedLength);
 
-                foreach (PackageEntry entry in _nupkgMetadata.Entries)
+                foreach (PackageEntry entry in NupkgMetadata.Entries)
                 {
                     Uri entryUri = new Uri(resource.Subject.ToString() + "#" + entry.FullName);
 
@@ -85,9 +87,9 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             //  packageSize and packageHash
-            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(_nupkgMetadata.PackageSize.ToString(), Schema.DataTypes.Integer));
-            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(_nupkgMetadata.PackageHash));
-            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode("SHA512"));
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageSize), graph.CreateLiteralNode(NupkgMetadata.PackageSize.ToString(), Schema.DataTypes.Integer));
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHash), graph.CreateLiteralNode(NupkgMetadata.PackageHash));
+            graph.Assert(resource.Subject, graph.CreateUriNode(Schema.Predicates.PackageHashAlgorithm), graph.CreateLiteralNode(Constants.Sha512));
 
             //  identity and version
             SetIdVersionFromGraph(graph);

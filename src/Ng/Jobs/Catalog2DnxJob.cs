@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -64,6 +65,7 @@ namespace Ng.Jobs
                 storageFactory,
                 TelemetryService,
                 Logger,
+                MaxDegreeOfParallelism,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
                 httpClientTimeout)
             {

@@ -57,8 +57,8 @@
       <HintPath>..\..\packages\HtmlAgilityPack.1.4.9\lib\Net45\HtmlAgilityPack.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="JsonLD, Version=1.0.4.0, Culture=neutral, PublicKeyToken=2e465378e3b1a8dd, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\json-ld.net.1.0.4\lib\net40-Client\JsonLD.dll</HintPath>
+    <Reference Include="json-ld.net.StrongName, Version=1.0.6.0, Culture=neutral, PublicKeyToken=5b2d45fae2d0dea9, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\json-ld.net.StrongName.1.0.6\lib\net40-client\json-ld.net.StrongName.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.ApplicationInsights, Version=2.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -172,6 +172,12 @@
     <Compile Include="CloudBlobStorageExtensions.cs" />
     <Compile Include="CommitCollector.cs" />
     <Compile Include="CommitMetadata.cs" />
+    <Compile Include="Constants.cs" />
+    <Compile Include="Dnx\DnxEntry.cs" />
+    <Compile Include="Helpers\AsyncExtensions.cs" />
+    <Compile Include="Helpers\PackageUtility.cs" />
+    <Compile Include="IPackageCatalogItemCreator.cs" />
+    <Compile Include="PackageCatalogItemCreator.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
     <Compile Include="Helpers\DeletionAuditEntry.cs" />
@@ -182,6 +188,9 @@
     <Compile Include="Helpers\UriUtils.cs" />
     <Compile Include="LogEvents.cs" />
     <Compile Include="Helpers\NuGetVersionUtility.cs" />
+    <Compile Include="Persistence\AzureCloudBlockBlob.cs" />
+    <Compile Include="Persistence\IAzureStorage.cs" />
+    <Compile Include="Persistence\ICloudBlockBlob.cs" />
     <Compile Include="Persistence\NamedStorageFactory.cs" />
     <Compile Include="ReadOnlyGraph.cs" />
     <Compile Include="Persistence\StorageListItem.cs" />
@@ -189,6 +198,11 @@
     <Compile Include="SortingIdVersionCollector.cs" />
     <Compile Include="SortingIdCollector.cs" />
     <Compile Include="StringInterner.cs" />
+    <Compile Include="Strings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Strings.resx</DependentUpon>
+    </Compile>
     <Compile Include="Telemetry\TelemetryHandler.cs" />
     <Compile Include="Telemetry\ITelemetryService.cs" />
     <Compile Include="Telemetry\TelemetryConstants.cs" />
@@ -267,6 +281,10 @@
     <Content Include="content\further.js" />
     <Content Include="content\jsonld.js" />
     <Content Include="content\Promise.js" />
+    <EmbeddedResource Include="Strings.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Strings.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Include="xslt\normalizeNuspecNamespace.xslt" />
     <EmbeddedResource Include="xslt\nuspec.xslt">
       <SubType>Designer</SubType>

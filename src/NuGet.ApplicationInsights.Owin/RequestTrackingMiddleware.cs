@@ -82,11 +82,10 @@ namespace NuGet.ApplicationInsights.Owin
             {
                 Id = requestId,
                 Name = name,
-                StartTime = requestStartDate,
+                Timestamp = requestStartDate,
                 Duration = duration,
                 ResponseCode = responseCode.ToString(),
                 Success = (responseCode >= 200 && responseCode <= 299) || !requestFailed,
-                HttpMethod = requestMethod,
                 Url = uri
             };
 
