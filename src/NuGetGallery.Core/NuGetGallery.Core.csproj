@@ -191,6 +191,7 @@
     <Compile Include="Services\ICoreFileStorageService.cs" />
     <Compile Include="Services\IFileMetadataService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
+    <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
     <Compile Include="Services\PackageFileServiceMetadata.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="StreamExtensions.cs" />
