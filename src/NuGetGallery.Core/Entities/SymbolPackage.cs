@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
-    public class Symbol
+    public class SymbolPackage
         : IEntity
     {
         public int Key { get; set; }

@@ -3,12 +3,12 @@ namespace NuGetGallery.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class Symbols : DbMigration
+    public partial class SymbolPackages : DbMigration
     {
         public override void Up()
         {
             CreateTable(
-                "dbo.Symbols",
+                "dbo.SymbolPackages",
                 c => new
                     {
                         Key = c.Int(nullable: false, identity: true),
@@ -29,9 +29,9 @@ namespace NuGetGallery.Migrations
         
         public override void Down()
         {
-            DropForeignKey("dbo.Symbols", "PackageKey", "dbo.Packages");
-            DropIndex("dbo.Symbols", new[] { "PackageKey" });
-            DropTable("dbo.Symbols");
+            DropForeignKey("dbo.SymbolPackages", "PackageKey", "dbo.Packages");
+            DropIndex("dbo.SymbolPackages", new[] { "PackageKey" });
+            DropTable("dbo.SymbolPackages");
         }
     }
 }

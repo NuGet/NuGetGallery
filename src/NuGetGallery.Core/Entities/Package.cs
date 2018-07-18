@@ -234,6 +234,6 @@ namespace NuGetGallery
         /// </summary>
         public virtual Certificate Certificate { get; set; }
 
-        public virtual ICollection<Symbol> Symbols { get; set; }
+        public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
     }
 }
