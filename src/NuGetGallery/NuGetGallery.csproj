@@ -341,6 +341,10 @@
     <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.Designer.cs">
       <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807181816293_SymbolPackages.cs" />
+    <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
+      <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1504,6 +1508,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.resx">
       <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
+      <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
