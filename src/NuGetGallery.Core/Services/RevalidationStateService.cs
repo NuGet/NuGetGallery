@@ -24,7 +24,7 @@ namespace NuGetGallery
 
         public async Task<RevalidationState> GetStateAsync()
         {
-            return (await GetStateInternalAsync()).Item2;
+            return (await GetInternalStateAsync()).State;
         }
 
         public async Task UpdateStateAsync(Action<RevalidationState> updateAction)
@@ -38,14 +38,21 @@ namespace NuGetGallery
 
         public async Task<RevalidationState> MaybeUpdateStateAsync(Func<RevalidationState, bool> updateAction)
         {
-            var getResult = await GetStateInternalAsync();
-            var fileReference = getResult.Item1;
-            var state = getResult.Item2;
+            var internalState = await GetInternalStateAsync();
+            var fileReference = internalState.FileReference;
+            var state = internalState.State;
 
             // Only update the state if the update action returns true.
+            var originalState =  new RevalidationState
+            {
+                IsInitialized = state.IsInitialized,
+                IsKillswitchActive = state.IsKillswitchActive,
+                DesiredPackageEventRate = state.DesiredPackageEventRate,
+            };
+
             if (!updateAction(state))
             {
-                return state;
+                return originalState;
             }
 
             try
@@ -67,11 +74,11 @@ namespace NuGetGallery
             }
             catch (StorageException e) when (e.IsPreconditionFailedException())
             {
-                throw new InvalidOperationException("Failed to update the state blob as the access condition failed", e);
+                throw new InvalidOperationException("Failed to update the state blob since the access condition failed", e);
             }
         }
 
-        private async Task<Tuple<IFileReference, RevalidationState>> GetStateInternalAsync()
+        private async Task<InternalState> GetInternalStateAsync()
         {
             var fileReference = await _storage.GetFileReferenceAsync(CoreConstants.RevalidationFolderName, StateFileName);
 
@@ -91,8 +98,20 @@ namespace NuGetGallery
                     throw new InvalidOperationException($"State blob '{StateFileName}' in folder '{CoreConstants.RevalidationFolderName}' is malformed");
                 }
 
-                return Tuple.Create(fileReference, state);
+                return new InternalState(fileReference, state);
             }
+        }
+
+        private class InternalState
+        {
+            public InternalState(IFileReference fileReference, RevalidationState state)
+            {
+                FileReference = fileReference ?? throw new ArgumentNullException(nameof(fileReference));
+                State = state ?? throw new ArgumentNullException(nameof(state));
+            }
+
+            public IFileReference FileReference { get; }
+            public RevalidationState State { get; }
         }
     }
 }

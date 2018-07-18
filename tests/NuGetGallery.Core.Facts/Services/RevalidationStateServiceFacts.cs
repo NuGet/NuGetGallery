@@ -135,7 +135,7 @@ namespace NuGetGallery.Services
                 {
                     var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.UpdateStateAsync(state => { }));
 
-                    Assert.Equal("Failed to update the state blob as the access condition failed", e.Message);
+                    Assert.Equal("Failed to update the state blob since the access condition failed", e.Message);
                 }
             }
         }
@@ -145,9 +145,11 @@ namespace NuGetGallery.Services
             [Fact]
             public async Task DoesntUpdateStateIfReturnsFalse()
             {
+                RevalidationState result;
+
                 using (Mock("{'IsInitialized': false, 'IsKillswitchActive': true, 'DesiredPackageEventRate': 123}", contentId: "foo-bar"))
                 {
-                    await _target.MaybeUpdateStateAsync(state =>
+                    result = await _target.MaybeUpdateStateAsync(state =>
                     {
                         Assert.False(state.IsInitialized);
                         Assert.True(state.IsKillswitchActive);
@@ -164,6 +166,9 @@ namespace NuGetGallery.Services
                 _storage.Verify(s => s.SaveFileAsync("revalidation", "state.json", It.IsAny<Stream>(), It.IsAny<IAccessCondition>()), Times.Never);
 
                 Assert.Null(_lastUploadedState);
+                Assert.False(result.IsInitialized);
+                Assert.True(result.IsKillswitchActive);
+                Assert.Equal(123, result.DesiredPackageEventRate);
             }
 
             [Fact]
@@ -209,7 +214,7 @@ namespace NuGetGallery.Services
                 {
                     var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.MaybeUpdateStateAsync(state => true));
 
-                    Assert.Equal("Failed to update the state blob as the access condition failed", e.Message);
+                    Assert.Equal("Failed to update the state blob since the access condition failed", e.Message);
                 }
             }
         }

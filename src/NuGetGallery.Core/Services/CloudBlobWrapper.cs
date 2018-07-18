@@ -88,8 +88,8 @@ namespace NuGetGallery
             await _blob.UploadFromStreamAsync(
                 source,
                 accessCondition,
-                new BlobRequestOptions(),
-                new OperationContext());
+                options: null,
+                operationContext: null);
         }
 
         public async Task FetchAttributesAsync()
