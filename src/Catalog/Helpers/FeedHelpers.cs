@@ -241,14 +241,18 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         /// <param name="lastCreated">The catalog's last created datetime.</param>
         /// <param name="lastEdited">The catalog's last edited datetime.</param>
         /// <param name="lastDeleted">The catalog's last deleted datetime.</param>
+        /// <param name="maxDegreeOfParallelism">The maximum degree of parallelism for package processing.</param>
         /// <param name="createdPackages"><c>true</c> to include created packages; otherwise, <c>false</c>.</param>
+        /// <param name="updateCreatedFromEdited"><c>true</c> to update the created cursor from the last edited cursor;
+        /// otherwise, <c>false</c>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
+        /// <param name="telemetryService">A telemetry service.</param>
         /// <param name="logger">A logger.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns the latest
         /// <see cref="DateTime}" /> that was processed.</returns>
         public static async Task<DateTime> DownloadMetadata2CatalogAsync(
-            PackageCatalogItemCreator packageCatalogItemCreator,
+            IPackageCatalogItemCreator packageCatalogItemCreator,
             SortedList<DateTime, IList<FeedPackageDetails>> packages,
             IStorage storage,
             DateTime lastCreated,
@@ -256,6 +260,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             DateTime lastDeleted,
             int maxDegreeOfParallelism,
             bool? createdPackages,
+            bool updateCreatedFromEdited,
             CancellationToken cancellationToken,
             ITelemetryService telemetryService,
             ILogger logger)
@@ -265,6 +270,16 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 throw new ArgumentNullException(nameof(packageCatalogItemCreator));
             }
 
+            if (packages == null)
+            {
+                throw new ArgumentNullException(nameof(packages));
+            }
+
+            if (storage == null)
+            {
+                throw new ArgumentNullException(nameof(storage));
+            }
+
             if (maxDegreeOfParallelism < 1)
             {
                 throw new ArgumentOutOfRangeException(
@@ -272,11 +287,23 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                     string.Format(Strings.ArgumentOutOfRange, 1, int.MaxValue));
             }
 
+            if (telemetryService == null)
+            {
+                throw new ArgumentNullException(nameof(telemetryService));
+            }
+
+            if (logger == null)
+            {
+                throw new ArgumentNullException(nameof(logger));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 
-            if (packages == null || packages.Count == 0)
+            if (packages.Count == 0)
             {
                 return lastDate;
             }
@@ -307,8 +334,16 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             if (createdPackages.HasValue)
             {
-                lastCreated = createdPackages.Value ? lastDate : lastCreated;
                 lastEdited = !createdPackages.Value ? lastDate : lastEdited;
+
+                if (updateCreatedFromEdited)
+                {
+                    lastCreated = lastEdited;
+                }
+                else
+                {
+                    lastCreated = createdPackages.Value ? lastDate : lastCreated;
+                }
             }
 
             var commitMetadata = PackageCatalog.CreateCommitMetadata(writer.RootUri, new CommitMetadata(lastCreated, lastEdited, lastDeleted));

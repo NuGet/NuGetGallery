@@ -207,6 +207,7 @@
     <Compile Include="StringInternerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TelemetryHandlerTests.cs" />
+    <Compile Include="TestData\CatalogTestData.cs" />
     <Compile Include="TestHelper.cs" />
     <None Include="TestData\DependencyMissingId.0.1.0.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

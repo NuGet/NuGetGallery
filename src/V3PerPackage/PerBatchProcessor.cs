@@ -179,6 +179,7 @@ namespace NuGet.Services.V3PerPackage
 
             var storage = serviceProvider.GetRequiredService<IStorage>();
             var createdPackages = true;
+            var updateCreatedFromEdited = false;
 
             using (var httpClient = serviceProvider.GetRequiredService<HttpClient>())
             {
@@ -200,6 +201,7 @@ namespace NuGet.Services.V3PerPackage
                     now,
                     maxDegreeOfParallelism,
                     createdPackages,
+                    updateCreatedFromEdited,
                     CancellationToken.None,
                     telemetryService,
                     logger);

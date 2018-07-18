@@ -108,6 +108,7 @@ namespace Ng
         public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
 
         public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
+        public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
         #endregion
 
         #region Monitoring

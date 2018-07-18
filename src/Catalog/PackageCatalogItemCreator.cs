@@ -12,7 +12,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog
 {
-    public sealed class PackageCatalogItemCreator
+    public sealed class PackageCatalogItemCreator : IPackageCatalogItemCreator
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger _logger;

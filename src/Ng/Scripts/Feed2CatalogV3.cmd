@@ -23,6 +23,7 @@ start /w .\Ng.exe feed2catalog ^
     -storageAccountNamePreferredPackageSourceStorage #{Jobs.feed2catalogv3.PreferredPackageSourceStorageAccountName} ^
     -storageKeyValuePreferredPackageSourceStorage #{Jobs.feed2catalogv3.PreferredPackageSourceStorageAccountKey} ^
     -storageContainerPreferredPackageSourceStorage #{Jobs.feed2catalogv3.PreferredPackageSourceStorageContainerName} ^
+    -skipCreatedPackagesProcessing #{Jobs.feed2catalogv3.SkipCreatedPackagesProcessing} ^
     -instrumentationkey #{Jobs.common.v3.Logging.InstrumentationKey} ^
     -vaultName #{Deployment.Azure.KeyVault.VaultName} ^
     -clientId #{Deployment.Azure.KeyVault.ClientId} ^

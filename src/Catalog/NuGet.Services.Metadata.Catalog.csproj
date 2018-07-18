@@ -176,6 +176,7 @@
     <Compile Include="Dnx\DnxEntry.cs" />
     <Compile Include="Helpers\AsyncExtensions.cs" />
     <Compile Include="Helpers\PackageUtility.cs" />
+    <Compile Include="IPackageCatalogItemCreator.cs" />
     <Compile Include="PackageCatalogItemCreator.cs" />
     <Compile Include="PackageDownloader.cs" />
     <Compile Include="Helpers\CatalogProperties.cs" />
