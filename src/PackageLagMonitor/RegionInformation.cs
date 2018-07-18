@@ -4,8 +4,12 @@
 
 namespace NuGet.Jobs.Montoring.PackageLag
 {
-    public class PackageLagMonitorConfiguration : SearchServiceConfiguration
+    public class RegionInformation
     {
-        public string ServiceIndexUrl { get; set; }
+        public string ResourceGroup { get; set; }
+
+        public string ServiceName { get; set; }
+
+        public string Region { get; set; }
     }
 }

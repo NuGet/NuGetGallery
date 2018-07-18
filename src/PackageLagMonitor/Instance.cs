@@ -1,13 +1,26 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+
+using System;
+
 namespace NuGet.Jobs.Montoring.PackageLag
 {
     public class Instance
     {
-        public int Index { get; set; }
-        public string DiagUrl { get; set; }
-        public string BaseQueryUrl { get; set; }
-        public string Region { get; set; }
+        public Instance(string slot, int index, string diagUrl, string baseQueryUrl, string region)
+        {
+            Slot = slot ?? throw new ArgumentNullException(nameof(slot));
+            Index = index;
+            DiagUrl = diagUrl ?? throw new ArgumentNullException(nameof(diagUrl));
+            BaseQueryUrl = baseQueryUrl ?? throw new ArgumentNullException(nameof(baseQueryUrl));
+            Region = region ?? throw new ArgumentNullException(nameof(region));
+        }
+
+        public string Slot { get; }
+        public int Index { get; }
+        public string DiagUrl { get; }
+        public string BaseQueryUrl { get; }
+        public string Region { get; }
     }
 }

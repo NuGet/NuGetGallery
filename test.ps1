@@ -37,7 +37,8 @@ Function Run-Tests {
         "tests\Validation.PackageSigning.ValidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.ValidateCertificate.Tests.dll", `
         "tests\Validation.PackageSigning.RevalidateCertificate.Tests\bin\$Configuration\Validation.PackageSigning.RevalidateCertificate.Tests.dll", `
         "tests\Validation.PackageSigning.Core.Tests\bin\$Configuration\Validation.PackageSigning.Core.Tests.dll", `
-        "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll"
+        "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll", `
+        "tests\Monitoring.RebootSearchInstance.Tests\bin\$Configuration\NuGet.Monitoring.RebootSearchInstance.Tests.dll"
 
     $TestCount = 0
     

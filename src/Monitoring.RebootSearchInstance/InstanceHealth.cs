@@ -1,11 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-
-namespace NuGet.Jobs.Montoring.PackageLag
+namespace NuGet.Monitoring.RebootSearchInstance
 {
-    public class PackageLagMonitorConfiguration : SearchServiceConfiguration
+    public enum InstanceHealth
     {
-        public string ServiceIndexUrl { get; set; }
+        Healthy,
+        Unhealthy,
+        Unknown,
     }
 }
