@@ -15,14 +15,14 @@ namespace NuGetGallery
         Task<RevalidationState> GetStateAsync();
 
         /// <summary>
-        /// Attempt to update the state atomically.
+        /// Attempt to update the state atomically. Throws if the update fails.
         /// </summary>
         /// <param name="updateAction">The action used to update the state.</param>
         /// <returns>A task that completes once the state has been updated.</returns>
         Task UpdateStateAsync(Action<RevalidationState> updateAction);
 
         /// <summary>
-        /// Attempt to update the state atomically.
+        /// Attempt to update the state atomically. Throws is the update fails.
         /// </summary>
         /// <param name="updateAction">The callback that updates the state. Changes are only persisted if the callback returns true</param>
         /// <returns>The updated state.</returns>

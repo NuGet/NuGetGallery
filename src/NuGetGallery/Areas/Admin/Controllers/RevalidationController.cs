@@ -33,7 +33,15 @@ namespace NuGetGallery.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<ActionResult> SetKillswitch(bool killswitch)
         {
-            await _state.UpdateStateAsync(state => state.IsKillswitchActive = killswitch);
+            try
+            {
+                await _state.UpdateStateAsync(state => state.IsKillswitchActive = killswitch);
+            }
+            catch (Exception e)
+            {
+                TempData["ErrorMessage"] = $"Failed to update revalidation state due to exception: {e.Message}";
+                QuietLog.LogHandledException(e);
+            }
 
             return Redirect(Url.Action(actionName: "Index", controllerName: "Revalidation"));
         }
