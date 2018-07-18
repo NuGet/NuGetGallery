@@ -65,6 +65,7 @@ namespace NuGetGallery.Packaging
             {
                 Uri.TryCreate(repositoryMetadata.Url, UriKind.Absolute, out var repoUrl);
                 RepositoryUrl = repoUrl;
+                RepositoryType = repositoryMetadata.Type;
             }
         }
 
@@ -108,6 +109,7 @@ namespace NuGetGallery.Packaging
         public Uri IconUrl { get; private set; }
         public Uri ProjectUrl { get; private set; }
         public Uri RepositoryUrl { get; private set; }
+        public string RepositoryType { get; private set; }
         public Uri LicenseUrl { get; private set; }
         public string Copyright { get; private set; }
         public string Description { get; private set; }

@@ -39,6 +39,7 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             RepositoryUrl = package.RepositoryUrl;
+            RepositoryType = GetIconType(package.RepositoryUrl, package.RepositoryType);
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
@@ -64,6 +65,7 @@ namespace NuGetGallery
         public string IconUrl { get; set; }
         public string ProjectUrl { get; set; }
         public string RepositoryUrl { get; set; }
+        public RepositoryKind RepositoryType { get; private set; }
         public string LicenseUrl { get; set; }
         public Boolean HideLicenseReport { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
@@ -113,25 +115,52 @@ namespace NuGetGallery
                 switch (_packageStatus)
                 {
                     case PackageStatus.Validating:
-                    {
-                        return PackageStatusSummary.Validating;
-                    }
+                        {
+                            return PackageStatusSummary.Validating;
+                        }
                     case PackageStatus.FailedValidation:
-                    {
-                        return PackageStatusSummary.FailedValidation;
-                    }
+                        {
+                            return PackageStatusSummary.FailedValidation;
+                        }
                     case PackageStatus.Available:
-                    {
-                        return Listed ? PackageStatusSummary.Listed : PackageStatusSummary.Unlisted;
-                    }
+                        {
+                            return Listed ? PackageStatusSummary.Listed : PackageStatusSummary.Unlisted;
+                        }
                     case PackageStatus.Deleted:
-                    {
-                        return PackageStatusSummary.None;
-                    }
+                        {
+                            return PackageStatusSummary.None;
+                        }
                     default:
                         throw new ArgumentOutOfRangeException(nameof(PackageStatus));
                 }
             }
+        }
+
+        private RepositoryKind GetIconType(string repositoryUrl, string repositoryType)
+        {
+            if (string.IsNullOrEmpty(repositoryUrl))
+            {
+                return RepositoryKind.Unknown;
+            }
+
+            if (repositoryUrl.IndexOf("github.com", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                return RepositoryKind.GitHub;
+            }
+
+            if (string.Equals(repositoryType, "git", StringComparison.OrdinalIgnoreCase))
+            {
+                return RepositoryKind.Git;
+            }
+
+            return RepositoryKind.Unknown;
+        }
+
+        public enum RepositoryKind
+        {
+            Unknown,
+            Git,
+            GitHub,
         }
     }
 }

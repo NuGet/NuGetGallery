@@ -525,6 +525,7 @@ namespace NuGetGallery
             package.LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
             package.ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
             package.RepositoryUrl = packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull();
+            package.RepositoryType = packageMetadata.RepositoryType;
             package.MinClientVersion = packageMetadata.MinClientVersion.ToStringOrNull();
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it

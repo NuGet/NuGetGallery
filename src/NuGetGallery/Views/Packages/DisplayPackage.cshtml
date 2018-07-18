@@ -567,7 +567,19 @@
                 @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl))
                 {
                     <li>
-                        <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                        @switch (Model.RepositoryType)
+                        {
+                            case PackageViewModel.RepositoryKind.GitHub:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                    break;
+                            case PackageViewModel.RepositoryKind.Git:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                break;
+                            default:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                break;
+                        }
+
                         <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
                             Source Code
                         </a>
