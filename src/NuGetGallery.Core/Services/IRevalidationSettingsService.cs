@@ -24,7 +24,7 @@ namespace NuGetGallery
         /// <summary>
         /// Attempt to update the latest settings.
         /// </summary>
-        /// <param name="updateAction">The callback that updates the settings. Changes are only persisted if the callback returns ture</param>
+        /// <param name="updateAction">The callback that updates the settings. Changes are only persisted if the callback returns true</param>
         /// <returns>The updated settings.</returns>
         Task<RevalidationSettings> MaybeUpdateSettingsAsync(Func<RevalidationSettings, bool> updateAction);
     }

@@ -31,9 +31,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ActivateKillswitch(bool killswitch)
+        public async Task<ActionResult> SetKillswitch(bool killswitch)
         {
-            await _settings.UpdateSettingsAsync(settings => settings.Killswitch = killswitch);
+            await _settings.UpdateSettingsAsync(settings => settings.IsKillswitchActive = killswitch);
 
             return Redirect(Url.Action(actionName: "Index", controllerName: "Revalidation"));
         }

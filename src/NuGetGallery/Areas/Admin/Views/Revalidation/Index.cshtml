@@ -12,15 +12,15 @@
             <h2>Killswitch</h2>
             <div class="form-group danger-zone">
                 <text>
-                    @using (Html.BeginForm("ActivateKillswitch", "Revalidation", FormMethod.Post))
+                    @using (Html.BeginForm("SetKillswitch", "Revalidation", FormMethod.Post))
                     {
                         @Html.AntiForgeryToken()
 
                         <p>
-                            Use the killswitch to disable the revalidation job if it causes issues ingestion pipeline.
+                            Use the killswitch to disable the revalidation job if it causes ingestion pipeline issues.
                         </p>
                         <div class="form-group">
-                            @if (Model.Settings.Killswitch)
+                            @if (Model.Settings.IsKillswitchActive)
                             {
                                 @ViewHelpers.AlertWarning(
                                     @<text>
@@ -45,7 +45,7 @@
             <h2>Statistics</h2>
             <p>
                 <strong>Initialized:</strong>
-                @if (Model.Settings.Initialized)
+                @if (Model.Settings.IsInitialized)
                 {
                     @:Yes
                 }

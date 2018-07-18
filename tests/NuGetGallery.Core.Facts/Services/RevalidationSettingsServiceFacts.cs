@@ -46,8 +46,8 @@ namespace NuGetGallery.Services
                 {
                     var settings = await _target.GetSettingsAsync();
 
-                    Assert.True(settings.Initialized);
-                    Assert.True(settings.Killswitch);
+                    Assert.True(settings.IsInitialized);
+                    Assert.True(settings.IsKillswitchActive);
                     Assert.Equal(123, settings.DesiredPackageEventRate);
                 }
             }
@@ -59,8 +59,8 @@ namespace NuGetGallery.Services
                 {
                     var settings = await _target.GetSettingsAsync();
 
-                    Assert.False(settings.Initialized);
-                    Assert.True(settings.Killswitch);
+                    Assert.False(settings.IsInitialized);
+                    Assert.True(settings.IsKillswitchActive);
                     Assert.Equal(123, settings.DesiredPackageEventRate);
                 }
             }
@@ -72,8 +72,8 @@ namespace NuGetGallery.Services
                 {
                     var settings = await _target.GetSettingsAsync();
 
-                    Assert.True(settings.Initialized);
-                    Assert.False(settings.Killswitch);
+                    Assert.True(settings.IsInitialized);
+                    Assert.False(settings.IsKillswitchActive);
                     Assert.Equal(123, settings.DesiredPackageEventRate);
                 }
             }
@@ -85,8 +85,8 @@ namespace NuGetGallery.Services
                 {
                     var settings = await _target.GetSettingsAsync();
 
-                    Assert.True(settings.Initialized);
-                    Assert.True(settings.Killswitch);
+                    Assert.True(settings.IsInitialized);
+                    Assert.True(settings.IsKillswitchActive);
                     Assert.Equal(0, settings.DesiredPackageEventRate);
                 }
             }
@@ -101,12 +101,12 @@ namespace NuGetGallery.Services
                 {
                     await _target.UpdateSettingsAsync(settings =>
                     {
-                        Assert.False(settings.Initialized);
-                        Assert.True(settings.Killswitch);
+                        Assert.False(settings.IsInitialized);
+                        Assert.True(settings.IsKillswitchActive);
                         Assert.Equal(123, settings.DesiredPackageEventRate);
 
-                        settings.Initialized = true;
-                        settings.Killswitch = false;
+                        settings.IsInitialized = true;
+                        settings.IsKillswitchActive = false;
                         settings.DesiredPackageEventRate = 456;
                     });
                 }
@@ -123,8 +123,8 @@ namespace NuGetGallery.Services
 
                 var settingsResult = JsonConvert.DeserializeObject<RevalidationSettings>(_lastUploadedSettings);
 
-                Assert.True(settingsResult.Initialized);
-                Assert.False(settingsResult.Killswitch);
+                Assert.True(settingsResult.IsInitialized);
+                Assert.False(settingsResult.IsKillswitchActive);
                 Assert.Equal(456, settingsResult.DesiredPackageEventRate);
             }
 
@@ -149,12 +149,12 @@ namespace NuGetGallery.Services
                 {
                     await _target.MaybeUpdateSettingsAsync(settings =>
                     {
-                        Assert.False(settings.Initialized);
-                        Assert.True(settings.Killswitch);
+                        Assert.False(settings.IsInitialized);
+                        Assert.True(settings.IsKillswitchActive);
                         Assert.Equal(123, settings.DesiredPackageEventRate);
 
-                        settings.Initialized = true;
-                        settings.Killswitch = false;
+                        settings.IsInitialized = true;
+                        settings.IsKillswitchActive = false;
                         settings.DesiredPackageEventRate = 456;
 
                         return false;
@@ -173,12 +173,12 @@ namespace NuGetGallery.Services
                 {
                     await _target.MaybeUpdateSettingsAsync(settings =>
                     {
-                        Assert.False(settings.Initialized);
-                        Assert.True(settings.Killswitch);
+                        Assert.False(settings.IsInitialized);
+                        Assert.True(settings.IsKillswitchActive);
                         Assert.Equal(123, settings.DesiredPackageEventRate);
 
-                        settings.Initialized = true;
-                        settings.Killswitch = false;
+                        settings.IsInitialized = true;
+                        settings.IsKillswitchActive = false;
                         settings.DesiredPackageEventRate = 456;
 
                         return true;
@@ -197,8 +197,8 @@ namespace NuGetGallery.Services
 
                 var settingsResult = JsonConvert.DeserializeObject<RevalidationSettings>(_lastUploadedSettings);
 
-                Assert.True(settingsResult.Initialized);
-                Assert.False(settingsResult.Killswitch);
+                Assert.True(settingsResult.IsInitialized);
+                Assert.False(settingsResult.IsKillswitchActive);
                 Assert.Equal(456, settingsResult.DesiredPackageEventRate);
             }
 

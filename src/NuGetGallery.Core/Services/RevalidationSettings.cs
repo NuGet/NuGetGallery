@@ -9,14 +9,14 @@ namespace NuGetGallery
     public class RevalidationSettings
     {
         /// <summary>
-        /// Whether the revalidation job has been disactivated.
+        /// Whether the revalidation job has been deactivated.
         /// </summary>
-        public bool Killswitch { get; set; } = false;
+        public bool IsKillswitchActive { get; set; } = false;
 
         /// <summary>
         /// Whether the revalidation job's state has been initialized.
         /// </summary>
-        public bool Initialized { get; set; } = false;
+        public bool IsInitialized { get; set; } = false;
 
         /// <summary>
         /// The desired number maximal number of package events (pushes, lists, unlists, revalidations)

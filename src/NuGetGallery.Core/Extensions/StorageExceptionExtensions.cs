@@ -10,12 +10,12 @@ namespace NuGetGallery
     {
         public static bool IsFileAlreadyExistsException(this StorageException e)
         {
-            return e.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict;
+            return e?.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict;
         }
 
         public static bool IsPreconditionFailedException(this StorageException e)
         {
-            return e.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.PreconditionFailed;
+            return e?.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.PreconditionFailed;
         }
     }
 }
