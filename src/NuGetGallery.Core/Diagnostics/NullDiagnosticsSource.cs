@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -27,6 +28,21 @@ namespace NuGetGallery.Diagnostics
         public void PerfEvent(string name, TimeSpan time, IEnumerable<KeyValuePair<string, object>> payload)
         {
             // No-op!
+        }
+
+        void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            // No-op!
+        }
+
+        bool ILogger.IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        IDisposable ILogger.BeginScope<TState>(TState state)
+        {
+            return null;
         }
     }
 }

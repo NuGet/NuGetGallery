@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -93,6 +94,39 @@ namespace NuGetGallery.Diagnostics
         private static string FormatMessage(string message, string member, string file, int line)
         {
             return String.Format(CultureInfo.CurrentCulture, "[{0}:{1} in {2}] {3}", file, line, member, message);
+        }
+
+        void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            var message = formatter(state, exception);
+            TraceEvent(LogLevelToTraceEventType(logLevel), eventId.Id, message);
+        }
+
+        bool ILogger.IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        IDisposable ILogger.BeginScope<TState>(TState state)
+        {
+            return null;
+        }
+
+        private static TraceEventType LogLevelToTraceEventType(LogLevel logLevel)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.Critical:
+                    return TraceEventType.Critical;
+                case LogLevel.Error:
+                    return TraceEventType.Error;
+                case LogLevel.Information:
+                    return TraceEventType.Information;
+                case LogLevel.None:
+                case LogLevel.Debug:
+                default:
+                    return TraceEventType.Verbose;
+            }
         }
     }
 }
