@@ -147,6 +147,7 @@
     <Compile Include="Areas\Admin\Controllers\DeleteController.cs" />
     <Compile Include="Areas\Admin\Controllers\LockPackageController.cs" />
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceController.cs" />
+    <Compile Include="Areas\Admin\Controllers\RevalidationController.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyController.cs" />
     <Compile Include="Areas\Admin\Controllers\SupportRequestController.cs" />
     <Compile Include="Areas\Admin\Controllers\ValidationController.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="Areas\Admin\Models\IssueStatus.cs" />
     <Compile Include="Areas\Admin\Models\ISupportRequestDbContext.cs" />
     <Compile Include="Areas\Admin\Models\SupportRequestDbContext.cs" />
+    <Compile Include="Areas\Admin\Services\RevalidationAdminService.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminService.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountAsAdminViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\DeleteAccountStatus.cs" />
@@ -194,6 +196,7 @@
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
     <Compile Include="Areas\Admin\Services\SupportRequestService.cs" />
@@ -1537,6 +1540,7 @@
     <Content Include="NuGetGallery.dll.config">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
