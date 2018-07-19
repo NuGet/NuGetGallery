@@ -9,6 +9,16 @@
         <div class="col-xs-12">
             <h1>Revalidations</h1>
 
+            @if (!Model.State.IsInitialized)
+            {
+                @ViewHelpers.AlertDanger(
+                    @<text>
+                        <strong>Uninitialized!</strong>
+
+                        The revalidation job cannot perform revalidations as its state is uninitialized.
+                    </text>)
+            }
+
             <h2>Killswitch</h2>
             <div class="form-group danger-zone">
                 <text>
@@ -43,33 +53,25 @@
             </div>
 
             <h2>Statistics</h2>
+
             <p>
-                <strong>Initialized:</strong>
-                @if (Model.State.IsInitialized)
-                {
-                    @:Yes
-                }
-                else
-                {
-                    @:No
-                }
-            </p>
-            <p>
-                <strong>Started Revalidations:</strong>
-                @Model.Statistics.StartedRevalidations.ToString("n0")
-            </p>
-            <p>
-                <strong>Started Revalidations In Last Hour:</strong>
-                @Model.Statistics.StartedRevalidationsInLastHour.ToString("n0")
-            </p>
-            <p>
-                <strong>Remaining Revalidations:</strong>
+                <strong>Revalidations Left:</strong>
                 @Model.Statistics.PendingRevalidations.ToString("n0")
             </p>
             <p>
-                <strong>Desired Package Event Rate:</strong>
+                <strong>Revalidations Started In Last Hour:</strong>
+                @Model.Statistics.StartedRevalidationsInLastHour.ToString("n0")
+            </p>
+            <p>
+                <strong>Total Revalidations Started:</strong>
+                @Model.Statistics.StartedRevalidations.ToString("n0")
+            </p>
+            <p>
+                <strong>Desired Package Event Rate*:</strong>
                 @Model.State.DesiredPackageEventRate events per hour
             </p>
+
+            <p>* The package ingestion rate which should be achievable without health degradation, as determined by the revalidation job.</p>
         </div>
     </div>
 </section>
