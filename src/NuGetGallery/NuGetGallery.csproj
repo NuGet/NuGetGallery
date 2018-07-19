@@ -2166,7 +2166,7 @@
       <Version>2.26.0-master-33196</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.26.0-chenriks-aadsql-35160</Version>
+      <Version>2.27.0-master-35322</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.26.0-master-33196</Version>
