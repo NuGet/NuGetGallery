@@ -30,6 +30,7 @@ namespace NuGetGallery
         public const string PackagesFolderName = "packages";
         public const string UploadsFolderName = "uploads";
         public const string ValidationFolderName = "validation";
+        public const string RevalidationFolderName = "revalidation";
 
         public const string SymbolPackagesFolderName = "symbol-packages";
         public const string NuGetSymbolPackageFileExtension = ".snupkg";
