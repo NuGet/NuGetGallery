@@ -22,6 +22,8 @@ namespace NuGet.Services.Validation
             { 7, ValidationIssueCode.AuthorCounterSignaturesNotSupported },
             { 8, ValidationIssueCode.PackageIsNotSigned },
             { 9, ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate },
+            { 250, ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch },
+            { 251, ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound },
 #pragma warning disable 618
             { 9999, ValidationIssueCode.ObsoleteTesting },
 #pragma warning restore 618

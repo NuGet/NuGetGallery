@@ -17,6 +17,8 @@ namespace NuGet.Services.Validation.Issues
         public static ValidationIssue OnlySignatureFormatVersion1Supported { get; } = new NoDataValidationIssue(ValidationIssueCode.OnlySignatureFormatVersion1Supported);
         public static ValidationIssue AuthorCounterSignaturesNotSupported { get; } = new NoDataValidationIssue(ValidationIssueCode.AuthorCounterSignaturesNotSupported);
         public static ValidationIssue PackageIsNotSigned { get; } = new NoDataValidationIssue(ValidationIssueCode.PackageIsNotSigned);
+        public static ValidationIssue SymbolErrorCode_ChecksumDoesNotMatch { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch);
+        public static ValidationIssue SymbolErrorCode_MatchingPortablePDBNotFound { get; } = new NoDataValidationIssue(ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound);
 
         /// <summary>
         /// The map of issue codes to the type that represents the issues. The types MUST extend <see cref="ValidationIssue"/>.

@@ -62,6 +62,18 @@ namespace NuGet.Services.Validation
         /// </summary>
         PackageIsSignedWithUnauthorizedCertificate = 9,
 
+        #region SymbolErrorCodes - reserved 200 - 299 segment
+        /// <summary>
+        /// Symbol checksum does not match with the binary assembly.
+        /// </summary>
+        SymbolErrorCode_ChecksumDoesNotMatch = 250,
+
+        /// <summary>
+        /// The pdb is not portable or did not have a binary assembly file associated.
+        /// </summary>
+        SymbolErrorCode_MatchingPortablePDBNotFound = 251,
+        #endregion 
+
         /// <summary>
         /// Obsolete testing issue - do NOT use this!
         /// </summary>
