@@ -176,6 +176,7 @@
     <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\CoreMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
+    <Compile Include="Services\CoreSymbolPackageService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Services\FileAlreadyExistsException.cs" />
@@ -186,6 +187,7 @@
     <Compile Include="Services\ICoreMessageService.cs" />
     <Compile Include="Services\ICoreMessageServiceConfiguration.cs" />
     <Compile Include="Services\ICorePackageFileService.cs" />
+    <Compile Include="Services\ICoreSymbolPackageService.cs" />
     <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />

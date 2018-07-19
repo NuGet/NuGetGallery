@@ -13,7 +13,7 @@ namespace NuGetGallery
 
         public string ValidationFolderName => CoreConstants.ValidationFolderName;
 
-        public string FileBackupsFolderName => CoreConstants.PackageBackupsFolderName;
+        public string FileBackupsFolderName => CoreConstants.SymbolPackageBackupsFolderName;
 
         public string FileBackupSavePathTemplate => CoreConstants.PackageFileBackupSavePathTemplate;
     }

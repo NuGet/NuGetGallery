@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGetGallery.Packaging;
@@ -10,18 +8,11 @@ using NuGetGallery.Packaging;
 namespace NuGetGallery
 {
     /// <summary>
-    /// Business logic related to <see cref="SymbolPackage"/>.
+    /// Business logic related to <see cref="SymbolPackage"/>. This logic is only used by the NuGet Gallery,
+    /// as opposed to the <see cref="CoreSymbolPackageService"/> which is intended for other components.
     /// </summary>
-    public interface ISymbolPackageService
+    public interface ISymbolPackageService : ICoreSymbolPackageService
     {
-        /// <summary>
-        /// Gets all the symbol packages associated with the Package ID and version
-        /// </summary>
-        /// <param name="id">The package ID.</param>
-        /// <param name="version">The package version.</param>
-        /// <returns></returns>
-        IEnumerable<SymbolPackage> FindSymbolPackageByIdAndVersion(string id, string version);
-
         /// <summary>
         /// Populate the related database tables to create the specified symbol package.
         /// </summary>
@@ -34,12 +25,5 @@ namespace NuGetGallery
         /// <param name="currentUser">The user that pushed the package on behalf of <paramref name="owner"/></param>
         /// <returns>The created symbol package entity.</returns>
         Task<SymbolPackage> CreateSymbolPackageAsync(PackageArchiveReader symbolPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser);
-
-        /// <summary>
-        /// Update the status of the symbol package.
-        /// </summary>
-        /// <param name="status">Enum value for <see cref="PackageStatus"/></param>
-        /// <returns>Awaitable task</returns>
-        Task SetSymbolPacakgeStatus(PackageStatus status);
     }
 }
