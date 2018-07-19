@@ -18,7 +18,7 @@ namespace NuGetGallery
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>
         /// <returns></returns>
-        IEnumerable<SymbolPackage> FindSymbolPackageByIdAndVersion(string id, string version);
+        IEnumerable<SymbolPackage> FindSymbolPackagesByIdAndVersion(string id, string version);
 
         /// <summary>
         /// Update the status of the symbol package.

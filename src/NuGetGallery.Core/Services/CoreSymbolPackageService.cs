@@ -21,7 +21,7 @@ namespace NuGetGallery
             _corePackageService = corePackageService ?? throw new ArgumentNullException(nameof(corePackageService));
         }
 
-        public IEnumerable<SymbolPackage> FindSymbolPackageByIdAndVersion(string id, string version)
+        public IEnumerable<SymbolPackage> FindSymbolPackagesByIdAndVersion(string id, string version)
         {
             var package = _corePackageService.FindPackageByIdAndVersionStrict(id, version);
 
