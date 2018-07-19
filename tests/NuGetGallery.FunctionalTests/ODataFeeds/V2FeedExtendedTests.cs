@@ -194,32 +194,25 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P1Tests")]
         public async Task PackageFeedSortingTest()
         {
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            var response = await request.GetResponseAsync();
-
-            string responseText = await new StreamReader(response.GetResponseStream())
-                .ReadToEndAsync();
+            var topDownloadsResponse = await GetResponseTextAsync(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
 
             // Search Gallery v2 feed for the top 10 unique package ids, or as many as exist.
-            string[] topPackages = GetTopPackageNames(responseText);
+            string[] topDownloadsNames = GetPackageNamesFromFeedResponse(topDownloadsResponse);
 
             // Ensure at least 1 package was found.
-            Assert.NotEmpty(topPackages);
+            Assert.NotEmpty(topDownloadsNames);
 
             // Search Gallery statistics for the top downloaded packages.
-            request = WebRequest.Create(UrlHelper.BaseUrl + @"stats/packageversions");
-            response = await request.GetResponseAsync();
-            responseText = await new StreamReader(response.GetResponseStream())
-                .ReadToEndAsync();
+            var statsResponse = await GetResponseTextAsync(UrlHelper.BaseUrl + @"stats/packageversions");
 
-            var expectedNames = String.Join(", ", topPackages);
-            var last = topPackages.First();
-            foreach (var current in topPackages.Skip(1))
+            var expectedNames = String.Join(", ", topDownloadsNames);
+            var last = topDownloadsNames.First();
+            foreach (var current in topDownloadsNames.Skip(1))
             {
                 // Check to make sure the top 10 packages are in the same order as the feed.
                 // We add angle brackets to prevent false failures due to duplicate package names in the page.
-                var condition = responseText.IndexOf(">" + last + "<", StringComparison.Ordinal)
-                    < responseText.IndexOf(">" + current + "<", StringComparison.Ordinal);
+                var condition = statsResponse.IndexOf(">" + last + "<", StringComparison.Ordinal)
+                    < statsResponse.IndexOf(">" + current + "<", StringComparison.Ordinal);
                 Assert.True(condition, $"Expected string {last} to come before {current}.  Expected list is: {expectedNames}.");
 
                 Assert.NotEqual(last, current);
@@ -227,12 +220,24 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             }
         }
 
-        private string[] GetTopPackageNames(string feedResponseText)
+        private async Task<string> GetResponseTextAsync(string url)
         {
+            using (var wr = await WebRequest.Create(url).GetResponseAsync())
+            using (var sr = new StreamReader(wr.GetResponseStream()))
+            {
+                return await sr.ReadToEndAsync();
+            }
+        }
+
+        private string[] GetPackageNamesFromFeedResponse(string feedResponseText)
+        {
+            const string PackageIdStartKey = @"""PackageId"": """;
+            const string PackageIdEndKey = @"""";
+
             var results = new List<string>();
 
-            Func<string, int> seekStart = s => s.IndexOf(@"""PackageId"": """, StringComparison.Ordinal);
-            Func<string, int> seekEnd = s => s.IndexOf(@"""", StringComparison.Ordinal);
+            Func<string, int> seekStart = s => s.IndexOf(PackageIdStartKey, StringComparison.Ordinal);
+            Func<string, int> seekEnd = s => s.IndexOf(PackageIdEndKey, StringComparison.Ordinal);
 
             do
             {
@@ -241,9 +246,8 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 {
                     break;
                 }
-
-                // skip over `"PackageId": `
-                feedResponseText = feedResponseText.Substring(start + 14);
+                
+                feedResponseText = feedResponseText.Substring(start + PackageIdStartKey.Length);
                 var end = seekEnd(feedResponseText);
                 if (end >= 0)
                 {
