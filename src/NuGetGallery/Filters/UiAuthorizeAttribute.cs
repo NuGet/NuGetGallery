@@ -27,6 +27,7 @@ namespace NuGetGallery.Filters
                     new RouteValueDictionary(
                         new
                         {
+                            area = "",
                             controller = "Pages",
                             action = "Home"
                         }));
