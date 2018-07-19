@@ -28,13 +28,5 @@ namespace NuGetGallery
         /// <param name="commitChanges">Whether or not to commit the changes to the entity context</param>
         /// <returns>Awaitable task</returns>
         Task UpdateStatusAsync(SymbolPackage symbolPackage, PackageStatus status, bool commitChanges = true);
-
-        /// <summary>
-        /// Updates the symbol package properties related to the package stream itself.
-        /// </summary>
-        /// <param name="symbolPackage">The symbol package to update the stream details of.</param>
-        /// <param name="metadata">The new package stream metadata.</param>
-        /// <param name="commitChanges">Whether or not to commit the changes to the entity context.</param>
-        Task UpdateMetadataAsync(SymbolPackage symbolPackage, PackageStreamMetadata metadata, bool commitChanges = true);
     }
 }

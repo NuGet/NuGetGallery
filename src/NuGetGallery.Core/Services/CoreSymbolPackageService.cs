@@ -52,15 +52,5 @@ namespace NuGetGallery
                 }
             }
         }
-
-        /// <remarks>
-        /// Symbol package metadata doesn't need to be updated from any other jobs/orchestrator for now,
-        /// The support can be added when needed in future for adding signing for symbol packages. This would possibly involve
-        /// adding new last edited column for the SymbolPackages table.
-        /// </remarks>
-        public virtual Task UpdateMetadataAsync(SymbolPackage symbolPackage, PackageStreamMetadata metadata, bool commitChanges = true)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
