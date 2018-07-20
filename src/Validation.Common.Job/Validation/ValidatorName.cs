@@ -11,5 +11,6 @@ namespace NuGet.Jobs.Validation
         public const string ScanOnly = "ScanOnly";
         public const string PackageSignatureProcessor = "PackageSigningValidator";
         public const string PackageSignatureValidator = "PackageSigningValidator2";
+        public const string SymbolsValidator = "SymbolsValidator";
     }
 }

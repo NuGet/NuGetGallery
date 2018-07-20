@@ -3,7 +3,7 @@
 
 using NuGet.Services.Validation;
 
-namespace NuGet.Jobs.Validation.PackageSigning.Storage
+namespace NuGet.Jobs.Validation.Storage
 {
     public class SerializedValidationIssue : IValidationIssue
     {

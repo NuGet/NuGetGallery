@@ -11,7 +11,7 @@ using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
-using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation;
 using Xunit;
 

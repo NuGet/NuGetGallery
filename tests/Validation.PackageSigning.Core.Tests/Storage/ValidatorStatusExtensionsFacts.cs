@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using NuGet.Jobs.Validation.PackageSigning.Storage;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation;
 using Xunit;
 

@@ -117,5 +117,12 @@ namespace NuGet.Services.Validation.Orchestrator.Telemetry
         /// A metric to of how long it took to hash a package.
         /// </summary>
         IDisposable TrackDurationToHashPackage(string packageId, string normalizedVersion, long packageSize, string hashAlgorithm, string streamType);
+
+        /// <summary>
+        /// A metric to track the messages sent from Orchestrator to Validators and enqueued by validators. Ideally the messages should not duplicate.
+        /// </summary>
+        /// <param name="validatorName">The validator name the message was sent to.</param>
+        /// <param name="validationId">The validationId.</param>
+        void TrackSymbolsMessageEnqueued(string validatorName, Guid validationId);
     }
 }

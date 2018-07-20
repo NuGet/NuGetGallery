@@ -9,8 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Jobs.Validation;
-using NuGet.Jobs.Validation.PackageSigning.Storage;
-using NuGet.Services.Validation.Orchestrator;
+using NuGet.Jobs.Validation.Storage;
 using Tests.ContextHelpers;
 using Xunit;
 

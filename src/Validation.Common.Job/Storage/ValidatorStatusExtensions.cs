@@ -5,7 +5,7 @@ using System;
 using System.Linq;
 using NuGet.Services.Validation;
 
-namespace NuGet.Jobs.Validation.PackageSigning.Storage
+namespace NuGet.Jobs.Validation.Storage
 {
     public static class ValidatorStatusExtensions
     {

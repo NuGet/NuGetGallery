@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
 
-namespace NuGet.Jobs.Validation.PackageSigning.Storage
+namespace NuGet.Jobs.Validation.Storage
 {
     public class ValidatorStateService : IValidatorStateService
     {
