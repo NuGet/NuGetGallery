@@ -824,6 +824,13 @@ img.reserved-indicator-icon {
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
+.page-package-details .package-details-info .ms-Icon-ul img.icon {
+  position: absolute;
+  left: -24px;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+}
 .page-package-details .owner-list li {
   margin-bottom: 8px;
 }

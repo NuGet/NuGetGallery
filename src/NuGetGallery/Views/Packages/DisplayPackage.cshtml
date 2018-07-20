@@ -570,7 +570,9 @@
                         @switch (Model.RepositoryType)
                         {
                             case PackageViewModel.RepositoryKind.GitHub:
-                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                <img class="icon" alt="GitHub logo"
+                                    src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
                                     break;
                             case PackageViewModel.RepositoryKind.Git:
                                 <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
