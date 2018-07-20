@@ -571,11 +571,13 @@
                         {
                             case PackageViewModel.RepositoryKind.GitHub:
                                 <img class="icon" alt="GitHub logo"
-                                    src="@Url.Absolute("~/Content/gallery/img/github.svg")"
-                                    @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
-                                    break;
+                                     src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                                break;
                             case PackageViewModel.RepositoryKind.Git:
-                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                <img class="icon" alt="Git logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/git.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
                                 break;
                             default:
                                 <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
