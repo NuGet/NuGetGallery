@@ -1713,6 +1713,7 @@ namespace NuGetGallery
                     // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
                     // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
                     //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
+                    // An issue to clear in progress if it already exists has been logged at https://github.com/NuGet/NuGetGallery/issues/6192
                     e.Log();
                 }
 
