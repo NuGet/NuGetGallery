@@ -7,11 +7,32 @@ using System.Linq;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using Xunit;
+using static NuGetGallery.PackageViewModel;
 
 namespace NuGetGallery.ViewModels
 {
     public class DisplayPackageViewModelFacts
     {
+        [Theory]
+        [InlineData("https://github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
+        [InlineData("https://bitbucket.org/NuGet/Home", "git", RepositoryKind.Git)]
+        [InlineData("https://bitbucket.org/NuGet/Home", null, RepositoryKind.Unknown)]
+        [InlineData("https://visualstudio.com", "tfs", RepositoryKind.Unknown)]
+        [InlineData(null, "tfs", RepositoryKind.Unknown)]
+        [InlineData(null, null, RepositoryKind.Unknown)]
+        [InlineData("https://github.com/NuGet", null, RepositoryKind.GitHub)]
+        public void ItDeterminesRepositoryKind(string repoUrl, string repoType, RepositoryKind expectedKind)
+        {
+            var package = new Package
+            {
+                Version= "1.0.0",
+                RepositoryUrl = repoUrl,
+                RepositoryType = repoType,
+            };
+            var model = new DisplayPackageViewModel(package, null, "test");
+            Assert.Equal(expectedKind, model.RepositoryType);
+        }
+
         [Fact]
         public void TheCtorSortsPackageVersionsProperly()
         {

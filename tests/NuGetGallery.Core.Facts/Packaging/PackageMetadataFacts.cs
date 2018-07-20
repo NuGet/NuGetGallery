@@ -162,6 +162,8 @@ namespace NuGetGallery.Packaging
             Assert.Equal("http://www.nuget.org/", packageMetadata.ProjectUrl.ToString());
             Assert.Equal("http://www.nuget.org/", packageMetadata.IconUrl.ToString());
             Assert.Equal("http://www.nuget.org/", packageMetadata.LicenseUrl.ToString());
+            Assert.Equal("https://github.com/NuGet/NuGetGallery", packageMetadata.RepositoryUrl.ToString());
+            Assert.Equal("git", packageMetadata.RepositoryType);
         }
 
         [Theory]
@@ -311,6 +313,7 @@ namespace NuGetGallery.Packaging
                         <iconUrl>http://www.nuget.org/</iconUrl>
                         <licenseUrl>http://www.nuget.org/</licenseUrl>
                         <dependencies />
+                        <repository type=""git"" url=""https://github.com/NuGet/NuGetGallery"" commit=""33a34174353a8bf64ab0ee0373936010e948d59d"" branch=""dev"" />
                       </metadata>
                     </package>");
         }
