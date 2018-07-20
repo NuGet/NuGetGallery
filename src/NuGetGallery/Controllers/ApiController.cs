@@ -449,8 +449,7 @@ namespace NuGetGallery
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                                 }
 
-                                var nuspecVersion = nuspec.GetVersion();
-                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
+                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                                 if (existingPackage != null)
                                 {
                                     if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
@@ -469,7 +468,7 @@ namespace NuGetGallery
                                         return new HttpStatusCodeWithBodyResult(
                                             HttpStatusCode.Conflict,
                                             string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                                id, nuspecVersion.ToNormalizedStringSafe()));
+                                                id, version.ToNormalizedStringSafe()));
                                     }
                                 }
                             }

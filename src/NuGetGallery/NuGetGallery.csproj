@@ -383,6 +383,7 @@
     <Compile Include="Services\IContentObjectService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
+    <Compile Include="Services\ISymbolPackageService.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
