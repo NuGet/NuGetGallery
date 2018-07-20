@@ -4,14 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
     public class CoreSymbolPackageService : ICoreSymbolPackageService
     {
-        protected readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
-        protected readonly ICorePackageService _corePackageService;
+        private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
+        private readonly ICorePackageService _corePackageService;
 
         public CoreSymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,

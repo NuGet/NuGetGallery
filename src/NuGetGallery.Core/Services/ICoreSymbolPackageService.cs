@@ -17,7 +17,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="id">The package ID.</param>
         /// <param name="version">The package version.</param>
-        /// <returns></returns>
+        /// <returns>The list of <see cref="SymbolPackage"/> associated with this package</returns>
         IEnumerable<SymbolPackage> FindSymbolPackagesByIdAndVersion(string id, string version);
 
         /// <summary>
