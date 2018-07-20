@@ -208,11 +208,6 @@ namespace NuGetGallery
                 .As<IUserService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<PackageNamingConflictValidator>()
-                .AsSelf()
-                .As<IPackageNamingConflictValidator>()
-                .InstancePerLifetimeScope();
-
             builder.RegisterType<PackageService>()
                 .AsSelf()
                 .As<IPackageService>()
@@ -423,6 +418,10 @@ namespace NuGetGallery
             builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
                 .As<IEntityRepository<PackageValidation>>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageRevalidation>>()
+                .As<IEntityRepository<PackageRevalidation>>()
+                .InstancePerLifetimeScope();
         }
 
         private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
@@ -465,6 +464,14 @@ namespace NuGetGallery
 
             builder.RegisterType<ValidationAdminService>()
                 .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationStateService>()
+                .As<IRevalidationStateService>()
                 .InstancePerLifetimeScope();
         }
 
@@ -530,6 +537,7 @@ namespace NuGetGallery
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
                 .As<IFileStorageService>()
+                .As<ICoreFileStorageService>()
                 .SingleInstance();
 
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
@@ -603,6 +611,7 @@ namespace NuGetGallery
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
                         .As<IFileStorageService>()
+                        .As<ICoreFileStorageService>()
                         .As<ICloudStorageStatusDependency>()
                         .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);

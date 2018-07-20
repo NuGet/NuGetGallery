@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
-using NuGetGallery.Filters;
 
 namespace NuGetGallery.Security
 {
@@ -17,6 +16,11 @@ namespace NuGetGallery.Security
         /// Available user security policy subscriptions.
         /// </summary>
         IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions { get; }
+
+        /// <summary>
+        /// Available organization security policy subscriptions.
+        /// </summary>
+        IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions { get; }
 
         /// <summary>
         /// Check if a user is subscribed to one or more security policies.

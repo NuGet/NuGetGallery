@@ -51,7 +51,17 @@ namespace NuGetGallery
             FileUriPermissions permissions,
             DateTimeOffset endOfAccess);
 
-        Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true);
+        Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true);
+
+        /// <summary>
+        /// Saves the file. An exception should be thrown if the access condition is not met.
+        /// </summary>
+        /// <param name="folderName">The folder that contains the file.</param>
+        /// <param name="fileName">The name of file or relative file path.</param>
+        /// <param name="file">The content that should be saved to the file.</param>
+        /// <param name="accessCondition">The condition used to determine whether to persist the save operation.</param>
+        /// <returns>A task that completes once the file is saved.</returns>
+        Task SaveFileAsync(string folderName, string fileName, Stream file, IAccessCondition accessCondition);
 
         /// <summary>
         /// Copies the source URI to the destination file. If the destination already exists and the content

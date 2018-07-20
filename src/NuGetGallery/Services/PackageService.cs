@@ -19,7 +19,6 @@ namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
-        private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
         private readonly ITelemetryService _telemetryService;
         private readonly ISecurityPolicyService _securityPolicyService;
@@ -28,13 +27,11 @@ namespace NuGetGallery
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
             IEntityRepository<Certificate> certificateRepository,
-            IPackageNamingConflictValidator packageNamingConflictValidator,
             IAuditingService auditingService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService)
             : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
-            _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
@@ -58,8 +55,6 @@ namespace NuGetGallery
                     strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
-
-                ValidatePackageTitle(packageMetadata);
 
                 var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
                 if (!supportedFrameworks.AnySafe(sf => sf == null))
@@ -100,8 +95,6 @@ namespace NuGetGallery
                     strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
-
-                ValidatePackageTitle(packageMetadata);
 
                 packageRegistration = CreateOrGetPackageRegistration(owner, currentUser, packageMetadata, isVerified);
             }
@@ -456,10 +449,6 @@ namespace NuGetGallery
 
             if (packageRegistration == null)
             {
-                if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
-                {
-                    throw new EntityException(Strings.NewRegistrationIdMatchesExistingPackageTitle, packageMetadata.Id);
-                }
 
                 packageRegistration = new PackageRegistration
                 {
@@ -678,14 +667,6 @@ namespace NuGetGallery
             {
                 throw new EntityException(
                     Strings.InvalidPortableFramework, invalidPortableFramework);
-            }
-        }
-
-        private void ValidatePackageTitle(PackageMetadata packageMetadata)
-        {
-            if (_packageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(packageMetadata.Id, packageMetadata.Title))
-            {
-                throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
             }
         }
 

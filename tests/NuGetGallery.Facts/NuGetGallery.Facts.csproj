@@ -68,6 +68,7 @@
     <Compile Include="Areas\Admin\Controllers\ReservedNamespaceControllerFacts.cs" />
     <Compile Include="Areas\Admin\Controllers\SecurityPolicyControllerFacts.cs" />
     <Compile Include="Areas\Admin\HelperFacts.cs" />
+    <Compile Include="Areas\Admin\Services\RevalidationAdminServiceFacts.cs" />
     <Compile Include="Areas\Admin\Services\ValidationAdminServiceFacts.cs" />
     <Compile Include="Authentication\ApiScopeEvaluationResultFacts.cs" />
     <Compile Include="Authentication\ApiScopeEvaluatorFacts.cs" />
@@ -130,6 +131,7 @@
     <Compile Include="Services\DeleteAccountServiceFacts.cs" />
     <Compile Include="Services\JsonStatisticsServiceFacts.cs" />
     <Compile Include="Services\ContentObjectServiceFacts.cs" />
+    <Compile Include="Services\PackageFileServiceMetadataFacts.cs" />
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
     <Compile Include="Services\LoginDiscontinuationConfigurationFacts.cs" />
@@ -178,7 +180,6 @@
     <Compile Include="ExtensionMethodsFacts.cs" />
     <Compile Include="Filters\ApiAuthorizeAttributeFacts.cs" />
     <Compile Include="Filters\RequiresAccountConfirmationAttributeFacts.cs" />
-    <Compile Include="Services\PackageNamingConflictValidatorFacts.cs" />
     <Compile Include="TestPackage.cs" />
     <Compile Include="Framework\AssertEx.cs" />
     <Compile Include="Framework\Fakes.cs" />

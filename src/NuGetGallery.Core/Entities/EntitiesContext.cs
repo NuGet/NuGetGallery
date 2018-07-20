@@ -56,6 +56,7 @@ namespace NuGetGallery
         public IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         public IDbSet<Certificate> Certificates { get; set; }
         public IDbSet<UserCertificate> UserCertificates { get; set; }
+        public IDbSet<SymbolPackage> SymbolPackages { get; set; }
 
         /// <summary>
         /// User or organization accounts.
@@ -371,6 +372,18 @@ namespace NuGetGallery
                 .WithRequired(uc => uc.Certificate)
                 .HasForeignKey(uc => uc.CertificateKey)
                 .WillCascadeOnDelete(true); // Deleting a Certificate entity will also delete related UserCertificate entities.
+
+            modelBuilder.Entity<SymbolPackage>()
+                .HasKey(s => s.Key);
+
+            modelBuilder.Entity<Package>()
+                .HasMany(p => p.SymbolPackages)
+                .WithRequired(s => s.Package)
+                .HasForeignKey(p => p.PackageKey);
+
+            modelBuilder.Entity<SymbolPackage>()
+                .Property(s => s.RowVersion)
+                .IsRowVersion();
         }
 #pragma warning restore 618
     }
