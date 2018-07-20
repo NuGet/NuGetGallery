@@ -39,7 +39,7 @@ namespace NuGetGallery
             IconUrl = package.IconUrl;
             ProjectUrl = package.ProjectUrl;
             RepositoryUrl = package.RepositoryUrl;
-            RepositoryType = GetIconType(package.RepositoryUrl, package.RepositoryType);
+            RepositoryType = GetRepositoryKind(package.RepositoryUrl, package.RepositoryType);
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
@@ -136,7 +136,7 @@ namespace NuGetGallery
             }
         }
 
-        private RepositoryKind GetIconType(string repositoryUrl, string repositoryType)
+        private RepositoryKind GetRepositoryKind(string repositoryUrl, string repositoryType)
         {
             if (string.IsNullOrEmpty(repositoryUrl))
             {
