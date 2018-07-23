@@ -91,7 +91,16 @@ namespace NuGet.Jobs
                 // Configure our logging again with Application Insights initialized.
                 loggerFactory = ConfigureLogging(job);
 
-                runContinuously = runContinuously ?? !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+                var hasOnceArgument = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+
+                if (runContinuously.HasValue && hasOnceArgument)
+                {
+                    _logger.LogWarning(
+                        $"This job is designed to {(runContinuously.Value ? "run continuously" : "run once")} so " +
+                        $"the -{JobArgumentNames.Once} argument is {(runContinuously.Value ? "ignored" : "redundant")}.");
+                }
+
+                runContinuously = runContinuously ?? !hasOnceArgument;
                 var reinitializeAfterSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.ReinitializeAfterSeconds);
                 var sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds
 
@@ -104,10 +113,20 @@ namespace NuGet.Jobs
                     }
                 }
 
-                if (sleepDuration == null)
+                if (!sleepDuration.HasValue)
                 {
-                    _logger.LogInformation("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                    if (runContinuously.Value)
+                    {
+                        _logger.LogInformation("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                    }
+                    
                     sleepDuration = 5000;
+                }
+                else if (!runContinuously.Value)
+                {
+                    _logger.LogWarning(
+                        $"The job is designed to run once so the -{JobArgumentNames.Sleep} and " +
+                        $"-{JobArgumentNames.Interval} arguments are ignored.");
                 }
 
                 if (!reinitializeAfterSeconds.HasValue)
@@ -115,6 +134,12 @@ namespace NuGet.Jobs
                     _logger.LogInformation(
                         $"{JobArgumentNames.ReinitializeAfterSeconds} command line argument is not provided or is not a valid integer. " +
                         "The job will reinitialize on every iteration");
+                }
+                else if (!runContinuously.Value)
+                {
+                    _logger.LogWarning(
+                        $"The job is designed to run once so the -{JobArgumentNames.ReinitializeAfterSeconds} " +
+                        $"argument is ignored.");
                 }
 
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
