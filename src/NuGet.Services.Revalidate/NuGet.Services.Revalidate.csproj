@@ -54,14 +54,17 @@
     <Compile Include="Services\HealthService.cs" />
     <Compile Include="Services\IHealthService.cs" />
     <Compile Include="Services\IRevalidationQueue.cs" />
-    <Compile Include="Services\IRevalidationStateService.cs" />
+    <Compile Include="Services\IRevalidationJobStateService.cs" />
+    <Compile Include="Services\IPackageRevalidationStateService.cs" />
     <Compile Include="Services\IRevalidationService.cs" />
     <Compile Include="Services\IRevalidationThrottler.cs" />
     <Compile Include="Services\ISingletonService.cs" />
+    <Compile Include="Services\RevalidationOperation.cs" />
     <Compile Include="Services\RevalidationQueue.cs" />
     <Compile Include="Services\RevalidationResult.cs" />
     <Compile Include="Services\RevalidationService.cs" />
-    <Compile Include="Services\RevalidationStateService.cs" />
+    <Compile Include="Services\RevalidationJobStateService.cs" />
+    <Compile Include="Services\PackageRevalidationStateService.cs" />
     <Compile Include="Services\RevalidationThrottler.cs" />
     <Compile Include="Services\SingletonService.cs" />
     <Compile Include="Services\TelemetryService.cs" />
@@ -98,6 +101,11 @@
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NuGet.Services.Storage">
+      <Version>2.27.0</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

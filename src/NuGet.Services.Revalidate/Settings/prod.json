@@ -9,6 +9,10 @@
       "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
       "SleepDurationBetweenBatches": "00:00:30"
     },
+
+    "MinPackageEventRate": 120,
+    "MaxPackageEventRate": 500,
+
     "Queue": {
       "MaximumAttempts": 5,
       "SleepBetweenAttempts": "00:05:00"
@@ -20,6 +24,9 @@
   },
   "ValidationDb": {
     "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Integrated Security=False;User ID=$$Prod-ValidationDBWriter-UserName$$;Password=$$Prod-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "ValidationStorage": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetprod.servicebus.windows.net/;SharedAccessKeyName=gallery;SharedAccessKey=$$Prod-ServiceBus-SharedAccessKey-Validation-GallerySender$$",

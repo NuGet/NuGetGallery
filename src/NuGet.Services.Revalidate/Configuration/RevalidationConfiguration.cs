@@ -8,6 +8,19 @@ namespace NuGet.Services.Revalidate
     public class RevalidationConfiguration
     {
         /// <summary>
+        /// The lower limit for the desired package event rate (includes package pushes, lists, unlists, and revalidations).
+        /// If the ingestion pipeline remains healthy, the job will increase its rate over time. If the ingestion pipeline becomes
+        /// unhealthy, the job will reset its rate to this value.
+        /// </summary>
+        public int MinPackageEventRate { get; set; }
+
+        /// <summary>
+        /// The revalidation job will speed up over time. This is the upper limit for the desired package event
+        /// rate (includes package pushes, lists, unlists, and revalidations).
+        /// </summary>
+        public int MaxPackageEventRate { get; set; }
+
+        /// <summary>
         /// The time before the revalidation job restarts itself.
         /// </summary>
         public TimeSpan ShutdownWaitInterval { get; set; } = TimeSpan.FromDays(1);

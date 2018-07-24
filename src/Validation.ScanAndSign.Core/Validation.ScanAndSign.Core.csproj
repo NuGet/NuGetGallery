@@ -55,7 +55,7 @@
       <Version>1.1.2</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.26.0-master-34736</Version>
+      <Version>2.27.0</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
