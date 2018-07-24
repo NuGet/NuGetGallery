@@ -14,6 +14,8 @@ namespace NuGetGallery.Diagnostics
     /// Gallery diagnostics source. Trace events (including LogError extension) use System.Diagnostics traces, whereas
     /// Exception events are tracked as exceptions in ApplicationInsights. Eventually this class should be updated to
     /// use ApplicationInsights for trace events for consistency across the Gallery.
+    /// 
+    /// ILogger implementation based on https://github.com/aspnet/Logging/tree/master/src/Microsoft.Extensions.Logging.TraceSource 
     /// </summary>
     public class TraceDiagnosticsSource : IDiagnosticsSource, IDisposable
     {
@@ -109,23 +111,19 @@ namespace NuGetGallery.Diagnostics
 
         IDisposable ILogger.BeginScope<TState>(TState state)
         {
-            return null;
+            return new TraceDiagnosticsSourceScope(state);
         }
 
         private static TraceEventType LogLevelToTraceEventType(LogLevel logLevel)
         {
             switch (logLevel)
             {
-                case LogLevel.Critical:
-                    return TraceEventType.Critical;
-                case LogLevel.Error:
-                    return TraceEventType.Error;
-                case LogLevel.Information:
-                    return TraceEventType.Information;
-                case LogLevel.None:
-                case LogLevel.Debug:
-                default:
-                    return TraceEventType.Verbose;
+                case LogLevel.Critical: return TraceEventType.Critical;
+                case LogLevel.Error: return TraceEventType.Error;
+                case LogLevel.Warning: return TraceEventType.Warning;
+                case LogLevel.Information: return TraceEventType.Information;
+                case LogLevel.Trace:
+                default: return TraceEventType.Verbose;
             }
         }
     }
