@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -31,11 +30,6 @@ namespace NuGet.Jobs.Montoring.PackageLag
 
         private const string AzureManagementSectionName = "AzureManagement";
         private const string MonitorConfigurationSectionName = "MonitorConfiguration";
-
-        /// <summary>
-        /// To be used for <see cref="IAzureManagementAPIWrapper"/> request
-        /// </summary>
-        private const string ProductionSlot = "production";
         private const int MAX_CATALOG_RETRY_COUNT = 5;
 
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
@@ -43,6 +37,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
         private IAzureManagementAPIWrapper _azureManagementApiWrapper;
         private IPackageLagTelemetryService _telemetryService;
         private HttpClient _httpClient;
+        private ISearchServiceClient _searchServiceClient;
         private ICatalogClient _catalogClient;
         private IServiceProvider _serviceProvider;
         private PackageLagMonitorConfiguration _configuration;
@@ -56,6 +51,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
             _azureManagementApiWrapper = _serviceProvider.GetService<AzureManagementAPIWrapper>();
             _catalogClient = _serviceProvider.GetService<CatalogClient>();
             _httpClient = _serviceProvider.GetService<HttpClient>();
+            _searchServiceClient = _serviceProvider.GetService<ISearchServiceClient>();
 
             _telemetryService = _serviceProvider.GetService<IPackageLagTelemetryService>();
         }
@@ -127,6 +123,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
             services.AddTransient<PackageLagMonitorConfiguration>(p => p.GetService<IOptionsSnapshot<PackageLagMonitorConfiguration>>().Value);
             services.AddSingleton<CatalogClient>();
             services.AddSingleton<AzureManagementAPIWrapper>();
+            services.AddTransient<ISearchServiceClient, SearchServiceClient>();
         }
 
         private static IServiceProvider CreateProvider(IServiceCollection services)
@@ -142,7 +139,13 @@ namespace NuGet.Jobs.Montoring.PackageLag
             var token = new CancellationToken();
             try
             {
-                var instances = await GetSearchEndpointsAsync(token);
+                var regionInformations = _configuration.RegionInformations;
+                var instances = new List<Instance>();
+
+                foreach (var regionInformation in regionInformations)
+                {
+                    instances.AddRange(await _searchServiceClient.GetSearchEndpointsAsync(regionInformation, token));
+                }
 
                 var maxCommit = DateTimeOffset.MinValue;
 
@@ -150,19 +153,9 @@ namespace NuGet.Jobs.Montoring.PackageLag
                 {
                     try
                     {
-                        using (var diagResponse = await _httpClient.GetAsync(
-                            instance.DiagUrl,
-                            HttpCompletionOption.ResponseContentRead,
-                            token))
-                        {
-                            var diagContent = diagResponse.Content;
-                            var searchDiagResultRaw = await diagContent.ReadAsStringAsync();
-                            var searchDiagResultObject = JsonConvert.DeserializeObject<SearchDiagnosticResponse>(searchDiagResultRaw);
+                        var commitDateTime = await _searchServiceClient.GetCommitDateTimeAsync(instance, token);
 
-                            var commitDateTime = DateTimeOffset.Parse(searchDiagResultObject.CommitUserData.CommitTimeStamp);
-
-                            maxCommit = commitDateTime > maxCommit ? commitDateTime : maxCommit;
-                        }
+                        maxCommit = commitDateTime > maxCommit ? commitDateTime : maxCommit;
                     }
                     catch (Exception e)
                     {
@@ -210,62 +203,6 @@ namespace NuGet.Jobs.Montoring.PackageLag
                 Logger.LogError("Exception Occured. {Exception}", e);
                 return;
             }
-        }
-
-        private async Task<List<Instance>> GetSearchEndpointsAsync(CancellationToken token)
-        {
-            var regionInformations = _configuration.RegionInformations;
-            var subscription = _configuration.Subscription;
-            var instances = new List<Instance>();
-
-            foreach (var regionInformation in regionInformations)
-            {
-                string result = await _azureManagementApiWrapper.GetCloudServicePropertiesAsync(
-                                        subscription,
-                                        regionInformation.ResourceGroup,
-                                        regionInformation.ServiceName,
-                                        ProductionSlot,
-                                        token);
-
-                var cloudService = AzureHelper.ParseCloudServiceProperties(result);
-
-                instances.AddRange(GetInstances(cloudService.Uri, cloudService.InstanceCount, regionInformation.Region));
-            }
-
-            return instances;
-        }
-
-        private List<Instance> GetInstances(Uri endpointUri, int instanceCount, string region)
-        {
-            var instancePortMinimum = _configuration.InstancePortMinimum;
-
-            Logger.LogInformation("Testing {InstanceCount} instances, starting at port {InstancePortMinimum}.", instanceCount, instancePortMinimum);
-
-            return Enumerable
-                .Range(0, instanceCount)
-                .Select(i =>
-                {
-                    var diagUriBuilder = new UriBuilder(endpointUri);
-
-                    diagUriBuilder.Scheme = "https";
-                    diagUriBuilder.Port = instancePortMinimum + i;
-                    diagUriBuilder.Path = "search/diag";
-
-                    var queryBaseUriBuilder = new UriBuilder(endpointUri);
-
-                    queryBaseUriBuilder.Scheme = "https";
-                    queryBaseUriBuilder.Port = instancePortMinimum + i;
-                    queryBaseUriBuilder.Path = "search/query";
-
-                    return new Instance
-                    {
-                        Index = i,
-                        DiagUrl = diagUriBuilder.Uri.ToString(),
-                        BaseQueryUrl = queryBaseUriBuilder.Uri.ToString(),
-                        Region = region
-                    };
-                })
-                .ToList();
         }
     }
 }

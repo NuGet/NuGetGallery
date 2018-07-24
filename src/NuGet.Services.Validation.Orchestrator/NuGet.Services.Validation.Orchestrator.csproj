@@ -55,6 +55,10 @@
     <Compile Include="Services\IEntityService.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
+    <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
+    <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
+    <Compile Include="Symbols\SymbolsValidator.cs" />
+    <Compile Include="Symbols\SymbolsValidationConfiguration.cs" />
     <Compile Include="ValidatingEntitites\IValidatingEntity.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
     <Compile Include="IValidationPackageFileService.cs" />
@@ -146,6 +150,10 @@
     <ProjectReference Include="..\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj">
       <Project>{dfac2769-4b67-4fbc-ad60-d93a39dd45ae}</Project>
       <Name>Validation.ScanAndSign.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
+      <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
+      <Name>Validation.Symbols.Core</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

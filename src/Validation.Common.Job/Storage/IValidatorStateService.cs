@@ -5,7 +5,7 @@ using System;
 using System.Threading.Tasks;
 using NuGet.Services.Validation;
 
-namespace NuGet.Jobs.Validation.PackageSigning.Storage
+namespace NuGet.Jobs.Validation.Storage
 {
     /// <summary>
     /// A service used to persist a <see cref="IValidator"/>'s validation statuses.

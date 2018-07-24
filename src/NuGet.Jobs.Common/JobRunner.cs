@@ -41,6 +41,25 @@ namespace NuGet.Jobs
         /// <returns></returns>
         public static async Task Run(JobBase job, string[] commandLineArgs)
         {
+            await Run(job, commandLineArgs, runContinuously: null);
+        }
+
+        /// <summary>
+        /// This is a static method to run a job whose args are passed in
+        /// By default,
+        ///     a) The job will be run the job once, irrespective of the 'once' argument.
+        ///     b) The sleep duration between each run when running continuously is 5000 milliSeconds. Could be overridden using '-Sleep' argument
+        /// </summary>
+        /// <param name="job">Job to run</param>
+        /// <param name="commandLineArgs">Args contains args to the job runner like (dbg, once and so on) and for the job itself</param>
+        /// <returns></returns>
+        public static async Task RunOnce(JobBase job, string[] commandLineArgs)
+        {
+            await Run(job, commandLineArgs, runContinuously: false);
+        }
+
+        private static async Task Run(JobBase job, string[] commandLineArgs, bool? runContinuously)
+        {
             if (commandLineArgs.Length > 0 && string.Equals(commandLineArgs[0], "-" + JobArgumentNames.Dbg, StringComparison.OrdinalIgnoreCase))
             {
                 commandLineArgs = commandLineArgs.Skip(1).ToArray();
@@ -72,7 +91,16 @@ namespace NuGet.Jobs
                 // Configure our logging again with Application Insights initialized.
                 loggerFactory = ConfigureLogging(job);
 
-                var runContinuously = !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+                var hasOnceArgument = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once);
+
+                if (runContinuously.HasValue && hasOnceArgument)
+                {
+                    _logger.LogWarning(
+                        $"This job is designed to {(runContinuously.Value ? "run continuously" : "run once")} so " +
+                        $"the -{JobArgumentNames.Once} argument is {(runContinuously.Value ? "ignored" : "redundant")}.");
+                }
+
+                runContinuously = runContinuously ?? !hasOnceArgument;
                 var reinitializeAfterSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.ReinitializeAfterSeconds);
                 var sleepDuration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.Sleep); // sleep is in milliseconds
 
@@ -85,10 +113,20 @@ namespace NuGet.Jobs
                     }
                 }
 
-                if (sleepDuration == null)
+                if (!sleepDuration.HasValue)
                 {
-                    _logger.LogInformation("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                    if (runContinuously.Value)
+                    {
+                        _logger.LogInformation("SleepDuration is not provided or is not a valid integer. Unit is milliSeconds. Assuming default of 5000 ms...");
+                    }
+                    
                     sleepDuration = 5000;
+                }
+                else if (!runContinuously.Value)
+                {
+                    _logger.LogWarning(
+                        $"The job is designed to run once so the -{JobArgumentNames.Sleep} and " +
+                        $"-{JobArgumentNames.Interval} arguments are ignored.");
                 }
 
                 if (!reinitializeAfterSeconds.HasValue)
@@ -97,13 +135,19 @@ namespace NuGet.Jobs
                         $"{JobArgumentNames.ReinitializeAfterSeconds} command line argument is not provided or is not a valid integer. " +
                         "The job will reinitialize on every iteration");
                 }
+                else if (!runContinuously.Value)
+                {
+                    _logger.LogWarning(
+                        $"The job is designed to run once so the -{JobArgumentNames.ReinitializeAfterSeconds} " +
+                        $"argument is ignored.");
+                }
 
                 // Ensure that SSLv3 is disabled and that Tls v1.2 is enabled.
                 ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
                 ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
                 // Run the job loop
-                await JobLoop(job, runContinuously, sleepDuration.Value, reinitializeAfterSeconds, jobArgsDictionary);
+                await JobLoop(job, runContinuously.Value, sleepDuration.Value, reinitializeAfterSeconds, jobArgsDictionary);
             }
             catch (Exception ex)
             {
