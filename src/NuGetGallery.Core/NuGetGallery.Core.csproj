@@ -246,10 +246,10 @@
       <Version>4.8.0-preview4.5287</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.27.0</Version>
+      <Version>2.26.0-master-33196</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.27.0</Version>
+      <Version>2.26.0-master-33196</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Versioning">
       <Version>4.8.0-preview4.5287</Version>
