@@ -99,6 +99,7 @@ namespace NuGetGallery
             public static readonly string Team = "Team";
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
             public static readonly string CertificatesConfiguration = "Certificates-Configuration";
+            public static readonly string SymbolsConfiguration = "Symbols-Configuration";
         }
 
         public static class StatisticsDimensions
