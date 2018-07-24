@@ -11,8 +11,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
 namespace Stats.AggregateCdnDownloadsInGallery
@@ -55,20 +53,13 @@ namespace Stats.AggregateCdnDownloadsInGallery
             DROP TABLE #AggregateCdnDownloadsInGallery";
 
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private ISqlConnectionFactory _statisticsDbConnectionFactory;
-        private ISqlConnectionFactory _galleryDbConnectionFactory;
         private int _batchSize;
         private int _batchSleepSeconds;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-
-            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
-
-            var galleryDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
-            _galleryDbConnectionFactory = new AzureSqlConnectionFactory(galleryDbConnectionString, secretInjector);
+            RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.DestinationDatabase);
 
             _batchSize = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSize) ?? _defaultBatchSize;
             _batchSleepSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSleepSeconds) ?? _defaultBatchSleepSeconds;
@@ -79,12 +70,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
             // Gather download counts data from statistics warehouse
             IReadOnlyList<DownloadCountData> downloadData;
             Logger.LogInformation("Using batch size {BatchSize} and batch sleep seconds {BatchSleepSeconds}.", _batchSize, _batchSleepSeconds);
-            Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", _statisticsDbConnectionFactory.DataSource, _statisticsDbConnectionFactory.InitialCatalog);
             var stopwatch = Stopwatch.StartNew();
 
-            using (var statisticsDatabase = await _statisticsDbConnectionFactory.CreateAsync())
+            using (var statisticsDatabase = await OpenSqlConnectionAsync(JobArgumentNames.StatisticsDatabase))
             using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot))
             {
+                Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...",
+                    statisticsDatabase.DataSource, statisticsDatabase.Database);
+
                 downloadData = (
                     await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
                         _storedProcedureName,
@@ -106,7 +99,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 return;
             }
 
-            using (var destinationDatabase = await _galleryDbConnectionFactory.CreateAsync())
+            using (var destinationDatabase = await OpenSqlConnectionAsync(JobArgumentNames.DestinationDatabase))
             {
                 // Fetch package registrations so we can match package ID to package registration key.
                 var packageRegistrationLookup = await GetPackageRegistrations(destinationDatabase);

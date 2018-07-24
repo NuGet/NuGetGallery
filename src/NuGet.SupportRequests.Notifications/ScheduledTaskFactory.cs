@@ -4,6 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.SupportRequests.Notifications
@@ -12,7 +14,11 @@ namespace NuGet.SupportRequests.Notifications
     {
         private const string _tasksNamespace = "NuGet.SupportRequests.Notifications.Tasks";
 
-        public static IScheduledTask Create(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary, ILoggerFactory loggerFactory)
+        public static IScheduledTask Create(
+            IServiceContainer serviceContainer,
+            IDictionary<string, string> jobArgsDictionary,
+            Func<Task<SqlConnection>> openSupportSqlConnectionAsync,
+            ILoggerFactory loggerFactory)
         {
             if (jobArgsDictionary == null)
             {
@@ -25,7 +31,8 @@ namespace NuGet.SupportRequests.Notifications
             }
 
             var scheduledTaskName = jobArgsDictionary[JobArgumentNames.ScheduledTask];
-            var scheduledTask = GetTaskOfType(scheduledTaskName, serviceContainer, jobArgsDictionary, loggerFactory);
+            var scheduledTask = GetTaskOfType(scheduledTaskName, serviceContainer, jobArgsDictionary,
+                openSupportSqlConnectionAsync, loggerFactory);
 
             return scheduledTask;
         }
@@ -34,6 +41,7 @@ namespace NuGet.SupportRequests.Notifications
             string taskName,
             IServiceContainer serviceContainer,
             IDictionary<string, string> jobArgsDictionary,
+            Func<Task<SqlConnection>> openSupportSqlConnectionAsync,
             ILoggerFactory loggerFactory)
         {
             if (string.IsNullOrEmpty(taskName))
@@ -51,7 +59,7 @@ namespace NuGet.SupportRequests.Notifications
             IScheduledTask scheduledTask;
             if (scheduledTaskType != null && typeof(IScheduledTask).IsAssignableFrom(scheduledTaskType))
             {
-                var args = new object[] { serviceContainer, jobArgsDictionary, loggerFactory };
+                var args = new object[] { serviceContainer, jobArgsDictionary, openSupportSqlConnectionAsync, loggerFactory };
                 scheduledTask = (IScheduledTask)Activator.CreateInstance(scheduledTaskType, args);
             }
             else

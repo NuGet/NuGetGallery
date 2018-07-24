@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.Common;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
@@ -31,7 +30,6 @@ using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
-using NuGet.Services.Sql;
 using NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign;
 using NuGet.Services.Validation.Orchestrator.Telemetry;
 using NuGet.Services.Validation.PackageSigning.ProcessSignature;
@@ -86,6 +84,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
             var configurationRoot = GetConfigurationRoot(configurationFilename, _validateOnly, out var secretInjector);
             _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
+            
+            if (!_validateOnly)
+            {
+                RegisterDatabase<GalleryDbConfiguration>(_serviceProvider);
+                RegisterDatabase<ValidationDbConfiguration>(_serviceProvider);
+            }
 
             ConfigurationValidated = false;
         }
@@ -158,15 +162,6 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddLogging();
         }
 
-        private DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
-        {
-            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
-            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
-                serviceProvider.GetRequiredService<ISecretInjector>());
-
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
-        }
-
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<ValidationConfiguration>(configurationRoot.GetSection(ConfigurationSectionName));
@@ -184,15 +179,15 @@ namespace NuGet.Services.Validation.Orchestrator
 
             services.AddTransient<ConfigurationValidator>();
             services.AddTransient<OrchestrationRunner>();
-
+            
             services.AddScoped<NuGetGallery.IEntitiesContext>(serviceProvider =>
                 new NuGetGallery.EntitiesContext(
-                    CreateDbConnection<GalleryDbConfiguration>(serviceProvider),
+                    CreateSqlConnection<GalleryDbConfiguration>(),
                     readOnly: false)
                     );
             services.AddScoped(serviceProvider =>
                 new ValidationEntitiesContext(
-                    CreateDbConnection<ValidationDbConfiguration>(serviceProvider)));
+                    CreateSqlConnection<ValidationDbConfiguration>()));
 
             services.AddScoped<IValidationEntitiesContext>(serviceProvider =>
                 serviceProvider.GetRequiredService<ValidationEntitiesContext>());

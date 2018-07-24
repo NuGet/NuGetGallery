@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Sql;
 using NuGet.Versioning;
 
 namespace Stats.CreateAzureCdnWarehouseReports
@@ -22,25 +21,28 @@ namespace Stats.CreateAzureCdnWarehouseReports
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
         internal const string ReportName = "downloads.v1.json";
 
+        private Func<Task<SqlConnection>> OpenStatisticsSqlConnectionAsync { get; }
+
         public DownloadCountReport(
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             ILogger<DownloadCountReport> logger,
-            IEnumerable<StorageContainerTarget> targets,
-            ISqlConnectionFactory statisticsDbConnectionFactory,
-            ISqlConnectionFactory galleryDbConnectionFactory)
-            : base(logger, targets, statisticsDbConnectionFactory, galleryDbConnectionFactory)
+            IEnumerable<StorageContainerTarget> targets)
+            : base(logger, targets)
         {
+            OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
         }
 
         public async Task Run()
         {
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<DownloadCountData> downloadData;
-            _logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...",
-                StatisticsDbConnectionFactory.DataSource, StatisticsDbConnectionFactory.InitialCatalog);
 
-            using (var connection = await StatisticsDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenStatisticsSqlConnectionAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
+                _logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...",
+                    connection.DataSource, connection.Database);
+
                 downloadData = (await connection.QueryWithRetryAsync<DownloadCountData>(
                     _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: _defaultCommandTimeout)).ToList();
             }

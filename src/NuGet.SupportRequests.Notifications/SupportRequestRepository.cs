@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Sql;
 using NuGet.SupportRequests.Notifications.Models;
 
 namespace NuGet.SupportRequests.Notifications
@@ -20,29 +19,24 @@ namespace NuGet.SupportRequests.Notifications
         private const string _parameterNamePagerDutyUsername = "pagerDutyUserName";
         private readonly DateTime _defaultSqlDateTime = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly ILogger _logger;
-        private readonly ISqlConnectionFactory _supportDbConnectionFactory;
+        private readonly Func<Task<SqlConnection>> _openSupportSqlConnectionAsync;
 
         public SupportRequestRepository(
-            ILoggerFactory loggerFactory,
-            ISqlConnectionFactory supportDbConnectionFactory)
+            Func<Task<SqlConnection>> openSupportSqlConnectionAsync,
+            ILoggerFactory loggerFactory)
         {
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (supportDbConnectionFactory == null)
-            {
-                throw new ArgumentNullException(nameof(supportDbConnectionFactory));
-            }
-
             _logger = loggerFactory.CreateLogger<SupportRequestRepository>();
-            _supportDbConnectionFactory = supportDbConnectionFactory;
+            _openSupportSqlConnectionAsync = openSupportSqlConnectionAsync;
         }
 
-        internal async Task<SqlConnection> OpenConnectionAsync()
+        internal async Task<SqlConnection> OpenSupportSqlConnectionAsync()
         {
-            var connection = await _supportDbConnectionFactory.CreateAsync();
+            var connection = await _openSupportSqlConnectionAsync();
             connection.InfoMessage += OnSqlConnectionInfoMessage;
 
             return connection;
@@ -181,7 +175,7 @@ namespace NuGet.SupportRequests.Notifications
         {
             if (connection == null)
             {
-                connection = await OpenConnectionAsync();
+                connection = await OpenSupportSqlConnectionAsync();
             }
             else if (connection.State != ConnectionState.Open)
             {

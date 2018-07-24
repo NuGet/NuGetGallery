@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Gallery.Maintenance.Models;
 using Microsoft.Extensions.Logging;
+using NuGet.Jobs;
 
 namespace Gallery.Maintenance
 {
@@ -37,7 +38,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
         {
             IEnumerable<PackageVerificationKey> expiredKeys;
 
-            using (var connection = await job.GalleryDatabase.CreateAsync())
+            using (var connection = await job.OpenSqlConnectionAsync(JobArgumentNames.GalleryDatabase))
             {
                 expiredKeys = await connection.QueryWithRetryAsync<PackageVerificationKey>(
                     SelectQuery,
@@ -59,7 +60,7 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
 
             if (expectedRowCount > 0)
             {
-                using (var connection = await job.GalleryDatabase.CreateAsync())
+                using (var connection = await job.OpenSqlConnectionAsync(JobArgumentNames.GalleryDatabase))
                 {
                     using (var transaction = connection.BeginTransaction())
                     {

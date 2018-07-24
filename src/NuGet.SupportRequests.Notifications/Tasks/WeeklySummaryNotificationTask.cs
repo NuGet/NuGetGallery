@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,8 +25,9 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         public WeeklySummaryNotificationTask(
             IServiceContainer serviceContainer,
             IDictionary<string, string> jobArgsDictionary,
+            Func<Task<SqlConnection>> openSupportSqlConnectionAsync,
             ILoggerFactory loggerFactory)
-          : base(serviceContainer, jobArgsDictionary, loggerFactory)
+          : base(serviceContainer, jobArgsDictionary, openSupportSqlConnectionAsync, loggerFactory)
         {
             _targetEmailAddress = jobArgsDictionary[_argumentNameTargetEmailAddress];
         }
@@ -42,7 +44,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             var startDateUtcLastWeek = referenceTime.AddDays(-7);
             var startDateUtcPriorWeek = referenceTime.AddDays(-14);
 
-            using (var connection = await supportRequestRepository.OpenConnectionAsync())
+            using (var connection = await supportRequestRepository.OpenSupportSqlConnectionAsync())
             {
                 unresolvedIssues = await supportRequestRepository.GetUnresolvedIssues(connection);
 

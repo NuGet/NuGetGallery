@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -16,19 +15,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
     {
         private int _commandTimeoutSeconds;
         private readonly string _procedureName;
-        private readonly ISqlConnectionFactory _sourceDbConnectionFactory;
 
         private ILogger<ReportDataCollector> _logger;
 
+        private Func<Task<SqlConnection>> OpenStatisticsSqlConnectionAsync { get; }
+
         public ReportDataCollector(
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             ILogger<ReportDataCollector> logger,
             string procedureName,
-            ISqlConnectionFactory sourceDbConnectionFactory,
             int timeout)
         {
+            OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
             _logger = logger;
             _procedureName = procedureName;
-            _sourceDbConnectionFactory = sourceDbConnectionFactory;
             _commandTimeoutSeconds = timeout;
         }
 
@@ -47,8 +47,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
         public static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIds(
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             ILogger logger,
-            ISqlConnectionFactory sourceDbConnectionFactory,
             DateTime reportGenerationTime,
             int commandTimeout)
         {
@@ -57,7 +57,8 @@ namespace Stats.CreateAzureCdnWarehouseReports
             IReadOnlyCollection<DirtyPackageId> packageIds = new List<DirtyPackageId>();
 
             // Get the data
-            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(sourceDbConnectionFactory, reportGenerationTime, commandTimeout), logger);
+            await WithRetry(async () => packageIds = await GetDirtyPackageIdsFromWarehouse(
+                openStatisticsSqlConnectionAsync, reportGenerationTime, commandTimeout), logger);
 
             logger.LogInformation("Found {DirtyPackagesCount} dirty packages to update.", packageIds.Count);
 
@@ -65,11 +66,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
         public static async Task<IReadOnlyCollection<string>> ListInactivePackageIdReports(
-            ISqlConnectionFactory sourceDbConnectionFactory,
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             DateTime reportGenerationTime,
             int commandTimeout)
         {
-            using (var connection = await sourceDbConnectionFactory.CreateAsync())
+            using (var connection = await openStatisticsSqlConnectionAsync())
             {
                 var command = new SqlCommand("[dbo].[DownloadReportListInactive]", connection);
                 command.CommandType = CommandType.StoredProcedure;
@@ -122,7 +123,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         private async Task<DataTable> ExecuteSql(DateTime reportGenerationTime, params Tuple<string, int, string>[] parameters)
         {
-            using (var connection = await _sourceDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenStatisticsSqlConnectionAsync())
             {
                 var command = new SqlCommand(_procedureName, connection);
                 command.CommandType = CommandType.StoredProcedure;
@@ -146,11 +147,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
         private static async Task<IReadOnlyCollection<DirtyPackageId>> GetDirtyPackageIdsFromWarehouse(
-            ISqlConnectionFactory sourceDbConnectionFactory,
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             DateTime reportGenerationTime,
             int commandTimeout)
         {
-            using (var connection = await sourceDbConnectionFactory.CreateAsync())
+            using (var connection = await openStatisticsSqlConnectionAsync())
             {
                 var command = new SqlCommand("[dbo].[GetDirtyPackageIds]", connection);
                 command.CommandType = CommandType.StoredProcedure;
@@ -172,11 +173,11 @@ namespace Stats.CreateAzureCdnWarehouseReports
         }
 
         public static async Task UpdateDirtyPackageIdCursor(
-            ISqlConnectionFactory sourceDbConnectionFactory,
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             DateTime runToCursor,
             int commandTimeout)
         {
-            using (var connection = await sourceDbConnectionFactory.CreateAsync())
+            using (var connection = await openStatisticsSqlConnectionAsync())
             {
                 var command = new SqlCommand("[dbo].[UpdateDirtyPackageIdCursor]", connection);
                 command.CommandType = CommandType.StoredProcedure;
