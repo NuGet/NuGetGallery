@@ -5,10 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
-    public interface IDiagnosticsSource
+    public interface IDiagnosticsSource : ILogger
     {
         void ExceptionEvent(Exception exception);
         
