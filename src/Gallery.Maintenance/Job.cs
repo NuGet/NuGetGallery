@@ -4,13 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
 using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
 
 namespace Gallery.Maintenance
 {
@@ -19,15 +17,9 @@ namespace Gallery.Maintenance
     /// </summary>
     public class Job : JobBase
     {
-
-        public ISqlConnectionFactory GalleryDatabase { get; private set; }
-
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-
-            GalleryDatabase = new AzureSqlConnectionFactory(databaseConnectionString, secretInjector);
+            RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.GalleryDatabase);
         }
 
         public override async Task Run()

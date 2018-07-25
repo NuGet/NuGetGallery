@@ -12,21 +12,15 @@ using NuGet.Services.Validation;
 
 namespace NuGet.Services.Revalidate
 {
-    public class RevalidationStateService : IRevalidationStateService
+    public class PackageRevalidationStateService : IPackageRevalidationStateService
     {
         private readonly IValidationEntitiesContext _context;
-        private readonly ILogger<RevalidationStateService> _logger;
+        private readonly ILogger<PackageRevalidationStateService> _logger;
 
-        public RevalidationStateService(IValidationEntitiesContext context, ILogger<RevalidationStateService> logger)
+        public PackageRevalidationStateService(IValidationEntitiesContext context, ILogger<PackageRevalidationStateService> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        public Task<bool> IsKillswitchActiveAsync()
-        {
-            // TODO
-            return Task.FromResult(false);
         }
 
         public async Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
@@ -53,7 +47,7 @@ namespace NuGet.Services.Revalidate
             }
         }
 
-        public async Task<int> RemoveRevalidationsAsync(int max)
+        public async Task<int> RemovePackageRevalidationsAsync(int max)
         {
             var revalidations = await _context.PackageRevalidations
                 .Take(max)
@@ -77,7 +71,16 @@ namespace NuGet.Services.Revalidate
             return await _context.PackageRevalidations.CountAsync();
         }
 
-        public async Task MarkRevalidationAsEnqueuedAsync(PackageRevalidation revalidation)
+        public async Task<int> CountRevalidationsEnqueuedInPastHourAsync()
+        {
+            var lowerBound = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
+
+            return await _context.PackageRevalidations
+                .Where(r => r.Enqueued >= lowerBound)
+                .CountAsync();
+        }
+
+        public async Task MarkPackageRevalidationAsEnqueuedAsync(PackageRevalidation revalidation)
         {
             try
             {

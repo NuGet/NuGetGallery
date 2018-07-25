@@ -109,7 +109,9 @@ namespace NuGet.Services.Revalidate
             services.AddTransient<ITelemetryService, TelemetryService>();
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
-            services.AddTransient<IRevalidationStateService, RevalidationStateService>();
+            services.AddTransient<IPackageRevalidationStateService, PackageRevalidationStateService>();
+            services.AddTransient<IRevalidationJobStateService, RevalidationJobStateService>();
+            services.AddTransient<NuGetGallery.IRevalidationStateService, NuGetGallery.RevalidationStateService>();
 
             // Initialization
             services.AddTransient<IPackageFinder, PackageFinder>();

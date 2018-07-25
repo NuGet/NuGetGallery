@@ -9,10 +9,19 @@
       "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
       "SleepDurationBetweenBatches": "00:00:01"
     },
+
+    "MinPackageEventRate": 120,
+    "MaxPackageEventRate": 500,
+
     "Queue": {
       "MaximumAttempts": 5,
       "SleepBetweenAttempts": "00:05:00"
     }
+  },
+
+  "Storage": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetdevlegacy;AccountKey=$$Dev-NuGetDevLegacyStorage-Key$$",
+    "Container": "revalidations"
   },
 
   "GalleryDb": {
@@ -20,6 +29,9 @@
   },
   "ValidationDb": {
     "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Integrated Security=False;User ID=$$Dev-ValidationDBWriter-UserName$$;Password=$$Dev-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+  },
+  "ValidationStorage": {
+    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetdevlegacy;AccountKey=$$Dev-NuGetDevLegacyStorage-Key$$"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=gallery;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-GallerySender$$",

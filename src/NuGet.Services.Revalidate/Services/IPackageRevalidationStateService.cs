@@ -7,14 +7,8 @@ using NuGet.Services.Validation;
 
 namespace NuGet.Services.Revalidate
 {
-    public interface IRevalidationStateService
+    public interface IPackageRevalidationStateService
     {
-        /// <summary>
-        /// Check whether the killswitch has been activated. If it has, all revalidation operations should be halted.
-        /// </summary>
-        /// <returns>Whether the killswitch has been activated.</returns>
-        Task<bool> IsKillswitchActiveAsync();
-
         /// <summary>
         /// Add the new revalidations to the database.
         /// </summary>
@@ -22,10 +16,10 @@ namespace NuGet.Services.Revalidate
         Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations);
 
         /// <summary>
-        /// Remove revalidations from the database.
+        /// Remove package revalidation entities from the database.
         /// </summary>
         /// <returns>A task that returns the number of revalidations that have been removed.</returns>
-        Task<int> RemoveRevalidationsAsync(int max);
+        Task<int> RemovePackageRevalidationsAsync(int max);
 
         /// <summary>
         /// Count the number of package revalidations in the database.
@@ -34,10 +28,16 @@ namespace NuGet.Services.Revalidate
         Task<int> PackageRevalidationCountAsync();
 
         /// <summary>
+        /// Count the number of package revalidations that were enqueued in the past hour.
+        /// </summary>
+        /// <returns>The number of enqueued revalidations.</returns>
+        Task<int> CountRevalidationsEnqueuedInPastHourAsync();
+
+        /// <summary>
         /// Update the package revalidation and mark is as enqueued.
         /// </summary>
         /// <param name="revalidation">The revalidation to update.</param>
         /// <returns>A task that completes once the revalidation has been updated.</returns>
-        Task MarkRevalidationAsEnqueuedAsync(PackageRevalidation revalidation);
+        Task MarkPackageRevalidationAsEnqueuedAsync(PackageRevalidation revalidation);
     }
 }

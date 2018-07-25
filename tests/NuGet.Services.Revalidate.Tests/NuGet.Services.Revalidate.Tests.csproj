@@ -66,9 +66,11 @@
     <Compile Include="Initializer\InitializationManagerFacts.cs" />
     <Compile Include="Initializer\PackageFinderFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RevalidationStateServiceFacts.cs" />
+    <Compile Include="Services\RevalidationJobStateServiceFacts.cs" />
+    <Compile Include="Services\PackageRevalidationStateServiceFacts.cs" />
     <Compile Include="Services\RevalidationQueueFacts.cs" />
     <Compile Include="Services\RevalidationServiceFacts.cs" />
+    <Compile Include="Services\RevalidationThrottlerFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Revalidate\NuGet.Services.Revalidate.csproj">
@@ -79,6 +81,9 @@
       <Project>{2c5be067-adfd-49e3-ba9f-13a74436e5db}</Project>
       <Name>Tests.ContextHelpers</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

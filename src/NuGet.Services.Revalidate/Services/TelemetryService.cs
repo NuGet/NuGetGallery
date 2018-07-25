@@ -11,12 +11,13 @@ namespace NuGet.Services.Revalidate
     {
         private const string RevalidationPrefix = "Revalidation.";
 
-        private const string DurationToStartNextRevalidation = RevalidationPrefix + "DurationToStartNextRevalidation";
+        private const string DurationToStartNextRevalidation = RevalidationPrefix + "DurationToStartNextRevalidationSeconds";
         private const string PackageRevalidationMarkedAsCompleted = RevalidationPrefix + "PackageRevalidationMarkedAsCompleted";
         private const string PackageRevalidationStarted = RevalidationPrefix + "PackageRevalidationStarted";
 
         private const string PackageId = "PackageId";
         private const string NormalizedVersion = "NormalizedVersion";
+        private const string Result = "Result";
 
         private readonly ITelemetryClient _client;
 
@@ -25,9 +26,15 @@ namespace NuGet.Services.Revalidate
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        public IDisposable TrackDurationToStartNextRevalidation()
+        public DurationMetric<StartNextRevalidationOperation> TrackStartNextRevalidationOperation()
         {
-            return _client.TrackDuration(DurationToStartNextRevalidation);
+            return _client.TrackDuration(
+                DurationToStartNextRevalidation,
+                new StartNextRevalidationOperation(),
+                o => new Dictionary<string, string>
+                {
+                    { Result, o.Result.ToString() }
+                });
         }
 
         public void TrackPackageRevalidationMarkedAsCompleted(string packageId, string normalizedVersion)

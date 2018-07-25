@@ -1,21 +1,22 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using NuGet.Services.Sql;
 
 namespace Stats.ImportAzureCdnStatistics
 {
     internal class DataImporter
     {
-        private readonly ISqlConnectionFactory _statisticsDbConnectionFactory;
         private const string _sqlSelectTop1FromTable = "SELECT TOP 1 * FROM [dbo].[{0}]";
 
-        public DataImporter(ISqlConnectionFactory statisticsDbConnectionFactory)
+        public Func<Task<SqlConnection>> OpenStatisticsSqlConnectionAsync { get; }
+
+        public DataImporter(Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync)
         {
-            _statisticsDbConnectionFactory = statisticsDbConnectionFactory;
+            OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
         }
 
         public async Task<DataTable> GetDataTableAsync(string tableName)
@@ -23,7 +24,7 @@ namespace Stats.ImportAzureCdnStatistics
             var dataTable = new DataTable();
             var query = string.Format(_sqlSelectTop1FromTable, tableName);
 
-            using (var connection = await _statisticsDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenStatisticsSqlConnectionAsync())
             {
                 var tableAdapter = new SqlDataAdapter(query, connection)
                 {

@@ -4,12 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.Common;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
@@ -22,7 +20,6 @@ using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
 using NuGet.Services.ServiceBus;
-using NuGet.Services.Sql;
 using NuGet.Services.Validation;
 using NuGetGallery;
 using NuGetGallery.Diagnostics;
@@ -63,6 +60,9 @@ namespace NuGet.Jobs.Validation
             var configurationRoot = GetConfigurationRoot(configurationFilename, out var secretInjector);
 
             _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
+
+            RegisterDatabase<ValidationDbConfiguration>(_serviceProvider);
+            RegisterDatabase<GalleryDbConfiguration>(_serviceProvider);
 
             ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
         }
@@ -109,15 +109,6 @@ namespace NuGet.Jobs.Validation
             return new AutofacServiceProvider(containerBuilder.Build());
         }
 
-        protected virtual DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
-        {
-            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
-            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
-                serviceProvider.GetRequiredService<ISecretInjector>());
-
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
-        }
-
         private void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
@@ -142,12 +133,12 @@ namespace NuGet.Jobs.Validation
 
             services.AddScoped<IValidationEntitiesContext>(p =>
             {
-                return new ValidationEntitiesContext(CreateDbConnection<ValidationDbConfiguration>(p));
+                return new ValidationEntitiesContext(CreateSqlConnection<ValidationDbConfiguration>());
             });
 
             services.AddScoped<IEntitiesContext>(p =>
             {
-                return new EntitiesContext(CreateDbConnection<GalleryDbConfiguration>(p), readOnly: true);
+                return new EntitiesContext(CreateSqlConnection<GalleryDbConfiguration>(), readOnly: true);
             });
 
             services.AddTransient<ISubscriptionClient>(p =>

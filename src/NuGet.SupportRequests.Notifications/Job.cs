@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 using NuGet.Jobs;
 
@@ -24,11 +25,19 @@ namespace NuGet.SupportRequests.Notifications
 
             _serviceContainer = serviceContainer ?? throw new ArgumentNullException(nameof(serviceContainer));
             _jobArgsDictionary = jobArgsDictionary;
+
+            RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.SourceDatabase);
+        }
+
+        public Task<SqlConnection> OpenSupportSqlConnectionAsync()
+        {
+            return OpenSqlConnectionAsync(JobArgumentNames.SourceDatabase);
         }
 
         public override async Task Run()
         {
-            var scheduledTask = ScheduledTaskFactory.Create(_serviceContainer, _jobArgsDictionary, LoggerFactory);
+            var scheduledTask = ScheduledTaskFactory.Create(_serviceContainer, _jobArgsDictionary,
+                OpenSupportSqlConnectionAsync, LoggerFactory);
 
             await scheduledTask.RunAsync();
         }
