@@ -370,6 +370,8 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\ISymbolsConfiguration.cs" />
+    <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
@@ -1542,6 +1544,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
