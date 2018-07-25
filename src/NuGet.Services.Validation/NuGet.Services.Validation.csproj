@@ -127,6 +127,10 @@
     <Compile Include="Migrations\201807051803515_AddValidatingType.Designer.cs">
       <DependentUpon>201807051803515_AddValidatingType.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.cs" />
+    <Compile Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.Designer.cs">
+      <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -197,6 +201,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807051803515_AddValidatingType.resx">
       <DependentUpon>201807051803515_AddValidatingType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.resx">
+      <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

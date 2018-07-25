@@ -47,6 +47,7 @@ namespace NuGet.Services.Validation
         private const string PackageSignaturesPackageKeyTypeIndex = "IX_PackageSignatures_PackageKey_Type";
         private const string PackageSignaturesEndCertificateKeyIndex = "IX_PackageSignatures_EndCertificateKey";
         private const string PackageSignaturesStatusIndex = "IX_PackageSignatures_Status";
+        private const string PackageSignaturesTypeStatusIndex = "IX_PackageSignatures_Type_Status";
 
         private const string TrustedTimestampsTable = "TrustedTimestamps";
         private const string TrustedTimestampsPackageSignatureKeyIndex = "IX_TrustedTimestamps_PackageSignatureKey";
@@ -338,7 +339,8 @@ namespace NuGet.Services.Validation
                         new IndexAttribute(PackageSignaturesPackageKeyTypeIndex, 1)
                         {
                             IsUnique = true,
-                        }
+                        },
+                        new IndexAttribute(PackageSignaturesTypeStatusIndex, 0)
                     }));
 
             modelBuilder.Entity<PackageSignature>()
@@ -357,7 +359,8 @@ namespace NuGet.Services.Validation
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(PackageSignaturesStatusIndex)
+                        new IndexAttribute(PackageSignaturesStatusIndex),
+                        new IndexAttribute(PackageSignaturesTypeStatusIndex, 1)
                     }));
 
             modelBuilder.Entity<PackageSignature>()
