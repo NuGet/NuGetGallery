@@ -4,10 +4,10 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -20,12 +20,12 @@ namespace Search.GenerateAuxiliaryData
         private readonly string _rankingsTotalScript;
 
         public RankingsExporter(
-            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
             ILogger<SqlExporter> logger,
+            ISqlConnectionFactory connectionFactory,
             CloudBlobContainer defaultDestinationContainer,
             string defaultRankingsScript,
             string defaultName)
-            : base(openStatisticsSqlConnectionAsync, logger, defaultDestinationContainer, defaultName)
+            : base(logger, connectionFactory, defaultDestinationContainer, defaultName)
         {
             _rankingsTotalScript = defaultRankingsScript;
         }

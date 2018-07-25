@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Sql;
 using Gallery.CredentialExpiration.Models;
 
 namespace Gallery.CredentialExpiration
@@ -13,15 +14,12 @@ namespace Gallery.CredentialExpiration
     public class GalleryCredentialExpiration : ICredentialExpirationExporter
     {
         private readonly CredentialExpirationJobMetadata _jobMetadata;
+        private readonly ISqlConnectionFactory _galleryDatabase;
 
-        private Func<Task<SqlConnection>> OpenGallerySqlConnectionAsync { get; }
-
-        public GalleryCredentialExpiration(
-            CredentialExpirationJobMetadata jobMetadata,
-            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
+        public GalleryCredentialExpiration(CredentialExpirationJobMetadata jobMetadata, ISqlConnectionFactory galleryDatabase)
         {
             _jobMetadata = jobMetadata;
-            OpenGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
+            _galleryDatabase = galleryDatabase;
         }
 
         /// <summary>
@@ -53,7 +51,7 @@ namespace Gallery.CredentialExpiration
             var minNotificationDate = ConvertToString(GetMinNotificationDate());
 
             // Connect to database
-            using (var galleryConnection = await OpenGallerySqlConnectionAsync())
+            using (var galleryConnection = await _galleryDatabase.CreateAsync())
             {
                 // Fetch credentials that expire in _warnDaysBeforeExpiration days 
                 // + the user's e-mail address

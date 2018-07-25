@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -26,9 +25,8 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         public OnCallDailyNotificationTask(
             IServiceContainer serviceContainer,
             IDictionary<string, string> jobArgsDictionary,
-            Func<Task<SqlConnection>> openSupportSqlConnectionAsync,
             ILoggerFactory loggerFactory)
-          : base(serviceContainer, jobArgsDictionary, openSupportSqlConnectionAsync, loggerFactory)
+          : base(serviceContainer, jobArgsDictionary, loggerFactory)
         {
             var pagerDutyConfiguration = new PagerDutyConfiguration(
                 jobArgsDictionary[_argumentNamePagerDutyAccountName],
@@ -46,7 +44,7 @@ namespace NuGet.SupportRequests.Notifications.Tasks
             var targetEmailAddress = string.Format(_targetEmailAddressFormat, onCallAlias);
 
             List<SupportRequest> unresolvedIssues;
-            using (var connection = await supportRequestRepository.OpenSupportSqlConnectionAsync())
+            using (var connection = await supportRequestRepository.OpenConnectionAsync())
             {
                 unresolvedIssues = await supportRequestRepository.GetUnresolvedIssues(connection, onCallAlias);
             }

@@ -3,12 +3,11 @@
 
 using System;
 using System.Data;
-using System.Data.SqlClient;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
+using NuGet.Services.Sql;
 using Search.GenerateAuxiliaryData;
 using Xunit;
 
@@ -44,16 +43,11 @@ namespace Tests.Search.GenerateAuxiliaryData
         private static VerifiedPackagesExporter CreateExporter()
         {
             return new VerifiedPackagesExporter(
-                DoNotOpenSqlConnectionAsync,
                 new LoggerFactory().CreateLogger<VerifiedPackagesExporter>(),
+                connectionFactory: new Mock<ISqlConnectionFactory>().Object,
                 defaultDestinationContainer: new CloudBlobContainer(new Uri("https://nuget.org")),
                 defaultVerifiedPackagesScript: "b",
                 defaultName: "c");
-        }
-
-        public static Task<SqlConnection> DoNotOpenSqlConnectionAsync()
-        {
-            return Task.FromResult((SqlConnection)null);
         }
     }
 }

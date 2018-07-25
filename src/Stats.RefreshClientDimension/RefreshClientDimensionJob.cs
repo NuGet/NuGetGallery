@@ -8,18 +8,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
 {
     public class RefreshClientDimensionJob : JobBase
     {
+        private static ISqlConnectionFactory _statisticsDbConnectionFactory;
         private static string _targetClientName;
         private static string _userAgentFilter;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
+            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
 
             _targetClientName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, "TargetClientName");
             _userAgentFilter = JobConfigurationManager.TryGetArgument(jobArgsDictionary, "UserAgentFilter");
@@ -27,7 +32,7 @@ namespace Stats.RefreshClientDimension
 
         public override async Task Run()
         {
-            using (var connection = await OpenSqlConnectionAsync(JobArgumentNames.StatisticsDatabase))
+            using (var connection = await _statisticsDbConnectionFactory.CreateAsync())
             {
                 IDictionary<string, Tuple<int, int>> linkedUserAgents;
 

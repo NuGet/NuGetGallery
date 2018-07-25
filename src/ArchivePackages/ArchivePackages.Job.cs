@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Threading.Tasks;
@@ -13,6 +12,8 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
+using NuGet.Services.KeyVault;
+using NuGet.Services.Sql;
 
 namespace ArchivePackages
 {
@@ -52,6 +53,8 @@ namespace ArchivePackages
         /// Blob containing the cursor data. Cursor data comprises of cursorDateTime
         /// </summary>
         public string CursorBlobName { get; set; }
+        
+        private ISqlConnectionFactory _packageDbConnectionFactory;
 
         protected CloudBlobContainer SourceContainer { get; private set; }
 
@@ -59,13 +62,13 @@ namespace ArchivePackages
 
         protected CloudBlobContainer SecondaryDestinationContainer { get; private set; }
 
-        private SqlConnectionStringBuilder PackageDatabase { get; set; }
-
         public Job() : base(JobEventSource.Log) { }
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            PackageDatabase = RegisterDatabase(serviceContainer, jobArgsDictionary, JobArgumentNames.PackageDatabase);
+            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            var packageDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase);
+            _packageDbConnectionFactory = new AzureSqlConnectionFactory(packageDbConnectionString, secretInjector);
 
             Source = CloudStorageAccount.Parse(
                         JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.Source));
@@ -89,18 +92,13 @@ namespace ArchivePackages
 
         public override async Task Run()
         {
-            JobEventSourceLog.PreparingToArchive(
-                Source.Credentials.AccountName, SourceContainer.Name,
-                PrimaryDestination.Credentials.AccountName, PrimaryDestinationContainer.Name,
-                PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-
+            JobEventSourceLog.PreparingToArchive(Source.Credentials.AccountName, SourceContainer.Name, PrimaryDestination.Credentials.AccountName, PrimaryDestinationContainer.Name, _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
             await Archive(PrimaryDestinationContainer);
 
             // todo: consider reusing package query for primary and secondary archives
             if (SecondaryDestinationContainer != null)
             {
                 JobEventSourceLog.PreparingToArchive2(SecondaryDestination.Credentials.AccountName, SecondaryDestinationContainer.Name);
-
                 await Archive(SecondaryDestinationContainer);
             }
         }
@@ -126,10 +124,9 @@ namespace ArchivePackages
 
             JobEventSourceLog.CursorData(cursorDateTime.ToString(DateTimeFormatSpecifier));
 
-            JobEventSourceLog.GatheringPackagesToArchiveFromDb(PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
-
+            JobEventSourceLog.GatheringPackagesToArchiveFromDb(_packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
             List<PackageRef> packages;
-            using (var connection = await OpenSqlConnectionAsync(JobArgumentNames.PackageDatabase))
+            using (var connection = await _packageDbConnectionFactory.CreateAsync())
             {
                 packages = (await connection.QueryAsync<PackageRef>(@"
 			    SELECT pr.Id, p.NormalizedVersion AS Version, p.Hash, p.LastEdited, p.Published
@@ -138,8 +135,7 @@ namespace ArchivePackages
 			    WHERE Published > @cursorDateTime OR LastEdited > @cursorDateTime", new { cursorDateTime = cursorDateTime }))
                     .ToList();
             }
-
-            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, PackageDatabase.DataSource, PackageDatabase.InitialCatalog);
+            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
 
             var archiveSet = packages
                 .AsParallel()
