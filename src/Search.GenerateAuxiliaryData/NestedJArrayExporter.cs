@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -17,17 +17,11 @@ namespace Search.GenerateAuxiliaryData
         : SqlExporter
     {
         public string Col0 { get; }
-
         public string Col1 { get; }
-
         public string SqlScript { get; }
 
-        public NestedJArrayExporter(
-            Func<Task<SqlConnection>> openGallerySqlConnectionAsync,
-            ILogger<NestedJArrayExporter> logger,
-            CloudBlobContainer defaultDestinationContainer,
-            string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
-            : base(openGallerySqlConnectionAsync, logger, defaultDestinationContainer, defaultName)
+        public NestedJArrayExporter(ILogger<NestedJArrayExporter> logger, ISqlConnectionFactory connectionFactory, CloudBlobContainer defaultDestinationContainer, string defaultSqlScript, string defaultName, string defaultCol0, string defaultCol1)
+            : base(logger, connectionFactory, defaultDestinationContainer, defaultName)
         {
             Col0 = defaultCol0;
             Col1 = defaultCol1;

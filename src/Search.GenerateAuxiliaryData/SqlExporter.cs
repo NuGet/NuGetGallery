@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
@@ -12,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -20,19 +20,14 @@ namespace Search.GenerateAuxiliaryData
     {
         private static Assembly _executingAssembly = Assembly.GetExecutingAssembly();
         private static string _assemblyName = _executingAssembly.GetName().Name;
+        
+        public ISqlConnectionFactory ConnectionFactory { get; }
 
-        private Func<Task<SqlConnection>> OpenSqlConnectionAsync { get; }
-
-        public SqlExporter(
-            Func<Task<SqlConnection>> openSqlConnectionAsync,
-            ILogger<SqlExporter> logger,
-            CloudBlobContainer defaultDestinationContainer,
-            string defaultName)
+        public SqlExporter(ILogger<SqlExporter> logger, ISqlConnectionFactory connectionFactory, CloudBlobContainer defaultDestinationContainer, string defaultName)
             : base(logger, defaultDestinationContainer, defaultName)
         {
             _logger = logger;
-            
-            OpenSqlConnectionAsync = openSqlConnectionAsync;
+            ConnectionFactory = connectionFactory;
         }
 
         protected static string GetEmbeddedSqlScript(string resourceName)
@@ -43,12 +38,12 @@ namespace Search.GenerateAuxiliaryData
 
         public override async Task ExportAsync()
         {
-            JContainer result;
-            using (var connection = await OpenSqlConnectionAsync())
-            {
-                _logger.LogInformation("Generating {ReportName} report from {DataSource}/{InitialCatalog}.",
-                    _name, connection.DataSource, connection.Database);
+            _logger.LogInformation("Generating {ReportName} report from {DataSource}/{InitialCatalog}.",
+                _name, ConnectionFactory.DataSource, ConnectionFactory.InitialCatalog);
 
+            JContainer result;
+            using (var connection = await ConnectionFactory.CreateAsync())
+            {
                 result = GetResultOfQuery(connection);
             }
 

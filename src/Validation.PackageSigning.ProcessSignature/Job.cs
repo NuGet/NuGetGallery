@@ -35,7 +35,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             services.AddScoped<IEntitiesContext>(p =>
             {
-                return new EntitiesContext(CreateSqlConnection<GalleryDbConfiguration>(), readOnly: false);
+                return new EntitiesContext(CreateDbConnection<GalleryDbConfiguration>(p), readOnly: false);
             });
 
             services.Add(ServiceDescriptor.Transient(typeof(IEntityRepository<>), typeof(EntityRepository<>)));

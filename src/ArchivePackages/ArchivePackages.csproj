@@ -75,6 +75,9 @@
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Sql">
+      <Version>2.25.0-master-30453</Version>
+    </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>
     </PackageReference>

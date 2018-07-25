@@ -49,6 +49,7 @@
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="Configuration\ValidationStorageConfiguration.cs" />
+    <Compile Include="Extensions\SqlConnectionStringBuilderExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="SecretReader\SecretReaderFactory.cs" />
@@ -79,9 +80,6 @@
       <Version>2.27.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.27.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Sql">
       <Version>2.27.0</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">

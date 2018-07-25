@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -17,12 +18,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         protected readonly IReadOnlyCollection<StorageContainerTarget> Targets;
 
+        protected readonly ISqlConnectionFactory StatisticsDbConnectionFactory;
+
+        protected ISqlConnectionFactory GalleryDbConnectionFactory;
+
         protected ReportBase(
             ILogger<ReportBase> logger,
-            IEnumerable<StorageContainerTarget> targets)
+            IEnumerable<StorageContainerTarget> targets,
+            ISqlConnectionFactory statisticsDbConnectionFactory,
+            ISqlConnectionFactory galleryDbConnectionFactory)
         {
             _logger = logger;
             Targets = targets.ToList().AsReadOnly();
+            StatisticsDbConnectionFactory = statisticsDbConnectionFactory;
+            GalleryDbConnectionFactory = galleryDbConnectionFactory;
         }
 
         protected async Task<CloudBlobContainer> GetBlobContainer(StorageContainerTarget target)
