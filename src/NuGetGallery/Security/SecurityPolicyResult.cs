@@ -12,13 +12,13 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyResult
     {
-        private readonly string[] _warningMessages;
+        private readonly List<string> _warningMessages;
         public static SecurityPolicyResult SuccessResult = new SecurityPolicyResult(true, null, Array.Empty<string>());
 
         private SecurityPolicyResult(bool success, string errorMessage, string[] warningMessages)
         {
             Success = success;
-            _warningMessages = warningMessages;
+            _warningMessages = warningMessages.ToList();
             ErrorMessage = errorMessage;
         }
 
@@ -66,5 +66,10 @@ namespace NuGetGallery.Security
         public bool HasWarnings => _warningMessages.Any();
 
         public IReadOnlyCollection<string> WarningMessages => _warningMessages;
+
+        public void AddWarnings(IReadOnlyCollection<string> warningMessages)
+        {
+            _warningMessages.AddRange(warningMessages);
+        }
     }
 }

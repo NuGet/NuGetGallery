@@ -134,6 +134,9 @@ namespace NuGetGallery.Security
 
         public Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
         {
+            // Todo:
+            // Maybe we should enumerate through the user's packages and add Microsoft as a package owner if the package passes the metadata requirements when a user is onboarded to this policy.
+            // We should also unlock the package if it is locked as part of adding Microsoft as co-owner.
             return Task.CompletedTask;
         }
 

@@ -19,9 +19,9 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
-        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers 
+        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers
             = new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
-        private static Lazy<IEnumerable<PackageSecurityPolicyHandler>> _packageHandlers 
+        private static Lazy<IEnumerable<PackageSecurityPolicyHandler>> _packageHandlers
             = new Lazy<IEnumerable<PackageSecurityPolicyHandler>>(CreatePackageHandlers);
         private static readonly ControlRequiredSignerPolicy _controlRequiredSignerPolicy
             = new ControlRequiredSignerPolicy();
@@ -49,9 +49,9 @@ namespace NuGetGallery.Security
         }
 
         public SecurityPolicyService(
-            IEntitiesContext entitiesContext, 
-            IAuditingService auditing, 
-            IDiagnosticsService diagnostics, 
+            IEntitiesContext entitiesContext,
+            IAuditingService auditing,
+            IDiagnosticsService diagnostics,
             IAppConfiguration configuration,
             IComponentContext componentContext)
         {
@@ -199,6 +199,7 @@ namespace NuGetGallery.Security
 
             var relevantHandlers = PackageHandlers.Where(h => h.Action == action).ToList();
 
+            var packagePoliciesResult = SecurityPolicyResult.SuccessResult;
             foreach (var handler in relevantHandlers)
             {
                 var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase)).ToList();
@@ -209,11 +210,11 @@ namespace NuGetGallery.Security
                         EntitiesContext,
                         _componentContext.Resolve<IPackageOwnershipManagementService>(),
                         _componentContext.Resolve<IReservedNamespaceService>(),
-                        foundPolicies, 
-                        package, 
-                        packageRegistration, 
-                        sourceAccount, 
-                        targetAccount, 
+                        foundPolicies,
+                        package,
+                        packageRegistration,
+                        sourceAccount,
+                        targetAccount,
                         httpContext);
 
                     var result = await handler.EvaluateAsync(context);
@@ -231,10 +232,22 @@ namespace NuGetGallery.Security
 
                         return result;
                     }
+
+                    if (result.HasWarnings)
+                    {
+                        if (packagePoliciesResult == SecurityPolicyResult.SuccessResult)
+                        {
+                            packagePoliciesResult = result;
+                        }
+                        else
+                        {
+                            packagePoliciesResult.AddWarnings(result.WarningMessages);
+                        }
+                    }
                 }
             }
 
-            return SecurityPolicyResult.SuccessResult;
+            return packagePoliciesResult;
         }
 
         /// <summary>
