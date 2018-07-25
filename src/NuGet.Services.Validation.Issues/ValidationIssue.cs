@@ -44,7 +44,9 @@ namespace NuGet.Services.Validation.Issues
             ValidationIssueCode.AuthorAndRepositoryCounterSignaturesNotSupported,
             ValidationIssueCode.OnlySignatureFormatVersion1Supported,
             ValidationIssueCode.AuthorCounterSignaturesNotSupported,
-            ValidationIssueCode.PackageIsNotSigned
+            ValidationIssueCode.PackageIsNotSigned,
+            ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound,
+            ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch
         };
 
         /// <summary>
