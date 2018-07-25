@@ -1778,6 +1778,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading its symbols..
+        /// </summary>
+        public static string SymbolsPackage_PackageIdAndVersionNotFound {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_PackageIdAndVersionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The title of your package, &apos;{0}&apos;, is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again..
         /// </summary>
         public static string TitleMatchesExistingRegistration {

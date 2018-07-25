@@ -333,6 +333,36 @@ namespace NuGetGallery
             return CreatePackageInternal();
         }
 
+        [HttpPut]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ActionName("PushSymbolPackageApi")]
+        public virtual Task<ActionResult> CreateSymbolPackagePut()
+        {
+            return null;
+        }
+
+        private bool FoundEntryInFuture(Stream stream, out ZipArchiveEntry entry)
+        {
+            entry = null;
+
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
+
+                var entryInTheFuture = archive.Entries.FirstOrDefault(
+                    e => e.LastWriteTime.UtcDateTime > reference);
+
+                if (entryInTheFuture != null)
+                {
+                    entry = entryInTheFuture;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task<ActionResult> CreatePackageInternal()
         {
             string id = null;
@@ -353,20 +383,12 @@ namespace NuGetGallery
                 {
                     try
                     {
-                        using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                        if (FoundEntryInFuture(packageStream, out ZipArchiveEntry entryInTheFuture))
                         {
-                            var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
-
-                            var entryInTheFuture = archive.Entries.FirstOrDefault(
-                                e => e.LastWriteTime.UtcDateTime > reference);
-
-                            if (entryInTheFuture != null)
-                            {
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                   CultureInfo.CurrentCulture,
-                                   Strings.PackageEntryFromTheFuture,
-                                   entryInTheFuture.Name));
-                            }
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryFromTheFuture,
+                                entryInTheFuture.Name));
                         }
 
                         using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))

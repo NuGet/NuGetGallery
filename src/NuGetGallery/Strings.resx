@@ -911,4 +911,7 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="PackageFileTooLarge" xml:space="preserve">
     <value>The package file exceeds the size limit. Please try again.</value>
   </data>
+  <data name="SymbolsPackage_PackageIdAndVersionNotFound" xml:space="preserve">
+    <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading its symbols.</value>
+  </data>
 </root>

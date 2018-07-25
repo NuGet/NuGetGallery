@@ -663,6 +663,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
 
             routes.MapRoute(
+                "v2" + RouteName.PushSymbolPackageApi,
+                "api/v2/symbolpackage",
+                defaults: new { controller = "Api", action = "PushSymbolPackageApi" },
+                constraints: new { httpMethod = new HttpMethodConstraint("PUT") });
+
+            routes.MapRoute(
                 "v2" + RouteName.DeletePackageApi,
                 "api/v2/package/{id}/{version}",
                 new { controller = "Api", action = "DeletePackageApi" },
