@@ -420,7 +420,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
-                    signature.V3ServiceIndexUrl.AbsoluteUri);
+                    signature.V3ServiceIndexUrl?.AbsoluteUri);
 
                 return false;
             }
