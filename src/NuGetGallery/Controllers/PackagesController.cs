@@ -1621,6 +1621,30 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
 
+                    var validationResult = await _packageUploadService.ValidatePackageAsync(
+                        package,
+                        nugetPackage,
+                        owner,
+                        currentUser);
+                    switch (validationResult.Type)
+                    {
+                        case PackageValidationResultType.Accepted:
+                            break;
+                        case PackageValidationResultType.Invalid:
+                        case PackageValidationResultType.PackageShouldNotBeSigned:
+                            return Json(HttpStatusCode.BadRequest, new[] { validationResult.Message });
+                        case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
+                            return Json(
+                                HttpStatusCode.BadRequest,
+                                new[]
+                                {
+                                    validationResult.Message + " " +
+                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate
+                                });
+                        default:
+                            throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                    }
+
                     if (formData.Edit != null)
                     {
                         try

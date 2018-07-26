@@ -391,6 +391,7 @@
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
+    <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -472,6 +473,8 @@
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Services\PackageValidationResult.cs" />
+    <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
@@ -1382,7 +1385,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
-    <Compile Include="Services\Extensions.cs" />
+    <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />

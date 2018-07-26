@@ -53,7 +53,7 @@
             @if (Model != null && Model.IsUploadInProgress)
             {
                 <div id="warning-container">
-                    @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>                    )
+                    @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
                     @ViewHelpers.AlertPackageVerifyRecommendation()
                 </div>
             }

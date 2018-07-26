@@ -96,7 +96,7 @@ namespace NuGetGallery
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
-                packageRegistration = CreateOrGetPackageRegistration(owner, currentUser, packageMetadata, isVerified);
+                packageRegistration = CreateOrGetPackageRegistration(owner, packageMetadata, isVerified);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -443,7 +443,7 @@ namespace NuGetGallery
             }
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User owner, User currentUser, PackageMetadata packageMetadata, bool isVerified)
+        private PackageRegistration CreateOrGetPackageRegistration(User owner, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
