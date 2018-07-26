@@ -486,8 +486,34 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
         <script type="text/javascript">
             var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
             for (var i in sections) {
-                var containerId = sections[i] + "-container";
-                window.nuget.configureExpanderHeading(containerId);
+                var configureSection = function (section) {
+                    var containerId = section + "-container";
+                    window.nuget.configureExpanderHeading(containerId);
+                    $("#cancel-" + section).click(function (e) {
+                        // Collapse the container.
+                        $("#" + containerId).collapse('hide');
+
+                        // Prevent navigation.
+                        e.preventDefault();
+
+                        // Reset the form.
+                        var formElement = $("#" + containerId + " form")[0];
+                        if (formElement) {
+                            formElement.reset();
+                        }
+
+                        // Clear values.
+                        $("#" + containerId + " input[type='text']").val("");
+                        $("#" + containerId + " input[type='password']").val("");
+
+                        // Reset the validation state.
+                        if (formElement) {
+                            window.nuget.resetFormValidation(formElement);
+                        }
+                    });
+                }
+
+                configureSection(sections[i]);
             }
         </script>
     }
