@@ -226,7 +226,7 @@
         }
 
         if (hasAttribute("tabindex")) {
-            // Elements that have had their tabindex set to -1 cannot be tabbed to
+            // Elements that have had their tabindex set to -1 cannot be tabbed to.
             return element.attr("tabindex") !== "-1";
         }
 
@@ -252,7 +252,7 @@
             return element;
         }
 
-        // If an element has its tabindex set to -1, none of its children can be tabbed to
+        // If an element has its tabindex set to -1, none of its children can be tabbed to.
         if (element.attr("tabindex") === "-1") {
             return null;
         }
@@ -472,13 +472,14 @@
         });
 
         $("#skipToContent").on('click', function () {
-            // Focus on the first element that can be tabbed to inside the "skippedToContent" element
+            // Focus on the first element that can be tabbed to inside the "skippedToContent" element.
             var skippedToContent = $("#skippedToContent");
             var firstChildThatCanBeTabbedTo = window.nuget.getFirstChildThatCanBeTabbedTo(skippedToContent.first());
             if (firstChildThatCanBeTabbedTo !== null) {
                 firstChildThatCanBeTabbedTo.focus();
             } else {
-                // Focus on the "skippedToContent" element if we can't find an element on the page we can tab to
+                // Focus on the "skippedToContent" element itself if we can't find an element on the page we can tab to.
+                // It's better to lose tab focus than to have the focus stay on the "Skip to Content" link. 
                 skippedToContent.focus();
             }
         });
