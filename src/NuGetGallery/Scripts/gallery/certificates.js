@@ -10,6 +10,8 @@
             _addCertificateUrl = addCertificateUrl;
             _getCertificatesUrl = getCertificatesUrl;
 
+            window.nuget.configureFileInputButton("register-new");
+
             $('#input-select-file').on('change', function () {
                 clearErrors();
 

@@ -205,6 +205,16 @@
         window.nuget.configureExpander(prefix, "ChevronRight", null, "ChevronDown", null);
     };
 
+    nuget.configureFileInputButton = function (id) {
+        $("#" + id).on("keypress", function (e) {
+            var code = (e.keyCode || e.which);
+            var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+            if (isInteract) {
+                $(this).click();
+            }
+        });
+    }
+
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
     nuget.supportsSvg = function () {
