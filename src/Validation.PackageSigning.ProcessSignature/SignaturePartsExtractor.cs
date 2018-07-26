@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
@@ -18,15 +19,18 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
     {
         private readonly ICertificateStore _certificateStore;
         private readonly IValidationEntitiesContext _entitiesContext;
+        private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
         private readonly ILogger<SignaturePartsExtractor> _logger;
 
         public SignaturePartsExtractor(
             ICertificateStore certificateStore,
             IValidationEntitiesContext entitiesContext,
+            IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
             ILogger<SignaturePartsExtractor> logger)
         {
             _certificateStore = certificateStore ?? throw new ArgumentNullException(nameof(certificateStore));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -224,6 +228,12 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
         {
             if (signatureAndCertificates == null)
             {
+                return;
+            }
+
+            if (type == PackageSignatureType.Repository && !_configuration.Value.CommitRepositorySignatures)
+            {
+                _logger.LogInformation("Skipping initialization of repository signature due to configuration!");
                 return;
             }
 

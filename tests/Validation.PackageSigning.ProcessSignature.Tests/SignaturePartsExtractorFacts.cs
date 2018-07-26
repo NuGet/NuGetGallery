@@ -10,7 +10,9 @@ using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
+using NuGet.Jobs.Validation.PackageSigning;
 using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
@@ -62,7 +64,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         "CN=NUGET_DO_NOT_TRUST.root.test.test, OU=Test Organizational Unit Name, O=Test Organization Name, L=Redmond, S=WA, C=US",
                         TestResources.RootThumbprint),
                 },
-                    TimestampEndCertificate = new SubjectAndThumbprint(
+                TimestampEndCertificate = new SubjectAndThumbprint(
                     "CN=Symantec SHA256 TimeStamping Signer - G2, OU=Symantec Trust Network, O=Symantec Corporation, C=US",
                     TestResources.Leaf1TimestampThumbprint),
                     TimestampParentCertificates = new[]
@@ -116,6 +118,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly Mock<ICertificateStore> _certificateStore;
             private readonly List<X509Certificate2> _savedCertificates;
             private readonly Mock<IValidationEntitiesContext> _entitiesContext;
+            private readonly Mock<IOptionsSnapshot<ProcessSignatureConfiguration>> _configAccessor;
+            private readonly ProcessSignatureConfiguration _config;
             private readonly Mock<ILogger<SignaturePartsExtractor>> _logger;
             private readonly SignaturePartsExtractor _target;
 
@@ -152,11 +156,20 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Setup(x => x.TrustedTimestamps)
                     .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
 
+                _configAccessor = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
+                _config = new ProcessSignatureConfiguration
+                {
+                    CommitRepositorySignatures = true
+                };
+
+                _configAccessor.Setup(a => a.Value).Returns(_config);
+
                 _logger = new Mock<ILogger<SignaturePartsExtractor>>();
 
                 _target = new SignaturePartsExtractor(
                     _certificateStore.Object,
                     _entitiesContext.Object,
+                    _configAccessor.Object,
                     _logger.Object);
             }
 
@@ -614,6 +627,51 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Equal(
                     Leaf1Certificates.Certificates.Count + 1,
                     signature.SignedCms.Certificates.Count + signature.Timestamps.Sum(x => x.SignedCms.Certificates.Count));
+            }
+
+            [Fact]
+            public async Task IfRepositorySignatureExtractionIsDisabled_IgnoresRepositorySignatureOnRepositorySignedPackage()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.RepoSignedPackageLeaf1);
+
+                _entitiesContext
+                    .Setup(x => x.PackageSignatures)
+                    .Returns(DbSetMockFactory.Create<PackageSignature>());
+
+                _config.CommitRepositorySignatures = false;
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(0, _entitiesContext.Object.PackageSignatures.Count());
+
+                // The repository signature's certificate is still stored on blob storage.
+                VerifyStoredCertificates(Leaf1Certificates);
+            }
+
+            [Fact]
+            public async Task IfRepositorySignatureExtractionIsDisabled_IgnoresRepositorySignatureOnRepositoryCounterSignedPackage()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.AuthorAndRepoSignedPackageLeaf1);
+
+                _entitiesContext
+                    .Setup(x => x.PackageSignatures)
+                    .Returns(DbSetMockFactory.Create<PackageSignature>());
+
+                _config.CommitRepositorySignatures = false;
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(1, _entitiesContext.Object.PackageSignatures.Count());
+                Assert.Equal(PackageSignatureType.Author, _entitiesContext.Object.PackageSignatures.First().Type);
+
+                // The repository signature's certificate is still stored on blob storage.
+                VerifyStoredCertificates(AuthorAndRepoSignedCertificates);
             }
 
             private void AssignIds()
