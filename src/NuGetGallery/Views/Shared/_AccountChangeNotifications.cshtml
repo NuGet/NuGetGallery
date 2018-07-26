@@ -54,18 +54,18 @@
                 <div class="checkbox">
                     <label>
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.EmailAllowed)
-                        <b>@ViewBag.EmailAllowedLabel</b>
+                        <b id="emailallowed-label">@ViewBag.EmailAllowedLabel</b>
                     </label>
-                    <div id="emailallowed-label" class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
+                    <div class="label-sibling">@Html.Raw(ViewBag.EmailAllowedDescription)</div>
                     @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.EmailAllowed)
                 </div>
 
                 <div class="checkbox">
                     <label>
                         @Html.ShowCheckboxFor(x => x.ChangeNotifications.NotifyPackagePushed)
-                        <b>@ViewBag.NotifyPackagePushedLabel</b>
+                        <b id="notifypackagepushed-label">@ViewBag.NotifyPackagePushedLabel</b>
                     </label>
-                    <div id="notifypackagepushed-label" class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
+                    <div class="label-sibling">@ViewBag.NotifyPackagePushedDescription</div>
                     @Html.ShowValidationMessagesFor(x => x.ChangeNotifications.NotifyPackagePushed)
                 </div>
 
