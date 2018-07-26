@@ -15,7 +15,7 @@ namespace NuGetGallery.Security
             IReservedNamespaceService reservedNamespaceService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            PackageRegistration existingPackageRegistration,
+            bool packageRegistrationAlreadyExists,
             HttpContextBase httpContext)
             : base(policies, httpContext)
         {
@@ -24,7 +24,7 @@ namespace NuGetGallery.Security
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
 
-            ExistingPackageRegistration = existingPackageRegistration;
+            PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
 
         public PackageSecurityPolicyEvaluationContext(
@@ -33,7 +33,7 @@ namespace NuGetGallery.Security
             IReservedNamespaceService reservedNamespaceService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            PackageRegistration existingPackageRegistration,
+            bool packageRegistrationAlreadyExists,
             User sourceAccount,
             User targetAccount,
             HttpContextBase httpContext = null)
@@ -44,7 +44,7 @@ namespace NuGetGallery.Security
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
 
-            ExistingPackageRegistration = existingPackageRegistration;
+            PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
 
         /// <summary>
@@ -53,10 +53,9 @@ namespace NuGetGallery.Security
         public Package Package { get; }
 
         /// <summary>
-        /// The existing package registration for the package under evaluation,
-        /// or <code>null</code> if the <see cref="Package"/> has not been registered yet.
+        /// <d>True</d> when the package registration already exists; otherwise <c>false</c>.
         /// </summary>
-        public PackageRegistration ExistingPackageRegistration { get; }
+        public bool PackageRegistrationAlreadyExists { get; }
 
         public IEntitiesContext EntitiesContext { get; }
 

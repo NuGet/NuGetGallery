@@ -494,7 +494,7 @@ namespace NuGetGallery
                                 securityPolicyAction, 
                                 HttpContext, 
                                 package,
-                                packageRegistration);
+                                packageRegistration != null);
 
                             if (!packagePolicyResult.Success)
                             {

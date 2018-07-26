@@ -79,10 +79,10 @@ namespace NuGetGallery.Security
         /// <param name="action">Security policy action.</param>
         /// <param name="httpContext">Http context.</param>
         /// <param name="package">The package to evaluate.</param>
-        /// <param name="packageRegistration">The package registration. Will be <code>null</code> if the <paramref name="package"/> has a new package ID.</param>
+        /// <param name="packageRegistrationAlreadyExists"><c>True</c> if the package registration already exists; otherwises <c>false</c>.</param>
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult"/>
         /// instance.</returns>
-        Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(SecurityPolicyAction action, HttpContextBase httpContext, Package package, PackageRegistration packageRegistration);
+        Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(SecurityPolicyAction action, HttpContextBase httpContext, Package package, bool packageRegistrationAlreadyExists);
     }
 }

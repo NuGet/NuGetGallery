@@ -178,16 +178,16 @@ namespace NuGetGallery.Security
             SecurityPolicyAction action,
             HttpContextBase httpContext,
             Package package,
-            PackageRegistration packageRegistration)
+            bool packageRegistrationAlreadyExists)
         {
             var account = httpContext.GetCurrentUser();
-            return EvaluatePackagePoliciesInternalAsync(action, package, packageRegistration, account, account, httpContext);
+            return EvaluatePackagePoliciesInternalAsync(action, package, packageRegistrationAlreadyExists, account, account, httpContext);
         }
 
         private async Task<SecurityPolicyResult> EvaluatePackagePoliciesInternalAsync(
             SecurityPolicyAction action,
             Package package,
-            PackageRegistration packageRegistration,
+            bool packageRegistrationAlreadyExists,
             User sourceAccount,
             User targetAccount,
             HttpContextBase httpContext,
@@ -212,7 +212,7 @@ namespace NuGetGallery.Security
                         _componentContext.Resolve<IReservedNamespaceService>(),
                         foundPolicies,
                         package,
-                        packageRegistration,
+                        packageRegistrationAlreadyExists,
                         sourceAccount,
                         targetAccount,
                         httpContext);

@@ -53,7 +53,7 @@ namespace NuGetGallery.Security
             // If the package being evaluated has not been registered yet (new package ID),
             // this policy requires the prefix to be reserved.
             var isWarning = false;
-            if (context.ExistingPackageRegistration == null)
+            if (!context.PackageRegistrationAlreadyExists)
             {
                 // We are evaluating a newly pushed package with a new ID.
                 var packageRegistrationId = context.Package.PackageRegistration.Id;

@@ -6,8 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Autofac;
-using Autofac.Core;
 using Moq;
 using Xunit;
 
@@ -51,7 +49,7 @@ namespace NuGetGallery.Security
             // Arrange
             var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
             var fakes = new Fakes();
-            var context = CreateTestContext(false, policyHandler.Policies, fakes.NewPackageVersion, null);
+            var context = CreateTestContext(false, policyHandler.Policies, fakes.NewPackageVersion, packageRegistrationAlreadyExists: false);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -77,8 +75,8 @@ namespace NuGetGallery.Security
                 true,
                 policyHandler.Policies,
                 newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */,
-                packageOwnershipManagementService.Object);
+                packageRegistrationAlreadyExists: false,
+                packageOwnershipManagementService: packageOwnershipManagementService.Object);
 
             var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
 
@@ -112,8 +110,8 @@ namespace NuGetGallery.Security
                 true,
                 policyHandler.Policies,
                 newMicrosoftCompliantPackage,
-                null /* The new Package registration does not exist yet */,
-                packageOwnershipManagementService.Object);
+                packageRegistrationAlreadyExists: false,
+                packageOwnershipManagementService: packageOwnershipManagementService.Object);
 
             var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
 
@@ -140,7 +138,7 @@ namespace NuGetGallery.Security
                 true,
                 policyHandler.Policies,
                 nonCompliantPackage,
-                null /* The new Package registration does not exist yet */);
+                packageRegistrationAlreadyExists: false);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -156,7 +154,7 @@ namespace NuGetGallery.Security
             bool microsoftUserExists,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            PackageRegistration packageRegistration,
+            bool packageRegistrationAlreadyExists,
             IPackageOwnershipManagementService packageOwnershipManagementService = null,
             IReservedNamespaceService reservedNamespaceService = null)
         {
@@ -177,7 +175,7 @@ namespace NuGetGallery.Security
                 reservedNamespaceService,
                 policies,
                 package,
-                packageRegistration,
+                packageRegistrationAlreadyExists,
                 It.IsAny<HttpContextBase>());
 
             return context;
@@ -277,7 +275,7 @@ namespace NuGetGallery.Security
 
                 return nonCompliantPackages;
             }
-            
+
             public User Owner { get; }
 
             public Package NewPackageVersion { get; }
