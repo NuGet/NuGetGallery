@@ -64,6 +64,7 @@
     <Compile Include="Entities\PackageValidationIssue.cs" />
     <Compile Include="Entities\ValidatorIssue.cs" />
     <Compile Include="Entities\ValidatorStatus.cs" />
+    <Compile Include="Entities\SymbolsServerRequest.cs" />
     <Compile Include="IPackageValidationEnqueuer.cs" />
     <Compile Include="IServiceBusMessageSerializer.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
@@ -131,12 +132,17 @@
     <Compile Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.Designer.cs">
       <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807260517457_AddSymbolsServerRequest.cs" />
+    <Compile Include="Migrations\201807260517457_AddSymbolsServerRequest.Designer.cs">
+      <DependentUpon>201807260517457_AddSymbolsServerRequest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="ServiceBusMessageSerializer.cs" />
+    <Compile Include="SymbolsPackageIngestRequestStatus.cs" />
     <Compile Include="ValidatingType.cs" />
     <Compile Include="ValidationResult.cs" />
   </ItemGroup>
@@ -204,6 +210,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.resx">
       <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807260517457_AddSymbolsServerRequest.resx">
+      <DependentUpon>201807260517457_AddSymbolsServerRequest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
