@@ -5,6 +5,11 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
+@helper CreateDeleteAccountLink(string url)
+{
+    <a href="@url" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
+}
+
 <section role="main" class="container main-container page-profile">
     <div class="row">
         <aside class="col-md-3 col-md-push-9 profile-details">
@@ -18,28 +23,6 @@
                     <div class="value">@Model.TotalPackageDownloadCount.ToNuGetNumberString()</div>
                     <div class="description">Total @(Model.TotalPackageDownloadCount == 1 ? "download" : "downloads") of packages</div>
                 </div>
-                @if (User.IsAdministrator() && !Model.UserIsOrganization)
-                {
-                    <div class="statistic">
-                        <div class="value">
-                            <a class="action-menu-link" href="@Url.AdminDeleteAccount(@Model.Username)">
-                                <i class="icon-trash"></i>
-                                <span class="action-menu-text">Delete User</span>
-                            </a>
-                        </div>
-                    </div>
-                }
-                @if (Model.CanManageAccount && Model.UserIsOrganization)
-                {
-                    <div class="statistic">
-                        <div class="description">
-                            <a class="action-menu-link" href="@Url.DeleteOrganization(@Model.Username)">
-                                <i class="icon-trash"></i>
-                                <span class="action-menu-text">Delete Organization</span>
-                            </a>
-                        </div>
-                    </div>
-                }
             </div>
         </aside>
         <article class="col-md-9 col-md-pull-3">
@@ -49,6 +32,14 @@
                     @if (Model.CanViewAccount && (Model.UserIsOrganization || CurrentUser.MatchesUser(Model.User)))
                     {
                         <a href="@(Model.UserIsOrganization ? Url.ManageMyOrganization(Model.Username) : Url.AccountSettings())" aria-label="Manage this account"><i class="ms-Icon ms-Icon--Edit ms-font-xl"></i></a>
+                    }
+                    @if (User.IsAdministrator() && !Model.UserIsOrganization)
+                    {
+                        @CreateDeleteAccountLink(Url.AdminDeleteAccount(@Model.Username))
+                    }
+                    else if (Model.CanManageAccount && Model.UserIsOrganization)
+                    {
+                        @CreateDeleteAccountLink(Url.DeleteOrganization(@Model.Username))
                     }
                 </h1>
                 <span>
@@ -61,11 +52,11 @@
 
                             <i class="ms-Icon ms-Icon--Group ms-font-xl" aria-hidden="true">&nbsp;</i>
                             <a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization"><span class="ms-font-xxl">@administrators</span>&nbsp;Administrator@(administrators != 1 ? "s" : "")&nbsp;</a><span aria-hidden="true" class="ms-font-xxl organization-subtitle-divider">|</span><a href="@Url.ManageMyOrganization(Model.Username)" aria-label="Manage this organization">&nbsp;<span class="ms-font-xxl">@collaborators</span>&nbsp;Collaborator@(collaborators != 1 ? "s" : "")</a>
-                            }
-                            else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
-                            {
-                                var organizationsCount = Model.User.Organizations.Count();
-                                var organizationString = organizationsCount + " organization" + (organizationsCount != 1 ? "s" : "");
+                        }
+                        else if (CurrentUser.MatchesUser(Model.User) && Model.User.Organizations.Any())
+                        {
+                            var organizationsCount = Model.User.Organizations.Count();
+                            var organizationString = organizationsCount + " organization" + (organizationsCount != 1 ? "s" : "");
                             <span>member of<a href="@Url.ManageMyOrganizations()" aria-label="Manage my @organizationString"><span class="ms-font-xxl">&nbsp;@organizationString</span></a></span>
                         }
                     }
