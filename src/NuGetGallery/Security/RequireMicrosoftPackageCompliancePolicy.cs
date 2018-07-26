@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
@@ -75,11 +76,11 @@ namespace NuGetGallery.Security
             }
 
             // Evaluate Microsoft metadata validations
-            var packageIsCompliant = IsPackageMetadataCompliant(context.Package);
-            if (!packageIsCompliant)
+            if (!IsPackageMetadataCompliant(context.Package, out var complianceFailures))
             {
                 // Microsoft package policy not met.
-                return SecurityPolicyResult.CreateErrorResult(Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush);
+                return SecurityPolicyResult.CreateErrorResult(
+                    string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush, Environment.NewLine + string.Join(Environment.NewLine, complianceFailures)));
             }
 
             // Automatically add 'Microsoft' as co-owner when metadata is compliant.
@@ -99,37 +100,38 @@ namespace NuGetGallery.Security
             return SecurityPolicyResult.SuccessResult;
         }
 
-        private bool IsPackageMetadataCompliant(Package package)
+        private bool IsPackageMetadataCompliant(Package package, out IList<string> complianceFailures)
         {
+            complianceFailures = new List<string>();
+
             // Author validation
             if (!package.FlattenedAuthors
                 .Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
                 .Contains(MicrosoftUsername, StringComparer.InvariantCultureIgnoreCase))
             {
-                return false;
+                complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, MicrosoftUsername));
             }
 
             // Copyright validation
             if (!string.Equals(package.Copyright, "(c) Microsoft Corporation. All rights reserved.")
                 && !string.Equals(package.Copyright, "© Microsoft Corporation. All rights reserved."))
             {
-                return false;
+                complianceFailures.Add(Strings.SecurityPolicy_CopyrightNotCompliant);
             }
 
             // LicenseUrl validation
             if (string.IsNullOrWhiteSpace(package.LicenseUrl))
             {
-                return false;
+                complianceFailures.Add(Strings.SecurityPolicy_RequiredLicenseUrlMissing);
             }
 
             // ProjectUrl validation
             if (string.IsNullOrWhiteSpace(package.ProjectUrl))
             {
-                return false;
+                complianceFailures.Add(Strings.SecurityPolicy_RequiredProjectUrlMissing);
             }
 
-            // If we made it this far, the package metadata is compliant.
-            return true;
+            return !complianceFailures.Any();
         }
 
         public Task OnSubscribeAsync(UserSecurityPolicySubscriptionContext context)
