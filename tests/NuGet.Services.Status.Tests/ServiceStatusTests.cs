@@ -47,12 +47,12 @@ namespace NuGet.Services.Status.Tests
             return CreateComponent(new LeafComponent(GetString(), GetString()));
         }
 
-        private static IEvent CreateEvent()
+        private static Event CreateEvent()
         {
             return new Event(GetString(), GetComponentStatus(), GetDate(), GetDate(), new[] { CreateMessage(), CreateMessage() });
         }
 
-        private static IMessage CreateMessage()
+        private static Message CreateMessage()
         {
             return new Message(GetDate(), GetString());
         }

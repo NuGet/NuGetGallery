@@ -6,9 +6,19 @@ using System;
 
 namespace NuGet.Services.Status
 {
-    public class Message : IMessage
+    /// <summary>
+    /// A message associated with an <see cref="Event"/>.
+    /// </summary>
+    public class Message
     {
+        /// <summary>
+        /// The time the message was posted.
+        /// </summary>
         public DateTime Time { get; }
+
+        /// <summary>
+        /// The contents of the message.
+        /// </summary>
         public string Contents { get; }
 
         [JsonConstructor]

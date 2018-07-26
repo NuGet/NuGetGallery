@@ -26,14 +26,14 @@ namespace NuGet.Services.Status
         /// <summary>
         /// A list of <see cref="IEvent"/>s that have affected the service recently.
         /// </summary>
-        public IEnumerable<IEvent> Events { get; }
+        public IEnumerable<Event> Events { get; }
 
-        public ServiceStatus(IReadOnlyComponent serviceRootComponent, IEnumerable<IEvent> events)
+        public ServiceStatus(IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
             : this(DateTime.Now, serviceRootComponent, events)
         {
         }
 
-        public ServiceStatus(DateTime lastUpdated, IReadOnlyComponent serviceRootComponent, IEnumerable<IEvent> events)
+        public ServiceStatus(DateTime lastUpdated, IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
         {
             LastUpdated = lastUpdated;
             ServiceRootComponent = serviceRootComponent;

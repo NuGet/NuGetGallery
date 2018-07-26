@@ -26,7 +26,7 @@ namespace NuGet.Services.Status.Tests
             AssertFieldEqual(expected, actual, i => i.Path);
         }
 
-        public static void AssertEvent(IEvent expected, IEvent actual)
+        public static void AssertEvent(Event expected, Event actual)
         {
             AssertFieldEqual(expected, actual, i => i.AffectedComponentPath);
             AssertFieldEqual(expected, actual, i => i.AffectedComponentStatus);
@@ -35,7 +35,7 @@ namespace NuGet.Services.Status.Tests
             AssertFieldEqual(expected, actual, i => i.Messages, AssertMessage);
         }
 
-        public static void AssertMessage(IMessage expected, IMessage actual)
+        public static void AssertMessage(Message expected, Message actual)
         {
             AssertFieldEqual(expected, actual, i => i.Contents);
             AssertFieldEqual(expected, actual, i => i.Time);

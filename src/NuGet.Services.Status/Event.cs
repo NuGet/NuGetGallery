@@ -7,42 +7,49 @@ using Newtonsoft.Json;
 
 namespace NuGet.Services.Status
 {
-    public class Event : IEvent
+    /// <summary>
+    /// Represents an event affecting a <see cref="IReadOnlyComponent"/>.
+    /// </summary>
+    public class Event
     {
+        /// <summary>
+        /// The <see cref="IReadOnlyComponent.Path"/> of the <see cref="IReadOnlyComponent"/> affected.
+        /// </summary>
         public string AffectedComponentPath { get; }
-        public ComponentStatus AffectedComponentStatus { get; }
-        public DateTime StartTime { get; }
-        public DateTime? EndTime { get; }
-        public IEnumerable<IMessage> Messages { get; }
 
+        /// <summary>
+        /// The <see cref="IReadOnlyComponent.Status"/> of the <see cref="IReadOnlyComponent"/> affected.
+        /// </summary>
+        public ComponentStatus AffectedComponentStatus { get; }
+
+        /// <summary>
+        /// When the event began.
+        /// </summary>
+        public DateTime StartTime { get; }
+
+        /// <summary>
+        /// When the event ended, or <c>null</c> if the event is still active.
+        /// </summary>
+        public DateTime? EndTime { get; }
+
+        /// <summary>
+        /// A set of <see cref="Message"/>s related to this event.
+        /// </summary>
+        public IEnumerable<Message> Messages { get; }
+
+        [JsonConstructor]
         public Event(
             string affectedComponentPath,
             ComponentStatus affectedComponentStatus,
             DateTime startTime,
             DateTime? endTime,
-            IEnumerable<IMessage> messages)
+            IEnumerable<Message> messages)
         {
             AffectedComponentPath = affectedComponentPath;
             AffectedComponentStatus = affectedComponentStatus;
             StartTime = startTime;
             EndTime = endTime;
             Messages = messages;
-        }
-
-        [JsonConstructor]
-        public Event(
-            string affectedComponentPath,
-            ComponentStatus affectedComponentStatus, 
-            DateTime startTime, 
-            DateTime? endTime, 
-            IEnumerable<Message> messages)
-            : this(
-                  affectedComponentPath, 
-                  affectedComponentStatus, 
-                  startTime, 
-                  endTime, 
-                  (IEnumerable<IMessage>)messages)
-        {
         }
     }
 }
