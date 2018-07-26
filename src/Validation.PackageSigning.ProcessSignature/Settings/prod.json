@@ -22,7 +22,8 @@
     "AllowedRepositorySigningCertificates": [
       "cf7ac17ad047ecd5fdc36822031b12d4ef078b6f2b4c5e6ba41f8ff2cf4bad67"
     ],
-    "V3ServiceIndexUrl": "https://api.nuget.org/v3/index.json"
+    "V3ServiceIndexUrl": "https://api.nuget.org/v3/index.json",
+    "CommitRepositorySignatures":  false
   },
 
   "PackageDownloadTimeout": "00:10:00",

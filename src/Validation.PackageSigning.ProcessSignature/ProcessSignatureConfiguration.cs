@@ -20,5 +20,11 @@ namespace NuGet.Jobs.Validation.PackageSigning
         /// repository signature is removed.
         /// </summary>
         public string V3ServiceIndexUrl { get; set; }
+
+        /// <summary>
+        /// Whether repository signatures should be persisted to the database. Disable this if repository signing
+        /// is in test mode and repository signed packages are not published.
+        /// </summary>
+        public bool CommitRepositorySignatures { get; set; }
     }
 }
