@@ -625,7 +625,8 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
             $submit.attr({
                 'data-sitekey': "@reCaptchaPublicKey",
                 'data-size': "invisible",
-                'data-callback': "onSubmit"
+                'data-callback': "onSubmit",
+                'data-tabindex': "-1"
             });
             function onSubmit(token) {
                 $submit.parents('form').submit();
