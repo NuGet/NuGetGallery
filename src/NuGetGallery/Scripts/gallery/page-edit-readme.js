@@ -228,6 +228,14 @@ var bindReadMeData = (function () {
             clearReadMeError();
             displayReadMeEditMarkdown();
         });
+        
+        $("#browse-for-readme-button").on("keypress", function (e) {
+            var code = (e.keyCode || e.which);
+            var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+            if (isInteract) {
+                $(this).click();
+            }
+        });
     }
 
     function previewReadMeAsync(callback, error) {
