@@ -14,15 +14,12 @@ namespace NuGetGallery.Security
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            bool packageRegistrationAlreadyExists,
             HttpContextBase httpContext)
             : base(policies, httpContext)
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-
-            PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
 
         public PackageSecurityPolicyEvaluationContext(
@@ -30,7 +27,6 @@ namespace NuGetGallery.Security
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
-            bool packageRegistrationAlreadyExists,
             User sourceAccount,
             User targetAccount,
             HttpContextBase httpContext = null)
@@ -39,19 +35,12 @@ namespace NuGetGallery.Security
             Package = package ?? throw new ArgumentNullException(nameof(package));
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-
-            PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
 
         /// <summary>
         /// Package under evaluation.
         /// </summary>
         public Package Package { get; }
-
-        /// <summary>
-        /// <d>True</d> when the package registration already exists; otherwise <c>false</c>.
-        /// </summary>
-        public bool PackageRegistrationAlreadyExists { get; }
 
         public IEntitiesContext EntitiesContext { get; }
 

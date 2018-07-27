@@ -172,7 +172,6 @@ namespace NuGetGallery.Security
                 packageOwnershipManagementService,
                 policies,
                 package,
-                packageRegistrationAlreadyExists,
                 It.IsAny<HttpContextBase>());
 
             return context;

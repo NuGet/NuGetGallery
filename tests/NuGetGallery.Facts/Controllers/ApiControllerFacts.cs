@@ -91,7 +91,7 @@ namespace NuGetGallery
 
             MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
-            MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>(), It.IsAny<bool>()))
+            MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
             
             MockReservedNamespaceService
@@ -301,7 +301,7 @@ namespace NuGetGallery
                     .Setup(evaluateApiScope)
                     .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
 
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>(), It.IsAny<bool>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("Package not compliant.")));
 
                 // Act

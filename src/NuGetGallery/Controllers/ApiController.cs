@@ -493,8 +493,7 @@ namespace NuGetGallery
                             var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
                                 securityPolicyAction, 
                                 HttpContext, 
-                                package,
-                                packageRegistration != null);
+                                package);
 
                             if (!packagePolicyResult.Success)
                             {
