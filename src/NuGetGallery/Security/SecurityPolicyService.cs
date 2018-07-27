@@ -29,8 +29,6 @@ namespace NuGetGallery.Security
             = new AutomaticallyOverwriteRequiredSignerPolicy();
         private static readonly RequireOrganizationTenantPolicy _organizationTenantPolicy
             = RequireOrganizationTenantPolicy.Create();
-        private static readonly RequireMicrosoftPackageCompliancePolicy _requireMicrosoftPackageCompliancePolicy
-            = new RequireMicrosoftPackageCompliancePolicy();
 
         private readonly IComponentContext _componentContext;
 
@@ -44,6 +42,8 @@ namespace NuGetGallery.Security
 
         protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
 
+        protected IUserSecurityPolicySubscription MicrosoftTeamSubscription { get; set; }
+
         protected SecurityPolicyService()
         {
         }
@@ -53,7 +53,8 @@ namespace NuGetGallery.Security
             IAuditingService auditing,
             IDiagnosticsService diagnostics,
             IAppConfiguration configuration,
-            IComponentContext componentContext)
+            IComponentContext componentContext,
+            MicrosoftTeamSubscription microsoftTeamSubscription = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
@@ -67,6 +68,7 @@ namespace NuGetGallery.Security
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             DefaultSubscription = new DefaultSubscription();
             _componentContext = componentContext ?? throw new ArgumentNullException(nameof(componentContext));
+            MicrosoftTeamSubscription = microsoftTeamSubscription;
         }
 
         /// <summary>
@@ -100,7 +102,7 @@ namespace NuGetGallery.Security
             {
                 yield return _controlRequiredSignerPolicy;
                 yield return _automaticallyOverwriteRequiredSignerPolicy;
-                yield return _requireMicrosoftPackageCompliancePolicy;
+                yield return MicrosoftTeamSubscription;
             }
         }
 
@@ -498,7 +500,7 @@ namespace NuGetGallery.Security
 
         private static IEnumerable<PackageSecurityPolicyHandler> CreatePackageHandlers()
         {
-            yield return new RequireMicrosoftPackageCompliancePolicy();
+            yield return new RequirePackageMetadataCompliancePolicy();
         }
     }
 }

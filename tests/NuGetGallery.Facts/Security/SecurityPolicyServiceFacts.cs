@@ -85,7 +85,7 @@ namespace NuGetGallery.Security
             // Assert
             Assert.NotNull(handlers);
             Assert.Equal(1, handlers.Count);
-            Assert.Equal(typeof(RequireMicrosoftPackageCompliancePolicy), handlers[0].GetType());
+            Assert.Equal(typeof(RequirePackageMetadataCompliancePolicy), handlers[0].GetType());
         }
 
         [Fact]

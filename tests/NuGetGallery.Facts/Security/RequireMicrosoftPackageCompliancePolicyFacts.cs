@@ -26,7 +26,7 @@ namespace NuGetGallery.Security
         {
             // Arrange            
             // Act
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             // Assert
             Assert.Equal(SecurityPolicyAction.PackagePush, policyHandler.Action);
@@ -36,7 +36,7 @@ namespace NuGetGallery.Security
         public void Evaluate_ThrowsForNullArgument()
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             // Act
             // Assert
@@ -48,7 +48,8 @@ namespace NuGetGallery.Security
         public async Task Evaluate_DoesNotCommitChangesToEntityContext()
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var subscription = new MicrosoftTeamSubscription();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
@@ -62,7 +63,7 @@ namespace NuGetGallery.Security
 
             var userService = new Mock<IUserService>(MockBehavior.Strict);
             userService
-                .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, It.IsAny<bool>()))
+                .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, It.IsAny<bool>()))
                 .Returns(Fakes.MicrosoftUser)
                 .Verifiable();
 
@@ -70,7 +71,7 @@ namespace NuGetGallery.Security
             var context = new PackageSecurityPolicyEvaluationContext(
                 userService.Object, 
                 packageOwnershipManagementService.Object, 
-                policyHandler.Policies, 
+                subscription.Policies, 
                 newMicrosoftCompliantPackage, 
                 It.IsAny<HttpContextBase>());
 
@@ -86,9 +87,10 @@ namespace NuGetGallery.Security
         public async Task Evaluate_SilentlySucceedsWhenMicrosoftUserDoesNotExist()
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var subscription = new MicrosoftTeamSubscription();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
             var fakes = new Fakes();
-            var context = CreateTestContext(false, policyHandler.Policies, fakes.NewPackageVersion, packageRegistrationAlreadyExists: false);
+            var context = CreateTestContext(false, subscription.Policies, fakes.NewPackageVersion, packageRegistrationAlreadyExists: false);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -101,7 +103,8 @@ namespace NuGetGallery.Security
         public async Task Evaluate_CompliantPackage_CreatesWarningResultWhenPrefixReservationForNewIdIsMissing()
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var subscription = new MicrosoftTeamSubscription();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
@@ -112,7 +115,7 @@ namespace NuGetGallery.Security
 
             var context = CreateTestContext(
                 true,
-                policyHandler.Policies,
+                subscription.Policies,
                 newMicrosoftCompliantPackage,
                 packageRegistrationAlreadyExists: false,
                 packageOwnershipManagementService: packageOwnershipManagementService.Object);
@@ -134,7 +137,8 @@ namespace NuGetGallery.Security
         public async Task Evaluate_CompliantPackage_AddsMicrosoftOwner()
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var subscription = new MicrosoftTeamSubscription();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
@@ -145,7 +149,7 @@ namespace NuGetGallery.Security
 
             var context = CreateTestContext(
                 true,
-                policyHandler.Policies,
+                subscription.Policies,
                 newMicrosoftCompliantPackage,
                 packageRegistrationAlreadyExists: false,
                 packageOwnershipManagementService: packageOwnershipManagementService.Object);
@@ -163,7 +167,8 @@ namespace NuGetGallery.Security
         public async Task Evaluate_NonCompliantPackage_CreatesErrorResult(Package nonCompliantPackage)
         {
             // Arrange
-            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+            var subscription = new MicrosoftTeamSubscription();
+            var policyHandler = new RequirePackageMetadataCompliancePolicy();
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
@@ -171,7 +176,7 @@ namespace NuGetGallery.Security
 
             var context = CreateTestContext(
                 true,
-                policyHandler.Policies,
+                subscription.Policies,
                 nonCompliantPackage,
                 packageRegistrationAlreadyExists: false);
 
@@ -180,7 +185,7 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.False(result.Success);
-            Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername));
+            Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == MicrosoftTeamSubscription.MicrosoftUsername));
             Assert.False(newPackageRegistration.IsVerified);
         }
 
@@ -196,13 +201,13 @@ namespace NuGetGallery.Security
             if (microsoftUserExists)
             {
                 userService
-                    .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, false))
+                    .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
                     .Returns(Fakes.MicrosoftUser);
             }
             else
             {
                 userService
-                    .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, false))
+                    .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
                     .Returns((User)null);
             }
 
@@ -222,7 +227,7 @@ namespace NuGetGallery.Security
         {
             static Fakes()
             {
-                MicrosoftUser = new User(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
+                MicrosoftUser = new User(MicrosoftTeamSubscription.MicrosoftUsername);
             }
 
             public Fakes(
@@ -238,7 +243,7 @@ namespace NuGetGallery.Security
                     Key = key++
                 };
 
-                MicrosoftOrganization = new Organization(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername)
+                MicrosoftOrganization = new Organization(MicrosoftTeamSubscription.MicrosoftUsername)
                 {
                     Key = key++
                 };
