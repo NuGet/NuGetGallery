@@ -12,7 +12,6 @@ namespace NuGetGallery.Security
         public PackageSecurityPolicyEvaluationContext(
             IEntitiesContext entitiesContext,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IReservedNamespaceService reservedNamespaceService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             bool packageRegistrationAlreadyExists,
@@ -22,7 +21,6 @@ namespace NuGetGallery.Security
             Package = package ?? throw new ArgumentNullException(nameof(package));
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
 
             PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
@@ -30,7 +28,6 @@ namespace NuGetGallery.Security
         public PackageSecurityPolicyEvaluationContext(
             IEntitiesContext entitiesContext,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IReservedNamespaceService reservedNamespaceService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             bool packageRegistrationAlreadyExists,
@@ -42,7 +39,6 @@ namespace NuGetGallery.Security
             Package = package ?? throw new ArgumentNullException(nameof(package));
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
-            ReservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
 
             PackageRegistrationAlreadyExists = packageRegistrationAlreadyExists;
         }
@@ -60,7 +56,5 @@ namespace NuGetGallery.Security
         public IEntitiesContext EntitiesContext { get; }
 
         public IPackageOwnershipManagementService PackageOwnershipManagementService { get; }
-
-        public IReservedNamespaceService ReservedNamespaceService { get; }
     }
 }

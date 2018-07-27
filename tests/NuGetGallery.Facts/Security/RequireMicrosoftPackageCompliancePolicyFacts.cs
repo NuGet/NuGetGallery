@@ -145,7 +145,6 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.False(result.Success);
-            Assert.Equal(Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush, result.ErrorMessage);
             Assert.Null(newPackageRegistration.Owners.SingleOrDefault(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername));
             Assert.False(newPackageRegistration.IsVerified);
         }
@@ -161,7 +160,6 @@ namespace NuGetGallery.Security
             var entitiesContext = new FakeEntitiesContext();
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>().Object;
-            reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>().Object;
 
             if (microsoftUserExists)
             {
@@ -172,7 +170,6 @@ namespace NuGetGallery.Security
             var context = new PackageSecurityPolicyEvaluationContext(
                 entitiesContext,
                 packageOwnershipManagementService,
-                reservedNamespaceService,
                 policies,
                 package,
                 packageRegistrationAlreadyExists,

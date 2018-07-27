@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
+using NuGet.Packaging;
 
 namespace NuGetGallery.Security
 {
@@ -42,7 +43,7 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(context));
             }
 
-            // This particular package policy assumes the existence of a 'Microsoft' user.
+            // This particular package policy assumes the existence of a particular user.
             // Succeed silently (effectively ignoring this policy when enabled) when that user does not exist.
             var microsoftUser = context.EntitiesContext.Users.SingleOrDefault(u => u.Username == MicrosoftUsername);
             if (microsoftUser == null)
@@ -51,36 +52,15 @@ namespace NuGetGallery.Security
                 return SecurityPolicyResult.SuccessResult;
             }
 
-            // If the package being evaluated has not been registered yet (new package ID),
-            // this policy requires the prefix to be reserved.
-            var isWarning = false;
-            if (!context.PackageRegistrationAlreadyExists)
-            {
-                // We are evaluating a newly pushed package with a new ID.
-                var packageRegistrationId = context.Package.PackageRegistration.Id;
-
-                // If the generated PackageRegistration is not marked as verified (by `PackageUploadService.GeneratePackageAsync`),
-                // the account pushing the package has not registered the prefix yet.
-                if (!context.Package.PackageRegistration.IsVerified)
-                {
-                    // The owner has not reserved the prefix. Check whether the Microsoft user has.
-                    var prefixIsReservedByMicrosoft = context.ReservedNamespaceService.ShouldMarkNewPackageIdVerified(
-                        microsoftUser, 
-                        packageRegistrationId, 
-                        out var ownedMatchingReservedNamespaces);
-
-                    // If the prefix has not been reserved by the 'Microsoft' user either,
-                    // then generate a warning which will result in an alternate email being sent to the package owners when validation of the metadata succeeds, and the package is pushed.
-                    isWarning = !prefixIsReservedByMicrosoft;
-                }
-            }
-
-            // Evaluate Microsoft metadata validations
+            // Evaluate package metadata validations
             if (!IsPackageMetadataCompliant(context.Package, out var complianceFailures))
             {
-                // Microsoft package policy not met.
+                // Package policy not met.
                 return SecurityPolicyResult.CreateErrorResult(
-                    string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush, Environment.NewLine + string.Join(Environment.NewLine, complianceFailures)));
+                    string.Format(
+                        CultureInfo.CurrentCulture, 
+                        Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush, 
+                        Environment.NewLine + string.Join(Environment.NewLine, complianceFailures)));
             }
 
             // Automatically add 'Microsoft' as co-owner when metadata is compliant.
@@ -91,7 +71,9 @@ namespace NuGetGallery.Security
                 await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, microsoftUser, commitChanges: false);
             }
 
-            if (isWarning)
+            // If the PackageRegistration is not marked as verified,
+            // the account pushing the package has not registered the prefix yet.
+            if (!context.Package.PackageRegistration.IsVerified)
             {
                 return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
             }
