@@ -1691,6 +1691,9 @@ namespace NuGetGallery
                                 Url.AccountSettings(relativeUrl: false));
                         }
 
+                        // release stream before deleting file
+                        uploadFile.Dispose();
+                        
                         // delete the uploaded binary in the Uploads container
                         await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
 
