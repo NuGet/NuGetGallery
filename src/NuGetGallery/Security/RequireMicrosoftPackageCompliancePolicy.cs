@@ -45,7 +45,7 @@ namespace NuGetGallery.Security
 
             // This particular package policy assumes the existence of a particular user.
             // Succeed silently (effectively ignoring this policy when enabled) when that user does not exist.
-            var microsoftUser = context.EntitiesContext.Users.SingleOrDefault(u => u.Username == MicrosoftUsername);
+            var microsoftUser = context.UserService.FindByUsername(MicrosoftUsername);
             if (microsoftUser == null)
             {
                 // This may happen on gallery deployments that don't have a 'Microsoft' user.

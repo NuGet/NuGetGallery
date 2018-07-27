@@ -205,7 +205,7 @@ namespace NuGetGallery.Security
                 if (foundPolicies.Any())
                 {
                     var context = new PackageSecurityPolicyEvaluationContext(
-                        EntitiesContext,
+                        _componentContext.Resolve<IUserService>(),
                         _componentContext.Resolve<IPackageOwnershipManagementService>(),
                         foundPolicies,
                         package,

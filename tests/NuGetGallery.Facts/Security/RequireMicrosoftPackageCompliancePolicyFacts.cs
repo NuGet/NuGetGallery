@@ -43,6 +43,45 @@ namespace NuGetGallery.Security
             Assert.ThrowsAsync<ArgumentNullException>(() => policyHandler.EvaluateAsync(null));
         }
 
+
+        [Fact]
+        public async Task Evaluate_DoesNotCommitChangesToEntityContext()
+        {
+            // Arrange
+            var policyHandler = new RequireMicrosoftPackageCompliancePolicy();
+
+            var nugetUser = new User("NuGet");
+            var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
+            var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
+
+            var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
+            packageOwnershipManagementService
+                .Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false /* commitChanges: false */))
+                .Returns(Task.CompletedTask)
+                .Verifiable();
+
+            var userService = new Mock<IUserService>(MockBehavior.Strict);
+            userService
+                .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, It.IsAny<bool>()))
+                .Returns(Fakes.MicrosoftUser)
+                .Verifiable();
+
+
+            var context = new PackageSecurityPolicyEvaluationContext(
+                userService.Object, 
+                packageOwnershipManagementService.Object, 
+                policyHandler.Policies, 
+                newMicrosoftCompliantPackage, 
+                It.IsAny<HttpContextBase>());
+
+            // Act
+            var result = await policyHandler.EvaluateAsync(context);
+
+            // Assert
+            packageOwnershipManagementService.VerifyAll();
+            userService.VerifyAll();
+        }
+
         [Fact]
         public async Task Evaluate_SilentlySucceedsWhenMicrosoftUserDoesNotExist()
         {
@@ -78,8 +117,6 @@ namespace NuGetGallery.Security
                 packageRegistrationAlreadyExists: false,
                 packageOwnershipManagementService: packageOwnershipManagementService.Object);
 
-            var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
-
             // Act
             var result = await policyHandler.EvaluateAsync(context);
 
@@ -90,7 +127,7 @@ namespace NuGetGallery.Security
             Assert.NotEmpty(result.WarningMessages);
             Assert.Contains(Strings.SecurityPolicy_RequirePackagePrefixReserved, result.WarningMessages);
             Assert.False(newPackageRegistration.IsVerified);
-            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.MicrosoftUser, false), Times.Once);
         }
 
         [Fact]
@@ -113,14 +150,12 @@ namespace NuGetGallery.Security
                 packageRegistrationAlreadyExists: false,
                 packageOwnershipManagementService: packageOwnershipManagementService.Object);
 
-            var microsoftUser = context.EntitiesContext.Users.Single(u => u.Username == RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
-
             // Act
             var result = await policyHandler.EvaluateAsync(context);
 
             // Assert
             Assert.True(result.Success);
-            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, microsoftUser, false), Times.Once);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.MicrosoftUser, false), Times.Once);
         }
 
         [Theory]
@@ -157,18 +192,24 @@ namespace NuGetGallery.Security
             IPackageOwnershipManagementService packageOwnershipManagementService = null,
             IReservedNamespaceService reservedNamespaceService = null)
         {
-            var entitiesContext = new FakeEntitiesContext();
-
-            packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>().Object;
-
+            var userService = new Mock<IUserService>(MockBehavior.Strict);
             if (microsoftUserExists)
             {
-                entitiesContext.Users.Add(
-                    new User(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername));
+                userService
+                    .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, false))
+                    .Returns(Fakes.MicrosoftUser);
+            }
+            else
+            {
+                userService
+                    .Setup(m => m.FindByUsername(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername, false))
+                    .Returns((User)null);
             }
 
+            packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict).Object;
+
             var context = new PackageSecurityPolicyEvaluationContext(
-                entitiesContext,
+                userService.Object,
                 packageOwnershipManagementService,
                 policies,
                 package,
@@ -179,6 +220,11 @@ namespace NuGetGallery.Security
 
         private class Fakes
         {
+            static Fakes()
+            {
+                MicrosoftUser = new User(RequireMicrosoftPackageCompliancePolicy.MicrosoftUsername);
+            }
+
             public Fakes(
                 string copyright = null,
                 string projectUrl = null,
@@ -279,6 +325,7 @@ namespace NuGetGallery.Security
             public Organization MicrosoftOrganization { get; }
 
             public PackageRegistration ExistingPackageRegistration { get; }
+            public static User MicrosoftUser { get; }
         }
     }
 }

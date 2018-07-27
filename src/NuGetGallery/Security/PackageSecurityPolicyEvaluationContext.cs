@@ -10,7 +10,7 @@ namespace NuGetGallery.Security
     public class PackageSecurityPolicyEvaluationContext : UserSecurityPolicyEvaluationContext
     {
         public PackageSecurityPolicyEvaluationContext(
-            IEntitiesContext entitiesContext,
+            IUserService userService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
@@ -18,12 +18,12 @@ namespace NuGetGallery.Security
             : base(policies, httpContext)
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
-            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            UserService = userService ?? throw new ArgumentNullException(nameof(userService));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
         public PackageSecurityPolicyEvaluationContext(
-            IEntitiesContext entitiesContext,
+            IUserService userService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
@@ -33,7 +33,7 @@ namespace NuGetGallery.Security
             : base(policies, sourceAccount, targetAccount, httpContext)
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
-            EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            UserService = userService ?? throw new ArgumentNullException(nameof(userService));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
@@ -42,7 +42,7 @@ namespace NuGetGallery.Security
         /// </summary>
         public Package Package { get; }
 
-        public IEntitiesContext EntitiesContext { get; }
+        public IUserService UserService { get; }
 
         public IPackageOwnershipManagementService PackageOwnershipManagementService { get; }
     }
