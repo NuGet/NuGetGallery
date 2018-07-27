@@ -489,6 +489,8 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
                 var configureSection = function (section) {
                     var containerId = section + "-container";
                     window.nuget.configureExpanderHeading(containerId);
+
+                    // Configure the cancel button to close the section when it's clicked
                     $("#cancel-" + section).click(function (e) {
                         // Collapse the container.
                         $("#" + containerId).collapse('hide');
