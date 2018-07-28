@@ -48,7 +48,8 @@ namespace NuGetGallery.Security
                         "© Microsoft Corporation. All rights reserved."
                     },
                     isLicenseUrlRequired: true,
-                    isProjectUrlRequired: true)
+                    isProjectUrlRequired: true,
+                    errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)
             };
         }
     }

@@ -53,7 +53,7 @@ namespace NuGetGallery.Security
                 return SecurityPolicyResult.CreateErrorResult(
                     string.Format(
                         CultureInfo.CurrentCulture,
-                        Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush,
+                        state.ErrorMessageFormat,
                         Environment.NewLine + string.Join(Environment.NewLine, complianceFailures)));
             }
 
@@ -81,14 +81,16 @@ namespace NuGetGallery.Security
             string requiredCoOwnerUsername, 
             string[] allowedCopyrightNotices,
             bool isLicenseUrlRequired,
-            bool isProjectUrlRequired)
+            bool isProjectUrlRequired,
+            string errorMessageFormat)
         {
             var value = JsonConvert.SerializeObject(new State()
             {
                 RequiredCoOwnerUsername = requiredCoOwnerUsername,
                 AllowedCopyrightNotices = allowedCopyrightNotices,
                 IsLicenseUrlRequired = isLicenseUrlRequired,
-                IsProjectUrlRequired = isProjectUrlRequired
+                IsProjectUrlRequired = isProjectUrlRequired,
+                ErrorMessageFormat = errorMessageFormat
             });
 
             return new UserSecurityPolicy(PolicyName, subscription, value);
@@ -129,7 +131,7 @@ namespace NuGetGallery.Security
 
 
         /// <summary>
-        /// In case of multiple, select the max of the minimum required protocol versions.
+        /// Retrieve the policy state.
         /// </summary>
         private State GetState(UserSecurityPolicyEvaluationContext context)
         {
@@ -143,17 +145,20 @@ namespace NuGetGallery.Security
 
         public class State
         {
-            [JsonProperty("requiredCoOwnerUsername")]
+            [JsonProperty("u")]
             public string RequiredCoOwnerUsername { get; set; }
 
-            [JsonProperty("allowedCopyrightNotices")]
+            [JsonProperty("copy")]
             public string[] AllowedCopyrightNotices { get; set; }
 
-            [JsonProperty("licenseUrlRequired")]
+            [JsonProperty("licUrlReq")]
             public bool IsLicenseUrlRequired { get; set; }
             
-            [JsonProperty("projectUrlRequired")]
+            [JsonProperty("projUrlReq")]
             public bool IsProjectUrlRequired { get; set; }
+
+            [JsonProperty("error")]
+            public string ErrorMessageFormat { get; set; }
         }
     }
 }
