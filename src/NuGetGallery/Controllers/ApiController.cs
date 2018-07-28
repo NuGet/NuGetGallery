@@ -552,17 +552,15 @@ namespace NuGetGallery
                                 MessageService.SendPackageAddedNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.AccountSettings(relativeUrl: false),
-                                    packagePolicyResult.WarningMessages);
+                                    Url.AccountSettings(relativeUrl: false));
                             }
                             // Emit warning messages if any
                             else if (packagePolicyResult.HasWarnings)
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                MessageService.SendPackageAddedNotice(package,
+                                MessageService.SendPackageAddedWithWarningsNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.AccountSettings(relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
                             }
 

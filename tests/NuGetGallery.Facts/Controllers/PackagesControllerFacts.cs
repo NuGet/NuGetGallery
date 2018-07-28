@@ -5308,7 +5308,7 @@ namespace NuGetGallery
 
                     // Assert
                     fakeMessageService
-                        .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
+                        .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                         Times.Exactly(callExpected ? 1 : 0));
                 }
             }
