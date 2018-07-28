@@ -373,9 +373,10 @@ namespace NuGetGallery
                             {
                                 var nuspec = packageToPush.GetNuspecReader();
                                 var id = nuspec.GetId();
-                                var normalizedVersionString = nuspec.GetVersion().ToNormalizedStringSafe() ;
+                                var version = nuspec.GetVersion();
+                                var normalizedVersionString = version.ToNormalizedStringSafe() ;
 
-                                var package = PackageService.FindPackageByIdAndVersion(id, normalizedVersionString);
+                                var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                                 if (package == null)
                                 {
                                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(
