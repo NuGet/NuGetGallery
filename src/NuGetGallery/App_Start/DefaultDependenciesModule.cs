@@ -1,19 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Data.Entity;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Mail;
-using System.Security.Principal;
-using System.Threading.Tasks;
-using System.Web;
-using System.Web.Hosting;
-using System.Web.Mvc;
 using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
@@ -35,6 +22,19 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Mail;
+using System.Security.Principal;
+using System.Threading.Tasks;
+using System.Web;
+using System.Web.Hosting;
+using System.Web.Mvc;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
@@ -257,6 +257,11 @@ namespace NuGetGallery
             builder.RegisterType<ReservedNamespaceService>()
                 .AsSelf()
                 .As<IReservedNamespaceService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageService>()
+                .AsSelf()
+                .As<ISymbolPackageService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageUploadService>()

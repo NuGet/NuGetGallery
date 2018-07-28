@@ -54,6 +54,7 @@ namespace NuGetGallery
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
+        public ISymbolPackageService SymbolPackageService { get; set; }
 
         protected ApiController()
         {
@@ -80,7 +81,8 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService)
+            IPackageDeleteService packageDeleteService,
+            ISymbolPackageService symbolPackageService = null)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -102,6 +104,7 @@ namespace NuGetGallery
             ReservedNamespaceService = reservedNamespaceService;
             PackageUploadService = packageUploadService;
             StatisticsService = null;
+            SymbolPackageService = symbolPackageService;
         }
 
         public ApiController(
@@ -125,11 +128,12 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService)
+            IPackageDeleteService packageDeleteService,
+            ISymbolPackageService symbolPackageService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService)
         {
             StatisticsService = statisticsService;
         }
@@ -337,8 +341,113 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("PushSymbolPackageApi")]
-        public virtual Task<ActionResult> CreateSymbolPackagePut()
+        public virtual async Task<ActionResult> CreateSymbolPackagePutAsync()
         {
+            try
+            {
+                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, HttpContext);
+                if (!policyResult.Success)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
+                }
+
+                // Get the user
+                var currentUser = GetCurrentUser();
+
+                // Read symbol package
+                using (var symbolPackageStream = ReadPackageFromRequest())
+                {
+                    try
+                    {
+                        if (FoundEntryInFuture(symbolPackageStream, out ZipArchiveEntry entryInTheFuture))
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryFromTheFuture,
+                                entryInTheFuture.Name));
+                        }
+
+                        using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: false))
+                        {
+                            try
+                            {
+                                var nuspec = packageToPush.GetNuspecReader();
+                                var id = nuspec.GetId();
+                                var normalizedVersionString = nuspec.GetVersion().ToNormalizedStringSafe() ;
+
+                                var package = PackageService.FindPackageByIdAndVersion(id, normalizedVersionString);
+                                if (package == null)
+                                {
+                                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(
+                                        CultureInfo.CurrentCulture,
+                                        Strings.SymbolsPackage_PackageIdAndVersionNotFound,
+                                        id,
+                                        normalizedVersionString));
+                                }
+
+                                // Found the corresponding entry for the package
+                                // Now check if this user has the permissions to push the corresponding symbol package
+                                var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+                                var owner = apiScopeEvaluationResult.Owner;
+                                if (!apiScopeEvaluationResult.IsSuccessful())
+                                {
+                                    // User cannot push a symbol package as the current user's scopes does not allow it to push for the corresponding package.
+                                    // TODO: Add failed audit record for symbols package.
+
+                                    return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, nuspec.GetVersion());
+                                }
+
+                                // Validate the symbol package
+                                await SymbolPackageService.EnsureValid(packageToPush);
+
+                                // If everything is good, upload the package to the validation container.
+
+                                // Create a corresponding entry into the symbols table with appropriate status.
+
+                                // Return success message.
+                            }
+                            catch (Exception ex)
+                            {
+                                ex.Log();
+
+                                var message = Strings.FailedToReadUploadFile;
+                                if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                                {
+                                    message = ex.Message;
+                                }
+
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
+                            }
+
+                            // Do we need to validate manifest like in nupkg upload.
+
+                            // Ensure that the user can push packages for this partialId.
+                        }
+
+                    }
+                    catch (Exception ex) when (ex is InvalidPackageException 
+                        || ex is InvalidDataException 
+                        || ex is EntityException 
+                        || ex is FrameworkException)
+                    {
+                        return BadRequestForExceptionMessage(ex);
+                    }
+                }
+
+            }
+            catch (HttpException ex) when (ex.IsMaxRequestLengthExceeded())
+            {
+                // ASP.NET throws HttpException when maxRequestLength limit is exceeded.
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.RequestEntityTooLarge,
+                    Strings.PackageFileTooLarge);
+            }
+            catch (Exception)
+            {
+                //TODO: TelemetryService.TrackSymbolPackagePushFailureEvent(id, version);
+                throw;
+            }
+
             return null;
         }
 

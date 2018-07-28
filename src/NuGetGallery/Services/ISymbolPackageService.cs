@@ -19,11 +19,11 @@ namespace NuGetGallery
         /// <remarks>
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
         /// </remarks>
-        /// <param name="symbolPackage">The package to be created.</param>
-        /// <param name="packageStreamMetadata">The package stream's metadata.</param>
-        /// <param name="owner">The owner of the package</param>
-        /// <param name="currentUser">The user that pushed the package on behalf of <paramref name="owner"/></param>
+        /// <param name="nugetPackage">The nuget package for which symbol is to be created.</param>
+        /// <param name="symbolPackageStreamMetadata">The symbol package stream's metadata.</param>
         /// <returns>The created symbol package entity.</returns>
-        Task<SymbolPackage> CreateSymbolPackageAsync(PackageArchiveReader symbolPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser);
+        Task<SymbolPackage> CreateSymbolPackageAsync(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata);
+
+        Task EnsureValid(PackageArchiveReader packageArchiveReader);
     }
 }
