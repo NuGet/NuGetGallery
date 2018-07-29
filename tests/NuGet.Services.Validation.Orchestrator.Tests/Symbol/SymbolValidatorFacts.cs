@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+
 using Moq;
 using NuGet.Jobs.Validation;
 using NuGet.Jobs.Validation.Storage;
@@ -243,6 +244,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             protected readonly SymbolsValidator _target;
 
             protected readonly SymbolsValidationConfiguration _config;
+
 
             public FactsBase(ITestOutputHelper output)
             {
