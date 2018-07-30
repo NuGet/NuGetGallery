@@ -28,10 +28,24 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
         {
-            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
-            var body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+            bool hasWarnings = warningMessages != null && warningMessages.Any();
+
+            string subject;
+            var warningMessagesPlaceholder = string.Empty;
+            if (hasWarnings)
+            {
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with warnings - {package.PackageRegistration.Id} {package.Version}";
+                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
+            }
+            else
+            {
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
+            }
+
+            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+{warningMessagesPlaceholder}
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">

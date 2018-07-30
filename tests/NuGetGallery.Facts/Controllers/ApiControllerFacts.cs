@@ -387,7 +387,7 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockMessageService
-                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
                     Times.Exactly(callExpected ? 1 : 0));
             }
 
