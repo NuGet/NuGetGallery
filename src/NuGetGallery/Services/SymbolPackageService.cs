@@ -19,6 +19,7 @@ namespace NuGetGallery
     {
         private static readonly string SymbolPackageTypeName = "SymbolsPackage";
         private static readonly string PDBExtension = ".pdb";
+        private static readonly string NuspecExtension = ".nuspec";
 
         public SymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
@@ -128,17 +129,23 @@ namespace NuGetGallery
             }
 
             // Validate that all the files apart from nuspec are pdbs
-            if (!DoesNotContainUnsupportedFiles(symbolPackage))
+            if (!HasAllPdbFiles(symbolPackage))
             {
                 throw new InvalidDataException(string.Format(Strings.SymbolsPackage_InvalidFiles, PDBExtension));
             }
         }
 
-        private static bool DoesNotContainUnsupportedFiles(PackageArchiveReader symbolPackage)
+        private static bool HasAllPdbFiles(PackageArchiveReader symbolPackage)
         {
             foreach (var filePath in symbolPackage.GetFiles())
             {
                 var fi = new FileInfo(filePath);
+                if (fi.Extension == NuspecExtension)
+                {
+                    // exception for nuspecs
+                    continue;
+                }
+
                 if (fi.Extension != PDBExtension)
                 {
                     return false;
