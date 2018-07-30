@@ -1778,11 +1778,56 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading its symbols..
+        ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package(snupkg)..
+        /// </summary>
+        public static string SymbolsPackage_FailedToReadPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_FailedToReadPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid metadata items specified in nuspec. Please remove &apos;{0}&apos; from the nuspec..
+        /// </summary>
+        public static string SymbolsPackage_InvalidDataInNuspec {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_InvalidDataInNuspec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid file found in the uploaded package. Symbols package should only contain &apos;{0}&apos; files..
+        /// </summary>
+        public static string SymbolsPackage_InvalidFiles {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_InvalidFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The uploaded package is not a Symbols package. It is missing the only required &apos;SymbolsPackage&apos; type or multiple package types specified..
+        /// </summary>
+        public static string SymbolsPackage_NotSymbolPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_NotSymbolPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading it&apos;s symbols..
         /// </summary>
         public static string SymbolsPackage_PackageIdAndVersionNotFound {
             get {
                 return ResourceManager.GetString("SymbolsPackage_PackageIdAndVersionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
+        /// </summary>
+        public static string SymbolsPackage_UploadNotAllowed {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_UploadNotAllowed", resourceCulture);
             }
         }
         

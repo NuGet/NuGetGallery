@@ -912,6 +912,21 @@ If you would like to update the linked Microsoft account you can do so from the 
     <value>The package file exceeds the size limit. Please try again.</value>
   </data>
   <data name="SymbolsPackage_PackageIdAndVersionNotFound" xml:space="preserve">
-    <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading its symbols.</value>
+    <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading it's symbols.</value>
+  </data>
+  <data name="SymbolsPackage_NotSymbolPackage" xml:space="preserve">
+    <value>The uploaded package is not a Symbols package. It is missing the only required 'SymbolsPackage' type or multiple package types specified.</value>
+  </data>
+  <data name="SymbolsPackage_FailedToReadPackage" xml:space="preserve">
+    <value>Failed to read the symbols package. Ensure it is a valid symbols package(snupkg).</value>
+  </data>
+  <data name="SymbolsPackage_InvalidDataInNuspec" xml:space="preserve">
+    <value>Invalid metadata items specified in nuspec. Please remove '{0}' from the nuspec.</value>
+  </data>
+  <data name="SymbolsPackage_InvalidFiles" xml:space="preserve">
+    <value>Invalid file found in the uploaded package. Symbols package should only contain '{0}' files.</value>
+  </data>
+  <data name="SymbolsPackage_UploadNotAllowed" xml:space="preserve">
+    <value>You do not have the permissions to upload symbol packages.</value>
   </data>
 </root>
