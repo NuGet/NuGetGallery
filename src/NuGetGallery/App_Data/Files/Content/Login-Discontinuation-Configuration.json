@@ -1,5 +1,5 @@
 {
-    "IsPasswordDiscontinuedForAll": false,
+    "IsPasswordDiscontinuedForAll": true,
     "DiscontinuedForEmailAddresses": [
         "cannotUsePassword@canUsePassword.com"
     ],
@@ -10,7 +10,8 @@
         "exception@cannotUsePassword.com"
     ],
     "ForceTransformationToOrganizationForEmailAddresses": [
-        "organization@cannotUsePassword.com"
+      "organization@cannotUsePassword.com",
+      "nuggets4nuget7@nuggets4nuget.org"
     ],
     "EnabledOrganizationAadTenants": [
         {
