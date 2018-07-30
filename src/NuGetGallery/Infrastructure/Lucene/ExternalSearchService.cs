@@ -52,7 +52,14 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, "SearchGalleryQueryService/3.0.0-rc", null, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
+                _client = new SearchClient(
+                    ServiceUri, 
+                    "SearchGalleryQueryService/3.0.0-rc", 
+                    null, 
+                    _healthIndicatorStore, 
+                    (exception) => QuietLog.LogHandledException(exception), 
+                    new TracingHttpHandler(Trace), 
+                    new CorrelatingHttpClientHandler());
             }
         }
 
@@ -90,7 +97,14 @@ namespace NuGetGallery.Infrastructure.Lucene
 
             if (_client == null)
             {
-                _client = new SearchClient(ServiceUri, config.SearchServiceResourceType, credentials, _healthIndicatorStore, new TracingHttpHandler(Trace), new CorrelatingHttpClientHandler());
+                _client = new SearchClient(
+                    ServiceUri, 
+                    config.SearchServiceResourceType, 
+                    credentials, 
+                    _healthIndicatorStore,
+                    (exception) => QuietLog.LogHandledException(exception),
+                    new TracingHttpHandler(Trace), 
+                    new CorrelatingHttpClientHandler());
             }
         }
 

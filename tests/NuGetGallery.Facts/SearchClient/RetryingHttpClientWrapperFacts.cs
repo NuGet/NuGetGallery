@@ -23,12 +23,12 @@ namespace NuGetGallery.SearchClient
 
         private RetryingHttpClientWrapper CreateWrapperClient(HttpMessageHandler handler)
         {
-            return new RetryingHttpClientWrapper(new HttpClient(handler));
+            return new RetryingHttpClientWrapper(new HttpClient(handler), (exception) => { });
         }
 
         private RetryingHttpClientWrapper CreateWrapperClient()
         {
-            return new RetryingHttpClientWrapper(new HttpClient());
+            return new RetryingHttpClientWrapper(new HttpClient(), (exception) => { });
         }
 
         [Fact]

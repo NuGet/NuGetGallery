@@ -28,7 +28,7 @@ namespace NuGetGallery
 
             _serviceDiscoveryClient = new ServiceDiscoveryClient(configuration.ServiceDiscoveryUri);
             _autocompleteServiceResourceType = configuration.AutocompleteServiceResourceType;
-            _httpClient = new RetryingHttpClientWrapper(new HttpClient());
+            _httpClient = new RetryingHttpClientWrapper(new HttpClient(), (exception) => QuietLog.LogHandledException(exception));
         }
 
         public async Task<IEnumerable<string>> RunServiceQuery(
