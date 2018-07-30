@@ -115,6 +115,7 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\Validation.Common.Job\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.ScanAndSign.Core\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\PackageLagMonitor\Properties\AssemblyInfo.g.cs",
+            "$PSScriptRoot\src\StatusAggregator\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Validation.Symbols.Core\Properties\AssemblyInfo.g.cs",
             "$PSScriptRoot\src\Monitoring.RebootSearchInstance\Properties\AssemblyInfo.g.cs"
             
@@ -177,7 +178,8 @@ Invoke-BuildStep 'Creating artifacts' {
             "src/Validation.PackageSigning.ValidateCertificate/Validation.PackageSigning.ValidateCertificate.csproj", `
             "src/Validation.PackageSigning.RevalidateCertificate/Validation.PackageSigning.RevalidateCertificate.csproj", `
             "src/PackageLagMonitor/Monitoring.PackageLag.csproj", `
-            "src/Monitoring.RebootSearchInstance/Monitoring.RebootSearchInstance.csproj", `
+            "src/StatusAggregator/StatusAggregator.csproj", `
+            "src/Validation.Symbols.Core/Validation.Symbols.Core.csproj", `
             "src/Validation.Symbols/Validation.Symbols.csproj" `
             + $ProjectsWithSymbols
 
