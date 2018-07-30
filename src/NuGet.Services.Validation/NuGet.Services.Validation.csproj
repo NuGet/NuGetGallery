@@ -132,9 +132,9 @@
     <Compile Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.Designer.cs">
       <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201807260517457_AddSymbolsServerRequest.cs" />
-    <Compile Include="Migrations\201807260517457_AddSymbolsServerRequest.Designer.cs">
-      <DependentUpon>201807260517457_AddSymbolsServerRequest.cs</DependentUpon>
+    <Compile Include="Migrations\201807280128135_AddSymbolsRequests.cs" />
+    <Compile Include="Migrations\201807280128135_AddSymbolsRequests.Designer.cs">
+      <DependentUpon>201807280128135_AddSymbolsRequests.cs</DependentUpon>
     </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
@@ -211,8 +211,8 @@
     <EmbeddedResource Include="Migrations\201807242030031_AddPackageSignaturesTypeStatusIndex.resx">
       <DependentUpon>201807242030031_AddPackageSignaturesTypeStatusIndex.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201807260517457_AddSymbolsServerRequest.resx">
-      <DependentUpon>201807260517457_AddSymbolsServerRequest.cs</DependentUpon>
+    <EmbeddedResource Include="Migrations\201807280128135_AddSymbolsRequests.resx">
+      <DependentUpon>201807280128135_AddSymbolsRequests.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

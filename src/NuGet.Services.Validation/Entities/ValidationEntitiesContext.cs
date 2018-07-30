@@ -675,6 +675,9 @@ namespace NuGet.Services.Validation
         {
             modelBuilder.Entity<SymbolsServerRequest>()
                 .HasKey(r => r.SymbolsKey);
+            modelBuilder.Entity<SymbolsServerRequest>()
+              .Property(r => r.SymbolsKey)
+              .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
 
             modelBuilder.Entity<SymbolsServerRequest>()
                .Property(s => s.RowVersion)

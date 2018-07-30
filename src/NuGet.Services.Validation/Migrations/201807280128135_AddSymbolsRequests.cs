@@ -3,7 +3,7 @@ namespace NuGet.Services.Validation
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class AddSymbolsServerRequest : DbMigration
+    public partial class AddSymbolsRequests : DbMigration
     {
         public override void Up()
         {
@@ -11,7 +11,7 @@ namespace NuGet.Services.Validation
                 "dbo.SymbolsServerRequests",
                 c => new
                     {
-                        SymbolsKey = c.Int(nullable: false, identity: true),
+                        SymbolsKey = c.Int(nullable: false),
                         RequestName = c.String(nullable: false),
                         RequestStatusKey = c.Int(nullable: false),
                         Created = c.DateTime(nullable: false),
