@@ -1,0 +1,97 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{2DD07A73-8C88-4429-BB24-C2813586EF92}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Validation.Symbols</RootNamespace>
+    <AssemblyName>Validation.Symbols</AssemblyName>
+    <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <RestoreProjectStyle>PackageReference</RestoreProjectStyle>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ISymbolsFileService.cs" />
+    <Compile Include="ISymbolsValidatorService.cs" />
+    <Compile Include="ITelemetryService.cs" />
+    <Compile Include="Job.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SymbolsFileService.cs" />
+    <Compile Include="SymbolsValidatorConfiguration.cs" />
+    <Compile Include="SymbolsValidatorService.cs" />
+    <Compile Include="SymbolsValidatorMessageHandler.cs" />
+    <Compile Include="TelemetryService.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="Scripts\Functions.ps1" />
+    <None Include="Scripts\PostDeploy.ps1" />
+    <None Include="Scripts\PreDeploy.ps1" />
+    <None Include="Scripts\Validation.SymbolValidation.cmd" />
+    <None Include="Settings\dev.json" />
+    <None Include="Settings\int.json" />
+    <None Include="Settings\prod.json" />
+    <None Include="Validation.Symbols.nuspec" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
+      <Project>{4b4b1efb-8f33-42e6-b79f-54e7f3293d31}</Project>
+      <Name>NuGet.Jobs.Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\NuGet.Services.Validation.Orchestrator\NuGet.Services.Validation.Orchestrator.csproj">
+      <Project>{e6d094fb-9068-4578-b176-116f97e7506b}</Project>
+      <Name>NuGet.Services.Validation.Orchestrator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
+      <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>
+      <Name>Validation.Symbols.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Reflection.Metadata">
+      <Version>1.7.0-preview1-26717-04</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Scripts\nssm.exe" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

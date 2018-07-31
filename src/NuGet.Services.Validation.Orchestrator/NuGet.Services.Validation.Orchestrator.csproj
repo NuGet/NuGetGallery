@@ -127,7 +127,7 @@
       <Version>2.26.0-master-34394</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.26.0-master-34394</Version>
+      <Version>2.27.0-master-35351</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

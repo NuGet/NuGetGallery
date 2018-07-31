@@ -89,6 +89,21 @@ namespace NuGet.Jobs.Validation
             return dictionary;
         }
 
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            _logger.Log<TState>(logLevel, eventId, state, exception, formatter);
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return _logger.IsEnabled(logLevel);
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return _logger.BeginScope<TState>(state);
+        }
+
         /// <summary>
         /// The parameters provided to <see cref="TraceEvent(TraceEventType, int, string, string, string, int)"/>. This
         /// type implements <see cref="IEnumerable{KeyValuePair{string, object}}" /> because Serilog uses this to

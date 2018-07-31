@@ -5,12 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation;
-using NuGet.Jobs.Validation.Storage;
 using NuGet.Jobs.Validation.ScanAndSign;
+using NuGet.Jobs.Validation.Storage;
 using NuGet.Services.Validation.Vcs;
 using NuGetGallery;
 
@@ -19,6 +20,8 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
     [ValidatorName(ValidatorName.ScanAndSign)]
     public class ScanAndSignProcessor : IProcessor
     {
+        private const string UsernameRegex = @"^[A-Za-z0-9][A-Za-z0-9_\.-]+[A-Za-z0-9]$";
+
         private readonly IValidationEntitiesContext _validationContext;
         private readonly IValidatorStateService _validatorStateService;
         private readonly ICorePackageService _packageService;
@@ -131,10 +134,10 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                 return processorStatus.ToValidationResult();
             }
 
-            if (await ShouldRepositorySignAsync(request))
-            {
-                var owners = FindPackageOwners(request);
+            var owners = FindPackageOwners(request);
 
+            if (await ShouldRepositorySignAsync(request, owners))
+            {
                 _logger.LogInformation(
                     "Repository signing {PackageId} {PackageVersion} with {ServiceIndex} and {Owners}",
                     request.PackageId,
@@ -197,7 +200,7 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return false;
         }
 
-        private async Task<bool> ShouldRepositorySignAsync(IValidationRequest request)
+        private async Task<bool> ShouldRepositorySignAsync(IValidationRequest request, List<string> owners)
         {
             var hasRepositorySignature = await _validationContext
                 .PackageSignatures
@@ -215,7 +218,18 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                 return false;
             }
 
-           return true;
+            if (owners.Any(IsInvalidUsername))
+            {
+                _logger.LogWarning(
+                    "Package {PackageId} {PackageVersion} has an owner with an invalid username. Scanning instead of signing. {Owners}",
+                    request.PackageId,
+                    request.PackageVersion,
+                    owners);
+
+                return false;
+            }
+
+            return true;
         }
 
         private List<string> FindPackageOwners(IValidationRequest request)
@@ -233,6 +247,11 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
                 .Owners
                 .Select(o => o.Username)
                 .ToList();
+        }
+
+        private bool IsInvalidUsername(string username)
+        {
+            return !Regex.IsMatch(username, UsernameRegex, RegexOptions.None, TimeSpan.FromSeconds(5));
         }
     }
 }

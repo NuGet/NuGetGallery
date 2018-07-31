@@ -28,6 +28,7 @@ namespace NuGet.Services.Validation.Symbols
             Assert.Equal(_validationRequest.Object.ValidationId, message.ValidationId);
             Assert.Equal(_validationRequest.Object.PackageId, message.PackageId);
             Assert.Equal(_validationRequest.Object.PackageVersion, message.PackageNormalizedVersion);
+
             Assert.Equal(_validationRequest.Object.NupkgUrl, message.SnupkgUrl);
             _serializer.Verify(
                 x => x.Serialize(It.IsAny<SymbolsValidatorMessage>()),
@@ -57,6 +58,7 @@ namespace NuGet.Services.Validation.Symbols
             _brokeredMessage.SetupProperty(x => x.ScheduledEnqueueTimeUtc);
 
             _topicClient = new Mock<ITopicClient>();
+
             _serializer = new Mock<IBrokeredMessageSerializer<SymbolsValidatorMessage>>();
             _options = new Mock<IOptionsSnapshot<SymbolsValidationConfiguration>>();
 
