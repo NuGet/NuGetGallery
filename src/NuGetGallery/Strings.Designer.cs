@@ -2129,6 +2129,43 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package must be signed with a registered certificate..
+        /// </summary>
+        public static string UploadPackage_PackageIsNotSigned {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsNotSigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package was signed. You must register the signing certificate to publish signed packages..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificat" +
+                        "es", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can manage your certificates on the Account Settings page..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package was signed. The owner &apos;{0}&apos; must register the signing certificate to publish signed packages..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
         /// </summary>
         public static string UploadPackage_UploadInProgress {

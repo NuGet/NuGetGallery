@@ -911,6 +911,19 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="PackageFileTooLarge" xml:space="preserve">
     <value>The package file exceeds the size limit. Please try again.</value>
   </data>
+  <data name="UploadPackage_PackageIsNotSigned" xml:space="preserve">
+    <value>This package must be signed with a registered certificate.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates" xml:space="preserve">
+    <value>The package was signed. You must register the signing certificate to publish signed packages.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate" xml:space="preserve">
+    <value>You can manage your certificates on the Account Settings page.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner" xml:space="preserve">
+    <value>The package was signed. The owner '{0}' must register the signing certificate to publish signed packages.</value>
+    <comment>{0} is the signer name.</comment>
+  </data>
   <data name="SymbolsPackage_PackageIdAndVersionNotFound" xml:space="preserve">
     <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading it's symbols.</value>
   </data>

@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -24,12 +26,10 @@ namespace NuGetGallery
         private static PackageUploadService CreateService(
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
-            Mock<IValidationService> validationService = null)
+            Mock<IValidationService> validationService = null,
+            Mock<IAppConfiguration> config = null)
         {
-            if (packageService == null)
-            {
-                packageService = new Mock<IPackageService>();
-            }
+            packageService = packageService ?? new Mock<IPackageService>();
 
             packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
             packageService.Setup(x => x
@@ -57,10 +57,8 @@ namespace NuGetGallery
                     .Returns(new ReservedNamespace[0]);
             }
 
-            if (validationService == null)
-            {
-                validationService = new Mock<IValidationService>();
-            }
+            validationService = validationService ?? new Mock<IValidationService>();
+            config = config ?? new Mock<IAppConfiguration>();
 
             var symbolPackageService = new Mock<ISymbolPackageService>();
             var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
@@ -71,6 +69,7 @@ namespace NuGetGallery
                 new Mock<IEntitiesContext>().Object,
                 reservedNamespaceService.Object,
                 validationService.Object,
+                config.Object,
                 symbolPackageService.Object,
                 symbolPackageFileService.Object);
 
@@ -164,6 +163,238 @@ namespace NuGetGallery
                 var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
+            }
+        }
+
+        public class TheValidatePackageMethod : FactsBase
+        {
+            private readonly User _currentUser;
+            private User _owner;
+            private Mock<TestPackageReader> _nuGetPackage;
+
+            public TheValidatePackageMethod()
+            {
+                _currentUser = new User
+                {
+                    Key = 1,
+                    UserCertificates = { new UserCertificate() },
+                };
+                _owner = _currentUser;
+                _package.PackageRegistration.Owners = new List<User> { _currentUser };
+                _nuGetPackage = GeneratePackage(isSigned: true);
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(true);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndOneOwner()
+            {
+                _currentUser.UserCertificates.Clear();
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndMultipleOwners()
+            {
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.Owners.Add(new User { Key = _currentUser.Key + 1 });
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerThatIsCurrentUser()
+            {
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.RequiredSigners.Add(_currentUser);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerThatIsOtherUser()
+            {
+                var otherUser = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "Other",
+                };
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.RequiredSigners.Add(otherUser);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, otherUser.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndOwnerThatIsOtherUser()
+            {
+                _owner = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "OtherA",
+                };
+                var ownerB = new User
+                {
+                    Key = _owner.Key + 2,
+                    Username = "OtherB",
+                };
+                _package.PackageRegistration.Owners.Clear();
+                _package.PackageRegistration.Owners.Add(_owner);
+                _package.PackageRegistration.Owners.Add(ownerB);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, _owner.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerAndOwnerThatIsOtherUser()
+            {
+                _owner = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "OtherA",
+                };
+                var ownerB = new User
+                {
+                    Key = _currentUser.Key + 2,
+                    Username = "OtherB",
+                };
+                _package.PackageRegistration.Owners.Clear();
+                _package.PackageRegistration.Owners.Add(_owner);
+                _package.PackageRegistration.Owners.Add(ownerB);
+                _package.PackageRegistration.RequiredSigners.Add(ownerB);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, ownerB.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task AllowsSignedPackageOnOwnerWithNoCertificatesIfConfigAllows()
+            {
+                _currentUser.UserCertificates.Clear();
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(false);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            [Fact]
+            public async Task AllowsSignedPackageIfSigningIsRequired()
+            {
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task RejectsUnsignedPackageIfSigningIsRequiredIrrespectiveOfConfig(bool configFlag)
+            {
+                _nuGetPackage = GeneratePackage(isSigned: false);
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(configFlag);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task AllowsBothSignedAndUnsignedPackagesIfSigningIsNotRequired(bool isSigned)
+            {
+                var ownerB = new User
+                {
+                    Key = _currentUser.Key + 1,
+                };
+                _package.PackageRegistration.Owners.Add(ownerB);
+                _nuGetPackage = GeneratePackage(isSigned);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            private static Mock<TestPackageReader> GeneratePackage(bool isSigned)
+            {
+                return PackageServiceUtility.CreateNuGetPackage(
+                    id: "theId",
+                    version: "1.2.3-alpha.0",
+                    isSigned: isSigned);
             }
         }
 
@@ -446,12 +677,14 @@ namespace NuGetGallery
             protected readonly Mock<IEntitiesContext> _entitiesContext;
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
             protected readonly Mock<IValidationService> _validationService;
+            protected readonly Mock<IAppConfiguration> _config;
             protected readonly Mock<ISymbolPackageService> _symbolPackageService;
             protected readonly Mock<ISymbolPackageFileService> _symbolPackageFileService;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
             protected FileAlreadyExistsException _conflictException;
+            protected readonly CancellationToken _token;
             protected readonly PackageUploadService _target;
 
             public FactsBase()
@@ -461,6 +694,7 @@ namespace NuGetGallery
                 _entitiesContext = new Mock<IEntitiesContext>();
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
+                _config = new Mock<IAppConfiguration>();
                 _symbolPackageService = new Mock<ISymbolPackageService>();
                 _symbolPackageFileService = new Mock<ISymbolPackageFileService>();
 
@@ -475,6 +709,7 @@ namespace NuGetGallery
                 _packageFile = Stream.Null;
                 _unexpectedException = new ArgumentException("Fail!");
                 _conflictException = new FileAlreadyExistsException("Conflict!");
+                _token = CancellationToken.None;
 
                 _target = new PackageUploadService(
                     _packageService.Object,
@@ -482,6 +717,7 @@ namespace NuGetGallery
                     _entitiesContext.Object,
                     _reservedNamespaceService.Object,
                     _validationService.Object,
+                    _config.Object,
                     _symbolPackageService.Object,
                     _symbolPackageFileService.Object);
             }

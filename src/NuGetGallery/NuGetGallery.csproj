@@ -349,6 +349,10 @@
     <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.cs" />
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.Designer.cs">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -390,6 +394,7 @@
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
+    <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -471,6 +476,8 @@
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Services\PackageValidationResult.cs" />
+    <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
@@ -1381,7 +1388,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
-    <Compile Include="Services\Extensions.cs" />
+    <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
@@ -1521,6 +1528,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807261747084_AddCertificateDetails.resx">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

@@ -4,8 +4,11 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGetGallery.Configuration;
+using NuGetGallery.Extensions;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -17,6 +20,7 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
+        private readonly IAppConfiguration _config;
         private readonly ISymbolPackageService _symbolPackageService;
         private readonly ISymbolPackageFileService _symbolPackageFileService;
 
@@ -26,6 +30,7 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
+            IAppConfiguration config,
             ISymbolPackageService symbolPackageService,
             ISymbolPackageFileService symbolPackageFileService)
         {
@@ -36,6 +41,94 @@ namespace NuGetGallery
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
             _symbolPackageFileService = symbolPackageFileService ?? throw new ArgumentNullException(nameof(symbolPackageFileService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+        }
+
+        public async Task<PackageValidationResult> ValidatePackageAsync(
+            Package package,
+            PackageArchiveReader nuGetPackage,
+            User owner,
+            User currentUser)
+        {
+            var result = await ValidateSignatureFilePresenceAsync(
+                package.PackageRegistration,
+                nuGetPackage,
+                owner,
+                currentUser);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return PackageValidationResult.Accepted();
+        }
+
+        private async Task<PackageValidationResult> ValidateSignatureFilePresenceAsync(
+            PackageRegistration packageRegistration,
+            PackageArchiveReader nugetPackage,
+            User owner,
+            User currentUser)
+        {
+            if (await nugetPackage.IsSignedAsync(CancellationToken.None))
+            {
+                if (_config.RejectSignedPackagesWithNoRegisteredCertificate
+                    && !packageRegistration.IsSigningAllowed())
+                {
+                    var requiredSigner = packageRegistration.RequiredSigners.FirstOrDefault();
+                    var hasRequiredSigner = requiredSigner != null;
+
+                    if (hasRequiredSigner)
+                    {
+                        if (requiredSigner == currentUser)
+                        {
+                            return new PackageValidationResult(
+                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
+                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                        }
+                        else
+                        {
+                            return new PackageValidationResult(
+                               PackageValidationResultType.PackageShouldNotBeSigned,
+                               string.Format(
+                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
+                                   requiredSigner.Username));
+                        }
+                    }
+                    else
+                    {
+                        var isCurrentUserAnOwner = packageRegistration.Owners.Contains(currentUser);
+
+                        // Technically, if there is no required signer, any one of the owners can register a
+                        // certificate to resolve this issue. However, we favor either the current user or the provided
+                        // owner since these are both accounts the current user can push on behalf of. In other words
+                        // we provide a message that leads the current user to remedying the problem rather than asking
+                        // someone else for help.
+                        if (isCurrentUserAnOwner)
+                        {
+                            return new PackageValidationResult(
+                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
+                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                        }
+                        else
+                        {
+                            return new PackageValidationResult(
+                               PackageValidationResultType.PackageShouldNotBeSigned,
+                               string.Format(
+                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
+                                   owner.Username));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (packageRegistration.IsSigningRequired())
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIsNotSigned);
+                }
+            }
+
+            return null;
         }
 
         public async Task<Package> GeneratePackageAsync(

@@ -644,6 +644,23 @@ namespace NuGetGallery
                                 owner,
                                 currentUser);
 
+                            var validationResult = await PackageUploadService.ValidatePackageAsync(
+                                package,
+                                packageToPush,
+                                owner,
+                                currentUser);
+                            switch (validationResult.Type)
+                            {
+                                case PackageValidationResultType.Accepted:
+                                    break;
+                                case PackageValidationResultType.Invalid:
+                                case PackageValidationResultType.PackageShouldNotBeSigned:
+                                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
+                                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                                default:
+                                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                            }
+
                             await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
                             PackageCommitResult commitResult;
