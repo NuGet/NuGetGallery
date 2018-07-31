@@ -86,6 +86,8 @@ namespace NuGetGallery.Security
         {
             get
             {
+                yield return _controlRequiredSignerPolicy;
+                yield return _automaticallyOverwriteRequiredSignerPolicy;
                 yield return _organizationTenantPolicy;
             }
         }

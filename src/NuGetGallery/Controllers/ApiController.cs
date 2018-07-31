@@ -449,8 +449,7 @@ namespace NuGetGallery
                                         string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, packageRegistration.Id));
                                 }
 
-                                var nuspecVersion = nuspec.GetVersion();
-                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(nuspec.GetId(), nuspecVersion.ToStringSafe());
+                                var existingPackage = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                                 if (existingPackage != null)
                                 {
                                     if (existingPackage.PackageStatusKey == PackageStatus.FailedValidation)
@@ -469,7 +468,7 @@ namespace NuGetGallery
                                         return new HttpStatusCodeWithBodyResult(
                                             HttpStatusCode.Conflict,
                                             string.Format(CultureInfo.CurrentCulture, Strings.PackageExistsAndCannotBeModified,
-                                                id, nuspecVersion.ToNormalizedStringSafe()));
+                                                id, version.ToNormalizedStringSafe()));
                                     }
                                 }
                             }
@@ -489,6 +488,23 @@ namespace NuGetGallery
                                 packageStreamMetadata,
                                 owner,
                                 currentUser);
+
+                            var validationResult = await PackageUploadService.ValidatePackageAsync(
+                                package,
+                                packageToPush,
+                                owner,
+                                currentUser);
+                            switch (validationResult.Type)
+                            {
+                                case PackageValidationResultType.Accepted:
+                                    break;
+                                case PackageValidationResultType.Invalid:
+                                case PackageValidationResultType.PackageShouldNotBeSigned:
+                                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
+                                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                                default:
+                                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                            }
 
                             await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 

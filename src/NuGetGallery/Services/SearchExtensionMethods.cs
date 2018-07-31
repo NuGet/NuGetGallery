@@ -7,7 +7,7 @@ using System.Linq.Expressions;
 
 namespace NuGetGallery
 {
-    public static class Extensions
+    public static class SearchExtensionMethods
     {
         // Search criteria
         private static readonly Func<string, Expression<Func<Package, bool>>> IdCriteria = term =>

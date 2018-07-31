@@ -231,6 +231,7 @@
     <Compile Include="Authentication\Providers\AzureActiveDirectoryV2\AzureActiveDirectoryV2AuthenticatorConfiguration.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticator.cs" />
     <Compile Include="Authentication\Providers\AzureActiveDirectory\AzureActiveDirectoryAuthenticatorConfiguration.cs" />
+    <Compile Include="Diagnostics\TraceDiagnosticsSourceScope.cs" />
     <Compile Include="Extensions\ClaimsExtensions.cs" />
     <Compile Include="Configuration\IGalleryConfigurationService.cs" />
     <Compile Include="Configuration\IPackageDeleteConfiguration.cs" />
@@ -352,6 +353,14 @@
     <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.cs" />
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.Designer.cs">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.cs" />
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.Designer.cs">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -373,6 +382,8 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\ISymbolsConfiguration.cs" />
+    <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
     <Compile Include="Services\CertificateValidator.cs" />
@@ -387,6 +398,8 @@
     <Compile Include="Services\IContentObjectService.cs" />
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
+    <Compile Include="Services\ISymbolPackageService.cs" />
+    <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -468,6 +481,8 @@
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Services\PackageValidationResult.cs" />
+    <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
@@ -1378,7 +1393,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
-    <Compile Include="Services\Extensions.cs" />
+    <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
@@ -1522,6 +1537,12 @@
     <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807261747084_AddCertificateDetails.resx">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807302212501_AddShortCertificateNames.resx">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1547,6 +1568,7 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Areas\Admin\Views\Revalidation\Index.cshtml" />
+    <Content Include="App_Data\Files\Content\Symbols-Configuration.json" />
     <None Include="Scripts\jquery-1.11.0.intellisense.js" />
     <Content Include="Scripts\jquery-1.11.0.js" />
     <Content Include="Scripts\jquery-1.11.0.min.js" />
@@ -2169,7 +2191,7 @@
       <Version>4.8.0-preview4.5287</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
-      <Version>2.26.0-master-33196</Version>
+      <Version>2.27.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.2.3</Version>
@@ -2184,7 +2206,7 @@
       <Version>2.26.0-master-33196</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.26.0-master-33196</Version>
+      <Version>2.27.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.26.0-master-33196</Version>

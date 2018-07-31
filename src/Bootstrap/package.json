@@ -85,5 +85,11 @@
       "fonts",
       "js"
     ]
+  },
+  "dependencies": {
+    "fresh": "^0.5.2",
+    "mime": "^1.4.1",
+    "no-case": "^2.3.2",
+    "tough-cookie": "^2.3.3"
   }
 }
