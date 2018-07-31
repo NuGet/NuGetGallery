@@ -7,7 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
-using System.Threading;
+using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -31,7 +31,7 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
+        public async Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
             string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
             string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
@@ -52,12 +52,12 @@ namespace NuGetGallery.Services
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
 
-        public void SendPackageValidationFailedNotice(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
+        public async Task SendPackageValidationFailedNoticeAsync(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
         {
             var validationIssues = validationSet.GetValidationIssues();
 
@@ -98,7 +98,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
@@ -134,7 +134,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        public void SendValidationTakingTooLongNotice(Package package, string packageUrl)
+        public async Task SendValidationTakingTooLongNoticeAsync(Package package, string packageUrl)
         {
             string subject = "[{0}] Package validation taking longer than expected - {1} {2}";
             string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +
@@ -166,7 +166,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
@@ -196,7 +196,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        protected virtual void SendMessage(MailMessage mailMessage)
+        protected virtual async Task SendMessageAsync(MailMessage mailMessage)
         {
             int attempt = 0;
             bool success = false;
@@ -204,14 +204,14 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             {
                 try
                 {
-                    AttemptSendMessage(mailMessage);
+                    await AttemptSendMessageAsync(mailMessage);
                     success = true;
                 }
                 catch (SmtpException)
                 {
                     if (attempt < RetryDelays.Count)
                     {
-                        Thread.Sleep(RetryDelays[attempt]);
+                        await Task.Delay(RetryDelays[attempt]);
                         attempt++;
                     }
                     else
@@ -222,27 +222,29 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        protected virtual void AttemptSendMessage(MailMessage mailMessage)
+        protected virtual Task AttemptSendMessageAsync(MailMessage mailMessage)
         {
+            // AnglicanGeek.MarkdownMailer doesn't have an async overload
             MailSender.Send(mailMessage);
+            return Task.CompletedTask;
         }
 
-        protected void SendMessageToSender(MailMessage mailMessage)
+        protected async Task SendMessageToSenderAsync(MailMessage mailMessage)
         {
-            var senderCopy = new MailMessage(
+            using (var senderCopy = new MailMessage(
                 CoreConfiguration.GalleryOwner,
-                mailMessage.ReplyToList.First())
+                mailMessage.ReplyToList.First()))
             {
-                Subject = mailMessage.Subject + " [Sender Copy]",
-                Body = string.Format(
+                senderCopy.Subject = mailMessage.Subject + " [Sender Copy]";
+                senderCopy.Body = string.Format(
                         CultureInfo.CurrentCulture,
                         "You sent the following message via {0}: {1}{1}{2}",
                         CoreConfiguration.GalleryOwner.DisplayName,
                         Environment.NewLine,
-                        mailMessage.Body),
-            };
-            senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
-            SendMessage(senderCopy);
+                        mailMessage.Body);
+                senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
+                await SendMessageAsync(senderCopy);
+            }
         }
     }
 }

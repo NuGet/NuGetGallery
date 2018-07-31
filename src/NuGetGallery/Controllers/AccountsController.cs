@@ -163,7 +163,7 @@ namespace NuGetGallery
                 // Change notice not required for new accounts.
                 if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
                 {
-                    MessageService.SendEmailChangeNoticeToPreviousEmailAddress(account, existingEmail);
+                    await MessageService.SendEmailChangeNoticeToPreviousEmailAddressAsync(account, existingEmail);
 
                     string returnUrl = HttpContext.GetConfirmationReturnUrl();
                     if (!String.IsNullOrEmpty(returnUrl))

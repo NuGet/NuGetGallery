@@ -74,13 +74,13 @@ namespace NuGetGallery
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmail(account, confirmationUrl);
+            MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
         }
 
         protected override void SendEmailChangedConfirmationNotice(User account)
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNotice(account, confirmationUrl);
+            MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
         }
 
         protected override User GetAccount(string accountName)
@@ -158,16 +158,16 @@ namespace NuGetGallery
 
             if (existingTransformRequestUser != null)
             {
-                MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, existingTransformRequestUser);
+                await MessageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, existingTransformRequestUser);
             }
 
             var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
             var confirmUrl = Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false);
             var rejectUrl = Url.RejectTransformAccount(accountToTransform, relativeUrl: false);
-            MessageService.SendOrganizationTransformRequest(accountToTransform, adminUser, Url.User(accountToTransform, relativeUrl: false), confirmUrl, rejectUrl);
+            await MessageService.SendOrganizationTransformRequestAsync(accountToTransform, adminUser, Url.User(accountToTransform, relativeUrl: false), confirmUrl, rejectUrl);
 
             var cancelUrl = Url.CancelTransformAccount(accountToTransform, relativeUrl: false);
-            MessageService.SendOrganizationTransformInitiatedNotice(accountToTransform, adminUser, cancelUrl);
+            await MessageService.SendOrganizationTransformInitiatedNoticeAsync(accountToTransform, adminUser, cancelUrl);
 
             TelemetryService.TrackOrganizationTransformInitiated(accountToTransform);
 
@@ -206,7 +206,7 @@ namespace NuGetGallery
                 return TransformToOrganizationFailed(errorReason);
             }
 
-            MessageService.SendOrganizationTransformRequestAcceptedNotice(accountToTransform, adminUser);
+            await MessageService.SendOrganizationTransformRequestAcceptedNoticeAsync(accountToTransform, adminUser);
 
             TelemetryService.TrackOrganizationTransformCompleted(accountToTransform);
 
@@ -234,7 +234,7 @@ namespace NuGetGallery
             {
                 if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
                 {
-                    MessageService.SendOrganizationTransformRequestRejectedNotice(accountToTransform, adminUser);
+                    await MessageService.SendOrganizationTransformRequestRejectedNoticeAsync(accountToTransform, adminUser);
 
                     TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
 
@@ -262,7 +262,7 @@ namespace NuGetGallery
 
             if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
             {
-                MessageService.SendOrganizationTransformRequestCancelledNotice(accountToTransform, adminUser);
+                await MessageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, adminUser);
 
                 TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
 
@@ -314,7 +314,7 @@ namespace NuGetGallery
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (isSupportRequestCreated)
             {
-                MessageService.SendAccountDeleteNotice(user);
+                await MessageService.SendAccountDeleteNoticeAsync(user);
             }
             else
             {
@@ -597,7 +597,7 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                MessageService.SendCredentialAddedNotice(credential.User, AuthenticationService.DescribeCredential(credential));
+                await MessageService.SendCredentialAddedNoticeAsync(credential.User, AuthenticationService.DescribeCredential(credential));
             }
 
             return RedirectToAction("PasswordChanged");
@@ -831,7 +831,7 @@ namespace NuGetGallery
 
             var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
-            MessageService.SendCredentialAddedNotice(GetCurrentUser(), newCredentialViewModel);
+            await MessageService.SendCredentialAddedNoticeAsync(GetCurrentUser(), newCredentialViewModel);
 
             return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
@@ -987,7 +987,7 @@ namespace NuGetGallery
             await AuthenticationService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
+            await MessageService.SendCredentialRemovedNoticeAsync(user, AuthenticationService.DescribeCredential(cred));
 
             return Json(Strings.CredentialRemoved);
         }
@@ -1017,7 +1017,7 @@ namespace NuGetGallery
                 }
 
                 // Notify the user of the change
-                MessageService.SendCredentialRemovedNotice(user, AuthenticationService.DescribeCredential(cred));
+                await MessageService.SendCredentialRemovedNoticeAsync(user, AuthenticationService.DescribeCredential(cred));
 
                 TempData["Message"] = message;
             }
@@ -1065,7 +1065,7 @@ namespace NuGetGallery
                 user.PasswordResetToken,
                 forgotPassword,
                 relativeUrl: false);
-            MessageService.SendPasswordResetInstructions(user, resetPasswordUrl, forgotPassword);
+            MessageService.SendPasswordResetInstructionsAsync(user, resetPasswordUrl, forgotPassword);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }

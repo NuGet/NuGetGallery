@@ -197,7 +197,7 @@ namespace NuGetGallery.Controllers
                     .Returns(existingUser);
                 var messageServiceMock = GetMock<IMessageService>();
                 messageServiceMock
-                .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
+                .Setup(m => m.SendSigninAssistanceEmailAsync(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
                 .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -396,7 +396,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.RemoveCredential(user, passwordCredential));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNotice(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
+                    .Verify(x => x.SendCredentialAddedNoticeAsync(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
             }
 
             public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
@@ -491,7 +491,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNotice(authUser.User, credentialViewModel));
+                    .Verify(x => x.SendCredentialAddedNoticeAsync(authUser.User, credentialViewModel));
             }
 
             [Fact]
@@ -548,8 +548,9 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
                                                             It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -617,8 +618,9 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
                                                             It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Prefix + providerUsedForLogin)))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -749,7 +751,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
@@ -795,7 +797,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         It.IsAny<User>(),
                         It.IsAny<string>()), Times.Never());
             }
@@ -885,7 +887,7 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
 

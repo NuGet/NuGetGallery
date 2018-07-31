@@ -3,42 +3,43 @@
 
 using System.Collections.Generic;
 using System.Net.Mail;
+using System.Threading.Tasks;
 using NuGetGallery.Services;
 
 namespace NuGetGallery
 {
     public interface IMessageService
     {
-        void SendContactOwnersMessage(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
-        void ReportAbuse(ReportPackageRequest report);
-        void ReportMyPackage(ReportPackageRequest report);
-        void SendNewAccountEmail(User newUser, string confirmationUrl);
-        void SendEmailChangeConfirmationNotice(User user, string confirmationUrl);
-        void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword);
-        void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress);
-        void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage);
-        void SendPackageOwnerRequestInitiatedNotice(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
-        void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package);
-        void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package);
-        void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl);
-        void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package);
-        void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel);
-        void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel);
-        void SendContactSupportEmail(ContactSupportRequest request);
-        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
-        void SendAccountDeleteNotice(User user);
-        void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl);
-        void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials);
-        void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl);
-        void SendOrganizationTransformInitiatedNotice(User accountToTransform, User adminUser, string cancellationUrl);
-        void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser);
-        void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser);
-        void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser);
-        void SendOrganizationMembershipRequest(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl);
-        void SendOrganizationMembershipRequestInitiatedNotice(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl);
-        void SendOrganizationMembershipRequestRejectedNotice(Organization organization, User pendingUser);
-        void SendOrganizationMembershipRequestCancelledNotice(Organization organization, User pendingUser);
-        void SendOrganizationMemberUpdatedNotice(Organization organization, Membership membership);
-        void SendOrganizationMemberRemovedNotice(Organization organization, User removedUser);
+        Task SendContactOwnersMessageAsync(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
+        Task ReportAbuseAsync(ReportPackageRequest report);
+        Task ReportMyPackageAsync(ReportPackageRequest report);
+        Task SendNewAccountEmailAsync(User newUser, string confirmationUrl);
+        Task SendEmailChangeConfirmationNoticeAsync(User user, string confirmationUrl);
+        Task SendPasswordResetInstructionsAsync(User user, string resetPasswordUrl, bool forgotPassword);
+        Task SendEmailChangeNoticeToPreviousEmailAddressAsync(User user, string oldEmailAddress);
+        Task SendPackageOwnerRequestAsync(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage);
+        Task SendPackageOwnerRequestInitiatedNoticeAsync(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
+        Task SendPackageOwnerRequestRejectionNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
+        Task SendPackageOwnerRequestCancellationNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
+        Task SendPackageOwnerAddedNoticeAsync(User toUser, User newOwner, PackageRegistration package, string packageUrl);
+        Task SendPackageOwnerRemovedNoticeAsync(User fromUser, User toUser, PackageRegistration package);
+        Task SendCredentialRemovedNoticeAsync(User user, CredentialViewModel removedCredentialViewModel);
+        Task SendCredentialAddedNoticeAsync(User user, CredentialViewModel addedCredentialViewModel);
+        Task SendContactSupportEmailAsync(ContactSupportRequest request);
+        Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        Task SendAccountDeleteNoticeAsync(User user);
+        Task SendPackageDeletedNoticeAsync(Package package, string packageUrl, string packageSupportUrl);
+        Task SendSigninAssistanceEmailAsync(MailAddress emailAddress, IEnumerable<Credential> credentials);
+        Task SendOrganizationTransformRequestAsync(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl);
+        Task SendOrganizationTransformInitiatedNoticeAsync(User accountToTransform, User adminUser, string cancellationUrl);
+        Task SendOrganizationTransformRequestAcceptedNoticeAsync(User accountToTransform, User adminUser);
+        Task SendOrganizationTransformRequestRejectedNoticeAsync(User accountToTransform, User adminUser);
+        Task SendOrganizationTransformRequestCancelledNoticeAsync(User accountToTransform, User adminUser);
+        Task SendOrganizationMembershipRequestAsync(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl);
+        Task SendOrganizationMembershipRequestInitiatedNoticeAsync(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl);
+        Task SendOrganizationMembershipRequestRejectedNoticeAsync(Organization organization, User pendingUser);
+        Task SendOrganizationMembershipRequestCancelledNoticeAsync(Organization organization, User pendingUser);
+        Task SendOrganizationMemberUpdatedNoticeAsync(Organization organization, Membership membership);
+        Task SendOrganizationMemberRemovedNoticeAsync(Organization organization, User removedUser);
     }
 }

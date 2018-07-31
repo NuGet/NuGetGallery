@@ -287,7 +287,7 @@ namespace NuGetGallery
             // Send a new account email
             if (NuGetContext.Config.Current.ConfirmEmailAddresses && !string.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
-                _messageService.SendNewAccountEmail(
+                await _messageService.SendNewAccountEmailAsync(
                     user.User,
                     Url.ConfirmEmail(
                         user.User.Username,
@@ -352,7 +352,7 @@ namespace NuGetGallery
                     else
                     {
                         var externalCredentials = user.Credentials.Where(cred => cred.IsExternal());
-                        _messageService.SendSigninAssistanceEmail(new MailAddress(email, user.Username), externalCredentials);
+                        _messageService.SendSigninAssistanceEmailAsync(new MailAddress(email, user.Username), externalCredentials);
                         return Json(new { success = true });
                     }
                 }
@@ -674,7 +674,7 @@ namespace NuGetGallery
             await RemovePasswordCredential(user.User);
 
             // Notify the user of the change
-            _messageService.SendCredentialAddedNotice(user.User, _authService.DescribeCredential(result.Credential));
+            await _messageService.SendCredentialAddedNoticeAsync(user.User, _authService.DescribeCredential(result.Credential));
 
             return new LoginUserDetails
             {

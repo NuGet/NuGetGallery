@@ -889,7 +889,7 @@ namespace NuGetGallery
 
             private static Expression<Action<IMessageService>> MessageServiceForConfirmOwnershipRequestExpression(PackageOwnerRequest request)
             {
-                return messageService => messageService.SendPackageOwnerAddedNotice(
+                return messageService => messageService.SendPackageOwnerAddedNoticeAsync(
                     request.RequestingOwner,
                     request.NewOwner,
                     request.PackageRegistration,
@@ -898,7 +898,7 @@ namespace NuGetGallery
 
             private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
             {
-                return messageService => messageService.SendPackageOwnerRequestRejectionNotice(request.RequestingOwner, request.NewOwner, request.PackageRegistration);
+                return messageService => messageService.SendPackageOwnerRequestRejectionNoticeAsync(request.RequestingOwner, request.NewOwner, request.PackageRegistration);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
@@ -1164,7 +1164,7 @@ namespace NuGetGallery
                     Assert.Equal(packageId, model.PackageId);
                     packageService.Verify();
                     packageOwnershipManagementRequestService.Verify();
-                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNotice(userA, userB, package));
+                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNoticeAsync(userA, userB, package));
                 }
             }
         }
@@ -1376,7 +1376,7 @@ namespace NuGetGallery
                 var messageService = new Mock<IMessageService>();
                 string sentMessage = null;
                 messageService.Setup(
-                    s => s.SendContactOwnersMessage(
+                    s => s.SendContactOwnersMessageAsync(
                         It.IsAny<MailAddress>(),
                         It.IsAny<Package>(),
                         It.IsAny<string>(),
@@ -1424,7 +1424,7 @@ namespace NuGetGallery
 
                 var messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.SendContactOwnersMessage(
+                    s => s.SendContactOwnersMessageAsync(
                         It.IsAny<MailAddress>(),
                         It.IsAny<Package>(),
                         It.IsAny<string>(),
@@ -2594,7 +2594,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 messageService.Verify(
-                    s => s.ReportAbuse(
+                    s => s.ReportAbuseAsync(
                         It.Is<ReportPackageRequest>(
                             r => r.FromAddress.Address == ReporterEmailAddress
                                  && r.Package == package
@@ -2628,7 +2628,7 @@ namespace NuGetGallery
 
                 Assert.NotNull(result);
                 messageService.Verify(
-                    s => s.ReportAbuse(
+                    s => s.ReportAbuseAsync(
                         It.Is<ReportPackageRequest>(
                             r => r.Message == EncodedMessage
                                  && r.FromAddress.Address == currentUser.EmailAddress
@@ -2642,7 +2642,7 @@ namespace NuGetGallery
             {
                 messageService = new Mock<IMessageService>();
                 messageService.Setup(
-                    s => s.ReportAbuse(It.Is<ReportPackageRequest>(r => r.Message == UnencodedMessage)));
+                    s => s.ReportAbuseAsync(It.Is<ReportPackageRequest>(r => r.Message == UnencodedMessage)));
                 package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { owner } },
@@ -2881,7 +2881,7 @@ namespace NuGetGallery
 
                 ReportPackageRequest reportRequest = null;
                 _messageService
-                    .Setup(s => s.ReportMyPackage(It.IsAny<ReportPackageRequest>()))
+                    .Setup(s => s.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()))
                     .Callback<ReportPackageRequest>(r => reportRequest = r);
 
                 // Act
@@ -3007,7 +3007,7 @@ namespace NuGetGallery
                         currentUser.Username),
                     Times.Once);
                 _messageService.Verify(
-                    x => x.SendPackageDeletedNotice(
+                    x => x.SendPackageDeletedNoticeAsync(
                         _package,
                         It.IsAny<string>(),
                         It.IsAny<string>()),
@@ -3015,7 +3015,7 @@ namespace NuGetGallery
                 Assert.Equal(Strings.UserPackageDeleteCompleteTransientMessage, _controller.TempData["Message"]);
 
                 _messageService.Verify(
-                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    x => x.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()),
                     Times.Never);
             }
 
@@ -3067,13 +3067,13 @@ namespace NuGetGallery
                         It.IsAny<string>()),
                     Times.Never);
                 _messageService.Verify(
-                    x => x.SendPackageDeletedNotice(
+                    x => x.SendPackageDeletedNoticeAsync(
                         It.IsAny<Package>(),
                         It.IsAny<string>(),
                         It.IsAny<string>()),
                     Times.Never);
                 _messageService.Verify(
-                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    x => x.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()),
                     Times.Once);
             }
 
@@ -3233,7 +3233,7 @@ namespace NuGetGallery
                         It.IsAny<string>()),
                     Times.Never);
                 _messageService.Verify(
-                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    x => x.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()),
                     Times.Once);
             }
 
@@ -3273,7 +3273,7 @@ namespace NuGetGallery
                         It.IsAny<string>()),
                     Times.Never);
                 _messageService.Verify(
-                    x => x.ReportMyPackage(It.IsAny<ReportPackageRequest>()),
+                    x => x.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()),
                     Times.Once);
             }
         }
@@ -5075,7 +5075,7 @@ namespace NuGetGallery
 
                     // Assert
                     fakeMessageService
-                        .Verify(ms => ms.SendPackageAddedNotice(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                        .Verify(ms => ms.SendPackageAddedNoticeAsync(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                         Times.Exactly(callExpected ? 1 : 0));
                 }
             }

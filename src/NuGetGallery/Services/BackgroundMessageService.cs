@@ -16,15 +16,15 @@ namespace NuGetGallery.Services
         {
         }
 
-        protected override void SendMessage(MailMessage mailMessage)
+        protected override Task SendMessageAsync(MailMessage mailMessage)
         {
             // Send email as background task, as we don't want to delay the HTTP response.
             // Particularly when sending email fails and needs to be retried with a delay.
-            Task.Run(() =>
+            Task.Run(async () =>
             {
                 try
                 {
-                    base.SendMessage(mailMessage);
+                    await base.SendMessageAsync(mailMessage);
                 }
                 catch (Exception ex)
                 {
@@ -32,6 +32,8 @@ namespace NuGetGallery.Services
                     QuietLog.LogHandledException(ex);
                 }
             });
+
+            return Task.CompletedTask;
         }
     }
 }

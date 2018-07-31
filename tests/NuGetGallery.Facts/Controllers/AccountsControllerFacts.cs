@@ -243,7 +243,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()),
+                    .Verify(m => m.SendEmailChangeConfirmationNoticeAsync(It.IsAny<User>(), It.IsAny<string>()),
                     Times.Once);
             }
 
@@ -268,7 +268,7 @@ namespace NuGetGallery
                 ResultAssert.IsRedirectToRoute(result, new { action = controller.AccountAction });
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()),
+                    .Verify(m => m.SendEmailChangeConfirmationNoticeAsync(It.IsAny<User>(), It.IsAny<string>()),
                     Times.Never);
             }
 
@@ -291,7 +291,7 @@ namespace NuGetGallery
                 controller.SetCurrentUser(getCurrentUser(Fakes));
 
                 var messageService = GetMock<IMessageService>();
-                messageService.Setup(m => m.SendEmailChangeConfirmationNotice(It.IsAny<User>(), It.IsAny<string>()))
+                messageService.Setup(m => m.SendEmailChangeConfirmationNoticeAsync(It.IsAny<User>(), It.IsAny<string>()))
                     .Verifiable();
 
                 var userService = GetMock<IUserService>();
@@ -474,7 +474,7 @@ namespace NuGetGallery
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
-                mailService.Verify(m => m.SendNewAccountEmail(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
+                mailService.Verify(m => m.SendNewAccountEmailAsync(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
 
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.False(model.SentEmail);
@@ -500,7 +500,7 @@ namespace NuGetGallery
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
-                mailService.Verify(m => m.SendNewAccountEmail(It.IsAny<User>(), confirmationUrl), Times.Once);
+                mailService.Verify(m => m.SendNewAccountEmailAsync(It.IsAny<User>(), confirmationUrl), Times.Once);
 
                 var model = ResultAssert.IsView<ConfirmationViewModel>(result);
                 Assert.True(model.SentEmail);
@@ -519,7 +519,7 @@ namespace NuGetGallery
                     .Returns(account as User);
 
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendNewAccountEmail(
+                    .Setup(m => m.SendNewAccountEmailAsync(
                         account,
                         string.IsNullOrEmpty(confirmationUrl) ? It.IsAny<string>() : confirmationUrl))
                     .Verifiable();
@@ -594,7 +594,7 @@ namespace NuGetGallery
                         Times.Never);
 
                 var mailService = GetMock<IMessageService>();
-                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(
+                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddressAsync(
                     It.IsAny<TUser>(),
                     It.IsAny<string>()),
                         Times.Never);
@@ -627,7 +627,7 @@ namespace NuGetGallery
                         Times.Once);
 
                 var mailService = GetMock<IMessageService>();
-                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(
+                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddressAsync(
                     It.IsAny<TUser>(),
                     It.IsAny<string>()),
                         Times.Never);
@@ -659,7 +659,7 @@ namespace NuGetGallery
                         Times.Once);
 
                 var mailService = GetMock<IMessageService>();
-                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddress(
+                mailService.Verify(m => m.SendEmailChangeNoticeToPreviousEmailAddressAsync(
                     It.IsAny<TUser>(),
                     It.IsAny<string>()),
                         Times.Once);
@@ -730,9 +730,10 @@ namespace NuGetGallery
                 }
 
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendEmailChangeNoticeToPreviousEmailAddress(
+                    .Setup(m => m.SendEmailChangeNoticeToPreviousEmailAddressAsync(
                         It.IsAny<TUser>(),
                         It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 // Act
