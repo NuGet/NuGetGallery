@@ -431,7 +431,6 @@ namespace NuGetGallery
                             PackageCommitResult commitResult;
                             using (Stream uploadStream = symbolPackageStream)
                             {
-                                uploadStream.Position = 0;
                                 commitResult = await PackageUploadService.CreateAndUploadSymbolsPackage(
                                     package,
                                     packageStreamMetadata,
