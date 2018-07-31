@@ -19,7 +19,6 @@ namespace NuGetGallery
         /// <summary>
         /// Timestamp when this symbol was created.
         /// </summary>
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Created { get; set; }
 
         /// <summary>

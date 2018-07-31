@@ -132,11 +132,12 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
-            ISymbolPackageService symbolPackageService)
+            ISymbolPackageService symbolPackageService,
+            IContentObjectService contentObjectService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, contentObjectService)
         {
             StatisticsService = statisticsService;
         }
@@ -444,9 +445,9 @@ namespace NuGetGallery
                                 case PackageCommitResult.Conflict:
                                     return new HttpStatusCodeWithBodyResult(
                                         HttpStatusCode.Conflict,
-                                        Strings.UploadPackage_IdVersionConflict);
+                                        Strings.SymbolsPackage_ConflictValidating);
                                 default:
-                                    throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                                    throw new NotImplementedException($"The symbol package commit result {commitResult} is not supported.");
                             }
 
                             return new HttpStatusCodeResult(HttpStatusCode.Created);

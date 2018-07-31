@@ -184,7 +184,10 @@ namespace NuGetGallery
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
                 {
                     // Mark any other associated available symbol package for deletion.
-                    var availableSymbolPackages = package.SymbolPackages.Where(sp => sp.StatusKey == PackageStatus.Available);
+                    var availableSymbolPackages = package
+                        .SymbolPackages
+                        .Where(sp => sp.StatusKey == PackageStatus.Available 
+                            && sp != symbolPackage);
 
                     if (availableSymbolPackages.Any())
                     {
@@ -202,23 +205,25 @@ namespace NuGetGallery
                     // commit all changes to database as an atomic transaction
                     await _entitiesContext.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
+                    ex.Log();
+
                     // If saving to the DB fails for any reason we need to delete the package we just saved.
-                    if (package.PackageStatusKey == PackageStatus.Validating)
+                    if (symbolPackage.StatusKey == PackageStatus.Validating)
                     {
-                        await _packageFileService.DeleteValidationPackageFileAsync(
+                        await _symbolPackageFileService.DeleteValidationPackageFileAsync(
                             package.PackageRegistration.Id,
                             package.Version);
                     }
-                    else if (package.PackageStatusKey == PackageStatus.Available)
+                    else if (symbolPackage.StatusKey == PackageStatus.Available)
                     {
-                        await _packageFileService.DeletePackageFileAsync(
+                        await _symbolPackageFileService.DeletePackageFileAsync(
                             package.PackageRegistration.Id,
                             package.Version);
                     }
 
-                    throw;
+                    throw ex;
                 }
             }
             catch (FileAlreadyExistsException ex)

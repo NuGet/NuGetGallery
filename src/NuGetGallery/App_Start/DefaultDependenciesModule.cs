@@ -190,6 +190,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<Organization>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<SymbolPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<SymbolPackage>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()

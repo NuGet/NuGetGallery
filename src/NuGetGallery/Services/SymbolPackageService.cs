@@ -19,7 +19,13 @@ namespace NuGetGallery
     {
         private static readonly string SymbolPackageTypeName = "SymbolsPackage";
         private static readonly string PDBExtension = ".pdb";
-        private static readonly string NuspecExtension = ".nuspec";
+        private static HashSet<string> AllowedExtensions = new HashSet<string>() {
+            PDBExtension,
+            ".nuspec",
+            ".xml",
+            ".psmdcp",
+            ".rels"
+        };
 
         public SymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
@@ -77,6 +83,7 @@ namespace NuGetGallery
                 var symbolPackage = new SymbolPackage()
                 {
                     Package = nugetPackage,
+                    PackageKey = nugetPackage.Key,
                     Created = DateTime.UtcNow,
                     FileSize = symbolPackageStreamMetadata.Size,
                     HashAlgorithm = symbolPackageStreamMetadata.HashAlgorithm,
@@ -110,12 +117,14 @@ namespace NuGetGallery
 
             // Validate that the PII is not embedded in nuspec
             var invalidItems = new List<string>();
-            if (metadata.Authors.Any())
+            if (metadata.Authors != null
+                && (metadata.Authors.Count > 1
+                    || !string.IsNullOrWhiteSpace(metadata.Authors.FirstOrDefault())))
             {
                 invalidItems.Add("Authors");
             }
 
-            if (metadata.Owners.Any())
+            if (metadata.Owners != null && metadata.Owners.Any())
             {
                 invalidItems.Add("Owners");
             }
@@ -125,25 +134,20 @@ namespace NuGetGallery
                 throw new InvalidDataException(string.Format(Strings.SymbolsPackage_InvalidDataInNuspec, string.Join(",", invalidItems.ToArray())));
             }
 
-            // Validate that all the files apart from nuspec are pdbs
-            if (!HasAllPdbFiles(symbolPackage))
+            if (!CheckForAllowedFiles(symbolPackage))
             {
                 throw new InvalidDataException(string.Format(Strings.SymbolsPackage_InvalidFiles, PDBExtension));
             }
         }
 
-        private static bool HasAllPdbFiles(PackageArchiveReader symbolPackage)
+        private static bool CheckForAllowedFiles(PackageArchiveReader symbolPackage)
         {
             foreach (var filePath in symbolPackage.GetFiles())
             {
                 var fi = new FileInfo(filePath);
-                if (fi.Extension == NuspecExtension)
-                {
-                    // exception for nuspecs
-                    continue;
-                }
-
-                if (fi.Extension != PDBExtension)
+                if (!string.IsNullOrEmpty(fi.Name)
+                    && !string.IsNullOrEmpty(fi.Extension)
+                    && !AllowedExtensions.Contains(fi.Extension))
                 {
                     return false;
                 }
