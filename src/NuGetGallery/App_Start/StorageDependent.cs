@@ -87,6 +87,7 @@ namespace NuGetGallery
                 Create<CertificateService, ICertificateService>(configuration.AzureStorage_UserCertificates_ConnectionString, isSingleInstance: false),
                 Create<ContentService, IContentService>(configuration.AzureStorage_Content_ConnectionString, isSingleInstance: true),
                 Create<PackageFileService, IPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
+                Create<SymbolPackageFileService, ISymbolPackageFileService>(configuration.AzureStorage_Packages_ConnectionString, isSingleInstance: false),
                 Create<UploadFileService, IUploadFileService>(configuration.AzureStorage_Uploads_ConnectionString, isSingleInstance: false),
             };
 

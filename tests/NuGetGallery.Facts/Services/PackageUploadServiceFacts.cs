@@ -62,12 +62,17 @@ namespace NuGetGallery
                 validationService = new Mock<IValidationService>();
             }
 
+            var symbolPackageService = new Mock<ISymbolPackageService>();
+            var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+
             var packageUploadService = new Mock<PackageUploadService>(
                 packageService.Object,
                 new Mock<IPackageFileService>().Object,
                 new Mock<IEntitiesContext>().Object,
                 reservedNamespaceService.Object,
-                validationService.Object);
+                validationService.Object,
+                symbolPackageService.Object,
+                symbolPackageFileService.Object);
 
             return packageUploadService.Object;
         }
@@ -441,6 +446,8 @@ namespace NuGetGallery
             protected readonly Mock<IEntitiesContext> _entitiesContext;
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
             protected readonly Mock<IValidationService> _validationService;
+            protected readonly Mock<ISymbolPackageService> _symbolPackageService;
+            protected readonly Mock<ISymbolPackageFileService> _symbolPackageFileService;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
@@ -454,6 +461,8 @@ namespace NuGetGallery
                 _entitiesContext = new Mock<IEntitiesContext>();
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
+                _symbolPackageService = new Mock<ISymbolPackageService>();
+                _symbolPackageFileService = new Mock<ISymbolPackageFileService>();
 
                 _package = new Package
                 {
@@ -472,7 +481,9 @@ namespace NuGetGallery
                     _packageFileService.Object,
                     _entitiesContext.Object,
                     _reservedNamespaceService.Object,
-                    _validationService.Object);
+                    _validationService.Object,
+                    _symbolPackageService.Object,
+                    _symbolPackageFileService.Object);
             }
         }
     }

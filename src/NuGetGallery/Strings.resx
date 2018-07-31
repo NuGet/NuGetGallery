@@ -929,4 +929,7 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="SymbolsPackage_UploadNotAllowed" xml:space="preserve">
     <value>You do not have the permissions to upload symbol packages.</value>
   </data>
+  <data name="SymbolsPackage_ConflictValidating" xml:space="preserve">
+    <value>It looks like there is already another copy of snupkg pending validation(s). Please wait for the validation(s) to finish before replacing the symbols package.</value>
+  </data>
 </root>

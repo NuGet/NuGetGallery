@@ -1778,6 +1778,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to It looks like there is already another copy of snupkg pending validation(s). Please wait for the validation(s) to finish before replacing the symbols package..
+        /// </summary>
+        public static string SymbolsPackage_ConflictValidating {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_ConflictValidating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package(snupkg)..
         /// </summary>
         public static string SymbolsPackage_FailedToReadPackage {

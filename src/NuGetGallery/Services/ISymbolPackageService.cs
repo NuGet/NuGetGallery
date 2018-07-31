@@ -14,7 +14,8 @@ namespace NuGetGallery
     public interface ISymbolPackageService : ICoreSymbolPackageService
     {
         /// <summary>
-        /// Populate the related database tables to create the specified symbol package.
+        /// Populate the related database tables to create the specified symbol package. It is the caller's responsibility to commit
+        /// the changes.
         /// </summary>
         /// <remarks>
         /// This method doesn't upload the package binary to the blob storage. The caller must do it after this call.
@@ -22,7 +23,7 @@ namespace NuGetGallery
         /// <param name="nugetPackage">The nuget package for which symbol is to be created.</param>
         /// <param name="symbolPackageStreamMetadata">The symbol package stream's metadata.</param>
         /// <returns>The created symbol package entity.</returns>
-        Task<SymbolPackage> CreateSymbolPackageAsync(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata);
+        SymbolPackage CreateSymbolPackage(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata);
 
         Task EnsureValid(PackageArchiveReader packageArchiveReader);
     }

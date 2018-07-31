@@ -68,9 +68,9 @@ namespace NuGetGallery
 
         /// <remarks>
         /// This method will create the symbol package entity. The caller should validate the ownership of packages and 
-        /// metadata for the symbols associated for this package.
+        /// metadata for the symbols associated for this package. Its the caller's responsibility to commit as well.
         /// </remarks>
-        public async Task<SymbolPackage> CreateSymbolPackageAsync(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata)
+        public SymbolPackage CreateSymbolPackage(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata)
         {
             try
             {
@@ -80,13 +80,10 @@ namespace NuGetGallery
                     Created = DateTime.UtcNow,
                     FileSize = symbolPackageStreamMetadata.Size,
                     HashAlgorithm = symbolPackageStreamMetadata.HashAlgorithm,
-                    Hash = symbolPackageStreamMetadata.Hash,
-                    StatusKey = PackageStatus.Validating
+                    Hash = symbolPackageStreamMetadata.Hash
                 };
 
                 _symbolPackageRepository.InsertOnCommit(symbolPackage);
-
-                await _symbolPackageRepository.CommitChangesAsync();
 
                 return symbolPackage;
             }

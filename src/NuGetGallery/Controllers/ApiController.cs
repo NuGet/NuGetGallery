@@ -397,7 +397,6 @@ namespace NuGetGallery
                             var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                             if (package == null)
                             {
-                                // TODO: Add telemetry
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(
                                     CultureInfo.CurrentCulture,
                                     Strings.SymbolsPackage_PackageIdAndVersionNotFound,
@@ -405,12 +404,17 @@ namespace NuGetGallery
                                     version.ToNormalizedStringSafe()));
                             }
 
+                            // Do not allow to upload snupkg to a package which has symbols package pending validations.
+                            if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.SymbolsPackage_ConflictValidating);
+                            }
+
                             // Check if this user has the permissions to push the corresponding symbol package
                             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
                             if (!apiScopeEvaluationResult.IsSuccessful())
                             {
                                 // User cannot push a symbol package as the current user's scopes does not allow it to push for the corresponding package.
-                                // TODO: Add failed audit record for symbols package.
                                 return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
 
@@ -423,10 +427,28 @@ namespace NuGetGallery
                                 Size = symbolPackageStream.Length
                             };
 
-                            // TODO: If everything is good, upload the package to the validation container.
+                            PackageCommitResult commitResult;
+                            using (Stream uploadStream = symbolPackageStream)
+                            {
+                                uploadStream.Position = 0;
+                                commitResult = await PackageUploadService.CreateAndUploadSymbolsPackage(
+                                    package,
+                                    packageStreamMetadata,
+                                    uploadStream.AsSeekableStream());
+                            }
 
-                            // TODO: Add auditing and telemetry for symbol package creation
-                            var symbolPackage = await SymbolPackageService.CreateSymbolPackageAsync(package, packageStreamMetadata);
+                            switch (commitResult)
+                            {
+                                case PackageCommitResult.Success:
+                                    break;
+                                case PackageCommitResult.Conflict:
+                                    return new HttpStatusCodeWithBodyResult(
+                                        HttpStatusCode.Conflict,
+                                        Strings.UploadPackage_IdVersionConflict);
+                                default:
+                                    throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                            }
+
                             return new HttpStatusCodeResult(HttpStatusCode.Created);
                         }
                     }
@@ -448,7 +470,7 @@ namespace NuGetGallery
             }
             catch (Exception)
             {
-                //TODO: TelemetryService.TrackSymbolPackagePushFailureEvent(id, version);
+                //log telemetry
                 throw;
             }
         }
