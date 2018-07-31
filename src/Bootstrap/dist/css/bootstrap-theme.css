@@ -624,6 +624,10 @@ img.reserved-indicator-icon {
   display: inline-block;
   width: 100%;
 }
+.page-account-settings .expired-certificate {
+  font-weight: bold;
+  color: #a94442;
+}
 .page-api-keys .example-commands {
   padding: 8px 10px;
   font-family: Consolas, Menlo, Monaco, "Courier New", monospace;
