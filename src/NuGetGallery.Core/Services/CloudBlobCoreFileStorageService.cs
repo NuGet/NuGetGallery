@@ -544,6 +544,7 @@ namespace NuGetGallery
 
                 case CoreConstants.PackageReadMesFolderName:
                 case CoreConstants.RevalidationFolderName:
+                case CoreConstants.StatusFolderName:
                     return CoreConstants.TextContentType;
 
                 case CoreConstants.UserCertificatesFolderName:
