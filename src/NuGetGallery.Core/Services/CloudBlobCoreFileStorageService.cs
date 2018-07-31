@@ -40,6 +40,7 @@ namespace NuGetGallery
             CoreConstants.ValidationFolderName,
             CoreConstants.UserCertificatesFolderName,
             CoreConstants.RevalidationFolderName,
+            CoreConstants.StatusFolderName,
         };
 
         protected readonly ICloudBlobClient _client;
