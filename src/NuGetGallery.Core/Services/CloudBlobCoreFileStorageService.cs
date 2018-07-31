@@ -543,9 +543,11 @@ namespace NuGetGallery
                     return CoreConstants.OctetStreamContentType;
 
                 case CoreConstants.PackageReadMesFolderName:
+                    return CoreConstants.TextContentType;
+
                 case CoreConstants.RevalidationFolderName:
                 case CoreConstants.StatusFolderName:
-                    return CoreConstants.TextContentType;
+                    return CoreConstants.JsonContentType;
 
                 case CoreConstants.UserCertificatesFolderName:
                     return CoreConstants.CertificateContentType;
