@@ -428,14 +428,10 @@ namespace NuGetGallery
                                 Size = symbolPackageStream.Length
                             };
 
-                            PackageCommitResult commitResult;
-                            using (Stream uploadStream = symbolPackageStream)
-                            {
-                                commitResult = await PackageUploadService.CreateAndUploadSymbolsPackage(
-                                    package,
-                                    packageStreamMetadata,
-                                    uploadStream.AsSeekableStream());
-                            }
+                            PackageCommitResult commitResult = await PackageUploadService.CreateAndUploadSymbolsPackage(
+                                package,
+                                packageStreamMetadata,
+                                symbolPackageStream.AsSeekableStream());
 
                             switch (commitResult)
                             {

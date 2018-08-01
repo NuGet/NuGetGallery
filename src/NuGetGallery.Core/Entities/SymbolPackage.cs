@@ -79,7 +79,7 @@ namespace NuGetGallery
 
         public static bool operator ==(SymbolPackage sp1, SymbolPackage sp2)
         {
-            if (sp1 == null || sp2 == null)
+            if (((object)sp1) == null || ((object)sp2) == null)
             {
                 return Equals(sp1, sp2);
             }
@@ -89,7 +89,7 @@ namespace NuGetGallery
 
         public static bool operator !=(SymbolPackage sp1, SymbolPackage sp2)
         {
-            if (sp1 == null || sp2 == null)
+            if (((object)sp1) == null || ((object)sp2) == null)
             {
                 return !Equals(sp1, sp2);
             }
