@@ -36,6 +36,11 @@ namespace NuGet.Services.Revalidate
         public InitializationConfiguration Initialization { get; set; }
 
         /// <summary>
+        /// The configurations used to determine the health of the ingestion pipeline.
+        /// </summary>
+        public HealthConfiguration Health { get; set; }
+
+        /// <summary>
         /// The configurations used by the in-memory queue of revalidations to start.
         /// </summary>
         public RevalidationQueueConfiguration Queue { get; set; }
