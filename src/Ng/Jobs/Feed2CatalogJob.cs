@@ -12,13 +12,13 @@ using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Helpers;
 using NuGet.Services.Metadata.Catalog.Persistence;
+using Constants = NuGet.Services.Metadata.Catalog.Constants;
 
 namespace Ng.Jobs
 {
     public class Feed2CatalogJob : LoopingNgJob
     {
         private const string FeedUrlFormatSuffix = "&$top={2}&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
-        private static readonly DateTime DateTimeMinValueUtc = new DateTime(0L, DateTimeKind.Utc);
 
         protected bool Verbose;
         protected string Gallery;
@@ -74,7 +74,7 @@ namespace Ng.Jobs
         {
             Gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
             Verbose = arguments.GetOrDefault(Arguments.Verbose, false);
-            StartDate = arguments.GetOrDefault(Arguments.StartDate, DateTimeMinValueUtc);
+            StartDate = arguments.GetOrDefault(Arguments.StartDate, Constants.DateTimeMinValueUtc);
             SkipCreatedPackagesProcessing = arguments.GetOrDefault(Arguments.SkipCreatedPackagesProcessing, false);
 
             StorageFactory preferredPackageSourceStorageFactory = null;
@@ -129,11 +129,11 @@ namespace Ng.Jobs
 
                 // baseline timestamps
                 var catalogProperties = await FeedHelpers.GetCatalogPropertiesAsync(CatalogStorage, TelemetryService, cancellationToken);
-                var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? DateTimeMinValueUtc);
+                var lastCreated = catalogProperties.LastCreated ?? (StartDate ?? Constants.DateTimeMinValueUtc);
                 var lastEdited = catalogProperties.LastEdited ?? lastCreated;
                 var lastDeleted = catalogProperties.LastDeleted ?? lastCreated;
 
-                if (lastDeleted == DateTimeMinValueUtc)
+                if (lastDeleted == Constants.DateTimeMinValueUtc)
                 {
                     lastDeleted = lastCreated;
                 }
@@ -141,12 +141,12 @@ namespace Ng.Jobs
                 try
                 {
                     // fetch and add all DELETED packages
-                    if (lastDeleted > DateTimeMinValueUtc)
+                    if (lastDeleted > Constants.DateTimeMinValueUtc)
                     {
                         using (TelemetryService.TrackDuration(TelemetryConstants.DeletedPackagesSeconds))
                         {
                             SortedList<DateTime, IList<FeedPackageIdentity>> deletedPackages;
-                            var previousLastDeleted = DateTimeMinValueUtc;
+                            var previousLastDeleted = Constants.DateTimeMinValueUtc;
                             do
                             {
                                 // Get deleted packages
@@ -186,7 +186,7 @@ namespace Ng.Jobs
                         {
                             //  THEN fetch and add all newly CREATED packages - in order
                             SortedList<DateTime, IList<FeedPackageDetails>> createdPackages;
-                            var previousLastCreated = DateTimeMinValueUtc;
+                            var previousLastCreated = Constants.DateTimeMinValueUtc;
                             do
                             {
                                 Logger.LogInformation("CATALOG LastCreated: {CatalogLastCreatedTime}", lastCreated.ToString("O"));
@@ -224,7 +224,7 @@ namespace Ng.Jobs
                     {
                         //  THEN fetch and add all EDITED packages - in order
                         SortedList<DateTime, IList<FeedPackageDetails>> editedPackages;
-                        var previousLastEdited = DateTimeMinValueUtc;
+                        var previousLastEdited = Constants.DateTimeMinValueUtc;
                         do
                         {
                             Logger.LogInformation("CATALOG LastEdited: {CatalogLastEditedTime}", lastEdited.ToString("O"));
@@ -387,7 +387,7 @@ namespace Ng.Jobs
             var writer = new AppendOnlyCatalogWriter(
                 storage,
                 TelemetryService,
-                maxPageSize: 550);
+                Constants.MaxPageSize);
 
             if (packages == null || packages.Count == 0)
             {

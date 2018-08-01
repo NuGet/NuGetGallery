@@ -41,6 +41,8 @@ namespace NgTests.Infrastructure
                 "{0}Packages(Id='{1}',Version='{2}')",
                 baseUri, package.Id, NuGetVersionUtility.NormalizeVersion(package.Version));
 
+            const string FeedDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFF";
+
             var entry = new XElement(XName.Get("entry", nsAtom),
                 new XAttribute(XNamespace.Xmlns + "d", nsDataService.ToString()),
                 new XAttribute(XNamespace.Xmlns + "m", nsMetadata),
@@ -59,9 +61,9 @@ namespace NgTests.Infrastructure
                     new XElement(nsDataService + "Listed", package.Listed),
 
 
-                    new XElement(nsDataService + "Created", package.Created),
-                    new XElement(nsDataService + "LastEdited", package.LastEdited),
-                    new XElement(nsDataService + "Published", package.Published),
+                    new XElement(nsDataService + "Created", package.Created.ToString(FeedDateTimeFormat)),
+                    new XElement(nsDataService + "LastEdited", package.LastEdited?.ToString(FeedDateTimeFormat)),
+                    new XElement(nsDataService + "Published", package.Published.ToString(FeedDateTimeFormat)),
                     new XElement(nsDataService + "LicenseNames", package.LicenseNames),
                     new XElement(nsDataService + "LicenseReportUrl", package.LicenseReportUrl)));
 

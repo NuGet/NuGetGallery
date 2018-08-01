@@ -203,6 +203,11 @@ namespace CatalogTests.Helpers
                         return ArePackagesEqual(feedPackage, oDataPackage);
                     });
             }
+
+            foreach (var feedPackage in feedPackages)
+            {
+                VerifyDateTimesAreInUtc(feedPackage);
+            }
         }
 
         public static IEnumerable<object[]> GetPackagesInOrder_GetsAllPackagesInOrder_data
@@ -251,6 +256,8 @@ namespace CatalogTests.Helpers
                 {
                     var packageKeyDate = keyDateFunc(feedPackage);
                     Assert.Equal(packageKeyDate.Ticks, currentTimestamp.Ticks);
+
+                    VerifyDateTimesAreInUtc(feedPackage);
                 }
             }
         }
@@ -799,6 +806,13 @@ namespace CatalogTests.Helpers
             {
                 return Utils.GetNupkgMetadata(stream, packageHash: null);
             }
+        }
+
+        private static void VerifyDateTimesAreInUtc(FeedPackageDetails feedPackage)
+        {
+            Assert.Equal(DateTimeKind.Utc, feedPackage.CreatedDate.Kind);
+            Assert.Equal(DateTimeKind.Utc, feedPackage.LastEditedDate.Kind);
+            Assert.Equal(DateTimeKind.Utc, feedPackage.PublishedDate.Kind);
         }
 
         private sealed class DownloadMetadata2CatalogAsyncTest : IDisposable

@@ -299,7 +299,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var writer = new AppendOnlyCatalogWriter(storage, telemetryService, maxPageSize: 550);
+            var writer = new AppendOnlyCatalogWriter(storage, telemetryService, Constants.MaxPageSize);
 
             var lastDate = DetermineLastDate(lastCreated, lastEdited, createdPackages);
 
