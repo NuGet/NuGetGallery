@@ -111,7 +111,7 @@ namespace Ng.Jobs
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
-            using (Logger.BeginScope($"Logging for {TelemetryConstants.Destination}", Destination.AbsoluteUri))
+            using (Logger.BeginScope($"Logging for {{{TelemetryConstants.Destination}}}", Destination.AbsoluteUri))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
             using (var client = CreateHttpClient())
             {

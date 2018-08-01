@@ -24,6 +24,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string Method = "Method";
         public const string NonExistentBlob = "NonExistentBlob";
         public const string NonExistentPackageHash = "NonExistentPackageHash";
+        public const string PackageBlobReadSeconds = "PackageBlobReadSeconds";
         public const string PackageDownloadSeconds = "PackageDownloadSeconds";
         public const string ProcessBatchSeconds = "ProcessBatchSeconds";
         public const string ProcessGraphsSeconds = "ProcessGraphsSeconds";
