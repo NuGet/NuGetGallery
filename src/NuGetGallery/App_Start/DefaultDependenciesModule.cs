@@ -104,7 +104,11 @@ namespace NuGetGallery
                 .As<ICacheService>()
                 .InstancePerLifetimeScope();
 
-            var galleryDbConnectionFactory = new AzureSqlConnectionFactory(configuration.Current.SqlConnectionString, secretInjector);
+            var galleryDbConnectionFactory = CreateDbConnectionFactory(
+                diagnosticsService,
+                nameof(EntitiesContext),
+                configuration.Current.SqlConnectionString,
+                secretInjector);
 
             builder.RegisterInstance(galleryDbConnectionFactory)
                 .AsSelf()
@@ -192,7 +196,11 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            var supportDbConnectionFactory = new AzureSqlConnectionFactory(configuration.Current.SqlConnectionStringSupportRequest, secretInjector);
+            var supportDbConnectionFactory = CreateDbConnectionFactory(
+                diagnosticsService,
+                nameof(SupportRequestDbContext),
+                configuration.Current.SqlConnectionStringSupportRequest,
+                secretInjector);
 
             builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory)))
                 .AsSelf()
@@ -207,11 +215,6 @@ namespace NuGetGallery
             builder.RegisterType<UserService>()
                 .AsSelf()
                 .As<IUserService>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<PackageNamingConflictValidator>()
-                .AsSelf()
-                .As<IPackageNamingConflictValidator>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageService>()
@@ -364,7 +367,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, configuration, secretInjector);
+            RegisterAsynchronousValidation(builder, diagnosticsService, configuration, secretInjector);
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
@@ -403,15 +406,26 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
+        private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
+            string connectionString, ISecretInjector secretInjector)
+        {
+            var logger = diagnostics.SafeGetSource($"AzureSqlConnectionFactory-{name}");
+            return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
+        }
+
         private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
         {
             return Task.Run(() => connectionFactory.CreateAsync()).Result;
         }
 
-        private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
+        private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,
+            ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            var connectionString = configuration.Current.SqlConnectionStringValidation;
-            var validationDbConnectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
+            var validationDbConnectionFactory = CreateDbConnectionFactory(
+                diagnostics,
+                nameof(ValidationEntitiesContext),
+                configuration.Current.SqlConnectionStringValidation,
+                secretInjector);
 
             builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
                 .AsSelf()
@@ -424,9 +438,14 @@ namespace NuGetGallery
             builder.RegisterType<ValidationEntityRepository<PackageValidation>>()
                 .As<IEntityRepository<PackageValidation>>()
                 .InstancePerLifetimeScope();
+
+            builder.RegisterType<ValidationEntityRepository<PackageRevalidation>>()
+                .As<IEntityRepository<PackageRevalidation>>()
+                .InstancePerLifetimeScope();
         }
 
-        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration, ISecretInjector secretInjector)
+        private void RegisterAsynchronousValidation(ContainerBuilder builder, IDiagnosticsService diagnostics,
+            ConfigurationService configuration, ISecretInjector secretInjector)
         {
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
@@ -438,7 +457,7 @@ namespace NuGetGallery
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
             {
-                ConfigureValidationEntitiesContext(builder, configuration, secretInjector);
+                ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
 
                 builder
                     .RegisterType<AsynchronousPackageValidationInitiator>()
@@ -466,6 +485,14 @@ namespace NuGetGallery
 
             builder.RegisterType<ValidationAdminService>()
                 .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationStateService>()
+                .As<IRevalidationStateService>()
                 .InstancePerLifetimeScope();
         }
 
@@ -531,6 +558,7 @@ namespace NuGetGallery
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
                 .As<IFileStorageService>()
+                .As<ICoreFileStorageService>()
                 .SingleInstance();
 
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
@@ -604,6 +632,7 @@ namespace NuGetGallery
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
                         .As<IFileStorageService>()
+                        .As<ICoreFileStorageService>()
                         .As<ICloudStorageStatusDependency>()
                         .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);

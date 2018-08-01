@@ -10,6 +10,7 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
+using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -24,7 +25,6 @@ namespace NuGetGallery
             Mock<IEntityRepository<PackageRegistration>> packageRegistrationRepository = null,
             Mock<IEntityRepository<Package>> packageRepository = null,
             Mock<IEntityRepository<Certificate>> certificateRepository = null,
-            IPackageNamingConflictValidator packageNamingConflictValidator = null,
             IAuditingService auditingService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISecurityPolicyService> securityPolicyService = null,
@@ -37,18 +37,10 @@ namespace NuGetGallery
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
             securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
-            if (packageNamingConflictValidator == null)
-            {
-                packageNamingConflictValidator = new PackageNamingConflictValidator(
-                    packageRegistrationRepository.Object,
-                    packageRepository.Object);
-            }
-
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
                 certificateRepository.Object,
-                packageNamingConflictValidator,
                 auditingService,
                 telemetryService.Object,
                 securityPolicyService.Object);
@@ -174,7 +166,7 @@ namespace NuGetGallery
         public class TheCreatePackageMethod
         {
             [Fact]
-            public void WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist()
+            public async Task WillCreateANewPackageRegistrationUsingTheNugetPackIdWhenOneDoesNotAlreadyExist()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup: mockPackageService =>
@@ -185,55 +177,13 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
-                service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Id == "theId")));
             }
 
             [Fact]
-            public async Task WillThrowWhenCreateANewPackageRegistrationWithAnIdThatMatchesAnExistingPackageTitle()
-            {
-                // Arrange
-                var idThatMatchesExistingTitle = "AwesomePackage";
-
-                var currentUser = new User();
-                var existingPackageRegistration = new PackageRegistration
-                {
-                    Id = "SomePackageId",
-                    Owners = new HashSet<User>()
-                };
-                var existingPackage = new Package
-                {
-                    PackageRegistration = existingPackageRegistration,
-                    Version = "1.0.0",
-                    Title = idThatMatchesExistingTitle
-                };
-
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-                var packageRepository = new Mock<IEntityRepository<Package>>();
-                packageRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackage }.AsQueryable());
-
-                var service = CreateService(
-                    packageRegistrationRepository: packageRegistrationRepository,
-                    packageRepository: packageRepository,
-                    setup: mockPackageService =>
-                    {
-                        mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
-                    });
-
-                // Act
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: idThatMatchesExistingTitle);
-
-                // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
-
-                Assert.Equal(String.Format(Strings.NewRegistrationIdMatchesExistingPackageTitle, idThatMatchesExistingTitle), ex.Message);
-            }
-
-            [Fact]
-            public void WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
+            public async Task WillMakeTheCurrentUserTheOwnerWhenCreatingANewPackageRegistration()
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
                 var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
@@ -241,7 +191,7 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage();
                 var currentUser = new User();
 
-                service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
                 packageRegistrationRepository.Verify(x => x.InsertOnCommit(It.Is<PackageRegistration>(pr => pr.Owners.Contains(currentUser))));
             }
@@ -444,34 +394,6 @@ namespace NuGetGallery
                 Assert.Same(packageRegistration.Packages.ElementAt(0), package);
             }
 
-            [Theory]
-            [InlineData("Microsoft.FooBar", "Microsoft.FooBar")]
-            [InlineData("Microsoft.FooBar", "microsoft.foobar")]
-            [InlineData("Microsoft.FooBar", " microsoft.foObar ")]
-            private async Task WillThrowIfThePackageTitleMatchesAnExistingPackageRegistrationId(string existingRegistrationId, string newPackageTitle)
-            {
-                // Arrange
-                var currentUser = new User();
-                var existingPackageRegistration = new PackageRegistration
-                {
-                    Id = existingRegistrationId,
-                    Owners = new HashSet<User>()
-                };
-
-                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-                packageRegistrationRepository.Setup(r => r.GetAll()).Returns(new[] { existingPackageRegistration }.AsQueryable());
-
-                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository);
-
-                // Act
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(title: newPackageTitle);
-
-                // Assert
-                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false));
-
-                Assert.Equal(String.Format(Strings.TitleMatchesExistingRegistration, newPackageTitle), ex.Message);
-            }
-
             [Fact]
             private async Task WillThrowIfTheNuGetPackageIdIsLongerThanMaxPackageIdLength()
             {
@@ -486,19 +408,21 @@ namespace NuGetGallery
             [Fact]
             private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsADot()
             {
+                var user = new User();
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId", version: "1.2.3-alpha.0");
 
-                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: user, currentUser: user, isVerified: false);
             }
 
             [Fact]
             private async Task DoesNotThrowIfTheNuGetPackageSpecialVersionContainsOnlyNumbers()
             {
+                var user = new User();
                 var service = CreateService();
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: "theId", version: "1.2.3-12345");
 
-                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false);
+                await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: user, currentUser: user, isVerified: false);
             }
 
             [Fact]

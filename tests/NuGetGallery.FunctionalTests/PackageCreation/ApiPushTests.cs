@@ -10,6 +10,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Packaging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -77,12 +78,14 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                         TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
 
                         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                        var expectedBytes = File.ReadAllBytes(packagePath);
-                        var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
 
-                        // The file length assertion is easier to read in the log.
-                        Assert.Equal(expectedBytes.Length, actualPackageBytes.Length);
-                        Assert.Equal(expectedBytes, actualPackageBytes);
+                        var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
+                        using (var stream = new MemoryStream(actualPackageBytes))
+                        using (var packageReader = new PackageArchiveReader(stream))
+                        {
+                            Assert.Equal(packageId, packageReader.NuspecReader.GetId());
+                            Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
+                        }
                     }
 
                     Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));

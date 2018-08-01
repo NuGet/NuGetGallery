@@ -174,6 +174,15 @@
                 case "abort":
                     displayErrors(["The operation was aborted. Please try again."]);
                     break;
+                case "error":
+                    // IIS returns 404.13 (NotFound) when maxAllowedContentLength limit is exceeded.
+                    if (fullResponse === "Not Found") {
+                        displayErrors(["The package file exceeds the size limit. Please try again."]);
+                    }
+                    else {
+                        displayErrors(model.responseJSON);
+                    }
+                    break;
                 default:
                     displayErrors(model.responseJSON);
                     break;
@@ -194,7 +203,7 @@
                 return;
             }
 
-            clearErrors()
+            clearErrors();
 
             var failureContainer = $("#validation-failure-container");
             var failureListContainer = document.createElement("div");
@@ -260,7 +269,10 @@
                     $('#icon-preview').attr('src', $('#iconurl-field').val());
                 });
 
-                $("#verify-warning-container").removeClass("hidden");
+                if ($("#validation-failure-list .alert").length === 0) {
+                    $("#verify-warning-container").removeClass("hidden");
+                }
+
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");
 

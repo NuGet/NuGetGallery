@@ -333,5 +333,11 @@ namespace NuGetGallery.Configuration
         /// gallery code is being used inside a console application.
         /// </summary>
         bool IsHosted { get; set; }
+
+        /// <summary>
+        /// Whether or not to synchronously reject signed packages on push/upload when no certificate is uploaded
+        /// by the owner.
+        /// </summary>
+        bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
     }
 }

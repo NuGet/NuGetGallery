@@ -112,6 +112,7 @@
     <Compile Include="Entities\AccountDelete.cs" />
     <Compile Include="Entities\MembershipRequest.cs" />
     <Compile Include="Entities\OrganizationMigrationRequest.cs" />
+    <Compile Include="Entities\SymbolPackage.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />
     <Compile Include="Entities\EntitiesConfiguration.cs" />
@@ -147,6 +148,7 @@
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
     <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
+    <Compile Include="Extensions\StorageExceptionExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
@@ -175,6 +177,7 @@
     <Compile Include="Services\CloudFileReference.cs" />
     <Compile Include="Services\CoreMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
+    <Compile Include="Services\CoreSymbolPackageService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
     <Compile Include="Services\CryptographyService.cs" />
     <Compile Include="Services\FileAlreadyExistsException.cs" />
@@ -185,10 +188,17 @@
     <Compile Include="Services\ICoreMessageService.cs" />
     <Compile Include="Services\ICoreMessageServiceConfiguration.cs" />
     <Compile Include="Services\ICorePackageFileService.cs" />
+    <Compile Include="Services\ICoreSymbolPackageService.cs" />
     <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
+    <Compile Include="Services\IFileMetadataService.cs" />
+    <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
+    <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />
+    <Compile Include="Services\PackageFileServiceMetadata.cs" />
+    <Compile Include="Services\RevalidationState.cs" />
+    <Compile Include="Services\RevalidationStateService.cs" />
     <Compile Include="Services\TestableStorageClientException.cs" />
     <Compile Include="StreamExtensions.cs" />
     <Compile Include="CoreStrings.Designer.cs">

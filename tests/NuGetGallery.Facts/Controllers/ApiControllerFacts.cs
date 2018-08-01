@@ -110,6 +110,14 @@ namespace NuGetGallery
                     return Task.FromResult(package);
                 });
 
+            MockPackageUploadService
+                .Setup(x => x.ValidatePackageAsync(
+                    It.IsAny<Package>(),
+                    It.IsAny<PackageArchiveReader>(),
+                    It.IsAny<User>(),
+                    It.IsAny<User>()))
+                .ReturnsAsync(PackageValidationResult.Accepted());
+
             var requestMock = new Mock<HttpRequestBase>();
             requestMock.Setup(m => m.IsSecureConnection).Returns(true);
             requestMock.Setup(m => m.Url).Returns(new Uri(TestUtility.GallerySiteRootHttps));
@@ -534,6 +542,36 @@ namespace NuGetGallery
                     Strings.UploadPackage_IdVersionConflict);
 
                 controller.MockEntitiesContext.VerifyCommitted(Times.Never());
+            }
+
+            [Theory]
+            [InlineData(PackageValidationResultType.Invalid)]
+            [InlineData(PackageValidationResultType.PackageShouldNotBeSigned)]
+            [InlineData(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates)]
+            public async Task WillReturnValidationMessageWhenValidationFails(PackageValidationResultType type)
+            {
+                // Arrange
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var message = "The package is just bad.";
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                controller
+                    .MockPackageUploadService
+                    .Setup(x => x.ValidatePackageAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .ReturnsAsync(new PackageValidationResult(type, message));
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, message);
             }
 
             public static IEnumerable<object[]> CommitResults => Enum

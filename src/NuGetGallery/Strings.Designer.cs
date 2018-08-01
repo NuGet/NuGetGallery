@@ -1112,15 +1112,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ID of your package, &apos;{0}&apos;, is similar to the title of an existing package, which can cause confusion with our users. Please modify the ID of your package and try uploading again..
-        /// </summary>
-        public static string NewRegistrationIdMatchesExistingPackageTitle {
-            get {
-                return ResourceManager.GetString("NewRegistrationIdMatchesExistingPackageTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No.
         /// </summary>
         public static string No {
@@ -1252,6 +1243,15 @@ namespace NuGetGallery {
         public static string PackageExistsAndCannotBeModified {
             get {
                 return ResourceManager.GetString("PackageExistsAndCannotBeModified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package file exceeds the size limit. Please try again..
+        /// </summary>
+        public static string PackageFileTooLarge {
+            get {
+                return ResourceManager.GetString("PackageFileTooLarge", resourceCulture);
             }
         }
         
@@ -2062,6 +2062,43 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package must be signed with a registered certificate..
+        /// </summary>
+        public static string UploadPackage_PackageIsNotSigned {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsNotSigned", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package was signed. You must register the signing certificate to publish signed packages..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificat" +
+                        "es", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can manage your certificates on the Account Settings page..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package was signed. The owner &apos;{0}&apos; must register the signing certificate to publish signed packages..
+        /// </summary>
+        public static string UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner", resourceCulture);
             }
         }
         

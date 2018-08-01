@@ -233,5 +233,7 @@ namespace NuGetGallery
         /// Gets or sets the certificate used to sign the package.
         /// </summary>
         public virtual Certificate Certificate { get; set; }
+
+        public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
     }
 }

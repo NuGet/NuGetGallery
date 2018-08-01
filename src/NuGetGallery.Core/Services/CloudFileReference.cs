@@ -1,26 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 namespace NuGetGallery
 {
     public class CloudFileReference : IFileReference
     {
         private Stream _stream;
-        private string _contentId;
 
-        public string ContentId
-        {
-            get { return _contentId; }
-        }
+        public string ContentId { get; }
 
         private CloudFileReference(Stream stream, string contentId)
         {
-            _contentId = contentId;
+            ContentId = contentId;
             _stream = stream;
         }
 

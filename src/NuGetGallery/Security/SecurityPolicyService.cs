@@ -1,4 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -17,12 +18,14 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyService : ISecurityPolicyService
     {
-        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers =
-            new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
+        private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers
+            = new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
         private static readonly ControlRequiredSignerPolicy _controlRequiredSignerPolicy
             = new ControlRequiredSignerPolicy();
         private static readonly AutomaticallyOverwriteRequiredSignerPolicy _automaticallyOverwriteRequiredSignerPolicy
             = new AutomaticallyOverwriteRequiredSignerPolicy();
+        private static readonly RequireOrganizationTenantPolicy _organizationTenantPolicy
+            = RequireOrganizationTenantPolicy.Create();
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -74,6 +77,26 @@ namespace NuGetGallery.Security
                 yield return _controlRequiredSignerPolicy;
                 yield return _automaticallyOverwriteRequiredSignerPolicy;
             }
+        }
+
+        /// <summary>
+        /// Available organization security policy subscriptions.
+        /// </summary>
+        public virtual IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions
+        {
+            get
+            {
+                yield return _controlRequiredSignerPolicy;
+                yield return _automaticallyOverwriteRequiredSignerPolicy;
+                yield return _organizationTenantPolicy;
+            }
+        }
+
+        private IUserSecurityPolicySubscription GetSubscription(User user, string subscriptionName)
+        {
+            return (user is Organization)
+                ? OrganizationSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase))
+                : UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -198,7 +221,7 @@ namespace NuGetGallery.Security
                 throw new ArgumentException(nameof(subscriptionName));
             }
 
-            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            var subscription = GetSubscription(user, subscriptionName);
             if (subscription == null)
             {
                 throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
@@ -237,7 +260,7 @@ namespace NuGetGallery.Security
                 throw new ArgumentException(nameof(subscriptionName));
             }
 
-            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            var subscription = GetSubscription(user, subscriptionName);
             if (subscription == null)
             {
                 throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
@@ -300,7 +323,7 @@ namespace NuGetGallery.Security
                 throw new ArgumentException(nameof(subscriptionName));
             }
 
-            var subscription = UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            var subscription = GetSubscription(user, subscriptionName);
             if (subscription == null)
             {
                 throw new NotSupportedException($"Subscription '{subscriptionName}' not found.");
@@ -363,7 +386,7 @@ namespace NuGetGallery.Security
         {
             yield return new RequirePackageVerifyScopePolicy();
             yield return new RequireMinProtocolVersionForPushPolicy();
-            yield return new RequireOrganizationTenantPolicy();
+            yield return _organizationTenantPolicy;
             yield return _controlRequiredSignerPolicy;
             yield return _automaticallyOverwriteRequiredSignerPolicy;
         }
