@@ -345,10 +345,6 @@
     <Compile Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.Designer.cs">
       <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
     </Compile>
-    <Compile Include="Migrations\201807180147438_AddRepositoryType.cs" />
-    <Compile Include="Migrations\201807180147438_AddRepositoryType.Designer.cs">
-      <DependentUpon>201807180147438_AddRepositoryType.cs</DependentUpon>
-    </Compile>
     <Compile Include="Migrations\201807181816293_SymbolPackages.cs" />
     <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
@@ -360,6 +356,10 @@
     <Compile Include="Migrations\201807302212501_AddShortCertificateNames.cs" />
     <Compile Include="Migrations\201807302212501_AddShortCertificateNames.Designer.cs">
       <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.cs" />
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.Designer.cs">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
     </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
@@ -1531,9 +1531,6 @@
     <EmbeddedResource Include="Migrations\201807031816101_AccountDeleteSignatureNotRequired.resx">
       <DependentUpon>201807031816101_AccountDeleteSignatureNotRequired.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="Migrations\201807180147438_AddRepositoryType.resx">
-      <DependentUpon>201807180147438_AddRepositoryType.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </EmbeddedResource>
@@ -1542,6 +1539,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807302212501_AddShortCertificateNames.resx">
       <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808010014291_AddRepositoryType.resx">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

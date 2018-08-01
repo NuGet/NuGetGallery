@@ -13,7 +13,7 @@ namespace NuGetGallery.Migrations
         
         string IMigrationMetadata.Id
         {
-            get { return "201807180147438_AddRepositoryType"; }
+            get { return "201808010014291_AddRepositoryType"; }
         }
         
         string IMigrationMetadata.Source
