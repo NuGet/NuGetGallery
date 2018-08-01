@@ -55,6 +55,7 @@ namespace NuGetGallery
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
         public ISymbolPackageService SymbolPackageService { get; set; }
+        public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
         public IContentObjectService ContentObjectService { get; set; }
 
         protected ApiController()
@@ -84,6 +85,7 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
             ISymbolPackageService symbolPackageService = null,
+            ISymbolPackageUploadService symbolPackageUploadService = null,
             IContentObjectService contentObjectService = null)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
@@ -107,6 +109,7 @@ namespace NuGetGallery
             PackageUploadService = packageUploadService;
             StatisticsService = null;
             SymbolPackageService = symbolPackageService;
+            SymbolPackageUploadService = symbolPackageUploadService;
             ContentObjectService = contentObjectService;
         }
 
@@ -133,11 +136,13 @@ namespace NuGetGallery
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
             ISymbolPackageService symbolPackageService,
+            ISymbolPackageUploadService symbolPackageUploadServivce,
             IContentObjectService contentObjectService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, contentObjectService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, symbolPackageUploadServivce,
+                  contentObjectService)
         {
             StatisticsService = statisticsService;
         }
@@ -404,7 +409,7 @@ namespace NuGetGallery
 
                             try
                             {
-                                await SymbolPackageService.EnsureValid(packageToPush);
+                                await SymbolPackageService.EnsureValidAsync(packageToPush);
                             }
                             catch (Exception ex)
                             {
@@ -428,7 +433,7 @@ namespace NuGetGallery
                                 Size = symbolPackageStream.Length
                             };
 
-                            PackageCommitResult commitResult = await PackageUploadService.CreateAndUploadSymbolsPackage(
+                            PackageCommitResult commitResult = await SymbolPackageUploadService.CreateAndUploadSymbolsPackage(
                                 package,
                                 packageStreamMetadata,
                                 symbolPackageStream.AsSeekableStream());

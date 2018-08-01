@@ -25,6 +25,6 @@ namespace NuGetGallery
         /// <returns>The created symbol package entity.</returns>
         SymbolPackage CreateSymbolPackage(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata);
 
-        Task EnsureValid(PackageArchiveReader packageArchiveReader);
+        Task EnsureValidAsync(PackageArchiveReader packageArchiveReader);
     }
 }

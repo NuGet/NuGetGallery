@@ -44,7 +44,7 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task EnsureValid(PackageArchiveReader symbolPackage)
+        public async Task EnsureValidAsync(PackageArchiveReader symbolPackage)
         {
             // Validate following checks:
             // 1. Is a symbol package.

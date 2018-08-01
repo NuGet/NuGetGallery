@@ -42,16 +42,5 @@ namespace NuGetGallery
         /// <param name="package">The package metadata. This is assumed to already be added to the context.</param>
         /// <param name="packageFile">The seekable stream containing the package content (.nupkg).</param>
         Task<PackageCommitResult> CommitPackageAsync(Package package, Stream packageFile);
-
-        /// <summary>
-        /// Create the symbols package entry in database, and upload the package to validation/uploads container for symbols.
-        /// This method commits the shared <see cref="IEntitiesContext"/>. This method can throw exceptions in exceptional
-        /// cases (such as database failures). This method does not dispose the provided stream but does read it.
-        /// </summary>
-        /// <param name="package">The package for which the symbols are to be uploaded.</param>
-        /// <param name="packageStreamMetadata">The metadata object for the uploaded snupkg.</param>
-        /// <param name="symbolPackageFile">The seekable stream containing the symbol package content (.snupkg).</param>
-        /// <returns>Awaitable task with <see cref="PackageCommitResult"/></returns>
-        Task<PackageCommitResult> CreateAndUploadSymbolsPackage(Package package, PackageStreamMetadata packageStreamMetadata, Stream symbolPackageFile);
     }
 }
