@@ -109,7 +109,7 @@ namespace NuGetGallery
                     }
                 }
 
-                // NuGet.Core compatibility - flattened dependencies should be < Int16.MaxValue
+                // NuGet.Core compatibility - flattened dependencies should be <= Int16.MaxValue
                 if (packageDependencies.Flatten().Length > Int16.MaxValue)
                 {
                     throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);

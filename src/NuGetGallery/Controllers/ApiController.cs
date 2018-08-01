@@ -373,23 +373,6 @@ namespace NuGetGallery
 
                         using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: false))
                         {
-                            try
-                            {
-                                await SymbolPackageService.EnsureValid(packageToPush);
-                            }
-                            catch (Exception ex)
-                            {
-                                ex.Log();
-
-                                var message = Strings.SymbolsPackage_FailedToReadPackage;
-                                if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
-                                {
-                                    message = ex.Message;
-                                }
-
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
-                            }
-
                             var nuspec = packageToPush.GetNuspecReader();
                             var id = nuspec.GetId();
                             var version = nuspec.GetVersion();
@@ -405,18 +388,35 @@ namespace NuGetGallery
                                     version.ToNormalizedStringSafe()));
                             }
 
-                            // Do not allow to upload snupkg to a package which has symbols package pending validations.
-                            if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
-                            {
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.SymbolsPackage_ConflictValidating);
-                            }
-
                             // Check if this user has the permissions to push the corresponding symbol package
                             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
                             if (!apiScopeEvaluationResult.IsSuccessful())
                             {
                                 // User cannot push a symbol package as the current user's scopes does not allow it to push for the corresponding package.
                                 return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
+                            }
+
+                            // Do not allow to upload snupkg to a package which has symbols package pending validations.
+                            if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.SymbolsPackage_ConflictValidating);
+                            }
+
+                            try
+                            {
+                                await SymbolPackageService.EnsureValid(packageToPush);
+                            }
+                            catch (Exception ex)
+                            {
+                                ex.Log();
+
+                                var message = Strings.SymbolsPackage_FailedToReadPackage;
+                                if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                                {
+                                    message = ex.Message;
+                                }
+
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                             }
 
                             var packageStreamMetadata = new PackageStreamMetadata
@@ -468,10 +468,11 @@ namespace NuGetGallery
                     HttpStatusCode.RequestEntityTooLarge,
                     Strings.PackageFileTooLarge);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                //log telemetry
-                throw;
+                ex.Log();
+
+                throw ex;
             }
         }
 

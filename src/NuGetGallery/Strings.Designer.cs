@@ -1778,7 +1778,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It looks like there is already another copy of snupkg pending validation(s). Please wait for the validation(s) to finish before replacing the symbols package..
+        ///   Looks up a localized string similar to It looks like there is another copy of this symbols package pending validation(s). Please wait for the validation(s) to finish before trying to replace the symbols package..
         /// </summary>
         public static string SymbolsPackage_ConflictValidating {
             get {
@@ -1787,7 +1787,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package(snupkg)..
+        ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg)..
         /// </summary>
         public static string SymbolsPackage_FailedToReadPackage {
             get {
@@ -1805,7 +1805,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid file found in the uploaded package. Symbols package should only contain &apos;{0}&apos; files..
+        ///   Looks up a localized string similar to Invalid file found in the uploaded package. Symbols packages should only contain &apos;{0}&apos; files..
         /// </summary>
         public static string SymbolsPackage_InvalidFiles {
             get {
@@ -1814,7 +1814,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The uploaded package is not a Symbols package. It is missing the only required &apos;SymbolsPackage&apos; type or multiple package types specified..
+        ///   Looks up a localized string similar to The uploaded package is not a valid symbols package. The required &apos;SymbolsPackage&apos; package type is missing..
         /// </summary>
         public static string SymbolsPackage_NotSymbolPackage {
             get {
@@ -1823,7 +1823,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading it&apos;s symbols..
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading its symbols..
         /// </summary>
         public static string SymbolsPackage_PackageIdAndVersionNotFound {
             get {

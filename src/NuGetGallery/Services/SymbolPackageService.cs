@@ -10,22 +10,24 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
-using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
+using ClientPackageType = NuGet.Packaging.Core.PackageType;
 
 namespace NuGetGallery
 {
     public class SymbolPackageService : CoreSymbolPackageService, ISymbolPackageService
     {
-        private static readonly string SymbolPackageTypeName = "SymbolsPackage";
-        private static readonly string PDBExtension = ".pdb";
-        private static HashSet<string> AllowedExtensions = new HashSet<string>() {
+        private const string PDBExtension = ".pdb";
+        private static readonly HashSet<string> AllowedExtensions = new HashSet<string>() {
             PDBExtension,
             ".nuspec",
             ".xml",
             ".psmdcp",
-            ".rels"
+            ".rels",
+            ".p7s"
         };
+        private const string SymbolPackageTypeName = "SymbolsPackage";
+        private static readonly ClientPackageType SymbolPackageType = new ClientPackageType(SymbolPackageTypeName, ClientPackageType.EmptyVersion);
 
         public SymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
@@ -94,7 +96,7 @@ namespace NuGetGallery
 
                 return symbolPackage;
             }
-            catch (Exception ex) when (ex is EntityException || ex is PackagingException)
+            catch (Exception ex) when (ex is EntityException)
             {
                 throw new InvalidPackageException(ex.Message, ex);
             }
@@ -161,7 +163,7 @@ namespace NuGetGallery
             var packageTypes = metadata.GetPackageTypes();
             return packageTypes.Any()
                 && packageTypes.Count() == 1
-                && string.Equals(packageTypes.First().Name, SymbolPackageTypeName, StringComparison.OrdinalIgnoreCase);
+                && packageTypes.First() == SymbolPackageType;
         }
 
         private static bool IsPortable(string pdbFile)
