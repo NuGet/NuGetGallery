@@ -143,7 +143,8 @@ namespace NuGetGallery
         /// <param name="smtpUri">URI to the SMTP server</param>
         /// <param name="startTime">The start time of when sending the email is attempted.</param>
         /// <param name="duration">The duration of how long the send took.</param>
-        /// <param name="success"></param>
-        void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success);
+        /// <param name="success">Whether sending the email was successful.</param>
+        /// <param name="attemptNumber">The number of attempts the message has tried to be sent.</param>
+        void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success, int attemptNumber);
     }
 }

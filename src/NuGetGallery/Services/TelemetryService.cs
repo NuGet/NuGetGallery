@@ -594,9 +594,13 @@ namespace NuGetGallery
             });
         }
 
-        public void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success)
+        public void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success, int attemptNumber)
         {
-            _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success);
+            var properties = new Dictionary<string, string>
+            {
+                { "attempt", attemptNumber.ToString() }
+            };
+            _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
         }
 
         /// <summary>

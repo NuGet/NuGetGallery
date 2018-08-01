@@ -22,6 +22,7 @@ namespace NuGetGallery
                              DateTimeOffset startTime,
                              TimeSpan duration,
                              string resultCode,
-                             bool success);
+                             bool success,
+                             IDictionary<string, string> properties);
     }
 }

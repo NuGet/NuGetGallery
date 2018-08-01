@@ -204,7 +204,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             {
                 try
                 {
-                    await AttemptSendMessageAsync(mailMessage);
+                    await AttemptSendMessageAsync(mailMessage, attempt + 1);
                     success = true;
                 }
                 catch (SmtpException)
@@ -222,7 +222,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        protected virtual Task AttemptSendMessageAsync(MailMessage mailMessage)
+        protected virtual Task AttemptSendMessageAsync(MailMessage mailMessage, int attemptNumber)
         {
             // AnglicanGeek.MarkdownMailer doesn't have an async overload
             MailSender.Send(mailMessage);

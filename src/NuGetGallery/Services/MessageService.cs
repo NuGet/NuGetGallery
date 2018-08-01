@@ -1021,20 +1021,20 @@ The {Config.GalleryOwner.DisplayName} Team");
             return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.ManageAccount);
         }
 
-        protected override async Task AttemptSendMessageAsync(MailMessage mailMessage)
+        protected override async Task AttemptSendMessageAsync(MailMessage mailMessage, int attemptNumber)
         {
             bool success = false;
             DateTimeOffset startTime = DateTimeOffset.UtcNow;
             Stopwatch sw = Stopwatch.StartNew();
             try
             {
-                await base.AttemptSendMessageAsync(mailMessage);
+                await base.AttemptSendMessageAsync(mailMessage, attemptNumber);
                 success = true;
             }
             finally
             {
                 sw.Stop();
-                telemetryService.TrackSendEmail(smtpUri, startTime, sw.Elapsed, success);
+                telemetryService.TrackSendEmail(smtpUri, startTime, sw.Elapsed, success, attemptNumber);
             }
         }
 
