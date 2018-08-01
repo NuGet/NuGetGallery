@@ -40,6 +40,7 @@ namespace NuGetGallery
             CoreConstants.ValidationFolderName,
             CoreConstants.UserCertificatesFolderName,
             CoreConstants.RevalidationFolderName,
+            CoreConstants.StatusFolderName,
         };
 
         protected readonly ICloudBlobClient _client;
@@ -542,8 +543,11 @@ namespace NuGetGallery
                     return CoreConstants.OctetStreamContentType;
 
                 case CoreConstants.PackageReadMesFolderName:
-                case CoreConstants.RevalidationFolderName:
                     return CoreConstants.TextContentType;
+
+                case CoreConstants.RevalidationFolderName:
+                case CoreConstants.StatusFolderName:
+                    return CoreConstants.JsonContentType;
 
                 case CoreConstants.UserCertificatesFolderName:
                     return CoreConstants.CertificateContentType;
