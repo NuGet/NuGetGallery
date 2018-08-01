@@ -38,7 +38,9 @@ namespace NuGetGallery
             CoreConstants.UploadsFolderName,
             CoreConstants.PackageReadMesFolderName,
             CoreConstants.ValidationFolderName,
-            CoreConstants.UserCertificatesFolderName
+            CoreConstants.UserCertificatesFolderName,
+            CoreConstants.RevalidationFolderName,
+            CoreConstants.StatusFolderName,
         };
 
         protected readonly ICloudBlobClient _client;
@@ -240,7 +242,7 @@ namespace NuGetGallery
                     srcAccessCondition,
                     mappedDestAccessCondition);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
+            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
                 throw new FileAlreadyExistsException(
                     String.Format(
@@ -293,16 +295,48 @@ namespace NuGetGallery
             return "(none)";
         }
 
-        public async Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
+        public async Task SaveFileAsync(string folderName, string fileName, Stream file, bool overwrite = true)
         {
             ICloudBlobContainer container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
 
             try
             {
-                await blob.UploadFromStreamAsync(packageFile, overwrite);
+                await blob.UploadFromStreamAsync(file, overwrite);
             }
-            catch (StorageException ex) when (ex.RequestInformation?.HttpStatusCode == (int?)HttpStatusCode.Conflict)
+            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
+            {
+                throw new FileAlreadyExistsException(
+                    String.Format(
+                        CultureInfo.CurrentCulture,
+                        "There is already a blob with name {0} in container {1}.",
+                        fileName,
+                        folderName),
+                    ex);
+            }
+
+            blob.Properties.ContentType = GetContentType(folderName);
+            await blob.SetPropertiesAsync();
+        }
+
+        public async Task SaveFileAsync(string folderName, string fileName, Stream file, IAccessCondition accessConditions)
+        {
+            ICloudBlobContainer container = await GetContainerAsync(folderName);
+            var blob = container.GetBlobReference(fileName);
+
+            accessConditions = accessConditions ?? AccessConditionWrapper.GenerateIfNotExistsCondition();
+
+            var mappedAccessCondition = new AccessCondition
+            {
+                IfNoneMatchETag = accessConditions.IfNoneMatchETag,
+                IfMatchETag = accessConditions.IfMatchETag,
+            };
+
+            try
+            {
+                await blob.UploadFromStreamAsync(file, mappedAccessCondition);
+            }
+            catch (StorageException ex) when (ex.IsFileAlreadyExistsException())
             {
                 throw new FileAlreadyExistsException(
                     String.Format(
@@ -511,6 +545,10 @@ namespace NuGetGallery
                 case CoreConstants.PackageReadMesFolderName:
                     return CoreConstants.TextContentType;
 
+                case CoreConstants.RevalidationFolderName:
+                case CoreConstants.StatusFolderName:
+                    return CoreConstants.JsonContentType;
+
                 case CoreConstants.UserCertificatesFolderName:
                     return CoreConstants.CertificateContentType;
 
@@ -535,16 +573,13 @@ namespace NuGetGallery
 
         private struct StorageResult
         {
-            private HttpStatusCode _statusCode;
-            private Stream _data;
-
-            public HttpStatusCode StatusCode { get { return _statusCode; } }
-            public Stream Data { get { return _data; } }
+            public HttpStatusCode StatusCode { get; }
+            public Stream Data { get; }
 
             public StorageResult(HttpStatusCode statusCode, Stream data)
             {
-                _statusCode = statusCode;
-                _data = data;
+                StatusCode = statusCode;
+                Data = data;
             }
         }
     }

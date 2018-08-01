@@ -203,7 +203,7 @@
                 return;
             }
 
-            clearErrors()
+            clearErrors();
 
             var failureContainer = $("#validation-failure-container");
             var failureListContainer = document.createElement("div");
@@ -269,7 +269,10 @@
                     $('#icon-preview').attr('src', $('#iconurl-field').val());
                 });
 
-                $("#verify-warning-container").removeClass("hidden");
+                if ($("#validation-failure-list .alert").length === 0) {
+                    $("#verify-warning-container").removeClass("hidden");
+                }
+
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");
 

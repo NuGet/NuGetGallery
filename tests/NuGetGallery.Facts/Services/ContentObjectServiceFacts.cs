@@ -30,6 +30,12 @@ namespace NuGetGallery.Services
                 Assert.False(certificatesConfiguration.IsUIEnabledByDefault);
                 Assert.Empty(certificatesConfiguration.AlwaysEnabledForDomains);
                 Assert.Empty(certificatesConfiguration.AlwaysEnabledForEmailAddresses);
+
+                var symbolsConfiguration = service.SymbolsConfiguration as SymbolsConfiguration;
+
+                Assert.False(symbolsConfiguration.IsSymbolsUploadEnabledForAll);
+                Assert.Empty(symbolsConfiguration.AlwaysEnabledForDomains);
+                Assert.Empty(symbolsConfiguration.AlwaysEnabledForEmailAddresses);
             }
 
             [Fact]
@@ -55,6 +61,12 @@ namespace NuGetGallery.Services
                     alwaysEnabledForEmailAddresses);
                 var certificatesJson = JsonConvert.SerializeObject(certificatesConfiguration);
 
+                var symbolsConfiguration = new SymbolsConfiguration(
+                    isSymbolsUploadEnabledForAll: true,
+                    alwaysEnabledForDomains: alwaysEnabledForDomains,
+                    alwaysEnabledForEmailAddresses: alwaysEnabledForEmailAddresses);
+                var symbolsJson = JsonConvert.SerializeObject(symbolsConfiguration);
+
                 var contentService = GetMock<IContentService>();
 
                 contentService
@@ -65,6 +77,10 @@ namespace NuGetGallery.Services
                     .Setup(x => x.GetContentItemAsync(Constants.ContentNames.CertificatesConfiguration, It.IsAny<TimeSpan>()))
                     .Returns(Task.FromResult<IHtmlString>(new HtmlString(certificatesJson)));
 
+                contentService
+                    .Setup(x => x.GetContentItemAsync(Constants.ContentNames.SymbolsConfiguration, It.IsAny<TimeSpan>()))
+                    .Returns(Task.FromResult<IHtmlString>(new HtmlString(symbolsJson)));
+
                 var service = GetService<ContentObjectService>();
 
                 // Act
@@ -72,6 +88,7 @@ namespace NuGetGallery.Services
 
                 loginDiscontinuationConfiguration = service.LoginDiscontinuationConfiguration as LoginDiscontinuationConfiguration;
                 certificatesConfiguration = service.CertificatesConfiguration as CertificatesConfiguration;
+                symbolsConfiguration = service.SymbolsConfiguration as SymbolsConfiguration;
 
                 // Assert
                 Assert.True(loginDiscontinuationConfiguration.DiscontinuedForEmailAddresses.SequenceEqual(emails));
@@ -82,6 +99,10 @@ namespace NuGetGallery.Services
                 Assert.True(certificatesConfiguration.IsUIEnabledByDefault);
                 Assert.Equal(alwaysEnabledForDomains, certificatesConfiguration.AlwaysEnabledForDomains);
                 Assert.Equal(alwaysEnabledForEmailAddresses, certificatesConfiguration.AlwaysEnabledForEmailAddresses);
+
+                Assert.True(symbolsConfiguration.IsSymbolsUploadEnabledForAll);
+                Assert.Equal(alwaysEnabledForDomains, symbolsConfiguration.AlwaysEnabledForDomains);
+                Assert.Equal(alwaysEnabledForEmailAddresses, symbolsConfiguration.AlwaysEnabledForEmailAddresses);
             }
         }
     }

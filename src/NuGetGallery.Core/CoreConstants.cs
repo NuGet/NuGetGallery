@@ -21,6 +21,7 @@ namespace NuGetGallery
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
         public const string CertificateContentType = "application/pkix-cert";
+        public const string JsonContentType = "application/json";
 
         public const string UserCertificatesFolderName = "user-certificates";
         public const string ContentFolderName = "content";
@@ -30,5 +31,11 @@ namespace NuGetGallery
         public const string PackagesFolderName = "packages";
         public const string UploadsFolderName = "uploads";
         public const string ValidationFolderName = "validation";
+        public const string RevalidationFolderName = "revalidation";
+        public const string StatusFolderName = "status";
+
+        public const string SymbolPackagesFolderName = "symbol-packages";
+        public const string NuGetSymbolPackageFileExtension = ".snupkg";
+        public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
     }
 }

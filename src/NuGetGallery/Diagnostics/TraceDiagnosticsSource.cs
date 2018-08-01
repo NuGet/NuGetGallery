@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
@@ -13,6 +14,8 @@ namespace NuGetGallery.Diagnostics
     /// Gallery diagnostics source. Trace events (including LogError extension) use System.Diagnostics traces, whereas
     /// Exception events are tracked as exceptions in ApplicationInsights. Eventually this class should be updated to
     /// use ApplicationInsights for trace events for consistency across the Gallery.
+    /// 
+    /// ILogger implementation based on https://github.com/aspnet/Logging/tree/master/src/Microsoft.Extensions.Logging.TraceSource 
     /// </summary>
     public class TraceDiagnosticsSource : IDiagnosticsSource, IDisposable
     {
@@ -93,6 +96,35 @@ namespace NuGetGallery.Diagnostics
         private static string FormatMessage(string message, string member, string file, int line)
         {
             return String.Format(CultureInfo.CurrentCulture, "[{0}:{1} in {2}] {3}", file, line, member, message);
+        }
+
+        void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            var message = formatter(state, exception);
+            TraceEvent(LogLevelToTraceEventType(logLevel), eventId.Id, message);
+        }
+
+        bool ILogger.IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        IDisposable ILogger.BeginScope<TState>(TState state)
+        {
+            return new TraceDiagnosticsSourceScope(state);
+        }
+
+        private static TraceEventType LogLevelToTraceEventType(LogLevel logLevel)
+        {
+            switch (logLevel)
+            {
+                case LogLevel.Critical: return TraceEventType.Critical;
+                case LogLevel.Error: return TraceEventType.Error;
+                case LogLevel.Warning: return TraceEventType.Warning;
+                case LogLevel.Information: return TraceEventType.Information;
+                case LogLevel.Trace:
+                default: return TraceEventType.Verbose;
+            }
         }
     }
 }

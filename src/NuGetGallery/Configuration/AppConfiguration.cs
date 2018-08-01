@@ -336,5 +336,7 @@ namespace NuGetGallery.Configuration
 
         [DefaultValue(true)]
         public bool IsHosted { get; set; }
+
+        public bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
     }
 }
