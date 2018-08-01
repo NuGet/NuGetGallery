@@ -2006,7 +2006,7 @@ namespace NuGetGallery
             : MessageService
         {
             private TestableMessageService(IGalleryConfigurationService configurationService)
-                : base(new TestMailSender(), configurationService.Current, new Mock<ITelemetryClient>().Object)
+                : base(new TestMailSender(), configurationService.Current, new Mock<ITelemetryService>().Object)
             {
                 configurationService.Current.GalleryOwner = TestGalleryOwner;
                 configurationService.Current.GalleryNoReplyAddress = TestGalleryNoReplyAddress;

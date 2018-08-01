@@ -18,14 +18,14 @@ namespace NuGetGallery
 {
     public class MessageService : CoreMessageService, IMessageService
     {
-        public MessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryClient telemetryClient)
+        public MessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService)
             : base(mailSender, config)
         {
-            this.telemetryClient = telemetryClient ?? throw new ArgumentNullException(nameof(telemetryClient));
+            this.telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             smtpUri = config.SmtpUri?.Host ?? throw new ArgumentNullException(nameof(config) + "." + nameof(config.SmtpUri));
         }
 
-        private readonly ITelemetryClient telemetryClient;
+        private readonly ITelemetryService telemetryService;
         private readonly string smtpUri;
 
         public IAppConfiguration Config
@@ -1024,7 +1024,7 @@ The {Config.GalleryOwner.DisplayName} Team");
         protected override async Task AttemptSendMessageAsync(MailMessage mailMessage)
         {
             bool success = false;
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTimeOffset startTime = DateTimeOffset.UtcNow;
             Stopwatch sw = Stopwatch.StartNew();
             try
             {
@@ -1034,7 +1034,7 @@ The {Config.GalleryOwner.DisplayName} Team");
             finally
             {
                 sw.Stop();
-                telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, now, sw.Elapsed, null, success);
+                telemetryService.TrackSendEmail(smtpUri, startTime, sw.Elapsed, success);
             }
         }
 

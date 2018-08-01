@@ -136,5 +136,14 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="user">The <see cref="User"/> requesting the delete.</param>
         void TrackRequestForAccountDeletion(User user);
+
+        /// <summary>
+        /// A telemetry event emitted when an email is sent.
+        /// </summary>
+        /// <param name="smtpUri">URI to the SMTP server</param>
+        /// <param name="startTime">The start time of when sending the email is attempted.</param>
+        /// <param name="duration">The duration of how long the send took.</param>
+        /// <param name="success"></param>
+        void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success);
     }
 }

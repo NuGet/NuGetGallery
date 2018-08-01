@@ -590,6 +590,11 @@ namespace NuGetGallery
             });
         }
 
+        public void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success)
+        {
+            _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success);
+        }
+
         /// <summary>
         /// We use <see cref="ITelemetryClient.TrackMetric(string, double, IDictionary{string, string})"/> instead of
         /// <see cref="ITelemetryClient.TrackEvent(string, IDictionary{string, string}, IDictionary{string, double})"/>

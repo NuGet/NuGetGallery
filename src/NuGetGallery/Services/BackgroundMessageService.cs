@@ -11,8 +11,8 @@ namespace NuGetGallery.Services
 {
     public class BackgroundMessageService : MessageService
     {
-        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryClient telemetryClient)
-            :base(mailSender, config, telemetryClient)
+        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService)
+            :base(mailSender, config, telemetryService)
         {
         }
 
