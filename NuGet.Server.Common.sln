@@ -70,6 +70,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Status.Table
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Services.Incidents", "src\NuGet.Services.Incidents\NuGet.Services.Incidents.csproj", "{09B15FA8-8B24-4C9A-B2AC-1265ACCB9EB1}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{2E74C554-630C-4ED9-BB66-81CFA5DFFBD3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureSqlConnectionTest", "tools\AzureSqlConnectionTest\AzureSqlConnectionTest.csproj", "{109E6F0E-CBBC-427A-89CF-8F8AACE479CF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -192,6 +196,10 @@ Global
 		{09B15FA8-8B24-4C9A-B2AC-1265ACCB9EB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09B15FA8-8B24-4C9A-B2AC-1265ACCB9EB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{09B15FA8-8B24-4C9A-B2AC-1265ACCB9EB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{109E6F0E-CBBC-427A-89CF-8F8AACE479CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{109E6F0E-CBBC-427A-89CF-8F8AACE479CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{109E6F0E-CBBC-427A-89CF-8F8AACE479CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{109E6F0E-CBBC-427A-89CF-8F8AACE479CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -226,6 +234,7 @@ Global
 		{EA54BC71-F9AD-4863-8DC6-8CC41776C881} = {7783A106-0F4C-4055-9AB4-413FB2C7B8F0}
 		{8D3E82F2-B637-4BA4-BD80-3380E826CA1A} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
 		{09B15FA8-8B24-4C9A-B2AC-1265ACCB9EB1} = {8415FED7-1BED-4227-8B4F-BB7C24E041CD}
+		{109E6F0E-CBBC-427A-89CF-8F8AACE479CF} = {2E74C554-630C-4ED9-BB66-81CFA5DFFBD3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AA413DB0-5475-4B5D-A3AF-6323DA8D538B}

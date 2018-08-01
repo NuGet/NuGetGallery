@@ -33,6 +33,16 @@ namespace NuGet.Services.Sql
 
         #endregion
 
+        public AzureSqlConnectionFactory(
+            AzureSqlConnectionStringBuilder connectionString,
+            ISecretInjector secretInjector,
+            ILogger logger = null)
+        {
+            ConnectionString = connectionString ?? throw new ArgumentNullException(nameof(connectionString));
+            SecretInjector = secretInjector ?? throw new ArgumentNullException(nameof(secretInjector));
+            Logger = logger;
+        }
+
         public AzureSqlConnectionFactory(string connectionString, ISecretInjector secretInjector, ILogger logger = null)
         {
             if (string.IsNullOrEmpty(connectionString))
