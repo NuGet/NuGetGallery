@@ -96,6 +96,7 @@ namespace NuGet.Services.Revalidate
             services.Configure<RevalidationConfiguration>(configurationRoot.GetSection(JobConfigurationSectionName));
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Initialization);
+            services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Health);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Queue);
 
             services.AddScoped<IGalleryContext>(provider =>

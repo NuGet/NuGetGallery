@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -12,24 +13,28 @@ using Microsoft.Extensions.Options;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
+using NuGetGallery;
 
 namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 {
     public class SignaturePartsExtractor : ISignaturePartsExtractor
     {
         private readonly ICertificateStore _certificateStore;
-        private readonly IValidationEntitiesContext _entitiesContext;
+        private readonly IValidationEntitiesContext _validationEntitiesContext;
+        private readonly IEntitiesContext _galleryEntitiesContext;
         private readonly IOptionsSnapshot<ProcessSignatureConfiguration> _configuration;
         private readonly ILogger<SignaturePartsExtractor> _logger;
 
         public SignaturePartsExtractor(
             ICertificateStore certificateStore,
-            IValidationEntitiesContext entitiesContext,
+            IValidationEntitiesContext validationEntitiesContext,
+            IEntitiesContext galleryEntitiesContext,
             IOptionsSnapshot<ProcessSignatureConfiguration> configuration,
             ILogger<SignaturePartsExtractor> logger)
         {
             _certificateStore = certificateStore ?? throw new ArgumentNullException(nameof(certificateStore));
-            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
+            _validationEntitiesContext = validationEntitiesContext ?? throw new ArgumentNullException(nameof(validationEntitiesContext));
+            _galleryEntitiesContext = galleryEntitiesContext ?? throw new ArgumentNullException(nameof(galleryEntitiesContext));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -53,8 +58,80 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 await SaveCertificatesToStoreAsync(context);
 
                 // Commit the database changes.
-                await _entitiesContext.SaveChangesAsync();
+                await _validationEntitiesContext.SaveChangesAsync();
+
+                // Update certificate information in the gallery.
+                await UpdateCertificateInformationAsync(context);
             }
+        }
+
+        private async Task UpdateCertificateInformationAsync(Context context)
+        {
+            // Only operate on author signatures. Packages that only have a repository signature are not interesting
+            // for this purpose.
+            if (context.PrimarySignature.Type != SignatureType.Author)
+            {
+                return;
+            }
+
+            var hashedCertificate = context
+                .Author
+                .Certificates
+                .SignatureEndCertificate;
+            var certificate = hashedCertificate.Certificate;
+            var thumbprint = hashedCertificate.Thumbprint;
+
+            // Fetch the certificate record from the gallery database using the SHA-256 thumbprint.
+            var certificateRecord = await _galleryEntitiesContext
+                .Certificates
+                .Where(c => c.Thumbprint == thumbprint)
+                .FirstOrDefaultAsync();            
+            if (certificateRecord == null)
+            {
+                _logger.LogWarning(
+                    "No certificate record was found in the gallery database for thumbprint {Thumbprint}.",
+                    thumbprint);
+                return;
+            }
+
+            // Do nothing if the certificate details are already populated.
+            var expiration = certificate.NotAfter.ToUniversalTime();
+            var subject = NoLongerThanOrNull(certificate.Subject);
+            var issuer = NoLongerThanOrNull(certificate.Issuer);
+            var shortSubject = NoLongerThanOrNull(certificate.GetNameInfo(X509NameType.SimpleName, forIssuer: false));
+            var shortIssuer = NoLongerThanOrNull(certificate.GetNameInfo(X509NameType.SimpleName, forIssuer: true));
+            if (certificateRecord.Expiration == expiration
+                && certificateRecord.Subject == subject
+                && certificateRecord.Issuer == issuer
+                && certificateRecord.ShortSubject == shortSubject
+                && certificateRecord.ShortIssuer == shortIssuer)
+            {
+                return;
+            }
+
+            // Save the certificate details to the gallery record.
+            certificateRecord.Expiration = expiration;
+            certificateRecord.Subject = subject;
+            certificateRecord.Issuer = issuer;
+            certificateRecord.ShortSubject = shortSubject;
+            certificateRecord.ShortIssuer = shortIssuer;
+
+            await _galleryEntitiesContext.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Gallery certificate information for certificate with thumbprint {Thumbprint} has been populated.",
+                thumbprint);
+        }
+
+        private string NoLongerThanOrNull(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input) ||
+                input.Length > _configuration.Value.MaxCertificateStringLength)
+            {
+                return null;
+            }
+
+            return input;
         }
 
         private static void ExtractSignaturesAndCertificates(Context context)
@@ -260,7 +337,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             IReadOnlyDictionary<string, EndCertificate> thumbprintToEndCertificate,
             bool replacePackageSignature)
         {
-            var packageSignatures = await _entitiesContext
+            var packageSignatures = await _validationEntitiesContext
                 .PackageSignatures
                 .Include(x => x.TrustedTimestamps)
                 .Include(x => x.EndCertificate)
@@ -309,10 +386,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                         // explicit and to facilitate unit testing, we explicitly remove them.
                         foreach (var trustedTimestamp in packageSignature.TrustedTimestamps)
                         {
-                            _entitiesContext.TrustedTimestamps.Remove(trustedTimestamp);
+                            _validationEntitiesContext.TrustedTimestamps.Remove(trustedTimestamp);
                         }
 
-                        _entitiesContext.PackageSignatures.Remove(packageSignature);
+                        _validationEntitiesContext.PackageSignatures.Remove(packageSignature);
 
                         packageSignature = InitializePackageSignature(
                             packageKey,
@@ -356,7 +433,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             };
 
             packageSignature.EndCertificateKey = packageSignature.EndCertificate.Key;
-            _entitiesContext.PackageSignatures.Add(packageSignature);
+            _validationEntitiesContext.PackageSignatures.Add(packageSignature);
 
             return packageSignature;
         }
@@ -394,7 +471,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                 };
                 trustedTimestamp.EndCertificateKey = trustedTimestamp.EndCertificate.Key;
                 packageSignature.TrustedTimestamps.Add(trustedTimestamp);
-                _entitiesContext.TrustedTimestamps.Add(trustedTimestamp);
+                _validationEntitiesContext.TrustedTimestamps.Add(trustedTimestamp);
             }
             else
             {
@@ -454,7 +531,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                         EndCertificate = endCertificateEntity,
                         ParentCertificate = parentCertificateEntity,
                     };
-                    _entitiesContext.CertificateChainLinks.Add(link);
+                    _validationEntitiesContext.CertificateChainLinks.Add(link);
                     endCertificateEntity.CertificateChainLinks.Add(link);
                     parentCertificateEntity.CertificateChainLinks.Add(link);
 
@@ -476,7 +553,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             // Find all of the end certificate entities that intersect with the set of certificates found in the
             // package that is currently being processed.
-            var existingEntities = await _entitiesContext
+            var existingEntities = await _validationEntitiesContext
                 .EndCertificates
                 .Include(x => x.CertificateChainLinks)
                 .Where(x => thumbprints.Contains(x.Thumbprint))
@@ -495,7 +572,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                         Thumbprint = certificateAndUse.Certificate.Thumbprint,
                         CertificateChainLinks = new List<CertificateChainLink>(),
                     };
-                    _entitiesContext.EndCertificates.Add(entity);
+                    _validationEntitiesContext.EndCertificates.Add(entity);
 
                     thumbprintToEntity[certificateAndUse.Certificate.Thumbprint] = entity;
                 }
@@ -524,7 +601,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
             // Find all of the parent certificate entities that intersect with the set of certificates found in the
             // package that is currently being processed.
-            var existingEntities = await _entitiesContext
+            var existingEntities = await _validationEntitiesContext
                 .ParentCertificates
                 .Include(x => x.CertificateChainLinks)
                 .Where(x => thumbprints.Contains(x.Thumbprint))
@@ -541,7 +618,7 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                         Thumbprint = certificate.Thumbprint,
                         CertificateChainLinks = new List<CertificateChainLink>(),
                     };
-                    _entitiesContext.ParentCertificates.Add(entity);
+                    _validationEntitiesContext.ParentCertificates.Add(entity);
 
                     thumbprintToEntity[certificate.Thumbprint] = entity;
                 }

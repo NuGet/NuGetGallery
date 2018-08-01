@@ -63,6 +63,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private readonly PackageSigningStateService _packageSigningStateService;
         private readonly Mock<ICertificateStore> _certificateStore;
         private readonly Mock<IValidationEntitiesContext> _validationEntitiesContext;
+        private readonly Mock<IEntitiesContext> _galleryEntitiesContext;
         private readonly SignaturePartsExtractor _signaturePartsExtractor;
         private readonly Mock<IProcessorPackageFileService> _packageFileService;
         private readonly Uri _nupkgUri;
@@ -110,6 +111,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 .Setup(x => x.TrustedTimestamps)
                 .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
 
+            _galleryEntitiesContext = new Mock<IEntitiesContext>();
+            _galleryEntitiesContext
+                .Setup(x => x.Certificates)
+                .Returns(DbSetMockFactory.Create<Certificate>());
+
             var loggerFactory = new LoggerFactory();
             loggerFactory.AddXunit(output);
 
@@ -133,6 +139,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             _signaturePartsExtractor = new SignaturePartsExtractor(
                 _certificateStore.Object,
                 _validationEntitiesContext.Object,
+                _galleryEntitiesContext.Object,
                 _optionsSnapshot.Object,
                 loggerFactory.CreateLogger<SignaturePartsExtractor>());
 

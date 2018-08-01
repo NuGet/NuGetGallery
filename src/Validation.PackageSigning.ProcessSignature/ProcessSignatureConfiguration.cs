@@ -26,5 +26,14 @@ namespace NuGet.Jobs.Validation.PackageSigning
         /// is in test mode and repository signed packages are not published.
         /// </summary>
         public bool CommitRepositorySignatures { get; set; }
+
+        /// <summary>
+        /// The maximum length of a subject or issuer string to save to the gallery database. If a processed author
+        /// certificate has an issuer or subject distinguished name or
+        /// <see cref="System.Security.Cryptography.X509Certificates.X509NameType.SimpleName"/> that is longer than this
+        /// value, null is stored in the database. We use 4000 since this is the maximum length for many package fields,
+        /// such as description.
+        /// </summary>
+        public int MaxCertificateStringLength { get; set; } = 4000;
     }
 }

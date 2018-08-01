@@ -10,6 +10,12 @@
       "SleepDurationBetweenBatches": "00:00:30"
     },
 
+    "Health": {
+      "ContainerName": "status",
+      "StatusBlobName": "status.json",
+      "ComponentPath": "NuGet/Package Publishing"
+    },
+
     "MinPackageEventRate": 120,
     "MaxPackageEventRate": 500,
 

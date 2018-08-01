@@ -60,7 +60,7 @@ namespace StatusAggregator
             }
         }
 
-        private const string _messageForEventStartTemplate = "<b>{0} is {1}.</b> You may encounter issues {2}.";
+        private const string _messageForEventStartTemplate = "**{0} is {1}.** You may encounter issues {2}.";
 
         private bool TryGetContentsForMessageForEventStart(EventEntity eventEntity, out string contents)
         {
@@ -102,7 +102,7 @@ namespace StatusAggregator
             return _table.InsertOrReplaceAsync(messageEntity);
         }
 
-        private const string _messageForEventEndTemplate = "<b>{0} is no longer {1}.</b> You should no longer encounter any issues {2}. Thank you for your patience.";
+        private const string _messageForEventEndTemplate = "**{0} is no longer {1}.** You should no longer encounter any issues {2}. Thank you for your patience.";
 
         private bool TryGetContentsForMessageForEventEnd(EventEntity eventEntity, out string contents)
         {

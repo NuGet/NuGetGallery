@@ -17,8 +17,10 @@ using NuGet.Jobs.Validation.PackageSigning.ProcessSignature;
 using NuGet.Jobs.Validation.PackageSigning.Storage;
 using NuGet.Packaging.Signing;
 using NuGet.Services.Validation;
+using NuGetGallery;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.X509.Store;
+using Test.Utility.Signing;
 using Validation.PackageSigning.Core.Tests.Support;
 using Xunit;
 
@@ -43,6 +45,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         private static readonly DateTime AuthorAndRepoSignedCounterTimestampValue = DateTime
             .Parse("2018-03-21T17:56:00.0000000Z")
             .ToUniversalTime();
+
+        private static string Leaf1Cn = "NUGET_DO_NOT_TRUST.leaf-1.test.test";
+        private static string Leaf1IssuerCn = "NUGET_DO_NOT_TRUST.intermediate.test.test";
 
         /// <summary>
         /// This contains the SHA-256 thumbprints of the test certificate chain as well as the time stamping
@@ -117,11 +122,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             private readonly CancellationToken _token;
             private readonly Mock<ICertificateStore> _certificateStore;
             private readonly List<X509Certificate2> _savedCertificates;
-            private readonly Mock<IValidationEntitiesContext> _entitiesContext;
+            private readonly Mock<IValidationEntitiesContext> _validationEntitiesContext;
             private readonly Mock<IOptionsSnapshot<ProcessSignatureConfiguration>> _configAccessor;
             private readonly ProcessSignatureConfiguration _config;
             private readonly Mock<ILogger<SignaturePartsExtractor>> _logger;
             private readonly SignaturePartsExtractor _target;
+            private readonly Mock<IEntitiesContext> _galleryEntitiesContext;
 
             public ExtractAsync()
             {
@@ -139,22 +145,27 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     .Returns(Task.CompletedTask)
                     .Callback<X509Certificate2, CancellationToken>((cert, _) => _savedCertificates.Add(new X509Certificate2(cert.RawData)));
 
-                _entitiesContext = new Mock<IValidationEntitiesContext>();
-                _entitiesContext
+                _validationEntitiesContext = new Mock<IValidationEntitiesContext>();
+                _validationEntitiesContext
                     .Setup(x => x.ParentCertificates)
                     .Returns(DbSetMockFactory.Create<ParentCertificate>());
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.EndCertificates)
                     .Returns(DbSetMockFactory.Create<EndCertificate>());
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.CertificateChainLinks)
                     .Returns(DbSetMockFactory.Create<CertificateChainLink>());
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create<PackageSignature>());
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.TrustedTimestamps)
                     .Returns(DbSetMockFactory.Create<TrustedTimestamp>());
+
+                _galleryEntitiesContext = new Mock<IEntitiesContext>();
+                _galleryEntitiesContext
+                    .Setup(x => x.Certificates)
+                    .Returns(DbSetMockFactory.Create<Certificate>());
 
                 _configAccessor = new Mock<IOptionsSnapshot<ProcessSignatureConfiguration>>();
                 _config = new ProcessSignatureConfiguration
@@ -168,9 +179,163 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 _target = new SignaturePartsExtractor(
                     _certificateStore.Object,
-                    _entitiesContext.Object,
+                    _validationEntitiesContext.Object,
+                    _galleryEntitiesContext.Object,
                     _configAccessor.Object,
                     _logger.Object);
+            }
+
+            [Fact]
+            public async Task IgnoresSubjectAndIssuerThatAreTooLong()
+            {
+                // Arrange
+                var maxLength = Math.Min(
+                    Leaf1Certificates.PrimarySignature.SignatureEndCertificate.Subject.Length - 1,
+                    Leaf1Certificates.PrimarySignature.SignatureParentCertificates[0].Subject.Length - 1);
+                _config.MaxCertificateStringLength = maxLength;
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+                var certificate = signature.SignerInfo.Certificate;
+                var certificateRecord = new Certificate
+                {
+                    Thumbprint = certificate.ComputeSHA256Thumbprint(),
+                };
+                _galleryEntitiesContext.Object.Certificates.Add(certificateRecord);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(certificate.NotAfter.ToUniversalTime(), certificateRecord.Expiration);
+                Assert.Null(certificateRecord.Subject);
+                Assert.Null(certificateRecord.Issuer);
+                Assert.Equal(Leaf1Cn, certificateRecord.ShortSubject);
+                Assert.Equal(Leaf1IssuerCn, certificateRecord.ShortIssuer);
+                var single = Assert.Single(_galleryEntitiesContext.Object.Certificates);
+                Assert.Same(certificateRecord, single);
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task IgnoresShortSubjectAndShortIssuerThatAreTooLong()
+            {
+                // Arrange
+                var maxLength = Math.Min(Leaf1Cn.Length - 1, Leaf1IssuerCn.Length - 1);
+                _config.MaxCertificateStringLength = maxLength;
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+                var certificate = signature.SignerInfo.Certificate;
+                var certificateRecord = new Certificate
+                {
+                    Thumbprint = certificate.ComputeSHA256Thumbprint(),
+                };
+                _galleryEntitiesContext.Object.Certificates.Add(certificateRecord);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(certificate.NotAfter.ToUniversalTime(), certificateRecord.Expiration);
+                Assert.Null(certificateRecord.Subject);
+                Assert.Null(certificateRecord.Issuer);
+                Assert.Null(certificateRecord.ShortSubject);
+                Assert.Null(certificateRecord.ShortIssuer);
+                var single = Assert.Single(_galleryEntitiesContext.Object.Certificates);
+                Assert.Same(certificateRecord, single);
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task UpdatesCertificateDetailsInGalleryForMatchingAuthorCertificate()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+                var certificate = signature.SignerInfo.Certificate;
+                var certificateRecord = new Certificate
+                {
+                    Thumbprint = certificate.ComputeSHA256Thumbprint(),
+                };
+                _galleryEntitiesContext.Object.Certificates.Add(certificateRecord);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(certificate.NotAfter.ToUniversalTime(), certificateRecord.Expiration);
+                Assert.Equal(certificate.Subject, certificateRecord.Subject);
+                Assert.Equal(certificate.Issuer, certificateRecord.Issuer);
+                Assert.Equal(Leaf1Cn, certificateRecord.ShortSubject);
+                Assert.Equal(Leaf1IssuerCn, certificateRecord.ShortIssuer);
+                var single = Assert.Single(_galleryEntitiesContext.Object.Certificates);
+                Assert.Same(certificateRecord, single);
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotUpdateCertificateDetailsForRepositoryPrimarySignature()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.RepoSignedPackageLeaf1);
+                var certificate = signature.SignerInfo.Certificate;
+                var certificateRecord = new Certificate
+                {
+                    Thumbprint = certificate.ComputeSHA256Thumbprint(),
+                };
+                _galleryEntitiesContext.Object.Certificates.Add(certificateRecord);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Null(certificateRecord.Expiration);
+                Assert.Null(certificateRecord.Subject);
+                Assert.Null(certificateRecord.Issuer);
+                Assert.Null(certificateRecord.ShortSubject);
+                Assert.Null(certificateRecord.ShortIssuer);
+                Assert.Single(_galleryEntitiesContext.Object.Certificates);
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotUpdateCertificateDetailsWhenNoMatchingRecordExists()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Empty(_galleryEntitiesContext.Object.Certificates.ToArray());
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
+            }
+
+            [Fact]
+            public async Task DoesNotUpdateCertificateDetailsWhenNoDataHasChanged()
+            {
+                // Arrange
+                var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
+                var certificate = signature.SignerInfo.Certificate;
+                var certificateRecord = new Certificate
+                {
+                    Expiration = certificate.NotAfter.ToUniversalTime(),
+                    Subject = certificate.Subject,
+                    Issuer = certificate.Issuer,
+                    ShortSubject = Leaf1Cn,
+                    ShortIssuer = Leaf1IssuerCn,
+                    Thumbprint = certificate.ComputeSHA256Thumbprint(),
+                };
+                _galleryEntitiesContext.Object.Certificates.Add(certificateRecord);
+
+                // Act
+                await _target.ExtractAsync(_packageKey, signature, _token);
+
+                // Assert
+                Assert.Equal(certificate.NotAfter.ToUniversalTime(), certificateRecord.Expiration);
+                Assert.Equal(certificate.Subject, certificateRecord.Subject);
+                Assert.Equal(certificate.Issuer, certificateRecord.Issuer);
+                Assert.Equal(Leaf1Cn, certificateRecord.ShortSubject);
+                Assert.Equal(Leaf1IssuerCn, certificateRecord.ShortIssuer);
+                Assert.Single(_galleryEntitiesContext.Object.Certificates);
+                _galleryEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Never);
             }
 
             [Fact]
@@ -222,7 +387,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 const string database = "database";
                 const string storage = "storage";
                 var sequence = new List<string>();
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.SaveChangesAsync())
                     .ReturnsAsync(0)
                     .Callback(() => sequence.Add(database));
@@ -251,7 +416,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 await _target.ExtractAsync(_packageKey, signature, _token);
 
                 // Assert
-                var endCertificates = _entitiesContext.Object.EndCertificates.ToList();
+                var endCertificates = _validationEntitiesContext.Object.EndCertificates.ToList();
                 foreach (var endCertificate in endCertificates)
                 {
 
@@ -273,18 +438,18 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.SignedPackageLeaf1);
                 await _target.ExtractAsync(_packageKey, signature, _token);
                 AssignIds();
-                _entitiesContext.ResetCalls();
+                _validationEntitiesContext.ResetCalls();
 
                 // Act
                 await _target.ExtractAsync(_packageKey, signature, _token);
 
                 // Assert
                 VerifyExtractedInformation(Leaf1Certificates, Leaf1TimestampValue, PackageSignatureType.Author);
-                Assert.Equal(2, _entitiesContext.Object.EndCertificates.Count());
-                Assert.Equal(4, _entitiesContext.Object.ParentCertificates.Count());
-                Assert.Equal(4, _entitiesContext.Object.CertificateChainLinks.Count());
-                Assert.Equal(1, _entitiesContext.Object.PackageSignatures.Count());
-                Assert.Equal(1, _entitiesContext.Object.TrustedTimestamps.Count());
+                Assert.Equal(2, _validationEntitiesContext.Object.EndCertificates.Count());
+                Assert.Equal(4, _validationEntitiesContext.Object.ParentCertificates.Count());
+                Assert.Equal(4, _validationEntitiesContext.Object.CertificateChainLinks.Count());
+                Assert.Equal(1, _validationEntitiesContext.Object.PackageSignatures.Count());
+                Assert.Equal(1, _validationEntitiesContext.Object.TrustedTimestamps.Count());
             }
 
             [Fact]
@@ -328,16 +493,16 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     TrustedTimestamps = new List<TrustedTimestamp>(),
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.ParentCertificates)
                     .Returns(DbSetMockFactory.Create(existingParentCertificate));
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.EndCertificates)
                     .Returns(DbSetMockFactory.Create(existingEndCertificate));
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.CertificateChainLinks)
                     .Returns(DbSetMockFactory.Create(existingLink));
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
 
@@ -346,11 +511,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 // Assert
                 VerifyExtractedInformation(Leaf1Certificates, Leaf1TimestampValue, PackageSignatureType.Author);
-                Assert.Equal(2, _entitiesContext.Object.EndCertificates.Count());
-                Assert.Equal(4, _entitiesContext.Object.ParentCertificates.Count());
-                Assert.Equal(4, _entitiesContext.Object.CertificateChainLinks.Count());
-                Assert.Equal(1, _entitiesContext.Object.PackageSignatures.Count());
-                Assert.Equal(1, _entitiesContext.Object.TrustedTimestamps.Count());
+                Assert.Equal(2, _validationEntitiesContext.Object.EndCertificates.Count());
+                Assert.Equal(4, _validationEntitiesContext.Object.ParentCertificates.Count());
+                Assert.Equal(4, _validationEntitiesContext.Object.CertificateChainLinks.Count());
+                Assert.Equal(1, _validationEntitiesContext.Object.PackageSignatures.Count());
+                Assert.Equal(1, _validationEntitiesContext.Object.TrustedTimestamps.Count());
                 Assert.Equal(EndCertificateStatus.Good, existingEndCertificate.Status);
                 Assert.Equal(PackageSignatureStatus.Valid, existingPackageSignature.Status);
             }
@@ -369,7 +534,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     CertificateChainLinks = new List<CertificateChainLink>(),
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.EndCertificates)
                     .Returns(DbSetMockFactory.Create(existingEndCertificate));
 
@@ -377,7 +542,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("The use of an end certificate cannot change.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -404,7 +569,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Type = type,
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature1, existingPackageSignature2));
 
@@ -412,7 +577,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("There should never be more than one package signature per package and signature type.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -434,7 +599,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Type = PackageSignatureType.Author,
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
 
@@ -442,7 +607,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("The thumbprint of the signature end certificate cannot change.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -475,10 +640,10 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     },
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.TrustedTimestamps)
                     .Returns(DbSetMockFactory.Create(existingTrustedTimestamp));
 
@@ -486,11 +651,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 await _target.ExtractAsync(_packageKey, signature, _token);
 
                 // Assert
-                var newPackageSignature = Assert.Single(_entitiesContext.Object.PackageSignatures);
+                var newPackageSignature = Assert.Single(_validationEntitiesContext.Object.PackageSignatures);
                 Assert.NotSame(existingPackageSignature, newPackageSignature);
                 Assert.Equal(TestResources.Leaf1Thumbprint, newPackageSignature.EndCertificate.Thumbprint);
 
-                var newTrustedTimestamp = Assert.Single(_entitiesContext.Object.TrustedTimestamps);
+                var newTrustedTimestamp = Assert.Single(_validationEntitiesContext.Object.TrustedTimestamps);
                 Assert.NotSame(existingTrustedTimestamp, newTrustedTimestamp);
                 Assert.Equal(TestResources.Leaf1TimestampThumbprint, newTrustedTimestamp.EndCertificate.Thumbprint);
             }
@@ -516,7 +681,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Type = PackageSignatureType.Author,
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
 
@@ -524,7 +689,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("There should never be more than one trusted timestamp per package signature.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -556,7 +721,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Type = PackageSignatureType.Author,
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
 
@@ -564,7 +729,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("The thumbprint of the timestamp end certificate cannot change.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -597,7 +762,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     Type = PackageSignatureType.Author,
                 };
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create(existingPackageSignature));
 
@@ -605,7 +770,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 var ex = await Assert.ThrowsAsync<InvalidOperationException>(
                     () => _target.ExtractAsync(_packageKey, signature, _token));
                 Assert.Equal("The value of the trusted timestamp cannot change.", ex.Message);
-                _entitiesContext.Verify(
+                _validationEntitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
                 Assert.Empty(_savedCertificates);
@@ -635,7 +800,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Arrange
                 var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.RepoSignedPackageLeaf1);
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create<PackageSignature>());
 
@@ -645,7 +810,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 await _target.ExtractAsync(_packageKey, signature, _token);
 
                 // Assert
-                Assert.Equal(0, _entitiesContext.Object.PackageSignatures.Count());
+                Assert.Equal(0, _validationEntitiesContext.Object.PackageSignatures.Count());
 
                 // The repository signature's certificate is still stored on blob storage.
                 VerifyStoredCertificates(Leaf1Certificates);
@@ -657,7 +822,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Arrange
                 var signature = await TestResources.LoadPrimarySignatureAsync(TestResources.AuthorAndRepoSignedPackageLeaf1);
 
-                _entitiesContext
+                _validationEntitiesContext
                     .Setup(x => x.PackageSignatures)
                     .Returns(DbSetMockFactory.Create<PackageSignature>());
 
@@ -667,8 +832,8 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 await _target.ExtractAsync(_packageKey, signature, _token);
 
                 // Assert
-                Assert.Equal(1, _entitiesContext.Object.PackageSignatures.Count());
-                Assert.Equal(PackageSignatureType.Author, _entitiesContext.Object.PackageSignatures.First().Type);
+                Assert.Equal(1, _validationEntitiesContext.Object.PackageSignatures.Count());
+                Assert.Equal(PackageSignatureType.Author, _validationEntitiesContext.Object.PackageSignatures.First().Type);
 
                 // The repository signature's certificate is still stored on blob storage.
                 VerifyStoredCertificates(AuthorAndRepoSignedCertificates);
@@ -676,7 +841,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             private void AssignIds()
             {
-                var endCertificates = _entitiesContext.Object.EndCertificates.AsQueryable().ToList();
+                var endCertificates = _validationEntitiesContext.Object.EndCertificates.AsQueryable().ToList();
                 for (var key = 1; key <= endCertificates.Count; key++)
                 {
                     endCertificates[key - 1].Key = key;
@@ -686,7 +851,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     }
                 }
 
-                var parentCertificates = _entitiesContext.Object.ParentCertificates.AsQueryable().ToList();
+                var parentCertificates = _validationEntitiesContext.Object.ParentCertificates.AsQueryable().ToList();
                 for (var key = 1; key <= parentCertificates.Count; key++)
                 {
                     parentCertificates[key - 1].Key = key;
@@ -696,7 +861,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     }
                 }
 
-                var packageSignatures = _entitiesContext.Object.PackageSignatures.AsQueryable().ToList();
+                var packageSignatures = _validationEntitiesContext.Object.PackageSignatures.AsQueryable().ToList();
                 for (var key = 1; key <= packageSignatures.Count; key++)
                 {
                     var packageSignature = packageSignatures[key - 1];
@@ -709,7 +874,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     packageSignature.EndCertificateKey = packageSignature.EndCertificate.Key;
                 }
 
-                var trustedTimestamps = _entitiesContext.Object.TrustedTimestamps.AsQueryable().ToList();
+                var trustedTimestamps = _validationEntitiesContext.Object.TrustedTimestamps.AsQueryable().ToList();
                 for (var key = 1; key <= trustedTimestamps.Count; key++)
                 {
                     var trustedTimestamp = trustedTimestamps[key - 1];
@@ -759,19 +924,19 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 DateTime timestampValue,
                 PackageSignatureType signatureType)
             {
-                var signatureEndCertificate = Assert.Single(_entitiesContext
+                var signatureEndCertificate = Assert.Single(_validationEntitiesContext
                                     .Object
                                     .EndCertificates
                                     .Where(x => x.Thumbprint == expected.SignatureEndCertificate.Thumbprint));
                 Assert.Equal(EndCertificateUse.CodeSigning, signatureEndCertificate.Use);
 
-                var timestampEndCertificate = Assert.Single(_entitiesContext
+                var timestampEndCertificate = Assert.Single(_validationEntitiesContext
                     .Object
                     .EndCertificates
                     .Where(x => x.Thumbprint == expected.TimestampEndCertificate.Thumbprint));
                 Assert.Equal(EndCertificateUse.Timestamping, timestampEndCertificate.Use);
 
-                var packageSignature = Assert.Single(_entitiesContext
+                var packageSignature = Assert.Single(_validationEntitiesContext
                     .Object
                     .PackageSignatures
                     .Where(x => x.Type == signatureType));
@@ -781,7 +946,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Same(signatureEndCertificate, packageSignature.EndCertificate);
                 Assert.NotNull(packageSignature.TrustedTimestamps);
 
-                var trustedTimestamp = Assert.Single(_entitiesContext
+                var trustedTimestamp = Assert.Single(_validationEntitiesContext
                     .Object
                     .TrustedTimestamps
                     .Where(x => x.PackageSignature == packageSignature));
@@ -792,7 +957,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 Assert.Equal(timestampValue, trustedTimestamp.Value);
                 Assert.Equal(TrustedTimestampStatus.Valid, trustedTimestamp.Status);
 
-                _entitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
+                _validationEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once);
 
                 return trustedTimestamp;
             }

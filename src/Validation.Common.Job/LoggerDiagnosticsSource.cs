@@ -91,7 +91,7 @@ namespace NuGet.Jobs.Validation
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            _logger.Log<TState>(logLevel, eventId, state, exception, formatter);
+            _logger.Log(logLevel, eventId, state, exception, formatter);
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -101,7 +101,7 @@ namespace NuGet.Jobs.Validation
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return _logger.BeginScope<TState>(state);
+            return _logger.BeginScope(state);
         }
 
         /// <summary>
