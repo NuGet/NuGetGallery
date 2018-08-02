@@ -59,6 +59,7 @@
     <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsValidator.cs" />
     <Compile Include="Symbols\SymbolsValidationConfiguration.cs" />
+    <Compile Include="UsernameHelper.cs" />
     <Compile Include="ValidatingEntitites\IValidatingEntity.cs" />
     <Compile Include="IValidationOutcomeProcessor.cs" />
     <Compile Include="IValidationPackageFileService.cs" />
