@@ -26,7 +26,8 @@ namespace NuGetGallery
         Task SendCredentialRemovedNoticeAsync(User user, CredentialViewModel removedCredentialViewModel);
         Task SendCredentialAddedNoticeAsync(User user, CredentialViewModel addedCredentialViewModel);
         Task SendContactSupportEmailAsync(ContactSupportRequest request);
-        Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl);
+        Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null);
+        Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages);
         Task SendAccountDeleteNoticeAsync(User user);
         Task SendPackageDeletedNoticeAsync(Package package, string packageUrl, string packageSupportUrl);
         Task SendSigninAssistanceEmailAsync(MailAddress emailAddress, IEnumerable<Credential> credentials);

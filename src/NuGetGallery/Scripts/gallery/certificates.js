@@ -93,6 +93,15 @@
                 _model = {
                     certificates: ko.observableArray(data),
                     deleteCertificate: deleteCertificateAsync,
+                    hasMissingInfo: function () {
+                        var currentCertificates = this.certificates();
+                        for (var i = 0; i < currentCertificates.length; i++) {
+                            if (!currentCertificates[i].HasInfo) {
+                                return true;
+                            }
+                        }
+                        return false;
+                    },
                     hasCertificates: function () {
                         return this.certificates().length > 0;
                     }
