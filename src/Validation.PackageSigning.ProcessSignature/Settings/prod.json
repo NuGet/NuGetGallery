@@ -23,7 +23,7 @@
       "0e5f38f57dc1bcc806d8494f4f90fbcedd988b46760709cbeec6f4219aa6157d"
     ],
     "V3ServiceIndexUrl": "https://api.nuget.org/v3/index.json",
-    "CommitRepositorySignatures":  false
+    "CommitRepositorySignatures": true
   },
 
   "PackageDownloadTimeout": "00:10:00",
