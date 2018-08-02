@@ -1491,8 +1491,8 @@ img.reserved-indicator-icon {
 .page-status .status-degraded .ms-Icon {
   color: orange;
 }
-.page-status .latest-updates + p {
-  margin-top: 24px;
+.page-status .update {
+  margin-bottom: 24px;
 }
 .page-status .ms-Icon {
   margin-right: 10px;
@@ -1546,6 +1546,15 @@ img.reserved-indicator-icon {
 }
 .page-status .table tbody + tbody {
   border: none;
+}
+.page-status textarea {
+  min-width: 100%;
+}
+.page-status input[type='checkbox'] {
+  margin-right: 15px;
+}
+.page-status a .ms-Icon {
+  font-size: .6em;
 }
 .page-transform-account .transform-alert {
   margin-bottom: 33px;
