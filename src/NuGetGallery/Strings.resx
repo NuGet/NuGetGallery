@@ -964,4 +964,8 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_ConflictValidating" xml:space="preserve">
     <value>It looks like there is another copy of this symbols package pending validation(s). Please wait for the validation(s) to finish before trying to replace the symbols package.</value>
   </data>
+  <data name="UploadPackage_SignedToUnsignedTransition" xml:space="preserve">
+    <value>The previous package version '{0}' is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading.</value>
+    <comment>{0} is the previous package's normalized version.</comment>
+  </data>
 </root>

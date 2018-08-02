@@ -10,7 +10,9 @@ namespace NuGetGallery
 {
     public class VerifyPackageRequest
     {
-        public VerifyPackageRequest() { }
+        public VerifyPackageRequest()
+        {
+        }
 
         public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners, PackageRegistration existingPackageRegistration)
         {
@@ -110,6 +112,8 @@ namespace NuGetGallery
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
+
+        public List<string> Warnings { get; set; } = new List<string>();
 
         private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
         {

@@ -44,6 +44,11 @@
 <script type="text/html" id="verify-metadata-template">
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
+                <!-- ko if: $data.Warnings -->
+                <div data-bind="foreach: $data.Warnings">
+                    @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+                </div>
+                <!-- /ko -->
 
                 <div class="verify-package-field">
                     <label for="Id" class="verify-package-field-heading">Package ID</label>

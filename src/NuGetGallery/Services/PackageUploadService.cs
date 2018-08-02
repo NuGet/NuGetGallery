@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Extensions;
 using NuGetGallery.Packaging;
@@ -38,7 +40,72 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public async Task<PackageValidationResult> ValidatePackageAsync(
+        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage)
+        {
+            var warnings = new List<string>();
+
+            var result = await CheckForUnsignedPushAfterAuthorSignedAsync(
+                nuGetPackage,
+                warnings);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        /// <summary>
+        /// If a package author pushes version X that is author signed then pushes version Y that is unsigned, where Y
+        /// is immediately after X when the version list is sorted used SemVer 2.0.0 rules, warn the package author.
+        /// If the user pushes another unsigned version after Y, no warning is produced. This means the warning will
+        /// not present on every subsequent push, which would be a bit too noisy.
+        /// </summary>
+        /// <param name="nuGetPackage">The package archive reader.</param>
+        /// <param name="warnings">The working list of warnings.</param>
+        /// <returns>The package validation result or null.</returns>
+        private async Task<PackageValidationResult> CheckForUnsignedPushAfterAuthorSignedAsync(
+            PackageArchiveReader nuGetPackage,
+            List<string> warnings)
+        {
+            // If the package is signed, there's no problem.
+            if (await nuGetPackage.IsSignedAsync(CancellationToken.None))
+            {
+                return null;
+            }
+
+            var newIdentity = nuGetPackage.GetIdentity();
+            var packageRegistration = _packageService.FindPackageRegistrationById(newIdentity.Id);
+
+            // If the package registration does not exist yet, there's no problem.
+            if (packageRegistration == null)
+            {
+                return null;
+            }
+
+            // Find the highest package version less than the new package that is Available. Deleted packages should
+            // be ignored and Validating or FailedValidation packages will not necessarily have certificate information.
+            var previousPackage = packageRegistration
+                .Packages
+                .Where(x => x.PackageStatusKey == PackageStatus.Available)
+                .Select(x => new { x.NormalizedVersion, x.CertificateKey })
+                .ToList() // Materialize the lazy collection.
+                .Select(x => new { Version = NuGetVersion.Parse(x.NormalizedVersion), x.CertificateKey })
+                .Where(x => x.Version < newIdentity.Version)
+                .OrderByDescending(x => x.Version)
+                .FirstOrDefault();
+
+            if (previousPackage != null && previousPackage.CertificateKey.HasValue)
+            {
+                warnings.Add(string.Format(
+                    Strings.UploadPackage_SignedToUnsignedTransition,
+                    previousPackage.Version.ToNormalizedString()));
+            }
+
+            return null;
+        }
+
+        public async Task<PackageValidationResult> ValidateAfterGeneratePackageAsync(
             Package package,
             PackageArchiveReader nuGetPackage,
             User owner,

@@ -104,6 +104,11 @@ namespace NuGetGallery
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
                 .Returns(new ReservedNamespace[0]);
 
+            MockPackageUploadService
+                .Setup(x => x.ValidateBeforeGeneratePackageAsync(
+                    It.IsAny<PackageArchiveReader>()))
+                .ReturnsAsync(PackageValidationResult.Accepted());
+
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
                 .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
                     var packageMetadata = PackageMetadata.FromNuspecReader(
@@ -119,7 +124,7 @@ namespace NuGetGallery
                 });
 
             MockPackageUploadService
-                .Setup(x => x.ValidatePackageAsync(
+                .Setup(x => x.ValidateAfterGeneratePackageAsync(
                     It.IsAny<Package>(),
                     It.IsAny<PackageArchiveReader>(),
                     It.IsAny<User>(),
@@ -880,6 +885,43 @@ namespace NuGetGallery
                 controller.MockEntitiesContext.VerifyCommitted(Times.Never());
             }
 
+            [Fact]
+            public async Task WillReturnValidationWarnings()
+            {
+                // Arrange
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var messageA = "Warning A";
+                var messageB = "Warning B";
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                controller
+                    .MockPackageUploadService
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(
+                        It.IsAny<PackageArchiveReader>()))
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageA }));
+                controller
+                    .MockPackageUploadService
+                    .Setup(x => x.ValidateAfterGeneratePackageAsync(
+                        It.IsAny<Package>(),
+                        It.IsAny<PackageArchiveReader>(),
+                        It.IsAny<User>(),
+                        It.IsAny<User>()))
+                    .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageB }));
+
+                // Act
+                ActionResult result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+                var warningResult = Assert.IsAssignableFrom<HttpStatusCodeWithServerWarningResult>(result);
+                Assert.Equal(2, warningResult.Warnings.Count);
+                Assert.Equal(messageA, warningResult.Warnings[0]);
+                Assert.Equal(messageB, warningResult.Warnings[1]);
+            }
+
             [Theory]
             [InlineData(PackageValidationResultType.Invalid)]
             [InlineData(PackageValidationResultType.PackageShouldNotBeSigned)]
@@ -896,7 +938,7 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 controller
                     .MockPackageUploadService
-                    .Setup(x => x.ValidatePackageAsync(
+                    .Setup(x => x.ValidateAfterGeneratePackageAsync(
                         It.IsAny<Package>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<User>(),
@@ -908,6 +950,34 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, message);
+            }
+
+            public static IEnumerable<object[]> PackageValidationResultTypes => Enum
+                .GetValues(typeof(PackageValidationResultType))
+                .Cast<PackageValidationResultType>()
+                .Select(t => new object[] { t });
+
+            [Theory]
+            [MemberData(nameof(PackageValidationResultTypes))]
+            public async Task DoesNotThrowForAnyPackageValidationResultType(PackageValidationResultType type)
+            {
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                controller.SetupPackageFromInputStream(nuGetPackage);
+                controller.MockPackageUploadService
+                    .Setup(x => x.ValidateBeforeGeneratePackageAsync(
+                        It.IsAny<PackageArchiveReader>()))
+                    .ReturnsAsync(new PackageValidationResult(type, string.Empty));
+
+                await controller.CreatePackagePut();
+
+                controller.MockPackageUploadService.Verify(
+                    x => x.ValidateBeforeGeneratePackageAsync(
+                        It.IsAny<PackageArchiveReader>()),
+                    Times.Once);
             }
 
             public static IEnumerable<object[]> CommitResults => Enum

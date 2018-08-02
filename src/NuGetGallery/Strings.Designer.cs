@@ -2221,6 +2221,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The previous package version &apos;{0}&apos; is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading..
+        /// </summary>
+        public static string UploadPackage_SignedToUnsignedTransition {
+            get {
+                return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot upload file because an upload is already in progress..
         /// </summary>
         public static string UploadPackage_UploadInProgress {
