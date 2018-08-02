@@ -87,6 +87,7 @@
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
+    <Compile Include="Helpers\PackageHelperTests.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />

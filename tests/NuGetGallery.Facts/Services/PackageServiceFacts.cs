@@ -249,6 +249,32 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillReadRepositoryMetadataPropertyFromThePackage()
+            {
+                // Arrange
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+
+                var repositoryMetadata = new NuGet.Packaging.Core.RepositoryMetadata()
+                {
+                    Type = "git",
+                    Url = "https://github.com/NuGet/NuGetGallery",
+                };
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(repositoryMetadata: repositoryMetadata);
+
+                var currentUser = new User();
+
+                // Act
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                // Assert
+                Assert.Equal(repositoryMetadata.Type, package.RepositoryType);
+                Assert.Equal(repositoryMetadata.Url, package.RepositoryUrl);
+            }
+
+            [Fact]
             public async Task WillReadPrereleaseFlagFromNuGetPackage()
             {
                 // Arrange
@@ -674,6 +700,27 @@ namespace NuGetGallery
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
 
                 Assert.Empty(package.SupportedFrameworks);
+            }
+
+            [Fact]
+            private async Task WillThrowIfTheRepositoryTypeIsLongerThan100()
+            {
+                // Arrange
+                var service = CreateService();
+
+                var repositoryMetadata = new NuGet.Packaging.Core.RepositoryMetadata()
+                {
+                    Type = new string('a', 101),
+                    Url = "https://github.com/NuGet/NuGetGallery",
+                };
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(repositoryMetadata: repositoryMetadata);
+
+                // Act
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
+
+                // Assert
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100"), ex.Message);
             }
         }
 

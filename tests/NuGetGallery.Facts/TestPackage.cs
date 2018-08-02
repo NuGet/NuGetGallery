@@ -34,7 +34,8 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null)
         {
             using (var streamWriter = new StreamWriter(stream, new UTF8Encoding(false, true), 1024, leaveStreamOpen))
             {
@@ -57,10 +58,24 @@ namespace NuGetGallery
                             <projectUrl>" + (projectUrl?.ToString() ?? string.Empty) + @"</projectUrl>
                             <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                             <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
-                            <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
-                        </metadata>
-                    </package>");
+                            <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>");
+
+                if (repositoryMetadata != null)
+                {
+                    streamWriter.Write(WriteRepositoryMetadata(repositoryMetadata));
+                }
+
+                streamWriter.Write(@"</metadata>
+                                </package>");
             }
+        }
+
+        private static string WriteRepositoryMetadata(RepositoryMetadata repositoryMetadata)
+        {
+            return "<repository type=\"" + repositoryMetadata.Type + "\" " + 
+                                "url =\"" + repositoryMetadata.Url + "\" " + 
+                                "commit=\"" + repositoryMetadata.Commit + "\" " + 
+                                "branch=\"" + repositoryMetadata.Branch + "\"/>";
         }
 
         private static string WritePackageTypes(IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
@@ -142,6 +157,7 @@ namespace NuGetGallery
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null,
             Action<ZipArchive> populatePackage = null)
         {
             return CreateTestPackageStream(packageArchive =>
@@ -151,7 +167,7 @@ namespace NuGetGallery
                 {
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
-                        requireLicenseAcceptance, packageDependencyGroups, packageTypes);
+                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, repositoryMetadata);
                 }
 
                 if (populatePackage != null)

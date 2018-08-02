@@ -16,10 +16,15 @@ namespace NuGetGallery
             return tags.Replace(',', ' ').Replace(';', ' ').Replace('\t', ' ').Replace("  ", " ");
         }
 
-        public static bool ShouldRenderUrl(string url)
+        public static bool ShouldRenderUrl(string url, bool secureOnly = false)
         {
             if (!string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
             {
+                if (secureOnly)
+                {
+                    return uri.Scheme == Uri.UriSchemeHttps;
+                }
+
                 return uri.Scheme == Uri.UriSchemeHttps
                     || uri.Scheme == Uri.UriSchemeHttp;
             }

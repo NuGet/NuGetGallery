@@ -564,7 +564,7 @@
                         </a>
                     </li>
                 }
-                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl))
+                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl, secureOnly: true))
                 {
                     <li>
                         @switch (Model.RepositoryType)
