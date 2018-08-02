@@ -206,6 +206,7 @@
     };
 
     nuget.configureFileInputButton = function (id) {
+        // File input buttons should respond to keyboard events.
         $("#" + id).on("keypress", function (e) {
             var code = (e.keyCode || e.which);
             var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
