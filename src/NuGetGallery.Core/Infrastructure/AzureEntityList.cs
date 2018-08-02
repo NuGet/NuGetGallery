@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Web;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using Microsoft.WindowsAzure.Storage.Table;
 
 namespace NuGetGallery.Infrastructure
@@ -23,9 +24,13 @@ namespace NuGetGallery.Infrastructure
 
         private CloudTable _tableRef;
 
-        public AzureEntityList(string connStr, string tableName)
+        public AzureEntityList(string connStr, string tableName, bool readAccessGeoRedundant)
         {
             var tableClient = CloudStorageAccount.Parse(connStr).CreateCloudTableClient();
+            if (readAccessGeoRedundant)
+            {
+                tableClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
             _tableRef = tableClient.GetTableReference(tableName);
 
             // Create the actual Azure Table, if it doesn't yet exist.

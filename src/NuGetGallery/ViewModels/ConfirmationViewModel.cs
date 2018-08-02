@@ -4,6 +4,10 @@ namespace NuGetGallery
 {
     public class ConfirmationViewModel
     {
+        public bool IsOrganization { get; }
+
+        public string AccountName { get; }
+
         public bool SuccessfulConfirmation { get; set; }
 
         public bool SentEmail { get; set; }
@@ -19,9 +23,17 @@ namespace NuGetGallery
         public string ConfirmedEmailAddress { get; }
 
         public string UnconfirmedEmailAddress { get; }
-
+    
+        public ConfirmationViewModel(string username)
+        {
+            AccountName = username;
+            AlreadyConfirmed = true;
+        }
+        
         public ConfirmationViewModel(User user)
         {
+            IsOrganization = user is Organization;
+            AccountName = user.Username;
             AlreadyConfirmed = user.UnconfirmedEmailAddress == null;
             ConfirmingNewAccount = !user.Confirmed;
             ConfirmedEmailAddress = user.EmailAddress;

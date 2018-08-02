@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Net.Mail;
+using NuGetGallery.Services;
 
 namespace NuGetGallery.Configuration
 {
-    public interface IAppConfiguration
+    public interface IAppConfiguration : ICoreMessageServiceConfiguration
     {
         /// <summary>
         /// Gets the location in which the Lucene Index is stored
@@ -44,7 +44,12 @@ namespace NuGetGallery.Configuration
         /// The Azure Storage connection string used for auditing.
         /// </summary>
         string AzureStorage_Auditing_ConnectionString { get; set; }
-        
+
+        /// <summary>
+        /// The Azure Storage connection string used for user certificates.
+        /// </summary>
+        string AzureStorage_UserCertificates_ConnectionString { get; set; }
+
         /// <summary>
         /// The Azure Storage connection string used for static content.
         /// </summary>
@@ -54,11 +59,6 @@ namespace NuGetGallery.Configuration
         /// The Azure Storage connection string used for Elmah error logs.
         /// </summary>
         string AzureStorage_Errors_ConnectionString { get; set; }
-
-        /// <summary>
-        /// The Azure Storage connection string used for downloading nuget.exe.
-        /// </summary>
-        string AzureStorage_NuGetExe_ConnectionString { get; set; }
 
         /// <summary>
         /// The Azure Storage connection string used for packages, after upload.
@@ -84,6 +84,31 @@ namespace NuGetGallery.Configuration
         /// Gets a boolean indicating whether asynchronous package validation is enabled.
         /// </summary>
         bool AsynchronousPackageValidationEnabled { get; set; }
+
+        /// <summary>
+        /// Only makes sense if <see cref="AsynchronousPackageValidationEnabled"/> is set to true.
+        /// Indicates whether async package validation will be run in blocking mode.
+        /// Running in blocking mode means that the package will not be available for download
+        /// until it successfully passed all validations.
+        /// </summary>
+        bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+
+        /// <summary>
+        /// If <see cref="AsynchronousPackageValidationEnabled"/> is set to true,
+        /// this is the delay that downstream validations should wait before starting
+        /// to process a package.
+        /// </summary>
+        TimeSpan AsynchronousPackageValidationDelay { get; set; }
+
+        /// <summary>
+        /// The upper bound for package validations. A notice will be displayed if a package's validation exceeds this value.
+        /// </summary>
+        TimeSpan ValidationExpectedTime { get; set; }
+
+        /// <summary>
+        /// Gets a boolean indicating whether NuGet password logins are deprecated.
+        /// </summary>
+        bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service
@@ -124,16 +149,6 @@ namespace NuGetGallery.Configuration
         /// Gets the site brand name i.e. 'NuGet Gallery' by default. Cobranding feature.
         /// </summary>
         string Brand { get; set; }
-
-        /// <summary>
-        /// Gets the gallery owner name and email address
-        /// </summary>
-        MailAddress GalleryOwner { get; set; }
-
-        /// <summary>
-        /// Gets the gallery e-mail from name and email address
-        /// </summary>
-        MailAddress GalleryNoReplyAddress { get; set; }
 
         /// <summary>
         /// Gets the storage mechanism used by this instance of the gallery
@@ -186,6 +201,16 @@ namespace NuGetGallery.Configuration
         string SiteRoot { get; set; }
 
         /// <summary>
+        /// Private key for verifying recaptcha user response.
+        /// </summary>
+        string ReCaptchaPrivateKey { get; set; }
+
+        /// <summary>
+        /// Public key for verifying recaptcha user response.
+        /// </summary>
+        string ReCaptchaPublicKey { get; set; }
+
+        /// <summary>
         /// Gets the Google Analytics Property ID being used, if any.
         /// </summary>
         string GoogleAnalyticsPropertyId { get; set; }
@@ -228,26 +253,44 @@ namespace NuGetGallery.Configuration
         int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty account name.
+        /// Defines a semi-colon separated list of domains for the alternate site root for gallery, used for MSA authentication by AADv2
         /// </summary>
-        string PagerDutyAccountName { get; set; }
+        string AlternateSiteRootList { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty API key.
+        /// Configuration to enable manual setting of the machine key for session persistence across deployments/slots.
         /// </summary>
-        // ReSharper disable once InconsistentNaming
-        string PagerDutyAPIKey { get; set; }
+        bool EnableMachineKeyConfiguration { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty Service key.
+        /// Defines the encryption aglorithm that is used for encrypting and decrypting forms authentication data.
         /// </summary>
-        // ReSharper disable once InconsistentNaming
-        string PagerDutyServiceKey { get; set; }
+        string MachineKeyDecryption { get; set; }
+
+        /// <summary>
+        /// Defines the key that is sued to encrypt and decrypt data, or the process by which the key is generated.
+        /// </summary>
+        string MachineKeyDecryptionKey { get; set; }
+
+        /// <summary>
+        /// Defines the hashing algorithm used for validating forms authentication and view state data.
+        /// </summary>
+        string MachineKeyValidationAlgorithm { get; set; }
+
+        /// <summary>
+        /// Defines the key that is used to validate forms authentication and view state data, or the process by which the key is generated.
+        /// </summary>
+        string MachineKeyValidationKey { get; set; }
 
         /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to the status page
+        /// </summary>
+        string ExternalStatusUrl { get; set; }
 
         /// <summary>
         /// Gets/sets a string that is a link to an external about page
@@ -270,7 +313,8 @@ namespace NuGetGallery.Configuration
         string ExternalBrandingUrl { get; set; }
 
         /// <summary>
-        /// Gets/sets a string that is brand string to display in the footer
+        /// Gets/sets a string that is brand string to display in the footer, this also
+        /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
         string ExternalBrandingMessage { get; set; }
 
@@ -283,5 +327,17 @@ namespace NuGetGallery.Configuration
         /// Gets/Sets a flag indicating if default security policies should be enforced.
         /// </summary>
         bool EnforceDefaultSecurityPolicies { get; set; }
+
+        /// <summary>
+        /// Whether or not the gallery is running as a hosted web service. This should always be true unless the
+        /// gallery code is being used inside a console application.
+        /// </summary>
+        bool IsHosted { get; set; }
+
+        /// <summary>
+        /// Whether or not to synchronously reject signed packages on push/upload when no certificate is uploaded
+        /// by the owner.
+        /// </summary>
+        bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
     }
 }

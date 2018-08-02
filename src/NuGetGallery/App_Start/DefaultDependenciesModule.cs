@@ -3,12 +3,14 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Hosting;
 using System.Web.Mvc;
@@ -17,20 +19,23 @@ using Autofac;
 using Autofac.Core;
 using Elmah;
 using Microsoft.WindowsAzure.ServiceRuntime;
+using NuGet.Services.KeyVault;
 using NuGet.Services.ServiceBus;
+using NuGet.Services.Sql;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Auditing;
+using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
-using NuGetGallery.Configuration.SecretReader;
 using NuGetGallery.Cookies;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
+using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
 {
@@ -51,13 +56,19 @@ namespace NuGetGallery
                 .As<IDiagnosticsService>()
                 .SingleInstance();
 
-            var configuration = new ConfigurationService(new SecretReaderFactory(diagnosticsService));
+            var configuration = new ConfigurationService();
+            var secretReaderFactory = new SecretReaderFactory(configuration, diagnosticsService);
+            var secretReader = secretReaderFactory.CreateSecretReader();
+            var secretInjector = secretReaderFactory.CreateSecretInjector(secretReader);
+
+            builder.RegisterInstance(secretInjector)
+                .AsSelf()
+                .As<ISecretInjector>()
+                .SingleInstance();
+
+            configuration.SecretInjector = secretInjector;
 
             UrlExtensions.SetConfigurationService(configuration);
-
-            builder.RegisterInstance(configuration)
-                .AsSelf()
-                .As<PoliteCaptcha.IConfigurationSource>();
 
             builder.RegisterInstance(configuration)
                 .AsSelf()
@@ -71,6 +82,9 @@ namespace NuGetGallery
             builder.Register(c => configuration.Features)
                .AsSelf()
                .As<FeatureConfiguration>();
+
+            builder.Register(c => configuration.PackageDelete)
+                .As<IPackageDeleteConfiguration>();
 
             builder.RegisterType<TelemetryService>().As<ITelemetryService>().SingleInstance();
             builder.RegisterType<CredentialBuilder>().As<ICredentialBuilder>().SingleInstance();
@@ -89,7 +103,18 @@ namespace NuGetGallery
                 .As<ICacheService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new EntitiesContext(configuration.Current.SqlConnectionString, readOnly: configuration.Current.ReadOnlyMode))
+            var galleryDbConnectionFactory = CreateDbConnectionFactory(
+                diagnosticsService,
+                nameof(EntitiesContext),
+                configuration.Current.SqlConnectionString,
+                secretInjector);
+
+            builder.RegisterInstance(galleryDbConnectionFactory)
+                .AsSelf()
+                .As<ISqlConnectionFactory>()
+                .SingleInstance();
+
+            builder.Register(c => new EntitiesContext(CreateDbConnection(galleryDbConnectionFactory), configuration.Current.ReadOnlyMode))
                 .AsSelf()
                 .As<IEntitiesContext>()
                 .As<DbContext>()
@@ -135,6 +160,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageDelete>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Certificate>>()
+                .AsSelf()
+                .As<IEntityRepository<Certificate>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<AccountDelete>>()
                .AsSelf()
                .As<IEntityRepository<AccountDelete>>()
@@ -145,9 +175,19 @@ namespace NuGetGallery
                 .As<IEntityRepository<Credential>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<Scope>>()
+                .AsSelf()
+                .As<IEntityRepository<Scope>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<EntityRepository<PackageOwnerRequest>>()
                 .AsSelf()
                 .As<IEntityRepository<PackageOwnerRequest>>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<EntityRepository<Organization>>()
+                .AsSelf()
+                .As<IEntityRepository<Organization>>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<CuratedFeedService>()
@@ -155,7 +195,13 @@ namespace NuGetGallery
                 .As<ICuratedFeedService>()
                 .InstancePerLifetimeScope();
 
-            builder.Register(c => new SupportRequestDbContext(configuration.Current.SqlConnectionStringSupportRequest))
+            var supportDbConnectionFactory = CreateDbConnectionFactory(
+                diagnosticsService,
+                nameof(SupportRequestDbContext),
+                configuration.Current.SqlConnectionStringSupportRequest,
+                secretInjector);
+
+            builder.Register(c => new SupportRequestDbContext(CreateDbConnection(supportDbConnectionFactory)))
                 .AsSelf()
                 .As<ISupportRequestDbContext>()
                 .InstancePerLifetimeScope();
@@ -168,11 +214,6 @@ namespace NuGetGallery
             builder.RegisterType<UserService>()
                 .AsSelf()
                 .As<IUserService>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<PackageNamingConflictValidator>()
-                .AsSelf()
-                .As<IPackageNamingConflictValidator>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageService>()
@@ -188,10 +229,6 @@ namespace NuGetGallery
             builder.RegisterType<DeleteAccountService>()
                 .AsSelf()
                 .As<IDeleteAccountService>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<EditPackageService>()
-                .AsSelf()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageOwnerRequestService>()
@@ -242,14 +279,27 @@ namespace NuGetGallery
                 .As<IReadMeService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<SecurePushSubscription>()
+            builder.RegisterType<ApiScopeEvaluator>()
+                .AsSelf()
+                .As<IApiScopeEvaluator>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<ContentObjectService>()
+                .AsSelf()
+                .As<IContentObjectService>()
                 .SingleInstance();
 
-            builder.RegisterType<RequireSecurePushForCoOwnersPolicy>()
+            builder.RegisterType<CertificateValidator>()
+                .AsSelf()
+                .As<ICertificateValidator>()
                 .SingleInstance();
 
-            var mailSenderThunk = new Lazy<IMailSender>(
-                () =>
+            builder.RegisterType<CertificateService>()
+                .AsSelf()
+                .As<ICertificateService>()
+                .InstancePerLifetimeScope();
+
+            Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;
                     if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
@@ -284,9 +334,9 @@ namespace NuGetGallery
 
                         return new MailSender(mailSenderConfiguration);
                     }
-                });
+                };
 
-            builder.Register(c => mailSenderThunk.Value)
+            builder.Register(c => mailSenderFactory())
                 .AsSelf()
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();
@@ -316,7 +366,7 @@ namespace NuGetGallery
                     break;
             }
 
-            RegisterAsynchronousValidation(builder, configuration);
+            RegisterAsynchronousValidation(builder, diagnosticsService, configuration, secretInjector);
 
             RegisterAuditingServices(builder, defaultAuditingService);
 
@@ -355,9 +405,28 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
-        private static void ConfigureValidationAdmin(ContainerBuilder builder, ConfigurationService configuration)
+        private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
+            string connectionString, ISecretInjector secretInjector)
         {
-            builder.Register(c => new ValidationEntitiesContext(configuration.Current.SqlConnectionStringValidation))
+            var logger = diagnostics.SafeGetSource($"AzureSqlConnectionFactory-{name}");
+            return new AzureSqlConnectionFactory(connectionString, secretInjector, logger);
+        }
+
+        private static DbConnection CreateDbConnection(ISqlConnectionFactory connectionFactory)
+        {
+            return Task.Run(() => connectionFactory.CreateAsync()).Result;
+        }
+
+        private static void ConfigureValidationEntitiesContext(ContainerBuilder builder, IDiagnosticsService diagnostics,
+            ConfigurationService configuration, ISecretInjector secretInjector)
+        {
+            var validationDbConnectionFactory = CreateDbConnectionFactory(
+                diagnostics,
+                nameof(ValidationEntitiesContext),
+                configuration.Current.SqlConnectionStringValidation,
+                secretInjector);
+
+            builder.Register(c => new ValidationEntitiesContext(CreateDbConnection(validationDbConnectionFactory)))
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
@@ -369,15 +438,14 @@ namespace NuGetGallery
                 .As<IEntityRepository<PackageValidation>>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<ValidationAdminService>()
-                .AsSelf()
+            builder.RegisterType<ValidationEntityRepository<PackageRevalidation>>()
+                .As<IEntityRepository<PackageRevalidation>>()
                 .InstancePerLifetimeScope();
         }
 
-        private void RegisterAsynchronousValidation(ContainerBuilder builder, ConfigurationService configuration)
+        private void RegisterAsynchronousValidation(ContainerBuilder builder, IDiagnosticsService diagnostics,
+            ConfigurationService configuration, ISecretInjector secretInjector)
         {
-            ConfigureValidationAdmin(builder, configuration);
-
             builder
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();
@@ -388,6 +456,8 @@ namespace NuGetGallery
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
             {
+                ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
+
                 builder
                     .RegisterType<AsynchronousPackageValidationInitiator>()
                     .As<IPackageValidationInitiator>();
@@ -411,6 +481,18 @@ namespace NuGetGallery
                     .RegisterType<ImmediatePackageValidator>()
                     .As<IPackageValidationInitiator>();
             }
+
+            builder.RegisterType<ValidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationAdminService>()
+                .AsSelf()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<RevalidationStateService>()
+                .As<IRevalidationStateService>()
+                .InstancePerLifetimeScope();
         }
 
         private static void ConfigureSearch(ContainerBuilder builder, IGalleryConfigurationService configuration)
@@ -475,6 +557,7 @@ namespace NuGetGallery
             builder.RegisterType<FileSystemFileStorageService>()
                 .AsSelf()
                 .As<IFileStorageService>()
+                .As<ICoreFileStorageService>()
                 .SingleInstance();
 
             foreach (var dependent in StorageDependent.GetAll(configuration.Current))
@@ -548,6 +631,7 @@ namespace NuGetGallery
                            (pi, ctx) => ctx.ResolveKeyed<ICloudBlobClient>(dependent.BindingKey)))
                         .AsSelf()
                         .As<IFileStorageService>()
+                        .As<ICoreFileStorageService>()
                         .As<ICloudStorageStatusDependency>()
                         .SingleInstance()
                         .Keyed<IFileStorageService>(dependent.BindingKey);
@@ -600,7 +684,7 @@ namespace NuGetGallery
                 .As<IStatisticsService>()
                 .SingleInstance();
 
-            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString))
+            builder.RegisterInstance(new TableErrorLog(configuration.Current.AzureStorage_Errors_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant))
                 .As<ErrorLog>()
                 .SingleInstance();
         }
@@ -619,7 +703,7 @@ namespace NuGetGallery
 
             var localIp = AuditActor.GetLocalIpAddressAsync().Result;
 
-            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, AuditActor.GetAspNetOnBehalfOfAsync);
+            var service = new CloudAuditingService(instanceId, localIp, configuration.Current.AzureStorage_Auditing_ConnectionString, configuration.Current.AzureStorageReadAccessGeoRedundant, AuditActor.GetAspNetOnBehalfOfAsync);
 
             builder.RegisterInstance(service)
                 .As<ICloudStorageStatusDependency>()
@@ -685,9 +769,12 @@ namespace NuGetGallery
                 .As<ICookieComplianceService>()
                 .SingleInstance();
 
-            // Initialize the service on App_Start to avoid any performance degradation during initial requests.
-            var siteName = configuration.GetSiteRoot(true);
-            HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            if (configuration.Current.IsHosted)
+            {
+                // Initialize the service on App_Start to avoid any performance degradation during initial requests.
+                var siteName = configuration.GetSiteRoot(true);
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await service.InitializeAsync(siteName, diagnostics, cancellationToken));
+            }
         }
     }
 }

@@ -69,6 +69,12 @@ namespace NuGetGallery.Helpers
             [InlineData("My site is http://www.nuget.org/?foo[]=a", "My site is <a href=\"http://www.nuget.org/?foo\" rel=\"nofollow\">http://www.nuget.org/?foo</a>[]=a")]
             [InlineData("http://a.com http://b.com", "<a href=\"http://a.com\" rel=\"nofollow\">http://a.com</a> <a href=\"http://b.com\" rel=\"nofollow\">http://b.com</a>")]
             [InlineData("http://www.nuget.org/ is my site.", "<a href=\"http://www.nuget.org/\" rel=\"nofollow\">http://www.nuget.org/</a> is my site.")]
+            [InlineData("\"http://www.nuget.org/\" is my site.", "&quot;<a href=\"http://www.nuget.org/\" rel=\"nofollow\">http://www.nuget.org/</a>&quot; is my site.")]
+            [InlineData("\'http://www.nuget.org/\' is my site.", "&#39;<a href=\"http://www.nuget.org/\" rel=\"nofollow\">http://www.nuget.org/</a>&#39; is my site.")]
+            [InlineData("http://www.nuget.org, is my site.", "<a href=\"http://www.nuget.org\" rel=\"nofollow\">http://www.nuget.org</a>, is my site.")]
+            [InlineData("(http://www.nuget.org) is my site.", "(<a href=\"http://www.nuget.org\" rel=\"nofollow\">http://www.nuget.org</a>) is my site.")]
+            [InlineData("http://www.nuget.org; is my site.", "<a href=\"http://www.nuget.org\" rel=\"nofollow\">http://www.nuget.org</a>; is my site.")]
+            [InlineData("http://www.nuget.org- is my site.", "<a href=\"http://www.nuget.org\" rel=\"nofollow\">http://www.nuget.org</a>- is my site.")]
             public void ConvertsUrlsToLinks(string input, string expected)
             {
                 // Arrange

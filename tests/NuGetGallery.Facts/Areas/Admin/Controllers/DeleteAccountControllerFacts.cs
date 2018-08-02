@@ -5,14 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
+using NuGetGallery.Framework;
 using Moq;
 using Xunit;
-
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {
     public class DeleteAccountControllerFacts
     {
+        private Fakes _fakes = new Fakes();
+
         [Fact]
         public void CtorThrowsOnNullArg()
         {
@@ -20,84 +22,86 @@ namespace NuGetGallery.Areas.Admin.Controllers
             Assert.Throws<ArgumentNullException>(() => new DeleteAccountController(null));
         }
 
-        [Theory]
-        [InlineData("")]
-        [InlineData(null)]
-        public void SearchNullOrEmptyQueryAccounts(string query)
+        public class TheSearchMethod
         {
-            // Arrange
-            var userService = new Mock<IUserService>();
-            var controller = new DeleteAccountController(userService.Object);
+            private Fakes _fakes = new Fakes();
 
-            // Act
-            var searchResult = controller.Search(query);
-
-            // Assert
-            var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
-        }
-
-        [Fact]
-        public void SearchNotExistentUser()
-        {
-            // Arrange
-            User currentUser = null;
-            var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(It.IsAny<string>())).Returns(currentUser);
-            var controller = new DeleteAccountController(userService.Object);
-
-            // Act
-            var searchResult = controller.Search("SomeAccount");
-
-            // Assert
-            var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
-        }
-
-        [Fact]
-        public void SearchDeletedAccont()
-        {
-            // Arrange
-            var userName = "TestUser";
-            var currentUser = new User()
+            [Theory]
+            [InlineData("")]
+            [InlineData(null)]
+            public void WhenQueryMissing_ReturnsEmpty(string query)
             {
-                Username = userName,
-                IsDeleted = true
-            };
+                // Arrange & Act
+                var searchResult = SearchAccount(query, findByUsernameTimes: 0);
 
-            var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(userName)).Returns(currentUser);
-            var controller = new DeleteAccountController(userService.Object);
+                // Assert
+                Assert.Empty(searchResult);
+            }
 
-            // Act
-            var searchResult = controller.Search(userName);
-
-            // Assert
-            var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(0, data.Count);
-        }
-
-        [Fact]
-        public void SearchHappyAccont()
-        {
-            // Arrange
-            var userName = "TestUser";
-            var currentUser = new User()
+            [Fact]
+            public void WhenUser_ReturnsMatch()
             {
-                Username = userName,
-                IsDeleted = false
-            };
+                // Arrange & Act
+                var searchResult = SearchAccount(_fakes.User.Username, _fakes.User);
 
-            var userService = new Mock<IUserService>();
-            userService.Setup(m => m.FindByUsername(userName)).Returns(currentUser);
-            var controller = new DeleteAccountController(userService.Object);
+                // Assert
+                Assert.Single(searchResult);
+            }
 
-            // Act
-            var searchResult = controller.Search(userName);
+            [Fact]
+            public void WhenOrganization_ReturnsMatch()
+            {
+                // Arrange & Act
+                var searchResult = SearchAccount(_fakes.Organization.Username, _fakes.Organization);
 
-            // Assert
-            var data = (List<DeleteAccountSearchResult>)((JsonResult)searchResult).Data;
-            Assert.Equal<int>(1, data.Count);
+                // Assert
+                Assert.Single(searchResult);
+            }
+
+            [Fact]
+            public void WhenNotFound_ReturnsEmpty()
+            {
+                // Arrange & Act
+                _fakes.ShaUser.IsDeleted = true;
+
+                var searchResult = SearchAccount("UserNotFound");
+
+                // Assert
+                Assert.Empty(searchResult);
+            }
+
+            [Fact]
+            public void WhenDeletedUser_ReturnsEmpty()
+            {
+                // Arrange & Act
+                _fakes.ShaUser.IsDeleted = true;
+
+                var searchResult = SearchAccount(_fakes.ShaUser.Username);
+
+                // Assert
+                Assert.Empty(searchResult);
+            }
+
+            private List<DeleteAccountSearchResult> SearchAccount(string userName, User findByUsernameResult = null, int findByUsernameTimes = 1)
+            {
+                // Arrange
+                var userService = new Mock<IUserService>();
+
+                userService.Setup(m => m.FindByUsername(It.IsAny<string>(), It.IsAny<bool>()))
+                    .Returns(findByUsernameResult)
+                    .Verifiable();
+
+                var controller = new DeleteAccountController(userService.Object);
+
+                // Act
+                var result = controller.Search(userName) as JsonResult;
+
+                // Assert
+                userService.Verify(m => m.FindByUsername(userName, false), Times.Exactly(findByUsernameTimes));
+
+                Assert.NotNull(result);
+                return result.Data as List<DeleteAccountSearchResult>;
+            }
         }
     }
 }

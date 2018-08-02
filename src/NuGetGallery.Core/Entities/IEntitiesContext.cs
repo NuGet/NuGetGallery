@@ -8,6 +8,7 @@ namespace NuGetGallery
 {
     public interface IEntitiesContext
     {
+        IDbSet<Certificate> Certificates { get; set; }
         IDbSet<CuratedFeed> CuratedFeeds { get; set; }
         IDbSet<CuratedPackage> CuratedPackages { get; set; }
         IDbSet<PackageRegistration> PackageRegistrations { get; set; }
@@ -16,12 +17,13 @@ namespace NuGetGallery
         IDbSet<User> Users { get; set; }
         IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
+        IDbSet<UserCertificate> UserCertificates { get; set; }
 
         Task<int> SaveChangesAsync();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Set", Justification="This is to match the EF terminology.")]
         IDbSet<T> Set<T>() where T : class;
         void DeleteOnCommit<T>(T entity) where T : class;
         void SetCommandTimeout(int? seconds);
-        Database GetDatabase();
+        IDatabase GetDatabase();
     }
 }

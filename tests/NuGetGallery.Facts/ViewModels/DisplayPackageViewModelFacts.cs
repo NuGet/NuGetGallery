@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NuGet.Versioning;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery.ViewModels
@@ -34,7 +36,7 @@ namespace NuGetGallery.ViewModels
                     new Package { Version = "1.0.10", PackageRegistration = package.PackageRegistration }
                 };
 
-            var packageVersions = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
+            var packageVersions = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)))
                 .PackageVersions.ToList();
 
             // Descending
@@ -82,7 +84,7 @@ namespace NuGetGallery.ViewModels
             var packageHistory = packageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version));
 
             // Act
-            var viewModel = new DisplayPackageViewModel(package, packageHistory);
+            var viewModel = new DisplayPackageViewModel(package, null, packageHistory);
 
             // Assert
             Assert.Equal(daysSinceFirstPackageCreated, viewModel.TotalDaysSinceCreated);
@@ -111,7 +113,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -143,7 +145,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package };
 
-            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
 
             // Act
             var label = viewModel.DownloadsPerDayLabel;
@@ -191,7 +193,7 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
@@ -200,6 +202,53 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(expectedNewerPrereleaseAvailable, hasNewerPrerelease);
         }
         
+        [Theory]
+        [InlineData("1.0.0", "1.0.1", true)]
+        [InlineData("1.0.1-alpha+metadata", "1.0.1", true)]
+        [InlineData("1.0.1-alpha.1", "1.0.1", true)]
+        [InlineData("1.0.1", "1.0.0", false)]
+        [InlineData("1.0.1-alpha", "1.0.0", false)]
+        [InlineData("1.0.1-alpha+metadata", "1.0.0", false)]
+        [InlineData("1.0.1-alpha.1", "1.0.0", false)]
+        public void HasNewerReleaseReturnsTrueWhenNewerReleaseAvailable(
+            string currentVersion,
+            string otherVersion,
+            bool expectedNewerReleaseAvailable)
+        {
+            // Arrange
+            var dependencies = Enumerable.Empty<PackageDependency>().ToList();
+            var packageRegistration = new PackageRegistration
+            {
+                Owners = Enumerable.Empty<User>().ToList(),
+            };
+
+            var package = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = NuGetVersion.Parse(currentVersion).IsPrerelease,
+                Version = currentVersion
+            };
+
+            var otherPackage = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = NuGetVersion.Parse(otherVersion).IsPrerelease,
+                Version = otherVersion
+            };
+
+            package.PackageRegistration.Packages = new[] { package, otherPackage };
+
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+            // Act
+            var hasNewerRelease = viewModel.HasNewerRelease;
+
+            // Assert
+            Assert.Equal(expectedNewerReleaseAvailable, hasNewerRelease);
+        }
+
         [Fact]
         public void HasNewerPrereleaseDoesNotConsiderUnlistedVersions()
         {
@@ -230,13 +279,247 @@ namespace NuGetGallery.ViewModels
 
             package.PackageRegistration.Packages = new[] { package, otherPackage };
 
-            var viewModel = new DisplayPackageViewModel(package, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
 
             // Act
             var hasNewerPrerelease = viewModel.HasNewerPrerelease;
 
             // Assert
             Assert.False(hasNewerPrerelease);
+        }
+
+
+        [Fact]
+        public void HasNewerReleaseDoesNotConsiderUnlistedVersions()
+        {
+            // Arrange
+            var dependencies = Enumerable.Empty<PackageDependency>().ToList();
+            var packageRegistration = new PackageRegistration
+            {
+                Owners = Enumerable.Empty<User>().ToList(),
+            };
+
+            var package = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = false,
+                Version = "1.0.0"
+            };
+
+            // This is a newer prerelease version, however unlisted.
+            var otherPackage = new Package
+            {
+                Dependencies = dependencies,
+                PackageRegistration = packageRegistration,
+                IsPrerelease = false,
+                Version = "1.0.1",
+                Listed = false
+            };
+
+            package.PackageRegistration.Packages = new[] { package, otherPackage };
+
+            var viewModel = new DisplayPackageViewModel(package, null, package.PackageRegistration.Packages.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+            // Act
+            var hasNewerRelease = viewModel.HasNewerRelease;
+
+            // Assert
+            Assert.False(hasNewerRelease);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void HasSemVer2DependencyIsFalseWhenInvalidDependencyVersionRange(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, null, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2DependencyWhenSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, null, history);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2DependencyIsFalseWhenNonSemVer2DependencyVersionSpec(string versionSpec)
+        {
+            // Arrange
+            var package = CreateTestPackage("1.0.0", dependencyVersion: versionSpec);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, null, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Dependency);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha")]
+        [InlineData("2.0.0")]
+        [InlineData("2.0.0.0")]
+        public void HasSemVer2VersionIsFalseWhenNonSemVer2Version(string version)
+        {
+            // Arrange
+            var package = CreateTestPackage(version);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, null, history);
+
+            // Assert
+            Assert.False(viewModel.HasSemVer2Version);
+        }
+
+        [Theory]
+        [InlineData("2.0.0-alpha.1")]
+        [InlineData("2.0.0+metadata")]
+        [InlineData("2.0.0-alpha+metadata")]
+        public void HasSemVer2VersionIsTrueWhenSemVer2Version(string version)
+        {
+            // Arrange
+            var package = CreateTestPackage(version);
+            var history = package.PackageRegistration.Packages.OrderByDescending(p => p.Version);
+
+            // Act
+            var viewModel = new DisplayPackageViewModel(package, null, history);
+
+            // Assert
+            Assert.True(viewModel.HasSemVer2Version);
+        }
+
+        private Package CreateTestPackage(string version, string dependencyVersion = null)
+        {
+            var package = new Package
+            {
+                Version = version,
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+            if (!string.IsNullOrEmpty(dependencyVersion))
+            {
+                package.Dependencies = new List<PackageDependency>
+                {
+                    new PackageDependency { VersionSpec = dependencyVersion }
+                };
+            }
+            package.PackageRegistration.Packages = new[] { package };
+            return package;
+        }
+
+        public class ThePushedByField
+        {
+            public enum UserPackageOwnerState
+            {
+                HasNoUserPackageOwner,
+                HasUserPackageOwner,
+                CurrentUserIsUserPackageOwner
+            }
+
+            public enum OrganizationPackageOwnerState
+            {
+                HasNoOrganizationPackageOwner,
+                HasOrganizationPackageOwner,
+                CurrentUserIsMemberOfOrganizationPackageOwner
+            }
+
+            public static IEnumerable<object[]> Data
+            {
+                get
+                {
+                    foreach (var userPackageOwnerState in Enum.GetValues(typeof(UserPackageOwnerState)).Cast<UserPackageOwnerState>())
+                    {
+                        foreach (var organizationPackageOwnerState in Enum.GetValues(typeof(OrganizationPackageOwnerState)).Cast<OrganizationPackageOwnerState>())
+                        {
+                            var key = 0;
+                            var currentUser = new User("currentUser") { Key = key++ };
+                            var owners = new List<User>();
+
+                            User packageOwner = null;
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                packageOwner = userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ? currentUser : new User("packageOwner") { Key = key++ };
+                                owners.Add(packageOwner);
+                            }
+
+                            Organization organizationOwner = new Organization("organizationOwner") { Key = key++ };
+                            User organizationMember = null;
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.HasNoOrganizationPackageOwner)
+                            {
+                                organizationMember = organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ? currentUser : new User("organizationMember") { Key = key++ };
+                                owners.Add(organizationMember);
+                            }
+
+                            var canViewPrivateMetadata =
+                                userPackageOwnerState == UserPackageOwnerState.CurrentUserIsUserPackageOwner ||
+                                organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner;
+
+                            var packageRegistration = new PackageRegistration { Owners = owners };
+
+                            var packageWithoutUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0" };
+                            yield return MemberDataHelper.AsData(packageWithoutUser, currentUser, null);
+
+                            var userThatIsNotOwner = new User("notAnOwner") { Key = key++ };
+                            var packageWithUserThatIsNotOwner = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = userThatIsNotOwner };
+                            yield return MemberDataHelper.AsData(packageWithUserThatIsNotOwner, currentUser, canViewPrivateMetadata ? userThatIsNotOwner.Username : null);
+
+                            if (userPackageOwnerState != UserPackageOwnerState.HasNoUserPackageOwner)
+                            {
+                                var packageWithUserUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = packageOwner };
+                                yield return MemberDataHelper.AsData(packageWithUserUser, currentUser, canViewPrivateMetadata ? packageWithUserUser.User.Username : null);
+                            }
+
+                            if (organizationPackageOwnerState != OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner)
+                            {
+                                var packageWithOrganizationUser = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", User = organizationOwner };
+
+                                string expected = canViewPrivateMetadata ?
+                                    (organizationPackageOwnerState == OrganizationPackageOwnerState.CurrentUserIsMemberOfOrganizationPackageOwner ?
+                                        organizationMember.Username :
+                                        organizationOwner.Username) :
+                                    null;
+
+                                yield return MemberDataHelper.AsData(packageWithOrganizationUser, currentUser, expected);
+                            }
+                        }
+                    }
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Data))]
+            public void ReturnsExpectedUser(Package package, User currentUser, string expected)
+            {
+                var model = new DisplayPackageViewModel(package, currentUser, new[] { package }.OrderByDescending(p => new NuGetVersion(p.Version)));
+
+                Assert.Equal(expected, model.PushedBy);
+            }
         }
     }
 }

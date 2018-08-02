@@ -227,8 +227,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -279,8 +277,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -406,7 +402,7 @@ namespace NuGetGallery
                            typeof(V1FeedPackage)),
                            v1Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -420,7 +416,7 @@ namespace NuGetGallery
                            typeof(V1FeedPackage)),
                            service.Request));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 private TestableV1Feed GetService(string host, string arguments = "?$skip=10")
@@ -430,8 +426,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns(host);
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = true });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v1Service = new TestableV1Feed(repo.Object, configuration.Object, searchService.Object);
                     v1Service.Request = new HttpRequestMessage(HttpMethod.Get, $"{host}{arguments}");
@@ -468,8 +462,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -509,9 +501,6 @@ namespace NuGetGallery
 
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
                     searchService.CallBase = true;
-                    searchService.Setup(s => s.RawSearch(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)))
-                            .Verifiable("Hijack was not performed");
 
                     string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10&$orderby=DownloadCount desc";
 
@@ -550,9 +539,6 @@ namespace NuGetGallery
                     bool called = false;
                     var searchService = new Mock<ExternalSearchService>(MockBehavior.Loose);
                     searchService.CallBase = true;
-                    searchService.Setup(s => s.RawSearch(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)))
-                            .Callback(() => called = true);
 
                     string rawUrl = "https://localhost:8081/api/v2/Packages?$filter=" + filter + "&$top=10";
 
@@ -590,8 +576,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -630,8 +614,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -665,8 +647,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -696,8 +676,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -711,7 +689,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.False(result.Any(p => p.Id == "Baz"));
+                    Assert.DoesNotContain(result, p => p.Id == "Baz");
                 }
             }
 
@@ -753,8 +731,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.GetSiteRoot(It.IsAny<bool>())).Returns("https://localhost:8081/");
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
                     v2Service.Request = new HttpRequestMessage(HttpMethod.Get, "https://localhost:8081/");
@@ -788,8 +764,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Features).Returns(new FeatureConfiguration() { FriendlyLicenses = true });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -897,8 +871,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -943,8 +915,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = false });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);
@@ -1346,7 +1316,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.Equal(1, result.Length);
+                    Assert.Single(result);
                     Assert.Equal("Foo", result[0].Id);
                     Assert.Equal("1.2.0", result[0].Version);
                 }
@@ -1473,7 +1443,7 @@ namespace NuGetGallery
                         .ToArray();
 
                     // Assert
-                    Assert.Equal(0, result.Length);
+                    Assert.Empty(result);
                 }
 
                 [Fact]
@@ -1685,7 +1655,7 @@ namespace NuGetGallery
                            v2Service.Request),
                        "Pid", "Version", false, false));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -1699,7 +1669,7 @@ namespace NuGetGallery
                            typeof(V2FeedPackage)),
                            v2Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 [Fact]
@@ -1713,7 +1683,7 @@ namespace NuGetGallery
                            typeof(V2FeedPackage)),
                            v2Service.Request)));
                     var badRequest = result as BadRequestErrorMessageResult;
-                    Assert.NotEqual(null, badRequest);
+                    Assert.NotNull(badRequest);
                 }
 
                 private TestableV2Feed GetService(string host, string arguments = "?$skip=10")
@@ -1725,8 +1695,6 @@ namespace NuGetGallery
                     configuration.Setup(c => c.Current).Returns(new AppConfiguration() { IsODataFilterEnabled = true });
 
                     var searchService = new Mock<ISearchService>(MockBehavior.Strict);
-                    searchService.Setup(s => s.Search(It.IsAny<SearchFilter>())).Returns
-                        <IQueryable<Package>, string>((_, __) => Task.FromResult(new SearchResults(_.Count(), DateTime.UtcNow, _)));
                     searchService.Setup(s => s.ContainsAllVersions).Returns(false);
 
                     var v2Service = new TestableV2Feed(repo.Object, configuration.Object, searchService.Object);

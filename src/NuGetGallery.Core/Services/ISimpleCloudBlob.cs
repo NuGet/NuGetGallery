@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -12,6 +13,8 @@ namespace NuGetGallery
     public interface ISimpleCloudBlob
     {
         BlobProperties Properties { get; }
+        IDictionary<string, string> Metadata { get; }
+        CopyState CopyState { get; }
         Uri Uri { get; }
         string Name { get; }
         DateTime LastModifiedUtc { get; }
@@ -23,21 +26,26 @@ namespace NuGetGallery
 
         Task<bool> ExistsAsync();
         Task SetPropertiesAsync();
-        Task UploadFromStreamAsync(Stream packageFile, bool overwrite);
+        Task SetMetadataAsync(AccessCondition accessCondition);
+        Task UploadFromStreamAsync(Stream source, bool overwrite);
+        Task UploadFromStreamAsync(Stream source, AccessCondition accessCondition);
 
         Task FetchAttributesAsync();
 
+        Task StartCopyAsync(ISimpleCloudBlob source, AccessCondition sourceAccessCondition, AccessCondition destAccessCondition);
+
         /// <summary>
-        /// Generates the shared read signature that if appended to the blob URI
-        /// would allow reading the contents of the blob using the produced URI 
-        /// only (without storage account credentials).
+        /// Generates the shared access signature that if appended to the blob URI
+        /// would allow actions matching the provided <paramref name="permissions"/> without having access to the
+        /// access keys of the storage account.
         /// </summary>
+        /// <param name="permissions">The permissions to include in the SAS token.</param>
         /// <param name="endOfAccess">
         /// "End of access" timestamp. After the specified timestamp, 
         /// the returned signature becomes invalid if implementation supports it.
         /// Null for no time limit.
         /// </param>
         /// <returns>Shared access signature in form of URI query portion.</returns>
-        string GetSharedReadSignature(DateTimeOffset? endOfAccess);
+        string GetSharedAccessSignature(SharedAccessBlobPermissions permissions, DateTimeOffset? endOfAccess);
     }
 }

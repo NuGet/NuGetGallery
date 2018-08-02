@@ -8,29 +8,31 @@ using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
-    /// <summary>
-    /// Non-exceptional results of calling <see cref="IPackageUploadService.CommitPackageAsync(Package, Stream)"/>.
-    /// </summary>
-    public enum PackageCommitResult
-    {
-        /// <summary>
-        /// The package was successfully committed to the package file storage and to the database.
-        /// </summary>
-        Success,
-
-        /// <summary>
-        /// The package file conflicts with an existing package file. The package was not committed to the database.
-        /// </summary>
-        Conflict,
-    }
-
     public interface IPackageUploadService
     {
         Task<Package> GeneratePackageAsync(
             string id,
             PackageArchiveReader nugetPackage,
             PackageStreamMetadata packageStreamMetadata,
-            User user);
+            User owner,
+            User currentUser);
+
+        /// <summary>
+        /// Validate the provided package once the new packages owner is known. The validations performed by this
+        /// method should make sense for both the UI upload and command line push. This should be called after
+        /// <see cref="GeneratePackageAsync(string, PackageArchiveReader, PackageStreamMetadata, User, User)"/> but
+        /// before <see cref="CommitPackageAsync(Package, Stream)"/>.
+        /// </summary>
+        /// <param name="package">The package entity not yet committed to the database.</param>
+        /// <param name="nuGetPackage">The package archive reader.</param>
+        /// <param name="owner">The owner of the package.</param>
+        /// <param name="currentUser">The current user.</param>
+        /// <returns>The package validation result.</returns>
+        Task<PackageValidationResult> ValidatePackageAsync(
+            Package package,
+            PackageArchiveReader nuGetPackage,
+            User owner,
+            User currentUser);
 
         /// <summary>
         /// Commit the provided package metadata and stream to the package file storage and to the database. This

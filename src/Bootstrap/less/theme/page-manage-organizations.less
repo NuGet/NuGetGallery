@@ -1,0 +1,83 @@
+.page-manage-organizations {
+  @section-margin-top: 40px;
+
+  h1 {
+    margin-bottom: 0;
+  }
+
+  h2 {
+    margin-bottom: 10px;
+    margin-top: 0;
+  }
+
+  .form-section-title {
+    margin-top: @section-margin-top;
+
+    @media (min-width: @screen-sm-min) {
+      float: left;
+      text-align: right;
+    }
+  }
+
+  .form-section-data {
+    @media (min-width: @screen-sm-min) {
+      margin-top: @section-margin-top;
+      line-height: 3;
+      float: right;
+      text-align: right;
+    }
+  }
+
+  .panel {
+    margin-top: 5px;
+  }
+
+  .form-group + .form-group {
+    .btn {
+      margin-top: 20px;
+    }
+  }
+
+  .certificates-form {
+    display: inline-block;
+    width: 100%;
+  }
+}
+
+.manage-members-listing tbody:first-child {
+  border-style: hidden
+}
+
+.members-list {
+  .manage-members-listing {
+    margin-bottom: 0;
+
+    .alert-container {
+      .alert {
+        margin-top: 0px;
+      }
+    }
+
+    .role-description {
+      margin-top: 25px;
+      margin-bottom: 25px;
+    }
+
+    .member-item {
+      hr {
+        margin-top: 8px;
+        margin-bottom: 8px;
+      }
+
+      .member-column {
+        display: table;
+        height: 36px;
+
+        div {
+          display: table-cell;
+          vertical-align: middle;
+        }
+      }
+    }
+  }
+}

@@ -6,16 +6,59 @@ using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Versioning;
+using NuGetGallery.Packaging;
 
 namespace NuGetGallery
 {
     public class CorePackageService : ICorePackageService
     {
+        protected readonly IEntityRepository<Certificate> _certificateRepository;
         protected readonly IEntityRepository<Package> _packageRepository;
-        
-        public CorePackageService(IEntityRepository<Package> packageRepository)
+        protected readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+
+        public CorePackageService(
+            IEntityRepository<Package> packageRepository,
+            IEntityRepository<PackageRegistration> packageRegistrationRepository,
+            IEntityRepository<Certificate> certificateRepository)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
+            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
+            _certificateRepository = certificateRepository ?? throw new ArgumentNullException(nameof(certificateRepository));
+        }
+
+        public virtual async Task UpdatePackageStreamMetadataAsync(
+            Package package,
+            PackageStreamMetadata metadata,
+            bool commitChanges = true)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (metadata == null)
+            {
+                throw new ArgumentNullException(nameof(metadata));
+            }
+
+            package.Hash = metadata.Hash;
+            package.HashAlgorithm = metadata.HashAlgorithm;
+            package.PackageFileSize = metadata.Size;
+
+            var now = DateTime.UtcNow;
+            package.LastUpdated = now;
+
+            /// If the package is available, consider this change as an "edit" so that the package appears for cursors
+            /// on the <see cref="Package.LastEdited"/> field.
+            if (package.PackageStatusKey == PackageStatus.Available)
+            {
+                package.LastEdited = now;
+            }
+
+            if (commitChanges)
+            {
+                await _packageRepository.CommitChangesAsync();
+            }
         }
 
         public virtual async Task UpdatePackageStatusAsync(
@@ -186,12 +229,69 @@ namespace NuGetGallery
             return package;
         }
 
+        public virtual PackageRegistration FindPackageRegistrationById(string packageId)
+        {
+            if (string.IsNullOrWhiteSpace(packageId))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(packageId));
+            }
+
+            return _packageRegistrationRepository.GetAll()
+                .Include(pr => pr.Owners.Select(o => o.UserCertificates))
+                .Include(pr => pr.RequiredSigners.Select(rs => rs.UserCertificates))
+                .Where(registration => registration.Id == packageId)
+                .SingleOrDefault();
+        }
+
+        public virtual async Task UpdatePackageSigningCertificateAsync(string packageId, string packageVersion, string thumbprint)
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(packageId));
+            }
+
+            if (string.IsNullOrEmpty(packageVersion))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(packageVersion));
+            }
+
+            if (string.IsNullOrEmpty(thumbprint))
+            {
+                throw new ArgumentException(CoreStrings.ArgumentCannotBeNullOrEmpty, nameof(thumbprint));
+            }
+
+            var package = FindPackageByIdAndVersionStrict(packageId, packageVersion);
+
+            if (package == null)
+            {
+                throw new ArgumentException(CoreStrings.PackageNotFound);
+            }
+
+            var certificate = _certificateRepository.GetAll()
+                .Where(c => c.Thumbprint == thumbprint)
+                .SingleOrDefault();
+
+            if (certificate == null)
+            {
+                throw new ArgumentException(CoreStrings.CertificateNotFound);
+            }
+
+            if (package.CertificateKey != certificate.Key)
+            {
+                package.Certificate = certificate;
+
+                await _packageRepository.CommitChangesAsync();
+            }
+        }
+
         protected IQueryable<Package> GetPackagesByIdQueryable(string id)
         {
             return _packageRepository
                 .GetAll()
                 .Include(p => p.LicenseReports)
                 .Include(p => p.PackageRegistration)
+                .Include(p => p.User)
+                .Include(p => p.SymbolPackages)
                 .Where(p => p.PackageRegistration.Id == id);
         }
 

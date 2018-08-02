@@ -188,6 +188,7 @@ namespace NuGetGallery
         {
             var split = term.Split(IdSeparators, StringSplitOptions.RemoveEmptyEntries);
             var tokenized = split.SelectMany(CamelCaseTokenize);
+
             return tokenized.Any() ? string.Join(" ", tokenized) : "";
         }
 
@@ -212,6 +213,7 @@ namespace NuGetGallery
                 yield break;
             }
 
+            int tokenCount = 0;
             int tokenEnd = term.Length;
             for (int i = term.Length - 1; i > 0; i--)
             {
@@ -225,12 +227,16 @@ namespace NuGetGallery
                     }
 
                     yield return term.Substring(i, tokenEnd - i);
+                    tokenCount++;
                     tokenEnd = i;
                 }
             }
 
-            // Finally return the term in entirety
-            yield return term;
+            // Finally return the term in entirety, if not already returned
+            if (tokenCount != 1)
+            {
+                yield return term;
+            }
         }
     }
 }

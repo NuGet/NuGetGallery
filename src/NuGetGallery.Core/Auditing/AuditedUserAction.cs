@@ -16,6 +16,13 @@ namespace NuGetGallery.Auditing
         ConfirmEmail,
         Login,
         SubscribeToPolicies,
-        UnsubscribeFromPolicies
+        UnsubscribeFromPolicies,
+        AddOrganization,
+        TransformOrganization,
+        AddOrganizationMember,
+        RemoveOrganizationMember,
+        UpdateOrganizationMember,
+        EnabledMultiFactorAuthentication,
+        DisabledMultiFactorAuthentication
     }
 }

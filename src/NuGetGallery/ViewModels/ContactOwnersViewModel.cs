@@ -11,6 +11,8 @@ namespace NuGetGallery
     {
         public string PackageId { get; set; }
 
+        public string PackageVersion { get; set; }
+
         public string ProjectUrl { get; set; }
 
         public IEnumerable<User> Owners { get; set; }
@@ -22,5 +24,7 @@ namespace NuGetGallery
         [Required(ErrorMessage = "Please enter a message.")]
         [StringLength(4000)]
         public string Message { get; set; }
+
+        public bool HasOwners { get; set; }
     }
 }

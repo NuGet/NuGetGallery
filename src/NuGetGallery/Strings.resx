@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="EmailAddressBeingUsed" xml:space="preserve">
-    <value>The email address '{0}' is being used.</value>
+    <value>The email address '{0}' is already in use by a different account.</value>
   </data>
   <data name="UsernameNotAvailable" xml:space="preserve">
     <value>The username '{0}' is not available.</value>
@@ -205,7 +205,7 @@
     <value>Unknown authentication provider: '{0}'</value>
   </data>
   <data name="ExternalAccountLinkExpired" xml:space="preserve">
-    <value>Your external account credential expired or you did not allow us access to your account. Try logging in again.</value>
+    <value>Your account credential expired or you did not allow us access to your account. Try logging in again.</value>
   </data>
   <data name="MicrosoftAccount_AccountNoun" xml:space="preserve">
     <value>Microsoft account</value>
@@ -245,6 +245,8 @@ Click the following link within the next hour to reset your password:
 
 [{0}]({0})
 
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
 Thanks,
 The {1} Team</value>
   </data>
@@ -258,6 +260,8 @@ If you didn't request a password, you can safely ignore this message. A password
 Click the following link within the next hour to set your password:
 
 [{0}]({0})
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
 
 Thanks,
 The {1} Team</value>
@@ -287,14 +291,8 @@ The {1} Team</value>
     <value>The '{0}' authentication provider is disabled and cannot be used to authenticate
 </value>
   </data>
-  <data name="EmailPreferencesUpdated" xml:space="preserve">
-    <value>Your email preferences have been updated</value>
-  </data>
-  <data name="EmailUpdated" xml:space="preserve">
-    <value>Your new email address was saved!</value>
-  </data>
-  <data name="EmailUpdated_ConfirmationRequired" xml:space="preserve">
-    <value>Your email address has been changed! We sent a confirmation email to verify your new email. When you confirm the new email address, it will take effect and we will forget the old one.</value>
+  <data name="UserEmailPreferencesUpdated" xml:space="preserve">
+    <value>Your email preferences have been updated.</value>
   </data>
   <data name="UploadPackage_MinClientVersionOutOfRange" xml:space="preserve">
     <value>This package requires version '{0}' of NuGet, which this gallery does not currently support. Please contact us if you have questions.</value>
@@ -302,7 +300,7 @@ The {1} Team</value>
   <data name="DefaultUserSafeExceptionMessage" xml:space="preserve">
     <value>An unexpected error occurred. Contact support for assistance.</value>
   </data>
-  <data name="CancelEmailAddress" xml:space="preserve">
+  <data name="UserEmailUpdateCancelled" xml:space="preserve">
     <value>You canceled your email address change request.</value>
   </data>
   <data name="UploadPackage_InvalidPackage" xml:space="preserve">
@@ -343,9 +341,6 @@ The {1} Team</value>
   </data>
   <data name="TitleMatchesExistingRegistration" xml:space="preserve">
     <value>The title of your package, '{0}', is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again.</value>
-  </data>
-  <data name="NewRegistrationIdMatchesExistingPackageTitle" xml:space="preserve">
-    <value>The ID of your package, '{0}', is similar to the title of an existing package, which can cause confusion with our users. Please modify the ID of your package and try uploading again.</value>
   </data>
   <data name="InvalidPortableFramework" xml:space="preserve">
     <value>The package framework '{0}' is not supported. Frameworks within the portable profile are not allowed to have profiles themselves.</value>
@@ -455,10 +450,6 @@ The {1} Team</value>
   <data name="AddOwner_PackageNotFound" xml:space="preserve">
     <value>Package not found.</value>
   </data>
-  <data name="SecurePushPolicyDescriptions" xml:space="preserve">
-    <value>1. All co-owners must use client version {0} or higher to push all of their packages.
-2. All existing push API keys for co-owners new to this policy will expire in {1} days.</value>
-  </data>
   <data name="AddOwnerConfirmation_SecurePushRequiredByNewOwner" xml:space="preserve">
     <value>User '{0}' has the following requirements that will be enforced for all co-owners once the user accepts ownership of this package:
 {1}
@@ -506,12 +497,6 @@ For more information, please contact '{2}'.</value>
   <data name="DisplayPackage_SecurePushRequired" xml:space="preserve">
     <value>Owner(s) '{0}' require(s) that all co-owners use client version {1} or higher to push all of their packages. For more information, contact {2}.
 </value>
-  </data>
-  <data name="SecurePushPolicyDescriptionsHtml" xml:space="preserve">
-    <value>&lt;ol&gt;
-&lt;li&gt;All co-owners must use client version {0} or higher to push all of their packages.&lt;/li&gt;
-&lt;li&gt;All existing push API keys for co-owners new to this policy will expire in {1} days.&lt;/li&gt;
-&lt;/ol&gt;</value>
   </data>
   <data name="UploadPackage_UploadInProgress" xml:space="preserve">
     <value>Cannot upload file because an upload is already in progress.</value>
@@ -617,5 +602,326 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="AccountDelete_Success" xml:space="preserve">
     <value>The account:{0} was deleted succesfully.</value>
+  </data>
+  <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
+    <value>The request failed to be submitted. Please try again or contact support.</value>
+  </data>
+  <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
+    <value>Account Deletion Request</value>
+  </data>
+  <data name="MessageIsRequired" xml:space="preserve">
+    <value>Please enter a message.</value>
+  </data>
+  <data name="OwnerSupportRequestSubjectFormat" xml:space="preserve">
+    <value>Owner Support Request for '{0}' version {1}</value>
+    <comment>{0} is the package ID. {1} is the normalized package version.</comment>
+  </data>
+  <data name="SupportRequestSentTransientMessage" xml:space="preserve">
+    <value>Your support request has been sent to the gallery operators.</value>
+  </data>
+  <data name="UserPackageDeleteCompleteTransientMessage" xml:space="preserve">
+    <value>We're performing the package delete right now. It may take a while for this change to propagate through our system.</value>
+  </data>
+  <data name="UserPackageDeleteConfirmationIsRequired" xml:space="preserve">
+    <value>You must confirm the package deletion request.</value>
+  </data>
+  <data name="UserPackageDeleteDecisionIsRequired" xml:space="preserve">
+    <value>You must choose whether to delete the package or contact support.</value>
+  </data>
+  <data name="AutomatedPackageDeleteSignature" xml:space="preserve">
+    <value>(automated)</value>
+  </data>
+  <data name="UserPackageDeleteSupportRequestMessage" xml:space="preserve">
+    <value>This support request is intended for automatic package deletion.</value>
+  </data>
+  <data name="ApiKeyOwnerRequired" xml:space="preserve">
+    <value>You must specify a package owner to generate an API key.</value>
+  </data>
+  <data name="ApiKeyScopesNotAllowed" xml:space="preserve">
+    <value>The current user does not have permission to create an ApiKey with the specified owner or scopes.</value>
+  </data>
+  <data name="AddOwner_AlreadyOwner" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of the package.</value>
+  </data>
+  <data name="RemoveOwner_NotOwner" xml:space="preserve">
+    <value>The user '{0}' is not an owner or pending owner of the package.</value>
+  </data>
+  <data name="ManagePackageOwners_AlreadyPending" xml:space="preserve">
+    <value>The user '{0}' is already an owner or pending owner of this package.</value>
+  </data>
+  <data name="ManagePackageOwners_Error" xml:space="preserve">
+    <value>An unexpected error occurred: {0}</value>
+  </data>
+  <data name="ManagePackageOwners_InvalidUsername" xml:space="preserve">
+    <value>Please enter a valid user name.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOrganization" xml:space="preserve">
+    <value>Are you sure you want to remove your organization as an owner of this package?</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingOwnership" xml:space="preserve">
+    <value>You will no longer be able to manage the package if you do.</value>
+  </data>
+  <data name="ManagePackageOwners_RemovingSelf" xml:space="preserve">
+    <value>Are you sure you want to remove yourself as an owner of this package?</value>
+  </data>
+  <data name="AccountDelete_OrganizationDeleteNotImplemented" xml:space="preserve">
+    <value>Account '{0}' cannot be deleted because it is an organization. The organization must be manually migrated to a user account without memberships before the account can be deleted.</value>
+  </data>
+  <data name="PackageIsLocked" xml:space="preserve">
+    <value>Package '{0}' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact support@nuget.org.</value>
+  </data>
+  <data name="UploadPackage_NewIdOnBehalfOfUserNotAllowed" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload a package with a new ID on behalf of user '{1}'.</value>
+  </data>
+  <data name="UploadPackage_NewVersionOnBehalfOfUserNotAllowed" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload a new version of an existing package on behalf of user '{1}'.</value>
+  </data>
+  <data name="VerifyPackage_OwnerInvalid" xml:space="preserve">
+    <value>User '{0}' does not have the rights to upload new versions of package '{1}'.</value>
+  </data>
+  <data name="VerifyPackage_UserInvalid" xml:space="preserve">
+    <value>You do not have permission to upload packages as user '{0}'.</value>
+  </data>
+  <data name="VerifyPackage_UserNonExistent" xml:space="preserve">
+    <value>The user '{0}' doesn't exist. You cannot upload a package as a user that doesn't exist.</value>
+  </data>
+  <data name="TransformAccount_Failed" xml:space="preserve">
+    <value>An unexpected error occurred while transforming this account. Contact support for assistance.</value>
+  </data>
+  <data name="TransformAccount_OrganizationAccountDoesNotExist" xml:space="preserve">
+    <value>Organization account '{0}' does not exist.</value>
+  </data>
+  <data name="TransformAccount_Success" xml:space="preserve">
+    <value>Account '{0}' was successfully transformed into an organization.</value>
+  </data>
+  <data name="TransformAccount_AccountHasMemberships" xml:space="preserve">
+    <value>You are a member of one or more organizations. You must leave all organizations before transforming your account.</value>
+  </data>
+  <data name="TransformAccount_AccountNotConfirmed" xml:space="preserve">
+    <value>Account '{0}' should be a confirmed user.</value>
+  </data>
+  <data name="TransformAccount_AccountIsAnOrganization" xml:space="preserve">
+    <value>Account '{0}' is already an organization.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountDoesNotExist" xml:space="preserve">
+    <value>Administrator account '{0}' does not exist.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountNotConfirmed" xml:space="preserve">
+    <value>Administrator account '{0}' has not confirmed their email address.</value>
+  </data>
+  <data name="TransformAccount_RequestExists" xml:space="preserve">
+    <value>A transform request, with account '{0}' as administrator, is in progress. A new request will override any existing request(s).</value>
+  </data>
+  <data name="TransformAccount_SignInToConfirm" xml:space="preserve">
+    <value>Please sign in as administrator '{0}' to finish transforming account '{1}' into an organization.</value>
+  </data>
+  <data name="TransformAccount_AdminAccountIsOrganization" xml:space="preserve">
+    <value>Administrator account '{0}' cannot be an organization.</value>
+  </data>
+  <data name="TransformAccount_AdminMustBeDifferentAccount" xml:space="preserve">
+    <value>Administrator account '{0}' cannot be the same account as the one being transformed.</value>
+  </data>
+  <data name="AccountIsLinkedToAnotherExternalAccount" xml:space="preserve">
+    <value>The account with the email {0} is linked to another Microsoft account.
+If you would like to update the linked Microsoft account you can do so from the account settings page.</value>
+  </data>
+  <data name="ChangeCredential_Failed" xml:space="preserve">
+    <value>Failed to update the Microsoft account with '{0}'. This could happen if it is already linked to another NuGet account. Contact support for more information.</value>
+  </data>
+  <data name="ChangeCredential_NotAllowed" xml:space="preserve">
+    <value>The change of Azure active directory account is not allowed by your organization(s): {0}. Please leave these organization(s) to change your login.</value>
+  </data>
+  <data name="ChangeCredential_Success" xml:space="preserve">
+    <value>Successfully linked the Microsoft account ({0}).</value>
+  </data>
+  <data name="PasswordLoginDeprecated" xml:space="preserve">
+    <value>The password login is deprecated. You must use Microsoft account to sign in.</value>
+  </data>
+  <data name="ChangeCredential_ProviderNotFound" xml:space="preserve">
+    <value>No valid external provider found for authentication</value>
+  </data>
+  <data name="OrganizationEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed the organization email address.</value>
+  </data>
+  <data name="OrganizationEmailPreferencesUpdated" xml:space="preserve">
+    <value>The organization email preferences have been updated.</value>
+  </data>
+  <data name="OrganizationEmailUpdateCancelled" xml:space="preserve">
+    <value>You canceled your organization email address change request.</value>
+  </data>
+  <data name="UserEmailConfirmed" xml:space="preserve">
+    <value>You have successfully confirmed your email address!</value>
+  </data>
+  <data name="DeleteMember_CannotDeleteLastAdmin" xml:space="preserve">
+    <value>Organization member '{0}' is the last administrator and cannot be deleted.</value>
+  </data>
+  <data name="UpdateMember_CannotRemoveLastAdmin" xml:space="preserve">
+    <value>You can't change your role to collaborator. In order to change, another collaborator must be assigned as an administrator.</value>
+  </data>
+  <data name="UpdateOrDeleteMember_MemberNotFound" xml:space="preserve">
+    <value>Organization member '{0}' was not found.</value>
+  </data>
+  <data name="DeleteMember_Success" xml:space="preserve">
+    <value>The organization member was deleted.</value>
+  </data>
+  <data name="OrganizationMemberNameIsRequired" xml:space="preserve">
+    <value>Member name is required.</value>
+  </data>
+  <data name="AddMember_AlreadyAMember" xml:space="preserve">
+    <value>User '{0}' is already a member of this organization.</value>
+  </data>
+  <data name="AddMember_UserNotFound" xml:space="preserve">
+    <value>User '{0}' does not exist. </value>
+  </data>
+  <data name="AddMember_UserNotConfirmed" xml:space="preserve">
+    <value>User '{0}' has not confirmed their email.</value>
+  </data>
+  <data name="ChangeCredential_SuccessDifferentEmail" xml:space="preserve">
+    <value>Successfully linked the Microsoft account ({0}). Note that the email address associated with the new linked Microsoft account is different than the NuGet.org account email ({1}).</value>
+  </data>
+  <data name="AddMember_UserDoesNotMeetOrganizationPolicy" xml:space="preserve">
+    <value>User '{0}' has not linked their account to an AAD credential matching this organization.</value>
+  </data>
+  <data name="Organizations_AdminAccountDoesNotHaveTenant" xml:space="preserve">
+    <value>Administrator account '{0}' is not linked to an AAD credential with an organization tenant.</value>
+  </data>
+  <data name="DeleteMember_CannotRemoveLastAdmin" xml:space="preserve">
+    <value>You can't leave the organization. In order to leave the organization, another collaborator must be assigned as an administrator.</value>
+  </data>
+  <data name="SigninAssistance_EmailMismatched" xml:space="preserve">
+    <value>The email address you provided does not match with the email address linked to the account</value>
+  </data>
+  <data name="SigninAssistance_InvalidEmail" xml:space="preserve">
+    <value>Please enter a valid email address</value>
+  </data>
+  <data name="SigninAssistance_InvalidUser" xml:space="preserve">
+    <value>Please enter a valid username</value>
+  </data>
+  <data name="TransformAccount_Rejected" xml:space="preserve">
+    <value>The transform request for you to become an admin of '{0}' has been successfully cancelled.</value>
+  </data>
+  <data name="TransformAccount_FailedMissingRequestToCancel" xml:space="preserve">
+    <value>The transform request you are attempting to cancel was not found.</value>
+  </data>
+  <data name="TransformAccount_Cancelled" xml:space="preserve">
+    <value>The transform request for your account has been successfully cancelled.</value>
+  </data>
+  <data name="AddMember_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
+  </data>
+  <data name="CancelMemberRequest_Success" xml:space="preserve">
+    <value>The pending organization member was deleted.</value>
+  </data>
+  <data name="CancelMembershipRequest_MissingRequest" xml:space="preserve">
+    <value>There is no request for user '{0}' to join this organization.</value>
+  </data>
+  <data name="RejectMembershipRequest_NotFound" xml:space="preserve">
+    <value>There is no request for user '{0}' for join this organization with that token.</value>
+  </data>
+  <data name="AddMember_PolicyFailure" xml:space="preserve">
+    <value>You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details.</value>
+  </data>
+  <data name="AddMember_Success" xml:space="preserve">
+    <value>You are now a member of organization '{0}'.</value>
+  </data>
+  <data name="VerifyPackage_OwnerUnconfirmed" xml:space="preserve">
+    <value>User '{0}' is unconfirmed and cannot be the owner of the package.</value>
+  </data>
+  <data name="ApiKeyOwnerUnconfirmed" xml:space="preserve">
+    <value>The specified API key is scoped to an owner that is unconfirmed. You must confirm the owner that this API key is scoped to before you can use it.</value>
+  </data>
+  <data name="Member_OrganizationUnconfirmed" xml:space="preserve">
+    <value>Your organization must be confirmed before you can change its membership.</value>
+  </data>
+  <data name="AddMember_UserIsOrganization" xml:space="preserve">
+    <value>User '{0}' is an organization and cannot be a member of another organization.</value>
+  </data>
+  <data name="Organizations_NotSupportedForAccount" xml:space="preserve">
+    <value>Account '{0}' does not support organizations.</value>
+  </data>
+  <data name="AccountSelfDelete_Fail" xml:space="preserve">
+    <value>An exception was encoutered while trying to delete the account. Please contact support for assistance.</value>
+  </data>
+  <data name="ValidateCertificate_FileTooLarge" xml:space="preserve">
+    <value>The file exceeds the size limit of {0} bytes.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidEncoding" xml:space="preserve">
+    <value>The file must be a DER encoded binary X.509 certificate.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidFileLength" xml:space="preserve">
+    <value>The file length is invalid.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidFileType" xml:space="preserve">
+    <value>The file extension must be {0}.</value>
+  </data>
+  <data name="ValidateCertificate_InvalidStream" xml:space="preserve">
+    <value>The file stream is invalid.</value>
+  </data>
+  <data name="ValidateCertificate_StreamMustBeSeekable" xml:space="preserve">
+    <value>The file stream must be seekable.</value>
+  </data>
+  <data name="ArgumentCannotBeNullOrEmpty" xml:space="preserve">
+    <value>The argument cannot be null or empty.</value>
+  </data>
+  <data name="CertificateDoesNotExist" xml:space="preserve">
+    <value>The certificate does not exist.</value>
+  </data>
+  <data name="CertificateFileIsRequired" xml:space="preserve">
+    <value>A certificate file is required.</value>
+  </data>
+  <data name="MultiFactorAuth_Enabled" xml:space="preserve">
+    <value>Two-factor authentication is enabled for your account. It will be enforced the next time you log into {0}.</value>
+  </data>
+  <data name="MultiFactorAuth_LoginUpdate" xml:space="preserve">
+    <value>We noticed you used two-factor authentication for login. We have enabled your account to use two-factor authentication going forward.</value>
+  </data>
+  <data name="MultiFactorAuth_Disabled" xml:space="preserve">
+    <value>Two-factor authentication has been disabled for your account. Please close all sessions for Microsoft accounts before you log into {0} to prevent automatic enabling of this setting.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithMixedResult" xml:space="preserve">
+    <value>At least one package owner has no certificate while at least one other package owner has at least one certificate, which means future package submissions may be unsigned or signed with any certificate registered to any owner.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithSignedResult" xml:space="preserve">
+    <value>All package owners have at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_AnyWithUnsignedResult" xml:space="preserve">
+    <value>All package owners have at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_Confirm" xml:space="preserve">
+    <value>Are you sure you want to change the required signer for this package?</value>
+  </data>
+  <data name="RequiredSigner_OwnerHasAtLeastOneCertificate" xml:space="preserve">
+    <value>'{0}' currently has at least one certificate, which means future package submissions must be signed.</value>
+  </data>
+  <data name="RequiredSigner_OwnerHasNoCertificate" xml:space="preserve">
+    <value>'{0}' currently has no certificate, which means future package submissions must be unsigned.</value>
+  </data>
+  <data name="RequiredSigner_ThisAction" xml:space="preserve">
+    <value>This action will change the required signer to '{0}' for all future submissions for this package.</value>
+  </data>
+  <data name="DiscontinuedLogin_PasswordRemoved" xml:space="preserve">
+    <value>The password login is discontinued and has been removed for your account. Please use your Microsoft account to log into {0} going forward.</value>
+  </data>
+  <data name="InvalidRecaptchaResponse" xml:space="preserve">
+    <value>Recaptcha response was not valid. Try again or email support if you need assistance.</value>
+  </data>
+  <data name="FailedValidationHardDeleteReason" xml:space="preserve">
+    <value>Automatic hard-delete for reupload of package that failed validation</value>
+  </data>
+  <data name="PackageFileTooLarge" xml:space="preserve">
+    <value>The package file exceeds the size limit. Please try again.</value>
+  </data>
+  <data name="UploadPackage_PackageIsNotSigned" xml:space="preserve">
+    <value>This package must be signed with a registered certificate.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates" xml:space="preserve">
+    <value>The package was signed. You must register the signing certificate to publish signed packages.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate" xml:space="preserve">
+    <value>You can manage your certificates on the Account Settings page.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner" xml:space="preserve">
+    <value>The package was signed. The owner '{0}' must register the signing certificate to publish signed packages.</value>
+    <comment>{0} is the signer name.</comment>
   </data>
 </root>

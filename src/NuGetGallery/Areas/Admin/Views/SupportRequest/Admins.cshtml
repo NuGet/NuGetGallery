@@ -18,21 +18,12 @@
             <form id="addAdmin-form">
                 <fieldset class="form">
                     <legend>Add</legend>
-
                     <div class="form-field">
                         <label for="newGalleryUsername">Gallery username</label>
                         <input id="newGalleryUsername"
                                name="newGalleryUsername"
                                maxlength="255"
                                data-bind="value: newGalleryUsername" />
-                    </div>
-
-                    <div class="form-field">
-                        <label for="newPagerDutyUsername">PagerDuty username</label>
-                        <input id="newPagerDutyUsername"
-                               name="newPagerDutyUsername"
-                               maxlength="255"
-                               data-bind="value: newPagerDutyUsername" />
                     </div>
                 </fieldset>
             </form>
@@ -42,21 +33,12 @@
             <form id="editAdmin-form">
                 <fieldset class="form">
                     <legend>Edit</legend>
-
                     <div class="form-field">
                         <label for="editGalleryUsername">Gallery username</label>
                         <input id="editGalleryUsername"
                                name="editGalleryUsername"
                                maxlength="255"
                                data-bind="value: editGalleryUsername" />
-                    </div>
-
-                    <div class="form-field">
-                        <label for="editPagerDutyUsername">PagerDuty username</label>
-                        <input id="editPagerDutyUsername"
-                               name="editPagerDutyUsername"
-                               maxlength="255"
-                               data-bind="value: editPagerDutyUsername" />
                     </div>
                 </fieldset>
             </form>
@@ -74,7 +56,6 @@
                     <tr>
                         <th>Admin Key</th>
                         <th>Gallery username</th>
-                        <th>PagerDuty username</th>
                         <th>Status</th>
                         <th></th>
                     </tr>
@@ -86,9 +67,6 @@
                         </td>
                         <td>
                             <span data-bind="text: GalleryUsername"></span>
-                        </td>
-                        <td>
-                            <span data-bind="text: PagerDutyUsername"></span>
                         </td>
                         <td>
                             <a href="#" data-bind="text: $parent.getAdminStatus($data), click: $parent.toggleAdminAccess"></a>
@@ -118,13 +96,11 @@
             function AddAdminViewModel() {
                 var $self = this;
                 this.newGalleryUsername = ko.observable();
-                this.newPagerDutyUsername = ko.observable();
 
                 this.createAdmin = function (success, error) {
                     var url = '@Url.Action("AddAdmin")';
                     var model = {
-                        galleryUsername: $self.newGalleryUsername(),
-                        pagerDutyUsername: $self.newPagerDutyUsername()
+                        galleryUsername: $self.newGalleryUsername()
                     };
 
                     $.ajax({
@@ -143,14 +119,12 @@
                 this.admin = ko.observable();
 
                 this.editGalleryUsername = ko.observable();
-                this.editPagerDutyUsername = ko.observable();
 
                 this.updateAdmin = function (success, error) {
                     var url = '@Url.Action("UpdateAdmin")';
                     var model = {
                         key: $self.admin.Key,
-                        galleryUsername: $self.editGalleryUsername,
-                        pagerDutyUsername: $self.editPagerDutyUsername
+                        galleryUsername: $self.editGalleryUsername
                     };
 
                     $.ajax({
@@ -171,11 +145,9 @@
 
                 this.addAdminForm = $('#addAdmin-form').get(0);
                 this.newGalleryUsernameCtrl = $('#newGalleryUsername').get(0);
-                this.newPagerDutyUsernameCtrl = $('#newPagerDutyUsername').get(0);
 
                 this.editAdminForm = $('#editAdmin-form').get(0);
                 this.editGalleryUsernameCtrl = $('#editGalleryUsername').get(0);
-                this.editPagerDutyUsernameCtrl = $('#editPagerDutyUsername').get(0);
 
                 this.styleButtons = function () {
                     $('a.addButton').button(
@@ -250,11 +222,9 @@
                 };
 
                 this.addAdminFields = $([])
-                    .add($self.newGalleryUsernameCtrl)
-                    .add($self.newPagerDutyUsernameCtrl);
+                    .add($self.newGalleryUsernameCtrl);
                 this.editAdminFields = $([])
-                    .add($self.editGalleryUsernameCtrl)
-                    .add($self.editPagerDutyUsernameCtrl);
+                    .add($self.editGalleryUsernameCtrl);
 
 
                 this.createAdmin = function () {
@@ -330,6 +300,7 @@
 
                     var addViewModel = new AddAdminViewModel();
 
+                    ko.cleanNode($self.addAdminForm);
                     ko.applyBindings(addViewModel, $self.addAdminForm);
 
                     $self.addAdminDialog.dialog('open');
@@ -341,8 +312,8 @@
                     var editViewModel = new EditAdminViewModel();
                     editViewModel.admin = admin;
                     editViewModel.editGalleryUsername = admin.GalleryUsername;
-                    editViewModel.editPagerDutyUsername = admin.PagerDutyUsername;
 
+                    ko.cleanNode($self.editAdminForm);
                     ko.applyBindings(editViewModel, $self.editAdminForm);
 
                     $self.editAdminDialog.dialog('option', 'title', 'Edit SR-Admin #' + admin.Key);

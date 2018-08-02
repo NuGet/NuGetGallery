@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using System.Web;
+using System.Web.Hosting;
 using System.Web.Http;
 using System.Web.Mvc;
 using Elmah;
@@ -45,6 +46,9 @@ namespace NuGetGallery
             ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
             ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
 
+            // Setting time out for all RegEx objects. Noted in remarks at https://msdn.microsoft.com/en-us/library/system.text.regularexpressions.regex.matchtimeout%28v=vs.110%29.aspx
+            AppDomain.CurrentDomain.SetData("REGEX_DEFAULT_MATCH_TIMEOUT", TimeSpan.FromSeconds(10));
+
             // Register IoC
             app.UseAutofacInjection(GlobalConfiguration.Configuration);
             var dependencyResolver = DependencyResolver.Current;
@@ -56,6 +60,16 @@ namespace NuGetGallery
             // Get config
             var config = dependencyResolver.GetService<IGalleryConfigurationService>();
             var auth = dependencyResolver.GetService<AuthenticationService>();
+
+            // Configure machine key for session persistence across slots
+            SessionPersistence.Setup(config);
+
+            // Refresh the content for the ContentObjectService to guarantee it has loaded the latest configuration on startup.
+            if (config.Current.IsHosted)
+            {
+                var contentObjectService = dependencyResolver.GetService<IContentObjectService>();
+                HostingEnvironment.QueueBackgroundWorkItem(async cancellationToken => await contentObjectService.Refresh());
+            }
 
             // Setup telemetry
             var instrumentationKey = config.Current.AppInsightsInstrumentationKey;
@@ -78,7 +92,9 @@ namespace NuGetGallery
 
                     return processor;
                 });
-                
+
+                telemetryProcessorChainBuilder.Use(next => new ClientTelemetryPIIProcessor(next));
+
                 var telemetry = dependencyResolver.GetService<TelemetryClientWrapper>();
                 telemetryProcessorChainBuilder.Use(
                     next => new ExceptionTelemetryProcessor(next, telemetry.UnderlyingClient));

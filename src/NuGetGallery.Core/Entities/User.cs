@@ -6,6 +6,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
@@ -15,8 +16,27 @@ namespace NuGetGallery
     /// future if we want to add constraints for user accounts or user-only settings.
     /// </summary>
     /// <see href="https://weblogs.asp.net/manavi/inheritance-mapping-strategies-with-entity-framework-code-first-ctp5-part-2-table-per-type-tpt" />
-    public class User : IEntity
+    public class User : IEntity, IEquatable<User>
     {
+        #region per-request query cache
+
+        private bool? _isAdmin;
+
+        [NotMapped]
+        public bool IsAdministrator
+        {
+            get
+            {
+                if (!_isAdmin.HasValue)
+                {
+                    _isAdmin = IsInRole(CoreConstants.AdminRoleName);
+                }
+                return _isAdmin.Value;
+            }
+        }
+
+        #endregion
+
         public User() : this(null)
         {
         }
@@ -27,14 +47,32 @@ namespace NuGetGallery
             SecurityPolicies = new List<UserSecurityPolicy>();
             ReservedNamespaces = new HashSet<ReservedNamespace>();
             Organizations = new List<Membership>();
+            OrganizationMigrationRequests = new List<OrganizationMigrationRequest>();
+            OrganizationRequests = new List<MembershipRequest>();
             Roles = new List<Role>();
             Username = username;
+            UserCertificates = new List<UserCertificate>();
         }
 
         /// <summary>
-        /// Organization memberships for a non-organization <see cref="User"/> account.
+        /// Organization memberships, for a non-organization <see cref="User"/> account.
         /// </summary>
         public virtual ICollection<Membership> Organizations { get; set; }
+
+        /// <summary>
+        /// Organization membership requests, for a non-organization <see cref="User"/> account.
+        /// </summary>
+        public virtual ICollection<MembershipRequest> OrganizationRequests { get; set; }
+
+        /// <summary>
+        /// Request to transform a <see cref="User"/> account into an <see cref="Organization"/> account.
+        /// </summary>
+        public virtual OrganizationMigrationRequest OrganizationMigrationRequest { get; set; }
+
+        /// <summary>
+        /// Requests for this user to become the admin of a <see cref="User"/> account that was transformed into an <see cref="Organization"/> account.
+        /// </summary>
+        public virtual ICollection<OrganizationMigrationRequest> OrganizationMigrationRequests { get; set; }
 
         [StringLength(256)]
         public string EmailAddress { get; set; }
@@ -53,6 +91,8 @@ namespace NuGetGallery
         public bool EmailAllowed { get; set; }
 
         public bool IsDeleted { get; set; }
+
+        public bool EnableMultiFactorAuthentication { get; set; }
 
         public virtual ICollection<ReservedNamespace> ReservedNamespaces { get; set; }
 
@@ -92,6 +132,11 @@ namespace NuGetGallery
 
         public virtual ICollection<UserSecurityPolicy> SecurityPolicies { get; set; }
 
+        /// <summary>
+        /// Gets or sets the collection of user certificates.
+        /// </summary>
+        public virtual ICollection<UserCertificate> UserCertificates { get; set; }
+
         public void ConfirmEmailAddress()
         {
             if (string.IsNullOrEmpty(UnconfirmedEmailAddress))
@@ -130,15 +175,53 @@ namespace NuGetGallery
             EmailConfirmationToken = generateToken();
         }
 
-        public bool HasPassword()
-        {
-            return Credentials.Any(c =>
-                c.Type.StartsWith(CredentialTypes.Password.Prefix, StringComparison.OrdinalIgnoreCase));
-        }
-
         public bool IsInRole(string roleName)
         {
             return Roles.Any(r => String.Equals(r.Name, roleName, StringComparison.OrdinalIgnoreCase));
+        }
+
+        public bool Equals(User other)
+        {
+            return other.Key == Key;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if(obj == null)
+            {
+                return false;
+            }
+            User user = obj as User;
+            if(user == null)
+            {
+                return false;
+            }
+            return Equals(user);
+        }
+
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
+
+        public static bool operator ==(User user1, User user2)
+        {
+            if (((object)user1) == null || ((object)user2) == null)
+            {
+                return Equals(user1, user2);
+            }
+
+            return user1.Equals(user2);
+        }
+
+        public static bool operator !=(User user1, User user2)
+        {
+            if (((object)user1) == null || ((object)user2) == null)
+            {
+                return !Equals(user1, user2);
+            }
+
+            return !user1.Equals(user2);
         }
     }
 }

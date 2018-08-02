@@ -51,11 +51,16 @@ namespace NuGetGallery
                 $"{data.PackageId} {data.PackageVersion} ({data.ValidationTrackingId})";
             using (_diagnosticsSource.Activity(activityName))
             {
-                await _enqueuer.StartValidationAsync(data);
+                var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
+
+                await _enqueuer.StartValidationAsync(data, postponeProcessingTill);
             }
 
-            // For now, don't require asynchronous validation before the package is available for consumption.
-            // Related: https://github.com/NuGet/NuGetGallery/issues/4744
+            if (_appConfiguration.BlockingAsynchronousPackageValidationEnabled)
+            {
+                return PackageStatus.Validating;
+            }
+
             return PackageStatus.Available;
         }
     }

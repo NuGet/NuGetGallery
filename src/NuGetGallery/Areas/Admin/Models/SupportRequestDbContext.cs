@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Data.Common;
 using System.Data.Entity;
 using System.Threading.Tasks;
 
@@ -33,9 +34,17 @@ namespace NuGetGallery.Areas.Admin.Models
         {
         }
 
+        public SupportRequestDbContext(DbConnection connection)
+            : base(connection, contextOwnsConnection: true)
+        {
+        }
+
         public virtual IDbSet<Admin> Admins { get; set; }
+
         public virtual IDbSet<Issue> Issues { get; set; }
+
         public virtual IDbSet<IssueStatus> IssueStatus { get; set; }
+
         public virtual IDbSet<History> Histories { get; set; }
 
         public async Task CommitChangesAsync()
@@ -45,8 +54,6 @@ namespace NuGetGallery.Areas.Admin.Models
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Admin>()
-                .Property(e => e.PagerDutyUsername).IsUnicode(false);
             modelBuilder.Entity<Admin>()
                 .Property(e => e.GalleryUsername).IsUnicode(false);
             modelBuilder.Entity<Admin>()

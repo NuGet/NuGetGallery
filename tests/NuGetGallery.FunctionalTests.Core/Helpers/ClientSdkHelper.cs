@@ -2,12 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NuGet;
+using NuGet.Versioning;
+using NuGetGallery.FunctionalTests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +18,13 @@ namespace NuGetGallery.FunctionalTests
     public class ClientSdkHelper
         : HelperBase
     {
+        private static readonly TimeSpan SleepDuration = TimeSpan.FromSeconds(15);
+        private static readonly TimeSpan TotalSleepDuration = TimeSpan.FromMinutes(30);
+        private static readonly int Attempts = (int) (TotalSleepDuration.Ticks / SleepDuration.Ticks);
+
+        private static readonly object ExistingPackagesLock = new object();
+        private static readonly IList<PackageInfo> Packages = new List<PackageInfo>();
+
         public ClientSdkHelper(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         {
@@ -59,131 +68,471 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Checks if the given package version is present in the source.
+        /// Checks if the given package version is present in V2 and V3. This method bypasses the hijack.
         /// </summary>
-        public bool CheckIfPackageVersionExistsInSource(string packageId, string version, string sourceUrl)
+        private async Task<bool> CheckIfPackageVersionExistsInV2Async(string packageId, string version)
         {
-            var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
-            SemanticVersion semVersion = SemanticVersion.Parse(version);
+            var sourceUrl = UrlHelper.V2FeedRootUrl;
+            var normalizedVersion = NuGetVersion.Parse(version).ToNormalizedString();
+            var filter = $"Id eq '{packageId}' and NormalizedVersion eq '{normalizedVersion}' and 1 eq 1";
+            var url = UrlHelper.V2FeedRootUrl + $"/Packages/$count?$filter={Uri.EscapeDataString(filter)}";
+            using (var httpClient = new System.Net.Http.HttpClient())
+            {
+                return await VerifyWithRetryAsync(
+                    $"Verifying that package {packageId} {version} exists on source {sourceUrl} (non-hijacked).",
+                    async () =>
+                    {
+                        var count = int.Parse(await httpClient.GetStringAsync(url));
+                        if (count == 0)
+                        {
+                            return false;
+                        }
+                        else if (count == 1)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            Assert.False(true, $"The count returned by {url} was {count} and it should have been 0 or 1.");
+                            return false;
+                        }
+                    });
+            }
+        }
 
-            return VerifyWithRetry(
-                $"Verifying that package {packageId} {version} exists on source {sourceUrl}",
+        /// <summary>
+        /// Checks if the given package version is present in V2 and V3. This method depends on V2 hijacking to V3.
+        /// </summary>
+        private async Task<bool> CheckIfPackageVersionExistsInV2AndV3Async(string packageId, string version)
+        {
+            var sourceUrl = UrlHelper.V2FeedRootUrl;
+            var repo = PackageRepositoryFactory.Default.CreateRepository(sourceUrl);
+            NuGet.SemanticVersion semVersion = NuGet.SemanticVersion.Parse(version);
+
+            return await VerifyWithRetryAsync(
+                $"Verifying that package {packageId} {version} exists on source {sourceUrl} (hijacked).",
                 () =>
                 {
                     var package = repo.FindPackage(packageId, semVersion);
 
-                    return package != null;
+                    return Task.FromResult(package != null);
                 });
         }
 
-        private bool VerifyWithRetry(string actionPhrase, Func<bool> action)
+        private async Task<bool> VerifyWithRetryAsync(string actionPhrase, Func<Task<bool>> actionAsync)
         {
             bool success = false;
-            const int intervalSec = 30;
-            const int maxAttempts = 30;
 
-            try
+            WriteLine($"{actionPhrase} ({Attempts} attempts, interval {SleepDuration.TotalSeconds} seconds).");
+
+            for (var i = 0; i < Attempts && !success; i++)
             {
-                WriteLine($"{actionPhrase} ({maxAttempts} attempts, interval {intervalSec} seconds).");
-
-                for (var i = 0; i < maxAttempts && !success; i++)
+                if (i != 0)
                 {
-                    if (i != 0)
-                    {
-                        WriteLine($"[verification attempt {i}]: Waiting {intervalSec} seconds before next check...");
-                        Thread.Sleep(intervalSec * 1000);
-                    }
-
-                    WriteLine($"[verification attempt {i}]: Executing... ");
-                    success = action();
-                    WriteLine(success ? "Successful!" : "NOT successful!");
+                    await Task.Delay(SleepDuration);
                 }
-            }
-            catch (Exception ex)
-            {
-                WriteLine($"{actionPhrase} threw an exception.{Environment.NewLine}{ex}");
+
+                WriteLine($"[verification attempt {i}]: Executing... ");
+
+                try
+                {
+                    success = await actionAsync();
+                }
+                catch (Exception ex)
+                {
+                    WriteLine($"[verification attempt {i}] threw an exception.{Environment.NewLine}{ex}");
+                }
+
+                if (success)
+                {
+                    WriteLine("Successful!");
+                }
             }
 
             return success;
         }
 
-        /// <summary>
-        /// Creates a package with the specified Id and Version and uploads it and checks if the upload has succeeded.
-        /// Throws if the upload fails or cannot be verified in the source.
-        /// </summary>
-        public async Task UploadNewPackageAndVerify(string packageId, string version = "1.0.0", string minClientVersion = null, string title = null, string tags = null, string description = null, string licenseUrl = null, string dependencies = null)
+        public async Task<PackageInfo> UploadPackage(string apiKey = null)
         {
-            await UploadNewPackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
+            PackageInfo packageInfo = null;
 
-            VerifyPackageExistsInSource(packageId, version);
-        }
-
-        public async Task UploadNewPackage(string packageId, string version = "1.0.0", string minClientVersion = null,
-            string title = null, string tags = null, string description = null, string licenseUrl = null,
-            string dependencies = null, string apiKey = null)
-        {
-            if (string.IsNullOrEmpty(packageId))
+            lock (ExistingPackagesLock)
             {
-                packageId = DateTime.Now.Ticks.ToString();
+                packageInfo = Packages.FirstOrDefault(p => p.WasUploadedByApiKey(apiKey));
             }
 
-            WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, apiKey);
+            }
 
-            var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
-            var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version, minClientVersion, title, tags, description, licenseUrl, dependencies);
-
-            await UploadExistingPackage(packageFullPath);
-
-            // Delete package from local disk once it gets uploaded
-            CleanCreatedPackage(packageFullPath);
+            return packageInfo;
         }
 
-        public async Task UploadExistingPackage(string packageFullPath, string apiKey = null)
+        public Task FailToUploadPackage(string apiKey = null)
         {
-            var commandlineHelper = new CommandlineHelper(TestOutputHelper);
-            var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
+            return UploadPackage(UploadHelper.GetUniquePackageId(), UploadHelper.GetUniquePackageVersion(), apiKey, success: false);
+        }
 
-            Assert.True(processResult.ExitCode == 0,
-                "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+        public async Task<PackageInfo> UploadPackageVersion(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                var pushablePackageInfos = Packages.Where(p => p.CanUseApiKeyToPushNewVersion(apiKey));
+
+                packageInfo = pushablePackageInfos
+                    .GroupBy(p => p.Id)
+                    .Where(pr => pr.Count() > 1)
+                    .Select(pr => pr.Skip(1))
+                    .SelectMany(pr => pr)
+                    .LastOrDefault(p => p.WasUploadedByApiKey(apiKey));
+
+                if (packageInfo != null)
+                {
+                    return packageInfo;
+                }
+
+                packageInfo = pushablePackageInfos.LastOrDefault();
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            return await packageInfo.PushNewVersion(this, apiKey);
         }
 
         /// <summary>
-        /// Unlists a package with the specified Id and Version and checks if the unlist has succeeded.
-        /// Throws if the unlist fails or cannot be verified in the source.
+        /// Gets an API key with the same owner as <paramref name="apiKey"/>.
         /// </summary>
-        public async Task UnlistPackageAndVerify(string packageId, string version = "1.0.0")
+        /// <remarks>
+        /// This function is used to create a package that <paramref name="apiKey"/> can be used on if no existing package can be used.
+        /// In other words, if a test requires unlisting a package with an API key, but there is no existing package that can be unlisted by that API key, this function is used to find an API key that can be used to upload a package for that API key to then unlist.
+        /// </remarks>
+        private static string GetApiKeyWithSameOwnerThatCanUpload(string apiKey = null)
         {
-            await UnlistPackage(packageId, version);
+            if (apiKey == null ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKey ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyPush ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyPushVersion ||
+                apiKey == GalleryConfiguration.Instance.Account.ApiKeyUnlist)
+            {
+                return GalleryConfiguration.Instance.Account.ApiKey;
+            }
+            else if (apiKey == GalleryConfiguration.Instance.AdminOrganization.ApiKey)
+            {
+                return GalleryConfiguration.Instance.AdminOrganization.ApiKey;
+            }
+            else if (apiKey == GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey)
+            {
+                return GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey;
+            }
 
-            VerifyPackageExistsInSource(packageId, version);
+            throw new ArgumentOutOfRangeException(nameof(apiKey));
         }
 
-        public async Task UnlistPackage(string packageId, string version = "1.0.0", string apiKey = null)
+        public async Task FailToUploadPackageVersion(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.HasSameOwnerAsApiKey(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.FailToUploadNewVersion(this, apiKey);
+        }
+
+        public async Task<PackageInfo> UnlistPackage(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.WasUnlistedByApiKey(apiKey));
+
+                if (packageInfo != null)
+                {
+                    return packageInfo;
+                }
+
+                packageInfo = Packages.LastOrDefault(p => p.Listed && p.CanUseApiKeyToPushNewVersion(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.Unlist(this, apiKey);
+            return packageInfo;
+        }
+
+        public async Task FailToUnlistPackage(string apiKey = null)
+        {
+            PackageInfo packageInfo = null;
+
+            lock (ExistingPackagesLock)
+            {
+                packageInfo = Packages.LastOrDefault(p => p.HasSameOwnerAsApiKey(apiKey));
+            }
+
+            if (packageInfo == null)
+            {
+                packageInfo = await PackageInfo.CreateForUpload(this, GetApiKeyWithSameOwnerThatCanUpload(apiKey));
+            }
+
+            await packageInfo.FailToUnlist(this, apiKey);
+        }
+        
+        private async Task UploadPackage(string packageId, string version, string apiKey = null, bool success = true)
         {
             if (string.IsNullOrEmpty(packageId))
             {
                 throw new ArgumentException($"{nameof(packageId)} cannot be null or empty!");
             }
 
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException($"{nameof(version)} cannot be null or empty!");
+            }
+
+            await Task.Yield();
+
+            WriteLine("Uploading new package '{0}', version '{1}'", packageId, version);
+
+            var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+            var packageFullPath = await packageCreationHelper.CreatePackage(packageId, version);
+
+            try
+            {
+                var commandlineHelper = new CommandlineHelper(TestOutputHelper);
+                var processResult = await commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl, apiKey);
+
+                if (success)
+                {
+                    Assert.True(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+
+                    await VerifyPackageExistsInV2Async(packageId, version);
+                }
+                else
+                {
+                    Assert.False(processResult.ExitCode == 0,
+                        "The package upload via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                        processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+                }
+            }
+            finally
+            {
+                // Delete package from local disk once it gets uploaded
+                CleanCreatedPackage(packageFullPath);
+            }
+        }
+
+        private async Task UnlistPackage(string packageId, string version, string apiKey = null, bool success = true)
+        {
+            if (string.IsNullOrEmpty(packageId))
+            {
+                throw new ArgumentException($"{nameof(packageId)} cannot be null or empty!");
+            }
+
+            if (string.IsNullOrEmpty(version))
+            {
+                throw new ArgumentException($"{nameof(version)} cannot be null or empty!");
+            }
+
+            await Task.Yield();
+
             WriteLine("Unlisting package '{0}', version '{1}'", packageId, version);
 
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
             var processResult = await commandlineHelper.DeletePackageAsync(packageId, version, UrlHelper.V2FeedPushSourceUrl, apiKey);
 
-            Assert.True(processResult.ExitCode == 0,
-                "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
-                processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            if (success)
+            {
+                Assert.True(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe did not succeed properly. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+
+                await VerifyPackageExistsInV2Async(packageId, version);
+            }
+            else
+            {
+                Assert.False(processResult.ExitCode == 0,
+                    "The package unlist via Nuget.exe succeeded but was expected to fail. Check the logs to see the process error and output stream.  Exit Code: " +
+                    processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
+            }
         }
 
-        /// <summary>
-        /// Throws if the specified package cannot be found in the source.
-        /// </summary>
-        /// <param name="packageId">Id of the package.</param>
-        /// <param name="version">Version of the package.</param>
-        public void VerifyPackageExistsInSource(string packageId, string version = "1.0.0")
+        public class PackageInfo
         {
-            var packageExistsInSource = CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
+            public string Id { get; }
+            public string Version { get; }
+            public bool Listed { get; private set; }
+            private string UploadApiKey { get; }
+            private string UnlistApiKey { get; set; }
+            private Task PackageIsReady { get; set; }
+
+            public PackageInfo(string id, string version, string uploadApiKey)
+            {
+                Id = id;
+                Version = version;
+                Listed = true;
+                UploadApiKey = uploadApiKey;
+            }
+
+            public static Task<PackageInfo> CreateForUpload(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                return CreateForUpload(UploadHelper.GetUniquePackageId(), helper, uploadApiKey);
+            }
+
+            private static async Task<PackageInfo> CreateForUpload(string id, ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                var packageInfo = new PackageInfo(
+                    id,
+                    UploadHelper.GetUniquePackageVersion(),
+                    uploadApiKey);
+
+                packageInfo.PackageIsReady = helper.UploadPackage(packageInfo.Id, packageInfo.Version, uploadApiKey, success: true);
+
+                lock (ExistingPackagesLock)
+                {
+                    Packages.Add(packageInfo);
+                }
+
+                await packageInfo.PackageIsReady;
+                return packageInfo;
+            }
+
+            public async Task<PackageInfo> PushNewVersion(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                if (!CanUseApiKeyToPushNewVersion(uploadApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {uploadApiKey} to push a new version of a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(uploadApiKey));
+                }
+
+                await PackageIsReady;
+                return await CreateForUpload(Id, helper, uploadApiKey);
+            }
+
+            public async Task FailToUploadNewVersion(ClientSdkHelper helper, string uploadApiKey = null)
+            {
+                if (CanUseApiKeyToPushNewVersion(uploadApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {uploadApiKey} to fail to push a new version of a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(uploadApiKey));
+                }
+
+                await PackageIsReady;
+                await helper.UploadPackage(Id, UploadHelper.GetUniquePackageVersion(), uploadApiKey, success: false);
+            }
+
+            public async Task Unlist(ClientSdkHelper helper, string unlistApiKey = null)
+            {
+                if (!CanUseApiKeyToUnlist(unlistApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {unlistApiKey} to unlist a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(unlistApiKey));
+                }
+
+                await PackageIsReady;
+
+                lock (ExistingPackagesLock)
+                {
+                    Listed = false;
+                    UnlistApiKey = unlistApiKey;
+                    PackageIsReady = helper.UnlistPackage(Id, Version, unlistApiKey, success: true);
+                }
+
+                await PackageIsReady;
+            }
+
+            public async Task FailToUnlist(ClientSdkHelper helper, string unlistApiKey = null)
+            {
+                if (CanUseApiKeyToUnlist(unlistApiKey))
+                {
+                    throw new ArgumentException($"Cannot use {unlistApiKey} to fail to unlist a package ({Id} {Version}) that was pushed by {UploadApiKey}.", nameof(unlistApiKey));
+                }
+
+                await PackageIsReady;
+                await helper.UnlistPackage(Id, UploadHelper.GetUniquePackageVersion(), unlistApiKey, success: false);
+            }
+
+            public bool HasSameOwnerAsApiKey(string apiKey)
+            {
+                return MapApiKeyToOwner(UploadApiKey) == MapApiKeyToOwner(apiKey);
+            }
+
+            public bool CanUseApiKeyToPushNewVersion(string apiKey)
+            {
+                // An API key can be used to upload a new version of this package if
+                // - it has the same owner as the API key that was used to push
+                // - it has a scope that allows pushing new versions
+                return HasSameOwnerAsApiKey(apiKey) && 
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyUnlist;
+            }
+            
+            public bool CanUseApiKeyToUnlist(string apiKey)
+            {
+                // An API key can be used to unlist this package if
+                // - it has the same owner as the API key that was used to push
+                // - it has a scope that allows unlisting
+                return HasSameOwnerAsApiKey(apiKey) && 
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyPush && 
+                    apiKey != GalleryConfiguration.Instance.Account.ApiKeyPushVersion;
+            }
+
+            public bool WasUploadedByApiKey(string apiKey)
+            {
+                return apiKey == UploadApiKey;
+            }
+
+            public bool WasUnlistedByApiKey(string apiKey)
+            {
+                return apiKey == UnlistApiKey;
+            }
+
+            private static string MapApiKeyToOwner(string apiKey)
+            {
+                if (apiKey == null ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKey ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyPush ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyPushVersion ||
+                    apiKey == GalleryConfiguration.Instance.Account.ApiKeyUnlist)
+                {
+                    return GalleryConfiguration.Instance.Account.Name;
+                }
+                else if (apiKey == GalleryConfiguration.Instance.AdminOrganization.ApiKey)
+                {
+                    return GalleryConfiguration.Instance.AdminOrganization.Name;
+                }
+                else if (apiKey == GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey)
+                {
+                    return GalleryConfiguration.Instance.CollaboratorOrganization.Name;
+                }
+
+                throw new ArgumentOutOfRangeException(nameof(apiKey));
+            }
+        }
+
+        public async Task VerifyPackageExistsInV2AndV3Async(string packageId, string version)
+        {
+            var packageExistsInSource = await CheckIfPackageVersionExistsInV2AndV3Async(packageId, version);
+            Assert.True(packageExistsInSource,
+                $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
+        }
+
+        public async Task VerifyPackageExistsInV2Async(string packageId, string version)
+        {
+            var packageExistsInSource = await CheckIfPackageVersionExistsInV2Async(packageId, version);
             Assert.True(packageExistsInSource,
                 $"Package {packageId} with version {version} is not found on the site {UrlHelper.V2FeedRootUrl}.");
         }
@@ -201,7 +550,7 @@ namespace NuGetGallery.FunctionalTests
             return version.ToString();
         }
 
-        public void VerifyVersionCount(string packageId, int expectedVersionCount, bool allowPreRelease = true)
+        public async Task VerifyVersionCountAsync(string packageId, int expectedVersionCount, bool allowPreRelease = true)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
 
@@ -209,7 +558,7 @@ namespace NuGetGallery.FunctionalTests
             // gallery handles this request, it delegates to the search service. Since the search service can lag being
             // the gallery database (due to the time it takes for packages to make it through the V3 pipeline and into
             // an active Lucene index), we retry the request for a while.
-            Assert.True(VerifyWithRetry(
+            Assert.True(await VerifyWithRetryAsync(
                 $"Verifying count of {packageId} versions is {expectedVersionCount}",
                 () =>
                 {
@@ -222,7 +571,7 @@ namespace NuGetGallery.FunctionalTests
 
                     var versionsDisplay = string.Join(", ", packages.Select(p => p.Version));
                     WriteLine($"{actualVersionCount} versions of {packageId} found: {versionsDisplay}");
-                    return actualVersionCount == expectedVersionCount;
+                    return Task.FromResult(actualVersionCount == expectedVersionCount);
                 }));
         }
 
@@ -253,7 +602,7 @@ namespace NuGetGallery.FunctionalTests
         public static int GetDownLoadStatisticsForPackageVersion(string packageId, string packageVersion)
         {
             var repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            var package = repo.FindPackage(packageId, new SemanticVersion(packageVersion));
+            var package = repo.FindPackage(packageId, new NuGet.SemanticVersion(packageVersion));
             return package.DownloadCount;
         }
 
@@ -292,7 +641,7 @@ namespace NuGetGallery.FunctionalTests
         public bool IsPackageVersionUnListed(string packageId, string version)
         {
             IPackageRepository repo = PackageRepositoryFactory.Default.CreateRepository(SourceUrl);
-            IPackage package = repo.FindPackage(packageId, new SemanticVersion(version), true, true);
+            IPackage package = repo.FindPackage(packageId, new NuGet.SemanticVersion(version), true, true);
             if (package != null)
                 return !package.Listed;
             else
@@ -356,7 +705,7 @@ namespace NuGetGallery.FunctionalTests
             var packageRepository = PackageRepositoryFactory.Default.CreateRepository(UrlHelper.V2FeedRootUrl);
             var packageManager = new PackageManager(packageRepository, Environment.CurrentDirectory);
 
-            packageManager.InstallPackage(packageId, new SemanticVersion(version));
+            packageManager.InstallPackage(packageId, new NuGet.SemanticVersion(version));
 
             Assert.True(CheckIfPackageVersionInstalled(packageId, version),
                 "Package install failed. Either the file is not present on disk or it is corrupted. Check logs for details");

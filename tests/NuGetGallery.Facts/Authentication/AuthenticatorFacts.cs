@@ -101,14 +101,14 @@ namespace NuGetGallery.Authentication
             public void IgnoresAbstractAndNonAuthenticatorTypes()
             {
                 // Act
-                var authers = Authenticator.GetAllAvailable(new[] {
+                var authenticators = Authenticator.GetAllAvailable(new[] {
                     typeof(ATestAuthenticator),
                     typeof(Authenticator),
                     typeof(TheGetAllAvailableMethod)
                 }).ToArray();
 
-                Assert.Equal(1, authers.Length);
-                Assert.IsType<ATestAuthenticator>(authers[0]);
+                Assert.Single(authenticators);
+                Assert.IsType<ATestAuthenticator>(authenticators[0]);
             }
         }
 

@@ -16,7 +16,7 @@
         "Add Owner");
 
     var failHandler = function (jqXHR, textStatus, errorThrown) {
-        viewModel.message('An unexpected error occurred! "' + errorThrown + '"');
+        viewModel.message(window.nuget.formatString(errorThrown));
     };
 
     var viewModel = {
@@ -31,7 +31,59 @@
         message: ko.observable(''),
 
         IsAllowedToRemove: function (owner) {
-            return true;
+            if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
+                || owner.pending()) {
+                return true;
+            }
+
+            if (this.owners().length < 2) {
+                return false;
+            }
+
+            var approvedOwner = 0;
+            var currentOwnerOwnsNamespace = false;
+            var namespaceOwnerCount = 0;
+
+            ko.utils.arrayForEach(this.owners(), function (owner) {
+                if (owner.pending() === false) {
+                    approvedOwner++;
+                }
+
+                if (owner.grantsCurrentUserAccess) {
+                    currentOwnerOwnsNamespace = currentOwnerOwnsNamespace || owner.isNamespaceOwner();
+                }
+
+                if (owner.isNamespaceOwner() === true) {
+                    namespaceOwnerCount++;
+                }
+            });
+
+            return approvedOwner >= 2
+                && (!owner.isNamespaceOwner()
+                    || (currentOwnerOwnsNamespace
+                        && namespaceOwnerCount >= 2));
+        },
+        
+        IsOnlyUserGrantingAccessToCurrentUser: function (item) {
+            if (!item.grantsCurrentUserAccess) {
+                // If the user we are trying to remove is not granting the current user access, they cannot be the only user granting access to the current user.
+                return false;
+            }
+
+            if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()) {
+                // If user is an admin, removing any user will not remove their ability to manage package owners.
+                return false;
+            }
+
+            var numUsersGrantingCurrentUserAccess = 0;
+
+            ko.utils.arrayForEach(this.owners(), function (owner) {
+                if (owner.grantsCurrentUserAccess) {
+                    numUsersGrantingCurrentUserAccess++;
+                }
+            });
+
+            return numUsersGrantingCurrentUserAccess < 2;
         },
 
         resetAddOwnerConfirmation: function () {
@@ -44,44 +96,22 @@
             $("#newOwnerUserName").focus();
         },
 
-        confirmAddOwner: function () {
-            viewModel.message("");
-
+        addOwner: function () {
             var newUsername = viewModel.newOwnerUsername();
             if (!newUsername) {
-                viewModel.message("Please enter a valid user name.");
+                viewModel.message(strings_InvalidUsername);
                 return;
             }
 
             var existingOwner = ko.utils.arrayFirst(
                 viewModel.owners(),
-                function (owner) { return owner.name().toUpperCase() == newUsername.toUpperCase() });
+                function (owner) { return owner.name().toUpperCase() === newUsername.toUpperCase(); });
 
             if (existingOwner) {
-                viewModel.message("The user '" + newUsername + "' is already an owner or pending owner of this package.");
+                viewModel.message(window.nuget.formatString(strings_AlreadyPending, newUsername));
                 return;
             }
 
-            $.ajax({
-                url: getAddPackageOwnerConfirmationUrl + '?id=' + viewModel.package.id + '&username=' + newUsername,
-                cache: false,
-                dataType: 'json',
-                type: 'GET',
-                success: function (data) {
-                    if (data.success) {
-                        viewModel.confirmation(data.confirmation);
-                        viewModel.policyMessage(data.policyMessage);
-                    }
-                    else {
-                        viewModel.message(data.message);
-                    }
-                }
-            })
-            .error(failHandler);
-        },
-
-        addOwner: function () {
-            var newUsername = viewModel.newOwnerUsername();
             var message = viewModel.newOwnerMessage();
 
             var ownerInputModel =
@@ -98,7 +128,7 @@
                 data: window.nuget.addAjaxAntiForgeryToken(ownerInputModel),
                 success: function (data) {
                     if (data.success) {
-                        var newOwner = new Owner(data.name, data.profileUrl, data.imageUrl, /* pending */ true, data.current);
+                        var newOwner = new Owner(data.model);
                         viewModel.owners.push(newOwner);
 
                         // reset the Username textbox
@@ -118,8 +148,15 @@
         },
 
         removeOwner: function (item) {
-            if (item.current) {
-                if (!confirm("Are you sure you want to remove yourself from the owners?")) {
+            var isOnlyUserGrantingAccessToCurrentUser = viewModel.IsOnlyUserGrantingAccessToCurrentUser(item);
+            var isOnlyUserGrantingAccessToCurrentUserMessage = isOnlyUserGrantingAccessToCurrentUser ? strings_RemovingOwnership : "";
+
+            if (item.isCurrentUserAdminOfOrganization) {
+                if (!confirm(strings_RemovingOrganization + " " + isOnlyUserGrantingAccessToCurrentUserMessage)) {
+                    return;
+                }
+            } else if (item.grantsCurrentUserAccess) {
+                if (!confirm(strings_RemovingSelf + " " + isOnlyUserGrantingAccessToCurrentUserMessage)) {
                     return;
                 }
             }
@@ -134,7 +171,7 @@
                 }),
                 success: function (data) {
                     if (data.success) {
-                        if (item.current) {
+                        if (isOnlyUserGrantingAccessToCurrentUser) {
                             window.location.href = packageUrl;
                         }
 
@@ -151,40 +188,6 @@
         }
     };
 
-    viewModel.IsAllowedToRemove = function (owner) {
-        if (isUserAnAdmin.toLocaleLowerCase() === "True".toLocaleLowerCase()
-            || owner.pending()) {
-            return true;
-        };
-
-        if (this.owners().length < 2) {
-            return false;
-        }
-
-        var approvedOwner = 0;
-        var currentOwnerOwnsNamespace = false;
-        var namespaceOwnerCount = 0;
-
-        ko.utils.arrayForEach(this.owners(), function (owner) {
-            if (owner.pending() === false) {
-                approvedOwner++;
-            }
-
-            if (owner.current === true) {
-                currentOwnerOwnsNamespace = owner.isNamespaceOwner();
-            }
-
-            if (owner.isNamespaceOwner() === true) {
-                namespaceOwnerCount++;
-            }
-        });
-
-        return approvedOwner >= 2
-            && (!owner.isNamespaceOwner()
-                || (currentOwnerOwnsNamespace
-                    && namespaceOwnerCount >= 2));
-    };
-
     ko.applyBindings(viewModel);
 
     // Load initial owners.
@@ -194,17 +197,18 @@
         dataType: 'json',
         type: 'GET',
         success: function (data) {
-            viewModel.owners($.map(data, function (item) { return new Owner(item.name, item.profileUrl, item.imageUrl, item.pending, item.current, item.isNamespaceOwner); }));
+            viewModel.owners($.map(data, function (item) { return new Owner(item); }));
         }
     })
     .error(failHandler);
 
-    function Owner(name, profileUrl, imageUrl, pending, current, isNamespaceOwner) {
-        this.name = ko.observable(name);
-        this.profileUrl = ko.observable(profileUrl);
-        this.imageUrl = ko.observable(imageUrl);
-        this.pending = ko.observable(pending);
-        this.current = current;
-        this.isNamespaceOwner = ko.observable(isNamespaceOwner);
+    function Owner(data) {
+        this.name = ko.observable(data.Name);
+        this.profileUrl = ko.observable(data.ProfileUrl);
+        this.imageUrl = ko.observable(data.ImageUrl);
+        this.pending = ko.observable(data.Pending);
+        this.grantsCurrentUserAccess = data.GrantsCurrentUserAccess;
+        this.isCurrentUserAdminOfOrganization = data.IsCurrentUserAdminOfOrganization;
+        this.isNamespaceOwner = ko.observable(data.IsNamespaceOwner);
     }
 });

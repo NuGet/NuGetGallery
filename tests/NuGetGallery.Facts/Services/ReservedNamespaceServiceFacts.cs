@@ -201,7 +201,7 @@ namespace NuGetGallery.Services
                     .Verify(x => x.CommitChangesAsync());
                 service
                     .MockPackageService
-                    .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()), Times.Never);
+                    .Verify(p => p.UpdatePackageVerifiedStatusAsync(It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Fact]
@@ -273,7 +273,8 @@ namespace NuGetGallery.Services
                             It.Is<IReadOnlyCollection<PackageRegistration>>(
                                 list => list.Count() == registrationsShouldUpdate.Count()
                                     && list.Any(pr => registrationsShouldUpdate.Any(ru => ru.Id == pr.Id))),
-                            false),
+                            false,
+                            true),
                         Times.Once);
 
                 msPrefix.PackageRegistrations.ToList().ForEach(rn => Assert.False(rn.IsVerified));
@@ -361,7 +362,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), It.IsAny<bool>()),
                         Times.Never);
 
                 Assert.True(existingNamespace.Owners.Contains(owner));
@@ -414,7 +415,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), true),
                         Times.Once);
 
                 Assert.True(existingNamespace.Owners.Contains(owner1));
@@ -463,7 +464,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), true),
                         Times.Once);
 
                 Assert.True(existingNamespace.Owners.Contains(owner1));
@@ -549,15 +550,12 @@ namespace NuGetGallery.Services
 
         public class TheRemovePackageRegistrationFromNamespaceMethod
         {
-            [Theory]
-            [InlineData(null)]
-            [InlineData("")]
-            [InlineData("  ")]
-            public void NullNamespaceThrowsException(string value)
+            [Fact]
+            public void NullNamespaceThrowsException()
             {
                 var service = new TestableReservedNamespaceService();
 
-                Assert.Throws<ArgumentException>(() => service.RemovePackageRegistrationFromNamespace(value, new PackageRegistration()));
+                Assert.Throws<ArgumentNullException>(() => service.RemovePackageRegistrationFromNamespace(null, new PackageRegistration()));
             }
 
             [Fact]
@@ -565,18 +563,7 @@ namespace NuGetGallery.Services
             {
                 var service = new TestableReservedNamespaceService();
 
-                Assert.Throws<ArgumentNullException>(() => service.RemovePackageRegistrationFromNamespace("Microsoft.", null));
-            }
-
-            [Fact]
-            public void NonExistentNamespaceThrowsException()
-            {
-                var testNamespaces = ReservedNamespaceServiceTestData.GetTestNamespaces();
-                var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
-                var existingReg = testPackageRegistrations.First();
-                var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
-
-                Assert.Throws<InvalidOperationException>(() => service.RemovePackageRegistrationFromNamespace("Non.Existent.Namespace.", existingReg));
+                Assert.Throws<ArgumentNullException>(() => service.RemovePackageRegistrationFromNamespace(new ReservedNamespace(), null));
             }
 
             [Fact]
@@ -587,11 +574,13 @@ namespace NuGetGallery.Services
                 var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 existingNamespace.PackageRegistrations.Add(existingReg);
+                existingReg.ReservedNamespaces.Add(existingNamespace);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
-                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+                service.RemovePackageRegistrationFromNamespace(existingNamespace, existingReg);
 
                 Assert.False(existingNamespace.PackageRegistrations.Contains(existingReg));
+                Assert.False(existingReg.ReservedNamespaces.Contains(existingNamespace));
             }
 
             [Fact]
@@ -602,9 +591,10 @@ namespace NuGetGallery.Services
                 var testPackageRegistrations = ReservedNamespaceServiceTestData.GetRegistrations();
                 var existingReg = testPackageRegistrations.First();
                 existingNamespace.PackageRegistrations.Add(existingReg);
+                existingReg.ReservedNamespaces.Add(existingNamespace);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, packageRegistrations: testPackageRegistrations);
 
-                service.RemovePackageRegistrationFromNamespace(existingNamespace.Value, existingReg);
+                service.RemovePackageRegistrationFromNamespace(existingNamespace, existingReg);
 
                 service
                     .MockReservedNamespaceRepository
@@ -694,7 +684,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), true),
                         Times.Never);
 
                 Assert.False(existingNamespace.Owners.Contains(owner));
@@ -754,7 +744,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), true),
                         Times.Once);
 
                 Assert.False(existingNamespace.Owners.Contains(owner1));
@@ -799,7 +789,7 @@ namespace NuGetGallery.Services
                 service
                     .MockPackageService
                     .Verify(p => p.UpdatePackageVerifiedStatusAsync(
-                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>()),
+                        It.IsAny<IReadOnlyCollection<PackageRegistration>>(), It.IsAny<bool>(), true),
                         Times.Once);
 
                 Assert.False(existingNamespace.Owners.Contains(owner1));
@@ -809,7 +799,7 @@ namespace NuGetGallery.Services
             }
         }
 
-        public class TheIsPushAllowedMethod
+        public class TheShouldMarkNewPackageVerifiedMethod
         {
             [Theory]
             [InlineData("Microsoft.Aspnet")]
@@ -829,9 +819,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.False(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.ReservedNamespaceFailure, isPushAllowed);
             }
 
             [Theory]
@@ -850,9 +841,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -870,9 +862,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
                 Assert.NotEmpty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -889,9 +882,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -911,9 +905,10 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, lastUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(lastUser, lastUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(lastUser, id, out var matchingNamespaces);
                 Assert.Empty(matchingNamespaces);
-                Assert.True(isPushAllowed);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
             }
 
             [Theory]
@@ -930,8 +925,9 @@ namespace NuGetGallery.Services
                 existingNamespace.Owners.Add(firstUser);
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-                Assert.True(isPushAllowed);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == 1);
             }
@@ -953,8 +949,9 @@ namespace NuGetGallery.Services
 
                 var service = new TestableReservedNamespaceService(reservedNamespaces: testNamespaces, users: testUsers);
 
-                var isPushAllowed = service.IsPushAllowed(id, firstUser, out IReadOnlyCollection<ReservedNamespace> matchingNamespaces);
-                Assert.True(isPushAllowed);
+                var isPushAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(firstUser, firstUser, new ActionOnNewPackageContext(id, service));
+                var shouldMarkNewPackageVerified = service.ShouldMarkNewPackageIdVerified(firstUser, id, out var matchingNamespaces);
+                Assert.Equal(PermissionsCheckResult.Allowed, isPushAllowed);
                 Assert.NotEmpty(matchingNamespaces);
                 Assert.True(matchingNamespaces.Count() == prefixes.Count());
             }

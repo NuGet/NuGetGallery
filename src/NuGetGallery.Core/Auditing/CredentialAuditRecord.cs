@@ -31,10 +31,19 @@ namespace NuGetGallery.Auditing
             Identity = credential.Identity;
 
             // Track the value for credentials that are definitely revocable (API Key, etc.) and have been removed
-            if (removed && !CredentialTypes.IsPassword(credential.Type))
+            if (removed)
             {
-                Value = credential.Value;
+                if (Type == null)
+                {
+                    throw new ArgumentNullException(nameof(credential.Type));
+                }
+
+                if (!credential.IsPassword())
+                {
+                    Value = credential.Value;
+                }
             }
+
             Created = credential.Created;
             Expires = credential.Expires;
             LastUsed = credential.LastUsed;
@@ -43,7 +52,8 @@ namespace NuGetGallery.Auditing
             Scopes = new List<ScopeAuditRecord>();
             foreach (var scope in credential.Scopes)
             {
-                Scopes.Add(new ScopeAuditRecord(scope.Subject, scope.AllowedAction));
+                var ownerScope = scope.Owner?.Username;
+                Scopes.Add(new ScopeAuditRecord(ownerScope, scope.Subject, scope.AllowedAction));
             }
         }
     }

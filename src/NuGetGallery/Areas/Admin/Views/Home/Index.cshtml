@@ -31,6 +31,17 @@
         </li>
         <li>
             <h2>
+                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "LockPackage")">
+                    <i class="icon-lock action-menu-icon"></i>
+                    <span class="action-menu-text">Lock Packages</span>
+                </a>
+            </h2>
+            <p>
+                Lock and unlock packages on the gallery.
+            </p>
+        </li>
+        <li>
+            <h2>
                 <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Delete")">
                     <i class="icon-trash action-menu-icon"></i>
                     <span class="action-menu-text">Delete Packages</span>
@@ -119,8 +130,19 @@
                     Inspect Package Validations
                 </p>
             </li>
+            <li>
+                <h2>
+                    <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Revalidation")">
+                        <i class="icon-check action-menu-icon"></i>
+                        <span class="action-menu-text">Revalidation Job</span>
+                    </a>
+                </h2>
+                <p>
+                    Inspect the Revalidation job
+                </p>
+            </li>
         }
-	<li>
+        <li>
             <h2>
                 <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "DeleteAccount")">
                     <i class="icon-trash action-menu-icon"></i>

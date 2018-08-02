@@ -6,34 +6,11 @@
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-@helper Section(
-    string id,
-    string title,
-    Func<MvcHtmlString, HelperResult> content,
-    bool expanded = true,
-    string expandedIcon = "ChevronDown",
-    string collapsedIcon = "ChevronRight")
-{
-    <h2>
-        <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
-           aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
-            <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
-               aria-hidden="@(expanded ? "false" : "true")"></i>
-            <span>@title</span>
-        </a>
-    </h2>
-    <div class="panel-collapse collapse @(expanded ? "in" : string.Empty)" id="@id-container">
-        @content(MvcHtmlString.Empty)
-    </div>
-}
-
 <section role="main" class="container main-container page-api-keys">
-    <form id="AntiForgeryForm">
-        @Html.AntiForgeryToken()
-    </form>
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
-            <h1 class="text-center">API Keys</h1>
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>API keys</text>)
             <p>
                 An API key is a token that can identify you to @(Config.Current.Brand). The
                 <a href="https://docs.nuget.org/Consume/Command-Line-Reference">NuGet command-line utility</a> allows
@@ -61,21 +38,19 @@
 
                 <div data-bind="template: 'error-container'"></div>
                 
-                @Section(
+                @ViewHelpers.Section(this,
                     "create",
                     "Create",
                     @<text>
-                        <div class="panel panel-default upsert-api-key">
-                            <div class="panel-body"
-                                 data-bind="template: { name: 'upsert-api-key', data: NewApiKey }">
-                            </div>
+                        <div class="upsert-api-key">
+                            <div class="panel-body" data-bind="template: { name: 'upsert-api-key', data: NewApiKey }"></div>
                         </div>
                     </text>,
                     expanded: false,
                     expandedIcon: "Subtraction",
                     collapsedIcon: "Add")
 
-                @Section(
+                @ViewHelpers.Section(this,
                     "manage",
                     "Manage",
                     @<text>
@@ -126,9 +101,9 @@
     <!-- ko if: AnyJustRegenerated -->
     @ViewHelpers.AlertWarning(
         @<text>
-            Your API key has been regenerated. Make sure to copy your new API key now using the
-            <b>Copy</b>
-            button below. You will not be able to do so again.
+        Your API key has been regenerated. Make sure to copy your new API key now using the
+        <b>Copy</b>
+        button below. You will not be able to do so again.
         </text>,
         isAlertRole: true)
     <!-- /ko -->
@@ -174,6 +149,10 @@
                         <!-- /ko -->
                     </li>
                 </ul>
+                <!-- ko if: Owner -->
+                <b>Package owner:</b> <span data-bind="text: Owner"></span>
+                <br />
+                <!-- /ko -->
                 <!-- ko if: ShortPackageList().length > 0 -->
                 <b>Packages:</b>
                 <!-- ko if: RemainingPackageList().length > 0 -->
@@ -206,7 +185,7 @@
                         </a>
                     </li>
                     <!-- /ko -->
-                    <!-- ko ifnot: IsNonScopedV1ApiKey -->
+                    <!-- ko ifnot: IsNonScopedApiKey -->
                     <li>
                         <a class="icon-link" href="#" role="button" data-toggle="collapse"
                            data-bind="attr: { 'data-target': '#' + EditContainerId(),
@@ -234,6 +213,7 @@
                 </ul>
             </div>
         </div>
+
         <div class="upsert-api-key">
             <div class="panel panel-default panel-collapse collapse"
                  data-bind="attr: { id: EditContainerId() },
@@ -267,10 +247,10 @@
             @if (Model.ExpirationInDaysForApiKeyV1 > 0)
             {
                 <div class="col-sm-5 form-group">
-                    <label data-bind="attr: { for: ExpiresInId }">Expires In</label>
+                    <label data-bind="attr: { id: ExpiresInId() + '-label', for: ExpiresInId() }">Expires In</label>
                     <select class="form-control"
-                            data-bind="attr: { id: ExpiresInId,
-                                               name: ExpiresInId,
+                            data-bind="attr: { id: ExpiresInId(),
+                                               name: ExpiresInId(),
                                                'aria-labelledby': ExpiresInId() + '-label' },
                                        value: ExpiresIn">
                         @if (Model.ExpirationInDaysForApiKeyV1 == 365)
@@ -293,6 +273,19 @@
                 </div>
             }
         </div>
+
+        <div class="row" style="@(Model.PackageOwners.Count == 1 ? "display:none" : "")">
+            <div class="col-sm-7 form-group">
+                <label data-bind="attr: { for: PackageOwnerId,
+                                            id: PackageOwnerId() + '-label' }">Package Owner</label>
+                    <select class="form-control"
+                            data-bind="attr: { id: PackageOwnerId,
+                                                    name: PackageOwnerId,
+                                                    'aria-labelledby': PackageOwnerId() + '-label' },
+                                            options: PackageOwners, value: PackageOwner, optionsText: 'Owner'"></select>
+            </div>
+        </div>
+
         <div class="row">
             <div class="col-sm-12 form-group">
                 <b class="ms-fontSize-xl">Select Scopes</b>
@@ -304,7 +297,7 @@
                     <li>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" data-bind="checked: PushEnabled" />
+                                <input type="checkbox" data-bind="checked: PushEnabled, enable: PushAnyEnabled" />
                                 Push
                             </label>
                         </div>
@@ -313,8 +306,8 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePush"
-                                               data-bind="checked: PushScope, enable: PushEnabled,
-                                                          attr: { id: PackagePushId }" checked />
+                                               data-bind="checked: PushScope, enable: PushNewEnabled,
+                                                          attr: { id: PackagePushId }" />
                                     </div>
                                     <label data-bind="attr: { for: PackagePushId }">
                                         @NuGetScopes.Describe(NuGetScopes.PackagePush)
@@ -325,7 +318,7 @@
                                 <div class="radio">
                                     <div class="label-sibling">
                                         <input name="PushScope" type="radio" value="@NuGetScopes.PackagePushVersion"
-                                               data-bind="checked: PushScope, enable: PushEnabled,
+                                               data-bind="checked: PushScope, enable: PushExistingEnabled,
                                                           attr: { id: PackagePushVersionId }" />
                                     </div>
                                     <label data-bind="attr: { for: PackagePushVersionId }">
@@ -339,7 +332,7 @@
                         <div class="checkbox">
                             <label>
                                 <input type="checkbox" value="@NuGetScopes.PackageUnlist"
-                                       data-bind="checked: UnlistScope" />
+                                       data-bind="checked: UnlistScopeChecked, enable: UnlistEnabled" />
                                 @NuGetScopes.Describe(NuGetScopes.PackageUnlist)
                             </label>
                         </div>
@@ -352,12 +345,12 @@
             <div class="col-sm-12">
                 <b class="ms-fontSize-xl">Select Packages</b>
                 <p>
-                    To select which pages to associate with a key, use a glob pattern, select
+                    To select which packages to associate with a key, use a glob pattern, select
                     individual packages, or both.
                 </p>
                 <div class="has-error">
                     <span class="help-block" data-bind="text: SubjectsError"></span>
-                </div>                
+                </div>
                 <div class="has-error">
                     <span class="field-validation-valid help-block"
                           data-valmsg-replace="true"
@@ -379,12 +372,12 @@
                 <div class="form-group">
                     <input type="text" class="form-control" data-val="true"
                            data-val-regex="Invalid glob pattern. See the example glob patterns below for further details."
-                           data-val-regex-pattern="^[\*\w_.-]*$" 
+                           data-val-regex-pattern="^[\*\w_.-]*$"
                            data-bind="textInput: PendingGlobPattern,
                                       attr: { id: GlobPatternId,
                                               name: GlobPatternId,
                                               'aria-labelledby': GlobPatternId() + '-label ' + GlobPatternId() + '-validation-message' },
-                                      enable: SelectPackagesEnabled"  />
+                                      enable: SelectPackagesEnabled" />
                 </div>
                 <div class="form-group">
                     <label>Available Packages</label>
@@ -435,8 +428,7 @@
         <div class="row" data-bind="css: { disabled: !SelectPackagesEnabled() }">
             <div class="col-sm-12">
                 <p>
-                    <span data-bind="text: SelectedCount"></span>
-                    of @Model.PackageIds.Count package@(Model.PackageIds.Count != 1 ? "s" : string.Empty) selected
+                    <span data-bind="text: SelectedCountLabel"></span>
                 </p>
             </div>
         </div>
@@ -448,7 +440,7 @@
             </div>
             <div class="col-sm-6 form-group">
                 <button data-bind="attr: { 'data-target': '#' + EditContainerId(),
-                                           'aria-controls': EditContainerId,
+                                           'aria-controls': EditContainerId(),
                                            id: CancelEditId },
                                    enable: SelectPackagesEnabled() && !PendingCreateOrEdit(),
                                    click: CancelEdit"
@@ -467,8 +459,10 @@
         var initialData = @Html.Raw(Json.Encode(new
                      {
                          ApiKeys = Model.ApiKeys,
-                         PackageIds = Model.PackageIds,
+                         PackageOwners = Model.PackageOwners,
                          PackagePushScope = NuGetScopes.PackagePush,
+                         PackagePushVersionScope = NuGetScopes.PackagePushVersion,
+                         PackageUnlistScope = NuGetScopes.PackageUnlist,
                          RemoveUrl = Url.RemoveCredential(),
                          RegenerateUrl = Url.RegenerateCredential(),
                          EditUrl = Url.EditCredential(),

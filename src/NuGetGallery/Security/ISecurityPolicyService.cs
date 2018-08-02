@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Web;
-using NuGetGallery.Filters;
 
 namespace NuGetGallery.Security
 {
@@ -17,6 +16,11 @@ namespace NuGetGallery.Security
         /// Available user security policy subscriptions.
         /// </summary>
         IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions { get; }
+
+        /// <summary>
+        /// Available organization security policy subscriptions.
+        /// </summary>
+        IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions { get; }
 
         /// <summary>
         /// Check if a user is subscribed to one or more security policies.
@@ -36,7 +40,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Subscribe a user to one or more security policies.
         /// </summary>
-        Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription);
+        Task<bool> SubscribeAsync(User user, IUserSecurityPolicySubscription subscription, bool commitChanges = true);
 
         /// <summary>
         /// Unsubscribe a user from one or more security policies.
@@ -56,6 +60,17 @@ namespace NuGetGallery.Security
         /// <returns>A task that represents the asynchronous operation.
         /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult" />
         /// instance.</returns>
-        Task<SecurityPolicyResult> EvaluateAsync(SecurityPolicyAction action, HttpContextBase httpContext);
+        Task<SecurityPolicyResult> EvaluateUserPoliciesAsync(SecurityPolicyAction action, HttpContextBase httpContext);
+
+        /// <summary>
+        /// Evaluate any organization security policies for the specified account.
+        /// </summary>
+        /// <param name="action">Security policy action.</param>
+        /// <param name="organization">Organization account.</param>
+        /// <param name="account">User account.</param>
+        /// <returns>A task that represents the asynchronous operation.
+        /// The task result (<see cref="Task{TResult}.Result" />) returns a <see cref="SecurityPolicyResult" />
+        /// instance.</returns>
+        Task<SecurityPolicyResult> EvaluateOrganizationPoliciesAsync(SecurityPolicyAction action, Organization organization, User account);
     }
 }

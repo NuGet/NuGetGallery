@@ -9,12 +9,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Text;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Mvc.Html;
 using System.Web.WebPages;
 using Microsoft.Owin;
+using Microsoft.Owin.Security;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGetGallery.Helpers;
@@ -263,9 +265,19 @@ namespace NuGetGallery
             return html.PasswordFor(expression, htmlAttributes);
         }
 
-        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression)
+        public static HtmlString ShowTextBoxFor<TModel, TProperty>(this HtmlHelper<TModel> html, Expression<Func<TModel, TProperty>> expression, bool enabled = true, string placeholder = null)
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
+            if (!enabled)
+            {
+                htmlAttributes.Add("disabled", "true");
+            }
+
+            if (placeholder != null)
+            {
+                htmlAttributes.Add("placeholder", placeholder);
+            }
+
             return html.TextBoxFor(expression, htmlAttributes);
         }
 
@@ -286,6 +298,19 @@ namespace NuGetGallery
         {
             var htmlAttributes = GetHtmlAttributes(html, expression);
             return html.TextAreaFor(expression, rows, columns, htmlAttributes);
+        }
+
+        public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
+            this HtmlHelper<TModel> html,
+            Expression<Func<TModel, TEnum?>> expression,
+            string emptyItemText)
+          where TEnum : struct
+        {
+            var values = Enum
+                .GetValues(typeof(TEnum))
+                .Cast<TEnum>();
+
+            return ShowEnumDropDownListFor<TModel, TEnum>(html, expression, values, emptyItemText);
         }
 
         public static MvcHtmlString ShowEnumDropDownListFor<TModel, TEnum>(
@@ -328,14 +353,23 @@ namespace NuGetGallery
             var metadata = ModelMetadata.FromLambdaExpression(expression, html.ViewData);
             var propertyName = metadata.PropertyName.ToLower();
 
-            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>
+            return html.ValidationMessageFor(expression, validationMessage: null, htmlAttributes: new Dictionary<string, object>(ValidationHtmlAttributes)
             {
                 { "id", $"{propertyName}-validation-message" },
-                { "class", "help-block" },
-                { "role", "alert" },
-                { "aria-live", "assertive" },
             });
         }
+
+        public static MvcHtmlString ShowValidationMessagesForEmpty(this HtmlHelper html)
+        {
+            return html.ValidationMessage(modelName: string.Empty, htmlAttributes: ValidationHtmlAttributes);
+        }
+
+        private static IDictionary<string, object> ValidationHtmlAttributes = new Dictionary<string, object>
+        {
+            { "class", "help-block" },
+            { "role", "alert" },
+            { "aria-live", "assertive" },
+        };
 
         public static string ToShortNameOrNull(this NuGetFramework frameworkName)
         {
@@ -420,7 +454,8 @@ namespace NuGetGallery
         /// <returns>The current user</returns>
         public static User GetCurrentUser(this IOwinContext self)
         {
-            if (self.Request.User == null)
+            if (self.Request.User == null || 
+                (self.Request.User.Identity != null && !self.Request.User.Identity.IsAuthenticated))
             {
                 return null;
             }
@@ -446,6 +481,57 @@ namespace NuGetGallery
             }
 
             return user;
+        }
+
+        /// <summary>
+        /// This method will add the claim to the OwinContext with default value and update the cookie with the updated claims
+        /// </summary>
+        /// <returns>True if successfully adds the claim to the context, false otherwise</returns>
+        public static bool AddClaim(this IOwinContext self, string claimType, string claimValue = null)
+        {
+            var identity = GetIdentity(self);
+            if (identity == null || !identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            if (identity.TryAddClaim(claimType, claimValue))
+            {
+                // Update the cookies for the newly added claim
+                self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This method will remove the claim from the OwinContext and update the cookie with the updated claims
+        /// </summary>
+        /// <returns>True if successfully removed the claim from context, false otherwise</returns>
+        public static bool RemoveClaim(this IOwinContext self, string claimType)
+        {
+            var identity = GetIdentity(self);
+            if (identity == null || !identity.IsAuthenticated)
+            {
+                return false;
+            }
+
+            if (identity.TryRemoveClaim(claimType))
+            {
+                // Update the cookies for the removed claim
+                self.Authentication.AuthenticationResponseGrant = new AuthenticationResponseGrant(new ClaimsPrincipal(identity), new AuthenticationProperties() { IsPersistent = true });
+                return true;
+            }
+
+            return false;
+        }
+
+        private static IIdentity GetIdentity(IOwinContext context)
+        {
+            var responseGrantIdentity = context.Authentication?.AuthenticationResponseGrant?.Identity;
+            var authenticatedUserIdentity = context.Authentication?.User?.Identity;
+            return responseGrantIdentity ?? authenticatedUserIdentity;
         }
 
         private static User LoadUser(IOwinContext context)

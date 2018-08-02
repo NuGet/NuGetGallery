@@ -18,7 +18,6 @@ namespace NuGetGallery
         {
             Authors = new HashSet<PackageAuthor>();
             Dependencies = new HashSet<PackageDependency>();
-            PackageEdits = new HashSet<PackageEdit>();
             PackageHistories = new HashSet<PackageHistory>();
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
@@ -211,13 +210,7 @@ namespace NuGetGallery
         /// </summary>
         public User User { get; set; }
         public int? UserKey { get; set; }
-
-        /// <summary>
-        /// The set of pending edits to package metadata (for this package).
-        /// Asynchronously updated by the worker.
-        /// </summary>
-        public virtual ICollection<PackageEdit> PackageEdits { get; set; }
-
+        
         /// <summary>
         /// List of historical metadata info of this package (before edits were applied)
         /// </summary>
@@ -231,32 +224,16 @@ namespace NuGetGallery
         /// </summary>
         public PackageStatus PackageStatusKey { get; set; }
 
-        public void ApplyEdit(PackageEdit edit, string hashAlgorithm, string hash, long packageFileSize)
-        {
-            // before we modify this package, record its state in history
-            PackageHistories.Add(new PackageHistory(this));
+        /// <summary>
+        /// Gets or sets the foreign key of the certificate used to sign the package.
+        /// </summary>
+        public int? CertificateKey { get; set; }
 
-            Title = edit.Title;
-            FlattenedAuthors = edit.Authors;
-            Copyright = edit.Copyright;
-            Description = edit.Description;
-            IconUrl = edit.IconUrl;
-            LicenseUrl = edit.LicenseUrl;
-            ProjectUrl = edit.ProjectUrl;
-            RepositoryUrl = edit.RepositoryUrl;
-            ReleaseNotes = edit.ReleaseNotes;
-            RequiresLicenseAcceptance = edit.RequiresLicenseAcceptance;
-            Summary = edit.Summary;
-            Tags = edit.Tags;
-            User = edit.User;
+        /// <summary>
+        /// Gets or sets the certificate used to sign the package.
+        /// </summary>
+        public virtual Certificate Certificate { get; set; }
 
-            Hash = hash;
-            HashAlgorithm = hashAlgorithm;
-            PackageFileSize = packageFileSize;
-
-            var now = DateTime.UtcNow;
-            LastUpdated = now;
-            LastEdited = now;
-        }
+        public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
     }
 }

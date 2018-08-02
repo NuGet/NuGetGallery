@@ -20,6 +20,13 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(cred));
             }
 
+            // Currently ApiKeys.cshtml has single Owner per ApiKey restriction.
+            var owner = cred
+                .Scopes
+                .Select(s => s.Owner)
+                .Distinct()
+                .SingleOrDefault();
+
             var scopes = cred
                 .Scopes
                 .Select(s => s.AllowedAction)
@@ -47,15 +54,17 @@ namespace NuGetGallery
             Description = cred.Description;
             Expires = cred.Expires?.ToString("O");
             HasExpired = cred.HasExpired;
-            IsNonScopedV1ApiKey = cred.IsNonScopedV1ApiKey;
+            IsNonScopedApiKey = cred.IsNonScopedApiKey;
+            Owner = owner;
             Scopes = scopes;
             Packages = packages;
             GlobPattern = globPattern;
         }
 
-        public bool IsNonScopedV1ApiKey { get; set; }
+        public bool IsNonScopedApiKey { get; set; }
         public bool HasExpired { get; set; }
         public string Expires { get; set; }
+        public string Owner { get; set; }
         public IList<string> Scopes { get; set; }
         public IList<string> Packages { get; set; }
         public string GlobPattern { get; set; }

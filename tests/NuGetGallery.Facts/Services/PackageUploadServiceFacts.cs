@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
 using Xunit;
@@ -24,19 +26,19 @@ namespace NuGetGallery
         private static PackageUploadService CreateService(
             Mock<IPackageService> packageService = null,
             Mock<IReservedNamespaceService> reservedNamespaceService = null,
-            Mock<IValidationService> validationService = null)
+            Mock<IValidationService> validationService = null,
+            Mock<IAppConfiguration> config = null)
         {
-            if (packageService == null)
-            {
-                packageService = new Mock<IPackageService>();
-            }
+            packageService = packageService ?? new Mock<IPackageService>();
 
             packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
             packageService.Setup(x => x
-                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()))
-                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified) =>
+                .CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<bool>()))
+                .Returns((PackageArchiveReader packageArchiveReader, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified) =>
                 {
-                    var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+                    var packageMetadata = PackageMetadata.FromNuspecReader(
+                        packageArchiveReader.GetNuspecReader(),
+                        strict: true);
 
                     var newPackage = new Package();
                     newPackage.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = isVerified };
@@ -50,23 +52,21 @@ namespace NuGetGallery
             {
                 reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
-                IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
                 reservedNamespaceService
-                    .Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(new ReservedNamespace[0]);
             }
 
-            if (validationService == null)
-            {
-                validationService = new Mock<IValidationService>();
-            }
+            validationService = validationService ?? new Mock<IValidationService>();
+            config = config ?? new Mock<IAppConfiguration>();
 
             var packageUploadService = new Mock<PackageUploadService>(
                 packageService.Object,
                 new Mock<IPackageFileService>().Object,
                 new Mock<IEntitiesContext>().Object,
                 reservedNamespaceService.Object,
-                validationService.Object);
+                validationService.Object,
+                config.Object);
 
             return packageUploadService.Object;
         }
@@ -74,40 +74,21 @@ namespace NuGetGallery
         public class TheGeneratePackageAsyncMethod
         {
             [Fact]
-            public async Task WillStartAsynchronousValidation()
-            {
-                var validationService = new Mock<IValidationService>();
-
-                var id = "Microsoft.Aspnet.Mvc";
-                var packageUploadService = CreateService(validationService: validationService);
-                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
-                var currentUser = new User();
-
-                var package = await packageUploadService.GeneratePackageAsync(
-                    id,
-                    nugetPackage.Object,
-                    new PackageStreamMetadata(),
-                    currentUser);
-
-                validationService.Verify(
-                    x => x.StartValidationAsync(package),
-                    Times.Once);
-            }
-
-            [Fact]
             public async Task WillCallCreatePackageAsyncCorrectly()
             {
+                var key = 0;
                 var packageService = new Mock<IPackageService>();
                 packageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null);
 
                 var id = "Microsoft.Aspnet.Mvc";
                 var packageUploadService = CreateService(packageService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
-                var currentUser = new User();
+                var owner = new User { Key = key++, Username = "owner" };
+                var currentUser = new User { Key = key++, Username = "user" };
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), currentUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), owner, currentUser);
 
-                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<bool>()), Times.Once);
+                packageService.Verify(x => x.CreatePackageAsync(It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), owner, currentUser, false), Times.Once);
                 Assert.False(package.PackageRegistration.IsVerified);
             }
 
@@ -131,13 +112,17 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = matchingNamepsaces;
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
+                reservedNamespaceService.Setup(s => s.ShouldMarkNewPackageIdVerified(It.IsAny<User>(), It.IsAny<string>(), out userOwnedMatchingNamespaces))
                     .Returns(shouldMarkIdVerified);
+
+                reservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(testNamespaces.ToList().AsReadOnly());
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), firstUser, firstUser);
 
                 Assert.Equal(shouldMarkIdVerified, package.PackageRegistration.IsVerified);
             }
@@ -159,15 +144,252 @@ namespace NuGetGallery
 
                 var reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 IReadOnlyCollection<ReservedNamespace> userOwnedMatchingNamespaces = new List<ReservedNamespace>();
-                reservedNamespaceService.Setup(s => s.IsPushAllowed(It.IsAny<string>(), It.IsAny<User>(), out userOwnedMatchingNamespaces))
-                    .Returns(true);
+                reservedNamespaceService
+                    .Setup(s => s.ShouldMarkNewPackageIdVerified(It.IsAny<User>(), It.IsAny<string>(), out userOwnedMatchingNamespaces))
+                    .Returns(false);
+
+                reservedNamespaceService
+                    .Setup(r => r.GetReservedNamespacesForId(It.IsAny<string>()))
+                    .Returns(testNamespaces.ToList().AsReadOnly());
 
                 var packageUploadService = CreateService(reservedNamespaceService: reservedNamespaceService);
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(id: id);
 
-                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser);
+                var package = await packageUploadService.GeneratePackageAsync(id, nugetPackage.Object, new PackageStreamMetadata(), lastUser, lastUser);
 
                 Assert.False(package.PackageRegistration.IsVerified);
+            }
+        }
+
+        public class TheValidatePackageMethod : FactsBase
+        {
+            private readonly User _currentUser;
+            private User _owner;
+            private Mock<TestPackageReader> _nuGetPackage;
+
+            public TheValidatePackageMethod()
+            {
+                _currentUser = new User
+                {
+                    Key = 1,
+                    UserCertificates = { new UserCertificate() },
+                };
+                _owner = _currentUser;
+                _package.PackageRegistration.Owners = new List<User> { _currentUser };
+                _nuGetPackage = GeneratePackage(isSigned: true);
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(true);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndOneOwner()
+            {
+                _currentUser.UserCertificates.Clear();
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndMultipleOwners()
+            {
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.Owners.Add(new User { Key = _currentUser.Key + 1 });
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerThatIsCurrentUser()
+            {
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.RequiredSigners.Add(_currentUser);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerThatIsOtherUser()
+            {
+                var otherUser = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "Other",
+                };
+                _currentUser.UserCertificates.Clear();
+                _package.PackageRegistration.RequiredSigners.Add(otherUser);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, otherUser.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasAnySignerAndOwnerThatIsOtherUser()
+            {
+                _owner = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "OtherA",
+                };
+                var ownerB = new User
+                {
+                    Key = _owner.Key + 2,
+                    Username = "OtherB",
+                };
+                _package.PackageRegistration.Owners.Clear();
+                _package.PackageRegistration.Owners.Add(_owner);
+                _package.PackageRegistration.Owners.Add(ownerB);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, _owner.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task RejectsSignedPackageIfSigningIsNotAllowed_HasRequiredSignerAndOwnerThatIsOtherUser()
+            {
+                _owner = new User
+                {
+                    Key = _currentUser.Key + 1,
+                    Username = "OtherA",
+                };
+                var ownerB = new User
+                {
+                    Key = _currentUser.Key + 2,
+                    Username = "OtherB",
+                };
+                _package.PackageRegistration.Owners.Clear();
+                _package.PackageRegistration.Owners.Add(_owner);
+                _package.PackageRegistration.Owners.Add(ownerB);
+                _package.PackageRegistration.RequiredSigners.Add(ownerB);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
+                Assert.Equal(
+                    string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, ownerB.Username),
+                    result.Message);
+            }
+
+            [Fact]
+            public async Task AllowsSignedPackageOnOwnerWithNoCertificatesIfConfigAllows()
+            {
+                _currentUser.UserCertificates.Clear();
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(false);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            [Fact]
+            public async Task AllowsSignedPackageIfSigningIsRequired()
+            {
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task RejectsUnsignedPackageIfSigningIsRequiredIrrespectiveOfConfig(bool configFlag)
+            {
+                _nuGetPackage = GeneratePackage(isSigned: false);
+                _config
+                    .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
+                    .Returns(configFlag);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task AllowsBothSignedAndUnsignedPackagesIfSigningIsNotRequired(bool isSigned)
+            {
+                var ownerB = new User
+                {
+                    Key = _currentUser.Key + 1,
+                };
+                _package.PackageRegistration.Owners.Add(ownerB);
+                _nuGetPackage = GeneratePackage(isSigned);
+
+                var result = await _target.ValidatePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+            }
+
+            private static Mock<TestPackageReader> GeneratePackage(bool isSigned)
+            {
+                return PackageServiceUtility.CreateNuGetPackage(
+                    id: "theId",
+                    version: "1.2.3-alpha.0",
+                    isSigned: isSigned);
             }
         }
 
@@ -185,12 +407,17 @@ namespace NuGetGallery
                 .Concat(new[] { (PackageStatus)(-1) })
                 .Where(s => !SupportedPackageStatuses.Any(o => s.Equals(o[0])))
                 .Select(s => new object[] { s });
-            
+
             [Theory]
             [MemberData(nameof(SupportedPackageStatuses))]
             public async Task CommitsAfterSavingSupportedPackageStatuses(PackageStatus packageStatus)
             {
-                _package.PackageStatusKey = packageStatus;
+                _package.PackageStatusKey = PackageStatus.FailedValidation;
+
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _package.PackageStatusKey = packageStatus);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
 
@@ -204,7 +431,12 @@ namespace NuGetGallery
             [MemberData(nameof(UnsupportedPackageStatuses))]
             public async Task RejectsUnsupportedPackageStatuses(PackageStatus packageStatus)
             {
-                _package.PackageStatusKey = packageStatus;
+                _package.PackageStatusKey = PackageStatus.Available;
+
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(_package))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => _package.PackageStatusKey = packageStatus);
 
                 await Assert.ThrowsAsync<ArgumentException>(
                     () => _target.CommitPackageAsync(_package, _packageFile));
@@ -212,6 +444,57 @@ namespace NuGetGallery
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Never);
+            }
+
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task StartsAsynchronousValidation(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _validationService.Verify(
+                    x => x.StartValidationAsync(_package),
+                    Times.Once);
+                _validationService.Verify(
+                    x => x.StartValidationAsync(It.IsAny<Package>()),
+                    Times.Once);
+            }
+
+            [Theory]
+            [MemberData(nameof(SupportedPackageStatuses))]
+            public async Task StartsValidationBeforeOtherPackageOperations(PackageStatus packageStatus)
+            {
+                _package.PackageStatusKey = packageStatus;
+
+                bool otherOperationsDone = false;
+                _validationService
+                    .Setup(vs => vs.StartValidationAsync(It.IsAny<Package>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => Assert.False(otherOperationsDone));
+
+                _entitiesContext
+                    .Setup(ec => ec.SaveChangesAsync())
+                    .Returns(Task.FromResult(1))
+                    .Callback(() => otherOperationsDone = true);
+                _packageFileService
+                    .Setup(pfs => pfs.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => otherOperationsDone = true);
+                _packageFileService
+                    .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback(() => otherOperationsDone = true);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _validationService
+                    .Verify(vs => vs.StartValidationAsync(It.IsAny<Package>()),
+                    Times.AtLeastOnce);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Once);
             }
 
             [Fact]
@@ -227,6 +510,9 @@ namespace NuGetGallery
                 _packageFileService.Verify(
                     x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Never);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Once);
@@ -246,6 +532,9 @@ namespace NuGetGallery
                 _packageFileService.Verify(
                     x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
+                _packageFileService.Verify(
+                    x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Never);
                 _entitiesContext.Verify(
                     x => x.SaveChangesAsync(),
                     Times.Once);
@@ -270,10 +559,27 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task DoesNotCommitToDatabaseWhenTheFileConflicts()
+            public async Task DoesNotCommitToDatabaseWhenThePackageFileConflicts()
             {
                 _packageFileService
                     .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
+                    .Throws(_conflictException);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+                Assert.Equal(PackageCommitResult.Conflict, result);
+            }
+
+            [Fact]
+            public async Task DoesNotCommitToDatabaseWhenTheValidationFileConflicts()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                _packageFileService
+                    .Setup(x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()))
                     .Throws(_conflictException);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
@@ -327,6 +633,36 @@ namespace NuGetGallery
                     Times.Once);
                 Assert.Same(_unexpectedException, exception);
             }
+
+            [Fact]
+            public async Task RejectsUploadWhenValidatingAndPackageExistsInPackagesContainer()
+            {
+                _package.PackageStatusKey = PackageStatus.Validating;
+
+                _packageFileService
+                    .Setup(x => x.DoesPackageFileExistAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true);
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+                
+                _packageFileService.Verify(
+                    x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
+                    Times.Never);
+                _entitiesContext.Verify(
+                    x => x.SaveChangesAsync(),
+                    Times.Never);
+                _packageFileService.Verify(
+                    x => x.DoesPackageFileExistAsync(It.IsAny<Package>()),
+                    Times.Once);
+                _packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once);
+
+                Assert.Equal(PackageCommitResult.Conflict, result);
+            }
         }
 
         public abstract class FactsBase
@@ -336,10 +672,12 @@ namespace NuGetGallery
             protected readonly Mock<IEntitiesContext> _entitiesContext;
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
             protected readonly Mock<IValidationService> _validationService;
+            protected readonly Mock<IAppConfiguration> _config;
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
-            protected InvalidOperationException _conflictException;
+            protected FileAlreadyExistsException _conflictException;
+            protected readonly CancellationToken _token;
             protected readonly PackageUploadService _target;
 
             public FactsBase()
@@ -349,6 +687,7 @@ namespace NuGetGallery
                 _entitiesContext = new Mock<IEntitiesContext>();
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
+                _config = new Mock<IAppConfiguration>();
 
                 _package = new Package
                 {
@@ -360,14 +699,16 @@ namespace NuGetGallery
                 };
                 _packageFile = Stream.Null;
                 _unexpectedException = new ArgumentException("Fail!");
-                _conflictException = new InvalidOperationException("Conflict!");
+                _conflictException = new FileAlreadyExistsException("Conflict!");
+                _token = CancellationToken.None;
 
                 _target = new PackageUploadService(
                     _packageService.Object,
                     _packageFileService.Object,
                     _entitiesContext.Object,
                     _reservedNamespaceService.Object,
-                    _validationService.Object);
+                    _validationService.Object,
+                    _config.Object);
             }
         }
     }

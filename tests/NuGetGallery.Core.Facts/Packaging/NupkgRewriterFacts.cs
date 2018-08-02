@@ -76,7 +76,7 @@ namespace NuGetGallery.Packaging
             using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
             {
                 var nuspec = nupkg.GetNuspecReader();
-                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == PackageMetadataStrings.LicenseUrl), false);
+                Assert.DoesNotContain(nuspec.GetMetadata(), kvp => kvp.Key == PackageMetadataStrings.LicenseUrl);
             }
 
             // Act
@@ -95,9 +95,9 @@ namespace NuGetGallery.Packaging
                 var nuspec = nupkg.GetNuspecReader();
                 Assert.Equal("TestPackage", nuspec.GetId());
                 Assert.Equal(NuGetVersion.Parse("0.0.0.1"), nuspec.GetVersion());
-                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == PackageMetadataStrings.LicenseUrl), true);
-                Assert.Equal(nuspec.GetMetadata().First(kvp => kvp.Key == PackageMetadataStrings.LicenseUrl).Value, "http://myget.org");
-                Assert.Equal(nuspec.GetMetadata().First(kvp => kvp.Key == PackageMetadataStrings.RequireLicenseAcceptance).Value, "true");
+                Assert.Contains(nuspec.GetMetadata(), kvp => kvp.Key == PackageMetadataStrings.LicenseUrl);
+                Assert.Equal("http://myget.org", nuspec.GetMetadata().First(kvp => kvp.Key == PackageMetadataStrings.LicenseUrl).Value);
+                Assert.Contains(nuspec.GetMetadata(), kvp => kvp.Key == PackageMetadataStrings.RequireLicenseAcceptance);
             }
         }
 
@@ -109,7 +109,7 @@ namespace NuGetGallery.Packaging
             using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: true))
             {
                 var nuspec = nupkg.GetNuspecReader();
-                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == PackageMetadataStrings.Title), true);
+                Assert.Contains(nuspec.GetMetadata(), kvp => kvp.Key == PackageMetadataStrings.Title);
             }
 
             // Act
@@ -123,7 +123,7 @@ namespace NuGetGallery.Packaging
             using (var nupkg = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
             {
                 var nuspec = nupkg.GetNuspecReader();
-                Assert.Equal(nuspec.GetMetadata().Any(kvp => kvp.Key == PackageMetadataStrings.Title), false);
+                Assert.DoesNotContain(nuspec.GetMetadata(), kvp => kvp.Key == PackageMetadataStrings.Title);
             }
         }
 

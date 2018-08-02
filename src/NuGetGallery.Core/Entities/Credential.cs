@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -63,6 +64,9 @@ namespace NuGetGallery
         [Required]
         [StringLength(maximumLength: 256)]
         public string Value { get; set; }
+
+        [StringLength(maximumLength: 256)]
+        public string TenantId { get; set; }
 
         [StringLength(maximumLength: 256)]
         public string Description { get; set; }

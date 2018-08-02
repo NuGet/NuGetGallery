@@ -85,7 +85,7 @@ namespace NuGetGallery.Auditing
             Assert.Equal("b", record.Identity);
             Assert.Equal(1, record.Key);
             Assert.Equal(lastUsed, record.LastUsed);
-            Assert.Equal(1, record.Scopes.Count);
+            Assert.Single(record.Scopes);
             var scope = record.Scopes[0];
             Assert.Equal("c", scope.Subject);
             Assert.Equal("d", scope.AllowedAction);

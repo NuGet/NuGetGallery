@@ -2,12 +2,21 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.Blob.Protocol;
+using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
@@ -23,8 +32,8 @@ namespace NuGetGallery.Auditing
         private string _localIP;
         private Func<Task<AuditActor>> _getOnBehalfOf;
 
-        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, Func<Task<AuditActor>> getOnBehalfOf)
-            : this(instanceId, localIP, GetContainer(storageConnectionString), getOnBehalfOf)
+        public CloudAuditingService(string instanceId, string localIP, string storageConnectionString, bool readAccessGeoRedundant, Func<Task<AuditActor>> getOnBehalfOf)
+            : this(instanceId, localIP, GetContainer(storageConnectionString, readAccessGeoRedundant), getOnBehalfOf)
         {
         }
 
@@ -83,11 +92,14 @@ namespace NuGetGallery.Auditing
             }
         }
 
-        private static CloudBlobContainer GetContainer(string storageConnectionString)
+        private static CloudBlobContainer GetContainer(string storageConnectionString, bool readAccessGeoRedundant)
         {
-            return CloudStorageAccount.Parse(storageConnectionString)
-                .CreateCloudBlobClient()
-                .GetContainerReference(DefaultContainerName);
+            var cloudBlobClient = CloudStorageAccount.Parse(storageConnectionString).CreateCloudBlobClient();
+            if (readAccessGeoRedundant)
+            {
+                cloudBlobClient.DefaultRequestOptions.LocationMode = LocationMode.PrimaryThenSecondary;
+            }
+            return cloudBlobClient.GetContainerReference(DefaultContainerName);
         }
 
         private static async Task WriteBlob(string auditData, string fullPath, CloudBlockBlob blob)
@@ -124,6 +136,26 @@ namespace NuGetGallery.Auditing
         public Task<bool> IsAvailableAsync()
         {
             return _auditContainer.ExistsAsync();
+        }
+
+        public override string RenderAuditEntry(AuditEntry entry)
+        {
+            if (entry == null)
+            {
+                throw new ArgumentNullException(nameof(entry));
+            }
+
+            var settings = GetJsonSerializerSettings();
+            settings.Converters.Add(new ObfuscatorJsonConverter(entry));
+            return JsonConvert.SerializeObject(entry, settings);
+        }
+
+        public override bool RecordWillBePersisted(AuditRecord auditRecord)
+        {
+            var packageAuditRecord = auditRecord as PackageAuditRecord;
+
+            return packageAuditRecord != null &&
+                (packageAuditRecord.Action == AuditedPackageAction.Delete || packageAuditRecord.Action == AuditedPackageAction.SoftDelete);
         }
     }
 }

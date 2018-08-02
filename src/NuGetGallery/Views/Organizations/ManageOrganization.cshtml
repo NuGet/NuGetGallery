@@ -1,0 +1,139 @@
+﻿@model OrganizationAccountViewModel
+@using Newtonsoft.Json;
+@{
+    var account = Model.Account;
+
+    ViewBag.Title = "Manage Organization";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    TempData["Parent"] = this;
+}
+
+<section role="main" class="container main-container page-manage-organizations">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.OrganizationsBreadcrumb(
+                Url,
+                CurrentUser,
+                true,
+                @<text>@Model.AccountName</text>)
+
+            @{
+                string membershipString;
+
+                var membership = Model.Account.GetMembershipOfUser(CurrentUser);
+                if (membership == null)
+                {
+                    membershipString = "You are not a member of this organization.";
+                }
+                else
+                {
+                    membershipString = membership.IsAdmin ?
+                        "You are an administrator of this organization." :
+                        "You are a collaborator of this organization.";
+                }
+
+                var permissionsString = "";
+                if (Model.CanManage)
+                {
+                    if (!Model.CanManageMemberships)
+                    {
+                        permissionsString = "You must be an administrator to change its members.";
+                    }
+                }
+                else
+                {
+                    permissionsString = Model.CanManageMemberships ?
+                        "You must be an administrator to make changes to its email settings and profile picture." :
+                        "You must be an administrator to make changes to it.";
+                }
+
+                if (!string.IsNullOrEmpty(permissionsString))
+                {
+                    permissionsString = " " + permissionsString;
+                }
+
+                @membershipString@permissionsString
+            }
+
+            @Html.Partial("_AccountConfirmationNotices", Model)
+
+            @Html.Partial("_AccountChangeEmail", Model)
+
+            @Html.Partial("_AccountChangeNotifications", Model)
+
+            @Html.Partial("_AccountProfilePicture", Model)
+
+            <div id="manage-organization-members-container">
+                @Html.Partial("_OrganizationAccountManageMembers", Model)
+            </div>
+
+            @Html.Partial("_AccountCuratedFeeds", Model)
+
+            @if (Model.IsCertificatesUIEnabled)
+            {
+                @Html.Partial("_AccountCertificates", Model)
+            }
+
+            @if (Model.CanManage)
+            {
+                @ViewHelpers.Section(this,
+                    "delete-organization",
+                    @<text>Delete</text>,
+                    @<text>Delete this organization</text>,
+                    @<text>
+                        <div class="row form-group">
+                            <div class="col-sm-6">
+                                <a role="button" href="@Url.DeleteOrganization(Model.AccountName)"
+                                    class="btn btn-primary form-control">Delete</a>
+                            </div>
+                            <div class="col-sm-6">
+                                <a href="#" role="button" class="btn btn-default form-control" id="cancel-delete-organization">
+                                    Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </text>)
+            }
+        </div>
+    </div>
+</section>
+
+@section BottomScripts {
+    <script type="text/javascript">
+    var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+        {
+            AccountName = Model.AccountName,
+            Members = Model.Members.Select(m => new
+            {
+                Username = m.Username,
+                IsAdmin = m.IsAdmin,
+                IsCurrentUser = m.Username.Equals(CurrentUser.Username, StringComparison.OrdinalIgnoreCase),
+                Pending = m.Pending,
+                GravatarUrl = m.GravatarUrl
+            }),
+            AddMemberUrl = Url.AddOrganizationMember(Model.AccountName),
+            CancelMemberRequestUrl = Url.CancelOrganizationMembershipRequest(Model.AccountName),
+            UpdateMemberUrl = Url.UpdateOrganizationMember(Model.AccountName),
+            DeleteMemberUrl = Url.DeleteOrganizationMember(Model.AccountName),
+            ProfileUrlTemplate = Url.UserTemplate().LinkTemplate
+        }));
+    </script>
+    @ViewHelpers.SectionsScript(this)
+    @Scripts.Render("~/Scripts/gallery/page-manage-organization.min.js")
+    @if (Model.IsCertificatesUIEnabled)
+    {
+        @Scripts.Render("~/Scripts/gallery/certificates.js")
+        <script type="text/javascript">
+            CertificatesManagement.init('@Url.AddOrganizationCertificate(account.Username)', '@Url.GetOrganizationCertificates(account.Username)');
+        </script>
+    }
+
+    <script type="text/html" id="validation-errors">
+        <div data-bind="foreach:$data" class="validation-error-message-list">
+            @ViewHelpers.AlertDanger(@<text><span data-bind="text:$data"></span></text>)
+        </div>
+    </script>
+}

@@ -1,4 +1,5 @@
 ﻿@using System.Web.Mvc
+@using System.Web.Routing
 @using System.Web.Mvc.Html
 @using Microsoft.Web.Helpers
 @using NuGetGallery
@@ -92,13 +93,22 @@
 {
     @AlertWarning(
     @<text>
-        Editing package metadata is not recommended.<br/>
+        Editing package metadata is not supported.<br/>
         <em>
             To make edits to the package metadata, we recommend uploading a new version of the package created using the updated nuspec.
             <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
         </em>
     </text>
         )
+}
+
+@helper AlertPasswordDeprecation()
+{
+    @AlertWarning(
+    @<text>
+        NuGet.org password login is deprecated. Please use a Microsoft account to sign into NuGet gallery.
+    </text>
+    )
 }
 
 @helper AlertPackageVerifyRecommendation()
@@ -236,6 +246,16 @@
         });
 }
 
+@helper UserLinkWithIcon(UrlHelper url, User user) {
+    <span class="ms-noWrap">
+        @if (user is Organization)
+        {
+            <i class="ms-Icon ms-Icon--Group" aria-hidden="true"></i>
+        }
+        <a href="@url.User(user.Username)" title="@user.Username">@user.Username.Abbreviate(15)</a>
+    </span>
+}
+
 @helper WriteMeta(string name, string val) {
     if(!String.IsNullOrEmpty(val)) {
         <meta name="deployment-@name" content="@val" />
@@ -334,6 +354,7 @@
             var cookieService = DependencyResolver.Current.GetService<ICookieComplianceService>();
             if (cookieService.CanWriteNonEssentialCookies(Request))
             {
+		var obfuscatedRequest = ObfuscationHelper.ObfuscateRequestUrl(new HttpContextWrapper(HttpContext.Current), RouteTable.Routes);
                 <script>
                     (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
                     (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -341,6 +362,9 @@
                     })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
                     ga('create', '@propertyId', 'auto');
+                    ga('set', 'anonymizeIp', true);
+                    ga('set', 'page', '@obfuscatedRequest');
+                    ga('set', 'title', '');
                     ga('send', 'pageview');
                 </script>
             }
@@ -431,7 +455,181 @@ var hlp = new AccordionHelper(name, formModelStatePrefix, expanded, page);
 
 @helper AjaxAntiForgeryToken(System.Web.Mvc.HtmlHelper html)
 {
-    <form id="AntiForgeryForm">
+    <form aria-hidden="true" id="AntiForgeryForm">
         @html.AntiForgeryToken()
     </form>
+}
+
+@functions
+{
+    public static List<string> GetSections(dynamic viewBag)
+    {
+        var sections = viewBag.Sections as Lazy<List<string>>;
+        return sections == null ? null : sections.Value;
+    }
+
+    public static void AddSection(dynamic viewBag, string id)
+    {
+        var sections = GetSections(viewBag);
+        if (sections != null)
+        {
+            sections.Add(id);
+        }
+    }
+}
+
+@helper SectionsScript(WebViewPage viewPage)
+{
+    var viewSections = GetSections(viewPage.ViewBag);
+    if (viewSections != null)
+    {
+        <script type="text/javascript">
+            var sections = @viewPage.Html.Raw(Json.Encode(viewSections));
+            for (var i in sections) {
+                var containerId = sections[i] + "-container";
+                window.nuget.configureExpanderHeading(containerId);
+            }
+        </script>
+    }
+}
+
+@helper Section(
+        WebViewPage viewPage,
+        string id,
+        string title,
+        Func<MvcHtmlString, HelperResult> content,
+        bool expanded = true,
+        string expandedIcon = "ChevronDown",
+        string collapsedIcon = "ChevronRight",
+        string disabledIcon = "Lock",
+        bool disabled = false)
+{
+    @Section(viewPage,
+        id,
+        @<text>@title</text>,
+        @<text></text>,
+        content,
+        expanded,
+        expandedIcon,
+        collapsedIcon);
+}
+
+@helper Section(
+            WebViewPage viewPage,
+            string id,
+            Func<MvcHtmlString, HelperResult> title,
+            Func<MvcHtmlString, HelperResult> data,
+            Func<MvcHtmlString, HelperResult> content,
+            bool expanded = false,
+            string expandedIcon = "ChevronDown",
+            string collapsedIcon = "ChevronRight",
+            string disabledIcon = "Lock",
+            bool disabled = false)
+{
+    if (!disabled)
+    {
+        AddSection(viewPage.ViewBag, id);
+    }
+
+    <div class="clearfix">
+        <div class="form-section-title">
+            <h2>
+                @if (!disabled)
+                {
+                    <a href="#" role="button" data-toggle="collapse" data-target="#@id-container"
+                        aria-expanded="@(expanded ? "true" : "false")" aria-controls="@id-container" id="show-@id-container">
+                        <i class="ms-Icon ms-Icon--@(expanded ? expandedIcon : collapsedIcon)"
+                            aria-hidden="@(expanded ? "false" : "true")"></i>
+                        <span>@title(MvcHtmlString.Empty)</span>
+                    </a>
+                }
+                else
+                {
+                    <i class="ms-Icon ms-Icon--@disabledIcon" aria-hidden="true"></i>
+                    <span>@title(MvcHtmlString.Empty)</span>
+                }
+            </h2>
+        </div>
+        <div class="form-section-data">
+            @data(MvcHtmlString.Empty)
+        </div>
+    </div>
+    if (!disabled)
+    {
+        <div class="panel panel-default panel-collapse collapse @(expanded ? "in" : string.Empty)"
+                aria-expanded="@(expanded ? "true" : "false")" id="@id-container">
+            <div class="panel-body">
+                @content(MvcHtmlString.Empty)
+            </div>
+        </div>
+    }
+}
+
+@helper Breadcrumb(bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    <h1 class="ms-font-xl breadcrumb-title">
+        @for (int i = 0; i < segments.Length; i++)
+        {
+            <span class="ms-noWrap">@segments[i](MvcHtmlString.Empty)</span>
+
+            if (i < segments.Length - 1)
+            {
+                <i class="ms-Icon ms-Icon--ChevronRight ms-font-m" aria-hidden="true"></i>
+            }
+        }
+    </h1>
+    if (showDivider)
+    {
+        <hr class="breadcrumb-divider" />
+    }
+}
+
+@helper BreadcrumbWithProfile(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[] 
+    { 
+        @<text><a href="@url.User(currentUser.Username)" aria-label="View my profile"><i class="ms-Icon ms-Icon--Contact ms-font-l" aria-hidden="true"></i></a></text> 
+    }.Concat(segments).ToArray();
+
+    @Breadcrumb(showDivider, newSegments);
+}
+
+@helper PackagesBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyPackages()">Packages</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+}
+
+@helper OrganizationsBreadcrumb(UrlHelper url, User currentUser, bool showDivider, params Func<MvcHtmlString, HelperResult>[] segments)
+{
+    var newSegments = new Func<MvcHtmlString, HelperResult>[]
+    {
+        @<text><a href="@url.ManageMyOrganizations()">Organizations</a></text>
+    }.Concat(segments).ToArray();
+
+    @BreadcrumbWithProfile(url, currentUser, showDivider, newSegments);
+}
+
+@helper RecatpchaScripts(string reCaptchaPublicKey, string submitId)
+{
+    if (!string.IsNullOrEmpty(reCaptchaPublicKey))
+    {
+        <script src='https://www.google.com/recaptcha/api.js' async defer></script>
+        <script type="text/javascript">
+            var $submit = $('@("#" + submitId)');
+            $submit.addClass("g-recaptcha");
+            $submit.attr({
+                'data-sitekey': "@reCaptchaPublicKey",
+                'data-size': "invisible",
+                'data-callback': "onSubmit"
+            });
+            function onSubmit(token) {
+                $submit.parents('form').submit();
+            }
+        </script>
+    }
 }

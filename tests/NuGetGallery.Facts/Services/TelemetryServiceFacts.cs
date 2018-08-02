@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
+using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using Xunit;
@@ -29,12 +30,27 @@ namespace NuGetGallery
         {
             private static Fakes fakes = new Fakes();
 
-            public static IEnumerable<object[]> TrackEventNames_Data
+            public static IEnumerable<object[]> TrackMetricNames_Data
             {
                 get
                 {
                     var package = fakes.Package.Packages.First();
                     var identity = Fakes.ToIdentity(fakes.User);
+                    yield return new object[] { "CertificateActivated",
+                        (TrackAction)(s => s.TrackCertificateActivated("thumbprint"))
+                    };
+
+                    yield return new object[] { "CertificateAdded",
+                        (TrackAction)(s => s.TrackCertificateAdded("thumbprint"))
+                    };
+
+                    yield return new object[] { "CertificateDeactivated",
+                        (TrackAction)(s => s.TrackCertificateDeactivated("thumbprint"))
+                    };
+
+                    yield return new object[] { "PackageRegistrationRequiredSignerSet",
+                        (TrackAction)(s => s.TrackRequiredSignerSet(package.PackageRegistration.Id))
+                    };
 
                     yield return new object[] { "ODataQueryFilter",
                         (TrackAction)(s => s.TrackODataQueryFilterEvent("callContext", true, true, "queryPattern"))
@@ -42,6 +58,38 @@ namespace NuGetGallery
 
                     yield return new object[] { "PackagePush",
                         (TrackAction)(s => s.TrackPackagePushEvent(package, fakes.User, identity))
+                    };
+
+                    yield return new object[] { "PackagePushFailure",
+                        (TrackAction)(s => s.TrackPackagePushFailureEvent("id", new NuGetVersion("1.2.3")))
+                    };
+
+                    yield return new object[] { "PackageUnlisted",
+                        (TrackAction)(s => s.TrackPackageUnlisted(package))
+                    };
+
+                    yield return new object[] { "PackageListed",
+                        (TrackAction)(s => s.TrackPackageListed(package))
+                    };
+
+                    yield return new object[] { "PackageDelete",
+                        (TrackAction)(s => s.TrackPackageDelete(package, isHardDelete: true))
+                    };
+
+                    yield return new object[] { "PackageReupload",
+                        (TrackAction)(s => s.TrackPackageReupload(package))
+                    };
+
+                    yield return new object[] { "PackageReflow",
+                        (TrackAction)(s => s.TrackPackageReflow(package))
+                    };
+
+                    yield return new object[] { "PackageHardDeleteReflow",
+                        (TrackAction)(s => s.TrackPackageHardDeleteReflow(fakes.Package.Id, package.Version))
+                    };
+
+                    yield return new object[] { "PackageRevalidate",
+                        (TrackAction)(s => s.TrackPackageRevalidate(package))
                     };
 
                     yield return new object[] { "CreatePackageVerificationKey",
@@ -59,21 +107,93 @@ namespace NuGetGallery
                     yield return new object[] { "PackagePushNamespaceConflict",
                         (TrackAction)(s => s.TrackPackagePushNamespaceConflictEvent(fakes.Package.Id, package.Version, fakes.User, identity))
                     };
+
+                    yield return new object[] { "NewUserRegistration",
+                        (TrackAction)(s => s.TrackNewUserRegistrationEvent(fakes.User, fakes.User.Credentials.First()))
+                    };
+
+                    yield return new object[] { "UserMultiFactorAuthenticationEnabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: true))
+                    };
+                    yield return new object[] { "UserMultiFactorAuthenticationDisabled",
+                        (TrackAction)(s => s.TrackUserChangedMultiFactorAuthentication(fakes.User, enabledMultiFactorAuth: false))
+                    };
+
+                    yield return new object[] { "CredentialAdded",
+                        (TrackAction)(s => s.TrackNewCredentialCreated(fakes.User, fakes.User.Credentials.First()))
+                    };
+
+                    yield return new object[] { "CredentialUsed",
+                        (TrackAction)(s => s.TrackUserLogin(fakes.User, fakes.User.Credentials.First(), wasMultiFactorAuthenticated: true))
+                    };
+
+                    yield return new object[] { "UserPackageDeleteCheckedAfterHours",
+                        (TrackAction)(s => s.TrackUserPackageDeleteChecked(
+                            new UserPackageDeleteEvent(
+                                TimeSpan.FromHours(3),
+                                11,
+                                "NuGet.Versioning",
+                                "4.5.0",
+                                124101,
+                                124999,
+                                23,
+                                42,
+                                reportPackageReason: ReportPackageReason.ReleasedInPublicByAccident,
+                                packageDeleteDecision: PackageDeleteDecision.DeletePackage),
+                            UserPackageDeleteOutcome.Accepted))
+                    };
+
+                    yield return new object[] { "UserPackageDeleteExecuted",
+                        (TrackAction)(s => s.TrackUserPackageDeleteExecuted(
+                            11,
+                            "NuGet.Versioning",
+                            "4.5.0",
+                            ReportPackageReason.ReleasedInPublicByAccident,
+                            success: true))
+                    };
+
+                    yield return new object[] { "OrganizationTransformInitiated",
+                        (TrackAction)(s => s.TrackOrganizationTransformInitiated(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationTransformCompleted",
+                        (TrackAction)(s => s.TrackOrganizationTransformCompleted(fakes.Organization))
+                    };
+
+                    yield return new object[] { "OrganizationTransformDeclined",
+                        (TrackAction)(s => s.TrackOrganizationTransformDeclined(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationTransformCancelled",
+                        (TrackAction)(s => s.TrackOrganizationTransformCancelled(fakes.User))
+                    };
+
+                    yield return new object[] { "OrganizationAdded",
+                        (TrackAction)(s => s.TrackOrganizationAdded(fakes.Organization))
+                    };
+
+                    yield return new object[] { "AccountDeleteCompleted",
+                        (TrackAction)(s => s.TrackAccountDeletionCompleted(fakes.User, fakes.User, true))
+                    };
+
+                    yield return new object[] { "AccountDeleteRequested",
+                        (TrackAction)(s => s.TrackRequestForAccountDeletion(fakes.User))
+                    };
                 }
             }
 
             [Fact]
             public void TrackEventNamesIncludesAllEvents()
             {
-                var count = typeof(TelemetryService.Events).GetFields().Length;
-                var testData = TrackEventNames_Data;
+                var expectedCount = typeof(TelemetryService.Events).GetFields().Length;
+                var actualCount = TrackMetricNames_Data.Count();
 
-                Assert.Equal(count, testData.Count());
+                Assert.Equal(expectedCount, actualCount);
             }
 
             [Theory]
-            [MemberData(nameof(TrackEventNames_Data))]
-            public void TrackEventNames(string eventName, TrackAction track)
+            [MemberData(nameof(TrackMetricNames_Data))]
+            public void TrackMetricNames(string metricName, TrackAction track)
             {
                 // Arrange
                 var service = CreateService();
@@ -82,12 +202,12 @@ namespace NuGetGallery
                 track(service);
 
                 // Assert
-                service.TelemetryClient.Verify(c => c.TrackEvent(eventName,
-                    It.IsAny<IDictionary<string, string>>(),
-                    It.IsAny<IDictionary<string, double>>()),
+                service.TelemetryClient.Verify(c => c.TrackMetric(metricName,
+                    It.IsAny<double>(),
+                    It.IsAny<IDictionary<string, string>>()),
                     Times.Once);
             }
-            
+
             [Fact]
             public void TrackPackageReadMeChangeEventThrowsIfPackageIsNull()
             {
@@ -188,6 +308,294 @@ namespace NuGetGallery
                 Assert.Throws<ArgumentNullException>(() =>
                     service.TrackVerifyPackageKeyEvent("id", "1.0.0", fakes.User, null, 200));
             }
+
+            [Fact]
+            public void TrackUserPackageDeleteCheckedThrowsIfDetailsAreNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteChecked(details: null, outcome: UserPackageDeleteOutcome.Accepted));
+            }
+
+            [Fact]
+            public void TrackUserPackageDeleteExecutedThrowsIfPackageIdIsNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteExecuted(
+                        23,
+                        packageId: null,
+                        packageVersion: "4.5.0",
+                        reason: ReportPackageReason.ReleasedInPublicByAccident,
+                        success: true));
+            }
+
+            [Fact]
+            public void TrackUserPackageDeleteExecutedThrowsIfPackageVersionIsNull()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackUserPackageDeleteExecuted(
+                        23,
+                        packageId: "NuGet.Versioning",
+                        packageVersion: null,
+                        reason: ReportPackageReason.ReleasedInPublicByAccident,
+                        success: true));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformInitiatedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformInitiated(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformCompletedThrowsIfNullOrganization()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformCompleted(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformDeclinedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformDeclined(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationTransformCancelledThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationTransformCancelled(null));
+            }
+
+            [Fact]
+            public void TrackOrganizationAddedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackOrganizationAdded(null));
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void TrackCertificateAdded_WhenThumbprintIsInvalid_Throws(string thumbprint)
+            {
+                var service = CreateService();
+                var exception = Assert.Throws<ArgumentException>(
+                    () => service.TrackCertificateAdded(thumbprint));
+
+                Assert.Equal("thumbprint", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public void TrackCertificateAdded_WhenThumbprintIsValid_Throws()
+            {
+                const string thumbprint = "a";
+
+                var service = CreateServiceForCertificateTelemetry("CertificateAdded", thumbprint);
+
+                service.TrackCertificateAdded(thumbprint);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void TrackCertificateActivated_WhenThumbprintIsInvalid_Throws(string thumbprint)
+            {
+                var service = CreateService();
+                var exception = Assert.Throws<ArgumentException>(
+                    () => service.TrackCertificateActivated(thumbprint));
+
+                Assert.Equal("thumbprint", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public void TrackCertificateActivated_WhenThumbprintIsValid_Throws()
+            {
+                const string thumbprint = "a";
+
+                var service = CreateServiceForCertificateTelemetry("CertificateActivated", thumbprint);
+
+                service.TrackCertificateActivated(thumbprint);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void TrackCertificateDeactivated_WhenThumbprintIsInvalid_Throws(string thumbprint)
+            {
+                var service = CreateService();
+                var exception = Assert.Throws<ArgumentException>(
+                    () => service.TrackCertificateDeactivated(thumbprint));
+
+                Assert.Equal("thumbprint", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public void TrackCertificateDeactivated_WhenThumbprintIsValid_Throws()
+            {
+                const string thumbprint = "a";
+
+                var service = CreateServiceForCertificateTelemetry("CertificateDeactivated", thumbprint);
+
+                service.TrackCertificateDeactivated(thumbprint);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData("")]
+            public void TrackRequiredSignerSet_WhenPackageRegistrationIsInvalid_Throws(string packageId)
+            {
+                var service = CreateService();
+                var exception = Assert.Throws<ArgumentException>(
+                    () => service.TrackRequiredSignerSet(packageId));
+
+                Assert.Equal("packageId", exception.ParamName);
+                Assert.StartsWith("The argument cannot be null or empty.", exception.Message);
+            }
+
+            [Fact]
+            public void TrackRequiredSignerSet_WhenPackageRegistrationIsValid_Throws()
+            {
+                const string packageId = "a";
+
+                var service = CreateService();
+
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == "PackageRegistrationRequiredSignerSet"),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 1 &&
+                               properties["PackageId"] == packageId)));
+
+                service.TrackRequiredSignerSet(packageId);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            [Fact]
+            public void TrackAccountDeletedCompletedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackAccountDeletionCompleted(null, fakes.User, true));
+
+                Assert.Throws<ArgumentNullException>(() =>
+                   service.TrackAccountDeletionCompleted(fakes.User, null, true));
+            }
+
+            [Fact]
+            public void TrackAccountDeletedCompletedAddsCorrectData()
+            {
+                var service = CreateService();
+
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == "AccountDeleteCompleted"),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 4 &&
+                               properties["AccountDeletedByRole"] == "Admins" &&
+                               properties["AccountIsSelfDeleted"] == "False" &&
+                               properties["AccountDeletedIsOrganization"] == "True" &&
+                               properties["AccountDeleteSucceeded"] == "True")
+                               ));
+
+                service.TrackAccountDeletionCompleted(fakes.Organization, fakes.Admin, true);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            [Fact]
+            public void TrackRequestForAccountDeletedThrowsIfNullUser()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                Assert.Throws<ArgumentNullException>(() =>
+                    service.TrackRequestForAccountDeletion(null));
+            }
+
+            [Fact]
+            public void TrackRequestForAccountDeletedAddsCorrectData()
+            {
+                var service = CreateService();
+                var user = fakes.User;
+
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == "AccountDeleteRequested"),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 1 &&
+                               properties["CreatedDateForAccountToBeDeleted"] == $"{user.CreatedUtc}"
+                               )));
+
+                service.TrackRequestForAccountDeletion(fakes.User);
+
+                service.TelemetryClient.VerifyAll();
+            }
+
+            private TelemetryServiceWrapper CreateServiceForCertificateTelemetry(string metricName, string thumbprint)
+            {
+                var service = CreateService();
+
+                service.TelemetryClient.Setup(
+                   x => x.TrackMetric(
+                       It.Is<string>(name => name == metricName),
+                       It.Is<double>(value => value == 1),
+                       It.Is<IDictionary<string, string>>(
+                           properties => properties.Count == 1 &&
+                               properties["Sha256Thumbprint"] == thumbprint)));
+
+                return service;
+            }
         }
 
         public class TheTraceExceptionMethod : BaseFacts
@@ -220,7 +628,7 @@ namespace NuGetGallery
                         It.IsAny<string>(),
                         It.IsAny<int>()),
                     Times.Once);
-                Assert.True(service.LastTraceMessage.Contains("InvalidOperationException"));
+                Assert.Contains("InvalidOperationException", service.LastTraceMessage);
             }
         }
 
@@ -248,12 +656,6 @@ namespace NuGetGallery
 
                 traceService.Setup(s => s.GetSource(It.IsAny<string>()))
                     .Returns(traceSource.Object);
-
-                telemetryClient.Setup(c => c.TrackEvent(
-                        It.IsAny<string>(),
-                        It.IsAny<IDictionary<string, string>>(),
-                        It.IsAny<IDictionary<string, double>>()))
-                    .Verifiable();
 
                 var telemetryService = new TelemetryServiceWrapper(traceService.Object, telemetryClient.Object);
 

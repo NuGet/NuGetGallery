@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -146,7 +147,7 @@ namespace NuGetGallery
             var dirPath = Path.GetDirectoryName(filePath);
 
             _fileSystemService.CreateDirectory(dirPath);
-                        
+
             try
             {
                 using (var file = _fileSystemService.OpenWrite(filePath, overwrite))
@@ -156,8 +157,8 @@ namespace NuGetGallery
             }
             catch (IOException ex)
             {
-                throw new InvalidOperationException(
-                    String.Format(
+                throw new FileAlreadyExistsException(
+                    string.Format(
                         CultureInfo.CurrentCulture,
                         "There is already a file with name {0} in folder {1}.",
                         fileName,
@@ -166,6 +167,62 @@ namespace NuGetGallery
             }
 
             return Task.FromResult(0);
+        }
+
+        public async Task SaveFileAsync(string folderName, string fileName, Stream file, IAccessCondition condition)
+        {
+            await SaveFileAsync(folderName, fileName, file);
+        }
+
+        public Task CopyFileAsync(Uri srcUri, string destFolderName, string destFileName, IAccessCondition destAccessCondition)
+        {
+            // We could theoretically support this by downloading the source URI to the destination path. This is not
+            // needed today so this method will remain unimplemented until it is needed.
+            throw new NotImplementedException();
+        }
+
+        public Task<string> CopyFileAsync(
+            string srcFolderName,
+            string srcFileName,
+            string destFolderName,
+            string destFileName,
+            IAccessCondition destAccessCondition)
+        {
+            if (srcFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFolderName));
+            }
+
+            if (srcFileName == null)
+            {
+                throw new ArgumentNullException(nameof(srcFileName));
+            }
+
+            if (destFolderName == null)
+            {
+                throw new ArgumentNullException(nameof(destFolderName));
+            }
+
+            if (destFileName == null)
+            {
+                throw new ArgumentNullException(nameof(destFileName));
+            }
+
+            var srcFilePath = BuildPath(_configuration.FileStorageDirectory, srcFolderName, srcFileName);
+            var destFilePath = BuildPath(_configuration.FileStorageDirectory, destFolderName, destFileName);
+
+            _fileSystemService.CreateDirectory(Path.GetDirectoryName(destFilePath));
+
+            try
+            {
+                _fileSystemService.Copy(srcFilePath, destFilePath, overwrite: false);
+            }
+            catch (IOException e)
+            {
+                throw new FileAlreadyExistsException("Could not copy because destination file already exists", e);
+            }
+
+            return Task.FromResult<string>(null);
         }
 
         public Task<bool> IsAvailableAsync()
@@ -183,6 +240,20 @@ namespace NuGetGallery
             // file:///c:/Afoo%20bar%2525.baz
             // which is not particularly correct, so we'd need to work around that to have a correct implementation
             throw new NotImplementedException();
+        }
+
+        public Task<Uri> GetPriviledgedFileUriAsync(string folderName, string fileName, FileUriPermissions permissions, DateTimeOffset endOfAccess)
+        {
+            /// Not implemented for the same reason as <see cref="GetFileReadUriAsync(string, string, DateTimeOffset?)"/>.
+            throw new NotImplementedException();
+        }
+
+        public Task SetMetadataAsync(
+            string folderName,
+            string fileName,
+            Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync)
+        {
+            return Task.CompletedTask;
         }
 
         private static string BuildPath(string fileStorageDirectory, string folderName, string fileName)

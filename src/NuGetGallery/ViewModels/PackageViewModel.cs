@@ -1,40 +1,38 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Versioning;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 
 namespace NuGetGallery
 {
     public class PackageViewModel : IPackageVersionModel
     {
-        private readonly Package _package;
-        private readonly bool _isSemVer2;
+        protected readonly Package _package;
         private string _pendingTitle;
-        private string _fullVersion;
 
+        private readonly PackageStatus _packageStatus;
         internal readonly NuGetVersion NuGetVersion;
 
         public PackageViewModel(Package package)
         {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
             _package = package;
 
-            _fullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
-            _isSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
+            FullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
+            IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
 
             Version = String.IsNullOrEmpty(package.NormalizedVersion) ?
                 NuGetVersionFormatter.Normalize(package.Version) :
                 package.NormalizedVersion;
 
-            NuGetVersion = NuGetVersion.Parse(_fullVersion);
-
-            HasSemVer2Version = NuGetVersion.IsSemVer2;
-            HasSemVer2Dependency = package.Dependencies.ToList()
-                .Where(pd => !string.IsNullOrEmpty(pd.VersionSpec))
-                .Select(pd => VersionRange.Parse(pd.VersionSpec))
-                .Any(p => (p.HasUpperBound && p.MaxVersion.IsSemVer2) || (p.HasLowerBound && p.MinVersion.IsSemVer2));
+            NuGetVersion = NuGetVersion.Parse(FullVersion);
 
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
@@ -48,13 +46,13 @@ namespace NuGetGallery
             LatestStableVersionSemVer2 = package.IsLatestStableSemVer2;
             LastUpdated = package.Published;
             Listed = package.Listed;
-            PackageStatus = package.PackageStatusKey;
+            _packageStatus = package.PackageStatusKey;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
             LicenseReportUrl = package.LicenseReportUrl;
 
             var licenseNames = package.LicenseNames;
-            if (!String.IsNullOrEmpty(licenseNames))
+            if (!string.IsNullOrEmpty(licenseNames))
             {
                 LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
             }
@@ -76,11 +74,10 @@ namespace NuGetGallery
         public bool Prerelease { get; set; }
         public int DownloadCount { get; set; }
         public bool Listed { get; set; }
-        public bool FailedValidation => PackageStatus == PackageStatus.FailedValidation;
-        public bool Available => PackageStatus == PackageStatus.Available;
-        public bool Validating => PackageStatus == PackageStatus.Validating;
-        public bool Deleted => PackageStatus == PackageStatus.Deleted;
-        public PackageStatus PackageStatus { get; set; }
+        public bool FailedValidation => _packageStatus == PackageStatus.FailedValidation;
+        public bool Available => _packageStatus == PackageStatus.Available;
+        public bool Validating => _packageStatus == PackageStatus.Validating;
+        public bool Deleted => _packageStatus == PackageStatus.Deleted;
 
         public int TotalDownloadCount
         {
@@ -93,10 +90,8 @@ namespace NuGetGallery
         }
 
         public string Version { get; set; }
-        public string FullVersion => _fullVersion;
-        public bool IsSemVer2 => _isSemVer2;
-        public bool HasSemVer2Version { get; }
-        public bool HasSemVer2Dependency { get; }
+        public string FullVersion { get; }
+        public bool IsSemVer2 { get; }
 
         public string Title
         {
@@ -107,6 +102,34 @@ namespace NuGetGallery
         public bool IsCurrent(IPackageVersionModel current)
         {
             return current.Version == Version && current.Id == Id;
+        }
+
+        public PackageStatusSummary PackageStatusSummary
+        {
+            get
+            {
+                switch (_packageStatus)
+                {
+                    case PackageStatus.Validating:
+                    {
+                        return PackageStatusSummary.Validating;
+                    }
+                    case PackageStatus.FailedValidation:
+                    {
+                        return PackageStatusSummary.FailedValidation;
+                    }
+                    case PackageStatus.Available:
+                    {
+                        return Listed ? PackageStatusSummary.Listed : PackageStatusSummary.Unlisted;
+                    }
+                    case PackageStatus.Deleted:
+                    {
+                        return PackageStatusSummary.None;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(PackageStatus));
+                }
+            }
         }
     }
 }

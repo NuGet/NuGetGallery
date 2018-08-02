@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Microsoft.IdentityModel.Protocols;
@@ -14,14 +16,15 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
     public class AzureActiveDirectoryAuthenticator : Authenticator<AzureActiveDirectoryAuthenticatorConfiguration>
     {
         public static readonly string DefaultAuthenticationType = "AzureActiveDirectory";
+        public static readonly string ClaimTypeName = "name";
 
         protected override void AttachToOwinApp(IGalleryConfigurationService config, IAppBuilder app)
         {
             // Fetch site root from configuration
             var siteRoot = config.Current.SiteRoot.TrimEnd('/') + "/";
-            
+
             // We *always* require SSL for Azure Active Directory
-            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase)) 
+            if (siteRoot.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             {
                 siteRoot = siteRoot.Replace("http://", "https://");
             }
@@ -42,14 +45,14 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
                         }
 
                         return Task.FromResult(0);
-                    } 
+                    }
                 }
             };
             Config.ApplyToOwinSecurityOptions(options);
 
             app.UseOpenIdConnectAuthentication(options);
         }
-        
+
         public override AuthenticatorUI GetUI()
         {
             return new AuthenticatorUI(
@@ -61,20 +64,31 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectory
             };
         }
 
-        public override ActionResult Challenge(string redirectUrl)
+        public override bool IsProviderForIdentity(ClaimsIdentity claimsIdentity)
         {
-            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl);
-        }
-
-        public override bool TryMapIssuerToAuthenticationType(string issuer, out string authenticationType)
-        {
-            if (string.Equals(issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
+            // If the issuer of the claims identity is same as that of the issuer for current authenticator then this is the author.
+            var firstClaim = claimsIdentity?.Claims?.FirstOrDefault();
+            if (firstClaim != null && string.Equals(firstClaim.Issuer, Config.Issuer, StringComparison.OrdinalIgnoreCase))
             {
-                authenticationType = Config.AuthenticationType;
                 return true;
             }
 
-            return base.TryMapIssuerToAuthenticationType(issuer, out authenticationType);
+            return base.IsProviderForIdentity(claimsIdentity);
+        }
+
+        public override ActionResult Challenge(string redirectUrl, AuthenticationPolicy policy)
+        {
+            return new ChallengeResult(BaseConfig.AuthenticationType, redirectUrl, policy?.GetProperties());
+        }
+
+        public override IdentityInformation GetIdentityInformation(ClaimsIdentity claimsIdentity)
+        {
+            return ClaimsExtensions.GetIdentityInformation(
+                claimsIdentity,
+                DefaultAuthenticationType,
+                ClaimTypes.NameIdentifier,
+                ClaimTypeName,
+                ClaimTypes.Name);
         }
     }
 }

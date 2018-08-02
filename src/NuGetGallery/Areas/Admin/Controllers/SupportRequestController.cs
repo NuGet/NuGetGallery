@@ -87,11 +87,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddAdmin(string galleryUsername, string pagerDutyUsername)
+        public async Task<ActionResult> AddAdmin(string galleryUsername)
         {
             try
             {
-                await _supportRequestService.AddAdminAsync(galleryUsername, pagerDutyUsername);
+                await _supportRequestService.AddAdminAsync(galleryUsername);
 
                 return new HttpStatusCodeResult(HttpStatusCode.NoContent);
             }
@@ -103,11 +103,11 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateAdmin(int key, string galleryUsername, string pagerDutyUsername)
+        public async Task<ActionResult> UpdateAdmin(int key, string galleryUsername)
         {
             try
             {
-                await _supportRequestService.UpdateAdminAsync(key, galleryUsername, pagerDutyUsername);
+                await _supportRequestService.UpdateAdminAsync(key, galleryUsername);
 
                 return new HttpStatusCodeResult(HttpStatusCode.NoContent);
             }
@@ -231,7 +231,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             var skip = (pageNumber - 1) * take;
             var galleryUsername = GetLoggedInUser();
-            var issues = _supportRequestService.GetIssues(assignedTo, reason, issueStatusId, galleryUsername);
+            var issues = _supportRequestService.GetIssues(assignedTo, reason, issueStatusId, galleryUsername).Where(i => i.CreatedBy != null);
             IEnumerable<Issue> pagedIssues = issues;
 
             if (skip > 0)

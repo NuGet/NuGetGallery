@@ -7,6 +7,7 @@ using System.Web;
 using Moq;
 using NuGetGallery.Authentication;
 using Xunit;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery.Security
 {
@@ -66,8 +67,9 @@ namespace NuGetGallery.Security
             var httpContext = new Mock<HttpContextBase>();
             httpContext.Setup(c => c.User).Returns(principal.Object);
             
-            var context = new UserSecurityPolicyEvaluationContext(httpContext.Object,
-                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") });
+            var context = new UserSecurityPolicyEvaluationContext(
+                new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") },
+                httpContext.Object);
 
             return new RequirePackageVerifyScopePolicy().Evaluate(context);
         }

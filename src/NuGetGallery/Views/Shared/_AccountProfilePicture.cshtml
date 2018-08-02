@@ -1,0 +1,38 @@
+﻿@model AccountViewModel      
+@{
+    var parent = (WebViewPage)TempData["Parent"];
+
+    if (Model.IsOrganization)
+    {
+        ViewBag.UnconfirmedEmailAddressMessage = "This is a preview of how the profile picture will look once the organization email address is verified.";
+        ViewBag.GravatarProfileMessage = "We use the verified email address for your organization and {0} to get the publicly visible profile picture. "
+            + "Go to {0} to change the profile picture for your organization.";
+    }
+    else
+    {
+        ViewBag.UnconfirmedEmailAddressMessage = "This is a preview of how your profile picture will look once you have verified your current email address.";
+        ViewBag.GravatarProfileMessage = "We use your verified email address and {0} to get the publicly visible profile picture. "
+            + "Go to {0} to change your profile picture";
+    }
+}
+
+@helper GravatarLink(string text)
+{
+    <a href="http://www.gravatar.com" target="_blank">@text</a>
+}
+
+@ViewHelpers.Section(parent,
+    "profile-picture",
+    @<text>Profile Picture @(Model.HasUnconfirmedEmailAddress ? "(preview)" : string.Empty)</text>,
+    @<text>@ViewHelpers.GravatarImage(Model.CurrentEmailAddress, Model.AccountName, Constants.GravatarElementSize)</text>,
+    @<text>
+        @if (Model.HasUnconfirmedEmailAddress)
+        {
+            <p>@ViewBag.UnconfirmedEmailAddressMessage</p>
+        }
+
+        @Html.Raw(string.Format(@ViewBag.GravatarProfileMessage,
+             GravatarLink("gravatar.com")))
+    </text>,
+    disabled: !Model.CanManage)
+

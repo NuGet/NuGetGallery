@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Frameworks;
 using NuGet.Packaging;
@@ -12,24 +13,28 @@ using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Packaging;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
     public class PackageService : CorePackageService, IPackageService
     {
-        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
-        private readonly IPackageNamingConflictValidator _packageNamingConflictValidator;
         private readonly IAuditingService _auditingService;
+        private readonly ITelemetryService _telemetryService;
+        private readonly ISecurityPolicyService _securityPolicyService;
 
         public PackageService(
             IEntityRepository<PackageRegistration> packageRegistrationRepository,
             IEntityRepository<Package> packageRepository,
-            IPackageNamingConflictValidator packageNamingConflictValidator,
-            IAuditingService auditingService) : base(packageRepository)
+            IEntityRepository<Certificate> certificateRepository,
+            IAuditingService auditingService,
+            ITelemetryService telemetryService,
+            ISecurityPolicyService securityPolicyService)
+            : base(packageRepository, packageRegistrationRepository, certificateRepository)
         {
-            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
-            _packageNamingConflictValidator = packageNamingConflictValidator ?? throw new ArgumentNullException(nameof(packageNamingConflictValidator));
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _securityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
         }
 
         /// <summary>
@@ -41,21 +46,24 @@ namespace NuGetGallery
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public void EnsureValid(PackageArchiveReader packageArchiveReader)
+        public async Task EnsureValid(PackageArchiveReader packageArchiveReader)
         {
             try
             {
-                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader());
+                var packageMetadata = PackageMetadata.FromNuspecReader(
+                    packageArchiveReader.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
-
-                ValidatePackageTitle(packageMetadata);
 
                 var supportedFrameworks = GetSupportedFrameworks(packageArchiveReader).Select(fn => fn.ToShortNameOrNull()).ToArray();
                 if (!supportedFrameworks.AnySafe(sf => sf == null))
                 {
                     ValidateSupportedFrameworks(supportedFrameworks);
                 }
+
+                // This will throw if the package contains an entry which will extract outside of the target extraction directory
+                await packageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -69,26 +77,26 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="nugetPackage">A <see cref="PackageArchiveReader"/> instance from which package metadata can be read.</param>
         /// <param name="packageStreamMetadata">The <see cref="PackageStreamMetadata"/> instance providing metadata about the package stream.</param>
-        /// <param name="user">The <see cref="User"/> creating the package.</param>
+        /// <param name="owner">The <see cref="User"/> creating the package.</param>
         /// <param name="commitChanges"><c>True</c> to commit the changes to the data store and notify the indexing service; otherwise <c>false</c>.</param>
         /// <returns>Returns the created <see cref="Package"/> entity.</returns>
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User user, bool isVerified)
+        public async Task<Package> CreatePackageAsync(PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser, bool isVerified)
         {
             PackageMetadata packageMetadata;
             PackageRegistration packageRegistration;
 
             try
             {
-                packageMetadata = PackageMetadata.FromNuspecReader(nugetPackage.GetNuspecReader());
+                packageMetadata = PackageMetadata.FromNuspecReader(
+                    nugetPackage.GetNuspecReader(),
+                    strict: true);
 
                 ValidateNuGetPackageMetadata(packageMetadata);
 
-                ValidatePackageTitle(packageMetadata);
-
-                packageRegistration = CreateOrGetPackageRegistration(user, packageMetadata, isVerified);
+                packageRegistration = CreateOrGetPackageRegistration(owner, packageMetadata, isVerified);
             }
             catch (Exception exception) when (exception is EntityException || exception is PackagingException)
             {
@@ -96,23 +104,23 @@ namespace NuGetGallery
                 throw new InvalidPackageException(exception.Message, exception);
             }
 
-            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, user);
+            var package = CreatePackageFromNuGetPackage(packageRegistration, nugetPackage, packageMetadata, packageStreamMetadata, currentUser);
             packageRegistration.Packages.Add(package);
             await UpdateIsLatestAsync(packageRegistration, commitChanges: false);
 
             return package;
         }
 
-        public virtual PackageRegistration FindPackageRegistrationById(string id)
+        public override PackageRegistration FindPackageRegistrationById(string packageId)
         {
-            if (id == null)
+            if (packageId == null)
             {
-                throw new ArgumentNullException(nameof(id));
+                throw new ArgumentNullException(nameof(packageId));
             }
 
             return _packageRegistrationRepository.GetAll()
                 .Include(pr => pr.Owners)
-                .SingleOrDefault(pr => pr.Id == id);
+                .SingleOrDefault(pr => pr.Id == packageId);
         }
 
         public virtual Package FindPackageByIdAndVersion(
@@ -211,99 +219,83 @@ namespace NuGetGallery
             return package;
         }
 
-        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted)
+        public IEnumerable<Package> FindPackagesByOwner(User user, bool includeUnlisted, bool includeVersions = false)
         {
-            // Like DisplayPackage we should prefer to show you information from the latest stable version,
-            // but show you the latest version (potentially latest UNLISTED version) otherwise.
-
-            var mergedResults = new Dictionary<string, Package>(StringComparer.OrdinalIgnoreCase);
-
-            MergeLatestPackagesByOwner(user, includeUnlisted, mergedResults);
-            MergeLatestStablePackagesByOwner(user, includeUnlisted, mergedResults);
-
-            return mergedResults.Values;
+            return GetPackagesForOwners(new[] { user.Key }, includeUnlisted, includeVersions);
         }
 
-        private void MergeLatestStablePackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
+        /// <summary>
+        /// Find packages by owner, including organization owners that the user belongs to.
+        /// </summary>
+        public IEnumerable<Package> FindPackagesByAnyMatchingOwner(
+            User user,
+            bool includeUnlisted,
+            bool includeVersions = false)
         {
-            IQueryable<Package> latestStablePackageVersions = _packageRepository.GetAll()
-                            .Where(p =>
-                                p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
-                                && (p.IsLatestStable || p.IsLatestStableSemVer2))
-                            .Include(p => p.PackageRegistration)
-                            .Include(p => p.PackageRegistration.Owners);
+            var ownerKeys = user.Organizations.Select(org => org.OrganizationKey).ToList();
+            ownerKeys.Insert(0, user.Key);
 
-            foreach (var latestStablePackagesById in latestStablePackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
-            {
-                // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
-                // see: https://github.com/NuGet/NuGetGallery/issues/2514
-                Package latestStablePackage;
-                if (includeUnlisted)
-                {
-                    latestStablePackage = latestStablePackagesById.First();
-                }
-                else
-                {
-                    latestStablePackage =
-                        latestStablePackagesById.FirstOrDefault(p => p.IsLatestStableSemVer2)
-                        ?? latestStablePackagesById.FirstOrDefault(p => p.IsLatestStable);
-                }
-
-                mergedResults[latestStablePackage.PackageRegistration.Id] = latestStablePackage;
-            }
+            return GetPackagesForOwners(ownerKeys, includeUnlisted, includeVersions);
         }
 
-        private void MergeLatestPackagesByOwner(User user, bool includeUnlisted, Dictionary<string, Package> mergedResults)
+        private IEnumerable<Package> GetPackagesForOwners(IEnumerable<int> ownerKeys, bool includeUnlisted, bool includeVersions)
         {
-            IQueryable<Package> latestPackageVersions;
-            if (includeUnlisted)
+            IQueryable<Package> packages = _packageRepository.GetAll()
+                .Where(p => p.PackageRegistration.Owners.Any(o => ownerKeys.Contains(o.Key)));
+
+            if (!includeUnlisted)
             {
-                latestPackageVersions = _packageRegistrationRepository.GetAll()
-                    .Where(pr => pr.Owners.Any(owner => owner.Key == user.Key))
-                    .Select(pr => pr.Packages.OrderByDescending(p => p.Version).FirstOrDefault())
-                    .Where(p => p != null)
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners);
-            }
-            else
-            {
-                latestPackageVersions = _packageRepository.GetAll()
-                    .Where(p =>
-                        p.PackageRegistration.Owners.Any(owner => owner.Key == user.Key)
-                        && (p.IsLatest || p.IsLatestSemVer2))
-                    .Include(p => p.PackageRegistration)
-                    .Include(p => p.PackageRegistration.Owners);
+                packages = packages.Where(p => p.Listed);
             }
 
-            // Use First() instead of Single() to get the latest package, in case there are multiple latest due to concurrency issue
-            // see: https://github.com/NuGet/NuGetGallery/issues/2514
-            foreach (var latestPackagesById in latestPackageVersions.ToList().GroupBy(p => p.PackageRegistration.Id))
+            if (includeVersions)
             {
-                Package latestPackage;
-                if (includeUnlisted)
-                {
-                    latestPackage = latestPackagesById.First();
-                }
-                else
-                {
-                    latestPackage =
-                       latestPackagesById.FirstOrDefault(p => p.IsLatestSemVer2)
-                       ?? latestPackagesById.First(p => p.IsLatest);
-                }
-
-                if (mergedResults.ContainsKey(latestPackage.PackageRegistration.Id)
-                    && mergedResults[latestPackage.PackageRegistration.Id].Created < latestPackage.Created)
-                {
-                    mergedResults[latestPackage.PackageRegistration.Id] = latestPackage;
-                }
-                else
-                {
-                    mergedResults.Add(latestPackage.PackageRegistration.Id, latestPackage);
-                }
+                return packages
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
             }
+
+            // Do a best effort of retrieving the latest version. Note that UpdateIsLatest has had concurrency issues
+            // where sometimes packages no rows with IsLatest set. In this case, we'll just select the last inserted
+            // row (descending [Key]) as opposed to reading all rows into memory and sorting on NuGetVersion.
+            return packages
+                .GroupBy(p => p.PackageRegistrationKey)
+                .Select(g => g
+                    // order booleans desc so that true (1) comes first
+                    .OrderByDescending(p => p.IsLatestStableSemVer2)
+                    .ThenByDescending(p => p.IsLatestStable)
+                    .ThenByDescending(p => p.IsLatestSemVer2)
+                    .ThenByDescending(p => p.IsLatest)
+                    .ThenByDescending(p => p.Listed)
+                    .ThenByDescending(p => p.Key)
+                    .FirstOrDefault())
+                .Include(p => p.PackageRegistration)
+                .Include(p => p.PackageRegistration.Owners)
+                .ToList();
         }
 
-        public IEnumerable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
+        /// <summary>
+        /// For a package get the list of owners that are not organizations.
+        /// All the resulted user accounts will be distinct.
+        /// </summary>
+        /// <param name="package">The package.</param>
+        /// <returns>The list of package owners.</returns>
+        public IEnumerable<User> GetPackageUserAccountOwners(Package package)
+        {
+            return package.PackageRegistration.Owners
+                .SelectMany((owner) =>
+                {
+                    if (owner is Organization)
+                    {
+                        return OrganizationExtensions.GetUserAccountMembers((Organization)owner);
+                    }
+                    return new List<User> { owner };
+                })
+                .Distinct();
+        }
+
+        public IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user)
         {
             return _packageRegistrationRepository.GetAll().Where(p => p.Owners.Any(o => o.Key == user.Key));
         }
@@ -353,18 +345,27 @@ namespace NuGetGallery
                 await _packageRepository.CommitChangesAsync();
             }
         }
-        
+
         public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
             package.Owners.Add(newOwner);
+
             await _packageRepository.CommitChangesAsync();
+
+            if (_securityPolicyService.IsSubscribed(newOwner, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
+            {
+                await SetRequiredSignerAsync(package, newOwner);
+            }
         }
 
-        public async Task RemovePackageOwnerAsync(PackageRegistration package, User user)
+        public async Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true)
         {
             // To support the delete account scenario, the admin can delete the last owner of a package.
             package.Owners.Remove(user);
-            await _packageRepository.CommitChangesAsync();
+            if (commitChanges)
+            {
+                await _packageRepository.CommitChangesAsync();
+            }
         }
 
         public async Task MarkPackageListedAsync(Package package, bool commitChanges = true)
@@ -383,6 +384,12 @@ namespace NuGetGallery
             {
                 throw new InvalidOperationException("A deleted package should never be listed!");
             }
+
+            if (package.PackageStatusKey == PackageStatus.FailedValidation)
+            {
+                throw new InvalidOperationException("A package that failed validation should never be listed!");
+            }
+
             if (!package.Listed && (package.IsLatestStable || package.IsLatest))
             {
                 throw new InvalidOperationException("An unlisted package should never be latest or latest stable!");
@@ -396,6 +403,8 @@ namespace NuGetGallery
             await UpdateIsLatestAsync(package.PackageRegistration, commitChanges: false);
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.List));
+
+            _telemetryService.TrackPackageListed(package);
 
             if (commitChanges)
             {
@@ -426,27 +435,20 @@ namespace NuGetGallery
 
             await _auditingService.SaveAuditRecordAsync(new PackageAuditRecord(package, AuditedPackageAction.Unlist));
 
+            _telemetryService.TrackPackageUnlisted(package);
+
             if (commitChanges)
             {
                 await _packageRepository.CommitChangesAsync();
             }
         }
 
-        private PackageRegistration CreateOrGetPackageRegistration(User currentUser, PackageMetadata packageMetadata, bool isVerified)
+        private PackageRegistration CreateOrGetPackageRegistration(User owner, PackageMetadata packageMetadata, bool isVerified)
         {
             var packageRegistration = FindPackageRegistrationById(packageMetadata.Id);
 
-            if (packageRegistration != null && !PermissionsService.IsActionAllowed(packageRegistration, currentUser, PackageActions.UploadNewVersion))
-            {
-                throw new EntityException(Strings.PackageIdNotAvailable, packageMetadata.Id);
-            }
-
             if (packageRegistration == null)
             {
-                if (_packageNamingConflictValidator.IdConflictsWithExistingPackageTitle(packageMetadata.Id))
-                {
-                    throw new EntityException(Strings.NewRegistrationIdMatchesExistingPackageTitle, packageMetadata.Id);
-                }
 
                 packageRegistration = new PackageRegistration
                 {
@@ -454,7 +456,7 @@ namespace NuGetGallery
                     IsVerified = isVerified
                 };
 
-                packageRegistration.Owners.Add(currentUser);
+                packageRegistration.Owners.Add(owner);
 
                 _packageRegistrationRepository.InsertOnCommit(packageRegistration);
             }
@@ -666,14 +668,6 @@ namespace NuGetGallery
             }
         }
 
-        private void ValidatePackageTitle(PackageMetadata packageMetadata)
-        {
-            if (_packageNamingConflictValidator.TitleConflictsWithExistingRegistrationId(packageMetadata.Id, packageMetadata.Title))
-            {
-                throw new EntityException(Strings.TitleMatchesExistingRegistration, packageMetadata.Title);
-            }
-        }
-
         public async Task SetLicenseReportVisibilityAsync(Package package, bool visible, bool commitChanges = true)
         {
             if (package == null)
@@ -701,7 +695,7 @@ namespace NuGetGallery
             }
         }
 
-        public virtual async Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> packageRegistrationList, bool isVerified)
+        public virtual async Task UpdatePackageVerifiedStatusAsync(IReadOnlyCollection<PackageRegistration> packageRegistrationList, bool isVerified, bool commitChanges = true)
         {
             var packageRegistrationIdSet = new HashSet<string>(packageRegistrationList.Select(prl => prl.Id));
             var allPackageRegistrations = _packageRegistrationRepository.GetAll();
@@ -714,7 +708,131 @@ namespace NuGetGallery
                 packageRegistrationsToUpdate
                     .ForEach(pru => pru.IsVerified = isVerified);
 
+                if (commitChanges)
+                {
+                    await _packageRegistrationRepository.CommitChangesAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously sets the signer as the required signer on all package registrations owned by the signer.
+        /// </summary>
+        /// <param name="signer">A user.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="signer" /> is <c>null</c>.</exception>
+        public async Task SetRequiredSignerAsync(User signer)
+        {
+            if (signer == null)
+            {
+                throw new ArgumentNullException(nameof(signer));
+            }
+
+            var registrations = FindPackageRegistrationsByOwner(signer);
+            var auditRecords = new List<PackageRegistrationAuditRecord>();
+            var packageIds = new List<string>();
+            var isCommitRequired = false;
+
+            foreach (var registration in registrations)
+            {
+                string previousRequiredSigner = null;
+                string newRequiredSigner = null;
+
+                if (!registration.RequiredSigners.Contains(signer))
+                {
+                    previousRequiredSigner = registration.RequiredSigners.FirstOrDefault()?.Username;
+
+                    registration.RequiredSigners.Clear();
+
+                    isCommitRequired = true;
+
+                    registration.RequiredSigners.Add(signer);
+
+                    newRequiredSigner = signer.Username;
+
+                    var auditRecord = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                        registration,
+                        previousRequiredSigner,
+                        newRequiredSigner);
+
+                    auditRecords.Add(auditRecord);
+                    packageIds.Add(registration.Id);
+                }
+            }
+
+            if (isCommitRequired)
+            {
                 await _packageRegistrationRepository.CommitChangesAsync();
+
+                foreach (var auditRecord in auditRecords)
+                {
+                    await _auditingService.SaveAuditRecordAsync(auditRecord);
+                }
+
+                foreach (var packageId in packageIds)
+                {
+                    _telemetryService.TrackRequiredSignerSet(packageId);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Asynchronously sets the signer as the required signer on a single package registration owned by the signer.
+        /// </summary>
+        /// <param name="registration">A package registration.</param>
+        /// <param name="signer">A user.  May be <c>null</c>.</param>
+        /// <returns>A task that represents the asynchronous operation.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" /> is <c>null</c>.</exception>
+        public async Task SetRequiredSignerAsync(PackageRegistration registration, User signer)
+        {
+            if (registration == null)
+            {
+                throw new ArgumentNullException(nameof(registration));
+            }
+
+            var isCommitRequired = false;
+
+            string previousRequiredSigner = null;
+            string newRequiredSigner = null;
+
+            if (signer == null)
+            {
+                var currentRequiredSigner = registration.RequiredSigners.FirstOrDefault();
+
+                if (currentRequiredSigner != null)
+                {
+                    previousRequiredSigner = currentRequiredSigner.Username;
+
+                    registration.RequiredSigners.Clear();
+
+                    isCommitRequired = true;
+                }
+            }
+            else if (!registration.RequiredSigners.Contains(signer))
+            {
+                previousRequiredSigner = registration.RequiredSigners.FirstOrDefault()?.Username;
+
+                registration.RequiredSigners.Clear();
+
+                isCommitRequired = true;
+
+                registration.RequiredSigners.Add(signer);
+
+                newRequiredSigner = signer.Username;
+            }
+
+            if (isCommitRequired)
+            {
+                await _packageRegistrationRepository.CommitChangesAsync();
+
+                var auditRecord = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
+                    registration,
+                    previousRequiredSigner,
+                    newRequiredSigner);
+
+                await _auditingService.SaveAuditRecordAsync(auditRecord);
+
+                _telemetryService.TrackRequiredSignerSet(registration.Id);
             }
         }
     }

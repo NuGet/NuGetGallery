@@ -129,8 +129,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/jquery.validate.js")
                 .Include("~/Scripts/jquery.validate.unobtrusive.js")
                 .Include("~/Scripts/jquery.timeago.js")
-                .Include("~/Scripts/nugetgallery.js")
-                .Include("~/Scripts/stats.js");
+                .Include("~/Scripts/nugetgallery.js");
             BundleTable.Bundles.Add(scriptBundle);
 
             // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
@@ -149,6 +148,7 @@ namespace NuGetGallery
             {
                 stylesBundle
                     .Include("~/Content/" + filename)
+                    .Include("~/Content/Branding/" + filename)
                     .Include("~/Branding/Content/" + filename);
             }
 
@@ -171,9 +171,8 @@ namespace NuGetGallery
 
             var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
                 .Include("~/Scripts/jquery-ui-{version}.js")
-                .Include("~/Scripts/moment.js")
-                .Include("~/Scripts/knockout-2.2.1.js")
-                .Include("~/Scripts/knockout.mapping-latest.js")
+                .Include("~/Scripts/gallery/moment-2.18.1.js")
+                .Include("~/Scripts/gallery/knockout-3.4.2.js")
                 .Include("~/Scripts/knockout-projections.js")
                 .Include("~/Scripts/supportrequests.js");
             BundleTable.Bundles.Add(supportRequestsBundle);
@@ -193,11 +192,12 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/knockout-3.4.2.js")
                 .Include("~/Scripts/gallery/bootstrap.js")
                 .Include("~/Scripts/gallery/moment-2.18.1.js")
-                .Include("~/Scripts/gallery/common.js");
+                .Include("~/Scripts/gallery/common.js")
+                .Include("~/Scripts/gallery/autocomplete.js");
             BundleTable.Bundles.Add(newScriptBundle);
 
             var d3ScriptBundle = new ScriptBundle("~/Scripts/gallery/stats.min.js")
-                .Include("~/Scripts/gallery/d3.v3.js")
+                .Include("~/Scripts/d3/d3.js")
                 .Include("~/Scripts/gallery/stats-perpackagestatsgraphs.js")
                 .Include("~/Scripts/gallery/stats-dimensions.js");
             BundleTable.Bundles.Add(d3ScriptBundle);
@@ -205,6 +205,10 @@ namespace NuGetGallery
             var homeScriptBundle = new ScriptBundle("~/Scripts/gallery/page-home.min.js")
                 .Include("~/Scripts/gallery/page-home.js");
             BundleTable.Bundles.Add(homeScriptBundle);
+
+            var signinScriptBundle = new ScriptBundle("~/Scripts/gallery/page-signin.min.js")
+                .Include("~/Scripts/gallery/page-signin.js");
+            BundleTable.Bundles.Add(signinScriptBundle);
 
             var displayPackageScriptBundle = new ScriptBundle("~/Scripts/gallery/page-display-package.min.js")
                 .Include("~/Scripts/gallery/page-display-package.js")
@@ -230,6 +234,15 @@ namespace NuGetGallery
             var accountScriptBundle = new ScriptBundle("~/Scripts/gallery/page-account.min.js")
                 .Include("~/Scripts/gallery/page-account.js");
             BundleTable.Bundles.Add(accountScriptBundle);
+
+            var manageOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-manage-organization.min.js")
+                .Include("~/Scripts/gallery/page-manage-organization.js");
+            BundleTable.Bundles.Add(manageOrganizationScriptBundle);
+
+            var addOrganizationScriptBundle = new ScriptBundle("~/Scripts/gallery/page-add-organization.min.js")
+                .Include("~/Scripts/gallery/page-add-organization.js")
+                .Include("~/Scripts/gallery/md5.js");
+            BundleTable.Bundles.Add(addOrganizationScriptBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

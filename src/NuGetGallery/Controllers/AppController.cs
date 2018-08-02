@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Net;
 using System.Security.Claims;
 using System.Threading;
 using System.Web;
@@ -54,10 +55,10 @@ namespace NuGetGallery
         /// <param name="statusCode">HTTP status code for response</param>
         /// <param name="obj">Object to Jsonify and return</param>
         /// <returns></returns>
-        protected internal JsonResult Json(int statusCode, object obj, JsonRequestBehavior jsonRequestBehavior)
+        protected internal JsonResult Json(HttpStatusCode statusCode, object obj, JsonRequestBehavior jsonRequestBehavior)
         {
-            Response.StatusCode = statusCode;
-            if (statusCode >= 400)
+            Response.StatusCode = (int)statusCode;
+            if (statusCode >= HttpStatusCode.BadRequest)
             {
                 Response.TrySkipIisCustomErrors = true;
             }
@@ -65,7 +66,12 @@ namespace NuGetGallery
             return Json(obj, jsonRequestBehavior);
         }
 
-        protected internal JsonResult Json(int statusCode, object obj)
+        protected internal JsonResult Json(HttpStatusCode statusCode)
+        {
+            return Json(statusCode, obj: new { }, jsonRequestBehavior: JsonRequestBehavior.DenyGet);
+        }
+
+        protected internal JsonResult Json(HttpStatusCode statusCode, object obj)
         {
             return Json(statusCode, obj, JsonRequestBehavior.DenyGet);
         }

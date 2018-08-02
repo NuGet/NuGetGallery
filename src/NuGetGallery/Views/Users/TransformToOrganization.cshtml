@@ -1,0 +1,106 @@
+﻿@model TransformAccountViewModel
+@{
+    ViewBag.Title = "Transform Account";
+    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
+    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+
+    var transformNote = "Administrators have full control over their organizations, including the ability to add and remove other members.";
+    var transformNote2 = "Existing API keys owned by this account, '" + CurrentUser.Username + "', will be transferred to '{0}' on transformation. Full access legacy API keys will not be transferred.";
+    var transformConfirmation = "You have added '{0}' as an administrator. "
+        + transformNote
+        + "\\n\\n"
+        + transformNote2;
+}
+
+<section role="main" class="container main-container page-transform-account">
+    <div class="row">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            @ViewHelpers.BreadcrumbWithProfile(Url, CurrentUser, true, @<text>Transform account</text>)
+
+            <div class="transform-alert">
+                @ViewHelpers.AlertWarning(@<text>
+                    <span>
+                        This is an irreversible process. Once you transform this account to an organization:
+                    </span>
+                    <ul class="transform-alert-list">
+                        <li>
+                            You will no longer be able sign in to @CurrentUser.Username.
+                        </li>
+                        <li>
+                            All permissions to manage @CurrentUser.Username and the packages it owns will be transferred to the administrator you choose here.
+                        </li>
+                        <li>
+                            Existing scoped API keys for this account will be transferred to the administrator. Full access API keys (legacy API keys without expiry) <b>will not be transferred and will be deleted.</b>
+                        </li>
+                    </ul>
+                    <p>
+                        <b>Note:</b> If you want to continue to manage @CurrentUser.Username and its packages, you should create an individual account on NuGet.org before transforming it to an organization so that you can add your new account as an administrator during the transform process.
+                    </p></text>)
+            </div>
+
+            @using (Html.BeginForm("Transform", "Users", FormMethod.Post, new { id = "transform"}))
+            {
+                @Html.AntiForgeryToken()
+
+                <div class="row center-box">
+                    <div class="form-box col-xs-9">
+                        <div class="form-group">
+                            @Html.Label("Organization")
+                            <p>@CurrentUser.Username</p>
+                        </div>
+
+                        <div class="form-group">
+                            @Html.Label("Email")
+                            <p>@CurrentUser.EmailAddress</p>
+                        </div>
+
+                        <div class="form-group @Html.HasErrorFor(m => m.AdminUsername)">
+                            @Html.ShowLabelFor(m => m.AdminUsername)
+                            <a href="#" id="transform-tooltip" data-toggle="tooltip" title="Please enter a username for the organization administrator.">
+                                <i class="ms-Icon ms-Icon--Info" aria-hidden="true" style="vertical-align: -2px"></i>
+                            </a>
+                            @Html.ShowTextBoxFor(m => m.AdminUsername, placeholder: "Add existing NuGet.org user")
+                            @Html.ShowValidationMessagesFor(m => m.AdminUsername)
+                        </div>
+                        <div class="form-group has-error">
+                            @Html.ShowValidationMessagesForEmpty()
+                        </div>
+                    </div>
+                    <aside class="logo-box col-xs-3">
+                        <div class="logo">
+                            @Html.Label("Logo")
+                        </div>
+                        <div>
+                            @ViewHelpers.GravatarImage(CurrentUser.EmailAddress, CurrentUser.Username, Constants.GravatarImageSizeLarge, responsive: true)
+                        </div>
+                    </aside>
+                </div>
+
+                <div class="row form-group">
+                    <div class="col-md-6">
+                        <input type="submit" class="btn btn-primary form-control" value="Transform" />
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/" role="button" class="btn btn-default form-control" id="cancel-transform">
+                            Cancel
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+@section bottomScripts {
+    <script type="text/javascript">
+        $(function ()
+        {
+            var confirmation = "@Html.Raw(transformConfirmation)";
+            $("#transform").submit(function (event) {
+                return window.nuget.confirmEvent(
+                    window.nuget.formatString(confirmation, $("#AdminUsername").val()),
+                    event);
+            });
+        });
+    </script>
+}

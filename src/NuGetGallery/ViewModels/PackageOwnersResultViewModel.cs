@@ -1,6 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Web.Mvc;
+using NuGetGallery.Helpers;
+using System.Linq;
+
 namespace NuGetGallery
 {
     public class PackageOwnersResultViewModel
@@ -9,17 +13,26 @@ namespace NuGetGallery
 
         public string EmailAddress;
 
-        public bool Current;
+        public string ProfileUrl;
+
+        public string ImageUrl;
+
+        public bool GrantsCurrentUserAccess;
+
+        public bool IsCurrentUserAdminOfOrganization;
 
         public bool Pending;
 
         public bool IsNamespaceOwner;
 
-        public PackageOwnersResultViewModel(string username, string emailAddress, bool isCurrentUser, bool isPending, bool isNamespaceOwner)
+        public PackageOwnersResultViewModel(User user, User currentUser, PackageRegistration packageRegistration, UrlHelper url, bool isPending, bool isNamespaceOwner)
         {
-            Name = username;
-            EmailAddress = emailAddress;
-            Current = isCurrentUser;
+            Name = user.Username;
+            EmailAddress = user.EmailAddress;
+            ProfileUrl = url.User(user, relativeUrl: false);
+            ImageUrl = GravatarHelper.Url(user.EmailAddress, size: Constants.GravatarImageSize);
+            GrantsCurrentUserAccess = ActionsRequiringPermissions.ManagePackageOwnership.CheckPermissions(currentUser, user, packageRegistration) == PermissionsCheckResult.Allowed;
+            IsCurrentUserAdminOfOrganization = (user as Organization)?.GetMembershipOfUser(currentUser)?.IsAdmin ?? false;
             Pending = isPending;
             IsNamespaceOwner = isNamespaceOwner;
         }

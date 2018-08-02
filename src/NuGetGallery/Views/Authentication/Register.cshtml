@@ -8,12 +8,18 @@
 }
 
 <section role="main" class="container main-container page-sign-in">
+    @if (this.Config.Current.DeprecateNuGetPasswordLogins)
+    {
+        <div class="deprecate-alert text-center">
+            @ViewHelpers.AlertPasswordDeprecation()
+        </div>
+    }
+
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag) text-center">
             <h1>Register</h1>
         </div>
     </div>
-
     @foreach (var provider in Model.Providers)
     {
         <div class="row">
@@ -24,8 +30,7 @@
                     {
                         <img height="24" width="24" alt="" aria-hidden="true"
                              src="@Href(provider.UI.IconImagePath)"
-                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString) ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty))
-                             />
+                             @(!string.IsNullOrEmpty(provider.UI.IconImageFallbackPath) ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute(provider.UI.IconImageFallbackPath)) : new HtmlString(string.Empty)) />
                     }
                     @provider.UI.RegisterMessage
                 </a>

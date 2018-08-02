@@ -29,12 +29,15 @@ namespace NuGetGallery
         private const string UrlHostRequirement = "raw.githubusercontent.com";
 
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
-
-        private IPackageFileService _packageFileService;
+        private readonly IEntitiesContext _entitiesContext;
+        private readonly IPackageFileService _packageFileService;
         
-        public ReadMeService(IPackageFileService packageFileService)
+        public ReadMeService(
+            IPackageFileService packageFileService,
+            IEntitiesContext entitiesContext)
         {
-            _packageFileService = packageFileService;
+            _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
+            _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
         }
 
         /// <summary>
@@ -80,13 +83,12 @@ namespace NuGetGallery
         /// Get the converted HTML from the stored ReadMe markdown.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
-        /// <returns>Pending or active ReadMe converted to HTML.</returns>
-        public async Task<string> GetReadMeHtmlAsync(Package package, bool isPending = false)
+        /// <returns>ReadMe converted to HTML.</returns>
+        public async Task<string> GetReadMeHtmlAsync(Package package)
         {
-            var readMeMd = await GetReadMeMdAsync(package, isPending);
+            var readMeMd = await GetReadMeMdAsync(package);
             return string.IsNullOrEmpty(readMeMd) ?
-                string.Empty :
+                readMeMd :
                 GetReadMeHtml(readMeMd);
         }
 
@@ -94,13 +96,12 @@ namespace NuGetGallery
         /// Get package ReadMe markdown from storage.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="isPending">Whether to retrieve the pending ReadMe.</param>
-        /// <returns>Pending or active ReadMe markdown from storage.</returns>
-        public async Task<string> GetReadMeMdAsync(Package package, bool isPending = false)
+        /// <returns>ReadMe markdown from storage.</returns>
+        public async Task<string> GetReadMeMdAsync(Package package)
         {
-            if (package.HasReadMe || isPending)
+            if (package.HasReadMe)
             {
-                return await _packageFileService.DownloadReadMeMdFileAsync(package, isPending);
+                return await _packageFileService.DownloadReadMeMdFileAsync(package);
             }
 
             return null;
@@ -110,9 +111,15 @@ namespace NuGetGallery
         /// Save a pending ReadMe if changes are detected.
         /// </summary>
         /// <param name="package">Package entity associated with the ReadMe.</param>
-        /// <param name="edit">Package edit entity.</param>
-        /// <returns>True if a ReadMe is pending, false otherwise.</returns>
-        public async Task<bool> SavePendingReadMeMdIfChanged(Package package, EditPackageVersionRequest edit, Encoding encoding)
+        /// <param name="edit">Package version edit readme request.</param>
+        /// <param name="encoding">The encoding used when reading the existing readme.</param>
+        /// <param name="commitChanges">Whether or not to commit the pending changes to the database.</param>
+        /// <returns>True if the package readme changed, otherwise false.</returns>
+        public async Task<bool> SaveReadMeMdIfChanged(
+            Package package,
+            EditPackageVersionReadMeRequest edit,
+            Encoding encoding,
+            bool commitChanges)
         {
             var activeReadMe = package.HasReadMe ?
                 NormalizeNewLines(await GetReadMeMdAsync(package)) :
@@ -125,20 +132,36 @@ namespace NuGetGallery
             var hasReadMe = !string.IsNullOrWhiteSpace(newReadMe);
             if (hasReadMe && !newReadMe.Equals(activeReadMe))
             {
-                await _packageFileService.SavePendingReadMeMdFileAsync(package, newReadMe);
+                await _packageFileService.SaveReadMeMdFileAsync(package, newReadMe);
                 edit.ReadMeState = PackageEditReadMeState.Changed;
+
+                // Save entity to db.
+                package.HasReadMe = true;
+
+                if (commitChanges)
+                {
+                    await _entitiesContext.SaveChangesAsync();
+                }
             }
             else if (!hasReadMe && !string.IsNullOrEmpty(activeReadMe))
             {
-                await _packageFileService.DeleteReadMeMdFileAsync(package, isPending: true);
+                await _packageFileService.DeleteReadMeMdFileAsync(package);
                 edit.ReadMeState = PackageEditReadMeState.Deleted;
+                
+                // Save entity to db.
+                package.HasReadMe = false;
+
+                if (commitChanges)
+                {
+                    await _entitiesContext.SaveChangesAsync();
+                }
             }
             else
             {
                 edit.ReadMeState = PackageEditReadMeState.Unchanged;
             }
 
-            return hasReadMe;
+            return edit.ReadMeState != PackageEditReadMeState.Unchanged;
         }
 
         /// <summary>
@@ -315,6 +338,8 @@ namespace NuGetGallery
         
         private static string NormalizeNewLines(string content)
         {
+            if (content == null) return null;
+
             return NewLineRegex.Replace(content, Environment.NewLine);
         }
     }

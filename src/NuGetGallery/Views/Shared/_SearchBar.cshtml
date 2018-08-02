@@ -1,5 +1,5 @@
 ﻿<div class="input-group">
-    <input name="q" type="text" class="form-control" id="search"
+    <input name="q" type="text" class="form-control" id="search" aria-label="Enter packages to search"
            placeholder="Search for packages..." autocomplete="off"
            value="@(String.IsNullOrEmpty(ViewBag.SearchTerm) ? "" : ViewBag.SearchTerm)"
            @(ViewBag.AutofocusSearch == true ? "autofocus" : string.Empty) />

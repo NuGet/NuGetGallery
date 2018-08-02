@@ -14,6 +14,7 @@ using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using Xunit;
 using NuGetGallery.TestUtils;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -23,19 +24,22 @@ namespace NuGetGallery
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<PackageService> packageService = null,
             Mock<IPackageFileService> packageFileService = null,
+            Mock<ITelemetryService> telemetryService = null,
             Action<Mock<ReflowPackageService>> setup = null)
         {
             var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
 
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
             var reflowPackageService = new Mock<ReflowPackageService>(
                 entitiesContext.Object,
                 packageService.Object,
-                packageFileService.Object);
+                packageFileService.Object,
+                telemetryService.Object);
 
             reflowPackageService.CallBase = true;
 
@@ -161,32 +165,34 @@ namespace NuGetGallery
                 Assert.Equal("1.0.0", result.NormalizedVersion);
                 Assert.Equal("Test package", result.Title);
 
+#pragma warning disable 0618
                 Assert.Equal(2, result.Authors.Count);
-                Assert.True(result.Authors.Any(a => a.Name == "authora"));
-                Assert.True(result.Authors.Any(a => a.Name == "authorb"));
+                Assert.Contains(result.Authors, a => a.Name == "authora");
+                Assert.Contains(result.Authors, a => a.Name == "authorb");
+#pragma warning restore 0618
                 Assert.Equal("authora, authorb", result.FlattenedAuthors);
 
-                Assert.Equal(false, result.RequiresLicenseAcceptance);
+                Assert.False(result.RequiresLicenseAcceptance);
                 Assert.Equal("package A description.", result.Description);
                 Assert.Equal("en-US", result.Language);
 
                 Assert.Equal("WebActivator:[1.1.0, ):net40|PackageC:[1.1.0, 2.0.1):net40|jQuery:[1.0.0, ):net451", result.FlattenedDependencies);
                 Assert.Equal(3, result.Dependencies.Count);
 
-                Assert.True(result.Dependencies.Any(d =>
+                Assert.Contains(result.Dependencies, d =>
                     d.Id == "WebActivator"
                     && d.VersionSpec == "[1.1.0, )"
-                    && d.TargetFramework == "net40"));
+                    && d.TargetFramework == "net40");
 
-                Assert.True(result.Dependencies.Any(d =>
+                Assert.Contains(result.Dependencies, d =>
                     d.Id == "PackageC"
                     && d.VersionSpec == "[1.1.0, 2.0.1)"
-                    && d.TargetFramework == "net40"));
+                    && d.TargetFramework == "net40");
 
-                Assert.True(result.Dependencies.Any(d =>
+                Assert.Contains(result.Dependencies, d =>
                     d.Id == "jQuery"
                     && d.VersionSpec == "[1.0.0, )"
-                    && d.TargetFramework == "net451"));
+                    && d.TargetFramework == "net451");
 
                 Assert.Equal(0, result.SupportedFrameworks.Count);
             }
@@ -260,22 +266,90 @@ namespace NuGetGallery
                 // Assert
                 packageService.Verify(s => s.UpdateIsLatestAsync(package.PackageRegistration, false), Times.Once);
             }
+
+            [Fact]
+            public async Task EmitsTelemetry()
+            {
+                // Arrange
+                var package = PackageServiceUtility.CreateTestPackage();
+
+                var packageService = SetupPackageService(package);
+                var entitiesContext = SetupEntitiesContext();
+                var packageFileService = SetupPackageFileService(package);
+                var telemetryService = new Mock<ITelemetryService>();
+
+                var service = CreateService(
+                    packageService: packageService,
+                    entitiesContext: entitiesContext,
+                    packageFileService: packageFileService,
+                    telemetryService: telemetryService);
+
+                // Act
+                var result = await service.ReflowAsync("test", "1.0.0");
+
+                // Assert
+                telemetryService.Verify(
+                    x => x.TrackPackageReflow(package),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task AllowsInvalidPackageDependencyVersion()
+            {
+                // Arrange
+                var package = PackageServiceUtility.CreateTestPackage();
+
+                var packageService = SetupPackageService(package);
+                var entitiesContext = SetupEntitiesContext();
+                var packageFileService = SetupPackageFileService(
+                    package,
+                    CreateInvalidDependencyVersionTestPackageStream());
+
+                var service = CreateService(
+                    packageService: packageService,
+                    entitiesContext: entitiesContext,
+                    packageFileService: packageFileService);
+
+                // Act
+                var result = await service.ReflowAsync("test", "1.0.0");
+
+                // Assert
+                Assert.Equal("test", result.PackageRegistration.Id);
+                Assert.Equal("1.0.0", result.NormalizedVersion);
+
+                Assert.Contains(result.Dependencies, d =>
+                    d.Id == "WebActivator"
+                    && d.VersionSpec == "(, )"
+                    && d.TargetFramework == "net40");
+
+                Assert.Contains(result.Dependencies, d =>
+                    d.Id == "PackageC"
+                    && d.VersionSpec == "[1.1.0, 2.0.1)"
+                    && d.TargetFramework == "net40");
+
+                Assert.Contains(result.Dependencies, d =>
+                    d.Id == "jQuery"
+                    && d.VersionSpec == "(, )"
+                    && d.TargetFramework == "net451");
+            }
         }
 
         private static Mock<PackageService> SetupPackageService(Package package)
         {
             var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
             var packageRepository = new Mock<IEntityRepository<Package>>();
-            var packageNamingConflictValidator = new PackageNamingConflictValidator(
-                    packageRegistrationRepository.Object,
-                    packageRepository.Object);
+            var certificateRepository = new Mock<IEntityRepository<Certificate>>();
             var auditingService = new TestAuditingService();
+            var telemetryService = new Mock<ITelemetryService>();
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
 
             var packageService = new Mock<PackageService>(
                 packageRegistrationRepository.Object,
                 packageRepository.Object,
-                packageNamingConflictValidator,
-                auditingService);
+                certificateRepository.Object,
+                auditingService,
+                telemetryService.Object,
+                securityPolicyService.Object);
 
             packageService.CallBase = true;
 
@@ -323,27 +397,50 @@ namespace NuGetGallery
             return entitiesContext;
         }
 
-        private static Mock<IPackageFileService> SetupPackageFileService(Package package)
+        private static Mock<IPackageFileService> SetupPackageFileService(Package package, Stream packageStream = null)
         {
             var packageFileService = new Mock<IPackageFileService>();
 
             packageFileService
                 .Setup(s => s.DownloadPackageFileAsync(package))
-                .Returns(Task.FromResult(CreateTestPackageStream()))
+                .Returns(Task.FromResult(packageStream ?? CreateTestPackageStream()))
                 .Verifiable();
 
             return packageFileService;
         }
 
+        private static Stream CreateInvalidDependencyVersionTestPackageStream()
+        {
+            return CreateTestPackageStream(@"<?xml version=""1.0""?>
+                    <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
+                      <metadata>
+                        <id>test</id>
+                        <version>1.0.0</version>
+                        <title>Test package</title>
+                        <authors>authora, authorb</authors>
+                        <owners>ownera</owners>
+                        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+                        <description>package A description.</description>
+                        <language>en-US</language>
+                        <projectUrl>http://www.nuget.org/</projectUrl>
+                        <iconUrl>http://www.nuget.org/</iconUrl>
+                        <licenseUrl>http://www.nuget.org/</licenseUrl>
+                        <dependencies>
+                            <group targetFramework=""net40"">
+                              <dependency id=""WebActivator"" version="""" />
+                              <dependency id=""PackageC"" version=""[1.1.0, 2.0.1)"" />
+                            </group>
+                            <group targetFramework=""net451"">
+                              <dependency id=""jQuery"" version=""$version$""/>
+                            </group>
+                        </dependencies>
+                      </metadata>
+                    </package>");
+        }
+
         private static Stream CreateTestPackageStream()
         {
-            var packageStream = new MemoryStream();
-            using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
-            {
-                var nuspecEntry = packageArchive.CreateEntry("TestPackage.nuspec", CompressionLevel.Fastest);
-                using (var streamWriter = new StreamWriter(nuspecEntry.Open()))
-                {
-                    streamWriter.WriteLine(@"<?xml version=""1.0""?>
+            return CreateTestPackageStream(@"<?xml version=""1.0""?>
                     <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
                       <metadata>
                         <id>test</id>
@@ -368,6 +465,17 @@ namespace NuGetGallery
                         </dependencies>
                       </metadata>
                     </package>");
+        }
+
+        private static Stream CreateTestPackageStream(string nuspec)
+        {
+            var packageStream = new MemoryStream();
+            using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
+            {
+                var nuspecEntry = packageArchive.CreateEntry("TestPackage.nuspec", CompressionLevel.Fastest);
+                using (var streamWriter = new StreamWriter(nuspecEntry.Open()))
+                {
+                    streamWriter.WriteLine(nuspec);
                 }
 
                 packageArchive.CreateEntry("content\\HelloWorld.cs", CompressionLevel.Fastest);

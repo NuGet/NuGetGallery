@@ -3,11 +3,9 @@
 
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Security.Claims;
 using System.Web;
 using System.Web.Mvc;
-using NuGetGallery.Authentication;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 using AuthorizationContext = System.Web.Mvc.AuthorizationContext;
 
@@ -26,15 +24,12 @@ namespace NuGetGallery.Filters
             var controller = filterContext.Controller as AppController;
             if (identity != null && identity.IsAuthenticated && identity.AuthenticationType == AuthenticationTypes.ApiKey && controller != null)
             {
-                var apiKey = identity.GetClaimOrDefault(NuGetClaims.ApiKey);
-                
                 var user = controller.GetCurrentUser();
+                var apiKeyCredential =  user.GetCurrentApiKeyCredential(identity);
 
-                var apiKeyCredential = user.Credentials.FirstOrDefault(c => c.Value == apiKey);
                 if (apiKeyCredential != null && apiKeyCredential.Expires.HasValue)
                 {
-                    var accountUrl = controller.NuGetContext.Config.GetSiteRoot(
-                        controller.NuGetContext.Config.Current.RequireSSL).TrimEnd('/') + "/account";
+                    var accountUrl = controller.Url.ManageMyApiKeys(false);
 
                     var expirationPeriod = apiKeyCredential.Expires.Value - DateTime.UtcNow;
                     if (apiKeyCredential.HasExpired)

@@ -1,0 +1,104 @@
+.modal-backdrop.in
+{
+    opacity:0.8 !important;
+    position:fixed;// This makes it cover the entire scrollable page, not just browser height
+    height:100%;
+}
+
+.modal-container {
+  align-items: center; 
+  display: flex; 
+  overflow: hidden;
+
+  .modal-box {
+    border-radius: 8px;
+    background-color: white;
+    margin-left: auto;
+    margin-right: auto;
+    min-height: 364px;
+    min-width: 320px;
+    max-width: 448px;
+    width: calc(100% - 40px);
+    overflow: hidden;
+    padding: 0px;
+
+    .modal-title {
+      background-color: #4181B8;
+      color: white;
+      padding:  15px;
+
+      .dismiss-button {
+        background: transparent;
+        border: 0px;
+        cursor: pointer;
+        float: right;
+        padding: 0px;
+      }
+    }
+
+    .modal-body {
+      padding: 0px;
+      font-size: 14px;
+
+      .tag-node {
+        background-color: #fff4ce;
+        padding: 13px; 
+        text-align: left;
+
+        .title-text {
+          vertical-align: top;
+        }
+      }
+
+      .action-node {
+        padding: 0% 6%;
+        text-align: center;
+      }
+
+      .action-button {
+        font-size: 16px;
+        line-height: 2em;
+      }
+
+      .form-button-node {
+        padding-left: 65%;
+        padding-right: 0;
+        padding-bottom: 0;
+        text-align: center;
+      }
+
+      .username-submit {
+        padding-top: 13%;
+      }
+
+      .email-submit {
+        padding-top: 16%;
+      }
+
+      .close-button {
+        padding-top: 27%;
+      }
+
+      .text-label {
+        padding: 15px;
+      }
+
+      .form-error-message {
+        padding-top: 6px;
+        float: left;
+      }
+
+      .text-row {
+        padding-top: 13px;
+      }
+
+      .transform-text {
+        padding-top: 20px;
+        padding-left: 15px;
+        padding-right: 15px;
+        padding-bottom: 40px;
+        margin: 0px;
+      }
+    }
+  }
+}

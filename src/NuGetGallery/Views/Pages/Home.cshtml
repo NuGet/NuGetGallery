@@ -1,9 +1,20 @@
-﻿@{
+﻿@model GalleryHomeViewModel
+@{
     ViewBag.Title = "Home";
     ViewBag.ShowSearchInNavbar = false;
     ViewBag.AutofocusSearch = true;
     ViewBag.HasJumbotron = true;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
+}
+
+@if (Model.ShowTransformModal)
+{
+    <script type="text/javascript">
+        window.showModal = true;
+    </script>
+    <div id="popUpModal" class="modal fade modal-container" data-backdrop="static">
+        @Html.Partial("_TransformOrLink", Model)
+    </div>
 }
 
 <section role="main" class="page-home">
@@ -18,9 +29,10 @@
                 <div class="col-sm-8 col-sm-offset-2">
                     <form action="@Url.PackageList()" method="get">
                         @Html.Partial("_SearchBar")
+                        @Html.Partial("_AutocompleteTemplate")
                     </form>
                 </div>
-            </div>            
+            </div>
         </div>
         <div class="circuit-board hidden-xs" role="img" data-bind="attr: { 'aria-label': label }">
             <div class="circuit-board-label circuit-board-pd triangle">
@@ -45,7 +57,7 @@
         <div class="row">
             <h1>What is NuGet?</h1>
             <p>
-                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages. 
+                NuGet is the package manager for .NET. The NuGet client tools provide the ability to produce and consume packages.
                 The NuGet Gallery is the central package repository used by all package authors and consumers.
             </p>
         </div>
@@ -53,7 +65,7 @@
             <div class="col-sm-4">
                 <a href="https://docs.microsoft.com/en-us/nuget/quickstart/use-a-package"
                    title="Learn about how to use NuGet packages">
-                    <img width="225" height="225"
+                    <img width="225" height="225" alt="Learn to use packages"
                          src="~/Content/gallery/img/orange-circle.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/orange-circle-225x225.png")) />
                     <h3>Learn</h3>
@@ -65,7 +77,7 @@
             <div class="col-sm-4">
                 <a href="@Url.PackageList()"
                    title="Explore packages available on NuGet.org">
-                    <img width="225" height="225"
+                    <img width="225" height="225" alt="Find packages"
                          src="~/Content/gallery/img/purple-circle.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/purple-circle-225x225.png")) />
                     <h3>Explore</h3>
@@ -77,7 +89,7 @@
             <div class="col-sm-4">
                 <a href="https://docs.microsoft.com/en-us/nuget/quickstart/create-and-publish-a-package"
                    title="Learn how to create a NuGet package">
-                    <img width="225" height="225"
+                    <img width="225" height="225" alt="Learn to create packages"
                          src="~/Content/gallery/img/blue-circle.svg"
                          @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/blue-circle-225x225.png")) />
                     <h3>Create</h3>

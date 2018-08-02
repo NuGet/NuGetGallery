@@ -61,6 +61,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument cannot be null or empty..
+        /// </summary>
+        public static string ArgumentCannotBeNullOrEmpty {
+            get {
+                return ResourceManager.GetString("ArgumentCannotBeNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The certificate does not exist..
+        /// </summary>
+        public static string CertificateNotFound {
+            get {
+                return ResourceManager.GetString("CertificateNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The thumbprint is expected to be a SHA-256 thumbprint, which is exactly 64 characters in length.  Did the hash algorithm change?.
+        /// </summary>
+        public static string CertificateThumbprintHashAlgorithmChanged {
+            get {
+                return ResourceManager.GetString("CertificateThumbprintHashAlgorithmChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to write audit record: &apos;{0}&apos;. Record already exists..
         /// </summary>
         public static string CloudAuditingService_DuplicateAuditRecord {
@@ -124,11 +151,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains duplicate metadata elements: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_DuplicateMetadataElements {
+            get {
+                return ResourceManager.GetString("Manifest_DuplicateMetadataElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package manifest contains an ID that is too long. Package IDs can be no longer than 100 characters..
         /// </summary>
         public static string Manifest_IdTooLong {
             get {
                 return ResourceManager.GetString("Manifest_IdTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains an invalid boolean value for metadata element: &apos;{0}&apos;. The value should be &apos;true&apos; or &apos;false&apos;..
+        /// </summary>
+        public static string Manifest_InvalidBooleanMetadata {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidBooleanMetadata", resourceCulture);
             }
         }
         
@@ -156,6 +201,15 @@ namespace NuGetGallery {
         public static string Manifest_InvalidId {
             get {
                 return ResourceManager.GetString("Manifest_InvalidId", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package manifest contains invalid metadata elements: &apos;{0}&apos;.
+        /// </summary>
+        public static string Manifest_InvalidMetadataElements {
+            get {
+                return ResourceManager.GetString("Manifest_InvalidMetadataElements", resourceCulture);
             }
         }
         
@@ -246,6 +300,15 @@ namespace NuGetGallery {
         public static string PackageMetadata_VersionStringInvalid {
             get {
                 return ResourceManager.GetString("PackageMetadata_VersionStringInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package does not exist..
+        /// </summary>
+        public static string PackageNotFound {
+            get {
+                return ResourceManager.GetString("PackageNotFound", resourceCulture);
             }
         }
         

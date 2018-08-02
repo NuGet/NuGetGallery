@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web.Helpers;
 using NuGetGallery.Services.Authentication;
 
@@ -26,6 +27,53 @@ namespace NuGetGallery.Infrastructure.Authentication
             }
 
             return validator(providedPassword, credential);
+        }
+
+        public IList<Credential> GetValidCredentialsForApiKey(IQueryable<Credential> allCredentials, string providedApiKey)
+        {
+            var results = new List<Credential>();
+
+            if (ApiKeyV4.TryParse(providedApiKey, out ApiKeyV4 apiKeyV4))
+            {
+                var foundApiKeys = allCredentials.Where(c => c.Type == CredentialTypes.ApiKey.V4 &&
+                                                             c.Value.StartsWith(apiKeyV4.IdPart)).ToList();
+
+                // There shouldn't be duplications in the id part because it's long enough, but we shouldn't assume that.
+                results = foundApiKeys.Where(c => apiKeyV4.Verify(c.Value)).ToList();
+            }
+            else
+            {
+                // Try to authenticate as APIKey V1/V2/V3/Verify
+                if (ApiKeyV3.TryParse(providedApiKey, out var v3ApiKey))
+                {
+                    results = allCredentials.Where(c => c.Type.StartsWith(CredentialTypes.ApiKey.Prefix) &&
+                                                        (c.Value == providedApiKey || c.Value.StartsWith(v3ApiKey.IdPart))).ToList();
+
+                    results = results.Where(credential =>
+                    {
+                        switch (credential.Type)
+                        {
+                            case CredentialTypes.ApiKey.V1:
+                            case CredentialTypes.ApiKey.V2:
+                            case CredentialTypes.ApiKey.VerifyV1:
+                                {
+                                    return credential.Value == providedApiKey;
+                                }
+                            case CredentialTypes.ApiKey.V3:
+                                {
+                                    return v3ApiKey.Verify(credential.Value);
+                                }
+
+                            default:
+                                {
+                                    return false;
+                                }
+                        }
+                    }).ToList();
+                }
+            }
+
+            return results;
         }
     }
 }

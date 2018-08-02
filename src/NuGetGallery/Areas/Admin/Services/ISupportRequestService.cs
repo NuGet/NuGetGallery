@@ -33,18 +33,31 @@ namespace NuGetGallery.Areas.Admin
         /// <returns>Returns a <see cref="IReadOnlyCollection{Issue}"/> that matches the provided filter parameters.</returns>
         IReadOnlyCollection<Issue> GetIssues(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null);
 
-        Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
-            User user, Package package = null);
+        Task<Issue> AddNewSupportRequestAsync(
+            string subject, 
+            string message,
+            string requestorEmailAddress,
+            string reason,
+            User user,
+            Package package = null);
+
         Task UpdateIssueAsync(int issueId, int? assignedToId, int issueStatusId, string comment, string editedBy);
+
         int GetIssueCount(int? assignedToId, string reason, int? issueStatusId);
 
         List<History> GetHistoryEntriesByIssueKey(int id);
         Task AddHistoryRecordAsync(History entry);
 
         IReadOnlyCollection<Models.Admin> GetAllAdmins();
-        int? GetAdminKeyFromUsername(string username);
+
         Task ToggleAdminAccessAsync(int adminId, bool enabled);
-        Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername);
-        Task AddAdminAsync(string galleryUsername, string pagerDutyUsername);
+
+        Task UpdateAdminAsync(int adminId, string galleryUsername);
+
+        Task AddAdminAsync(string galleryUsername);
+
+        Task DeleteSupportRequestsAsync(string createdBy);
+
+        Task<bool> TryAddDeleteSupportRequestAsync(User user);
     }
 }

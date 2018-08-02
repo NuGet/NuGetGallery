@@ -2,9 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Threading.Tasks;
+using NuGetGallery.FunctionalTests.XunitExtensions;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +18,9 @@ namespace NuGetGallery.FunctionalTests.Commandline
     public class NugetCommandLineTests
         : GalleryTestBase
     {
+        private const string LockedPackageId = "NuGetTest_LockedPackageCannotBeModified";
+        private const string LockedPackageVersion = "1.0.0";
+
         private readonly ClientSdkHelper _clientSdkHelper;
         private readonly CommandlineHelper _commandlineHelper;
         private readonly PackageCreationHelper _packageCreationHelper;
@@ -32,7 +37,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
         [Description("Downloads a package using NuGet.exe and checks if the package file is present in the output dir")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task DownloadPackageWithNuGetCommandLineTest()
+        public async Task DownloadPackage()
         {
             string packageId = Constants.TestPackageId; //try to download a pre-defined test package.
             _clientSdkHelper.ClearLocalPackageFolder(packageId, ClientSdkHelper.GetLatestStableVersion(packageId));
@@ -43,87 +48,73 @@ namespace NuGetGallery.FunctionalTests.Commandline
             Assert.True(_clientSdkHelper.CheckIfPackageInstalled(packageId), Constants.PackageInstallFailureMessage);
         }
 
-        [Fact]
-        [Description("Creates a test package and pushes it to the server using Nuget.exe")]
+        public static IEnumerable<object[]> UploadAndUnlistPackages_Data
+        {
+            get
+            {
+                yield return new object[] { null };
+                yield return new object[] { GalleryConfiguration.Instance.AdminOrganization.ApiKey };
+                yield return new object[] { GalleryConfiguration.Instance.CollaboratorOrganization.ApiKey };
+            }
+        }
+
+        [Theory]
+        [MemberData(nameof(UploadAndUnlistPackages_Data))]
+        [Description("Tests upload and unlist scenarios with API key")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadPackageWithNuGetCommandLineTest()
+        public async Task UploadAndUnlistPackages(string apiKey)
         {
-            await _clientSdkHelper.UploadNewPackageAndVerify(DateTime.Now.Ticks.ToString());
+            // Can push new package ID
+            await _clientSdkHelper.UploadPackage(apiKey);
+
+            // Can push new version of an existing package
+            await _clientSdkHelper.UploadPackageVersion(apiKey);
+
+            // Can unlist versions of an existing package
+            await _clientSdkHelper.UnlistPackage(apiKey);
         }
 
         [Fact]
         [Description("Uses scoped API keys to push and unlist packages using Nuget.exe")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task VerifyScopedApiKeys()
+        public async Task ScopedApiKeysCanOnlyPushAndUnlistWithCorrectScopes()
         {
             // Arrange
             var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
             var commandlineHelper = new CommandlineHelper(TestOutputHelper);
 
-            var packageId = "ScopedApiKeysTest_" + DateTime.Now.Ticks;
-            var version1 = "1.0.0";
-            var version2= "2.0.0";
+            // Try to upload package using 'unlist' API key
+            await _clientSdkHelper.FailToUploadPackage(GalleryConfiguration.Instance.Account.ApiKeyUnlist);
 
-            string package1FullPath = null;
-            string package2FullPath = null;
+            // Try to upload package using 'push version' API key
+            await _clientSdkHelper.FailToUploadPackage(GalleryConfiguration.Instance.Account.ApiKeyPushVersion);
 
-            try
-            {
-                package1FullPath = await packageCreationHelper.CreatePackage(packageId, version1);
-                package2FullPath = await packageCreationHelper.CreatePackage(packageId, version2);
+            // Upload package using 'push' API key
+            await _clientSdkHelper.UploadPackage(GalleryConfiguration.Instance.Account.ApiKeyPush);
 
-                // 1. Try to upload package using 'unlist' api key => expect failure
-                TestOutputHelper.WriteLine($"1. Trying to upload package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: failure.");
-                var processResult = await commandlineHelper.UploadPackageAsync(package1FullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_Unlist);
-                Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+            // Try to upload new version of package using 'unlist' API key
+            await _clientSdkHelper.FailToUploadPackageVersion(GalleryConfiguration.Instance.Account.ApiKeyUnlist);
 
-                // 2. Try to upload package using 'push version' api key => expect failure
-                TestOutputHelper.WriteLine($"2. Trying to upload package '{packageId}', version '{version1}' using 'push version' API key. Expected result: failure.");
-                processResult = await commandlineHelper.UploadPackageAsync(package1FullPath, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_PushVersion);
-                Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+            // Upload new version of package using 'push version' API key
+            await _clientSdkHelper.UploadPackageVersion(GalleryConfiguration.Instance.Account.ApiKeyPushVersion);
 
-                // 3. Upload package using 'push' api key => expect success
-                TestOutputHelper.WriteLine($"3. Trying to upload package '{packageId}', version '{version1}' using 'push' API key. Expected result: success.");
-                await _clientSdkHelper.UploadExistingPackage(package1FullPath, EnvironmentSettings.TestAccountApiKey_Push);
-                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version1);
+            // Try unlisting package version1 using 'push' API key
+            await _clientSdkHelper.FailToUnlistPackage(GalleryConfiguration.Instance.Account.ApiKeyPush);
 
-                // 4. Upload new version of package using 'push version' api key => expect success
-                TestOutputHelper.WriteLine($"4. Trying to upload package '{packageId}', version '{version2}' using 'push version' API key. Expected result: success.");
-                await _clientSdkHelper.UploadExistingPackage(package2FullPath, EnvironmentSettings.TestAccountApiKey_PushVersion);
-                _clientSdkHelper.VerifyPackageExistsInSource(packageId, version2);
+            // Try unlisting package version2 using 'push version' API key
+            await _clientSdkHelper.FailToUnlistPackage(GalleryConfiguration.Instance.Account.ApiKeyPushVersion);
 
-                // 5. Try unlisting package version1 using 'push' api key => expect failture
-                TestOutputHelper.WriteLine($"5. Trying to unlist package '{packageId}', version '{version1}' using 'push' API key. Expected result: failure.");
-                processResult = await commandlineHelper.DeletePackageAsync(packageId, version1, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_Push);
-                Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
-
-                // 6. Try unlisting package version2 using 'push version' api key => expect failture
-                TestOutputHelper.WriteLine($"6. Trying to unlist package '{packageId}', version '{version2}' using 'push' API key. Expected result: failure.");
-                processResult = await commandlineHelper.DeletePackageAsync(packageId, version2, UrlHelper.V2FeedPushSourceUrl, EnvironmentSettings.TestAccountApiKey_PushVersion);
-                Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
-
-                // 7. Unlist both packages using 'unlist' api key => expect succees
-                TestOutputHelper.WriteLine($"7. Trying to unlist package '{packageId}', version '{version1}' using 'unlist' API key. Expected result: success.");
-                await _clientSdkHelper.UnlistPackage(packageId, version1, EnvironmentSettings.TestAccountApiKey_Unlist);
-
-                TestOutputHelper.WriteLine($"8. Trying to unlist package '{packageId}', version '{version2}' using 'unlist' API key. Expected result: success.");
-                await _clientSdkHelper.UnlistPackage(packageId, version2, EnvironmentSettings.TestAccountApiKey_Unlist);
-
-            }
-            finally
-            {
-                _clientSdkHelper.CleanCreatedPackage(package1FullPath);
-                _clientSdkHelper.CleanCreatedPackage(package2FullPath);
-            }
+            // Unlist a package using 'unlist' API key
+            await _clientSdkHelper.UnlistPackage(GalleryConfiguration.Instance.Account.ApiKeyUnlist);
         }
 
         [Fact]
         [Description("Creates a test package with minclientversion tag and .cs name. Pushes it to the server using Nuget.exe and then download via ClientSDK")]
         [Priority(0)]
         [Category("P0Tests")]
-        public async Task UploadAndDownLoadPackageWithMinClientVersion()
+        public async Task UploadAndDownloadPackageWithMinClientVersion()
         {
             string packageId = DateTime.Now.Ticks + "PackageWithDotCsNames.Cs";
             string version = "1.0.0";
@@ -133,9 +124,7 @@ namespace NuGetGallery.FunctionalTests.Commandline
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
 
-            var packageVersionExistsInSource = _clientSdkHelper.CheckIfPackageVersionExistsInSource(packageId, version, UrlHelper.V2FeedRootUrl);
-            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageId, UrlHelper.V2FeedRootUrl);
-            Assert.True(packageVersionExistsInSource, userMessage);
+            await _clientSdkHelper.VerifyPackageExistsInV2AndV3Async(packageId, version);
 
             //Delete package from local disk so once it gets uploaded
             if (File.Exists(packageFullPath))
@@ -143,7 +132,35 @@ namespace NuGetGallery.FunctionalTests.Commandline
                 File.Delete(packageFullPath);
                 Directory.Delete(Path.GetFullPath(Path.GetDirectoryName(packageFullPath)), true);
             }
-            _clientSdkHelper.DownloadPackageAndVerify(packageId);
+            _clientSdkHelper.DownloadPackageAndVerify(packageId, version);
+        }
+
+        [PackageLockFact]
+        [Description("Verifies push version, and delete are not allowed on a locked package")]
+        [Priority(2)]
+        [Category("P2Tests")]
+        public async Task LockedPackageCannotBeModified()
+        {
+            // Arrange
+            string version = "2.0.0";
+
+            var packageCreationHelper = new PackageCreationHelper(TestOutputHelper);
+            var location = await packageCreationHelper.CreatePackage(LockedPackageId, version);
+
+            // Act & Assert
+            // 1. Try to upload package 
+            TestOutputHelper.WriteLine($"1. Trying to upload package '{LockedPackageId}', version '{version}' to locked package id.");
+            var processResult = await _commandlineHelper.UploadPackageAsync(location, UrlHelper.V2FeedPushSourceUrl);
+            Assert.True(processResult.ExitCode != 0, "Package push succeeded, although was expected to fail.");
+            Assert.Contains("locked", processResult.StandardError);
+
+            // 2. Try unlisting the locked package 
+            // Perform a sanity check that the package exists
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(LockedPackageId, LockedPackageVersion);
+            TestOutputHelper.WriteLine($"5. Trying to unlist locked package '{LockedPackageId}', version '{LockedPackageVersion}'.");
+            processResult = await _commandlineHelper.DeletePackageAsync(LockedPackageId, LockedPackageVersion, UrlHelper.V2FeedPushSourceUrl);
+            Assert.True(processResult.ExitCode != 0, "Package delete succeeded, although was expected to fail.");
+            Assert.Contains("locked", processResult.StandardError);
         }
     }
 }

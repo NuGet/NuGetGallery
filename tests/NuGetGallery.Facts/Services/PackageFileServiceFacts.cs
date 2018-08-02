@@ -90,7 +90,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -103,7 +103,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -116,7 +116,7 @@ namespace NuGetGallery
 
                 var ex = Assert.Throws<ArgumentException>(() => service.CreateDownloadPackageActionResultAsync(new Uri("http://fake"), package).Wait());
 
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
+                Assert.StartsWith("The package is missing required data.", ex.Message);
                 Assert.Equal("package", ex.ParamName);
             }
 
@@ -180,139 +180,6 @@ namespace NuGetGallery
                 Assert.Equal(fakeResult, result);
             }
         }
-        
-        public class TheStorePackageFileInBackupLocationAsyncMethod
-        {
-            private string packageHashForTests = "NzMzMS1QNENLNEczSDQ1SA==";
-
-            [Fact]
-            public async Task WillThrowIfPackageIsNull()
-            {
-                var service = CreateService();
-
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.StorePackageFileInBackupLocationAsync(null, Stream.Null));
-
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillThrowIfPackageFileIsNull()
-            {
-                var service = CreateService();
-
-                var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.StorePackageFileInBackupLocationAsync(new Package { PackageRegistration = new PackageRegistration() }, null));
-
-                Assert.Equal("packageFile", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillThrowIfPackageIsMissingPackageRegistration()
-            {
-                var service = CreateService();
-                var package = new Package { PackageRegistration = null };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
-
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillThrowIfPackageIsMissingPackageRegistrationId()
-            {
-                var service = CreateService();
-                var packageRegistraion = new PackageRegistration { Id = null };
-                var package = new Package { PackageRegistration = packageRegistraion };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
-
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion()
-            {
-                var service = CreateService();
-                var packageRegistraion = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = null };
-
-                var ex = await Assert.ThrowsAsync<ArgumentException>(() => service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream()));
-
-                Assert.True(ex.Message.StartsWith("The package is missing required data."));
-                Assert.Equal("package", ex.ParamName);
-            }
-
-            [Fact]
-            public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing()
-            {
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
-                var packageRegistraion = new PackageRegistration { Id = "theId" };
-                var package = new Package { PackageRegistration = packageRegistraion, NormalizedVersion = null, Version = "01.01.01", Hash = packageHashForTests};
-                package.Hash = packageHashForTests;
-
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "1.1.1", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
-                    .Completes()
-                    .Verifiable();
-
-                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
-
-                fileStorageSvc.VerifyAll();
-            }
-
-            [Fact]
-            public async Task WillSaveTheFileViaTheFileStorageServiceUsingThePackagesFolder()
-            {
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(CoreConstants.PackageBackupsFolderName, It.IsAny<string>(), It.IsAny<Stream>(), It.Is<bool>(b => b)))
-                    .Completes()
-                    .Verifiable();
-
-                var package = CreatePackage();
-                package.Hash = packageHashForTests;
-
-                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
-
-                fileStorageSvc.VerifyAll();
-            }
-
-            [Fact]
-            public async Task WillSaveTheFileViaTheFileStorageServiceUsingAFileNameWithIdAndNormalizedersion()
-            {
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), BuildBackupFileName("theId", "theNormalizedVersion", packageHashForTests), It.IsAny<Stream>(), It.Is<bool>(b => b)))
-                    .Completes()
-                    .Verifiable();
-
-                var package = CreatePackage();
-                package.Hash = packageHashForTests;
-
-                await service.StorePackageFileInBackupLocationAsync(package, CreatePackageFileStream());
-
-                fileStorageSvc.VerifyAll();
-            }
-
-            [Fact]
-            public async Task WillSaveTheFileStreamViaTheFileStorageService()
-            {
-                var fileStorageSvc = new Mock<IFileStorageService>();
-                var fakeStream = new MemoryStream();
-                var service = CreateService(fileStorageSvc: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream, It.Is<bool>(b => b)))
-                    .Completes()
-                    .Verifiable();
-
-                var package = CreatePackage();
-                package.Hash = packageHashForTests;
-
-                await service.StorePackageFileInBackupLocationAsync(package, fakeStream);
-
-                fileStorageSvc.VerifyAll();
-            }
-        }
 
         public class TheDeleteReadMeMdFileAsync
         {
@@ -324,10 +191,8 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<ArgumentNullException>(() => service.DeleteReadMeMdFileAsync(null));
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenValid_DeletesFromStorage(bool isPending = true)
+            [Fact]
+            public async Task WhenValid_DeletesFromStorage()
             {
                 // Arrange.
                 var package = new Package()
@@ -342,24 +207,23 @@ namespace NuGetGallery
                     .Verifiable();
 
                 var service = CreateService(fileServiceMock);
-                var expectedFolder = isPending ? "pending" : "active";
 
                 // Act.
-                await service.DeleteReadMeMdFileAsync(package, isPending: isPending);
+                await service.DeleteReadMeMdFileAsync(package);
 
                 // Assert.
-                fileServiceMock.Verify(fs => fs.DeleteFileAsync(CoreConstants.PackageReadMesFolderName, $"{expectedFolder}/test/1.0.0.md"), Times.Once);
+                fileServiceMock.Verify(fs => fs.DeleteFileAsync(CoreConstants.PackageReadMesFolderName, $"active/test/1.0.0.md"), Times.Once);
             }
         }
 
-        public class TheSavePendingReadMeMdFileAsyncMethod
+        public class TheSaveReadMeMdFileAsyncMethod
         {
             [Fact]
             public async Task WhenPackageNull_ThrowsArgumentNullException()
             {
                 var service = CreateService();
 
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SavePendingReadMeMdFileAsync(null, ""));
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeMdFileAsync(null, ""));
             }
 
             [Theory]
@@ -370,7 +234,7 @@ namespace NuGetGallery
             {
                 var service = CreateService();
 
-                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SavePendingReadMeMdFileAsync(new Package(), markdown));
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.SaveReadMeMdFileAsync(new Package(), markdown));
             }
 
             [Fact]
@@ -390,10 +254,10 @@ namespace NuGetGallery
                 };
 
                 // Act.
-                await service.SavePendingReadMeMdFileAsync(package, "<p>Hello World!</p>");
+                await service.SaveReadMeMdFileAsync(package, "<p>Hello World!</p>");
 
                 // Assert.
-                fileServiceMock.Verify(f => f.SaveFileAsync(CoreConstants.PackageReadMesFolderName, "pending/foo/1.0.0.md", It.IsAny<Stream>(), true),
+                fileServiceMock.Verify(f => f.SaveFileAsync(CoreConstants.PackageReadMesFolderName, "active/foo/1.0.0.md", It.IsAny<Stream>(), true),
                     Times.Once);
             }
         }
@@ -408,13 +272,10 @@ namespace NuGetGallery
                 await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DownloadReadMeMdFileAsync(null));
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenExists_ReturnsMarkdownStream(bool isPending)
+            [Fact]
+            public async Task WhenExists_ReturnsMarkdownStream()
             {
                 var expectedMd = "<p>Hello World!</p>";
-                var expectedFolder = isPending ? "pending" : "active";
 
                 // Arrange.
                 using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes(expectedMd)))
@@ -435,22 +296,18 @@ namespace NuGetGallery
                         .Verifiable();
 
                     // Act.
-                    var actualMd = await service.DownloadReadMeMdFileAsync(package, isPending);
+                    var actualMd = await service.DownloadReadMeMdFileAsync(package);
 
                     // Assert.
                     Assert.Equal(expectedMd, actualMd);
 
-                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.PackageReadMesFolderName, $"{expectedFolder}/foo/1.1.1.md"), Times.Once);
+                    fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.PackageReadMesFolderName, $"active/foo/1.1.1.md"), Times.Once);
                 }
             }
 
-            [Theory]
-            [InlineData(true)]
-            [InlineData(false)]
-            public async Task WhenDoesNotExist_ReturnsNull(bool isPending)
+            [Fact]
+            public async Task WhenDoesNotExist_ReturnsNull()
             {
-                var expectedFolder = isPending ? "pending" : "active";
-
                 // Arrange
                 var fileServiceMock = new Mock<IFileStorageService>();
                 var service = CreateService(fileServiceMock);
@@ -468,12 +325,12 @@ namespace NuGetGallery
                     .Verifiable();
 
                 // Act
-                var result = await service.DownloadReadMeMdFileAsync(package, isPending);
+                var result = await service.DownloadReadMeMdFileAsync(package);
 
                 // Assert
                 Assert.Null(result);
 
-                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.PackageReadMesFolderName, $"{expectedFolder}/foo/1.1.1.md"), Times.Once);
+                fileServiceMock.Verify(f => f.GetFileAsync(CoreConstants.PackageReadMesFolderName, $"active/foo/1.1.1.md"), Times.Once);
             }
         }
 
@@ -486,18 +343,6 @@ namespace NuGetGallery
                 id.ToLowerInvariant(),
                 NuGetVersionFormatter.Normalize(version).ToLowerInvariant(), // No matter what ends up getting passed in, the version should be normalized
                 extension);
-        }
-
-        private static string BuildBackupFileName(string id, string version, string hash)
-        {
-            var hashBytes = Convert.FromBase64String(hash);
-
-            return string.Format(
-                Constants.PackageFileBackupSavePathTemplate,
-                id,
-                version,
-                HttpServerUtility.UrlTokenEncode(hashBytes),
-                CoreConstants.NuGetPackageFileExtension);
         }
 
         static Package CreatePackage()

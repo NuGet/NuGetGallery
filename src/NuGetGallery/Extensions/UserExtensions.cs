@@ -3,10 +3,10 @@
 
 using System;
 using System.Linq;
-using System.Net.Mail;
 using System.Security.Claims;
 using System.Security.Principal;
 using NuGetGallery.Authentication;
+using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
@@ -16,21 +16,27 @@ namespace NuGetGallery
     public static class UserExtensions
     {
         /// <summary>
-        /// Convert a User's email to a System.Net MailAddress.
+        /// Get the user's <see cref="Credential"/> with a type of <see cref="CredentialTypes.Password"/>.
         /// </summary>
-        public static MailAddress ToMailAddress(this User user)
+        public static Credential GetPasswordCredential(this User user)
         {
-            if (user == null)
-            {
-                throw new ArgumentNullException(nameof(user));
-            }
+            return user.Credentials.SingleOrDefault(c => c.IsPassword());
+        }
 
-            if (!user.Confirmed)
-            {
-                return new MailAddress(user.UnconfirmedEmailAddress, user.Username);
-            }
+        /// <summary>
+        /// Return true if the user has a credential of type <see cref="CredentialTypes.Password"/>.
+        /// </summary>
+        public static bool HasPasswordCredential(this User user)
+        {
+            return user.Credentials.Any(c => c.IsPassword());
+        }
 
-            return new MailAddress(user.EmailAddress, user.Username);
+        /// <summary>
+        /// Return true if the user has a credential of type <see cref="CredentialTypes.External"/>.
+        /// </summary>
+        public static bool HasExternalCredential(this User user)
+        {
+            return user.Credentials.Any(c => c.IsExternal());
         }
 
         /// <summary>
@@ -72,14 +78,14 @@ namespace NuGetGallery
 
         public static bool MatchesUser(this User self, User user)
         {
-            return self.Key == user.Key;
+            return self?.Key == user?.Key;
         }
 
-        public static bool IsAdministrator(this User self)
+        public static bool HasCredential(this User user, Credential credential)
         {
-            return self.IsInRole(Constants.AdminRoleName);
+            return user.Credentials.Any(cred => cred.Matches(credential));
         }
-        
+
         /// <summary>
         /// Determine if the current user matches the owner scope of the current credential.
         /// There is a match if the owner scope is self or an organization to which the user
@@ -97,7 +103,7 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (credential== null)
+            if (credential == null)
             {
                 throw new ArgumentNullException(nameof(credential));
             }
@@ -107,7 +113,7 @@ namespace NuGetGallery
             {
                 return true;
             }
-            
+
             return credential.Scopes
                 .Select(s => s.OwnerKey)
                 .Distinct()
@@ -121,7 +127,7 @@ namespace NuGetGallery
                 || user.Organizations.Any(o => o.OrganizationKey == accountKey);
         }
 
-	public static void SetAccountAsDeleted(this User user)
+        public static void SetAccountAsDeleted(this User user)
         {
             user.EmailAddress = null;
             user.UnconfirmedEmailAddress = null;
@@ -132,6 +138,11 @@ namespace NuGetGallery
             user.LastFailedLoginUtc = null;
             user.FailedLoginCount = 0;
             user.IsDeleted = true;
-	}
+        }
+
+        public static bool IsRestrictedToOrganizationTenantPolicy(this User user)
+        {
+            return user.SecurityPolicies.Any(sp => string.Equals(sp.Name, RequireOrganizationTenantPolicy.PolicyName, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }

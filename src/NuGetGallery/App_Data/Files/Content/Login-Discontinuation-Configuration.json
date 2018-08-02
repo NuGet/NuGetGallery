@@ -1,0 +1,21 @@
+{
+    "IsPasswordDiscontinuedForAll": false,
+    "DiscontinuedForEmailAddresses": [
+        "cannotUsePassword@canUsePassword.com"
+    ],
+    "DiscontinuedForDomains": [
+        "cannotUsePassword.com"
+    ],
+    "ExceptionsForEmailAddresses": [
+        "exception@cannotUsePassword.com"
+    ],
+    "ForceTransformationToOrganizationForEmailAddresses": [
+        "organization@cannotUsePassword.com"
+    ],
+    "EnabledOrganizationAadTenants": [
+        {
+            "EmailDomain": "tenantOnly.com",
+            "TenantId": "tenantID"
+        }
+    ]
+}

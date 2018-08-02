@@ -11,13 +11,22 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using NuGetGallery.Authentication;
+using NuGetGallery.Auditing.Obfuscation;
 
 namespace NuGetGallery.Auditing
 {
     public class AuditActor
     {
+        private static string _localIpAddress;
+        private static DateTime _localIpAddressExpiration;
+        private const int _localIpAddressExpirationInMinutes = 10;
+
         public string MachineName { get; set; }
+
+        [Obfuscate(ObfuscationType.IP)]
         public string MachineIP { get; set; }
+
+        [Obfuscate(ObfuscationType.UserName)]
         public string UserName { get; set; }
         public string AuthenticationType { get; set; }
         public string CredentialKey { get; set; }
@@ -65,10 +74,7 @@ namespace NuGetGallery.Auditing
                 clientIpAddress = context.Request.UserHostAddress;
             }
 
-            if (!string.IsNullOrEmpty(clientIpAddress) && clientIpAddress.IndexOf(".", StringComparison.Ordinal) > 0)
-            {
-                clientIpAddress = clientIpAddress.Substring(0, clientIpAddress.LastIndexOf(".", StringComparison.Ordinal)) + ".0";
-            }
+            clientIpAddress = Obfuscator.ObfuscateIp(clientIpAddress);
 
             string user = null;
             string authType = null;
@@ -112,20 +118,28 @@ namespace NuGetGallery.Auditing
                 onBehalfOf);
         }
 
+        /// <summary>
+        /// Get the local machine's IP address.
+        /// Note that this method is cached because the IP shouldn't change frequently, and the
+        /// GetIsNetworkAvailable call is expensive.
+        /// </summary>
         public static async Task<string> GetLocalIpAddressAsync()
         {
-            string ipAddress = null;
-            if (NetworkInterface.GetIsNetworkAvailable())
+            if (string.IsNullOrEmpty(_localIpAddress) || DateTime.UtcNow >= _localIpAddressExpiration)
             {
-                var entry = await Dns.GetHostEntryAsync(Dns.GetHostName());
-                if (entry != null)
+                if (NetworkInterface.GetIsNetworkAvailable())
                 {
-                    ipAddress =
-                        TryGetAddress(entry.AddressList, AddressFamily.InterNetworkV6) ??
-                        TryGetAddress(entry.AddressList, AddressFamily.InterNetwork);
+                    var entry = await Dns.GetHostEntryAsync(Dns.GetHostName());
+                    if (entry != null)
+                    {
+                        _localIpAddress =
+                            TryGetAddress(entry.AddressList, AddressFamily.InterNetworkV6) ??
+                            TryGetAddress(entry.AddressList, AddressFamily.InterNetwork);
+                        _localIpAddressExpiration = DateTime.UtcNow.AddMinutes(_localIpAddressExpirationInMinutes);
+                    }
                 }
             }
-            return ipAddress;
+            return _localIpAddress;
         }
 
         private static string TryGetAddress(IEnumerable<IPAddress> addrs, AddressFamily family)

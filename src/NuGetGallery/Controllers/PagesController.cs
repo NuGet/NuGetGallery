@@ -1,15 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Services;
-using NuGetGallery.ViewModels;
 using System;
 using System.Linq;
 using System.Net;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
+using NuGetGallery.Filters;
+using NuGetGallery.Services;
+using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
 {
@@ -17,15 +19,19 @@ namespace NuGetGallery
         : AppController
     {
         private readonly IContentService _contentService;
+        private readonly IContentObjectService _contentObjectService;
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
 
         protected PagesController() { }
-        public PagesController(IContentService contentService,
+        public PagesController(
+            IContentService contentService,
+            IContentObjectService contentObjectService,
             IMessageService messageService,
             ISupportRequestService supportRequestService)
         {
             _contentService = contentService;
+            _contentObjectService = contentObjectService;
             _messageService = messageService;
             _supportRequestService = supportRequestService;
         }
@@ -62,7 +68,7 @@ namespace NuGetGallery
         }
 
         [HttpPost]
-        [Authorize]
+        [UIAuthorize]
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> Contact(ContactSupportViewModel contactForm)
         {
@@ -97,9 +103,17 @@ namespace NuGetGallery
             return View();
         }
 
+        [AcceptVerbs(HttpVerbs.Get | HttpVerbs.Head)]
         public virtual ActionResult Home()
         {
-            return View();
+            var identity = OwinContext.Authentication?.User?.Identity as ClaimsIdentity;
+            var showTransformModal = ClaimsExtensions.HasDiscontinuedLoginClaims(identity);
+            var user = GetCurrentUser();
+            var transformIntoOrganization = _contentObjectService
+                .LoginDiscontinuationConfiguration
+                .ShouldUserTransformIntoOrganization(user);
+            var externalIdentityList = ClaimsExtensions.GetExternalCredentialIdentityList(identity);
+            return View(new GalleryHomeViewModel(showTransformModal, transformIntoOrganization, externalIdentityList));
         }
 
         [HttpGet]
@@ -108,6 +122,7 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.OK, "Empty Home");
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> Terms()
         {
             if (_contentService != null)
@@ -119,6 +134,7 @@ namespace NuGetGallery
             return View();
         }
 
+        [HttpGet]
         public virtual async Task<ActionResult> Privacy()
         {
             if (_contentService != null)

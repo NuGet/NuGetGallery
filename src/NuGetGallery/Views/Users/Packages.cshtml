@@ -1,41 +1,507 @@
 ﻿@model ManagePackagesViewModel
+@using Newtonsoft.Json;
 @{
     ViewBag.Title = "Manage My Package";
     ViewBag.Tab = "Packages";
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
-<section role="main" class="container main-container page-manage-packages page-package-details">
+<section role="main" class="container main-container page-manage-packages">
+    @ViewHelpers.AjaxAntiForgeryToken(Html)
+
     <div class="row">
-        <div class="col-xs-12">
-            <h1>Manage Packages</h1>
-        </div>
-    </div>
-    @{
-        var listedPackages = Model.Packages.Where(p => p.Listed);
-        var unlistedPackages = Model.Packages.Where(p => !p.Listed);
-
-        @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(listedPackages, "Published"))
-        @Html.Partial("_UserPackagesList", new ManagePackagesListViewModel(unlistedPackages, "Unlisted"))
-    }
-
-    @Html.Partial("_ReservedNamespacesList", Model.ReservedNamespaces)
-
-    @{
-        if (Model.OwnerRequests.Incoming.RequestItems.Any() || Model.OwnerRequests.Outgoing.RequestItems.Any())
-        {
-            <div class="row">
-                <div class="col-xs-12">
-                    <h1>Manage Ownership Requests</h1>
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
+            <div class="breadcrumb-menu">
+                <div>
+                    @ViewHelpers.BreadcrumbWithProfile(
+                        Url, 
+                        CurrentUser, 
+                        false,
+                        @<text>Packages&nbsp;<span aria-hidden="true" class="ms-font-xxl packages-divider">|</span>&nbsp;<a href="@Url.UploadPackage()"><span aria-hidden="true" class="ms-font-m ms-Icon ms-Icon--Add"></span>&nbsp;Add new</a></text>)
+                </div>
+                <div class="ms-font-xxl">
+                    <span>
+                        <select id="ownerFilter" class="form-control hidden" aria-label="Filter on package owner"
+                                data-bind="options: Owners, value: OwnerFilter, optionsText: 'Username'"></select>
+                    </span>
                 </div>
             </div>
+            <hr class="breadcrumb-divider" />
 
-            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Incoming)
-            @Html.Partial("_OwnerRequestsList", Model.OwnerRequests.Outgoing)
-        }
-    }
+            @ViewHelpers.Section(this, "listed", @<text>Published Packages</text>,
+                @<text>
+                    <span id="listed-data" data-bind="text: ListedPackages.VisiblePackagesHeading()"></span>
+                </text>,
+                @<text>
+                    <div class="row user-package-list">
+                        <div data-bind="template: { name: 'manage-packages', data: ListedPackages }"></div>
+                    </div>
+                </text>, expanded: false)
+
+            @ViewHelpers.Section(this, "unlisted", @<text>Unlisted Packages</text>,
+                @<text>
+                    <span id="unlisted-data" data-bind="text: UnlistedPackages.VisiblePackagesHeading()"></span>
+                </text>,
+                @<text>
+                    <div class="row user-package-list">
+                        <div data-bind="template: { name: 'manage-packages', data: UnlistedPackages }"></div>
+                    </div>
+                </text>, expanded: false)
+
+            @if (Model.ReservedNamespaces.ReservedNamespaces.Any())
+            {
+                @ViewHelpers.Section(this, "namespaces",
+                        @<text>Reserved Namespaces</text>,
+                        @<text>
+                            <span id="namespaces-data" data-bind="text: ReservedNamespaces.VisibleNamespacesHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-namespaces', data: ReservedNamespaces }"></div>
+                            </div>
+                        </text>, expanded: false)
+            }
+
+            @if (Model.OwnerRequests.Received.Requests.Any())
+            {
+                @ViewHelpers.Section(this, "requests-received",
+                        @<text>Ownership Requests (Received)</text>,
+                        @<text>
+                            <span id="requests-received-data" data-bind="text: RequestsReceived.VisibleRequestsHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-owner-requests', data: RequestsReceived }"></div>
+                            </div>
+                        </text>, expanded: false)
+            }
+
+            @if (Model.OwnerRequests.Sent.Requests.Any())
+            {
+                @ViewHelpers.Section(this, "requests-sent",
+                        @<text>Ownership Requests (Sent)</text>,
+                        @<text>
+                            <span id="requests-sent-data" data-bind="text: RequestsSent.VisibleRequestsHeading()"></span>
+                        </text>,
+                        @<text>
+                            <div class="row user-package-list">
+                                <div data-bind="template: { name: 'manage-owner-requests', data: RequestsSent }"></div>
+                            </div>
+                        </text>, expanded: false)
+            }
+        </div>
+    </div>
 </section>
 
+<script type="text/html" id="manage-packages">
+    @if (Model.IsCertificatesUIEnabled && !Model.WasMultiFactorAuthenticated && !User.WasAzureActiveDirectoryAccountUsedForSignin())
+    {
+    <div data-bind="visible: Packages.length > 0">
+        @if (Model.User.EnableMultiFactorAuthentication)
+        {
+            @ViewHelpers.AlertWarning(@<text>You must log in using two-factor authentication before you can change package signing requirements.</text>)
+        }
+        else
+        {
+            @ViewHelpers.AlertWarning(@<text>You must enable two-factor authentication before you can change package signing requirements. This can be enabled in your <a href="@Url.AccountSettings()">Account Settings</a>.</text>)
+        }
+    </div>
+    }
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <!-- ko if: VisiblePackagesCount -->
+            <table class="table inner-table">
+                <thead>
+                    <tr class="manage-package-headings">
+                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
+                        <th>Package ID</th>
+                        <th>Owners</th>
+                    @if (Model.IsCertificatesUIEnabled)
+                    {
+                        <th>Signing Owner</th>
+                    }
+                        <th>Downloads</th>
+                        <th>Latest Version</th>
+                        <th><span class="hidden">Icon</span></th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Packages">
+                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                        <td class="align-middle hidden-xs">
+                            <img class="package-icon img-responsive" aria-hidden="true"
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                        </td>
+                        <td class="align-middle package-id text-nowrap">
+                            <a title="View Package" data-bind="attr: { href: PackageUrl }">
+                                <span data-bind="text: Id"></span>
+                            </a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <!-- ko if: $index() < 2 -->
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: TrimmedUsername"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                                <!-- /ko -->
+                                <!-- ko if: $index() === 2 -->
+                                <span class="ms-noWrap" data-bind="text: '+' + ($index() - 1)"></span>
+                                <!-- /ko -->
+                            </span>
+                        </td>
+                    @if (Model.IsCertificatesUIEnabled)
+                    {
+                        <td class="align-middle">
+                            <!-- ko if: $data.ShowTextBox -->
+                            <span data-bind="text: RequiredSigner" />
+                            <!-- /ko -->
+                            <!-- ko ifnot: $data.ShowTextBox -->
+                            <select class="form-control"
+                                    aria-label="Select the signing owner"
+                                    data-bind="options: AllSigners,
+                                    optionsText: 'OptionText',
+                                    optionsValue: 'Username',
+                                    enable: CanEditRequiredSigner,
+                                    visible: ShowRequiredSigner,
+                                    value: RequiredSigner,
+                                    event: { change: $data.OnRequiredSignerChange },
+                                    attr: { title: RequiredSignerMessage }"></select>
+                            <!-- /ko -->
+                        </td>
+                    }
+                        <td class="align-middle text-nowrap">
+                            <span data-bind="text: FormattedDownloadCount"></span>
+                        </td>
+                        <td class="align-middle text-nowrap">
+                            <span data-bind="text: LatestVersion"></span>
+                        </td>
+                        <td class="text-right align-middle package-controls">
+                            <span data-bind="visible: CanEdit">
+                                <a class="btn" title="Edit Package" data-bind="attr: { href: EditUrl,
+                        'aria-label': 'Edit Package ' + Id + ' Version ' + LatestVersion }">
+
+                                    <i class="ms-Icon ms-Icon--Edit" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                            <span data-bind="visible: CanManageOwners">
+                                <a class="btn" title="Manage Owners" data-bind="attr: { href: ManageOwnersUrl,
+                        'aria-label': 'Manage Owners for Package ' + Id }">
+
+                                    <i class="ms-Icon ms-Icon--People" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                            <span data-bind="visible: CanDelete">
+                                <a class="btn" title="Delete Package" data-bind="attr: { href: DeleteUrl,
+                        'aria-label': 'Delete Package ' + Id + ' Version ' + LatestVersion }">
+
+                                    <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                                </a>
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisiblePackagesCount -->
+            <span>There are no packages that fit this criteria.</span>
+            <!-- /ko -->
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="manage-namespaces">
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <!-- ko if: VisibleNamespacesCount -->
+            <table class="table inner-table">
+                <thead>
+                    <tr class="manage-package-headings">
+                        <th class="hidden-xs"><span class="hidden">Reserved Namespace Icon</span></th>
+                        <th>Package ID or Prefix</th>
+                        <th>Owners</th>
+                        <th>Upload Restrictions</th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Namespaces">
+                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                        <td class="align-middle hidden-xs">
+                            <img class="reserved-indicator-icon img-responsive"
+                                 src="~/Content/gallery/img/reserved-indicator.svg"
+                                 alt="Reserved namespace icon"
+                                 @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/reserved-indicator-256x256.png"))
+                                 title="@Strings.ReservedNamespace_ReservedIndicatorTooltip" />
+                        </td>
+                        <td class="align-middle reserved-id">
+                            <a data-bind="text: Pattern, attr: { href: SearchUrl, target: '_blank' }"></a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                            </span>
+                        </td>
+                        <td class="align-middle" data-bind="text: IsPublic ? 'Any NuGet.org Account' : 'Prefix or ID Owners Only' "></td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisibleNamespacesCount -->
+            <span>There are no reserved namespaces that fit this criteria.</span>
+            <!-- /ko -->
+        </div>
+    </div>
+</script>
+
+<script type="text/html" id="manage-owner-requests">
+    <div class="col-md-12">
+        <div class="panel-collapse collapse in" aria-expanded="true">
+            <!-- ko if: VisibleRequestsCount -->
+            <table class="table inner-table">
+                <thead>
+                    <tr class="manage-package-headings">
+                        <th class="hidden-xs"><span class="hidden">Package Icon</span></th>
+                        <th>Package ID</th>
+                        <th>Owners</th>
+                        <th>New Owner</th>
+                        <th><span class="hidden">Actions</span></th>
+                    </tr>
+                </thead>
+                <tbody data-bind="foreach: Requests">
+                    <tr class="manage-package-listing" data-bind="visible: Visible">
+                        <td class="align-middle hidden-xs">
+                            <img class="package-icon img-responsive" aria-hidden="true"
+                                 data-bind="attr: { src: PackageIconUrl, onerror: PackageIconUrlFallback, alt: 'Icon for ' + Id }" />
+                        </td>
+                        <td class="align-middle package-id">
+                            <a title="View Package" data-bind="attr: { href: PackageUrl }">
+                                <span data-bind="text: Id"></span>
+                            </a>
+                        </td>
+                        <td class="align-middle">
+                            <span class="ms-noWrap" data-bind="foreach: Owners">
+                                <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: IsOrganization"></i>
+                                <a data-bind="attr: { href: ProfileUrl }"><span data-bind="text: Username"></span></a><!-- ko if: ($index() < ($parent.Owners.length - 1)) -->,&nbsp;<!-- /ko -->
+                            </span>
+                        </td>
+                        <td class="align-middle text-nowrap">
+                            <i class="ms-Icon ms-Icon--Group" aria-hidden="true" data-bind="visible: New.IsOrganization"></i>
+                            <a data-bind="attr: { href: New.ProfileUrl }"><span data-bind="text: New.Username"></span></a>
+                        </td>
+                        <td class="text-right align-middle package-controls">
+                            <!-- ko if: CanAccept -->
+                            <a class="btn" title="Confirm Ownership" data-bind="attr: { href: ConfirmUrl, 'aria-label': 'Confirm Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Accept" aria-hidden="true"></i>
+                            </a>
+                            <a class="btn" title="Reject Ownership" data-bind="attr: { href: RejectUrl, 'aria-label': 'Reject Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            </a>
+                            <!-- /ko -->
+                            <!-- ko if: !CanAccept && CanCancel -->
+                            <a class="btn" title="Cancel Ownership" data-bind="attr: { href: CancelUrl, 'aria-label': 'Cancel Ownership of ' + Id }">
+                                <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+                            </a>
+                            <!-- /ko -->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!-- /ko -->
+            <!-- ko ifnot: VisibleRequestsCount -->
+            <span>There are no requests that fit this criteria.</span>
+            <!-- /ko -->
+        </div>
+    </div>
+</script>
+
+@functions {
+    // Performance: RouteCollection.VirtualPath is expensive, so resolve the path once and save as a template.
+    // Then substitute route values into the template path when rendering links for each package on the page.
+    private RouteUrlTemplate<User> userUrlTemplate;
+
+    private RouteUrlTemplate<IPackageVersionModel> packageUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> editUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> manageOwnersUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> deleteUrlTemplate;
+    private RouteUrlTemplate<IPackageVersionModel> setRequiredSignerUrlTemplate;
+
+    private RouteUrlTemplate<string> searchUrlTemplate;
+
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> confirmUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> rejectUrlTemplate;
+    private RouteUrlTemplate<OwnerRequestsListItemViewModel> cancelUrlTemplate;
+
+    dynamic GetSerializablePackage(ListPackageItemRequiredSignerViewModel p)
+    {
+        if (packageUrlTemplate == null)
+        {
+            packageUrlTemplate = Url.PackageRegistrationTemplate();
+        }
+
+        if (editUrlTemplate == null)
+        {
+            editUrlTemplate = Url.EditPackageTemplate();
+        }
+
+        if (manageOwnersUrlTemplate == null)
+        {
+            manageOwnersUrlTemplate = Url.ManagePackageOwnersTemplate();
+        }
+
+        if (deleteUrlTemplate == null)
+        {
+            deleteUrlTemplate = Url.DeletePackageTemplate();
+        }
+
+        if (setRequiredSignerUrlTemplate == null)
+        {
+            setRequiredSignerUrlTemplate = Url.SetRequiredSignerTemplate();
+        }
+
+        return new
+        {
+            Id = p.Id.Abbreviate(40),
+            Owners = GetSerializableOwners(p.Owners),
+            p.TotalDownloadCount,
+            LatestVersion = p.FullVersion.Abbreviate(15),
+            RequiredSigner = GetSerializableSigner(p.RequiredSigner),
+            p.RequiredSignerMessage,
+            AllSigners = GetSerializableSigners(p.AllSigners),
+            SetRequiredSignerUrl = setRequiredSignerUrlTemplate.Resolve(p),
+            PackageIconUrl = PackageHelper.ShouldRenderUrl(p.IconUrl) ? p.IconUrl : null,
+            PackageUrl = packageUrlTemplate.Resolve(p),
+            EditUrl = editUrlTemplate.Resolve(p),
+            ManageOwnersUrl = manageOwnersUrlTemplate.Resolve(p),
+            DeleteUrl = deleteUrlTemplate.Resolve(p),
+            CanEdit = p.CanEdit,
+            CanManageOwners = p.CanManageOwners,
+            CanDelete = p.CanUnlistOrRelist,
+            p.CanEditRequiredSigner,
+            p.ShowRequiredSigner,
+            p.ShowTextBox
+        };
+    }
+
+    dynamic GetSerializableNamespace(ReservedNamespaceListItemViewModel n)
+    {
+        if (searchUrlTemplate == null)
+        {
+            searchUrlTemplate = Url.SearchTemplate();
+        }
+
+        return new
+        {
+            Pattern = n.GetPattern(),
+            SearchUrl = searchUrlTemplate.Resolve(n.Value),
+            Owners = GetSerializableOwners(n.Owners),
+            n.IsPublic
+        };
+    }
+
+    dynamic GetSerializableOwnerRequest(OwnerRequestsListItemViewModel r)
+    {
+        if (packageUrlTemplate == null)
+        {
+            packageUrlTemplate = Url.PackageRegistrationTemplate();
+        }
+
+        if (confirmUrlTemplate == null)
+        {
+            confirmUrlTemplate = Url.ConfirmPendingOwnershipRequestTemplate();
+        }
+
+        if (rejectUrlTemplate == null)
+        {
+            rejectUrlTemplate = Url.RejectPendingOwnershipRequestTemplate();
+        }
+
+        if (cancelUrlTemplate == null)
+        {
+            cancelUrlTemplate = Url.CancelPendingOwnershipRequestTemplate();
+        }
+
+        return new
+        {
+            r.Request.PackageRegistration.Id,
+            PackageIconUrl = PackageHelper.ShouldRenderUrl(r.Package.IconUrl) ? r.Package.IconUrl : null,
+            PackageUrl = packageUrlTemplate.Resolve(r.Package),
+            Owners = GetSerializableOwners(r.Package.Owners),
+            Requesting = GetSerializableOwner(r.Request.RequestingOwner),
+            New = GetSerializableOwner(r.Request.NewOwner),
+            CanAccept = r.CanAccept,
+            CanCancel = r.CanCancel,
+            ConfirmUrl = confirmUrlTemplate.Resolve(r),
+            RejectUrl = rejectUrlTemplate.Resolve(r),
+            CancelUrl = cancelUrlTemplate.Resolve(r)
+        };
+    }
+
+    dynamic GetSerializableOwners(IEnumerable<User> owners)
+    {
+        return owners.Select(o => GetSerializableOwner(o));
+    }
+
+    dynamic GetSerializableOwner(User user)
+    {
+        if (userUrlTemplate == null)
+        {
+            userUrlTemplate = Url.UserTemplate();
+        }
+
+        return new
+        {
+            user.Username,
+            TrimmedUsername = user.Username.Abbreviate(15),
+            ProfileUrl = userUrlTemplate.Resolve(user),
+            IsOrganization = user is Organization
+        };
+    }
+
+    dynamic GetSerializableSigners(IEnumerable<SignerViewModel> signers)
+    {
+        return signers.Select(signer => GetSerializableSigner(signer));
+    }
+
+    dynamic GetSerializableSigner(SignerViewModel signer)
+    {
+        if (signer == null)
+        {
+            return null;
+        }
+
+        return new
+        {
+            signer.Username,
+            OptionText = signer.DisplayText,
+            signer.HasCertificate
+        };
+    }
+}
+
 @section BottomScripts {
+    <script type="text/javascript">
+        var strings_RequiredSigner_ThisAction = "@Html.Raw(Strings.RequiredSigner_ThisAction)";
+        var strings_RequiredSigner_OwnerHasNoCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasNoCertificate)";
+        var strings_RequiredSigner_OwnerHasAtLeastOneCertificate = "@Html.Raw(Strings.RequiredSigner_OwnerHasAtLeastOneCertificate)";
+        var strings_RequiredSigner_AnyWithUnsignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithUnsignedResult)";
+        var strings_RequiredSigner_AnyWithMixedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithMixedResult)";
+        var strings_RequiredSigner_AnyWithSignedResult = "@Html.Raw(Strings.RequiredSigner_AnyWithSignedResult)";
+        var strings_RequiredSigner_Confirm = "@Html.Raw(Strings.RequiredSigner_Confirm)";
+
+        var initialData = @Html.Raw(JsonConvert.SerializeObject(new
+                     {
+                         Owners = Model.Owners,
+                         ListedPackages = Model.ListedPackages
+                            .Select(p => GetSerializablePackage(p)),
+                         UnlistedPackages = Model.UnlistedPackages
+                            .Select(p => GetSerializablePackage(p)),
+                         ReservedNamespaces = Model.ReservedNamespaces.ReservedNamespaces
+                            .Select(n => GetSerializableNamespace(n)),
+                         RequestsReceived = Model.OwnerRequests.Received.Requests
+                            .Select(r => GetSerializableOwnerRequest(r)),
+                         RequestsSent = Model.OwnerRequests.Sent.Requests
+                            .Select(r => GetSerializableOwnerRequest(r)),
+                         DefaultPackageIconUrl = Url.Absolute("~/Content/gallery/img/default-package-icon.svg"),
+                         PackageIconUrlFallback = Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png")
+                     }));
+    </script>
+    @ViewHelpers.SectionsScript(this)
     @Scripts.Render("~/Scripts/gallery/page-manage-packages.min.js")
 }

@@ -24,7 +24,8 @@ namespace NuGetGallery
         /// <summary>
         /// Package owner (user or organization) scoping.
         /// </summary>
-        public User Owner { get; set; }
+        [JsonIgnore]
+        public virtual User Owner { get; set; }
 
         /// <summary>
         /// Packages glob pattern.
@@ -41,6 +42,13 @@ namespace NuGetGallery
 
         public Scope()
         {
+        }
+
+        public Scope(User owner, string subject, string allowedAction)
+        {
+            Owner = owner;
+            Subject = subject;
+            AllowedAction = allowedAction;
         }
 
         public Scope(int? ownerKey, string subject, string allowedAction)

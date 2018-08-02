@@ -29,11 +29,11 @@ namespace NuGetGallery
 
         internal TelemetryClient UnderlyingClient { get; }
 
-        public void TrackEvent(string eventName, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
+        public void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
         {
             try
             {
-                UnderlyingClient.TrackEvent(eventName, properties, metrics);
+                UnderlyingClient.TrackException(exception, properties, metrics);
             }
             catch
             {
@@ -41,11 +41,11 @@ namespace NuGetGallery
             }
         }
 
-        public void TrackException(Exception exception, IDictionary<string, string> properties = null, IDictionary<string, double> metrics = null)
+        public void TrackMetric(string metricName, double value, IDictionary<string, string> properties = null)
         {
             try
             {
-                UnderlyingClient.TrackException(exception, properties, metrics);
+                UnderlyingClient.TrackMetric(metricName, value, properties);
             }
             catch
             {

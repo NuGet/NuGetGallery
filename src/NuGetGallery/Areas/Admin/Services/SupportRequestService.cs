@@ -4,10 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGetGallery.Areas.Admin.Models;
+using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Areas.Admin
@@ -16,34 +16,23 @@ namespace NuGetGallery.Areas.Admin
         : ISupportRequestService
     {
         private readonly ISupportRequestDbContext _supportRequestDbContext;
-        private readonly PagerDutyClient _pagerDutyClient;
+        private IAuditingService _auditingService;
         private readonly string _siteRoot;
         private const string _unassignedAdmin = "unassigned";
 
         public SupportRequestService(
             ISupportRequestDbContext supportRequestDbContext,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            IAuditingService auditingService)
         {
             _supportRequestDbContext = supportRequestDbContext;
             _siteRoot = config.SiteRoot;
-
-            _pagerDutyClient = new PagerDutyClient(config.PagerDutyAccountName, config.PagerDutyAPIKey, config.PagerDutyServiceKey);
+            _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
         public IReadOnlyCollection<Models.Admin> GetAllAdmins()
         {
             return _supportRequestDbContext.Admins.ToList();
-        }
-
-        public int? GetAdminKeyFromUsername(string username)
-        {
-            if (string.Equals(username, _unassignedAdmin, StringComparison.OrdinalIgnoreCase))
-            {
-                return null;
-            }
-
-            var admin = _supportRequestDbContext.Admins.FirstOrDefault(a => username == a.PagerDutyUsername);
-            return admin?.Key;
         }
 
         public List<History> GetHistoryEntriesByIssueKey(int id)
@@ -63,16 +52,11 @@ namespace NuGetGallery.Areas.Admin
             return GetFilteredIssuesQueryable(assignedToId, reason, issueStatusId).Count();
         }
 
-        public async Task UpdateAdminAsync(int adminId, string galleryUsername, string pagerDutyUsername)
+        public async Task UpdateAdminAsync(int adminId, string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
-            }
-
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
             }
 
             var admin = GetAdminByKey(adminId);
@@ -82,25 +66,18 @@ namespace NuGetGallery.Areas.Admin
             }
 
             admin.GalleryUsername = galleryUsername;
-            admin.PagerDutyUsername = pagerDutyUsername;
 
             await _supportRequestDbContext.CommitChangesAsync();
         }
 
-        public async Task AddAdminAsync(string galleryUsername, string pagerDutyUsername)
+        public async Task AddAdminAsync(string galleryUsername)
         {
             if (string.IsNullOrEmpty(galleryUsername))
             {
                 throw new ArgumentException(nameof(galleryUsername));
             }
 
-            if (string.IsNullOrEmpty(pagerDutyUsername))
-            {
-                throw new ArgumentException(nameof(pagerDutyUsername));
-            }
-
             var admin = new Models.Admin();
-            admin.PagerDutyUsername = pagerDutyUsername;
             admin.GalleryUsername = galleryUsername;
 
             _supportRequestDbContext.Admins.Add(admin);
@@ -133,14 +110,14 @@ namespace NuGetGallery.Areas.Admin
 
                 if (currentIssue.AssignedToId != assignedToId)
                 {
-                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? "unassigned";
+                    var previousAssignedUsername = currentIssue.AssignedTo?.GalleryUsername ?? _unassignedAdmin;
                     string newAssignedUsername;
                     if (assignedToId.HasValue)
                     {
                         var admin = GetAdminByKey(assignedToId.Value);
                         if (admin == null)
                         {
-                            newAssignedUsername = "unassigned";
+                            newAssignedUsername = _unassignedAdmin;
                         }
                         else
                         {
@@ -150,7 +127,7 @@ namespace NuGetGallery.Areas.Admin
                     }
                     else
                     {
-                        newAssignedUsername = "unassigned";
+                        newAssignedUsername = _unassignedAdmin;
                     }
 
                     comments += $"Reassigned issue from '{previousAssignedUsername}' to '{newAssignedUsername}'.\r\n";
@@ -197,25 +174,19 @@ namespace NuGetGallery.Areas.Admin
             }
         }
 
-        public async Task AddNewSupportRequestAsync(string subject, string message, string requestorEmailAddress, string reason,
-            User user, Package package = null)
+        public async Task<Issue> AddNewSupportRequestAsync(
+            string subject,
+            string message,
+            string requestorEmailAddress,
+            string reason,
+            User user,
+            Package package = null)
         {
             var loggedInUser = user?.Username ?? "Anonymous";
 
             try
             {
                 var newIssue = new Issue();
-
-                // If primary on-call person is not yet configured in the Support Request DB, assign to 'unassigned'.
-                var primaryOnCall = await _pagerDutyClient.GetPrimaryOnCallAsync();
-                if (string.IsNullOrEmpty(primaryOnCall) || GetAdminKeyFromUsername(primaryOnCall) == -1)
-                {
-                    newIssue.AssignedTo = null;
-                }
-                else
-                {
-                    newIssue.AssignedToId = GetAdminKeyFromUsername(primaryOnCall);
-                }
 
                 newIssue.CreatedDate = DateTime.UtcNow;
                 newIssue.Details = message;
@@ -232,25 +203,30 @@ namespace NuGetGallery.Areas.Admin
                 newIssue.PackageRegistrationKey = package?.PackageRegistrationKey;
 
                 await AddIssueAsync(newIssue);
+                return newIssue;
             }
-            catch (SqlException sqlException)
-            {
-                QuietLog.LogHandledException(sqlException);
-
-                var packageInfo = "N/A";
-                if (package != null)
-                {
-                    packageInfo = $"{package.PackageRegistration.Id} v{package.Version}";
-                }
-
-                var errorMessage = $"Error while submitting support request at {DateTime.UtcNow}. User requesting support = {loggedInUser}. Support reason = {reason ?? "N/A"}. Package info = {packageInfo}";
-
-                await _pagerDutyClient.TriggerIncidentAsync(errorMessage);
-            }
-            catch (Exception e) //In case getting data from PagerDuty has failed
+            catch (Exception e)
             {
                 QuietLog.LogHandledException(e);
             }
+
+            return null;
+        }
+
+        public async Task<bool> TryAddDeleteSupportRequestAsync(User user)
+        {
+            var requestSent = await AddNewSupportRequestAsync(
+                Strings.AccountDelete_SupportRequestTitle,
+                Strings.AccountDelete_SupportRequestTitle,
+                user.EmailAddress,
+                "The user requested to have the account deleted.",
+                user) != null;
+            var status = requestSent ? DeleteAccountAuditRecord.ActionStatus.Success : DeleteAccountAuditRecord.ActionStatus.Failure;
+            await _auditingService.SaveAuditRecordAsync(new DeleteAccountAuditRecord(username: user.Username,
+                   status: status,
+                   action: AuditedDeleteAccountAction.RequestAccountDeletion));
+
+            return requestSent;
         }
 
         private async Task AddIssueAsync(Issue issue)
@@ -307,6 +283,34 @@ namespace NuGetGallery.Areas.Admin
             var issue = _supportRequestDbContext.IssueStatus.FirstOrDefault(i => i.Key == id);
 
             return issue?.Name;
+        }
+
+        public async Task DeleteSupportRequestsAsync(string createdBy)
+        {
+            if(createdBy == null)
+            {
+                throw new ArgumentNullException(nameof(createdBy));
+            }
+            var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy, StringComparison.InvariantCultureIgnoreCase)).ToList();
+            // Delete all the support requests with exception of the delete account request.
+            // For the DeleteAccount support request clean the user data.
+            foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                _supportRequestDbContext.Issues.Remove(issue);
+            }
+            foreach(var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            {
+                accountDeletedIssue.OwnerEmail = "deletedaccount";
+                accountDeletedIssue.CreatedBy = null;
+                foreach(var historyEntry in accountDeletedIssue.HistoryEntries)
+                {
+                    if (string.Equals(historyEntry.EditedBy, createdBy, StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        historyEntry.EditedBy = null;
+                    }
+                }
+            }
+            await _supportRequestDbContext.CommitChangesAsync();
         }
 
         private IQueryable<Issue> GetFilteredIssuesQueryable(int? assignedTo = null, string reason = null, int? issueStatusId = null, string galleryUsername = null)
@@ -372,7 +376,10 @@ namespace NuGetGallery.Areas.Admin
 
         private Issue GetIssueById(int id)
         {
-            return _supportRequestDbContext.Issues.FirstOrDefault(i => i.Key == id);
+            return _supportRequestDbContext
+                .Issues
+                .Include(x => x.IssueStatus)
+                .FirstOrDefault(i => i.Key == id);
         }
     }
 }

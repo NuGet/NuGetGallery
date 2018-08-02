@@ -7,8 +7,10 @@ using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGetGallery.FunctionalTests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -37,22 +39,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P0Tests")]
         public async Task FindPackagesByIdTest()
         {
-            string packageId = string.Format("TestV2FeedFindPackagesById.{0}", DateTime.UtcNow.Ticks);
+            var packageInfo = await _clientSdkHelper.UploadPackageVersion();
 
-            TestOutputHelper.WriteLine("Uploading package '{0}'", packageId);
-            await _clientSdkHelper.UploadNewPackage(packageId);
-
-            TestOutputHelper.WriteLine("Uploaded package '{0}'", packageId);
-            await _clientSdkHelper.UploadNewPackage(packageId, "2.0.0");
-
-            // "&$orderby=Version" is appended to bypass the search hijacker
+            var packageId = packageInfo.Id;
+            var packageVersion = packageInfo.Version;
             string url = UrlHelper.V2FeedRootUrl + @"/FindPackagesById()?id='" + packageId + "'&$orderby=Version";
-            string[] expectedTexts =
-            {
-                    @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='1.0.0')</id>",
-                    @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='2.0.0')</id>"
-                };
-            var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
+            var containsResponseText = await _odataHelper.ContainsResponseText(url, @"<id>" + UrlHelper.V2FeedRootUrl + "Packages(Id='" + packageId + "',Version='" + packageVersion + "')</id>");
             Assert.True(containsResponseText);
         }
 
@@ -67,33 +59,34 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
             // This test uploads/unlists packages in a particular order to test the timestamps of the packages in the feed.
             // Because it waits for previous requests to finish before starting new ones, it will only catch ordering issues if these issues are greater than a second or two.
             // This is consistent with the time frame in which we've seen these issues in the past, but if new issues arise that are on a smaller scale, this test will not catch it!
-            var packageIds = new List<string>(PackagesInOrderNumPackages);
+            var uploadedPackageIds = new List<string>();
+            var version = "1.0.0";
             var startingTime = DateTime.UtcNow;
 
             // Upload the packages in order.
             var uploadStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
             for (var i = 0; i < PackagesInOrderNumPackages; i++)
             {
-                var packageId = GetPackagesAppearInFeedInOrderPackageId(startingTime, i);
-                await _clientSdkHelper.UploadNewPackage(packageId);
-                packageIds.Add(packageId);
+                var packageId = UploadHelper.GetUniquePackageId();
+                var packageFullPath = await _packageCreationHelper.CreatePackage(packageId, version);
+                await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
+                uploadedPackageIds.Add(packageId);
             }
 
-            await CheckPackageTimestampsInOrder(packageIds, "Created", uploadStartTimestamp);
+            await Task.WhenAll(uploadedPackageIds.Select(id => _clientSdkHelper.VerifyPackageExistsInV2Async(id, version)));
+
+            await CheckPackageTimestampsInOrder(uploadedPackageIds, "Created", uploadStartTimestamp);
 
             // Unlist the packages in order.
+            var unlistedPackageIds = new List<string>();
             var unlistStartTimestamp = DateTime.UtcNow.AddMinutes(-1);
-            for (var i = 0; i < PackagesInOrderNumPackages; i++)
+            foreach (var uploadedPackageId in uploadedPackageIds)
             {
-                await _clientSdkHelper.UnlistPackage(packageIds[i]);
+                await _commandlineHelper.DeletePackageAsync(uploadedPackageId, version, UrlHelper.V2FeedPushSourceUrl);
+                unlistedPackageIds.Add(uploadedPackageId);
             }
 
-            await CheckPackageTimestampsInOrder(packageIds, "LastEdited", unlistStartTimestamp);
-        }
-
-        private static string GetPackagesAppearInFeedInOrderPackageId(DateTime startingTime, int i)
-        {
-            return $"TestV2FeedPackagesAppearInFeedInOrderTest.{startingTime.Ticks}.{i}";
+            await CheckPackageTimestampsInOrder(unlistedPackageIds, "LastEdited", unlistStartTimestamp);
         }
 
         private static string GetPackagesAppearInFeedInOrderUrl(DateTime time, string timestamp)
@@ -107,14 +100,14 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         /// <param name="packageIds">An ordered list of package ids. Each package id in the list must have a timestamp in the feed earlier than all package ids after it.</param>
         /// <param name="timestampPropertyName">The timestamp property to test the ordering of. For example, "Created" or "LastEdited".</param>
         /// <param name="operationStartTimestamp">A timestamp that is before all of the timestamps expected to be found in the feed. This is used in a request to the feed.</param>
-        private async Task CheckPackageTimestampsInOrder(List<string> packageIds, string timestampPropertyName,
+        private async Task CheckPackageTimestampsInOrder(IEnumerable<string> packageIds, string timestampPropertyName,
             DateTime operationStartTimestamp)
         {
             var lastTimestamp = DateTime.MinValue;
-            for (var i = 0; i < PackagesInOrderNumPackages; i++)
+            var lastPackageId = string.Empty;
+            foreach (var packageId in packageIds)
             {
-                var packageId = packageIds[i];
-                TestOutputHelper.WriteLine($"Attempting to check order of package #{i} {timestampPropertyName} timestamp in feed.");
+                TestOutputHelper.WriteLine($"Attempting to check order of package {packageId} {timestampPropertyName} timestamp in feed.");
 
                 var newTimestamp =
                     await
@@ -125,8 +118,9 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
 
                 Assert.True(newTimestamp.HasValue);
                 Assert.True(newTimestamp.Value > lastTimestamp,
-                    $"Package #{i} was last modified after package #{i - 1} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
+                    $"Package {packageId} was last modified after package {lastPackageId} but has an earlier {timestampPropertyName} timestamp ({newTimestamp} should be greater than {lastTimestamp}).");
                 lastTimestamp = newTimestamp.Value;
+                lastPackageId = packageId;
             }
         }
 
@@ -139,25 +133,29 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P1Tests")]
         public async Task GetUpdates1199RegressionTest()
         {
-            // Use the same package name, but force the version to be unique.
-            var packageName = "GetUpdates1199RegressionTest";
+            // Use unique version to make the assertions simpler.
             var ticks = DateTime.Now.Ticks.ToString();
-            var version1 = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
+            var packageId = $"GetUpdates1199RegressionTest.{ticks}";
+            var version1 = "1.0.0";
             var version2 = new Version(Convert.ToInt32(ticks.Substring(0, 6) + 1) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-            var package1Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageName, version1, "net45");
+            var package1Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageId, version1, "net45");
 
             var processResult = await _commandlineHelper.UploadPackageAsync(package1Location, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage + "Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
-            var package2Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageName, version2, "net40");
+            var package2Location = await _packageCreationHelper.CreatePackageWithTargetFramework(packageId, version2, "net40");
             processResult = await _commandlineHelper.UploadPackageAsync(package2Location, UrlHelper.V2FeedPushSourceUrl);
 
             Assert.True((processResult.ExitCode == 0), Constants.UploadFailureMessage + "Exit Code: " + processResult.ExitCode + ". Error message: \"" + processResult.StandardError + "\"");
 
+            // Wait for the packages to be available in V2 (due to async validation)
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version1);
+            await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, version2);
+
             var packagesList = new List<string>
             {
-                packageName,
+                packageId,
                 "Microsoft.Bcl.Build",
                 "Microsoft.Bcl",
                 "Microsoft.Net.Http"
@@ -179,7 +177,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                 @"'";
             string[] expectedTexts =
             {
-                $@"<title type=""text"">{packageName}</title>",
+                $@"<title type=""text"">{packageId}</title>",
                 $@"<d:Version>{version2}</d:Version><d:NormalizedVersion>{version2}</d:NormalizedVersion>"
             };
             var containsResponseText = await _odataHelper.ContainsResponseText(url, expectedTexts);
@@ -196,50 +194,74 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         [Category("P1Tests")]
         public async Task PackageFeedSortingTest()
         {
-            var request = WebRequest.Create(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
-            var response = await request.GetResponseAsync();
+            var topDownloadsResponse = await GetResponseTextAsync(UrlHelper.V2FeedRootUrl + @"stats/downloads/last6weeks/");
 
-            string responseText;
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
+            // Search Gallery v2 feed for the top 10 unique package ids, or as many as exist.
+            string[] topDownloadsNames = GetPackageNamesFromFeedResponse(topDownloadsResponse);
 
-            // Grab the top 10 package names in the feed.
-            string[] packageName = new string[10];
-            responseText = packageName[0] = responseText.Substring(responseText.IndexOf(@"""PackageId"": """, StringComparison.Ordinal) + 14);
-            packageName[0] = packageName[0].Substring(0, responseText.IndexOf(@"""", StringComparison.Ordinal));
-            for (int i = 1; i < 10; i++)
-            {
-                responseText = packageName[i] = responseText.Substring(responseText.IndexOf(@"""PackageId"": """, StringComparison.Ordinal) + 14);
-                packageName[i] = packageName[i].Substring(0, responseText.IndexOf(@"""", StringComparison.Ordinal));
-                // Sometimes two versions of a single package appear in the top 10.  Stripping second and later instances for this test.
-                for (int j = 0; j < i; j++)
-                {
-                    if (packageName[j] == packageName[i])
-                    {
-                        packageName[i] = null;
-                        i--;
-                    }
-                }
-            }
+            // Ensure at least 1 package was found.
+            Assert.NotEmpty(topDownloadsNames);
 
-            request = WebRequest.Create(UrlHelper.BaseUrl + @"stats/packageversions");
+            // Search Gallery statistics for the top downloaded packages.
+            var statsResponse = await GetResponseTextAsync(UrlHelper.BaseUrl + @"stats/packageversions");
 
-            // Get the response.
-            response = await request.GetResponseAsync();
-            using (var sr = new StreamReader(response.GetResponseStream()))
-            {
-                responseText = await sr.ReadToEndAsync();
-            }
-
-            for (int i = 1; i < 10; i++)
+            var expectedNames = String.Join(", ", topDownloadsNames);
+            var last = topDownloadsNames.First();
+            foreach (var current in topDownloadsNames.Skip(1))
             {
                 // Check to make sure the top 10 packages are in the same order as the feed.
                 // We add angle brackets to prevent false failures due to duplicate package names in the page.
-                var condition = responseText.IndexOf(">" + packageName[i - 1] + "<", StringComparison.Ordinal) < responseText.IndexOf(">" + packageName[i] + "<", StringComparison.Ordinal);
-                Assert.True(condition, "Expected string " + packageName[i - 1] + " to come before " + packageName[i] + ".  Expected list is: " + packageName[0] + ", " + packageName[1] + ", " + packageName[2] + ", " + packageName[3] + ", " + packageName[4] + ", " + packageName[5] + ", " + packageName[6] + ", " + packageName[7] + ", " + packageName[8] + ", " + packageName[9]);
+                var condition = statsResponse.IndexOf(">" + last + "<", StringComparison.Ordinal)
+                    < statsResponse.IndexOf(">" + current + "<", StringComparison.Ordinal);
+                Assert.True(condition, $"Expected string {last} to come before {current}.  Expected list is: {expectedNames}.");
+
+                Assert.NotEqual(last, current);
+                last = current;
             }
+        }
+
+        private async Task<string> GetResponseTextAsync(string url)
+        {
+            using (var wr = await WebRequest.Create(url).GetResponseAsync())
+            using (var sr = new StreamReader(wr.GetResponseStream()))
+            {
+                return await sr.ReadToEndAsync();
+            }
+        }
+
+        private string[] GetPackageNamesFromFeedResponse(string feedResponseText)
+        {
+            const string PackageIdStartKey = @"""PackageId"": """;
+            const string PackageIdEndKey = @"""";
+
+            var results = new List<string>();
+
+            Func<string, int> seekStart = s => s.IndexOf(PackageIdStartKey, StringComparison.Ordinal);
+            Func<string, int> seekEnd = s => s.IndexOf(PackageIdEndKey, StringComparison.Ordinal);
+
+            do
+            {
+                var start = seekStart(feedResponseText);
+                if (start < 0)
+                {
+                    break;
+                }
+                
+                feedResponseText = feedResponseText.Substring(start + PackageIdStartKey.Length);
+                var end = seekEnd(feedResponseText);
+                if (end >= 0)
+                {
+                    var name = feedResponseText.Substring(0, end);
+                    if (!results.Contains(name, StringComparer.Ordinal))
+                    {
+                        results.Add(name);
+                    }
+                    feedResponseText = feedResponseText.Substring(end);
+                }
+            }
+            while (results.Count < 10);
+
+            return results.ToArray();
         }
     }
 }

@@ -7,6 +7,7 @@ using System.Security.Claims;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
 using Xunit;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery.Extensions
 {
@@ -103,7 +104,7 @@ namespace NuGetGallery.Extensions
 
                 var scopes = identity.GetScopesFromClaim();
 
-                Assert.Equal(1, scopes.Count);
+                Assert.Single(scopes);
                 Assert.Equal("theId", scopes.First().Subject);
             }
 
@@ -115,7 +116,22 @@ namespace NuGetGallery.Extensions
                     AuthenticationTypes.ApiKey,
                     new Claim(NuGetClaims.ApiKey, string.Empty));
 
-                Assert.Equal(null, identity.GetScopesFromClaim());
+                Assert.Null(identity.GetScopesFromClaim());
+            }
+
+            [Theory]
+            [InlineData("")]
+            [InlineData(" ")]
+            [InlineData("[]")]
+            public void WhenEmptyScopeClaim_ReturnsNull(string scopeClaim)
+            {
+                var identity = AuthenticationService.CreateIdentity(
+                    new User("user"),
+                    AuthenticationTypes.ApiKey,
+                    new Claim(NuGetClaims.ApiKey, string.Empty),
+                    new Claim(NuGetClaims.Scope, scopeClaim));
+
+                Assert.Null(identity.GetScopesFromClaim());
             }
         }
 

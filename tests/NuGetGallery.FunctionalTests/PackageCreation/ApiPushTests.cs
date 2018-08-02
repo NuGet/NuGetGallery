@@ -4,13 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Packaging;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,9 +19,11 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
     public class ApiPushTests : GalleryTestBase
     {
         private const int TaskCount = 16;
+        private readonly ClientSdkHelper _clientSdkHelper;
 
         public ApiPushTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
+            _clientSdkHelper = new ClientSdkHelper(TestOutputHelper);
         }
 
         [Fact]
@@ -67,18 +69,23 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
                         TestOutputHelper.WriteLine($"Task {taskIndex:D2} push:     HTTP {(int)statusCodes[taskIndex - 1]}");
                     }
 
+                    // Wait for the packages to be available in V2 (due to async validation)
+                    await _clientSdkHelper.VerifyPackageExistsInV2Async(packageId, packageVersion);
+
                     var downloadUrl = $"{UrlHelper.V2FeedRootUrl}package/{packageId}/{packageVersion}";
                     using (var response = await client.GetAsync(downloadUrl))
                     {
                         TestOutputHelper.WriteLine($"Package download: HTTP {(int)response.StatusCode}");
 
                         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                        var expectedBytes = File.ReadAllBytes(packagePath);
-                        var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
 
-                        // The file length assertion is easier to read in the log.
-                        Assert.Equal(expectedBytes.Length, actualPackageBytes.Length);
-                        Assert.Equal(expectedBytes, actualPackageBytes);
+                        var actualPackageBytes = await response.Content.ReadAsByteArrayAsync();
+                        using (var stream = new MemoryStream(actualPackageBytes))
+                        using (var packageReader = new PackageArchiveReader(stream))
+                        {
+                            Assert.Equal(packageId, packageReader.NuspecReader.GetId());
+                            Assert.Equal(packageVersion, packageReader.NuspecReader.GetVersion().ToNormalizedString());
+                        }
                     }
 
                     Assert.Equal(1, statusCodes.Count(x => x == HttpStatusCode.Created));
@@ -96,7 +103,7 @@ namespace NuGetGallery.FunctionalTests.PackageCreation
             using (var request = new HttpRequestMessage(HttpMethod.Put, UrlHelper.V2FeedPushSourceUrl))
             {
                 request.Content = new StreamContent(new BarrierStream(package, barrier));
-                request.Headers.Add(Constants.NuGetHeaderApiKey, EnvironmentSettings.TestAccountApiKey);
+                request.Headers.Add(Constants.NuGetHeaderApiKey, GalleryConfiguration.Instance.Account.ApiKey);
                 request.Headers.Add(Constants.NuGetHeaderProtocolVersion, Constants.NuGetProtocolVersion);
 
                 using (var response = await client.SendAsync(request))

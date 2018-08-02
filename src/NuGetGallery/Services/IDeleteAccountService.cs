@@ -9,14 +9,21 @@ namespace NuGetGallery
     public interface IDeleteAccountService
     {
         /// <summary>
-        /// Deletes an user gallery account.
+        /// Will clean-up the data related with an user account.
+        /// The result will be:
+        /// 1. The user will be removed as owner from its owned packages.
+        /// 2. Any of the packages that become orphaned as its result will be handled according to <paramref name="orphanPackagePolicy"/>.
+        /// 3. Any owned namespaces will be released.
+        /// 4. The user credentials will be cleaned.
+        /// 5. The user data will be cleaned.
         /// </summary>
         /// <param name="userToBeDeleted">The user to be deleted.</param>
-        /// <param name="admin">The admin that will execute the delete action.</param>
-        /// <param name="signature">The admin signature.</param>
-        /// <param name="unsignOrphanPackages">True if the orphan packages will be unlisted.</param>
-        /// <param name="commitAsTransaction">True if the changes will commited as a transaction.</param>
-        /// <returns></returns>
-        Task<DeleteUserAccountStatus> DeleteGalleryUserAccountAsync(User userToBeDeleted, User admin, string signature, bool unsignOrphanPackages, bool commitAsTransaction);
+        /// <param name="userToExecuteTheDelete">The user deleting the account.</param>
+        /// <param name="orphanPackagePolicy">If deleting the account creates any orphaned packages, a <see cref="AccountDeletionOrphanPackagePolicy"/> that describes how those orphans should be handled.</param>
+        /// <param name="commitAsTransaction">Whether or not to commit the changes as a transaction.</param>
+        Task<DeleteUserAccountStatus> DeleteAccountAsync(User userToBeDeleted,
+            User userToExecuteTheDelete,
+            bool commitAsTransaction,
+            AccountDeletionOrphanPackagePolicy orphanPackagePolicy = AccountDeletionOrphanPackagePolicy.DoNotAllowOrphans);
     }
 }

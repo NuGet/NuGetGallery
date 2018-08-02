@@ -50,7 +50,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var model = ResultAssert.IsView<SecurityPolicyViewModel>(result);
             Assert.NotNull(model);
             Assert.NotNull(model.SubscriptionNames);
-            Assert.Equal(1, model.SubscriptionNames.Count());
+            Assert.Single(model.SubscriptionNames);
         }
 
         [Theory]
@@ -95,7 +95,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             // Arrange.
             var policyService = new TestSecurityPolicyService();
             var dbUsers = TestUsers.ToArray();
-            var subscription = policyService.Mocks.Subscription.Object;
+            var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
             var subscriptionName = subscription.SubscriptionName;
             await policyService.SubscribeAsync(dbUsers[1], subscription);
 
@@ -135,9 +135,9 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
-            var subscription = policyService.Mocks.Subscription.Object;
+            var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
-            Assert.False(users.Any(u => policyService.IsSubscribed(u, subscription)));
+            Assert.DoesNotContain(users, u => policyService.IsSubscribed(u, subscription));
 
             // Act.
             var model = new List<string>
@@ -165,7 +165,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
-            var subscription = policyService.Mocks.Subscription.Object;
+            var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             users.ForEach(async u => await policyService.SubscribeAsync(u, subscription));
             policyService.MockEntitiesContext.ResetCalls();
@@ -196,7 +196,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             var entitiesMock = policyService.MockEntitiesContext;
             entitiesMock.Setup(c => c.Users).Returns(users.MockDbSet().Object);
             var controller = new SecurityPolicyController(entitiesMock.Object, policyService);
-            var subscription = policyService.Mocks.Subscription.Object;
+            var subscription = policyService.Mocks.UserPoliciesSubscription.Object;
 
             // Act.
             var model = new List<string>

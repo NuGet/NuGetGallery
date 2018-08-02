@@ -10,6 +10,7 @@ using System.Linq;
 using Elmah;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
+using NuGetGallery.Auditing;
 
 namespace NuGetGallery.Infrastructure
 {
@@ -143,10 +144,10 @@ namespace NuGetGallery.Infrastructure
             private readonly string _connectionString;
             private readonly AzureEntityList<ErrorEntity> _entityList;
 
-            public TableErrorLog(string connectionString)
+            public TableErrorLog(string connectionString, bool readAccessGeoRedundant)
             {
                 _connectionString = connectionString;
-                _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName);
+                _entityList = new AzureEntityList<ErrorEntity>(connectionString, TableName, readAccessGeoRedundant);
             }
 
             public override ErrorLogEntry GetError(string id)
@@ -181,9 +182,32 @@ namespace NuGetGallery.Infrastructure
 
             public override string Log(Error error)
             {
+                Obfuscate(error);
                 var entity = new ErrorEntity(error);
                 long pos = _entityList.Add(entity);
                 return pos.ToString(CultureInfo.InvariantCulture);
+            }
+
+            private void Obfuscate(Error error)
+            {
+                //ServerVariables overrides requiring context from the http request should be handled in NuGetGallery.QuietLog
+                var elmahException = error.Exception as ElmahException;
+                if (elmahException != null)
+                {
+                    var piiServerVaribles = elmahException.ServerVariables;
+                    foreach (var key in piiServerVaribles.Keys)
+                    {
+                        error.ServerVariables[key] = piiServerVaribles[key];
+                    }
+                }
+
+                error.ServerVariables["AUTH_USER"] = string.Empty;
+                error.ServerVariables["LOGON_USER"] = string.Empty;
+                error.ServerVariables["REMOTE_USER"] = string.Empty;
+
+                error.ServerVariables["REMOTE_ADDR"] = Obfuscator.ObfuscateIp(error.ServerVariables["REMOTE_ADDR"]);
+                error.ServerVariables["REMOTE_HOST"] = Obfuscator.ObfuscateIp(error.ServerVariables["REMOTE_HOST"]);
+                error.ServerVariables["LOCAL_ADDR"] = Obfuscator.ObfuscateIp(error.ServerVariables["LOCAL_ADDR"]);
             }
         }
 }

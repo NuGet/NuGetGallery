@@ -10,6 +10,8 @@ namespace NuGetGallery.Configuration
 {
     public class AppConfiguration : IAppConfiguration
     {
+        private string _ExternalBrandingMessage;
+
         [DefaultValue(Constants.DevelopmentEnvironment)]
         public string Environment { get; set; }
 
@@ -36,18 +38,17 @@ namespace NuGetGallery.Configuration
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] ForceSslExclusion { get; set; }
 
-
         [DisplayName("AzureStorage.Auditing.ConnectionString")]
         public string AzureStorage_Auditing_ConnectionString { get; set; }
+
+        [DisplayName("AzureStorage.UserCertificates.ConnectionString")]
+        public string AzureStorage_UserCertificates_ConnectionString { get; set; }
 
         [DisplayName("AzureStorage.Content.ConnectionString")]
         public string AzureStorage_Content_ConnectionString { get; set; }
 
         [DisplayName("AzureStorage.Errors.ConnectionString")]
         public string AzureStorage_Errors_ConnectionString { get; set; }
-
-        [DisplayName("AzureStorage.NuGetExe.ConnectionString")]
-        public string AzureStorage_NuGetExe_ConnectionString { get; set; }
 
         [DisplayName("AzureStorage.Packages.ConnectionString")]
         public string AzureStorage_Packages_ConnectionString { get; set; }
@@ -64,6 +65,14 @@ namespace NuGetGallery.Configuration
         public bool AzureStorageReadAccessGeoRedundant { get; set; }
 
         public bool AsynchronousPackageValidationEnabled { get; set; }
+
+        public bool BlockingAsynchronousPackageValidationEnabled { get; set; }
+
+        public TimeSpan AsynchronousPackageValidationDelay { get; set; }
+
+        public TimeSpan ValidationExpectedTime { get; set; }
+
+        public bool DeprecateNuGetPasswordLogins { get; set; }
 
         /// <summary>
         /// Gets the URI to the search service
@@ -157,7 +166,7 @@ namespace NuGetGallery.Configuration
         /// Gets the SQL Connection string used to connect to the database for validations
         /// </summary>
         [DisplayName("ValidationSqlServer")]
-        [DefaultValue("Validation.SqlServer")]
+        [DefaultValue("ValidationSqlServer")]
         public string SqlConnectionStringValidation { get; set; }
 
         /// <summary>
@@ -184,6 +193,16 @@ namespace NuGetGallery.Configuration
         /// Gets the protocol-independent site root
         /// </summary>
         public string SiteRoot { get; set; }
+
+        /// <summary>
+        /// Private key for verifying recaptcha user response.
+        /// </summary>
+        public string ReCaptchaPrivateKey { get; set; }
+
+        /// <summary>
+        /// Public key for verifying recaptcha user response.
+        /// </summary>
+        public string ReCaptchaPublicKey { get; set; }
 
         /// <summary>
         /// Gets the Google Analytics Property ID being used, if any.
@@ -231,24 +250,44 @@ namespace NuGetGallery.Configuration
         public int WarnAboutExpirationInDaysForApiKeyV1 { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty account name.
+        /// Defines a semi-colon separated list of domains for the alternate site roots for gallery, used for MSA authentication by AADv2
         /// </summary>
-        public string PagerDutyAccountName { get; set; }
+        public string AlternateSiteRootList { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty API key.
+        /// Configuration to enable manual setting of the machine key for session persistence across deployments/slots.
         /// </summary>
-        public string PagerDutyAPIKey { get; set; }
+        public bool EnableMachineKeyConfiguration { get; set; }
 
         /// <summary>
-        /// Gets a string containing the PagerDuty Service key.
+        /// Gets/sets the encryption aglorithm that is used for encrypting and decrypting forms authentication data.
         /// </summary>
-        public string PagerDutyServiceKey { get; set; }
+        public string MachineKeyDecryption { get; set; }
+
+        /// <summary>
+        /// Gets/sets the key that is sued to encrypt and decrypt data, or the process by which the key is generated.
+        /// </summary>
+        public string MachineKeyDecryptionKey { get; set; }
+
+        /// <summary>
+        /// Gets/sets the hashing algorithm used for validating forms authentication and view state data.
+        /// </summary>
+        public string MachineKeyValidationAlgorithm { get; set; }
+
+        /// <summary>
+        /// Gets/sets the key that is used to validate forms authentication and view state data, or the process by which the key is generated.
+        /// </summary>
+        public string MachineKeyValidationKey { get; set; }
 
         /// <summary>
         /// Gets/sets a bool that indicates if the OData requests will be filtered.
         /// </summary>
         public bool IsODataFilterEnabled { get; set; }
+
+        /// <summary>
+        /// Gets/sets a string that is a link to an external status page
+        /// </summary>
+        public string ExternalStatusUrl { get; set; }
 
         /// <summary>
         /// Gets/sets a string that is a link to an external about page
@@ -271,9 +310,19 @@ namespace NuGetGallery.Configuration
         public string ExternalBrandingUrl { get; set; }
 
         /// <summary>
-        /// Gets/sets a string that is brand string to display in the footer
+        /// Gets/sets a string that is brand string to display in the footer, this also
+        /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
-        public string ExternalBrandingMessage { get; set; }
+        public string ExternalBrandingMessage {
+            get {
+                return _ExternalBrandingMessage;
+            }
+
+            set
+            {
+                _ExternalBrandingMessage = string.Format(value, DateTime.UtcNow.Year);
+            }
+        }
 
         /// <summary>
         /// Get/Sets a string to a url that details trademarks. If unset, the link will not appear.
@@ -284,5 +333,10 @@ namespace NuGetGallery.Configuration
         /// Gets/Sets a flag indicating if default security policies should be enforced.
         /// </summary>
         public bool EnforceDefaultSecurityPolicies { get; set; }
+
+        [DefaultValue(true)]
+        public bool IsHosted { get; set; }
+
+        public bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
     }
 }

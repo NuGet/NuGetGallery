@@ -2,13 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
+using Newtonsoft.Json;
 using NuGetGallery.Authentication;
+using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 
 namespace NuGetGallery
 {
@@ -19,22 +22,34 @@ namespace NuGetGallery
         /// does NOT use AppController.GetCurrentUser()! In those cases, use
         /// TestExtensionMethods.SetCurrentUser(AppController, User) instead.
         /// </summary>
-        public static void SetOwinContextCurrentUser(this AppController self, User user, string scopes = null)
+        public static void SetOwinContextCurrentUser(this AppController self, User user, Credential credential = null)
         {
+            if (user == null)
+            {
+                self.OwinContext.Request.User = null;
+                return;
+            }
+
             ClaimsIdentity identity = null;
 
-            if (scopes != null)
+            if (credential != null)
             {
                 identity = AuthenticationService.CreateIdentity(
                     user,
                     AuthenticationTypes.ApiKey,
-                    new Claim(NuGetClaims.ApiKey, string.Empty),
-                    new Claim(NuGetClaims.Scope, scopes));
+                    new Claim(NuGetClaims.ApiKey, credential.Value),
+                    new Claim(NuGetClaims.Scope, JsonConvert.SerializeObject(credential.Scopes, Formatting.None)));
             }
             else
             {
-                identity = new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Name, string.IsNullOrEmpty(user.Username) ? "theUserName" : user.Username) });
+                if (string.IsNullOrEmpty(user.Username))
+                {
+                    user.Username = "theUsername";
+                }
+
+                identity = AuthenticationService.CreateIdentity(
+                    user,
+                    AuthenticationTypes.External);
             }
 
             var principal = new ClaimsPrincipal(identity);
@@ -46,10 +61,32 @@ namespace NuGetGallery
             self.OwinContext.Request.User = principal;
         }
 
-        public static void SetCurrentUser(this AppController self, User user, string scopes = null)
+        public static void SetCurrentUser(this AppController self, User user, ICollection<Scope> scopes)
         {
-            SetOwinContextCurrentUser(self, user, scopes);
-            self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+            var credential =
+                TestCredentialHelper
+                    .CreateV4ApiKey(expiration: null, plaintextApiKey: out var plaintextApiKey)
+                    .WithScopes(scopes);
+
+            self.SetCurrentUser(user, credential);
+        }
+
+        public static void SetCurrentUser(this AppController self, User user, Credential credential = null)
+        {
+            self.SetOwinContextCurrentUser(user, credential);
+            self.SetCurrentUserOwinEnvironmentKey(user);
+        }
+
+        private static void SetCurrentUserOwinEnvironmentKey(this AppController self, User user)
+        {
+            if (user != null)
+            {
+                self.OwinContext.Environment[Constants.CurrentUserOwinEnvironmentKey] = user;
+            }
+            else
+            {
+                self.OwinContext.Environment.Remove(Constants.CurrentUserOwinEnvironmentKey);
+            }
         }
 
         public static async Task<byte[]> CaptureBody(this IOwinResponse self, Func<Task> captureWithin)

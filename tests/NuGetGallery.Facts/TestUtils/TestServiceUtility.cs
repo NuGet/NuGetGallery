@@ -1,12 +1,15 @@
 ﻿using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Signing;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
+using NuGetGallery.Security;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -36,10 +39,12 @@ namespace NuGetGallery.TestUtils
                     framework
                 },
                 FlattenedAuthors = "maarten",
+#pragma warning disable 0618
                 Authors = new List<PackageAuthor>
                 {
                     author
                 },
+#pragma warning restore 0618
                 Dependencies = new List<PackageDependency>
                 {
                     dependency
@@ -70,7 +75,8 @@ namespace NuGetGallery.TestUtils
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            bool isSigned = false)
         {
             licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
             projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
@@ -120,7 +126,19 @@ namespace NuGetGallery.TestUtils
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups, packageTypes);
+                requireLicenseAcceptance, packageDependencyGroups, packageTypes,
+                archive =>
+                {
+                    if (isSigned)
+                    {
+                        var entry = archive.CreateEntry(SigningSpecifications.V1.SignaturePath);
+                        using (var stream = entry.Open())
+                        using (var writer = new StreamWriter(stream))
+                        {
+                            writer.Write("Fake signature file.");
+                        }
+                    }
+                });
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;
@@ -131,18 +149,34 @@ namespace NuGetGallery.TestUtils
     public class TestableUserService : UserService
     {
         public Mock<IAppConfiguration> MockConfig { get; protected set; }
+        public Mock<ISecurityPolicyService> MockSecurityPolicyService { get; protected set; }
         public Mock<IEntityRepository<User>> MockUserRepository { get; protected set; }
         public Mock<IEntityRepository<Credential>> MockCredentialRepository { get; protected set; }
+        public Mock<IEntityRepository<Organization>> MockOrganizationRepository { get; protected set; }
+        public Mock<IEntitiesContext> MockEntitiesContext { get; protected set; }
+        public Mock<IDatabase> MockDatabase { get; protected set; }
+        public Mock<IContentObjectService> MockConfigObjectService { get; protected set; }
+        public Mock<IDateTimeProvider> MockDateTimeProvider { get; protected set; }
+        public Mock<ITelemetryService> MockTelemetryService { get; protected set; }
 
         public TestableUserService()
         {
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
+            SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             UserRepository = (MockUserRepository = new Mock<IEntityRepository<User>>()).Object;
             CredentialRepository = (MockCredentialRepository = new Mock<IEntityRepository<Credential>>()).Object;
+            OrganizationRepository = (MockOrganizationRepository = new Mock<IEntityRepository<Organization>>()).Object;
+            EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
+            ContentObjectService = (MockConfigObjectService = new Mock<IContentObjectService>()).Object;
+            DateTimeProvider = (MockDateTimeProvider = new Mock<IDateTimeProvider>()).Object;
             Auditing = new TestAuditingService();
+            TelemetryService = (MockTelemetryService = new Mock<ITelemetryService>()).Object;
 
             // Set ConfirmEmailAddress to a default of true
             MockConfig.Setup(c => c.ConfirmEmailAddresses).Returns(true);
+
+            MockDatabase = new Mock<IDatabase>();
+            MockEntitiesContext.Setup(c => c.GetDatabase()).Returns(MockDatabase.Object);
         }
     }
 
@@ -166,6 +200,7 @@ namespace NuGetGallery.TestUtils
             Config = (MockConfig = new Mock<IAppConfiguration>()).Object;
             UserRepository = new EntityRepository<User>(FakeEntitiesContext);
             Auditing = new TestAuditingService();
+            TelemetryService = new TelemetryService();
         }
     }
 
@@ -254,7 +289,8 @@ namespace NuGetGallery.TestUtils
         {
             var mockContext = new Mock<IEntitiesContext>();
             var dbContext = new Mock<DbContext>();
-            mockContext.Setup(m => m.GetDatabase()).Returns(dbContext.Object.Database);
+            mockContext.Setup(m => m.GetDatabase())
+                .Returns(new DatabaseWrapper(dbContext.Object.Database));
 
             return mockContext;
         }
@@ -268,16 +304,18 @@ namespace NuGetGallery.TestUtils
                 .Verifiable();
 
             var packageRepository = new Mock<IEntityRepository<Package>>();
-            var packageNamingConflictValidator = new PackageNamingConflictValidator(
-                    packageRegistrationRepository.Object,
-                    packageRepository.Object);
+            var certificateRepository = new Mock<IEntityRepository<Certificate>>();
             var auditingService = new TestAuditingService();
+            var telemetryService = new Mock<ITelemetryService>();
+            var securityPolicyService = new Mock<ISecurityPolicyService>();
 
             var packageService = new Mock<PackageService>(
-                packageRegistrationRepository.Object,
-                packageRepository.Object,
-                packageNamingConflictValidator,
-                auditingService);
+                 packageRegistrationRepository.Object,
+                 packageRepository.Object,
+                 certificateRepository.Object,
+                 auditingService,
+                 telemetryService.Object,
+                 securityPolicyService.Object);
 
             packageService.CallBase = true;
 

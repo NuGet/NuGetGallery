@@ -1,0 +1,60 @@
+﻿@model GalleryHomeViewModel
+@{ 
+    var title = Model.TransformIntoOrganization ? "Transform to an organization" : "Sign-in with Microsoft account";
+    var hasExternalIdentity = !string.IsNullOrWhiteSpace(Model.Identity);
+}
+
+<div class="modal-dialog modal-box">
+    <div class="modal-title">
+        <span class="title-text">@title</span>
+        <button type="button" class="dismiss-button" data-dismiss="modal" aria-label="Close">
+            <i class="ms-Icon ms-Icon--Cancel" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="tag-node">
+            <span class="title-text">
+                <i class="ms-Icon ms-Icon--Warning" aria-hidden="true"></i>
+                NuGet.org authentication has been discontinued. <a class="title-text" target="_blank" href="https://aka.ms/nuget-auth-disabled">Learn more.</a>
+            </span>
+        </div>
+        @if (Model.TransformIntoOrganization)
+        {
+            <p class="transform-text">Since this is a team (DL-based) account, you must transform it to an organization on NuGet.org:</p>
+            <div class="action-node">
+                <a role="button"
+                    class="btn btn-default btn-block action-button"
+                    href="@Url.TransformAccount()">
+                    <span>Transform to an Organization</span>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="transform-text">
+                @if (@hasExternalIdentity)
+                {
+                    <span>
+                        Please sign in with your linked Microsoft account: <br>@Model.Identity
+                    </span>
+                }
+                else
+                {
+                    <span>Please link this account to your Microsoft account.</span>
+                }
+                <br /><br />
+                <b>Note:</b> No changes will be made to your account except for the authentication mechanism.
+            </div>
+            <div class="action-node">
+                <a role="button" 
+                   class="btn btn-default btn-block action-button" 
+                   href="@Url.AuthenticateExternal("/")">
+                    <img height="24" width="24" alt="" aria-hidden="true"
+                         src="@Href("~/Content/gallery/img/microsoft-account.svg")"
+                         @(!string.IsNullOrEmpty("~/Content/gallery/img/microsoft-account-24x24.png") ? (IHtmlString)ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/microsoft-account-24x24.png")) : new HtmlString(string.Empty)) />
+                    <span>Sign in with Microsoft</span>
+                </a>
+            </div>
+        }
+    </div>
+</div>

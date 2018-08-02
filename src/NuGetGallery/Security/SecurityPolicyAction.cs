@@ -7,6 +7,9 @@ namespace NuGetGallery.Security
     {
         PackagePush,
         PackageVerify,
-        ManagePackageOwners
+        ManagePackageOwners,
+        JoinOrganization,
+        AutomaticallyOverwriteRequiredSigner,
+        ControlRequiredSigner
     }
 }
