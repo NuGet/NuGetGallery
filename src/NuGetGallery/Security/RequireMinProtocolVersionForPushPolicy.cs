@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Protocol;
 using NuGet.Versioning;
@@ -76,7 +77,7 @@ namespace NuGetGallery.Security
         /// <summary>
         /// Evaluate if this security policy is met.
         /// </summary>
-        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
+        public override Task<SecurityPolicyResult> EvaluateAsync(UserSecurityPolicyEvaluationContext context)
         {
             if (context == null)
             {
@@ -96,11 +97,11 @@ namespace NuGetGallery.Security
 
             if (protocolVersion == null || protocolVersion < minProtocolVersion)
             {
-                return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minProtocolVersion));
+                return Task.FromResult(SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
+                    Strings.SecurityPolicy_RequireMinProtocolVersionForPush, minProtocolVersion)));
             }
 
-            return SecurityPolicyResult.SuccessResult;
+            return Task.FromResult(SecurityPolicyResult.SuccessResult);
         }
     }
 }
