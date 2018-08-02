@@ -143,9 +143,13 @@ namespace NuGetGallery
                 return RepositoryKind.Unknown;
             }
 
-            if (repositoryUrl.IndexOf("github.com", StringComparison.OrdinalIgnoreCase) >= 0)
+            if (Uri.TryCreate(repositoryUrl, UriKind.Absolute, out var repoUri))
             {
-                return RepositoryKind.GitHub;
+                if ((string.Equals("http", repoUri.Scheme, StringComparison.Ordinal) || string.Equals("https", repoUri.Scheme, StringComparison.Ordinal))
+                    && (string.Equals(repoUri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) || string.Equals(repoUri.Authority, "github.com", StringComparison.OrdinalIgnoreCase)))
+                {
+                    return RepositoryKind.GitHub;
+                }
             }
 
             if (string.Equals(repositoryType, "git", StringComparison.OrdinalIgnoreCase))

@@ -14,13 +14,18 @@ namespace NuGetGallery.ViewModels
     public class DisplayPackageViewModelFacts
     {
         [Theory]
+        [InlineData("https://www.github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
         [InlineData("https://github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
+        [InlineData("https://github.com/NuGet", null, RepositoryKind.GitHub)]
         [InlineData("https://bitbucket.org/NuGet/Home", "git", RepositoryKind.Git)]
         [InlineData("https://bitbucket.org/NuGet/Home", null, RepositoryKind.Unknown)]
         [InlineData("https://visualstudio.com", "tfs", RepositoryKind.Unknown)]
         [InlineData(null, "tfs", RepositoryKind.Unknown)]
         [InlineData(null, null, RepositoryKind.Unknown)]
-        [InlineData("https://github.com/NuGet", null, RepositoryKind.GitHub)]
+        [InlineData("git://github.com/Nuget/NuGetGallery.git", null, RepositoryKind.Unknown)]
+        [InlineData("https://some-other-domain.github.com/NuGet/Home", "git", RepositoryKind.Git)]
+        [InlineData("https://some-other-domain.github.com/NuGet/Home", null, RepositoryKind.Unknown)]
+        [InlineData("invalid repo url", null, RepositoryKind.Unknown)]
         public void ItDeterminesRepositoryKind(string repoUrl, string repoType, RepositoryKind expectedKind)
         {
             var package = new Package
