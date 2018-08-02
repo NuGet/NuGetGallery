@@ -18,10 +18,10 @@
       <dependency id="NuGet.Packaging" version="4.8.0-preview4.5289" />
       <dependency id="NuGet.Services.Configuration" version="2.27.0" />
       <dependency id="NuGet.Services.Logging" version="2.27.0" />
-      <dependency id="NuGet.Services.ServiceBus" version="2.27.0" />
+      <dependency id="NuGet.Services.ServiceBus" version="2.28.0-master-36259" />
       <dependency id="NuGet.Services.Sql" version="2.27.0" />
       <dependency id="NuGet.Services.Storage" version="2.27.0" />
-      <dependency id="NuGet.Services.Validation" version="2.27.0" />
+      <dependency id="NuGet.Services.Validation" version="2.28.0-master-36259" />
       <dependency id="NuGet.Services.Validation.Issues" version="2.27.0" />
       <dependency id="NuGetGallery.Core" version="4.4.5-master-36524" />
       <dependency id="Serilog" version="2.5.0" />

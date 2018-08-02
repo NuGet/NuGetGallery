@@ -57,6 +57,8 @@
     <Compile Include="IPackageStatusProcessor.cs" />
     <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
+    <Compile Include="Symbols\SymbolsIngesterConfiguration.cs" />
+    <Compile Include="Symbols\SymbolsIngester.cs" />
     <Compile Include="Symbols\SymbolsValidator.cs" />
     <Compile Include="Symbols\SymbolsValidationConfiguration.cs" />
     <Compile Include="UsernameHelper.cs" />

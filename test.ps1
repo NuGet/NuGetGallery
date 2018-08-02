@@ -40,7 +40,8 @@ Function Run-Tests {
         "tests\Validation.Common.Job.Tests\bin\$Configuration\Validation.Common.Job.Tests.dll", `
         "tests\StatusAggregator\bin\$Configuration\StatusAggregator.dll", `
         "tests\Monitoring.RebootSearchInstance.Tests\bin\$Configuration\NuGet.Monitoring.RebootSearchInstance.Tests.dll", `
-        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll"
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Tests.dll", `
+        "tests\Validation.Symbols.Tests\bin\$Configuration\Validation.Symbols.Core.Tests.dll"
 
     $TestCount = 0
     
