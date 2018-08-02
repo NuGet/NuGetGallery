@@ -7,8 +7,8 @@
     <ProjectGuid>{17510A22-176F-4E96-A867-E79F1B54F54F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Validation.Symbols.Core</RootNamespace>
-    <AssemblyName>Validation.Symbols.Core</AssemblyName>
+    <RootNamespace>NuGet.Jobs.Validation.Symbols.Core</RootNamespace>
+    <AssemblyName>NuGet.Jobs.Validation.Symbols.Core</AssemblyName>
     <TargetFrameworkVersion>v4.6.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -44,6 +44,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EntityServices\ISymbolsValidationEntitiesService.cs" />
+    <Compile Include="EntityServices\SymbolsValidationEntitiesService.cs" />
     <Compile Include="ISymbolsValidatorMessage.cs" />
     <Compile Include="IZipArchiveService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -55,8 +57,17 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="NuGet.Services.ServiceBus">
-      <Version>2.26.0-sb-status-34752</Version>
+      <Version>2.28.0-master-36259</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Validation">
+      <Version>2.28.0-master-36259</Version>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Validation.Common.Job\Validation.Common.Job.csproj">
+      <Project>{fa87d075-a934-4443-8d0b-5db32640b6d7}</Project>
+      <Name>Validation.Common.Job</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

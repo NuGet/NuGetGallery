@@ -103,6 +103,10 @@ namespace NuGet.Services.Validation.PackageSigning
                 // Arrange
                 _config.RepositorySigningEnabled = true;
 
+                _packages
+                    .Setup(p => p.FindPackageRegistrationById(_validationRequest.Object.PackageId))
+                    .Returns(_packageRegistration);
+
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
                     .ReturnsAsync(new ValidatorStatus
@@ -114,8 +118,10 @@ namespace NuGet.Services.Validation.PackageSigning
                         ValidatorIssues = new List<ValidatorIssue>(),
                     });
 
-                // Act
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+
+                Assert.Equal("Package signature validator has an unexpected validation result", e.Message);
             }
 
             [Fact]
@@ -123,6 +129,10 @@ namespace NuGet.Services.Validation.PackageSigning
             {
                 // Arrange
                 _config.RepositorySigningEnabled = true;
+
+                _packages
+                    .Setup(p => p.FindPackageRegistrationById(_validationRequest.Object.PackageId))
+                    .Returns(_packageRegistration);
 
                 _validatorStateService
                     .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
@@ -136,8 +146,41 @@ namespace NuGet.Services.Validation.PackageSigning
                         NupkgUrl = "https://nuget.org/a.nupkg"
                     });
 
+                // Act & Assert
+                var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+
+                Assert.Equal("Package signature validator has an unexpected validation result", e.Message);
+            }
+
+            [Fact]
+            public async Task WhenRepositorySigningEnabled_IgnoresFailedValidationIfOwnerHasMalformedUsername()
+            {
+                // Arrange
+                _config.RepositorySigningEnabled = true;
+
+                _packages
+                    .Setup(p => p.FindPackageRegistrationById(_validationRequest.Object.PackageId))
+                    .Returns(_packageRegistrationWithBadUsername);
+
+                _validatorStateService
+                    .Setup(x => x.GetStatusAsync(It.IsAny<IValidationRequest>()))
+                    .ReturnsAsync(new ValidatorStatus
+                    {
+                        ValidationId = ValidationId,
+                        PackageKey = PackageKey,
+                        ValidatorName = ValidatorName.PackageSignatureProcessor,
+                        State = ValidationStatus.Failed,
+                        ValidatorIssues = new List<ValidatorIssue>(),
+                    });
+
                 // Act
-                await Assert.ThrowsAsync<InvalidOperationException>(() => _target.GetResultAsync(_validationRequest.Object));
+                var result = await _target.GetResultAsync(_validationRequest.Object);
+
+                // Assert
+                Assert.Null(result.NupkgUrl);
+                Assert.Empty(result.Issues);
+                Assert.Equal(ValidationStatus.Succeeded, result.Status);
+
             }
 
             public static IEnumerable<object[]> PossibleValidationStatuses => possibleValidationStatuses.Select(s => new object[] { s });
@@ -436,6 +479,7 @@ namespace NuGet.Services.Validation.PackageSigning
             protected readonly Mock<IValidatorStateService> _validatorStateService;
             protected readonly Mock<IProcessSignatureEnqueuer> _packageSignatureVerifier;
             protected readonly Mock<ISimpleCloudBlobProvider> _blobProvider;
+            protected readonly Mock<ICorePackageService> _packages;
             protected readonly Mock<IOptionsSnapshot<ScanAndSignConfiguration>> _configAccessor;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<PackageSignatureValidator> _logger;
@@ -443,12 +487,15 @@ namespace NuGet.Services.Validation.PackageSigning
             protected readonly PackageSignatureValidator _target;
 
             protected readonly ScanAndSignConfiguration _config;
+            protected readonly PackageRegistration _packageRegistration;
+            protected readonly PackageRegistration _packageRegistrationWithBadUsername;
 
             public FactsBase(ITestOutputHelper output)
             {
                 _validatorStateService = new Mock<IValidatorStateService>();
                 _packageSignatureVerifier = new Mock<IProcessSignatureEnqueuer>();
                 _blobProvider = new Mock<ISimpleCloudBlobProvider>();
+                _packages = new Mock<ICorePackageService>();
                 _config = new ScanAndSignConfiguration();
                 _configAccessor = new Mock<IOptionsSnapshot<ScanAndSignConfiguration>>();
                 _telemetryService = new Mock<ITelemetryService>();
@@ -464,10 +511,27 @@ namespace NuGet.Services.Validation.PackageSigning
 
                 _configAccessor.Setup(a => a.Value).Returns(_config);
 
+                _packageRegistration = new PackageRegistration
+                {
+                    Owners = new[]
+                    {
+                        new User { Username = "GoodUsername" }
+                    }
+                };
+
+                _packageRegistrationWithBadUsername = new PackageRegistration
+                {
+                    Owners = new[]
+                    {
+                        new User { Username = "Bad Username" }
+                    }
+                };
+
                 _target = new PackageSignatureValidator(
                     _validatorStateService.Object,
                     _packageSignatureVerifier.Object,
                     _blobProvider.Object,
+                    _packages.Object,
                     _configAccessor.Object,
                     _telemetryService.Object,
                     _logger);

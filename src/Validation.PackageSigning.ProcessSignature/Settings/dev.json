@@ -23,7 +23,7 @@
       "cf6ce6768ef858a3a667be1af8aa524d386c7f59a34542713f5dfb0d79acf3dd"
     ],
     "V3ServiceIndexUrl": "https://apidev.nugettest.org/v3/index.json",
-    "CommitRepositorySignatures": false
+    "CommitRepositorySignatures": true
   },
 
   "PackageDownloadTimeout": "00:10:00",
