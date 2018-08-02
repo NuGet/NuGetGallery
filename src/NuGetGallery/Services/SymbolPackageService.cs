@@ -38,14 +38,19 @@ namespace NuGetGallery
         /// <summary>
         /// When no exceptions thrown, this method ensures the symbol package metadata is valid.
         /// </summary>
-        /// <param name="symbolPackage">
+        /// <param name="symbolPackageArchiveReader">
         /// The <see cref="PackageArchiveReader"/> instance providing the package metadata.
         /// </param>
         /// <exception cref="InvalidPackageException">
         /// This exception will be thrown when a package metadata property violates a data validation constraint.
         /// </exception>
-        public async Task EnsureValidAsync(PackageArchiveReader symbolPackage)
+        public async Task EnsureValidAsync(PackageArchiveReader symbolPackageArchiveReader)
         {
+            if (symbolPackageArchiveReader == null)
+            {
+                throw new ArgumentNullException(nameof(symbolPackageArchiveReader));
+            }
+
             // Validate following checks:
             // 1. Is a symbol package.
             // 2. The nuspec shouldn't have the 'owners'/'authors' field.
@@ -54,7 +59,7 @@ namespace NuGetGallery
             try
             {
                 var packageMetadata = PackageMetadata.FromNuspecReader(
-                    symbolPackage.GetNuspecReader(),
+                    symbolPackageArchiveReader.GetNuspecReader(),
                     strict: true);
 
                 if (!IsSymbolPackage(packageMetadata))
@@ -62,10 +67,10 @@ namespace NuGetGallery
                     throw new InvalidPackageException(Strings.SymbolsPackage_NotSymbolPackage);
                 }
 
-                ValidateSymbolPackage(symbolPackage, packageMetadata);
+                ValidateSymbolPackage(symbolPackageArchiveReader, packageMetadata);
 
                 // This will throw if the package contains an entry which will extract outside of the target extraction directory
-                await symbolPackage.ValidatePackageEntriesAsync(CancellationToken.None);
+                await symbolPackageArchiveReader.ValidatePackageEntriesAsync(CancellationToken.None);
             }
             catch (Exception ex) when (ex is EntityException || ex is PackagingException)
             {
@@ -80,6 +85,16 @@ namespace NuGetGallery
         /// </remarks>
         public SymbolPackage CreateSymbolPackage(Package nugetPackage, PackageStreamMetadata symbolPackageStreamMetadata)
         {
+            if (nugetPackage == null)
+            {
+                throw new ArgumentNullException(nameof(nugetPackage));
+            }
+
+            if (symbolPackageStreamMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(symbolPackageStreamMetadata));
+            }
+
             try
             {
                 var symbolPackage = new SymbolPackage()
