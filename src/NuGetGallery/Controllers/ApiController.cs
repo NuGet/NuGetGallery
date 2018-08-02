@@ -84,9 +84,9 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
-            ISymbolPackageService symbolPackageService = null,
-            ISymbolPackageUploadService symbolPackageUploadService = null,
-            IContentObjectService contentObjectService = null)
+            ISymbolPackageService symbolPackageService,
+            ISymbolPackageUploadService symbolPackageUploadService,
+            IContentObjectService contentObjectService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;

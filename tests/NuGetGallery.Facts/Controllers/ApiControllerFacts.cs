@@ -48,6 +48,9 @@ namespace NuGetGallery
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
+        public Mock<ISymbolPackageService> MockSymbolPackageService { get; set; }
+        public Mock<IContentObjectService> MockContentObjectService { get; set; }
+        public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }
 
         private Stream PackageFromInputStream { get; set; }
 
@@ -69,6 +72,9 @@ namespace NuGetGallery
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
+            SymbolPackageService = (MockSymbolPackageService = new Mock<ISymbolPackageService>()).Object;
+            SymbolPackageUploadService = (MockSymbolPackageUploadService = new Mock<ISymbolPackageUploadService>()).Object;
+            ContentObjectService = (MockContentObjectService = new Mock<IContentObjectService>()).Object;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -126,6 +132,14 @@ namespace NuGetGallery
             httpContextMock.Setup(m => m.Request).Returns(requestMock.Object);
 
             TestUtility.SetupHttpContextMockForUrlGeneration(httpContextMock, this);
+
+            MockContentObjectService
+                .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
+                .Returns(true);
+
+            MockSymbolPackageService
+                .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                .Completes();
         }
 
         private void SetupApiScopeEvaluatorOnAllInputs()
@@ -181,6 +195,275 @@ namespace NuGetGallery
                     var description = isReservedNamespaceConflict ? Strings.UploadPackage_IdNamespaceConflict : Strings.ApiKeyNotAuthorized;
                     yield return MemberDataHelper.AsData(new ApiScopeEvaluationResult(null, result, scopesAreValid: true), statusCode, description);
                 }
+            }
+        }
+
+        public class TheCreateSymbolPackageAction : TestContainer
+        {
+            [Fact]
+            public async Task CreateSymbolPackage_ReturnsUnauthorizedForAnyUser()
+            {
+                // Arrange
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.MockContentObjectService
+                    .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
+                    .Returns(false);
+
+                var user = new User("test");
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                Assert.NotNull(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Unauthorized);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackage()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                byte[] data = new byte[100];
+                controller.SetupPackageFromInputStream(new MemoryStream(data));
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturn404IfCorrespondingPackageDoesnNotExist()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns<Package>(null);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_UnauthorizedUserWillGet403()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42"
+                };
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        user,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadSymbolPackage,
+                        It.IsAny<PackageRegistration>(),
+                        NuGetScopes.PackagePushVersion,
+                        NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.AccountFailure, scopesAreValid: false));
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Unauthorized);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturnConflictForSymbolPendingValidation()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                var symbolPackage = new SymbolPackage()
+                {
+                    Package = package,
+                    StatusKey = PackageStatus.Validating
+                };
+
+                package.SymbolPackages.Add(symbolPackage);
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Conflict);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturn400ForInvalidPackage()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                controller.MockSymbolPackageService
+                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                    .ThrowsAsync(new InvalidPackageException());
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturnConflictIfFileExistsInUpload()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                controller.MockSymbolPackageUploadService
+                    .Setup(x => x.CreateAndUploadSymbolsPackage(
+                        package,
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<Stream>()))
+                    .ReturnsAsync(PackageCommitResult.Conflict);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Conflict);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillCreateSymbolPackageSuccessfully()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                controller.MockSymbolPackageUploadService
+                    .Setup(x => x.CreateAndUploadSymbolsPackage(
+                        package,
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<Stream>()))
+                    .ReturnsAsync(PackageCommitResult.Success);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
             }
         }
 
