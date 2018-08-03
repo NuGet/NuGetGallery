@@ -539,6 +539,8 @@ namespace NuGetGallery
                 case CoreConstants.PackageBackupsFolderName:
                 case CoreConstants.UploadsFolderName:
                 case CoreConstants.ValidationFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.SymbolPackageBackupsFolderName:
                     return CoreConstants.PackageContentType;
 
                 case CoreConstants.DownloadsFolderName:
