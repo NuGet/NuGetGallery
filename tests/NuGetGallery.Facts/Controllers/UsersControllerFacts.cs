@@ -258,7 +258,8 @@ namespace NuGetGallery
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.PasswordResetTokenExpirationHours)
                 };
                 GetMock<IMessageService>()
-                    .Setup(s => s.SendPasswordResetInstructionsAsync(user, resetUrl, true));
+                    .Setup(s => s.SendPasswordResetInstructionsAsync(user, resetUrl, true))
+                    .Returns(Task.CompletedTask);
                 GetMock<IUserService>()
                     .Setup(s => s.FindByEmailAddress("user"))
                     .Returns(user);

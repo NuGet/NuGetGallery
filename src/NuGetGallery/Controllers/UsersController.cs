@@ -70,17 +70,17 @@ namespace NuGetGallery
             EmailUpdateCancelled = Strings.UserEmailUpdateCancelled
         };
 
-        protected override void SendNewAccountEmail(User account)
+        protected override Task SendNewAccountEmailAsync(User account)
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
+            return MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
         }
 
-        protected override void SendEmailChangedConfirmationNotice(User account)
+        protected override Task SendEmailChangedConfirmationNoticeAsync(User account)
         {
             var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
+            return MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
         }
 
         protected override User GetAccount(string accountName)
@@ -527,7 +527,7 @@ namespace NuGetGallery
                         ModelState.AddModelError(string.Empty, Strings.CouldNotFindAnyoneWithThatUsernameOrEmail);
                         break;
                     case PasswordResetResultType.Success:
-                        return SendPasswordResetEmail(result.User, forgotPassword: true);
+                        return await SendPasswordResetEmailAsync(result.User, forgotPassword: true);
                     default:
                         throw new NotImplementedException($"The password reset result type '{result.Type}' is not supported.");
                 }
@@ -646,7 +646,7 @@ namespace NuGetGallery
                     return AccountView(user, model);
                 }
 
-                return SendPasswordResetEmail(user, forgotPassword: false);
+                return await SendPasswordResetEmailAsync(user, forgotPassword: false);
             }
             else
             {
@@ -1058,14 +1058,14 @@ namespace NuGetGallery
                 c.Type.StartsWith(CredentialTypes.External.Prefix, StringComparison.OrdinalIgnoreCase));
         }
 
-        private ActionResult SendPasswordResetEmail(User user, bool forgotPassword)
+        private async Task<ActionResult> SendPasswordResetEmailAsync(User user, bool forgotPassword)
         {
             var resetPasswordUrl = Url.ResetEmailOrPassword(
                 user.Username,
                 user.PasswordResetToken,
                 forgotPassword,
                 relativeUrl: false);
-            MessageService.SendPasswordResetInstructionsAsync(user, resetPasswordUrl, forgotPassword);
+            await MessageService.SendPasswordResetInstructionsAsync(user, resetPasswordUrl, forgotPassword);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }

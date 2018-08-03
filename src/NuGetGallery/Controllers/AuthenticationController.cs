@@ -325,7 +325,7 @@ namespace NuGetGallery
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public virtual JsonResult SignInAssistance(string username, string providedEmailAddress)
+        public virtual async Task<JsonResult> SignInAssistance(string username, string providedEmailAddress)
         {
             // If provided email address is empty or null, return the result with a formatted
             // email address, otherwise send sign-in assistance email to the associated mail address.
@@ -352,7 +352,7 @@ namespace NuGetGallery
                     else
                     {
                         var externalCredentials = user.Credentials.Where(cred => cred.IsExternal());
-                        _messageService.SendSigninAssistanceEmailAsync(new MailAddress(email, user.Username), externalCredentials);
+                        await _messageService.SendSigninAssistanceEmailAsync(new MailAddress(email, user.Username), externalCredentials);
                         return Json(new { success = true });
                     }
                 }

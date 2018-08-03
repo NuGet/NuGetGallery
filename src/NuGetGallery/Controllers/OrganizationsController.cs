@@ -53,17 +53,17 @@ namespace NuGetGallery
             EmailUpdateCancelled = Strings.OrganizationEmailUpdateCancelled
         };
 
-        protected override void SendNewAccountEmail(User account)
+        protected override Task SendNewAccountEmailAsync(User account)
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
 
-            MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
+            return MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
         }
 
-        protected override void SendEmailChangedConfirmationNotice(User account)
+        protected override Task SendEmailChangedConfirmationNoticeAsync(User account)
         {
             var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
+            return MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
         }
 
         [HttpGet]
@@ -85,7 +85,7 @@ namespace NuGetGallery
             try
             {
                 var organization = await UserService.AddOrganizationAsync(organizationName, organizationEmailAddress, adminUser);
-                SendNewAccountEmail(organization);
+                await SendNewAccountEmailAsync(organization);
                 TelemetryService.TrackOrganizationAdded(organization);
                 return RedirectToAction(nameof(ManageOrganization), new { accountName = organization.Username });
             }

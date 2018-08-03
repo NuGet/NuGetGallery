@@ -257,14 +257,14 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public void WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser) as HttpStatusCodeResult;
+                var result = await InvokeConfirmationRequiredPostAsync(controller, account, getCurrentUser) as HttpStatusCodeResult;
 
                 // Assert
                 Assert.NotNull(result);

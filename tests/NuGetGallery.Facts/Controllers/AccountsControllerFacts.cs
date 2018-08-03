@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
+using Autofac;
 using Moq;
 using NuGetGallery.Framework;
 using Xunit;
@@ -292,6 +293,7 @@ namespace NuGetGallery
 
                 var messageService = GetMock<IMessageService>();
                 messageService.Setup(m => m.SendEmailChangeConfirmationNoticeAsync(It.IsAny<User>(), It.IsAny<string>()))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var userService = GetMock<IUserService>();
@@ -463,14 +465,14 @@ namespace NuGetGallery
         {
             [Theory]
             [MemberData(AllowedCurrentUsersDataName)]
-            public virtual void WhenAlreadyConfirmed_DoesNotSendEmail(Func<Fakes, User> getCurrentUser)
+            public virtual async Task WhenAlreadyConfirmed_DoesNotSendEmail(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
 
                 // Act
-                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser);
+                var result = await InvokeConfirmationRequiredPostAsync(controller, account, getCurrentUser);
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
@@ -482,7 +484,7 @@ namespace NuGetGallery
 
             [Theory]
             [MemberData(AllowedCurrentUsersDataName)]
-            public virtual void WhenIsNotConfirmed_SendsEmail(Func<Fakes, User> getCurrentUser)
+            public virtual async Task WhenIsNotConfirmed_SendsEmail(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -496,7 +498,7 @@ namespace NuGetGallery
                 var confirmationUrl = (account is Organization)
                     ? TestUtility.GallerySiteRootHttps + $"organization/{account.Username}/Confirm?token=confirmation"
                     : TestUtility.GallerySiteRootHttps + $"account/confirm/{account.Username}/confirmation";
-                var result = InvokeConfirmationRequiredPost(controller, account, getCurrentUser, confirmationUrl);
+                var result = await InvokeConfirmationRequiredPostAsync(controller, account, getCurrentUser, confirmationUrl);
 
                 // Assert
                 var mailService = GetMock<IMessageService>();
@@ -506,7 +508,7 @@ namespace NuGetGallery
                 Assert.True(model.SentEmail);
             }
 
-            protected virtual ActionResult InvokeConfirmationRequiredPost(
+            protected virtual Task<ActionResult> InvokeConfirmationRequiredPostAsync(
                 TAccountsController controller,
                 TUser account,
                 Func<Fakes, User> getCurrentUser,
@@ -522,6 +524,7 @@ namespace NuGetGallery
                     .Setup(m => m.SendNewAccountEmailAsync(
                         account,
                         string.IsNullOrEmpty(confirmationUrl) ? It.IsAny<string>() : confirmationUrl))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 // Act

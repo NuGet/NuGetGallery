@@ -811,7 +811,7 @@ namespace NuGetGallery
 
             if (!deleted)
             {
-                NotifyReportMyPackageSupportRequest(reportForm, package, user, from);
+                await NotifyReportMyPackageSupportRequestAsync(reportForm, package, user, from);
             }
 
             return Redirect(Url.Package(package.PackageRegistration.Id, package.NormalizedVersion));
@@ -879,7 +879,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private void NotifyReportMyPackageSupportRequest(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
+        private async Task NotifyReportMyPackageSupportRequestAsync(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
         {
             var request = new ReportPackageRequest
             {
@@ -892,7 +892,7 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            _messageService.ReportMyPackageAsync(request);
+            await _messageService.ReportMyPackageAsync(request);
 
             TempData["Message"] = Strings.SupportRequestSentTransientMessage;
         }
@@ -971,7 +971,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         [ValidateRecaptchaResponse]
         [RequiresAccountConfirmation("contact package owners")]
-        public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
+        public virtual async Task<ActionResult> ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
             // Html Encode the message
             contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
@@ -989,7 +989,7 @@ namespace NuGetGallery
 
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            _messageService.SendContactOwnersMessageAsync(
+            await _messageService.SendContactOwnersMessageAsync(
                 fromAddress,
                 package,
                 Url.Package(package, false),

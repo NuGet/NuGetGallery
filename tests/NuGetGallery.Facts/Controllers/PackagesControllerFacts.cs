@@ -1364,7 +1364,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public void HtmlEncodesMessageContent()
+            public async Task HtmlEncodesMessageContent()
             {
                 // arrange
                 var packageId = "factory";
@@ -1387,7 +1387,8 @@ namespace NuGetGallery
                     {
                         sentPackageUrl = packageUrl;
                         sentMessage = msg;
-                    });
+                    })
+                    .Returns(Task.CompletedTask);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration {Id = packageId},
@@ -1408,14 +1409,14 @@ namespace NuGetGallery
                 };
 
                 // act
-                var result = controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
+                var result = await controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
 
                 Assert.Equal(encodedMessage, sentMessage);
                 Assert.Equal(controller.Url.Package(package, false), sentPackageUrl);
             }
 
             [Fact]
-            public void CallsSendContactOwnersMessageWithUserInfo()
+            public async Task CallsSendContactOwnersMessageWithUserInfo()
             {
                 // arrange
                 var packageId = "factory";
@@ -1429,7 +1430,8 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<string>(),
                         message,
-                        It.IsAny<string>(), false));
+                        It.IsAny<string>(), false))
+                        .Returns(Task.CompletedTask);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = packageId },
@@ -1450,7 +1452,7 @@ namespace NuGetGallery
                 };
 
                 // act
-                var result = controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
+                var result = await controller.ContactOwners(packageId, packageVersion, model) as RedirectToRouteResult;
 
                 // assert
                 Assert.NotNull(result);
@@ -2882,7 +2884,8 @@ namespace NuGetGallery
                 ReportPackageRequest reportRequest = null;
                 _messageService
                     .Setup(s => s.ReportMyPackageAsync(It.IsAny<ReportPackageRequest>()))
-                    .Callback<ReportPackageRequest>(r => reportRequest = r);
+                    .Callback<ReportPackageRequest>(r => reportRequest = r)
+                    .Returns(Task.CompletedTask);
 
                 // Act
                 await _controller.ReportMyPackage(
