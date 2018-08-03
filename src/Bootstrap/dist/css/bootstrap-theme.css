@@ -1205,7 +1205,7 @@ img.reserved-indicator-icon {
 .page-manage-packages .inner-table {
   margin-bottom: 0;
 }
-.page-manage-packages .requiredSigner {
+.page-manage-packages .required-signer {
   width: 100%;
   max-width: 90%;
 }
