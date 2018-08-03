@@ -20,13 +20,16 @@
                          title="@Strings.ReservedNamespace_ReservedIndicatorTooltip"/>
                 }
 
-                <span class="package-by">
-                    by:
-                    @foreach (var owner in Model.Owners)
-                    {
-                        <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
-                    }
-                </span>
+                @if (Model.Owners != null && Model.Owners.Any())
+                {
+                    <span class="package-by">
+                        by:
+                        @foreach (var owner in Model.Owners)
+                        {
+                            <a href="@Url.User(owner)" title="View @owner.Username's profile">@owner.Username</a>
+                        }
+                    </span>
+                }           
             </div>
 
             @if (!StringComparer.OrdinalIgnoreCase.Equals(Model.Id, Model.Title))

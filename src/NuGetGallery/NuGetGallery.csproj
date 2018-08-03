@@ -357,6 +357,10 @@
     <Compile Include="Migrations\201807302212501_AddShortCertificateNames.Designer.cs">
       <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.cs" />
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.Designer.cs">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -384,7 +388,12 @@
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
     <Compile Include="Services\BackgroundMessageService.cs" />
+    <Compile Include="Services\ISymbolPackageUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
+    <Compile Include="Services\SymbolPackageUploadService.cs" />
+    <Compile Include="Services\SymbolPackageFileService.cs" />
+    <Compile Include="Services\SymbolPackageService.cs" />
     <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
@@ -1541,6 +1550,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807302212501_AddShortCertificateNames.resx">
       <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808010014291_AddRepositoryType.resx">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />

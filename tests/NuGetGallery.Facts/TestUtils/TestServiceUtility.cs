@@ -1,6 +1,7 @@
 ﻿using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -76,6 +77,7 @@ namespace NuGetGallery.TestUtils
             bool requireLicenseAcceptance = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null,
             bool isSigned = false)
         {
             licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
@@ -126,7 +128,7 @@ namespace NuGetGallery.TestUtils
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups, packageTypes,
+                requireLicenseAcceptance, packageDependencyGroups, packageTypes, repositoryMetadata,
                 archive =>
                 {
                     if (isSigned)

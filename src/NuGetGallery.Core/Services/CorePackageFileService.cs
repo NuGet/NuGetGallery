@@ -23,13 +23,18 @@ namespace NuGetGallery
 
         public Task SavePackageFileAsync(Package package, Stream packageFile)
         {
+            return SavePackageFileAsync(package, packageFile, overwrite: false);
+        }
+
+        public Task SavePackageFileAsync(Package package, Stream packageFile, bool overwrite)
+        {
             if (packageFile == null)
             {
                 throw new ArgumentNullException(nameof(packageFile));
             }
 
             var fileName = BuildFileName(package, _metadata.FileSavePathTemplate, _metadata.FileExtension);
-            return _fileStorageService.SaveFileAsync(_metadata.FileFolderName, fileName, packageFile, overwrite: false);
+            return _fileStorageService.SaveFileAsync(_metadata.FileFolderName, fileName, packageFile, overwrite);
         }
 
         public Task<Stream> DownloadPackageFileAsync(Package package)

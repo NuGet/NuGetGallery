@@ -60,6 +60,7 @@ namespace NuGetGallery.Controllers
             var exceptions = new ControllerActionRuleException[]
             {
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackagePut)),
+                new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreateSymbolPackagePutAsync)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackagePost)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.CreatePackageVerificationKeyAsync)),
                 new ControllerActionRuleException(typeof(ApiController), nameof(ApiController.DeletePackage)),

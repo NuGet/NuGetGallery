@@ -161,13 +161,156 @@ namespace NuGetGallery
             }
         }
 
-        public class TheValidatePackageMethod : FactsBase
+        public class TheValidateBeforeGeneratePackageMethod : FactsBase
+        {
+            private Mock<TestPackageReader> _nuGetPackage;
+            private PackageRegistration _packageRegistration;
+
+            public TheValidateBeforeGeneratePackageMethod()
+            {
+                _nuGetPackage = GeneratePackage(isSigned: true);
+                _packageRegistration = _package.PackageRegistration;
+                _packageService
+                    .Setup(x => x.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(() => _packageRegistration);
+            }
+
+            [Fact]
+            public async Task WarnsWhenPreviousVersionWasSignedButPushedVersionIsUnsigned()
+            {
+                _package.NormalizedVersion = "2.0.1";
+                _nuGetPackage = GeneratePackage(version: _package.NormalizedVersion, isSigned: false);
+                var previous = new Package
+                {
+                    CertificateKey = 1,
+                    NormalizedVersion = "2.0.0-ALPHA",
+                    PackageStatusKey = PackageStatus.Available,
+                };
+                _packageRegistration.Packages.Add(previous);
+                _packageRegistration.Packages.Add(_package);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Equal(
+                    $"The previous package version '{previous.NormalizedVersion}' is author signed but the uploaded " +
+                    $"package is unsigned. To avoid this warning, sign the package before uploading.",
+                    Assert.Single(result.Warnings));
+                _packageService.Verify(
+                    x => x.FindPackageRegistrationById(It.IsAny<string>()),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task DoesNotWarnWhenPreviousVersionWasSignedButIsNotAvailable()
+            {
+                _package.NormalizedVersion = "2.0.1";
+                _nuGetPackage = GeneratePackage(version: _package.NormalizedVersion, isSigned: false);
+                var previous = new Package
+                {
+                    CertificateKey = 1,
+                    NormalizedVersion = "2.0.0-ALPHA",
+                    PackageStatusKey = PackageStatus.Validating,
+                };
+                _packageRegistration.Packages.Add(previous);
+                _packageRegistration.Packages.Add(_package);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptsUnsignedPackageAfterUnsignedPackage()
+            {
+                _package.NormalizedVersion = "2.0.1";
+                _nuGetPackage = GeneratePackage(version: _package.NormalizedVersion, isSigned: false);
+                _packageRegistration.Packages.Add(new Package
+                {
+                    CertificateKey = 1,
+                    NormalizedVersion = "2.0.0-ALPHA",
+                    PackageStatusKey = PackageStatus.Available,
+                });
+                _packageRegistration.Packages.Add(_package);
+                _packageRegistration.Packages.Add(new Package
+                {
+                    NormalizedVersion = "2.0.0-BETA",
+                    PackageStatusKey = PackageStatus.Available,
+                });
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptsUnsignedPackageBeforeSignedPackage()
+            {
+                _package.NormalizedVersion = "2.0.1";
+                _nuGetPackage = GeneratePackage(version: _package.NormalizedVersion, isSigned: false);
+                _packageRegistration.Packages.Add(_package);
+                _packageRegistration.Packages.Add(new Package
+                {
+                    CertificateKey = 1,
+                    NormalizedVersion = "3.0.0.0-ALPHA",
+                    PackageStatusKey = PackageStatus.Available,
+                });
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptsSignedPackages()
+            {
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+                _packageService.Verify(
+                    x => x.FindPackageRegistrationById(It.IsAny<string>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task AcceptsUnsignedPackagesWithNoPackageRegistration()
+            {
+                _nuGetPackage = GeneratePackage(isSigned: false);
+                _packageRegistration = null;
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+                _packageService.Verify(
+                    x => x.FindPackageRegistrationById(It.IsAny<string>()),
+                    Times.Once);
+            }
+        }
+
+        public class TheValidateAfterGeneratePackageMethod : FactsBase
         {
             private readonly User _currentUser;
             private User _owner;
             private Mock<TestPackageReader> _nuGetPackage;
 
-            public TheValidatePackageMethod()
+            public TheValidateAfterGeneratePackageMethod()
             {
                 _currentUser = new User
                 {
@@ -187,7 +330,7 @@ namespace NuGetGallery
             {
                 _currentUser.UserCertificates.Clear();
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -195,6 +338,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -203,7 +347,7 @@ namespace NuGetGallery
                 _currentUser.UserCertificates.Clear();
                 _package.PackageRegistration.Owners.Add(new User { Key = _currentUser.Key + 1 });
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -211,6 +355,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -219,7 +364,7 @@ namespace NuGetGallery
                 _currentUser.UserCertificates.Clear();
                 _package.PackageRegistration.RequiredSigners.Add(_currentUser);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -227,6 +372,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -240,7 +386,7 @@ namespace NuGetGallery
                 _currentUser.UserCertificates.Clear();
                 _package.PackageRegistration.RequiredSigners.Add(otherUser);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -250,6 +396,7 @@ namespace NuGetGallery
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, otherUser.Username),
                     result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -269,7 +416,7 @@ namespace NuGetGallery
                 _package.PackageRegistration.Owners.Add(_owner);
                 _package.PackageRegistration.Owners.Add(ownerB);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -279,6 +426,7 @@ namespace NuGetGallery
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, _owner.Username),
                     result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -299,7 +447,7 @@ namespace NuGetGallery
                 _package.PackageRegistration.Owners.Add(ownerB);
                 _package.PackageRegistration.RequiredSigners.Add(ownerB);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -309,6 +457,7 @@ namespace NuGetGallery
                 Assert.Equal(
                     string.Format(Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner, ownerB.Username),
                     result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
@@ -319,7 +468,7 @@ namespace NuGetGallery
                     .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
                     .Returns(false);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -327,12 +476,13 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Fact]
             public async Task AllowsSignedPackageIfSigningIsRequired()
             {
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -340,6 +490,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Theory]
@@ -352,7 +503,7 @@ namespace NuGetGallery
                     .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
                     .Returns(configFlag);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -360,6 +511,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             [Theory]
@@ -372,9 +524,9 @@ namespace NuGetGallery
                     Key = _currentUser.Key + 1,
                 };
                 _package.PackageRegistration.Owners.Add(ownerB);
-                _nuGetPackage = GeneratePackage(isSigned);
+                _nuGetPackage = GeneratePackage(isSigned: isSigned);
 
-                var result = await _target.ValidatePackageAsync(
+                var result = await _target.ValidateAfterGeneratePackageAsync(
                     _package,
                     _nuGetPackage.Object,
                     _owner,
@@ -382,14 +534,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
-            }
-
-            private static Mock<TestPackageReader> GeneratePackage(bool isSigned)
-            {
-                return PackageServiceUtility.CreateNuGetPackage(
-                    id: "theId",
-                    version: "1.2.3-alpha.0",
-                    isSigned: isSigned);
+                Assert.Empty(result.Warnings);
             }
         }
 
@@ -709,6 +854,14 @@ namespace NuGetGallery
                     _reservedNamespaceService.Object,
                     _validationService.Object,
                     _config.Object);
+            }
+
+            protected static Mock<TestPackageReader> GeneratePackage(string version = "1.2.3-alpha.0", bool isSigned = true)
+            {
+                return PackageServiceUtility.CreateNuGetPackage(
+                    id: "theId",
+                    version: version,
+                    isSigned: isSigned);
             }
         }
     }

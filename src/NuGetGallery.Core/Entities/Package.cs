@@ -21,6 +21,7 @@ namespace NuGetGallery
             PackageHistories = new HashSet<PackageHistory>();
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
+            SymbolPackages = new HashSet<SymbolPackage>();
             Listed = true;
         }
 #pragma warning restore 618
@@ -122,6 +123,13 @@ namespace NuGetGallery
         /// Has a max length of 4000. Is not indexed and not used for searches. Db column is nvarchar(max).
         /// </remarks>
         public string RepositoryUrl { get; set; }
+
+
+        /// <remarks>
+        /// Has a max length of 100. Is not indexed and not used for searches. Db column is nvarchar(100).
+        /// </remarks>
+        [StringLength(100)]
+        public string RepositoryType { get; set; }
 
         /// <summary>
         /// Nullable flag stored in the database. Callers should use the HasReadMe property instead.
