@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
@@ -90,6 +91,20 @@ namespace NuGetGallery
             {
                 var service = CreateService();
                 var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
+
+                await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValidAsync(packageArchiveReader));
+            }
+
+            [Fact]
+            public async Task WillThrowForIncorrectSymbolsPackageTypeVersion()
+            {
+                var service = CreateService();
+                var packageTypes = new List<ClientPackageType>()
+                {
+                    new ClientPackageType("SymbolsPackage", new Version("1.1"))
+                };
+                var invalidSymbolPackageStream = TestPackage.CreateTestPackageStream("theId", "1.0.42", packageTypes: packageTypes);
                 var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.EnsureValidAsync(packageArchiveReader));
