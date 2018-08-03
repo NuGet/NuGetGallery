@@ -124,6 +124,7 @@ namespace NuGet.Services.Revalidate
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Initialization);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Health);
+            services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.AppInsights);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Queue);
 
             services.AddScoped<IGalleryContext>(provider =>
@@ -139,13 +140,14 @@ namespace NuGet.Services.Revalidate
 
             services.AddTransient<IPackageRevalidationStateService, PackageRevalidationStateService>();
             services.AddTransient<IRevalidationJobStateService, RevalidationJobStateService>();
-            services.AddTransient<NuGetGallery.IRevalidationStateService, NuGetGallery.RevalidationStateService>();
+            services.AddTransient<IRevalidationStateService, RevalidationStateService>();
 
             // Initialization
             services.AddTransient<IPackageFinder, PackageFinder>();
             services.AddTransient<InitializationManager>();
 
             // Revalidation
+            services.AddTransient<IGalleryService, GalleryService>();
             services.AddTransient<IHealthService, HealthService>();
             services.AddTransient<IRevalidationQueue, RevalidationQueue>();
             services.AddTransient<IRevalidationService, RevalidationService>();

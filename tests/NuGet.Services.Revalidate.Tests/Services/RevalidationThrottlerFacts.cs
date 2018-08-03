@@ -14,6 +14,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
         {
             private readonly Mock<IRevalidationJobStateService> _settings;
             private readonly Mock<IPackageRevalidationStateService> _state;
+            private readonly Mock<IGalleryService> _gallery;
             private readonly RevalidationConfiguration _config;
 
             private readonly IRevalidationThrottler _target;
@@ -22,28 +23,35 @@ namespace NuGet.Services.Revalidate.Tests.Services
             {
                 _settings = new Mock<IRevalidationJobStateService>();
                 _state = new Mock<IPackageRevalidationStateService>();
+                _gallery = new Mock<IGalleryService>();
 
                 _config = new RevalidationConfiguration();
 
                 _target = new RevalidationThrottler(
                     _settings.Object,
                     _state.Object,
+                    _gallery.Object,
                     _config,
                     Mock.Of<ILogger<RevalidationThrottler>>());
             }
 
-            [Fact]
-            public async Task ReturnsTrueIfRecentRevalidationsMoreThanDesiredRate()
+            [Theory]
+            [InlineData(100, 0)]
+            [InlineData(0, 100)]
+            [InlineData(40, 40)]
+            public async Task ReturnsTrueIfRecentRevalidationsMoreThanDesiredRate(int enqueuedRevalidations, int galleryEvents)
             {
                 // Arrange
                 _settings.Setup(s => s.GetDesiredPackageEventRateAsync()).ReturnsAsync(50);
-                _state.Setup(s => s.CountRevalidationsEnqueuedInPastHourAsync()).ReturnsAsync(100);
+                _state.Setup(s => s.CountRevalidationsEnqueuedInPastHourAsync()).ReturnsAsync(enqueuedRevalidations);
+                _gallery.Setup(g => g.CountEventsInPastHourAsync()).ReturnsAsync(galleryEvents);
 
                 // Act & Assert
                 Assert.True(await _target.IsThrottledAsync());
 
                 _settings.Verify(s => s.GetDesiredPackageEventRateAsync(), Times.Once);
                 _state.Verify(s => s.CountRevalidationsEnqueuedInPastHourAsync(), Times.Once);
+                _gallery.Verify(g => g.CountEventsInPastHourAsync(), Times.Once);
             }
 
             [Fact]
@@ -52,12 +60,14 @@ namespace NuGet.Services.Revalidate.Tests.Services
                 // Arrange
                 _settings.Setup(s => s.GetDesiredPackageEventRateAsync()).ReturnsAsync(100);
                 _state.Setup(s => s.CountRevalidationsEnqueuedInPastHourAsync()).ReturnsAsync(50);
+                _gallery.Setup(g => g.CountEventsInPastHourAsync()).ReturnsAsync(40);
 
                 // Act & Assert
                 Assert.False(await _target.IsThrottledAsync());
 
                 _settings.Verify(s => s.GetDesiredPackageEventRateAsync(), Times.Once);
                 _state.Verify(s => s.CountRevalidationsEnqueuedInPastHourAsync(), Times.Once);
+                _gallery.Verify(g => g.CountEventsInPastHourAsync(), Times.Once);
             }
         }
     }

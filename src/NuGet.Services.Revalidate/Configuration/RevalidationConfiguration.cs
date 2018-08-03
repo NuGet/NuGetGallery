@@ -41,6 +41,11 @@ namespace NuGet.Services.Revalidate
         public HealthConfiguration Health { get; set; }
 
         /// <summary>
+        /// The configurations to authenticate to Application Insight's REST endpoints.
+        /// </summary>
+        public ApplicationInsightsConfiguration AppInsights { get; set; }
+
+        /// <summary>
         /// The configurations used by the in-memory queue of revalidations to start.
         /// </summary>
         public RevalidationQueueConfiguration Queue { get; set; }

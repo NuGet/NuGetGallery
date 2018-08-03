@@ -11,17 +11,20 @@ namespace NuGet.Services.Revalidate
     {
         private readonly IRevalidationJobStateService _jobState;
         private readonly IPackageRevalidationStateService _packageState;
+        private readonly IGalleryService _gallery;
         private readonly RevalidationConfiguration _config;
         private readonly ILogger<RevalidationThrottler> _logger;
 
         public RevalidationThrottler(
             IRevalidationJobStateService jobState,
             IPackageRevalidationStateService packageState,
+            IGalleryService gallery,
             RevalidationConfiguration config,
             ILogger<RevalidationThrottler> logger)
         {
             _jobState = jobState ?? throw new ArgumentNullException(nameof(jobState));
             _packageState = packageState ?? throw new ArgumentNullException(nameof(packageState));
+            _gallery = gallery ?? throw new ArgumentNullException(nameof(gallery));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -29,12 +32,31 @@ namespace NuGet.Services.Revalidate
         public async Task<bool> IsThrottledAsync()
         {
             var desiredRate = await _jobState.GetDesiredPackageEventRateAsync();
-            var recentGalleryEvents = await CountGalleryEventsInPastHourAsync();
+            var recentGalleryEvents = await _gallery.CountEventsInPastHourAsync();
             var recentRevalidations = await _packageState.CountRevalidationsEnqueuedInPastHourAsync();
 
             var revalidationQuota = desiredRate - recentRevalidations - recentGalleryEvents;
 
-            return (revalidationQuota <= 0);
+            if (revalidationQuota <= 0)
+            {
+                _logger.LogInformation(
+                    "Throttling revalidations. Desired rate: {DesiredRate}, gallery events: {GalleryEvents}, recent revalidations: {RecentRevalidations}",
+                    desiredRate,
+                    recentGalleryEvents,
+                    recentRevalidations);
+
+                return true;
+            }
+            else
+            {
+                _logger.LogInformation(
+                    "Allowing revalidations. Desired rate: {DesiredRate}, gallery events: {GalleryEvents}, recent revalidations: {RecentRevalidations}",
+                    desiredRate,
+                    recentGalleryEvents,
+                    recentRevalidations);
+
+                return false;
+            }
         }
 
         public async Task DelayUntilNextRevalidationAsync()
@@ -54,23 +76,6 @@ namespace NuGet.Services.Revalidate
                 _config.RetryLaterSleep);
 
             await Task.Delay(_config.RetryLaterSleep);
-        }
-
-        private Task<int> CountGalleryEventsInPastHourAsync()
-        {
-            // TODO: Count the number of package pushes, lists, and unlists.
-            // Run this AI query:
-            //
-            //   customMetrics | where name == "PackagePush" or name == "PackageUnlisted" or name == "PackageListed" | summarize sum(value)
-            //
-            // Using this HTTP request:
-            //
-            // GET /v1/apps/46f13c7d-635f-42c3-8120-593edeaad426/query?timespan=P1D&query=customMetrics%20%7C%20where%20name%20%3D%3D%20%22PackagePush%22%20or%20name%20%3D%3D%20%22PackageUnlisted%22%20or%20name%20%3D%3D%20%22PackageListed%22%20%7C%20summarize%20sum(value)%20 HTTP/1.1
-            // Host: api.applicationinsights.io
-            // x-api-key: my-super-secret-api-key
-            //
-            // See: https://dev.applicationinsights.io/quickstart
-            return Task.FromResult(0);
         }
     }
 }

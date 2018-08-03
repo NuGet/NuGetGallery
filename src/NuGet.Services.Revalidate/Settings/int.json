@@ -19,6 +19,11 @@
     "MinPackageEventRate": 120,
     "MaxPackageEventRate": 500,
 
+    "AppInsights": {
+      "AppId": "718e0c81-9132-4bf2-b24b-aa625dafd800",
+      "ApiKey": "$$Int-ApplicationInsights-ApiKey-Gallery-RevalidationJob$$"
+    },
+
     "Queue": {
       "MaximumAttempts": 5,
       "SleepBetweenAttempts": "00:05:00"
@@ -38,6 +43,8 @@
     "ConnectionString": "Endpoint=sb://nugetint.servicebus.windows.net/;SharedAccessKeyName=gallery;SharedAccessKey=$$Int-ServiceBus-SharedAccessKey-Validation-GallerySender$$",
     "TopicPath": "validation"
   },
+
+  "PackageDownloadTimeout": "00:10:00",
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
