@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -14,7 +13,6 @@ namespace NuGetGallery
     {
         private readonly IEntitiesContext _entitiesContext;
         private readonly IValidationService _validationService;
-        private readonly IAppConfiguration _config;
         private readonly ISymbolPackageService _symbolPackageService;
         private readonly ISymbolPackageFileService _symbolPackageFileService;
 
@@ -22,14 +20,12 @@ namespace NuGetGallery
             ISymbolPackageService symbolPackageService,
             ISymbolPackageFileService symbolPackageFileService,
             IEntitiesContext entitiesContext,
-            IValidationService validationService,
-            IAppConfiguration config)
+            IValidationService validationService)
         {
             _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
             _symbolPackageFileService = symbolPackageFileService ?? throw new ArgumentNullException(nameof(symbolPackageFileService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
-            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <summary>
