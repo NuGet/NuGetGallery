@@ -1355,7 +1355,7 @@ namespace NuGetGallery
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
-                SendAddPackageOwnerNotification(package, user);
+                await SendAddPackageOwnerNotificationAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -1417,14 +1417,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package to which owner was added.</param>
         /// <param name="newOwner">Owner added.</param>
-        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner)
+        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
         {
             var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
             Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
 
             // Notify existing owners
             var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            notNewOwners.ForEach(owner => _messageService.SendPackageOwnerAddedNoticeAsync(owner, newOwner, package, packageUrl));
+            var tasks = notNewOwners.Select(owner => _messageService.SendPackageOwnerAddedNoticeAsync(owner, newOwner, package, packageUrl));
+            return Task.WhenAll(tasks);
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
