@@ -1205,6 +1205,10 @@ img.reserved-indicator-icon {
 .page-manage-packages .inner-table {
   margin-bottom: 0;
 }
+.page-manage-packages .requiredSigner {
+  width: 100%;
+  max-width: 90%;
+}
 .page-delete-package h1 {
   margin-bottom: 0;
 }
