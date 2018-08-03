@@ -3,8 +3,8 @@
     "Initialization": {
       "PreinstalledPaths": [
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages",
-        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder",
-        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder\\.tools"
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\.tools"
       ],
       "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
       "SleepDurationBetweenBatches": "00:00:30"

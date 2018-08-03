@@ -4,12 +4,15 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
 using NuGet.Jobs.Validation;
@@ -25,12 +28,14 @@ namespace NuGet.Services.Revalidate
 
     public class Job : JsonConfigurationJob
     {
+        private const string RebuildPreinstalledSetArgumentName = "RebuildPreinstalledSet";
         private const string InitializeArgumentName = "Initialize";
         private const string VerifyInitializationArgumentName = "VerifyInitialization";
         private const string JobConfigurationSectionName = "RevalidateJob";
 
         private static readonly TimeSpan RetryLaterSleepDuration = TimeSpan.FromMinutes(5);
 
+        private string _preinstalledSetPath;
         private bool _initialize;
         private bool _verifyInitialization;
 
@@ -38,6 +43,7 @@ namespace NuGet.Services.Revalidate
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
+            _preinstalledSetPath = JobConfigurationManager.TryGetArgument(jobArgsDictionary, RebuildPreinstalledSetArgumentName);
             _initialize = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, InitializeArgumentName);
             _verifyInitialization = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, VerifyInitializationArgumentName);
 
@@ -56,7 +62,28 @@ namespace NuGet.Services.Revalidate
         {
             using (var scope = _serviceProvider.CreateScope())
             {
-                if (_initialize || _verifyInitialization)
+                if (!string.IsNullOrEmpty(_preinstalledSetPath))
+                {
+                    Logger.LogInformation("Rebuilding the preinstalled packages set...");
+
+                    var config = scope.ServiceProvider.GetRequiredService<InitializationConfiguration>();
+                    var preinstalledPackagesNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                    foreach (var path in config.PreinstalledPaths)
+                    {
+                        var expandedPath = Environment.ExpandEnvironmentVariables(path);
+                        var packagesInPath = Directory.GetDirectories(expandedPath)
+                            .Select(d => d.Replace(expandedPath, "").Trim('\\').ToLowerInvariant())
+                            .Where(d => !d.StartsWith("."));
+
+                        preinstalledPackagesNames.UnionWith(packagesInPath);
+                    }
+
+                    File.WriteAllText(_preinstalledSetPath, JsonConvert.SerializeObject(preinstalledPackagesNames));
+
+                    Logger.LogInformation("Rebuilt the preinstalled package set. Found {PreinstalledPackages} package ids", preinstalledPackagesNames.Count);
+                }
+                else if (_initialize || _verifyInitialization)
                 {
                     var initializer = scope.ServiceProvider.GetRequiredService<InitializationManager>();
 

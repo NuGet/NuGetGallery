@@ -90,6 +90,9 @@
     <Content Include="Scripts\nssm.exe" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Initialization\PreinstalledPackages.json" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
       <Project>{4B4B1EFB-8F33-42E6-B79F-54E7F3293D31}</Project>
       <Name>NuGet.Jobs.Common</Name>
