@@ -8,7 +8,7 @@ are installed by .NET SDK and Visual Studio
 2. Initialization phase - the job determines which packages should be revalidated.
 3. Revalidation phase - packages are enqueued for revalidations
 
-These phase MUST be completed in order.
+These phases MUST be completed in order.
 
 # The Build Preinstalled Packages phase
 
