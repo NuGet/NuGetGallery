@@ -18,11 +18,15 @@ namespace NuGetGallery
             return tags.Replace(',', ' ').Replace(';', ' ').Replace('\t', ' ').Replace("  ", " ");
         }
 
-        public static bool ShouldRenderUrl(string url)
+        public static bool ShouldRenderUrl(string url, bool secureOnly = false)
         {
-            Uri uri = null;
-            if (!string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out uri))
+            if (!string.IsNullOrEmpty(url) && Uri.TryCreate(url, UriKind.Absolute, out Uri uri))
             {
+                if (secureOnly)
+                {
+                    return uri.Scheme == Uri.UriSchemeHttps;
+                }
+
                 return uri.Scheme == Uri.UriSchemeHttps
                     || uri.Scheme == Uri.UriSchemeHttp;
             }
@@ -114,6 +118,12 @@ namespace NuGetGallery
                 {
                     throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
                 }
+            }
+
+            // Validate repository metadata	
+            if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100");
             }
         }
     }

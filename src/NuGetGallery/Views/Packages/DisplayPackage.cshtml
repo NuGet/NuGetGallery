@@ -565,6 +565,31 @@
                         </a>
                     </li>
                 }
+                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl, secureOnly: true))
+                {
+                    <li>
+                        @switch (Model.RepositoryType)
+                        {
+                            case PackageViewModel.RepositoryKind.GitHub:
+                                <img class="icon" aria-hidden="true" alt="GitHub logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                                break;
+                            case PackageViewModel.RepositoryKind.Git:
+                                <img class="icon" aria-hidden="true" alt="Git logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/git.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                break;
+                            default:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                break;
+                        }
+
+                        <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
+                            Source Code
+                        </a>
+                    </li>
+                }
                 @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
                 {
                     <li>

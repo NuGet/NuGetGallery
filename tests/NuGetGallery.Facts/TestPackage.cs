@@ -8,7 +8,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using NuGet.Packaging;
-using NuGet.Versioning;
+using NuGet.Packaging.Core;
 using ClientPackageType = NuGet.Packaging.Core.PackageType;
 
 namespace NuGetGallery
@@ -35,8 +35,9 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
-            bool isSymbolPackage = false)
+            IEnumerable<ClientPackageType> packageTypes = null,
+            bool isSymbolPackage = false,
+            RepositoryMetadata repositoryMetadata = null)
         {
             var fullNuspec = (@"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
@@ -58,6 +59,7 @@ namespace NuGetGallery
                         <iconUrl>" + (iconUrl?.ToString() ?? string.Empty) + @"</iconUrl>
                         <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
                         <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
+                        " + WriteRepositoryMetadata(repositoryMetadata) + @"
                     </metadata>
                 </package>");
 
@@ -76,6 +78,16 @@ namespace NuGetGallery
             {
                 streamWriter.WriteLine(isSymbolPackage ? symbolNuspec : fullNuspec);
             }
+        }
+
+        private static string WriteRepositoryMetadata(RepositoryMetadata repositoryMetadata)
+        {
+            return repositoryMetadata == null
+                ? string.Empty
+                : "<repository type=\"" + repositoryMetadata.Type + "\" " + 
+                                "url =\"" + repositoryMetadata.Url + "\" " + 
+                                "commit=\"" + repositoryMetadata.Commit + "\" " + 
+                                "branch=\"" + repositoryMetadata.Branch + "\"/>";
         }
 
         private static string WritePackageTypes(IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes)
@@ -156,8 +168,10 @@ namespace NuGetGallery
             Uri iconUrl = null,
             bool requireLicenseAcceptance = false,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
-            Action<ZipArchive> populatePackage = null, bool isSymbolPackage = false)
+            IEnumerable<ClientPackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null,
+            Action<ZipArchive> populatePackage = null,
+            bool isSymbolPackage = false)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -166,7 +180,7 @@ namespace NuGetGallery
                 {
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
-                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage);
+                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata);
                 }
 
                 if (populatePackage != null)
