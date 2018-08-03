@@ -44,6 +44,7 @@ namespace NuGetGallery
             // TODO: Add Validations for symbols, for now set the status to Available. https://github.com/NuGet/NuGetGallery/issues/6235 
             // Add validating type to be symbols when sending message to the orchestrator.
             symbolPackage.StatusKey = PackageStatus.Available;
+            symbolPackage.Published = DateTime.UtcNow;
 
             if (symbolPackage.StatusKey != PackageStatus.Available
                 && symbolPackage.StatusKey != PackageStatus.Validating)
