@@ -21,6 +21,7 @@ namespace NuGetGallery
             PackageHistories = new HashSet<PackageHistory>();
             PackageTypes = new HashSet<PackageType>();
             SupportedFrameworks = new HashSet<PackageFramework>();
+            SymbolPackages = new HashSet<SymbolPackage>();
             Listed = true;
         }
 #pragma warning restore 618

@@ -36,7 +36,7 @@ namespace NuGetGallery.Security
         {
             var policy = new AutomaticallyOverwriteRequiredSignerPolicy();
 
-            Assert.Throws<NotImplementedException>(() => policy.Evaluate(context: null));
+            Assert.ThrowsAsync<NotImplementedException>(() => policy.EvaluateAsync(context: null));
         }
 
         [Fact]

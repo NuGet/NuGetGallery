@@ -98,8 +98,8 @@ namespace NuGetGallery.Security
             }
             Assert.Contains(failedPolicy, actual.ErrorMessage);
             
-            MockPolicyHandler1.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
-            MockPolicyHandler2.Verify(p => p.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()),
+            MockPolicyHandler1.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()), Times.Once);
+            MockPolicyHandler2.Verify(p => p.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()),
                 expectedPolicy2.HasValue ? Times.Once() : Times.Never());
         }
 
@@ -112,13 +112,13 @@ namespace NuGetGallery.Security
         private static Mock<UserSecurityPolicyHandler> MockHandler(string name, Dictionary<string, bool> resultPerSubscription)
         {
             var mock = new Mock<UserSecurityPolicyHandler>(name, SecurityPolicyAction.PackagePush);
-            mock.Setup(m => m.Evaluate(It.IsAny<UserSecurityPolicyEvaluationContext>()))
+            mock.Setup(m => m.EvaluateAsync(It.IsAny<UserSecurityPolicyEvaluationContext>()))
                 .Returns<UserSecurityPolicyEvaluationContext>(x =>
                 {
                     var subscription = x.Policies.First().Subscription;
                     return resultPerSubscription[subscription] == true ? 
-                        SecurityPolicyResult.SuccessResult :
-                        SecurityPolicyResult.CreateErrorResult($"{subscription}-{name}");
+                        Task.FromResult(SecurityPolicyResult.SuccessResult) :
+                        Task.FromResult(SecurityPolicyResult.CreateErrorResult($"{subscription}-{name}"));
                 }).Verifiable();
             return mock;
         }

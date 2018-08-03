@@ -61,7 +61,7 @@ namespace NuGetGallery.Security
             return Task.CompletedTask;
         }
 
-        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
+        public override Task<SecurityPolicyResult> EvaluateAsync(UserSecurityPolicyEvaluationContext context)
         {
             context = context ?? throw new ArgumentNullException(nameof(context));
 
@@ -72,11 +72,11 @@ namespace NuGetGallery.Security
             if (targetCredential == null
                 || !state.Tenant.Equals(targetCredential.TenantId, StringComparison.OrdinalIgnoreCase))
             {
-                return SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
-                        Strings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username));
+                return Task.FromResult(SecurityPolicyResult.CreateErrorResult(string.Format(CultureInfo.CurrentCulture,
+                        Strings.AddMember_UserDoesNotMeetOrganizationPolicy, targetAccount.Username)));
             }
 
-            return SecurityPolicyResult.SuccessResult;
+            return Task.FromResult(SecurityPolicyResult.SuccessResult);
         }
     }
 }

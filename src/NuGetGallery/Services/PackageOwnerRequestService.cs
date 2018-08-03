@@ -103,10 +103,14 @@ namespace NuGetGallery
             return newRequest;
         }
 
-        public async Task DeletePackageOwnershipRequest(PackageOwnerRequest request)
+        public async Task DeletePackageOwnershipRequest(PackageOwnerRequest request, bool commitChanges = true)
         {
             _packageOwnerRequestRepository.DeleteOnCommit(request);
-            await _packageOwnerRequestRepository.CommitChangesAsync();
+
+            if (commitChanges)
+            {
+                await _packageOwnerRequestRepository.CommitChangesAsync();
+            }
         }
         
     }

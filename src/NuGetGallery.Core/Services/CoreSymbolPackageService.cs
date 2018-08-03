@@ -9,8 +9,8 @@ namespace NuGetGallery
 {
     public class CoreSymbolPackageService : ICoreSymbolPackageService
     {
-        private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
-        private readonly ICorePackageService _corePackageService;
+        protected readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
+        protected readonly ICorePackageService _corePackageService;
 
         public CoreSymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
