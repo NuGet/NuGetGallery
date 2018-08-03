@@ -33,9 +33,19 @@ namespace NuGetGallery
         public string Subject { get; set; }
 
         /// <summary>
-        /// The subject distinguished name of the certificate.
+        /// The short subject of the certificate. In most cases, this is the CN attribute.
+        /// </summary>
+        public string ShortSubject { get; set; }
+
+        /// <summary>
+        /// The issuer distinguished name of the certificate.
         /// </summary>
         public string Issuer { get; set; }
+
+        /// <summary>
+        /// The short issuer of the certificate. In most cases, this is the CN attribute.
+        /// </summary>
+        public string ShortIssuer { get; set; }
 
         /// <summary>
         /// The expiration date and time of the certificate.

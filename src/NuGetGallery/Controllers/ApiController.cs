@@ -505,7 +505,8 @@ namespace NuGetGallery
 
             try
             {
-                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, HttpContext);
+                var securityPolicyAction = SecurityPolicyAction.PackagePush;
+                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, HttpContext);
                 if (!policyResult.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
@@ -645,6 +646,16 @@ namespace NuGetGallery
                                 packageStreamMetadata,
                                 owner,
                                 currentUser);
+                                
+                            var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
+                                securityPolicyAction, 
+                                HttpContext, 
+                                package);
+
+                            if (!packagePolicyResult.Success)
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, packagePolicyResult.ErrorMessage);
+                            }
 
                             var validationResult = await PackageUploadService.ValidatePackageAsync(
                                 package,
@@ -698,7 +709,17 @@ namespace NuGetGallery
                                 MessageService.SendPackageAddedNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.AccountSettings(relativeUrl: false));
+                                    Url.AccountSettings(relativeUrl: false),
+                                    packagePolicyResult.WarningMessages);
+                            }
+                            // Emit warning messages if any
+                            else if (packagePolicyResult.HasWarnings)
+                            {
+                                // Notify user of push unless async validation in blocking mode is used
+                                MessageService.SendPackageAddedWithWarningsNotice(package,
+                                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    packagePolicyResult.WarningMessages);
                             }
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);

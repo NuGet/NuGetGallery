@@ -97,6 +97,8 @@ namespace NuGetGallery
 
             MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
                 .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+            MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
+                .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
             
             MockReservedNamespaceService
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
@@ -541,6 +543,57 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "A");
             }
 
+
+            [Fact]
+            public async Task CreatePackage_Returns400IfPackageSecurityPolicyFails()
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration { Id = packageId };
+                packageRegistration.Id = packageId;
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+                
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                controller.SetCurrentUser(currentUser);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("Package not compliant.")));
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "Package not compliant.");
+            }
+
             [Fact]
             public async Task WritesAnAuditRecord()
             {
@@ -617,7 +670,7 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockMessageService
-                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
                     Times.Exactly(callExpected ? 1 : 0));
             }
 

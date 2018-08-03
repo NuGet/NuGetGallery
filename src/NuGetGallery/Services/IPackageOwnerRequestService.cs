@@ -39,6 +39,6 @@ namespace NuGetGallery
         /// Deletes the provided <see cref="PackageOwnerRequest"/>.
         /// </summary>
         /// <param name="request">The <see cref="PackageOwnerRequest"/> to delete.</param>
-        Task DeletePackageOwnershipRequest(PackageOwnerRequest request);
+        Task DeletePackageOwnershipRequest(PackageOwnerRequest request, bool commitChanges = true);
     }
 }
