@@ -54,6 +54,9 @@ namespace NuGetGallery
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
+        public ISymbolPackageService SymbolPackageService { get; set; }
+        public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
+        public IContentObjectService ContentObjectService { get; set; }
 
         protected ApiController()
         {
@@ -80,7 +83,10 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService)
+            IPackageDeleteService packageDeleteService,
+            ISymbolPackageService symbolPackageService,
+            ISymbolPackageUploadService symbolPackageUploadService,
+            IContentObjectService contentObjectService)
         {
             ApiScopeEvaluator = apiScopeEvaluator;
             EntitiesContext = entitiesContext;
@@ -102,6 +108,9 @@ namespace NuGetGallery
             ReservedNamespaceService = reservedNamespaceService;
             PackageUploadService = packageUploadService;
             StatisticsService = null;
+            SymbolPackageService = symbolPackageService;
+            SymbolPackageUploadService = symbolPackageUploadService;
+            ContentObjectService = contentObjectService;
         }
 
         public ApiController(
@@ -125,11 +134,15 @@ namespace NuGetGallery
             ISecurityPolicyService securityPolicies,
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
-            IPackageDeleteService packageDeleteService)
+            IPackageDeleteService packageDeleteService,
+            ISymbolPackageService symbolPackageService,
+            ISymbolPackageUploadService symbolPackageUploadServivce,
+            IContentObjectService contentObjectService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, symbolPackageUploadServivce,
+                  contentObjectService)
         {
             StatisticsService = statisticsService;
         }
@@ -333,6 +346,158 @@ namespace NuGetGallery
             return CreatePackageInternal();
         }
 
+        [HttpPut]
+        [ApiAuthorize]
+        [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
+        [ActionName("PushSymbolPackageApi")]
+        public virtual async Task<ActionResult> CreateSymbolPackagePutAsync()
+        {
+            try
+            {
+                // Get the user
+                var currentUser = GetCurrentUser();
+
+                // Check if symbol package upload is allowed for this user.
+                if (!ContentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser))
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.Unauthorized, Strings.SymbolsPackage_UploadNotAllowed);
+                }
+
+                // Read symbol package
+                using (var symbolPackageStream = ReadPackageFromRequest())
+                {
+                    try
+                    {
+                        if (FoundEntryInFuture(symbolPackageStream, out ZipArchiveEntry entryInTheFuture))
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryFromTheFuture,
+                                entryInTheFuture.Name));
+                        }
+
+                        using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: false))
+                        {
+                            var nuspec = packageToPush.GetNuspecReader();
+                            var id = nuspec.GetId();
+                            var version = nuspec.GetVersion();
+
+                            // Ensure the corresponding package exists before pushing a snupkg.
+                            var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
+                            if (package == null)
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(
+                                    CultureInfo.CurrentCulture,
+                                    Strings.SymbolsPackage_PackageIdAndVersionNotFound,
+                                    id,
+                                    version.ToNormalizedStringSafe()));
+                            }
+
+                            // Check if this user has the permissions to push the corresponding symbol package
+                            var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+                            if (!apiScopeEvaluationResult.IsSuccessful())
+                            {
+                                // User cannot push a symbol package as the current user's scopes does not allow it to push for the corresponding package.
+                                return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
+                            }
+
+                            // Do not allow to upload snupkg to a package which has symbols package pending validations.
+                            if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.SymbolsPackage_ConflictValidating);
+                            }
+
+                            try
+                            {
+                                await SymbolPackageService.EnsureValidAsync(packageToPush);
+                            }
+                            catch (Exception ex)
+                            {
+                                ex.Log();
+
+                                var message = Strings.SymbolsPackage_FailedToReadPackage;
+                                if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+                                {
+                                    message = ex.Message;
+                                }
+
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
+                            }
+
+                            var packageStreamMetadata = new PackageStreamMetadata
+                            {
+                                HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                                Hash = CryptographyService.GenerateHash(
+                                    symbolPackageStream.AsSeekableStream(),
+                                    CoreConstants.Sha512HashAlgorithmId),
+                                Size = symbolPackageStream.Length
+                            };
+
+                            PackageCommitResult commitResult = await SymbolPackageUploadService.CreateAndUploadSymbolsPackage(
+                                package,
+                                packageStreamMetadata,
+                                symbolPackageStream.AsSeekableStream());
+
+                            switch (commitResult)
+                            {
+                                case PackageCommitResult.Success:
+                                    break;
+                                case PackageCommitResult.Conflict:
+                                    return new HttpStatusCodeWithBodyResult(
+                                        HttpStatusCode.Conflict,
+                                        Strings.SymbolsPackage_ConflictValidating);
+                                default:
+                                    throw new NotImplementedException($"The symbol package commit result {commitResult} is not supported.");
+                            }
+
+                            return new HttpStatusCodeResult(HttpStatusCode.Created);
+                        }
+                    }
+                    catch (Exception ex) when (ex is InvalidPackageException
+                        || ex is InvalidDataException
+                        || ex is EntityException
+                        || ex is FrameworkException)
+                    {
+                        return BadRequestForExceptionMessage(ex);
+                    }
+                }
+            }
+            catch (HttpException ex) when (ex.IsMaxRequestLengthExceeded())
+            {
+                // ASP.NET throws HttpException when maxRequestLength limit is exceeded.
+                return new HttpStatusCodeWithBodyResult(
+                    HttpStatusCode.RequestEntityTooLarge,
+                    Strings.PackageFileTooLarge);
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+
+                throw ex;
+            }
+        }
+
+        private bool FoundEntryInFuture(Stream stream, out ZipArchiveEntry entry)
+        {
+            entry = null;
+
+            using (var archive = new ZipArchive(stream, ZipArchiveMode.Read, leaveOpen: true))
+            {
+                var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
+
+                var entryInTheFuture = archive.Entries.FirstOrDefault(
+                    e => e.LastWriteTime.UtcDateTime > reference);
+
+                if (entryInTheFuture != null)
+                {
+                    entry = entryInTheFuture;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private async Task<ActionResult> CreatePackageInternal()
         {
             string id = null;
@@ -354,20 +519,12 @@ namespace NuGetGallery
                 {
                     try
                     {
-                        using (var archive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                        if (FoundEntryInFuture(packageStream, out ZipArchiveEntry entryInTheFuture))
                         {
-                            var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
-
-                            var entryInTheFuture = archive.Entries.FirstOrDefault(
-                                e => e.LastWriteTime.UtcDateTime > reference);
-
-                            if (entryInTheFuture != null)
-                            {
-                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
-                                   CultureInfo.CurrentCulture,
-                                   Strings.PackageEntryFromTheFuture,
-                                   entryInTheFuture.Name));
-                            }
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
+                                CultureInfo.CurrentCulture,
+                                Strings.PackageEntryFromTheFuture,
+                                entryInTheFuture.Name));
                         }
 
                         using (var packageToPush = new PackageArchiveReader(packageStream, leaveStreamOpen: false))
@@ -458,10 +615,10 @@ namespace NuGetGallery
                                         TelemetryService.TrackPackageReupload(existingPackage);
 
                                         await PackageDeleteService.HardDeletePackagesAsync(
-                                            new[] { existingPackage }, 
+                                            new[] { existingPackage },
                                             currentUser,
-                                            Strings.FailedValidationHardDeleteReason, 
-                                            Strings.AutomatedPackageDeleteSignature, 
+                                            Strings.FailedValidationHardDeleteReason,
+                                            Strings.AutomatedPackageDeleteSignature,
                                             deleteEmptyPackageRegistration: false);
                                     }
                                     else
@@ -840,8 +997,8 @@ namespace NuGetGallery
                 TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
-            
-            var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ? 
+
+            var message = result.PermissionsCheckResult == PermissionsCheckResult.Allowed && !result.IsOwnerConfirmed ?
                 Strings.ApiKeyOwnerUnconfirmed : Strings.ApiKeyNotAuthorized;
 
             return new HttpStatusCodeWithBodyResult(statusCodeOnFailure, message);

@@ -30,7 +30,9 @@ namespace NuGetGallery
         private static readonly HashSet<string> KnownPublicFolders = new HashSet<string> {
             CoreConstants.PackagesFolderName,
             CoreConstants.PackageBackupsFolderName,
-            CoreConstants.DownloadsFolderName
+            CoreConstants.DownloadsFolderName,
+            CoreConstants.SymbolPackagesFolderName,
+            CoreConstants.SymbolPackageBackupsFolderName
         };
 
         private static readonly HashSet<string> KnownPrivateFolders = new HashSet<string> {
@@ -537,6 +539,8 @@ namespace NuGetGallery
                 case CoreConstants.PackageBackupsFolderName:
                 case CoreConstants.UploadsFolderName:
                 case CoreConstants.ValidationFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.SymbolPackageBackupsFolderName:
                     return CoreConstants.PackageContentType;
 
                 case CoreConstants.DownloadsFolderName:

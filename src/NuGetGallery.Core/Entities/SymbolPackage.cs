@@ -8,7 +8,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace NuGetGallery
 {
     public class SymbolPackage
-        : IEntity
+        : IEntity, IEquatable<SymbolPackage>
     {
         public int Key { get; set; }
 
@@ -19,7 +19,6 @@ namespace NuGetGallery
         /// <summary>
         /// Timestamp when this symbol was created.
         /// </summary>
-        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         public DateTime Created { get; set; }
 
         /// <summary>
@@ -51,5 +50,51 @@ namespace NuGetGallery
         /// Used for optimistic concurrency when updating the symbols.
         /// </summary>
         public byte[] RowVersion { get; set; }
+
+        public bool Equals(SymbolPackage other)
+        {
+            return other.Key == Key;
+        }
+
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null)
+            {
+                return false;
+            }
+
+            SymbolPackage sp = obj as SymbolPackage;
+            if (sp == null)
+            {
+                return false;
+            }
+
+            return Equals(sp);
+        }
+
+        public static bool operator ==(SymbolPackage sp1, SymbolPackage sp2)
+        {
+            if (((object)sp1) == null || ((object)sp2) == null)
+            {
+                return Equals(sp1, sp2);
+            }
+
+            return sp1.Equals(sp2);
+        }
+
+        public static bool operator !=(SymbolPackage sp1, SymbolPackage sp2)
+        {
+            if (((object)sp1) == null || ((object)sp2) == null)
+            {
+                return !Equals(sp1, sp2);
+            }
+
+            return !sp1.Equals(sp2);
+        }
     }
 }

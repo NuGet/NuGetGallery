@@ -10,6 +10,7 @@ namespace NuGetGallery
     {
         ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; }
         ICertificatesConfiguration CertificatesConfiguration { get; }
+        ISymbolsConfiguration SymbolsConfiguration { get; }
 
         Task Refresh();
     }

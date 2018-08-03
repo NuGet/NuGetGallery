@@ -383,7 +383,12 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\ISymbolPackageUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
+    <Compile Include="Services\SymbolPackageUploadService.cs" />
+    <Compile Include="Services\SymbolPackageFileService.cs" />
+    <Compile Include="Services\SymbolPackageService.cs" />
     <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
