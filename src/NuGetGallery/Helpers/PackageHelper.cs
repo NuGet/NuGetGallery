@@ -119,6 +119,12 @@ namespace NuGetGallery
                     throw new EntityException(Strings.NuGetPackagePropertyTooLong, "Dependencies", Int16.MaxValue);
                 }
             }
+
+            // Validate repository metadata	
+            if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100");
+            }
         }
     }
 }

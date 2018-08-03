@@ -71,7 +71,6 @@ namespace NuGetGallery
                             <description>" + description + @"</description>
                             <requireLicenseAcceptance>" + requireLicenseAcceptance + @"</requireLicenseAcceptance>
                             <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
-                            " + WriteRepositoryMetadata(repositoryMetadata) + @"
                         </metadata>
                     </package>");
 
