@@ -23,6 +23,7 @@ namespace NuGetGallery.ViewModels
         [InlineData(null, "tfs", RepositoryKind.Unknown)]
         [InlineData(null, null, RepositoryKind.Unknown)]
         [InlineData("git://github.com/Nuget/NuGetGallery.git", null, RepositoryKind.Unknown)]
+        [InlineData("git://github.com/Nuget/NuGetGallery.git", "git", RepositoryKind.Git)]
         [InlineData("https://some-other-domain.github.com/NuGet/Home", "git", RepositoryKind.Git)]
         [InlineData("https://some-other-domain.github.com/NuGet/Home", null, RepositoryKind.Unknown)]
         [InlineData("invalid repo url", null, RepositoryKind.Unknown)]

@@ -150,11 +150,11 @@ namespace NuGetGallery
                 {
                     return RepositoryKind.GitHub;
                 }
-            }
 
-            if (string.Equals(repositoryType, "git", StringComparison.OrdinalIgnoreCase))
-            {
-                return RepositoryKind.Git;
+                if (string.Equals(repositoryType, "git", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RepositoryKind.Git;
+                }
             }
 
             return RepositoryKind.Unknown;
