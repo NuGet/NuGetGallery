@@ -136,6 +136,10 @@
     <Compile Include="Migrations\201807280128135_AddSymbolsRequests.Designer.cs">
       <DependentUpon>201807280128135_AddSymbolsRequests.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201808040003590_DropCreateDbOptionOnSymbolServerRequest.cs" />
+    <Compile Include="Migrations\201808040003590_DropCreateDbOptionOnSymbolServerRequest.Designer.cs">
+      <DependentUpon>201808040003590_DropCreateDbOptionOnSymbolServerRequest.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -213,6 +217,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201807280128135_AddSymbolsRequests.resx">
       <DependentUpon>201807280128135_AddSymbolsRequests.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808040003590_DropCreateDbOptionOnSymbolServerRequest.resx">
+      <DependentUpon>201808040003590_DropCreateDbOptionOnSymbolServerRequest.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
