@@ -3,10 +3,23 @@
 This job enqueues packages revalidation as fast as possible without affecting the
 health of NuGet's ingestion pipeline. It does so in two phases:
 
-1. Initialization phase - the job determines which packages should be revalidated.
-2. Revalidation phase - packages are enqueued for revalidations
+1. Build Preinstalled Packages phase - the job builds a JSON file of  packages that
+are installed by .NET SDK and Visual Studio
+2. Initialization phase - the job determines which packages should be revalidated.
+3. Revalidation phase - packages are enqueued for revalidations
 
-The initialization phase MUST complete before the revalidation phase is started.
+These phases MUST be completed in order.
+
+# The Build Preinstalled Packages phase
+
+This phase should run be at development time before the job is deployed:
+
+```
+NuGet.Services.Revalidate.exe ^
+    -Configuration "C:\Path\to\job\Settings\dev.json" ^
+    -RebuildPreinstalledSet "C:\Path\to\job\Initialization\PreinstalledPackages.json" ^
+    -Once
+```
 
 # The Initialization Phase
 
@@ -14,7 +27,7 @@ To initialize the job, run:
 
 ```
 NuGet.Services.Revalidate.exe ^
-    -Configuration "C:\Path\to\config.json" ^
+    -Configuration "C:\Path\to\job\Settings\dev.json" ^
     -Initialize
     -VerifyInitialization
     -Once
@@ -36,6 +49,6 @@ To enqueue revalidations, run:
 
 ```
 NuGet.Services.Revalidate.exe ^
-    -Configuration "C:\Path\to\config.json" ^
+    -Configuration "C:\Path\to\job\Settings\dev.json" ^
     -Initialize
 ```

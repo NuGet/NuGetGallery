@@ -246,6 +246,8 @@ namespace NuGet.Services.Validation.Orchestrator.PackageSigning.ScanAndSign
             return registration
                 .Owners
                 .Select(o => o.Username)
+                .ToList()
+                .OrderBy(u => u, StringComparer.InvariantCultureIgnoreCase)
                 .ToList();
         }
     }

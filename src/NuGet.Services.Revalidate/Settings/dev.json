@@ -3,11 +3,11 @@
     "Initialization": {
       "PreinstalledPaths": [
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages",
-        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder",
-        "%USERPROFILE%\\.dotnet\\NuGetFallbackFolder\\.tools"
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder",
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\.tools"
       ],
       "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
-      "SleepDurationBetweenBatches": "00:00:01"
+      "SleepDurationBetweenBatches": "00:00:30"
     },
 
     "Health": {
@@ -19,15 +19,15 @@
     "MinPackageEventRate": 120,
     "MaxPackageEventRate": 500,
 
+    "AppInsights": {
+      "AppId": "46f13c7d-635f-42c3-8120-593edeaad426",
+      "ApiKey": "$$Dev-ApplicationInsights-ApiKey-Gallery-RevalidationJob$$"
+    },
+
     "Queue": {
       "MaximumAttempts": 5,
       "SleepBetweenAttempts": "00:05:00"
     }
-  },
-
-  "Storage": {
-    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetdevlegacy;AccountKey=$$Dev-NuGetDevLegacyStorage-Key$$",
-    "Container": "revalidations"
   },
 
   "GalleryDb": {
@@ -43,6 +43,8 @@
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=gallery;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-GallerySender$$",
     "TopicPath": "validation"
   },
+
+  "PackageDownloadTimeout": "00:10:00",
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",

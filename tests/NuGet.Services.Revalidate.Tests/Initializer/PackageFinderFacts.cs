@@ -74,8 +74,8 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             {
                 _context.Mock(packageRegistrations: new[]
                 {
-                    new PackageRegistration { Key = 1, Id = "System.Linq" },
-                    new PackageRegistration { Key = 2, Id = "Newtonsoft.Json" }
+                    new PackageRegistration { Key = 1, Id = "system.linq" },
+                    new PackageRegistration { Key = 2, Id = "newtonsoft.json" }
                 });
 
                 var actual = _target.FindPreinstalledPackages(except: new HashSet<int>());
@@ -89,8 +89,8 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             {
                 _context.Mock(packageRegistrations: new[]
                 {
-                    new PackageRegistration { Key = 1, Id = "System.Linq" },
-                    new PackageRegistration { Key = 2, Id = "Newtonsoft.Json" }
+                    new PackageRegistration { Key = 1, Id = "system.linq" },
+                    new PackageRegistration { Key = 2, Id = "newtonsoft.json" }
                 });
 
                 var actual = _target.FindPreinstalledPackages(except: new HashSet<int> { 1 });
@@ -104,7 +104,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             {
                 _context.Mock(packageRegistrations: new[]
                 {
-                    new PackageRegistration { Key = 1, Id = "System.Linq" },
+                    new PackageRegistration { Key = 1, Id = "system.linq" },
                 });
 
                 var actual = _target.FindPreinstalledPackages(except: new HashSet<int>());

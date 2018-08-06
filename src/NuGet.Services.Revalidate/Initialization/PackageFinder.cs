@@ -8,6 +8,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NuGet.Versioning;
 using NuGetGallery;
 
@@ -21,6 +22,8 @@ namespace NuGet.Services.Revalidate
         public const string PreinstalledSetName = "Preinstalled";
         public const string DependencySetName = "Dependency";
         public const string RemainingSetName = "Remaining";
+
+        private const string PreinstalledPackagesResource = "NuGet.Services.Revalidate.Initialization.PreinstalledPackages.json";
 
         private static int BatchSize = 1000;
         private static string MicrosoftAccountName = "Microsoft";
@@ -46,16 +49,13 @@ namespace NuGet.Services.Revalidate
 
         public HashSet<int> FindPreinstalledPackages(HashSet<int> except)
         {
-            var preinstalledPackagesNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            List<string> preinstalledPackagesNames;
+            var assembly = typeof(PackageFinder).Assembly;
 
-            foreach (var path in _config.PreinstalledPaths)
+            using (var resource = assembly.GetManifestResourceStream(PreinstalledPackagesResource))
+            using (var reader = new StreamReader(resource))
             {
-                var expandedPath = Environment.ExpandEnvironmentVariables(path);
-                var packagesInPath = Directory.GetDirectories(expandedPath)
-                    .Select(d => d.Replace(expandedPath, "").Trim('\\').ToLowerInvariant())
-                    .Where(d => !d.StartsWith("."));
-
-                preinstalledPackagesNames.UnionWith(packagesInPath);
+                preinstalledPackagesNames = JsonConvert.DeserializeObject<List<string>>(reader.ReadToEnd());
             }
 
             var preinstalledPackages = FindRegistrationKeys(PreinstalledSetName, r => preinstalledPackagesNames.Contains(r.Id));

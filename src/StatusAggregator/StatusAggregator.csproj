@@ -48,6 +48,7 @@
   <ItemGroup>
     <Compile Include="NuGetServiceComponentFactory.cs" />
     <Compile Include="LogEvents.cs" />
+    <Compile Include="Parse\TrafficManagerEndpointStatusIncidentParser.cs" />
     <Compile Include="StatusAggregatorConfiguration.cs" />
     <Compile Include="Cursor.cs" />
     <Compile Include="EventUpdater.cs" />

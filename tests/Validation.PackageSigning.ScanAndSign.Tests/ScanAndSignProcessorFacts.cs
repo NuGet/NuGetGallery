@@ -251,9 +251,12 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
                         _request.NupkgUrl,
                         _config.V3ServiceIndexUrl,
                         It.Is<List<string>>(l =>
-                            l.Count() == 2 &&
-                            l.Contains("Billy") &&
-                            l.Contains("Bob"))),
+                            // Ensure that the owners are lexicographically ordered.
+                            l.Count() == 4 &&
+                            l[0] == "Annie" &&
+                            l[1] == "Bob" &&
+                            l[2] == "zack" &&
+                            l[3] == "Zorro")),
                     Times.Once);
 
             _validatorStateServiceMock
@@ -441,8 +444,10 @@ namespace Validation.PackageSigning.ScanAndSign.Tests
         {
             Owners = new List<User>
             {
-                new User("Billy"),
+                new User("Zorro"),
                 new User("Bob"),
+                new User("Annie"),
+                new User("zack")
             }
         };
 
