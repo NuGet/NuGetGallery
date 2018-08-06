@@ -20,6 +20,13 @@ namespace NuGetGallery
         Task StartValidationAsync(Package package);
 
         /// <summary>
+        /// Starts the asynchronous validation for the provided new symbol package and puts the symbol package in the correct
+        /// <see cref="Package.PackageStatusKey"/>. The commit to the database is the responsibility of the caller.
+        /// </summary>
+        /// <param name="symbolPackage">The symbol package to start validation for.</param>
+        Task StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
         /// Starts the asynchronous validation for the provided new package but does not change the package's
         /// <see cref="Package.PackageStatusKey"/>.
         /// </summary>

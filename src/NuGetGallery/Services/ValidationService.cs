@@ -16,6 +16,7 @@ namespace NuGetGallery
     {
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageService _packageService;
+        private readonly ISymbolPackageService _symbolService;
         private readonly IPackageValidationInitiator _initiator;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly ITelemetryService _telemetryService;
@@ -94,6 +95,14 @@ namespace NuGetGallery
             }
 
             return issues;
+        }
+
+        public async Task StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
+        {
+            var symbolPackageStatus = await _initiator.StartSymbolsPackageValidationAsync(symbolPackage);
+            await _symbolService.UpdateStatusAsync(symbolPackage,
+                symbolPackageStatus,
+                commitChanges: false);
         }
     }
 }

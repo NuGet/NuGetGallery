@@ -13,18 +13,18 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousPackageValidationInitiator : IPackageValidationInitiator
+    public class AsynchronousPackageValidationInitiator : IPackageValidationInitiator, ISymbolPackageValidationInitiator
     {
-        private readonly IPackageValidationEnqueuer _enqueuer;
+        private readonly IPackageValidationEnqueuer _packageValidationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IDiagnosticsSource _diagnosticsSource;
 
         public AsynchronousPackageValidationInitiator(
-            IPackageValidationEnqueuer enqueuer,
+            IPackageValidationEnqueuer packageValidationEnqueuer,
             IAppConfiguration appConfiguration,
             IDiagnosticsService diagnosticsService)
         {
-            _enqueuer = enqueuer ?? throw new ArgumentNullException(nameof(enqueuer));
+            _packageValidationEnqueuer = packageValidationEnqueuer ?? throw new ArgumentNullException(nameof(packageValidationEnqueuer));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
 
             if (diagnosticsService == null)
@@ -33,6 +33,11 @@ namespace NuGetGallery
             }
 
             _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator));
+        }
+
+        public Task<PackageStatus> StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
+        {
+            throw new NotImplementedException();
         }
 
         public async Task<PackageStatus> StartValidationAsync(Package package)
@@ -53,7 +58,7 @@ namespace NuGetGallery
             {
                 var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
 
-                await _enqueuer.StartValidationAsync(data, postponeProcessingTill);
+                await _packageValidationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
             }
 
             if (_appConfiguration.BlockingAsynchronousPackageValidationEnabled)
