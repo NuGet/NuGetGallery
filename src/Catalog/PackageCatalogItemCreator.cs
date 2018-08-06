@@ -98,60 +98,65 @@ namespace NuGet.Services.Metadata.Catalog
                 return item;
             }
 
-            await blob.FetchAttributesAsync(cancellationToken);
-
-            string packageHash = null;
-            var etag = blob.ETag;
-
-            var metadata = await blob.GetMetadataAsync(cancellationToken);
-
-            if (metadata.TryGetValue(Constants.Sha512, out packageHash))
+            using (_telemetryService.TrackDuration(
+                TelemetryConstants.PackageBlobReadSeconds,
+                GetProperties(packageItem, blob: null)))
             {
-                using (var stream = await blob.GetStreamAsync(cancellationToken))
-                {
-                    item = Utils.CreateCatalogItem(
-                        packageItem.ContentUri.ToString(),
-                        stream,
-                        packageItem.CreatedDate,
-                        packageItem.LastEditedDate,
-                        packageItem.PublishedDate,
-                        licenseNames: null,
-                        licenseReportUrl: null,
-                        packageHash: packageHash);
+                await blob.FetchAttributesAsync(cancellationToken);
 
-                    if (item == null)
+                string packageHash = null;
+                var etag = blob.ETag;
+
+                var metadata = await blob.GetMetadataAsync(cancellationToken);
+
+                if (metadata.TryGetValue(Constants.Sha512, out packageHash))
+                {
+                    using (var stream = await blob.GetStreamAsync(cancellationToken))
                     {
-                        _logger.LogWarning("Unable to extract metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
+                        item = Utils.CreateCatalogItem(
+                            packageItem.ContentUri.ToString(),
+                            stream,
+                            packageItem.CreatedDate,
+                            packageItem.LastEditedDate,
+                            packageItem.PublishedDate,
+                            licenseNames: null,
+                            licenseReportUrl: null,
+                            packageHash: packageHash);
+
+                        if (item == null)
+                        {
+                            _logger.LogWarning("Unable to extract metadata from: {PackageDetailsContentUri}", packageItem.ContentUri);
+                        }
+                    }
+
+                    if (item != null)
+                    {
+                        // Since obtaining the ETag the first time, it's possible (though unlikely) that the blob may
+                        // have changed.  Although reading a blob with a single GET request should return the whole
+                        // blob in a consistent state, we're reading the blob using ZipArchive and a seekable stream,
+                        // which results in many GET requests.  To guard against the blob having changed since we
+                        // obtained the package hash, we check the ETag one more time.  If this check fails, we'll
+                        // fallback to using a single HTTP GET request.
+                        await blob.FetchAttributesAsync(cancellationToken);
+
+                        if (etag != blob.ETag)
+                        {
+                            item = null;
+
+                            _telemetryService.TrackMetric(
+                                TelemetryConstants.BlobModified,
+                                metric: 1,
+                                properties: GetProperties(packageItem, blob));
+                        }
                     }
                 }
-
-                if (item != null)
+                else
                 {
-                    // Since obtaining the ETag the first time, it's possible (though unlikely) that the blob may
-                    // have changed.  Although reading a blob with a single GET request should return the whole
-                    // blob in a consistent state, we're reading the blob using ZipArchive and a seekable stream,
-                    // which results in many GET requests.  To guard against the blob having changed since we
-                    // obtained the package hash, we check the ETag one more time.  If this check fails, we'll
-                    // fallback to using a single HTTP GET request.
-                    await blob.FetchAttributesAsync(cancellationToken);
-
-                    if (etag != blob.ETag)
-                    {
-                        item = null;
-
-                        _telemetryService.TrackMetric(
-                            TelemetryConstants.BlobModified,
-                            metric: 1,
-                            properties: GetProperties(packageItem, blob));
-                    }
+                    _telemetryService.TrackMetric(
+                        TelemetryConstants.NonExistentPackageHash,
+                        metric: 1,
+                        properties: GetProperties(packageItem, blob));
                 }
-            }
-            else
-            {
-                _telemetryService.TrackMetric(
-                    TelemetryConstants.NonExistentPackageHash,
-                    metric: 1,
-                    properties: GetProperties(packageItem, blob));
             }
 
             return item;
@@ -170,11 +175,7 @@ namespace NuGet.Services.Metadata.Catalog
             {
                 using (_telemetryService.TrackDuration(
                     TelemetryConstants.PackageDownloadSeconds,
-                    new Dictionary<string, string>()
-                    {
-                        { TelemetryConstants.Id, packageItem.PackageId?.ToLowerInvariant() },
-                        { TelemetryConstants.Version, packageItem.PackageVersion?.ToLowerInvariant() },
-                    }))
+                    GetProperties(packageItem, blob: null)))
                 {
                     response = await _httpClient.GetAsync(packageUri, cancellationToken);
                 }

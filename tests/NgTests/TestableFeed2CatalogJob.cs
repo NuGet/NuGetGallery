@@ -22,6 +22,7 @@ namespace NgTests
             string gallery,
             IStorage catalogStorage,
             IStorage auditingStorage,
+            bool skipCreatedPackagesProcessing,
             DateTime? startDate,
             TimeSpan timeout,
             int top,
@@ -33,6 +34,7 @@ namespace NgTests
             Gallery = gallery;
             CatalogStorage = catalogStorage;
             AuditingStorage = auditingStorage;
+            SkipCreatedPackagesProcessing = skipCreatedPackagesProcessing;
             StartDate = startDate;
             Timeout = timeout;
             Top = top;

@@ -264,6 +264,7 @@
     <Compile Include="AggregateCursorTests.cs" />
     <Compile Include="AggregateStorageTests.cs" />
     <Compile Include="AuditRecordHelpersTests.cs" />
+    <Compile Include="CatalogConstants.cs" />
     <Compile Include="Data\Registrations.cs" />
     <Compile Include="Data\TestRegistrationEntries.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -291,6 +292,7 @@
     <Compile Include="Infrastructure\ODataFeedHelper.cs" />
     <Compile Include="Infrastructure\ODataPackage.cs" />
     <Compile Include="PackageMonitoringStatusServiceTests.cs" />
+    <Compile Include="Infrastructure\TestPackage.cs" />
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
