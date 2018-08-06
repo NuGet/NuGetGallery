@@ -740,7 +740,7 @@ namespace NuGetGallery
 
             await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
-            _messageService.ReportAbuse(request);
+            await _messageService.ReportAbuseAsync(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
 
@@ -800,7 +800,7 @@ namespace NuGetGallery
 
             if (!deleted)
             {
-                NotifyReportMyPackageSupportRequest(reportForm, package, user, from);
+                await NotifyReportMyPackageSupportRequestAsync(reportForm, package, user, from);
             }
 
             return Redirect(Url.Package(package.PackageRegistration.Id, package.NormalizedVersion));
@@ -868,7 +868,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private void NotifyReportMyPackageSupportRequest(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
+        private async Task NotifyReportMyPackageSupportRequestAsync(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
         {
             var request = new ReportPackageRequest
             {
@@ -881,7 +881,7 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            _messageService.ReportMyPackage(request);
+            await _messageService.ReportMyPackageAsync(request);
 
             TempData["Message"] = Strings.SupportRequestSentTransientMessage;
         }
@@ -919,7 +919,7 @@ namespace NuGetGallery
                     comment: null,
                     editedBy: user.Username);
 
-                _messageService.SendPackageDeletedNotice(
+                await _messageService.SendPackageDeletedNoticeAsync(
                     package,
                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
@@ -960,7 +960,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         [ValidateRecaptchaResponse]
         [RequiresAccountConfirmation("contact package owners")]
-        public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
+        public virtual async Task<ActionResult> ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
             // Html Encode the message
             contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
@@ -978,7 +978,7 @@ namespace NuGetGallery
 
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            _messageService.SendContactOwnersMessage(
+            await _messageService.SendContactOwnersMessageAsync(
                 fromAddress,
                 package,
                 Url.Package(package, false),
@@ -1344,7 +1344,7 @@ namespace NuGetGallery
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
-                SendAddPackageOwnerNotification(package, user);
+                await SendAddPackageOwnerNotificationAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -1354,7 +1354,7 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
-                _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
+                await _messageService.SendPackageOwnerRequestRejectionNoticeAsync(requestingUser, user, package);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -1396,7 +1396,7 @@ namespace NuGetGallery
 
             await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
-            _messageService.SendPackageOwnerRequestCancellationNotice(requestingUser, pendingUser, package);
+            await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(requestingUser, pendingUser, package);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }
@@ -1406,14 +1406,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package to which owner was added.</param>
         /// <param name="newOwner">Owner added.</param>
-        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner)
+        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
         {
             var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
             Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
 
             // Notify existing owners
             var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            notNewOwners.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl));
+            var tasks = notNewOwners.Select(owner => _messageService.SendPackageOwnerAddedNoticeAsync(owner, newOwner, package, packageUrl));
+            return Task.WhenAll(tasks);
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
@@ -1693,7 +1694,7 @@ namespace NuGetGallery
                         if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
                         {
                             // notify user unless async validation in blocking mode is used
-                            _messageService.SendPackageAddedNotice(package,
+                            await _messageService.SendPackageAddedNoticeAsync(package,
                                 Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                 Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                 Url.AccountSettings(relativeUrl: false));

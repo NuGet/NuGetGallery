@@ -107,11 +107,11 @@ namespace NuGetGallery.Controllers
         public class TheSigninAssistanceAction : TestContainer
         {
             [Fact]
-            public void NullUsernameReturnsFalse()
+            public async Task NullUsernameReturnsFalse()
             {
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SignInAssistance(username: null, providedEmailAddress: null);
+                var result = await controller.SignInAssistance(username: null, providedEmailAddress: null);
                 dynamic data = result.Data;
                 Assert.False(data.success);
             }
@@ -121,7 +121,7 @@ namespace NuGetGallery.Controllers
             [InlineData("rm@address.com", "r**********m@address.com")]
             [InlineData("r@address.com", "r**********@address.com")]
             [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
-            public void NullProvidedEmailReturnsFormattedEmail(string email, string expectedEmail)
+            public async Task NullProvidedEmailReturnsFormattedEmail(string email, string expectedEmail)
             {
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
                 var existingUser = new User("existingUser") { EmailAddress = email, Credentials = new[] { cred } };
@@ -133,7 +133,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
+                var result = await controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 Assert.Equal(expectedEmail, data.EmailAddress);
@@ -144,7 +144,7 @@ namespace NuGetGallery.Controllers
             [InlineData("rm@address.com", "r**********m@address.com")]
             [InlineData("r@address.com", "r**********@address.com")]
             [InlineData("random.very.long.address@address.com", "r**********s@address.com")]
-            public void NullProvidedEmailReturnsFormattedEmailForUnconfirmedAccount(string email, string expectedEmail)
+            public async Task NullProvidedEmailReturnsFormattedEmailForUnconfirmedAccount(string email, string expectedEmail)
             {
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "John Doe <random@address.com>");
                 var existingUser = new User("existingUser") { UnconfirmedEmailAddress = email, Credentials = new[] { cred } };
@@ -156,7 +156,7 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
+                var result = await controller.SignInAssistance(username: "existingUser", providedEmailAddress: null);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 Assert.Equal(expectedEmail, data.EmailAddress);
@@ -166,7 +166,7 @@ namespace NuGetGallery.Controllers
             [InlineData("blarg")]
             [InlineData("wrong@email")]
             [InlineData("nonmatching@emailaddress.com")]
-            public void InvalidProvidedEmailReturnsFalse(string providedEmail)
+            public async Task InvalidProvidedEmailReturnsFalse(string providedEmail)
             {
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", identity: "existing@example.com");
                 var existingUser = new User("existingUser") { EmailAddress = "existing@example.com", Credentials = new[] { cred } };
@@ -178,13 +178,13 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: providedEmail);
+                var result = await controller.SignInAssistance(username: "existingUser", providedEmailAddress: providedEmail);
                 dynamic data = result.Data;
                 Assert.False(data.success);
             }
 
             [Fact]
-            public void SendsNotificationForAssistance()
+            public async Task SendsNotificationForAssistance()
             {
                 var email = "existing@example.com";
                 var fakes = Get<Fakes>();
@@ -197,12 +197,13 @@ namespace NuGetGallery.Controllers
                     .Returns(existingUser);
                 var messageServiceMock = GetMock<IMessageService>();
                 messageServiceMock
-                .Setup(m => m.SendSigninAssistanceEmail(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
+                .Setup(m => m.SendSigninAssistanceEmailAsync(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
+                .Returns(Task.CompletedTask)
                 .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
 
-                var result = controller.SignInAssistance(username: "existingUser", providedEmailAddress: email);
+                var result = await controller.SignInAssistance(username: "existingUser", providedEmailAddress: email);
                 dynamic data = result.Data;
                 Assert.True(data.success);
                 messageServiceMock.Verify();
@@ -396,7 +397,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.RemoveCredential(user, passwordCredential));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNotice(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
+                    .Verify(x => x.SendCredentialAddedNoticeAsync(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
             }
 
             public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
@@ -491,7 +492,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNotice(authUser.User, credentialViewModel));
+                    .Verify(x => x.SendCredentialAddedNoticeAsync(authUser.User, credentialViewModel));
             }
 
             [Fact]
@@ -548,8 +549,9 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
                                                             It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var controller = GetController<AuthenticationController>();
@@ -617,8 +619,9 @@ namespace NuGetGallery.Controllers
                     .Verifiable();
 
                 GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNotice(authUser.User,
+                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
                                                             It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Prefix + providerUsedForLogin)))
+                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 EnableAllAuthenticators(Get<AuthenticationService>());
@@ -749,7 +752,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
@@ -795,7 +798,7 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         It.IsAny<User>(),
                         It.IsAny<string>()), Times.Never());
             }
@@ -885,7 +888,7 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmail(
+                    .Verify(x => x.SendNewAccountEmailAsync(
                         authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
 
