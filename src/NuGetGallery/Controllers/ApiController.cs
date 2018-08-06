@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
@@ -631,6 +632,14 @@ namespace NuGetGallery
                                 }
                             }
 
+                            // Perform all the validations we can before adding the package to the entity context.
+                            var beforeValidationResult = await PackageUploadService.ValidateBeforeGeneratePackageAsync(packageToPush);
+                            var beforeValidationActionResult = GetActionResultOrNull(beforeValidationResult);
+                            if (beforeValidationActionResult != null)
+                            {
+                                return beforeValidationActionResult;
+                            }
+
                             var packageStreamMetadata = new PackageStreamMetadata
                             {
                                 HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
@@ -657,21 +666,16 @@ namespace NuGetGallery
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, packagePolicyResult.ErrorMessage);
                             }
 
-                            var validationResult = await PackageUploadService.ValidatePackageAsync(
+                            // Perform validations that require the package already being in the entity context.
+                            var afterValidationResult = await PackageUploadService.ValidateAfterGeneratePackageAsync(
                                 package,
                                 packageToPush,
                                 owner,
                                 currentUser);
-                            switch (validationResult.Type)
+                            var afterValidationActionResult = GetActionResultOrNull(afterValidationResult);
+                            if (afterValidationActionResult != null)
                             {
-                                case PackageValidationResultType.Accepted:
-                                    break;
-                                case PackageValidationResultType.Invalid:
-                                case PackageValidationResultType.PackageShouldNotBeSigned:
-                                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
-                                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
-                                default:
-                                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                                return afterValidationActionResult;
                             }
 
                             await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
@@ -724,12 +728,15 @@ namespace NuGetGallery
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
 
+                            var warnings = new List<string>();
+                            warnings.AddRange(beforeValidationResult.Warnings);
+                            warnings.AddRange(afterValidationResult.Warnings);
                             if (package.SemVerLevelKey == SemVerLevelKey.SemVer2)
                             {
-                                return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, Strings.WarningSemVer2PackagePushed);
+                                warnings.Add(Strings.WarningSemVer2PackagePushed);
                             }
 
-                            return new HttpStatusCodeResult(HttpStatusCode.Created);
+                            return new HttpStatusCodeWithServerWarningResult(HttpStatusCode.Created, warnings);
                         }
                     }
                     catch (InvalidPackageException ex)
@@ -761,6 +768,21 @@ namespace NuGetGallery
             {
                 TelemetryService.TrackPackagePushFailureEvent(id, version);
                 throw;
+            }
+        }
+
+        private static ActionResult GetActionResultOrNull(PackageValidationResult validationResult)
+        {
+            switch (validationResult.Type)
+            {
+                case PackageValidationResultType.Accepted:
+                    return null;
+                case PackageValidationResultType.Invalid:
+                case PackageValidationResultType.PackageShouldNotBeSigned:
+                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                default:
+                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }
         }
 

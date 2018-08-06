@@ -10,7 +10,9 @@ namespace NuGetGallery
 {
     public class VerifyPackageRequest
     {
-        public VerifyPackageRequest() { }
+        public VerifyPackageRequest()
+        {
+        }
 
         public VerifyPackageRequest(PackageMetadata packageMetadata, IEnumerable<User> possibleOwners, PackageRegistration existingPackageRegistration)
         {
@@ -34,6 +36,8 @@ namespace NuGetGallery
             IconUrl = packageMetadata.IconUrl.ToEncodedUrlStringOrNull();
             LicenseUrl = packageMetadata.LicenseUrl.ToEncodedUrlStringOrNull();
             ProjectUrl = packageMetadata.ProjectUrl.ToEncodedUrlStringOrNull();
+            RepositoryUrl = packageMetadata.RepositoryUrl.ToEncodedUrlStringOrNull();
+            RepositoryType = packageMetadata.RepositoryType;
             ReleaseNotes = packageMetadata.ReleaseNotes;
             RequiresLicenseAcceptance = packageMetadata.RequireLicenseAcceptance;
             Summary = packageMetadata.Summary;
@@ -105,11 +109,15 @@ namespace NuGetGallery
         public string LicenseUrl { get; set; }
         public string MinClientVersionDisplay { get; set; }
         public string ProjectUrl { get; set; }
+        public string RepositoryUrl { get; set; }
+        public string RepositoryType { get; set; }
         public string ReleaseNotes { get; set; }
         public bool RequiresLicenseAcceptance { get; set; }
         public string Summary { get; set; }
         public string Tags { get; set; }
         public string Title { get; set; }
+
+        public List<string> Warnings { get; set; } = new List<string>();
 
         private static IReadOnlyCollection<string> ParseUserList(IEnumerable<User> users)
         {

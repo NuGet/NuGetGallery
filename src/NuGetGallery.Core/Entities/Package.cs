@@ -124,6 +124,13 @@ namespace NuGetGallery
         /// </remarks>
         public string RepositoryUrl { get; set; }
 
+
+        /// <remarks>
+        /// Has a max length of 100. Is not indexed and not used for searches. Db column is nvarchar(100).
+        /// </remarks>
+        [StringLength(100)]
+        public string RepositoryType { get; set; }
+
         /// <summary>
         /// Nullable flag stored in the database. Callers should use the HasReadMe property instead.
         /// </summary>

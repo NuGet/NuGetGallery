@@ -828,6 +828,13 @@ img.reserved-indicator-icon {
 .page-package-details .package-details-info .ms-Icon-ul li {
   margin-bottom: 15px;
 }
+.page-package-details .package-details-info .ms-Icon-ul img.icon {
+  position: absolute;
+  left: -24px;
+  width: 16px;
+  height: 16px;
+  margin-top: 3px;
+}
 .page-package-details .owner-list li {
   margin-bottom: 8px;
 }
@@ -1205,6 +1212,10 @@ img.reserved-indicator-icon {
 .page-manage-packages .inner-table {
   margin-bottom: 0;
 }
+.page-manage-packages .required-signer {
+  width: 100%;
+  max-width: 90%;
+}
 .page-delete-package h1 {
   margin-bottom: 0;
 }
@@ -1495,8 +1506,8 @@ img.reserved-indicator-icon {
 .page-status .status-degraded .ms-Icon {
   color: orange;
 }
-.page-status .latest-updates + p {
-  margin-top: 24px;
+.page-status .update {
+  margin-bottom: 24px;
 }
 .page-status .ms-Icon {
   margin-right: 10px;
@@ -1550,6 +1561,15 @@ img.reserved-indicator-icon {
 }
 .page-status .table tbody + tbody {
   border: none;
+}
+.page-status textarea {
+  min-width: 100%;
+}
+.page-status input[type='checkbox'] {
+  margin-right: 15px;
+}
+.page-status a .ms-Icon {
+  font-size: .6em;
 }
 .page-transform-account .transform-alert {
   margin-bottom: 33px;

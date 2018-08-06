@@ -50,7 +50,8 @@ namespace NuGetGallery.Packaging
             IEnumerable<PackageDependencyGroup> dependencyGroups,
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
-            NuGetVersion minClientVersion)
+            NuGetVersion minClientVersion,
+            RepositoryMetadata repositoryMetadata)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
@@ -59,6 +60,13 @@ namespace NuGetGallery.Packaging
 
             SetPropertiesFromMetadata();
             MinClientVersion = minClientVersion;
+
+            if (repositoryMetadata != null)
+            {
+                Uri.TryCreate(repositoryMetadata.Url, UriKind.Absolute, out var repoUrl);
+                RepositoryUrl = repoUrl;
+                RepositoryType = repositoryMetadata.Type;
+            }
         }
 
         private void SetPropertiesFromMetadata()
@@ -100,6 +108,8 @@ namespace NuGetGallery.Packaging
 
         public Uri IconUrl { get; private set; }
         public Uri ProjectUrl { get; private set; }
+        public Uri RepositoryUrl { get; private set; }
+        public string RepositoryType { get; private set; }
         public Uri LicenseUrl { get; private set; }
         public string Copyright { get; private set; }
         public string Description { get; private set; }
@@ -180,7 +190,7 @@ namespace NuGetGallery.Packaging
         /// Whether or not to be strict when reading the <see cref="NuspecReader"/>. This should be <code>true</code>
         /// on initial ingestion but false when a package that has already been accepted is being processed.</param>
         /// <exception cref="PackagingException">
-        /// We default to use a strict version-check on dependency groups. 
+        /// We default to use a strict version-check on dependency groups.
         /// When an invalid dependency version range is detected, a <see cref="PackagingException"/> will be thrown.
         /// </exception>
         public static PackageMetadata FromNuspecReader(NuspecReader nuspecReader, bool strict)
@@ -233,8 +243,8 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetDependencyGroups(useStrictVersionCheck: strict),
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
-                nuspecReader.GetMinClientVersion()
-           );
+                nuspecReader.GetMinClientVersion(),
+                nuspecReader.GetRepositoryMetadata());
         }
 
         private class StrictNuspecReader : NuspecReader
