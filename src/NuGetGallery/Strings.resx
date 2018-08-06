@@ -925,7 +925,7 @@ If you would like to update the linked Microsoft account you can do so from the 
     <comment>{0} is the signer name.</comment>
   </data>
   <data name="SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush" xml:space="preserve">
-    <value>The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to http://aka.ms/Microsoft-NuGet-Compliance for more information.
+    <value>The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information.
 Policy violations: {0}</value>
   </data>
   <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
