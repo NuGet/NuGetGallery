@@ -378,6 +378,7 @@ namespace NuGetGallery
             protected readonly Mock<IPackageValidationInitiator> _initiator;
             protected readonly Mock<IEntityRepository<PackageValidationSet>> _validationSets;
             protected readonly Mock<ITelemetryService> _telemetryService;
+            protected readonly Mock<ISymbolPackageService> _symbolPackageService;
             protected readonly Package _package;
             protected readonly ValidationService _target;
 
@@ -388,7 +389,7 @@ namespace NuGetGallery
                 _initiator = new Mock<IPackageValidationInitiator>();
                 _validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
                 _telemetryService = new Mock<ITelemetryService>();
-
+                _symbolPackageService = new Mock<ISymbolPackageService>();
                 _package = new Package();
 
                 _target = new ValidationService(
@@ -396,6 +397,7 @@ namespace NuGetGallery
                     _packageService.Object,
                     _initiator.Object,
                     _telemetryService.Object,
+                    _symbolPackageService.Object,
                     _validationSets.Object);
             }
         }

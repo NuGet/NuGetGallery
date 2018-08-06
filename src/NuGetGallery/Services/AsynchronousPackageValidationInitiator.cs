@@ -13,7 +13,7 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousPackageValidationInitiator : IPackageValidationInitiator, ISymbolPackageValidationInitiator
+    public class AsynchronousPackageValidationInitiator : IPackageValidationInitiator
     {
         private readonly IPackageValidationEnqueuer _packageValidationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;

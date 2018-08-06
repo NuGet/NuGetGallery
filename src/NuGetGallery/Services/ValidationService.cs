@@ -16,7 +16,7 @@ namespace NuGetGallery
     {
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageService _packageService;
-        private readonly ISymbolPackageService _symbolService;
+        private readonly ISymbolPackageService _symbolPackageService;
         private readonly IPackageValidationInitiator _initiator;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly ITelemetryService _telemetryService;
@@ -26,12 +26,14 @@ namespace NuGetGallery
             IPackageService packageService,
             IPackageValidationInitiator initiator,
             ITelemetryService telemetryService,
+            ISymbolPackageService symbolPackageService,
             IEntityRepository<PackageValidationSet> validationSets = null)
         {
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
 
             _validationSets = validationSets;
 
@@ -100,7 +102,7 @@ namespace NuGetGallery
         public async Task StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
         {
             var symbolPackageStatus = await _initiator.StartSymbolsPackageValidationAsync(symbolPackage);
-            await _symbolService.UpdateStatusAsync(symbolPackage,
+            await _symbolPackageService.UpdateStatusAsync(symbolPackage,
                 symbolPackageStatus,
                 commitChanges: false);
         }
