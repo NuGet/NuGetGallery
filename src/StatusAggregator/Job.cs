@@ -61,6 +61,7 @@ namespace StatusAggregator
             serviceCollection.AddTransient<IIncidentParser, OutdatedSearchServiceInstanceIncidentParser>();
             serviceCollection.AddTransient<IIncidentParser, PingdomIncidentParser>();
             serviceCollection.AddTransient<IIncidentParser, ValidationDurationIncidentParser>();
+            serviceCollection.AddTransient<IIncidentParser, TrafficManagerEndpointStatusIncidentParser>();
 
             serviceCollection.AddTransient<IAggregateIncidentParser, AggregateIncidentParser>();
         }
