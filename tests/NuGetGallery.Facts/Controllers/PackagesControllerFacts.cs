@@ -96,7 +96,13 @@ namespace NuGetGallery
 
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
-            securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
+            if (securityPolicyService == null)
+            {
+                securityPolicyService = new Mock<ISecurityPolicyService>();
+                securityPolicyService
+                    .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
+                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
+            }
 
             if (reservedNamespaceService == null)
             {
@@ -4615,6 +4621,61 @@ namespace NuGetGallery
                     existingPackageOwner: existingPackageOwner, 
                     reservedNamespaceOwner: reservedNamespaceOwner, 
                     expectedMessage: message);
+            }
+
+            [Fact]
+            public async Task WillShowTheValidationMessageWhenPackageSecurityPolicyCreatesErrorMessage()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    var expectedMessage = "The package is just bad.";
+
+                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    fakePackageUploadService
+                        .Setup(x => x.ValidateAfterGeneratePackageAsync(
+                            It.IsAny<Package>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()))
+                        .ReturnsAsync(PackageValidationResult.Accepted);
+                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var securityPolicyService = new Mock<ISecurityPolicyService>();
+                    securityPolicyService
+                        .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
+                        .ReturnsAsync(SecurityPolicyResult.CreateErrorResult(expectedMessage));
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        packageUploadService: fakePackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService,
+                        securityPolicyService: securityPolicyService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = TestUtility.FakeUser.Username });
+
+                    fakePackageUploadService.Verify(
+                        x => x.GeneratePackageAsync(
+                            It.IsAny<string>(),
+                            It.IsAny<PackageArchiveReader>(),
+                            It.IsAny<PackageStreamMetadata>(),
+                            It.IsAny<User>(),
+                            It.IsAny<User>()),
+                        Times.Once);
+
+                    var jsonResult = Assert.IsType<JsonResult>(result);
+                    Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
+                    var message = (jsonResult.Data as string[])[0];
+                    Assert.Equal(expectedMessage, message);
+                }
             }
 
             [Theory]
