@@ -22,7 +22,7 @@ namespace NuGetGallery
             : base(mailSender, config)
         {
             this.telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            smtpUri = config.SmtpUri?.Host;
+            smtpUri = config.SmtpUri?.Host ?? throw new ArgumentNullException(nameof(config) + "." + nameof(config.SmtpUri));
         }
 
         private readonly ITelemetryService telemetryService;

@@ -600,7 +600,7 @@ namespace NuGetGallery
             {
                 { "attempt", attemptNumber.ToString() }
             };
-            _telemetryClient.TrackDependency("SMTP", smtpUri ?? "", "SendMessage", null, startTime, duration, null, success, properties);
+            _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
         }
 
         /// <summary>
