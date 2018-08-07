@@ -151,6 +151,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Tests", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Symbols.Core.Tests", "tests\Validation.Symbols.Core.Tests\Validation.Symbols.Core.Tests.csproj", "{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NuGet.Jobs.Common.Tests", "tests\NuGet.Jobs.Common.Tests\NuGet.Jobs.Common.Tests.csproj", "{CE96428B-8138-4914-9999-2B391797FFF8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -399,6 +401,10 @@ Global
 		{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9ED642DF-4623-4EB2-8B72-52C6489BF9D6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE96428B-8138-4914-9999-2B391797FFF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE96428B-8138-4914-9999-2B391797FFF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE96428B-8138-4914-9999-2B391797FFF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE96428B-8138-4914-9999-2B391797FFF8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -464,6 +470,7 @@ Global
 		{2DD07A73-8C88-4429-BB24-C2813586EF92} = {678D7B14-F8BC-4193-99AF-2EE8AA390A02}
 		{640D29AB-4D1B-4FC7-AE67-AD12EE5AC503} = {6A776396-02B1-475D-A104-26940ADB04AB}
 		{9ED642DF-4623-4EB2-8B72-52C6489BF9D6} = {6A776396-02B1-475D-A104-26940ADB04AB}
+		{CE96428B-8138-4914-9999-2B391797FFF8} = {6A776396-02B1-475D-A104-26940ADB04AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {284A7AC3-FB43-4F1F-9C9C-2AF0E1F46C2B}
