@@ -13,21 +13,18 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousPackageValidationInitiator : IPackageValidationInitiator
+    public class AsynchronousPackageValidationInitiator<TPackage> : IPackageValidationInitiator<TPackage> where TPackage: IPackageEntity
     {
-        private readonly IPackageValidationEnqueuer _packageValidationEnqueuer;
-        private readonly IPackageValidationEnqueuer _symbolPackageValidationEnqueuer;
+        private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;
         private readonly IDiagnosticsSource _diagnosticsSource;
 
         public AsynchronousPackageValidationInitiator(
-            IPackageValidationEnqueuer packageValidationEnqueuer,
-            IPackageValidationEnqueuer symbolPackageValidationEnqueuer,
+            IPackageValidationEnqueuer enqueuer,
             IAppConfiguration appConfiguration,
             IDiagnosticsService diagnosticsService)
         {
-            _packageValidationEnqueuer = packageValidationEnqueuer ?? throw new ArgumentNullException(nameof(packageValidationEnqueuer));
-            _symbolPackageValidationEnqueuer = symbolPackageValidationEnqueuer ?? throw new ArgumentNullException(nameof(symbolPackageValidationEnqueuer));
+            _validationEnqueuer = enqueuer ?? throw new ArgumentNullException(nameof(enqueuer));
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
 
             if (diagnosticsService == null)
@@ -35,50 +32,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(IDiagnosticsService));
             }
 
-            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator));
+            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackage>));
         }
 
-        public async Task<PackageStatus> StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
-        {
-            if (_appConfiguration.ReadOnlyMode)
-            {
-                throw new ReadOnlyModeException(Strings.CannotEnqueueDueToReadOnly);
-            }
-
-            if (symbolPackage == null)
-            {
-                throw new ArgumentNullException(nameof(symbolPackage));
-            }
-
-            if (symbolPackage.Package == null)
-            {
-                throw new ArgumentNullException(nameof(symbolPackage.Package));
-            }
-
-            var data = new PackageValidationMessageData(
-                symbolPackage.Package.PackageRegistration.Id,
-                symbolPackage.Package.Version,
-                Guid.NewGuid(),
-                ValidatingType.SymbolPackage);
-
-            var activityName = $"Enqueuing asynchronous symbol package validation: " +
-                $"{data.PackageId} {data.PackageVersion} ({data.ValidationTrackingId})";
-            using (_diagnosticsSource.Activity(activityName))
-            {
-                var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
-
-                await _symbolPackageValidationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
-            }
-
-            if (_appConfiguration.BlockingAsynchronousPackageValidationEnabled)
-            {
-                return PackageStatus.Validating;
-            }
-
-            return PackageStatus.Available;
-        }
-
-        public async Task<PackageStatus> StartValidationAsync(Package package)
+        public async Task<PackageStatus> StartValidationAsync(TPackage package)
         {
             if (_appConfiguration.ReadOnlyMode)
             {
@@ -86,17 +43,18 @@ namespace NuGetGallery
             }
 
             var data = new PackageValidationMessageData(
-                package.PackageRegistration.Id,
+                package.Id,
                 package.Version,
-                Guid.NewGuid());
+                Guid.NewGuid(),
+                package.Type);
 
             var activityName = $"Enqueuing asynchronous package validation: " +
-                $"{data.PackageId} {data.PackageVersion} ({data.ValidationTrackingId})";
+                $"{data.PackageId} {data.PackageVersion} {data.ValidatingType} ({data.ValidationTrackingId})";
             using (_diagnosticsSource.Activity(activityName))
             {
                 var postponeProcessingTill = DateTimeOffset.UtcNow + _appConfiguration.AsynchronousPackageValidationDelay;
 
-                await _packageValidationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
+                await _validationEnqueuer.StartValidationAsync(data, postponeProcessingTill);
             }
 
             if (_appConfiguration.BlockingAsynchronousPackageValidationEnabled)

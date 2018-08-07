@@ -58,6 +58,11 @@ namespace NuGetGallery
                 }
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
                 {
+                    if (symbolPackage.Published == null)
+                    {
+                        symbolPackage.Published = DateTime.UtcNow;
+                    }
+
                     // Mark any other associated available symbol packages for deletion.
                     var availableSymbolPackages = package
                         .SymbolPackages

@@ -112,6 +112,7 @@
     <Compile Include="Entities\AccountDelete.cs" />
     <Compile Include="Entities\MembershipRequest.cs" />
     <Compile Include="Entities\OrganizationMigrationRequest.cs" />
+    <Compile Include="Entities\IPackageEntity.cs" />
     <Compile Include="Entities\SymbolPackage.cs" />
     <Compile Include="Entities\PackageDelete.cs" />
     <Compile Include="Entities\EmailMessage.cs" />

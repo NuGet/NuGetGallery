@@ -17,21 +17,24 @@ namespace NuGetGallery
         private readonly IAppConfiguration _appConfiguration;
         private readonly IPackageService _packageService;
         private readonly ISymbolPackageService _symbolPackageService;
-        private readonly IPackageValidationInitiator _initiator;
+        private readonly IPackageValidationInitiator<Package> _packageValidationInitiator;
+        private readonly IPackageValidationInitiator<SymbolPackage> _symbolPackageValidationInitiator;
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly ITelemetryService _telemetryService;
 
         public ValidationService(
             IAppConfiguration appConfiguration,
             IPackageService packageService,
-            IPackageValidationInitiator initiator,
+            IPackageValidationInitiator<Package> packageValidationInitiator,
+            IPackageValidationInitiator<SymbolPackage> symbolPackageValidationInitiator,
             ITelemetryService telemetryService,
             ISymbolPackageService symbolPackageService,
             IEntityRepository<PackageValidationSet> validationSets = null)
         {
             _appConfiguration = appConfiguration ?? throw new ArgumentNullException(nameof(appConfiguration));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
-            _initiator = initiator ?? throw new ArgumentNullException(nameof(initiator));
+            _packageValidationInitiator = packageValidationInitiator ?? throw new ArgumentNullException(nameof(packageValidationInitiator));
+            _symbolPackageValidationInitiator = symbolPackageValidationInitiator ?? throw new ArgumentNullException(nameof(symbolPackageValidationInitiator));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
 
@@ -47,7 +50,7 @@ namespace NuGetGallery
 
         public async Task StartValidationAsync(Package package)
         {
-            var packageStatus = await _initiator.StartValidationAsync(package);
+            var packageStatus = await _packageValidationInitiator.StartValidationAsync(package);
 
             await _packageService.UpdatePackageStatusAsync(
                 package,
@@ -57,7 +60,7 @@ namespace NuGetGallery
 
         public async Task RevalidateAsync(Package package)
         {
-            await _initiator.StartValidationAsync(package);
+            await _packageValidationInitiator.StartValidationAsync(package);
 
             _telemetryService.TrackPackageRevalidate(package);
         }
@@ -82,13 +85,13 @@ namespace NuGetGallery
                 // Grab the most recently completed validation set for this package. Note that the orchestrator will stop
                 // processing a validation set if all validation succeed, OR, one or more validation fails.
                 var validationSet = _validationSets
-                                        .GetAll()
-                                        .Where(s => s.PackageKey == package.Key)
-                                        .Where(s => s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
-                                                    s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
-                                        .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
-                                        .OrderByDescending(s => s.Updated)
-                                        .FirstOrDefault();
+                    .GetAll()
+                    .Where(s => s.PackageKey == package.Key)
+                    .Where(s => s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
+                                s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
+                    .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
+                    .OrderByDescending(s => s.Updated)
+                    .FirstOrDefault();
 
                 if (validationSet != null)
                 {
@@ -101,7 +104,7 @@ namespace NuGetGallery
 
         public async Task StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
         {
-            var symbolPackageStatus = await _initiator.StartSymbolsPackageValidationAsync(symbolPackage);
+            var symbolPackageStatus = await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
             await _symbolPackageService.UpdateStatusAsync(symbolPackage,
                 symbolPackageStatus,
                 commitChanges: false);

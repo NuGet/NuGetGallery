@@ -123,8 +123,8 @@ namespace NuGetGallery
                 var symbolPackage = GetSymbolPackage();
 
                 // Act
-                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
-                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+                await _target.StartValidationAsync(symbolPackage);
+                await _target.StartValidationAsync(symbolPackage);
 
                 // Assert
                 Assert.Equal(2, _data.Count);
@@ -138,10 +138,10 @@ namespace NuGetGallery
                 var symbolPackage = GetSymbolPackage();
 
                 // Act
-                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+                await _target.StartValidationAsync(symbolPackage);
 
                 // Assert
-                _symbolEnqueuer.Verify(
+                _enqueuer.Verify(
                     x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
                     Times.Once);
                 Assert.Equal(1, _data.Count);
@@ -161,9 +161,9 @@ namespace NuGetGallery
 
                 // Act & Assert
                 var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
-                    () => _target.StartSymbolsPackageValidationAsync(symbolPackage));
+                    () => _target.StartValidationAsync(symbolPackage));
                 Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
-                _symbolEnqueuer.Verify(
+                _enqueuer.Verify(
                     x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
                     Times.Never);
             }
@@ -178,7 +178,7 @@ namespace NuGetGallery
                     .Returns(false);
 
                 // Act
-                var actual = await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+                var actual = await _target.StartValidationAsync(symbolPackage);
 
                 // Assert
                 Assert.Equal(PackageStatus.Available, actual);
@@ -194,7 +194,7 @@ namespace NuGetGallery
                     .Returns(true);
 
                 // Act
-                var actual = await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+                var actual = await _target.StartValidationAsync(symbolPackage);
 
                 // Assert
                 Assert.Equal(PackageStatus.Validating, actual);
@@ -222,22 +222,15 @@ namespace NuGetGallery
         public abstract class FactsBase
         {
             protected readonly Mock<IPackageValidationEnqueuer> _enqueuer;
-            protected readonly Mock<IPackageValidationEnqueuer> _symbolEnqueuer;
             protected readonly Mock<IAppConfiguration> _appConfiguration;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
             protected readonly IList<PackageValidationMessageData> _data = new List<PackageValidationMessageData>();
-            protected readonly AsynchronousPackageValidationInitiator _target;
+            protected readonly AsynchronousPackageValidationInitiator<IPackageEntity> _target;
 
             public FactsBase()
             {
                 _enqueuer = new Mock<IPackageValidationEnqueuer>();
                 _enqueuer
-                    .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
-                    .Returns(Task.CompletedTask)
-                    .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
-
-                _symbolEnqueuer = new Mock<IPackageValidationEnqueuer>();
-                _symbolEnqueuer
                     .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
                     .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
@@ -249,9 +242,8 @@ namespace NuGetGallery
 
                 _diagnosticsService = new Mock<IDiagnosticsService>();
 
-                _target = new AsynchronousPackageValidationInitiator(
+                _target = new AsynchronousPackageValidationInitiator<IPackageEntity>(
                     _enqueuer.Object,
-                    _symbolEnqueuer.Object,
                     _appConfiguration.Object,
                     _diagnosticsService.Object);
             }

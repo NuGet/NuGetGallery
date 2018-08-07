@@ -5,12 +5,13 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using NuGet.Services.Validation;
 
 namespace NuGetGallery
 {
     [DisplayColumn("Title")]
     public class Package
-        : IEntity
+        : IEntity, IPackageEntity
     {
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
@@ -243,5 +244,9 @@ namespace NuGetGallery
         public virtual Certificate Certificate { get; set; }
 
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
+
+        public string Id => PackageRegistration.Id;
+
+        public ValidatingType Type => ValidatingType.Package;
     }
 }

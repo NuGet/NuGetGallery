@@ -39,6 +39,14 @@ using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReader
 
 namespace NuGetGallery
 {
+    public static class BindingKeys
+    {
+        public const string PackageValidationTopic = "PackageValidationBindingKey";
+        public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
+        public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
+        public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
+    }
+
     public class DefaultDependenciesModule : Module
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
@@ -474,16 +482,16 @@ namespace NuGetGallery
                 .RegisterType<PackageValidationEnqueuer>()
                 .WithParameter(new ResolvedParameter(
                     (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
-                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>("PackageValidationBindingKey")))
-                .Keyed<IPackageValidationEnqueuer>("PackageValidationEnqueuerBindingKey")
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.PackageValidationTopic)))
+                .Keyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer)
                 .As<IPackageValidationEnqueuer>();
 
             builder
                 .RegisterType<PackageValidationEnqueuer>()
                 .WithParameter(new ResolvedParameter(
                     (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
-                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>("SymbolsPackageValidationBindingKey")))
-                .Keyed<IPackageValidationEnqueuer>("SymbolsPackageValidationEnqueuerBindingKey")
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)))
+                .Keyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer)
                 .As<IPackageValidationEnqueuer>();
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
@@ -492,12 +500,19 @@ namespace NuGetGallery
 
                 builder
                     .Register(c => {
-                        return new AsynchronousPackageValidationInitiator(
-                            c.ResolveKeyed<IPackageValidationEnqueuer>("PackageValidationEnqueuerBindingKey"),
-                            c.ResolveKeyed<IPackageValidationEnqueuer>("SymbolsPackageValidationEnqueuerBindingKey"),
+                        return new AsynchronousPackageValidationInitiator<Package>(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
                             c.Resolve<IDiagnosticsService>());
-                    }).As<IPackageValidationInitiator>();
+                    }).As<IPackageValidationInitiator<Package>>();
+
+                builder
+                    .Register(c => {
+                        return new AsynchronousPackageValidationInitiator<SymbolPackage>(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IPackageValidationInitiator<SymbolPackage>>();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.
@@ -510,21 +525,22 @@ namespace NuGetGallery
                     .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
-                    .Keyed<ITopicClient>("PackageValidationBindingKey")
+                    .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
                     .OnRelease(x => x.Close());
 
                 builder
                     .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
-                    .Keyed<ITopicClient>("SymbolsPackageValidationBindingKey")
+                    .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
                     .OnRelease(x => x.Close());
             }
             else
             {
+                // This will register all the instances of ImmediatePackageValidator<T> as IPackageValidationInitiator<T> where T is a typeof(IPackageEntity)
                 builder
-                    .RegisterType<ImmediatePackageValidator>()
-                    .As<IPackageValidationInitiator>();
+                    .RegisterGeneric(typeof(ImmediatePackageValidator<>))
+                    .As(typeof(IPackageValidationInitiator<>));
             }
 
             builder.RegisterType<ValidationAdminService>()
