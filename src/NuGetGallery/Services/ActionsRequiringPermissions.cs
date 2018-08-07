@@ -120,7 +120,7 @@ namespace NuGetGallery
         /// </summary>
         public static ActionRequiringAccountPermissions ManageAccount =
             new ActionRequiringAccountPermissions(
-                accountPermissionsRequirement: RequireOwnerOrSiteAdminOrOrganizationAdmin);
+                accountPermissionsRequirement: RequireOwnerOrOrganizationAdmin);
 
         /// <summary>
         /// The action of managing an organization's memberships.
