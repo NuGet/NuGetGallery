@@ -47,6 +47,7 @@
     <Compile Include="Configuration\IDbConfiguration.cs" />
     <Compile Include="Configuration\JobArgumentNames.cs" />
     <Compile Include="Configuration\ServiceBusConfiguration.cs" />
+    <Compile Include="Configuration\StatisticsDbConfiguration.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="Configuration\ValidationStorageConfiguration.cs" />
     <Compile Include="Extensions\LoggerExtensions.cs" />

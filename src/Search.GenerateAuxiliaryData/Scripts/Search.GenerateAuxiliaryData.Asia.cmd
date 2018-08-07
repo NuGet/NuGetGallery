@@ -1,13 +1,15 @@
 @echo OFF
-	
+
+REM This script is the same as Search.GenerateAuxillaryData.cmd. However, this copy is required until "Jobs.ServiceNames" deployment config is consolidated.
+
 cd bin
 
 :Top
-	echo "Starting job - #{Jobs.Asia.search.generateauxiliarydata.Title}"
+	echo "Starting job - #{Jobs.search.generateauxiliarydata.Title}"
 
-	title #{Jobs.Asia.search.generateauxiliarydata.Title}
+	title #{Jobs.search.generateauxiliarydata.Title}
 
-    start /w search.generateauxiliarydata.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -PrimaryDestination #{Jobs.Asia.search.generateauxiliarydata.Storage.Primary} -PackageDatabase "#{Jobs.search.generateauxiliarydata.PackageDatabase}" -StatisticsDatabase "#{Jobs.search.generateauxiliarydata.StatisticsDatabase}" -AzureCdnCloudStorageAccount "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageAccount}" -AzureCdnCloudStorageContainerName "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageContainerName}" -verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
+    start /w search.generateauxiliarydata.exe -Configuration "#{Jobs.search.generateauxiliarydata.Configuration}" -verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
 	
 	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
 

@@ -4,10 +4,10 @@
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Sql;
 
 namespace Search.GenerateAuxiliaryData
 {
@@ -18,11 +18,11 @@ namespace Search.GenerateAuxiliaryData
 
         public VerifiedPackagesExporter(
             ILogger<SqlExporter> logger,
-            ISqlConnectionFactory connectionFactory,
+            Func<Task<SqlConnection>> openSqlConnectionAsync,
             CloudBlobContainer defaultDestinationContainer,
             string defaultVerifiedPackagesScript,
             string defaultName)
-            : base(logger, connectionFactory, defaultDestinationContainer, defaultName)
+            : base(logger, openSqlConnectionAsync, defaultDestinationContainer, defaultName)
         {
             _verifiedPackagesScript = defaultVerifiedPackagesScript;
         }

@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using Newtonsoft.Json;
-using NuGet.Services.Sql;
 using Search.GenerateAuxiliaryData;
 using Xunit;
 
@@ -45,7 +44,7 @@ namespace Tests.Search.GenerateAuxiliaryData
         {
             return new RankingsExporter(
                 new LoggerFactory().CreateLogger<RankingsExporter>(),
-                connectionFactory: new Mock<ISqlConnectionFactory>().Object,
+                openSqlConnectionAsync: () => null,
                 defaultDestinationContainer: new CloudBlobContainer(new Uri("https://nuget.org")),
                 defaultRankingsScript: "b",
                 defaultName: "c");

@@ -25,6 +25,7 @@ namespace NuGet.Jobs
     {
         private const string InitializationConfigurationSectionName = "Initialization";
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
+        private const string StatisticsDbConfigurationSectionName = "StatisticsDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
@@ -109,6 +110,7 @@ namespace NuGet.Jobs
         protected virtual void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
+            services.Configure<StatisticsDbConfiguration>(configurationRoot.GetSection(StatisticsDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
@@ -131,6 +133,12 @@ namespace NuGet.Jobs
             if (!string.IsNullOrEmpty(galleryDb.Value?.ConnectionString))
             {
                 RegisterDatabase<GalleryDbConfiguration>(serviceProvider);
+            }
+
+            var statisticsDb = serviceProvider.GetRequiredService<IOptionsSnapshot<StatisticsDbConfiguration>>();
+            if (!string.IsNullOrEmpty(statisticsDb.Value?.ConnectionString))
+            {
+                RegisterDatabase<StatisticsDbConfiguration>(serviceProvider);
             }
 
             var validationDb = serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>();
