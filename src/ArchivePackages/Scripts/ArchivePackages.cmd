@@ -7,7 +7,7 @@ cd bin
 
 	title #{Jobs.archivepackages.Title}
 
-    start /w archivepackages.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -PackageDatabase "#{Jobs.archivepackages.PackageDatabase}" -Source "#{Jobs.archivepackages.Source}" -PrimaryDestination "#{Jobs.archivepackages.PrimaryDestination}" -SecondaryDestination "#{Jobs.archivepackages.SecondaryDestination}" -Sleep "#{Jobs.archivepackages.Sleep}" -InstrumentationKey "#{Jobs.archivepackages.ApplicationInsightsInstrumentationKey}"
+	start /w archivepackages.exe -Configuration "#{Jobs.archivepackages.Configuration}" -Sleep "#{Jobs.archivepackages.Sleep}" -InstrumentationKey "#{Jobs.archivepackages.ApplicationInsightsInstrumentationKey}"
 
 	echo "Finished #{Jobs.archivepackages.Title}"
 

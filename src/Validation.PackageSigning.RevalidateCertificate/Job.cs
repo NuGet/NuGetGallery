@@ -15,7 +15,7 @@ using NuGet.Services.ServiceBus;
 
 namespace Validation.PackageSigning.RevalidateCertificate
 {
-    public class Job : JsonConfigurationJob
+    public class Job : ValidationJobBase
     {
         private const string RevalidationConfigurationSectionName = "RevalidateJob";
 

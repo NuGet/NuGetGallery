@@ -17,7 +17,7 @@ using NuGet.Services.AzureManagement;
 
 namespace NuGet.Monitoring.RebootSearchInstance
 {
-    public class Job : JsonConfigurationJob
+    public class Job : ValidationJobBase
     {
         private const string AzureManagementSectionName = "AzureManagement";
         private const string MonitorConfigurationSectionName = "MonitorConfiguration";

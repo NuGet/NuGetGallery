@@ -26,7 +26,7 @@ namespace NuGet.Services.Revalidate
     using GalleryContext = EntitiesContext;
     using IGalleryContext = IEntitiesContext;
 
-    public class Job : JsonConfigurationJob
+    public class Job : ValidationJobBase
     {
         private const string RebuildPreinstalledSetArgumentName = "RebuildPreinstalledSet";
         private const string InitializeArgumentName = "Initialize";

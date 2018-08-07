@@ -167,28 +167,38 @@ namespace NuGet.Jobs
             return connectionFactory.SqlConnectionStringBuilder;
         }
 
+        private ISqlConnectionFactory GetSqlConnectionFactory<T>()
+            where T : IDbConfiguration
+        {
+            return GetSqlConnectionFactory(GetDatabaseKey<T>());
+        }
+
+        private ISqlConnectionFactory GetSqlConnectionFactory(string name)
+        {
+            if (!SqlConnectionFactories.ContainsKey(name))
+            {
+                throw new InvalidOperationException($"Database {name} has not been registered.");
+            }
+
+            return SqlConnectionFactories[name];
+        }
+
         private static string GetDatabaseKey<T>()
         {
             return typeof(T).Name;
         }
 
         /// <summary>
-        /// Create a SqlConnection, for use by validation jobs.
+        /// Create a SqlConnection, for use by jobs that use an EF context.
         /// </summary>
         public Task<SqlConnection> CreateSqlConnectionAsync<T>()
             where T : IDbConfiguration
         {
-            var name = GetDatabaseKey<T>();
-            if (!SqlConnectionFactories.ContainsKey(name))
-            {
-                throw new InvalidOperationException($"Database {name} has not been registered.");
-            }
-
-            return SqlConnectionFactories[name].CreateAsync();
+            return GetSqlConnectionFactory<T>().CreateAsync();
         }
 
         /// <summary>
-        /// Synchronous creation of a SqlConnection, for use by validation jobs.
+        /// Synchronous creation of a SqlConnection, for use by jobs that use an EF context.
         /// </summary>
         public SqlConnection CreateSqlConnection<T>()
             where T : IDbConfiguration
@@ -197,7 +207,16 @@ namespace NuGet.Jobs
         }
 
         /// <summary>
-        /// Creates and opens a SqlConnection, for use by non-validation jobs.
+        /// Open a SqlConnection, for use by jobs that do NOT use an EF context.
+        /// </summary>
+        public Task<SqlConnection> OpenSqlConnectionAsync<T>()
+            where T : IDbConfiguration
+        {
+            return GetSqlConnectionFactory<T>().OpenAsync();
+        }
+
+        /// <summary>
+        /// Opens a SqlConnection, for use by jobs that do NOT use an EF context.
         /// </summary>
         public Task<SqlConnection> OpenSqlConnectionAsync(string connectionStringArgName)
         {
@@ -206,12 +225,7 @@ namespace NuGet.Jobs
                 throw new ArgumentException("Argument cannot be null or empty.", nameof(connectionStringArgName));
             }
 
-            if (!SqlConnectionFactories.ContainsKey(connectionStringArgName))
-            {
-                throw new InvalidOperationException($"Database {connectionStringArgName} has not been registered.");
-            }
-
-            return SqlConnectionFactories[connectionStringArgName].OpenAsync();
+            return GetSqlConnectionFactory(connectionStringArgName).OpenAsync();
         }
     }
 }
