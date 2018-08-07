@@ -10,6 +10,7 @@ using Autofac;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using NuGet.Jobs;
 using NuGet.Jobs.Configuration;
@@ -46,7 +47,7 @@ namespace Search.GenerateAuxiliaryData
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
-            Configuration = _serviceProvider.GetRequiredService<InitializationConfiguration>();
+            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
             var destinationContainer = CloudStorageAccount.Parse(Configuration.PrimaryDestination)
                 .CreateCloudBlobClient()
