@@ -7,7 +7,7 @@ cd bin
 	
 	title #{Jobs.Gallery.Maintenance.Title}
 	
-	start /w Gallery.Maintenance.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -GalleryDatabase "#{Jobs.Gallery.Maintenance.GalleryDatabase}" -InstrumentationKey "#{Jobs.Gallery.Maintenance.InstrumentationKey}" -verbose true -Interval #{Jobs.Gallery.Maintenance.Interval} 
+	start /w Gallery.Maintenance.exe -Configuration "#{Jobs.gallery.maintenance.Configuration}"  -InstrumentationKey "#{Jobs.gallery.maintenance.InstrumentationKey}" -Interval #{Jobs.gallery.maintenance.Interval} 
 
 	echo "Finished #{Jobs.Gallery.Maintenance.Title}"
 
