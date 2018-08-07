@@ -11,6 +11,7 @@ using Autofac;
 using Dapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
@@ -76,7 +77,7 @@ namespace ArchivePackages
         {
             base.Init(serviceContainer, jobArgsDictionary);
 
-            Configuration = _serviceProvider.GetRequiredService<InitializationConfiguration>();
+            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
             GalleryDatabase = GetDatabaseRegistration<GalleryDbConfiguration>();
 

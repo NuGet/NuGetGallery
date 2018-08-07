@@ -2,73 +2,49 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
 using System.Threading;
 using System.Threading.Tasks;
+using Autofac;
 using Gallery.CredentialExpiration.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
 using NuGet.Services.Storage;
 
 namespace Gallery.CredentialExpiration
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
         private readonly TimeSpan _defaultCommandTimeout = TimeSpan.FromMinutes(30);
 
         private readonly string _cursorFile = "cursorv2.json";
 
-        private bool _whatIf = false;
+        private InitializationConfiguration Configuration { get; set; }
 
-        private string _galleryBrand;
-        private string _galleryAccountUrl;
+        private Storage Storage { get; set; }
 
-        private ISqlConnectionFactory _galleryDatabase;
-
-        private string _mailFrom;
-        private SmtpClient _smtpClient;
-
-        private int _warnDaysBeforeExpiration = 10;
-
-        private Storage _storage;
+        private SmtpClient SmtpClient { get; set; }
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            _whatIf = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.WhatIf);
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-            _galleryDatabase = new AzureSqlConnectionFactory(databaseConnectionString, secretInjector);
+            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
-            _galleryBrand = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryBrand);
-            _galleryAccountUrl = JobConfigurationManager.GetArgument(jobArgsDictionary, MyJobArgumentNames.GalleryAccountUrl);
-
-            _mailFrom = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.MailFrom);
-
-            var smtpConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.SmtpUri);
-            var smtpUri = new SmtpUri(new Uri(smtpConnectionString));
-            _smtpClient = CreateSmtpClient(smtpUri);
-
-            _warnDaysBeforeExpiration = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, MyJobArgumentNames.WarnDaysBeforeExpiration)
-                ?? _warnDaysBeforeExpiration;
-
-            var storageConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DataStorageAccount);
-            var storageContainerName = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.ContainerName);
-
-            var storageAccount = CloudStorageAccount.Parse(storageConnectionString);
-            var storageFactory = new AzureStorageFactory(storageAccount, storageContainerName, LoggerFactory);
-            _storage = storageFactory.Create();
+            SmtpClient = CreateSmtpClient(Configuration.SmtpUri);
+            
+            var storageAccount = CloudStorageAccount.Parse(Configuration.DataStorageAccount);
+            var storageFactory = new AzureStorageFactory(storageAccount, Configuration.ContainerName, LoggerFactory);
+            Storage = storageFactory.Create();
         }
 
         public override async Task Run()
@@ -76,20 +52,25 @@ namespace Gallery.CredentialExpiration
             var jobRunTime = DateTimeOffset.UtcNow;
             // Default values
             var jobCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: jobRunTime );
-            var galleryCredentialExpiration = new GalleryCredentialExpiration(new CredentialExpirationJobMetadata(jobRunTime, _warnDaysBeforeExpiration, jobCursor), _galleryDatabase);
+            var galleryCredentialExpiration = new GalleryCredentialExpiration(this,
+                new CredentialExpirationJobMetadata(jobRunTime, Configuration.WarnDaysBeforeExpiration, jobCursor));
 
             try
             {
                 List<ExpiredCredentialData> credentialsInRange = null;
 
                 // Get the most recent date for the emails being sent 
-                if (_storage.Exists(_cursorFile))
+                if (Storage.Exists(_cursorFile))
                 {
-                    string content = await _storage.LoadString(_storage.ResolveUri(_cursorFile), CancellationToken.None);
+                    string content = await Storage.LoadString(Storage.ResolveUri(_cursorFile), CancellationToken.None);
                     // Load from cursor
                     // Throw if the schema is not correct to ensure that not-intended emails are sent.
-                    jobCursor = JsonConvert.DeserializeObject<JobRunTimeCursor>(content, new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error });
-                    galleryCredentialExpiration = new GalleryCredentialExpiration(new CredentialExpirationJobMetadata(jobRunTime, _warnDaysBeforeExpiration, jobCursor), _galleryDatabase);
+                    jobCursor = JsonConvert.DeserializeObject<JobRunTimeCursor>(
+                        content,
+                        new JsonSerializerSettings() { MissingMemberHandling = MissingMemberHandling.Error });
+
+                    galleryCredentialExpiration = new GalleryCredentialExpiration(this,
+                        new CredentialExpirationJobMetadata(jobRunTime, Configuration.WarnDaysBeforeExpiration, jobCursor));
                 }
 
                 // Connect to database
@@ -126,10 +107,13 @@ namespace Gallery.CredentialExpiration
             }
             finally
             {
-                JobRunTimeCursor newCursor = new JobRunTimeCursor( jobCursorTime: jobRunTime, maxProcessedCredentialsTime: galleryCredentialExpiration.GetMaxNotificationDate());
+                JobRunTimeCursor newCursor = new JobRunTimeCursor(
+                    jobCursorTime: jobRunTime,
+                    maxProcessedCredentialsTime: galleryCredentialExpiration.GetMaxNotificationDate());
+
                 string json = JsonConvert.SerializeObject(newCursor);
                 var content = new StringStorageContent(json, "application/json");
-                await _storage.Save(_storage.ResolveUri(_cursorFile), content, CancellationToken.None);
+                await Storage.Save(Storage.ResolveUri(_cursorFile), content, CancellationToken.None);
             }
         }
 
@@ -146,7 +130,7 @@ namespace Gallery.CredentialExpiration
 
             // Build message
             var userEmail = credentialList.FirstOrDefault().EmailAddress;
-            var mailMessage = new MailMessage(_mailFrom, userEmail);
+            var mailMessage = new MailMessage(Configuration.MailFrom, userEmail);
 
             var apiKeyExpiryMessageList = credentialList
                 .Select(x => BuildApiKeyExpiryMessage(x.Description, x.Expires, jobRunTime))
@@ -156,21 +140,21 @@ namespace Gallery.CredentialExpiration
             // Build email body
             if (expired)
             {
-                mailMessage.Subject = string.Format(Strings.ExpiredEmailSubject, _galleryBrand);
-                mailMessage.Body = string.Format(Strings.ExpiredEmailBody, username, _galleryBrand, apiKeyExpiryMessage, _galleryAccountUrl);
+                mailMessage.Subject = string.Format(Strings.ExpiredEmailSubject, Configuration.GalleryBrand);
+                mailMessage.Body = string.Format(Strings.ExpiredEmailBody, username, Configuration.GalleryBrand, apiKeyExpiryMessage, Configuration.GalleryAccountUrl);
             }
             else
             {
-                mailMessage.Subject = string.Format(Strings.ExpiringEmailSubject, _galleryBrand);
-                mailMessage.Body = string.Format(Strings.ExpiringEmailBody, username, _galleryBrand, apiKeyExpiryMessage, _galleryAccountUrl);
+                mailMessage.Subject = string.Format(Strings.ExpiringEmailSubject, Configuration.GalleryBrand);
+                mailMessage.Body = string.Format(Strings.ExpiringEmailBody, username, Configuration.GalleryBrand, apiKeyExpiryMessage, Configuration.GalleryAccountUrl);
             }
 
             // Send email
             try
             {
-                if (!_whatIf) // if WhatIf is passed, we will not send e-mails (e.g. dev/int don't have to annoy users)
+                if (!Configuration.WhatIf) // if WhatIf is passed, we will not send e-mails (e.g. dev/int don't have to annoy users)
                 {
-                    await _smtpClient.SendMailAsync(mailMessage);
+                    await SmtpClient.SendMailAsync(mailMessage);
                 }
 
                 Logger.LogInformation("Handled {Expired} credential .",
@@ -200,9 +184,10 @@ namespace Gallery.CredentialExpiration
             // \u2022 - Unicode for bullet point.
             return "\u2022 " + message + Environment.NewLine;
         }
-
-        private SmtpClient CreateSmtpClient(SmtpUri smtpUri)
+        
+        private SmtpClient CreateSmtpClient(string smtpUriString)
         {
+            var smtpUri = new SmtpUri(new Uri(smtpUriString));
             var smtpClient = new SmtpClient(smtpUri.Host, smtpUri.Port)
             {
                 EnableSsl = smtpUri.Secure
@@ -217,6 +202,15 @@ namespace Gallery.CredentialExpiration
             }
 
             return smtpClient;
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<InitializationConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -145,7 +146,6 @@ namespace NuGet.Jobs
             where TConfiguration : class
         {
             services.Configure<TConfiguration>(configurationRoot.GetSection(InitializationConfigurationSectionName));
-            services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<TConfiguration>>().Value);
         }
 
         /// <summary>
