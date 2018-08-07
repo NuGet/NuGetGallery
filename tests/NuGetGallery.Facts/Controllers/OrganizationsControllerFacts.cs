@@ -48,17 +48,16 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsPartialPermissions_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsPartialPermissions_Data
             {
                 get
                 {
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin, false, true);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator, false, false);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsPartialPermissions_Data))]
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsPartialPermissions_Data))]
             public void WithNonOrganizationAdmin_ReturnsPartialPermissions(Func<Fakes, User> getCurrentUser, bool canManage, bool canManageMemberships)
             {
                 // Arrange
@@ -88,19 +87,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -127,19 +125,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -168,19 +165,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -206,19 +202,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public void WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public void WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -245,19 +240,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -284,19 +278,18 @@ namespace NuGetGallery
 
             // Note general account tests are in the base class. Organization-specific tests are below.
 
-            public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
+            public static IEnumerable<object[]> WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data
             {
                 get
                 {
                     yield return MemberDataHelper.AsData(_getFakesUser);
-                    yield return MemberDataHelper.AsData(_getFakesSiteAdmin);
                     yield return MemberDataHelper.AsData(_getFakesOrganizationCollaborator);
                 }
             }
 
             [Theory]
-            [MemberData(nameof(WithNonOrganizationAdmin_ReturnsForbidden_Data))]
-            public async Task WithNonOrganizationAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
+            [MemberData(nameof(WithNonOrganizationOrSiteAdmin_ReturnsForbidden_Data))]
+            public async Task WithNonOrganizationOrSiteAdmin_ReturnsForbidden(Func<Fakes, User> getCurrentUser)
             {
                 // Arrange
                 var controller = GetController();
@@ -1194,7 +1187,6 @@ namespace NuGetGallery
                 get
                 {
                     yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.User));
-                    yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.Admin));
                     yield return MemberDataHelper.AsData(new Func<Fakes, User>(fakes => fakes.OrganizationCollaborator));
                 }
             }
