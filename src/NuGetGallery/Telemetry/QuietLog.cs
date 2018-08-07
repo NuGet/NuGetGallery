@@ -38,6 +38,31 @@ namespace NuGetGallery
             }
         }
 
+        public static void LogHandledException(Exception e, ErrorLog errorLog)
+        {
+            var aggregateExceptionId = Guid.NewGuid().ToString();
+
+            var aggregateException = e as AggregateException;
+            if (aggregateException != null)
+            {
+                LogHandledExceptionCore(aggregateException, aggregateExceptionId, errorLog);
+
+                foreach (var innerException in aggregateException.InnerExceptions)
+                {
+                    LogHandledExceptionCore(innerException, aggregateExceptionId, errorLog);
+                }
+            }
+            else
+            {
+                LogHandledExceptionCore(e, aggregateExceptionId, errorLog);
+
+                if (e.InnerException != null)
+                {
+                    LogHandledExceptionCore(e.InnerException, aggregateExceptionId, errorLog);
+                }
+            }
+        }
+
         private static void LogHandledExceptionCore(Exception e, string aggregateExceptionId)
         {
             try
@@ -52,6 +77,24 @@ namespace NuGetGallery
                 {
                     ErrorLog.GetDefault(null).Log(new Error(e));
                 }
+
+                // send exception to AppInsights
+                Telemetry.TrackException(e, new Dictionary<string, string>
+                {
+                    { "aggregateExceptionId", aggregateExceptionId }
+                });
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        private static void LogHandledExceptionCore(Exception e, string aggregateExceptionId, ErrorLog errorLog)
+        {
+            try
+            {
+                errorLog.Log(new Error(e));
 
                 // send exception to AppInsights
                 Telemetry.TrackException(e, new Dictionary<string, string>
