@@ -35,11 +35,7 @@
                     }
                     @if (User.IsAdministrator() && !Model.UserIsOrganization)
                     {
-                        @CreateDeleteAccountLink(Url.AdminDeleteAccount(@Model.Username))
-                    }
-                    else if (Model.CanManageAccount && Model.UserIsOrganization)
-                    {
-                        @CreateDeleteAccountLink(Url.DeleteOrganization(@Model.Username))
+                        <a href="@Url.AdminDeleteAccount(@Model.Username)" aria-label="Delete this account"><i class="ms-Icon ms-Icon--Delete ms-font-xl"></i></a>
                     }
                 </h1>
                 <span>
