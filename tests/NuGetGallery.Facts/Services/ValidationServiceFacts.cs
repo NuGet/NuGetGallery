@@ -51,6 +51,42 @@ namespace NuGetGallery
             }
         }
 
+        public class TheStartSymbolsPackageValidationAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task InitiatesTheValidation()
+            {
+                // Arrange & Act
+                await _target.StartSymbolsPackageValidationAsync(_symbolPackage);
+
+                // Assert
+                _initiator.Verify(x => x.StartSymbolsPackageValidationAsync(_symbolPackage), Times.Once);
+            }
+
+            [Fact]
+            public async Task UpdatesThePackageStatus()
+            {
+                // Arrange
+                var packageStatus = PackageStatus.Validating;
+                _symbolPackage.StatusKey = PackageStatus.Available;
+                _initiator
+                    .Setup(x => x.StartSymbolsPackageValidationAsync(It.IsAny<SymbolPackage>()))
+                    .ReturnsAsync(packageStatus);
+
+                // Act
+                await _target.StartSymbolsPackageValidationAsync(_symbolPackage);
+
+                // Assert
+                _symbolPackageService.Verify(
+                    x => x.UpdateStatusAsync(_symbolPackage, packageStatus, false),
+                    Times.Once);
+
+                /// The implementation should not change the package status on its own. It should depend on 
+                /// <see cref="ISymbolPackageService"/> to do this.
+                Assert.Equal(PackageStatus.Available, _symbolPackage.StatusKey);
+            }
+        }
+
         public class TheRevalidateMethod : FactsBase
         {
             [Fact]
@@ -381,6 +417,7 @@ namespace NuGetGallery
             protected readonly Mock<ISymbolPackageService> _symbolPackageService;
             protected readonly Package _package;
             protected readonly ValidationService _target;
+            protected readonly SymbolPackage _symbolPackage;
 
             public FactsBase()
             {
@@ -391,6 +428,10 @@ namespace NuGetGallery
                 _telemetryService = new Mock<ITelemetryService>();
                 _symbolPackageService = new Mock<ISymbolPackageService>();
                 _package = new Package();
+                _symbolPackage = new SymbolPackage()
+                    {
+                        Package = _package
+                    };
 
                 _target = new ValidationService(
                     _appConfiguration.Object,

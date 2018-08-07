@@ -114,6 +114,111 @@ namespace NuGetGallery
             }
         }
 
+        public class TheStartSymbolsPackageValidationAsyncMethod : FactsBase
+        {
+            [Fact]
+            public async Task UsesADifferentValidationTrackingIdEachTime()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+
+                // Act
+                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+
+                // Assert
+                Assert.Equal(2, _data.Count);
+                Assert.NotEqual(_data[0].ValidationTrackingId, _data[1].ValidationTrackingId);
+            }
+
+            [Fact]
+            public async Task UsesProvidedPackageIdAndVersion()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+
+                // Act
+                await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+
+                // Assert
+                _symbolEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+                Assert.Equal(1, _data.Count);
+                Assert.NotNull(_data[0]);
+                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].PackageId);
+                Assert.Equal(symbolPackage.Package.Version, _data[0].PackageVersion);
+            }
+
+            [Fact]
+            public async Task FailsWhenTheGalleryIsInReadOnlyMode()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+                _appConfiguration
+                    .Setup(x => x.ReadOnlyMode)
+                    .Returns(true);
+
+                // Act & Assert
+                var exception = await Assert.ThrowsAsync<ReadOnlyModeException>(
+                    () => _target.StartSymbolsPackageValidationAsync(symbolPackage));
+                Assert.Equal(Strings.CannotEnqueueDueToReadOnly, exception.Message);
+                _symbolEnqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>()),
+                    Times.Never);
+            }
+
+            [Fact]
+            public async Task ReturnsCorrectPackageStatusInNonBlockingMode()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+                _appConfiguration
+                    .SetupGet(x => x.BlockingAsynchronousPackageValidationEnabled)
+                    .Returns(false);
+
+                // Act
+                var actual = await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+
+                // Assert
+                Assert.Equal(PackageStatus.Available, actual);
+            }
+
+            [Fact]
+            public async Task ReturnsCorrectPackageStatusInBlockingMode()
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+                _appConfiguration
+                    .SetupGet(x => x.BlockingAsynchronousPackageValidationEnabled)
+                    .Returns(true);
+
+                // Act
+                var actual = await _target.StartSymbolsPackageValidationAsync(symbolPackage);
+
+                // Assert
+                Assert.Equal(PackageStatus.Validating, actual);
+            }
+
+            private SymbolPackage GetSymbolPackage()
+            {
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Versioning"
+                    },
+                    Version = "4.3.0",
+                    PackageStatusKey = (PackageStatus)(-1),
+                };
+
+                return new SymbolPackage()
+                {
+                    Package = package
+                };
+            }
+        }
+
         public abstract class FactsBase
         {
             protected readonly Mock<IPackageValidationEnqueuer> _enqueuer;
@@ -126,8 +231,13 @@ namespace NuGetGallery
             public FactsBase()
             {
                 _enqueuer = new Mock<IPackageValidationEnqueuer>();
-                _symbolEnqueuer = new Mock<IPackageValidationEnqueuer>();
                 _enqueuer
+                    .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
+                    .Returns(Task.CompletedTask)
+                    .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));
+
+                _symbolEnqueuer = new Mock<IPackageValidationEnqueuer>();
+                _symbolEnqueuer
                     .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
                     .Callback<PackageValidationMessageData, DateTimeOffset>((d, o) => _data.Add(d));

@@ -50,6 +50,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(symbolPackage));
             }
 
+            if (symbolPackage.Package == null)
+            {
+                throw new ArgumentNullException(nameof(symbolPackage.Package));
+            }
+
             var data = new PackageValidationMessageData(
                 symbolPackage.Package.PackageRegistration.Id,
                 symbolPackage.Package.Version,
