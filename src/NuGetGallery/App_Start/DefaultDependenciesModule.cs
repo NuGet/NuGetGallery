@@ -468,8 +468,22 @@ namespace NuGetGallery
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();
 
+            // We need to setup two enqueuers for Package validation and symbol validation each publishes 
+            // to a different topic for validation.
             builder
                 .RegisterType<PackageValidationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>("PackageValidationBindingKey")))
+                .Keyed<IPackageValidationEnqueuer>("PackageValidationEnqueuerBindingKey")
+                .As<IPackageValidationEnqueuer>();
+
+            builder
+                .RegisterType<PackageValidationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>("SymbolsPackageValidationBindingKey")))
+                .Keyed<IPackageValidationEnqueuer>("SymbolsPackageValidationEnqueuerBindingKey")
                 .As<IPackageValidationEnqueuer>();
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
@@ -477,20 +491,33 @@ namespace NuGetGallery
                 ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
 
                 builder
-                    .RegisterType<AsynchronousPackageValidationInitiator>()
-                    .As<IPackageValidationInitiator>();
+                    .Register(c => {
+                        return new AsynchronousPackageValidationInitiator(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>("PackageValidationEnqueuerBindingKey"),
+                            c.ResolveKeyed<IPackageValidationEnqueuer>("SymbolsPackageValidationEnqueuerBindingKey"),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IPackageValidationInitiator>();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.
                 var validationConnectionString = configuration.ServiceBus.Validation_ConnectionString;
                 var validationTopicName = configuration.ServiceBus.Validation_TopicName;
+                var symbolsValidationConnectionString = configuration.ServiceBus.SymbolsValidation_ConnectionString;
+                var symbolsValidationTopicName = configuration.ServiceBus.SymbolsValidation_TopicName;
 
                 builder
-                    .Register(c => new TopicClientWrapper(
-                        validationConnectionString,
-                        validationTopicName))
+                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
+                    .Keyed<ITopicClient>("PackageValidationBindingKey")
+                    .OnRelease(x => x.Close());
+
+                builder
+                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
+                    .As<ITopicClient>()
+                    .SingleInstance()
+                    .Keyed<ITopicClient>("SymbolsPackageValidationBindingKey")
                     .OnRelease(x => x.Close());
             }
             else

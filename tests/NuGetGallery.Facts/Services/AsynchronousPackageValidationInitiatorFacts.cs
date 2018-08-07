@@ -117,6 +117,7 @@ namespace NuGetGallery
         public abstract class FactsBase
         {
             protected readonly Mock<IPackageValidationEnqueuer> _enqueuer;
+            protected readonly Mock<IPackageValidationEnqueuer> _symbolEnqueuer;
             protected readonly Mock<IAppConfiguration> _appConfiguration;
             protected readonly Mock<IDiagnosticsService> _diagnosticsService;
             protected readonly IList<PackageValidationMessageData> _data = new List<PackageValidationMessageData>();
@@ -125,6 +126,7 @@ namespace NuGetGallery
             public FactsBase()
             {
                 _enqueuer = new Mock<IPackageValidationEnqueuer>();
+                _symbolEnqueuer = new Mock<IPackageValidationEnqueuer>();
                 _enqueuer
                     .Setup(x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()))
                     .Returns(Task.CompletedTask)
@@ -139,6 +141,7 @@ namespace NuGetGallery
 
                 _target = new AsynchronousPackageValidationInitiator(
                     _enqueuer.Object,
+                    _symbolEnqueuer.Object,
                     _appConfiguration.Object,
                     _diagnosticsService.Object);
             }
