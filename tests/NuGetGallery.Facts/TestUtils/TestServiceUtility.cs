@@ -1,6 +1,8 @@
 ﻿using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
+using NuGet.Packaging.Signing;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
@@ -8,6 +10,7 @@ using NuGetGallery.Security;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -73,7 +76,9 @@ namespace NuGetGallery.TestUtils
             Uri iconUrl = null,
             bool requireLicenseAcceptance = true,
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
-            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null)
+            IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
+            RepositoryMetadata repositoryMetadata = null,
+            bool isSigned = false)
         {
             licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
             projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
@@ -123,7 +128,19 @@ namespace NuGetGallery.TestUtils
                 id, version, title, summary, authors, owners,
                 description, tags, language, copyright, releaseNotes,
                 minClientVersion, licenseUrl, projectUrl, iconUrl,
-                requireLicenseAcceptance, packageDependencyGroups, packageTypes);
+                requireLicenseAcceptance, packageDependencyGroups, packageTypes, repositoryMetadata,
+                archive =>
+                {
+                    if (isSigned)
+                    {
+                        var entry = archive.CreateEntry(SigningSpecifications.V1.SignaturePath);
+                        using (var stream = entry.Open())
+                        using (var writer = new StreamWriter(stream))
+                        {
+                            writer.Write("Fake signature file.");
+                        }
+                    }
+                });
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;
@@ -291,9 +308,7 @@ namespace NuGetGallery.TestUtils
             var packageRepository = new Mock<IEntityRepository<Package>>();
             var certificateRepository = new Mock<IEntityRepository<Certificate>>();
             var auditingService = new TestAuditingService();
-
             var telemetryService = new Mock<ITelemetryService>();
-
             var securityPolicyService = new Mock<ISecurityPolicyService>();
 
             var packageService = new Mock<PackageService>(

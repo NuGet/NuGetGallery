@@ -5,8 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Versioning;
+using NuGetGallery.Configuration;
+using NuGetGallery.Extensions;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -18,19 +22,174 @@ namespace NuGetGallery
         private readonly IEntitiesContext _entitiesContext;
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
+        private readonly IAppConfiguration _config;
 
         public PackageUploadService(
             IPackageService packageService,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IReservedNamespaceService reservedNamespaceService,
-            IValidationService validationService)
+            IValidationService validationService,
+            IAppConfiguration config)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
             _entitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+        }
+
+        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage)
+        {
+            var warnings = new List<string>();
+
+            var result = await CheckForUnsignedPushAfterAuthorSignedAsync(
+                nuGetPackage,
+                warnings);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        /// <summary>
+        /// If a package author pushes version X that is author signed then pushes version Y that is unsigned, where Y
+        /// is immediately after X when the version list is sorted used SemVer 2.0.0 rules, warn the package author.
+        /// If the user pushes another unsigned version after Y, no warning is produced. This means the warning will
+        /// not present on every subsequent push, which would be a bit too noisy.
+        /// </summary>
+        /// <param name="nuGetPackage">The package archive reader.</param>
+        /// <param name="warnings">The working list of warnings.</param>
+        /// <returns>The package validation result or null.</returns>
+        private async Task<PackageValidationResult> CheckForUnsignedPushAfterAuthorSignedAsync(
+            PackageArchiveReader nuGetPackage,
+            List<string> warnings)
+        {
+            // If the package is signed, there's no problem.
+            if (await nuGetPackage.IsSignedAsync(CancellationToken.None))
+            {
+                return null;
+            }
+
+            var newIdentity = nuGetPackage.GetIdentity();
+            var packageRegistration = _packageService.FindPackageRegistrationById(newIdentity.Id);
+
+            // If the package registration does not exist yet, there's no problem.
+            if (packageRegistration == null)
+            {
+                return null;
+            }
+
+            // Find the highest package version less than the new package that is Available. Deleted packages should
+            // be ignored and Validating or FailedValidation packages will not necessarily have certificate information.
+            var previousPackage = packageRegistration
+                .Packages
+                .Where(x => x.PackageStatusKey == PackageStatus.Available)
+                .Select(x => new { x.NormalizedVersion, x.CertificateKey })
+                .ToList() // Materialize the lazy collection.
+                .Select(x => new { Version = NuGetVersion.Parse(x.NormalizedVersion), x.CertificateKey })
+                .Where(x => x.Version < newIdentity.Version)
+                .OrderByDescending(x => x.Version)
+                .FirstOrDefault();
+
+            if (previousPackage != null && previousPackage.CertificateKey.HasValue)
+            {
+                warnings.Add(string.Format(
+                    Strings.UploadPackage_SignedToUnsignedTransition,
+                    previousPackage.Version.ToNormalizedString()));
+            }
+
+            return null;
+        }
+
+        public async Task<PackageValidationResult> ValidateAfterGeneratePackageAsync(
+            Package package,
+            PackageArchiveReader nuGetPackage,
+            User owner,
+            User currentUser)
+        {
+            var result = await ValidateSignatureFilePresenceAsync(
+                package.PackageRegistration,
+                nuGetPackage,
+                owner,
+                currentUser);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return PackageValidationResult.Accepted();
+        }
+
+        private async Task<PackageValidationResult> ValidateSignatureFilePresenceAsync(
+            PackageRegistration packageRegistration,
+            PackageArchiveReader nugetPackage,
+            User owner,
+            User currentUser)
+        {
+            if (await nugetPackage.IsSignedAsync(CancellationToken.None))
+            {
+                if (_config.RejectSignedPackagesWithNoRegisteredCertificate
+                    && !packageRegistration.IsSigningAllowed())
+                {
+                    var requiredSigner = packageRegistration.RequiredSigners.FirstOrDefault();
+                    var hasRequiredSigner = requiredSigner != null;
+
+                    if (hasRequiredSigner)
+                    {
+                        if (requiredSigner == currentUser)
+                        {
+                            return new PackageValidationResult(
+                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
+                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                        }
+                        else
+                        {
+                            return new PackageValidationResult(
+                               PackageValidationResultType.PackageShouldNotBeSigned,
+                               string.Format(
+                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
+                                   requiredSigner.Username));
+                        }
+                    }
+                    else
+                    {
+                        var isCurrentUserAnOwner = packageRegistration.Owners.Contains(currentUser);
+
+                        // Technically, if there is no required signer, any one of the owners can register a
+                        // certificate to resolve this issue. However, we favor either the current user or the provided
+                        // owner since these are both accounts the current user can push on behalf of. In other words
+                        // we provide a message that leads the current user to remedying the problem rather than asking
+                        // someone else for help.
+                        if (isCurrentUserAnOwner)
+                        {
+                            return new PackageValidationResult(
+                                PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates,
+                                Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates);
+                        }
+                        else
+                        {
+                            return new PackageValidationResult(
+                               PackageValidationResultType.PackageShouldNotBeSigned,
+                               string.Format(
+                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
+                                   owner.Username));
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (packageRegistration.IsSigningRequired())
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageIsNotSigned);
+                }
+            }
+
+            return null;
         }
 
         public async Task<Package> GeneratePackageAsync(

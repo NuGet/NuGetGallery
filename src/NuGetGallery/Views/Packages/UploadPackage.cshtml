@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
-    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -28,8 +27,6 @@
                     <form aria-label="Upload a package" id="uploadForm" enctype="multipart/form-data">
                         @Html.AntiForgeryToken()
 
-                        @Html.ValidationSummary(true)
-
                         <div class="input-group">
                             <input type="text" class="form-control" id="file-select-feedback" value="Browse or Drop files to select a package..." aria-label="Upload Your Package" readonly />
                             <label for="input-select-file" id="PackageFileLabel" class="input-group-btn">
@@ -49,20 +46,16 @@
                 </div>
             </div>
 
-
             @if (Model != null && Model.IsUploadInProgress)
             {
                 <div id="warning-container">
-                    @ViewHelpers.AlertWarning(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>                    )
-                    @ViewHelpers.AlertPackageVerifyRecommendation()
+                    @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
                 </div>
             }
-            else
-            {
-                <div id="verify-warning-container" class="hidden">
-                    @ViewHelpers.AlertPackageVerifyRecommendation()
-                </div>
-            }
+
+            <div id="verify-warning-container" class="hidden">
+                @ViewHelpers.AlertPackageVerifyRecommendation()
+            </div>
 
             @Html.Partial("_VerifyForm")
         </div>

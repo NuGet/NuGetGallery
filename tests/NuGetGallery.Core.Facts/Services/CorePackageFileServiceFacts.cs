@@ -130,17 +130,19 @@ namespace NuGetGallery
                 fileStorageSvc.VerifyAll();
             }
 
-            [Fact]
-            public async Task WillSaveTheFileStreamViaTheFileStorageService()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WillSaveTheFileStreamViaTheFileStorageServiceAndOverwriteIfneeded(bool overwrite)
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
                 var fakeStream = new MemoryStream();
                 var service = CreateService(fileStorageService: fileStorageSvc);
-                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream, It.Is<bool>(b => !b)))
+                fileStorageSvc.Setup(x => x.SaveFileAsync(It.IsAny<string>(), It.IsAny<string>(), fakeStream, overwrite))
                     .Completes()
                     .Verifiable();
 
-                await service.SavePackageFileAsync(CreatePackage(), fakeStream);
+                await service.SavePackageFileAsync(CreatePackage(), fakeStream, overwrite);
 
                 fileStorageSvc.VerifyAll();
             }

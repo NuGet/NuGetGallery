@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
 
 namespace NuGetGallery
 {
@@ -46,6 +47,32 @@ namespace NuGetGallery
             try
             {
                 UnderlyingClient.TrackMetric(metricName, value, properties);
+            }
+            catch
+            {
+                // logging failed, don't allow exception to escape
+            }
+        }
+
+        public void TrackDependency(string dependencyTypeName,
+                                    string target,
+                                    string dependencyName,
+                                    string data,
+                                    DateTimeOffset startTime,
+                                    TimeSpan duration,
+                                    string resultCode,
+                                    bool success,
+                                    IDictionary<string, string> properties)
+        {
+            try
+            {
+                var telemetry = new DependencyTelemetry(dependencyTypeName, target, dependencyName, data, startTime, duration, resultCode, success);
+                foreach (var property in properties)
+                {
+                    telemetry.Properties.Add(property);
+                }
+
+                UnderlyingClient.TrackDependency(telemetry);
             }
             catch
             {

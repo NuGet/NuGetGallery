@@ -911,4 +911,61 @@ If you would like to update the linked Microsoft account you can do so from the 
   <data name="PackageFileTooLarge" xml:space="preserve">
     <value>The package file exceeds the size limit. Please try again.</value>
   </data>
+  <data name="UploadPackage_PackageIsNotSigned" xml:space="preserve">
+    <value>This package must be signed with a registered certificate.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates" xml:space="preserve">
+    <value>The package was signed. You must register the signing certificate to publish signed packages.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate" xml:space="preserve">
+    <value>You can manage your certificates on the Account Settings page.</value>
+  </data>
+  <data name="UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner" xml:space="preserve">
+    <value>The package was signed. The owner '{0}' must register the signing certificate to publish signed packages.</value>
+    <comment>{0} is the signer name.</comment>
+  </data>
+  <data name="SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush" xml:space="preserve">
+    <value>The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information.
+Policy violations: {0}</value>
+  </data>
+  <data name="SecurityPolicy_RequirePackagePrefixReserved" xml:space="preserve">
+    <value>You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation.</value>
+  </data>
+  <data name="SecurityPolicy_CopyrightNotCompliant" xml:space="preserve">
+    <value>The package metadata contains a non-compliant copyright element.</value>
+  </data>
+  <data name="SecurityPolicy_RequiredAuthorMissing" xml:space="preserve">
+    <value>The package metadata is missing required author '{0}'.</value>
+  </data>
+  <data name="SecurityPolicy_RequiredLicenseUrlMissing" xml:space="preserve">
+    <value>The package metadata is missing required LicenseUrl.</value>
+  </data>
+  <data name="SecurityPolicy_RequiredProjectUrlMissing" xml:space="preserve">
+    <value>The package metadata is missing required ProjectUrl.</value>
+  </data>
+  <data name="SymbolsPackage_PackageIdAndVersionNotFound" xml:space="preserve">
+    <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading its symbols.</value>
+  </data>
+  <data name="SymbolsPackage_NotSymbolPackage" xml:space="preserve">
+    <value>The uploaded package is not a valid symbols package. The required 'SymbolsPackage' package type is missing.</value>
+  </data>
+  <data name="SymbolsPackage_FailedToReadPackage" xml:space="preserve">
+    <value>Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg).</value>
+  </data>
+  <data name="SymbolsPackage_InvalidDataInNuspec" xml:space="preserve">
+    <value>Invalid metadata items specified in nuspec. Please remove '{0}' from the nuspec.</value>
+  </data>
+  <data name="SymbolsPackage_InvalidFiles" xml:space="preserve">
+    <value>Invalid file found in the uploaded package. Symbols packages should only contain '{0}' files.</value>
+  </data>
+  <data name="SymbolsPackage_UploadNotAllowed" xml:space="preserve">
+    <value>You do not have the permissions to upload symbol packages.</value>
+  </data>
+  <data name="SymbolsPackage_ConflictValidating" xml:space="preserve">
+    <value>It looks like there is another copy of this symbols package pending validation(s). Please wait for the validation(s) to finish before trying to replace the symbols package.</value>
+  </data>
+  <data name="UploadPackage_SignedToUnsignedTransition" xml:space="preserve">
+    <value>The previous package version '{0}' is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading.</value>
+    <comment>{0} is the previous package's normalized version.</comment>
+  </data>
 </root>

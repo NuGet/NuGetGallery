@@ -44,144 +44,158 @@
 <script type="text/html" id="verify-metadata-template">
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
+            <!-- ko if: $data.Warnings -->
+            <div data-bind="foreach: $data.Warnings">
+                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+            </div>
+            <!-- /ko -->
 
-                <div class="verify-package-field">
-                    <label for="Id" class="verify-package-field-heading">Package ID</label>
-                    <p data-bind="text: $data.Id"></p>
-                    <input data-bind="value: $data.Id" type="hidden" name="Id" class="form-control" />
-                </div>
+            <div class="verify-package-field">
+                <label for="Id" class="verify-package-field-heading">Package ID</label>
+                <p data-bind="text: $data.Id"></p>
+                <input data-bind="value: $data.Id" type="hidden" name="Id" class="form-control" />
+            </div>
 
-                <div class="verify-package-field">
-                    <label for="Version" class="verify-package-field-heading">Version</label>
-                    <p data-bind="text: $data.Version"></p>
-                    <input data-bind="value: $data.Version" type="hidden" name="Version" class="form-control" />
-                    <input data-bind="value: $data.OriginalVersion" type="hidden" name="OriginalVersion" class="form-control" />
-                </div>
+            <div class="verify-package-field">
+                <label for="Version" class="verify-package-field-heading">Version</label>
+                <p data-bind="text: $data.Version"></p>
+                <input data-bind="value: $data.Version" type="hidden" name="Version" class="form-control" />
+                <input data-bind="value: $data.OriginalVersion" type="hidden" name="OriginalVersion" class="form-control" />
+            </div>
 
-                <!-- ko if: $data.PossibleOwners -->
-                <div class="verify-package-field form-group editable">
-                    <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'"></label>
-                    <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
-                    <select id="Owner" aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
-                        <option data-bind="value: $data, text: $data"></option>
-                    </select>
-                    <!-- /ko -->
-                    <!-- ko if: $data.PossibleOwners.length == 1 || !$data.IsNewId -->
-                    <!-- ko if: $data.IsNewId -->
-                    <p data-bind="text: $data.PossibleOwners[0]"></p>
-                    <!-- /ko -->
-                    <!-- ko ifnot: $data.IsNewId -->
-                    <p data-bind="text: $data.ExistingOwners"></p>
-                    <!-- /ko -->
-                    <input data-bind="value: $data.PossibleOwners[0]" type="hidden" name="Owner" class="form-control" />
-                    <!-- /ko -->
-                </div>
+            <!-- ko if: $data.PossibleOwners -->
+            <div class="verify-package-field form-group editable">
+                <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'"></label>
+                <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
+                <select id="Owner" aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
+                    <option data-bind="value: $data, text: $data"></option>
+                </select>
                 <!-- /ko -->
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Minimum NuGet Client Version</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">License URL</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Language</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Language }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Development Dependency</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.DevelopmentDependency }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading">Dependencies</div>
-                    <!-- ko if: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0 -->
-                    <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
-                    <!-- /ko -->
-                    <!-- ko ifnot: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0  -->
-                    <p><i>(none specified)</i></p>
-                    <!-- /ko -->
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Title</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Title }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Description</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Description }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading"><label>Summary</label> (shown on package search page)</div>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ReleaseNotes }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Project URL</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ProjectUrl }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <!-- Bind an on change event here to update the preview below-->
-                    <label class="verify-package-field-heading">Icon URL</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.IconUrl }}"></div>
-                </div>
-
-                <!-- ko if: $data.IconUrl -->
-                <div class="verify-package-field row">
-                    <div class="verify-package-field-heading col-sm-12">Icon Preview</div>
-                    <div id="icon-preview-container" class="col-sm-1">
-                        <img class="package-icon img-responsive" id="icon-preview" aria-label="The icon of your package" data-bind="attr: { src: $data.IconUrl }" /> <!-- probably need to check this for safety-->
-                    </div>
-                </div>
+                <!-- ko if: $data.PossibleOwners.length == 1 || !$data.IsNewId -->
+                <!-- ko if: $data.IsNewId -->
+                <p data-bind="text: $data.PossibleOwners[0]"></p>
                 <!-- /ko -->
-
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading"><label>Authors</label></div>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Authors }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <label class="verify-package-field-heading">Copyright</label>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Copyright }}"></div>
-                </div>
-
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading"><label>Tags</label></div>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Tags }}"></div>
-                </div>
-
-                <!-- ko if: $data.LicenseUrl -->
-                <div class="verify-package-field">
-                    <div class="verify-package-field-heading">Require License Acceptance</div>
-                    <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RequiresLicenseAcceptance }}"></div>
-                </div>
+                <!-- ko ifnot: $data.IsNewId -->
+                <p data-bind="text: $data.ExistingOwners"></p>
                 <!-- /ko -->
-
-                <!-- ko if: typeof($data.Listed) === 'boolean' -->
-                <div class="verify-package-field form-group editable">
-                    <div class="verify-package-field-heading">Package Visibility</div>
-                    <div class="checkbox">
-                        <label>
-                            <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }"
-                                   type="checkbox" name="Listed" id="Listed" value="true" />
-                            List package in search results
-                        </label>
-                    </div>
-                </div>
+                <input data-bind="value: $data.PossibleOwners[0]" type="hidden" name="Owner" class="form-control" />
                 <!-- /ko -->
+            </div>
+            <!-- /ko -->
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Minimum NuGet Client Version</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">License URL</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.LicenseUrl, Link: true }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Language</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Language }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Development Dependency</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.DevelopmentDependency }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading">Dependencies</div>
+                <!-- ko if: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0 -->
+                <div data-bind="template: {name: 'display-dependencysets', data: { DependencySets: Dependencies.DependencySets, OnlyHasAllFrameworks: Dependencies.OnlyHasAllFrameworks }}"></div>
+                <!-- /ko -->
+                <!-- ko ifnot: $data.Dependencies && Object.keys($data.Dependencies.DependencySets).length > 0  -->
+                <p><i>(none specified)</i></p>
+                <!-- /ko -->
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Title</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Title }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Description</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Description }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading"><label>Summary</label> (shown on package search page)</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ReleaseNotes }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Project URL</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ProjectUrl }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Repository Type</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RepositoryType }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Repository URL</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RepositoryUrl }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <!-- Bind an on change event here to update the preview below-->
+                <label class="verify-package-field-heading">Icon URL</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.IconUrl }}"></div>
+            </div>
+
+            <!-- ko if: $data.IconUrl -->
+            <div class="verify-package-field row">
+                <div class="verify-package-field-heading col-sm-12">Icon Preview</div>
+                <div id="icon-preview-container" class="col-sm-1">
+                    <img class="package-icon img-responsive" id="icon-preview" aria-label="The icon of your package" data-bind="attr: { src: $data.IconUrl }" /> <!-- probably need to check this for safety-->
+                </div>
+            </div>
+            <!-- /ko -->
+
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading"><label>Authors</label></div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Authors }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <label class="verify-package-field-heading">Copyright</label>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Copyright }}"></div>
+            </div>
+
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading"><label>Tags</label></div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Tags }}"></div>
+            </div>
+
+            <!-- ko if: $data.LicenseUrl -->
+            <div class="verify-package-field">
+                <div class="verify-package-field-heading">Require License Acceptance</div>
+                <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.RequiresLicenseAcceptance }}"></div>
+            </div>
+            <!-- /ko -->
+            <!-- ko if: typeof($data.Listed) === 'boolean' -->
+            <div class="verify-package-field form-group editable">
+                <div class="verify-package-field-heading">Package Visibility</div>
+                <div class="checkbox">
+                    <label>
+                        <input data-bind="attr: { 'checked' : $data.Listed ? $data.Listed : null }"
+                               type="checkbox" name="Listed" id="Listed" value="true" />
+                        List package in search results
+                    </label>
+                </div>
+            </div>
+            <!-- /ko -->
         </div>
 
         <!-- ko if: $data.IsSemVer2 -->

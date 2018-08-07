@@ -35,6 +35,7 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
+using NuGetGallery.Services;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
@@ -190,6 +191,11 @@ namespace NuGetGallery
                 .As<IEntityRepository<Organization>>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<EntityRepository<SymbolPackage>>()
+                .AsSelf()
+                .As<IEntityRepository<SymbolPackage>>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<CuratedFeedService>()
                 .AsSelf()
                 .As<ICuratedFeedService>()
@@ -259,9 +265,19 @@ namespace NuGetGallery
                 .As<IReservedNamespaceService>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<SymbolPackageService>()
+                .AsSelf()
+                .As<ISymbolPackageService>()
+                .InstancePerLifetimeScope();
+
             builder.RegisterType<PackageUploadService>()
                 .AsSelf()
                 .As<IPackageUploadService>()
+                .InstancePerLifetimeScope();
+
+            builder.RegisterType<SymbolPackageUploadService>()
+                .AsSelf()
+                .As<ISymbolPackageUploadService>()
                 .InstancePerLifetimeScope();
 
             builder.RegisterType<PackageOwnershipManagementService>()
@@ -341,7 +357,7 @@ namespace NuGetGallery
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<MessageService>()
+            builder.RegisterType<BackgroundMessageService>()
                 .AsSelf()
                 .As<IMessageService>()
                 .InstancePerLifetimeScope();
@@ -371,6 +387,9 @@ namespace NuGetGallery
             RegisterAuditingServices(builder, defaultAuditingService);
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
+
+            builder.RegisterType<MicrosoftTeamSubscription>()
+                .SingleInstance();
 
             // todo: bind all package curators by convention
             builder.RegisterType<WebMatrixPackageCurator>()

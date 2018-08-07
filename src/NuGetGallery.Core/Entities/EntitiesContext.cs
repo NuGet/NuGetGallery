@@ -373,6 +373,11 @@ namespace NuGetGallery
                 .HasForeignKey(uc => uc.CertificateKey)
                 .WillCascadeOnDelete(true); // Deleting a Certificate entity will also delete related UserCertificate entities.
 
+            modelBuilder.Entity<Certificate>()
+                .Property(pv => pv.Expiration)
+                .IsOptional()
+                .HasColumnType("datetime2");
+
             modelBuilder.Entity<SymbolPackage>()
                 .HasKey(s => s.Key);
 

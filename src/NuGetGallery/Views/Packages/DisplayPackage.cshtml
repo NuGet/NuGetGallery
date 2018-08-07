@@ -1,3 +1,4 @@
+
 @using NuGet.Services.Validation;
 
 @model DisplayPackageViewModel
@@ -471,7 +472,7 @@
                                     <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
                                             <b>
-                                                @packageVersion.FullVersion.Abbreviate(30)
+                                                @packageVersion.Version.Abbreviate(30)
                                                 @if (packageVersion.IsCurrent(Model))
                                                 {
                                                     @:(current)
@@ -517,7 +518,7 @@
                                 @VersionListDivider(rowCount, versionsExpanded)
                                 <tr class="deleted">
                                     <td class="version" colspan="2">
-                                        @packageVersion.FullVersion (deleted)
+                                        @packageVersion.Version (deleted)
                                     </td>
                                     <td>
                                         @packageVersion.DownloadCount
@@ -561,6 +562,31 @@
                             {
                                 @:Project Site
                             }
+                        </a>
+                    </li>
+                }
+                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl, secureOnly: true))
+                {
+                    <li>
+                        @switch (Model.RepositoryType)
+                        {
+                            case PackageViewModel.RepositoryKind.GitHub:
+                                <img class="icon" aria-hidden="true" alt="GitHub logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/github.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
+                                break;
+                            case PackageViewModel.RepositoryKind.Git:
+                                <img class="icon" aria-hidden="true" alt="Git logo"
+                                     src="@Url.Absolute("~/Content/gallery/img/git.svg")"
+                                     @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />
+                                break;
+                            default:
+                                <i class="ms-Icon ms-Icon--Code" aria-hidden="true"></i>
+                                break;
+                        }
+
+                        <a href="@Model.RepositoryUrl" data-track="outbound-repository-url" title="View the source code for this package" rel="nofollow">
+                            Source Code
                         </a>
                     </li>
                 }

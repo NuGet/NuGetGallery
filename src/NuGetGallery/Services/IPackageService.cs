@@ -66,7 +66,7 @@ namespace NuGetGallery
         /// <param name="package">Package to which owner is added.</param>
         /// <param name="newOwner">New owner to add.</param>
         /// <returns>Awaitable task.</returns>
-        Task AddPackageOwnerAsync(PackageRegistration package, User newOwner);
+        Task AddPackageOwnerAsync(PackageRegistration package, User newOwner, bool commitChanges = true);
 
         Task RemovePackageOwnerAsync(PackageRegistration package, User user, bool commitChanges = true);
 
@@ -102,6 +102,6 @@ namespace NuGetGallery
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" />
         /// is <c>null</c>.</exception>
-        Task SetRequiredSignerAsync(PackageRegistration registration, User signer);
+        Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true);
     }
 }

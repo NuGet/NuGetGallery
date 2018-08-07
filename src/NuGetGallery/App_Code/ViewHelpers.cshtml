@@ -47,6 +47,16 @@
     </div>
 }
 
+@helper Alert(string htmlContent, string subclass, string icon, bool isAlertRole = false)
+{
+    @Alert(s => new HelperResult(t => t.Write(htmlContent)), subclass, icon, isAlertRole);
+}
+
+@helper AlertInfo(string htmlContent, bool isAlertRole = false)
+{
+    @Alert(htmlContent, "info", "Info", isAlertRole)
+}
+
 @helper AlertInfo(Func<MvcHtmlString, HelperResult> htmlContent, bool isAlertRole = false)
 {
     @Alert(htmlContent, "info", "Info", isAlertRole)

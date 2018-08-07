@@ -45,6 +45,14 @@ namespace NuGetGallery
                 packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
 
         /// <summary>
+        /// The action of uploading a symbol package for an existing package.
+        /// </summary>
+        public static ActionRequiringPackagePermissions UploadSymbolPackage =
+            new ActionRequiringPackagePermissions(
+                accountOnBehalfOfPermissionsRequirement: RequireOwnerOrOrganizationMember,
+                packageRegistrationPermissionsRequirement: PermissionsRequirement.Owner);
+
+        /// <summary>
         /// The action of verify a package verification key.
         /// </summary>
         public static ActionRequiringPackagePermissions VerifyPackage =

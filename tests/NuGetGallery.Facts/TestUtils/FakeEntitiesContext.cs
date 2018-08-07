@@ -158,6 +158,18 @@ namespace NuGetGallery
             }
         }
 
+        public IDbSet<SymbolPackage> SymbolPackages
+        {
+            get
+            {
+                return Set<SymbolPackage>();
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         public Task<int> SaveChangesAsync()
         {
             _areChangesSaved = true;

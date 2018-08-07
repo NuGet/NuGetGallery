@@ -349,6 +349,22 @@
     <Compile Include="Migrations\201807181816293_SymbolPackages.Designer.cs">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.cs" />
+    <Compile Include="Migrations\201807261747084_AddCertificateDetails.Designer.cs">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.cs" />
+    <Compile Include="Migrations\201807302212501_AddShortCertificateNames.Designer.cs">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.cs" />
+    <Compile Include="Migrations\201808010014291_AddRepositoryType.Designer.cs">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.cs" />
+    <Compile Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.Designer.cs">
+      <DependentUpon>201808032317064_FixSymbolCreatedColumnEFIssue.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -360,8 +376,13 @@
     </Compile>
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
+    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
+    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
     <Compile Include="Security\RequiredSignerPolicy.cs" />
+    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
+    <Compile Include="Security\SecurityPolicyHandler.cs" />
     <Compile Include="Services\AccountDeletionOrphanPackagePolicy.cs" />
     <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />
@@ -370,7 +391,13 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
+    <Compile Include="Services\BackgroundMessageService.cs" />
+    <Compile Include="Services\ISymbolPackageUploadService.cs" />
+    <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
+    <Compile Include="Services\SymbolPackageUploadService.cs" />
+    <Compile Include="Services\SymbolPackageFileService.cs" />
+    <Compile Include="Services\SymbolPackageService.cs" />
     <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
@@ -387,6 +414,7 @@
     <Compile Include="Services\ImmediatePackageValidator.cs" />
     <Compile Include="Services\ContentObjectService.cs" />
     <Compile Include="Services\ISymbolPackageService.cs" />
+    <Compile Include="Services\PackageCommitResult.cs" />
     <Compile Include="Services\PackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageOwnershipManagementService.cs" />
     <Compile Include="Services\IPackageValidationInitiator.cs" />
@@ -468,6 +496,8 @@
     <Compile Include="Services\IReservedNamespaceService.cs" />
     <Compile Include="Services\IPackageUploadService.cs" />
     <Compile Include="Services\LoginDiscontinuationConfiguration.cs" />
+    <Compile Include="Services\PackageValidationResult.cs" />
+    <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
@@ -1378,7 +1408,7 @@
     <Compile Include="Controllers\AuthenticationController.cs" />
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
-    <Compile Include="Services\Extensions.cs" />
+    <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="Services\IMessageService.cs" />
     <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
@@ -1519,6 +1549,18 @@
     <EmbeddedResource Include="Migrations\201807181816293_SymbolPackages.resx">
       <DependentUpon>201807181816293_SymbolPackages.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807261747084_AddCertificateDetails.resx">
+      <DependentUpon>201807261747084_AddCertificateDetails.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201807302212501_AddShortCertificateNames.resx">
+      <DependentUpon>201807302212501_AddShortCertificateNames.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808010014291_AddRepositoryType.resx">
+      <DependentUpon>201808010014291_AddRepositoryType.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808032317064_FixSymbolCreatedColumnEFIssue.resx">
+      <DependentUpon>201808032317064_FixSymbolCreatedColumnEFIssue.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv2getupdates.json" />
@@ -1556,6 +1598,7 @@
     <Content Include="Scripts\jquery.validate.min.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.js" />
     <Content Include="Scripts\jquery.validate.unobtrusive.min.js" />
+    <Content Include="Scripts\knockout-2.2.1.js" />
     <Content Include="Scripts\knockout-projections.js" />
     <Content Include="Scripts\knockout-projections.min.js" />
     <Content Include="Scripts\modernizr-2.8.3.js" />
