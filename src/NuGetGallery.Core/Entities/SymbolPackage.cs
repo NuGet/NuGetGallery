@@ -3,7 +3,6 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
-using NuGet.Services.Validation;
 
 namespace NuGetGallery
 {
@@ -54,8 +53,6 @@ namespace NuGetGallery
         public string Id => Package?.Id;
 
         public string Version => Package?.Version;
-
-        public ValidatingType Type => ValidatingType.SymbolPackage;
 
         public bool Equals(SymbolPackage other)
         {

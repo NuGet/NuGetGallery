@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using NuGet.Services.Validation;
 
 namespace NuGetGallery
 {
@@ -246,7 +245,5 @@ namespace NuGetGallery
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
 
         public string Id => PackageRegistration.Id;
-
-        public ValidatingType Type => ValidatingType.Package;
     }
 }
