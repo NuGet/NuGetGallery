@@ -1,16 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Jobs;
-
 namespace Stats.AggregateCdnDownloadsInGallery
 {
-    public class Program
+    public class AggregateCdnDownloadsConfiguration
     {
-        public static void Main(string[] args)
-        {
-            var job = new AggregateCdnDownloadsJob();
-            JobRunner.Run(job, args).Wait();
-        }
+        public int BatchSize { get; set; }
+
+        public int BatchSleepSeconds { get; set; }
     }
 }

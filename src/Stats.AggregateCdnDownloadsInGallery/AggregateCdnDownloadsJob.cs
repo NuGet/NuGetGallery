@@ -9,16 +9,18 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
+using NuGet.Jobs.Configuration;
 using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownloadsInGallery.DownloadCountData>;
 
 namespace Stats.AggregateCdnDownloadsInGallery
 {
-    public class Job
-        : JobBase
+    public class AggregateCdnDownloadsJob : JsonConfigurationJob
     {
         private const int _defaultBatchSize = 5000;
         private const int _defaultBatchSleepSeconds = 10;
@@ -55,40 +57,35 @@ namespace Stats.AggregateCdnDownloadsInGallery
             DROP TABLE #AggregateCdnDownloadsInGallery";
 
         private const string _storedProcedureName = "[dbo].[SelectTotalDownloadCountsPerPackageVersion]";
-        private ISqlConnectionFactory _statisticsDbConnectionFactory;
-        private ISqlConnectionFactory _galleryDbConnectionFactory;
-        private int _batchSize;
-        private int _batchSleepSeconds;
+
+        private AggregateCdnDownloadsConfiguration _configuration;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
-
-            var galleryDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.DestinationDatabase);
-            _galleryDbConnectionFactory = new AzureSqlConnectionFactory(galleryDbConnectionString, secretInjector);
-
-            _batchSize = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSize) ?? _defaultBatchSize;
-            _batchSleepSeconds = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.BatchSleepSeconds) ?? _defaultBatchSleepSeconds;
+            _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<AggregateCdnDownloadsConfiguration>>().Value;
         }
 
         public override async Task Run()
         {
             // Gather download counts data from statistics warehouse
             IReadOnlyList<DownloadCountData> downloadData;
-            Logger.LogInformation("Using batch size {BatchSize} and batch sleep seconds {BatchSleepSeconds}.", _batchSize, _batchSleepSeconds);
-            Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", _statisticsDbConnectionFactory.DataSource, _statisticsDbConnectionFactory.InitialCatalog);
+            Logger.LogInformation("Using batch size {BatchSize} and batch sleep seconds {BatchSleepSeconds}.",
+                _configuration.BatchSize,
+                _configuration.BatchSleepSeconds);
+
             var stopwatch = Stopwatch.StartNew();
 
-            using (var statisticsDatabase = await _statisticsDbConnectionFactory.CreateAsync())
-            using (var statisticsDatabaseTransaction = statisticsDatabase.BeginTransaction(IsolationLevel.Snapshot))
+            using (var connection = await OpenSqlConnectionAsync<StatisticsDbConfiguration>())
+            using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
+                Logger.LogInformation("Gathering Download Counts from {DataSource}/{InitialCatalog}...", connection.DataSource, connection.Database);
+
                 downloadData = (
-                    await statisticsDatabase.QueryWithRetryAsync<DownloadCountData>(
+                    await connection.QueryWithRetryAsync<DownloadCountData>(
                         _storedProcedureName,
-                        transaction: statisticsDatabaseTransaction,
+                        transaction: transaction,
                         commandType: CommandType.StoredProcedure,
                         commandTimeout: TimeSpan.FromMinutes(15),
                         maxRetries: 3))
@@ -106,10 +103,10 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 return;
             }
 
-            using (var destinationDatabase = await _galleryDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
                 // Fetch package registrations so we can match package ID to package registration key.
-                var packageRegistrationLookup = await GetPackageRegistrations(destinationDatabase);
+                var packageRegistrationLookup = await GetPackageRegistrations(connection);
 
                 // Group based on package ID and store in a stack for easy incremental processing.
                 var allGroups = downloadData.GroupBy(p => p.PackageId).ToList();
@@ -126,9 +123,9 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 while (remainingGroups.Any())
                 {
                     // Create a batch of one or more package registrations to update.
-                    var batch = PopGroupBatch(remainingGroups, _batchSize);
+                    var batch = PopGroupBatch(remainingGroups, _configuration.BatchSize);
 
-                    await ProcessBatch(batch, destinationDatabase, packageRegistrationLookup);
+                    await ProcessBatch(batch, connection, packageRegistrationLookup);
 
                     Logger.LogInformation(
                         "There are {GroupCount} package registration groups remaining.",
@@ -136,8 +133,8 @@ namespace Stats.AggregateCdnDownloadsInGallery
 
                     if (remainingGroups.Any())
                     {
-                        Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _batchSleepSeconds);
-                        await Task.Delay(TimeSpan.FromSeconds(_batchSleepSeconds));
+                        Logger.LogInformation("Sleeping for {BatchSleepSeconds} seconds before continuing.", _configuration.BatchSleepSeconds);
+                        await Task.Delay(TimeSpan.FromSeconds(_configuration.BatchSleepSeconds));
                     }
                 }
 
@@ -304,6 +301,15 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 stopwatch.Elapsed.TotalSeconds);
 
             return packageRegistrationDictionary;
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<AggregateCdnDownloadsConfiguration>(services, configurationRoot);
         }
     }
 }
