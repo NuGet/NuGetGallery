@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
-using Autofac;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -21,16 +20,12 @@ namespace NuGetGallery.Security
     {
         private static Lazy<IEnumerable<UserSecurityPolicyHandler>> _userHandlers
             = new Lazy<IEnumerable<UserSecurityPolicyHandler>>(CreateUserHandlers);
-        private static Lazy<IEnumerable<PackageSecurityPolicyHandler>> _packageHandlers
-            = new Lazy<IEnumerable<PackageSecurityPolicyHandler>>(CreatePackageHandlers);
         private static readonly ControlRequiredSignerPolicy _controlRequiredSignerPolicy
             = new ControlRequiredSignerPolicy();
         private static readonly AutomaticallyOverwriteRequiredSignerPolicy _automaticallyOverwriteRequiredSignerPolicy
             = new AutomaticallyOverwriteRequiredSignerPolicy();
         private static readonly RequireOrganizationTenantPolicy _organizationTenantPolicy
             = RequireOrganizationTenantPolicy.Create();
-
-        private readonly IComponentContext _componentContext;
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -42,19 +37,11 @@ namespace NuGetGallery.Security
 
         protected IUserSecurityPolicySubscription DefaultSubscription { get; set; }
 
-        protected IUserSecurityPolicySubscription MicrosoftTeamSubscription { get; set; }
-
         protected SecurityPolicyService()
         {
         }
 
-        public SecurityPolicyService(
-            IEntitiesContext entitiesContext,
-            IAuditingService auditing,
-            IDiagnosticsService diagnostics,
-            IAppConfiguration configuration,
-            IComponentContext componentContext,
-            MicrosoftTeamSubscription microsoftTeamSubscription = null)
+        public SecurityPolicyService(IEntitiesContext entitiesContext, IAuditingService auditing, IDiagnosticsService diagnostics, IAppConfiguration configuration)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
             Auditing = auditing ?? throw new ArgumentNullException(nameof(auditing));
@@ -67,8 +54,6 @@ namespace NuGetGallery.Security
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             DefaultSubscription = new DefaultSubscription();
-            _componentContext = componentContext ?? throw new ArgumentNullException(nameof(componentContext));
-            MicrosoftTeamSubscription = microsoftTeamSubscription;
         }
 
         /// <summary>
@@ -83,17 +68,6 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Available package security policy handlers.
-        /// </summary>
-        protected virtual IEnumerable<PackageSecurityPolicyHandler> PackageHandlers
-        {
-            get
-            {
-                return _packageHandlers.Value;
-            }
-        }
-
-        /// <summary>
         /// Available user security policy subscriptions.
         /// </summary>
         public virtual IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions
@@ -102,7 +76,6 @@ namespace NuGetGallery.Security
             {
                 yield return _controlRequiredSignerPolicy;
                 yield return _automaticallyOverwriteRequiredSignerPolicy;
-                yield return MicrosoftTeamSubscription;
             }
         }
 
@@ -169,86 +142,6 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Evaluate package security policies for the specified action.
-        /// </summary>
-        /// <param name="action">Gallery action to evaluate.</param>
-        /// <param name="httpContext">Current http context.</param>
-        /// <param name="package">The package to evaluate.</param>
-        /// <param name="packageRegistration">The package registration. Will be <code>null</code> if the <paramref name="package"/> has a new package ID.</param>
-        /// <returns></returns>
-        public Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(
-            SecurityPolicyAction action,
-            HttpContextBase httpContext,
-            Package package)
-        {
-            var account = httpContext.GetCurrentUser();
-            return EvaluatePackagePoliciesInternalAsync(action, package, account, account, httpContext);
-        }
-
-        private async Task<SecurityPolicyResult> EvaluatePackagePoliciesInternalAsync(
-            SecurityPolicyAction action,
-            Package package,
-            User sourceAccount,
-            User targetAccount,
-            HttpContextBase httpContext,
-            IEnumerable<UserSecurityPolicy> policies = null,
-            bool auditSuccess = true)
-        {
-            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            policies = policies ?? sourceAccount.SecurityPolicies;
-
-            var relevantHandlers = PackageHandlers.Where(h => h.Action == action).ToList();
-
-            var packagePoliciesResult = SecurityPolicyResult.SuccessResult;
-            foreach (var handler in relevantHandlers)
-            {
-                var foundPolicies = policies.Where(p => p.Name.Equals(handler.Name, StringComparison.OrdinalIgnoreCase)).ToList();
-
-                if (foundPolicies.Any())
-                {
-                    var context = new PackageSecurityPolicyEvaluationContext(
-                        _componentContext.Resolve<IUserService>(),
-                        _componentContext.Resolve<IPackageOwnershipManagementService>(),
-                        foundPolicies,
-                        package,
-                        sourceAccount,
-                        targetAccount,
-                        httpContext);
-
-                    var result = await handler.EvaluateAsync(context);
-
-                    if (auditSuccess || !result.Success)
-                    {
-                        await Auditing.SaveAuditRecordAsync(new UserSecurityPolicyAuditRecord(
-                        context.TargetAccount.Username, GetAuditAction(action), foundPolicies, result.Success, result.ErrorMessage));
-                    }
-
-                    if (!result.Success)
-                    {
-                        Diagnostics.Information(
-                        $"Security policy from subscription '{foundPolicies.First().Subscription}' - '{handler.Name}' failed with error '{result.ErrorMessage}'.");
-
-                        return result;
-                    }
-
-                    if (result.HasWarnings)
-                    {
-                        if (packagePoliciesResult == SecurityPolicyResult.SuccessResult)
-                        {
-                            packagePoliciesResult = result;
-                        }
-                        else
-                        {
-                            packagePoliciesResult.AddWarnings(result.WarningMessages);
-                        }
-                    }
-                }
-            }
-
-            return packagePoliciesResult;
-        }
-
-        /// <summary>
         /// Evaluate organization security policies for the specified action.
         /// Note that the policy source (organization) and policy target (member) accounts are required in
         /// order to look up and evaluate policies against the relevant accounts.
@@ -282,7 +175,7 @@ namespace NuGetGallery.Security
                 if (foundPolicies.Any())
                 {
                     var context = new UserSecurityPolicyEvaluationContext(foundPolicies, sourceAccount, targetAccount, httpContext);
-                    var result = await handler.EvaluateAsync(context);
+                    var result = handler.Evaluate(context);
 
                     if (auditSuccess || !result.Success)
                     {
@@ -497,10 +390,5 @@ namespace NuGetGallery.Security
             yield return _controlRequiredSignerPolicy;
             yield return _automaticallyOverwriteRequiredSignerPolicy;
         }
-
-        private static IEnumerable<PackageSecurityPolicyHandler> CreatePackageHandlers()
-        {
-            yield return new RequirePackageMetadataCompliancePolicy();
-        }
-    }
+   }
 }

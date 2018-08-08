@@ -3,7 +3,6 @@
 
 using System.Collections.Specialized;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGet.Versioning;
@@ -18,10 +17,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("4.1.0-beta1")]
-        public async Task Evaluate_ReturnsSuccessIfClientVersionEqualOrHigherThanRequired(string minProtocolVersions)
+        public void Evaluate_ReturnsSuccessIfClientVersionEqualOrHigherThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = await EvaluateAsync(minProtocolVersions, actualClientVersion: "4.1.0", actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions, actualClientVersion: "4.1.0", actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.True(result.Success);
@@ -33,10 +32,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("2.5.0")]
-        public async Task Evaluate_ReturnsFailureIfClientVersionLowerThanRequired(string minProtocolVersions)
+        public void Evaluate_ReturnsFailureIfClientVersionLowerThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = await EvaluateAsync(minProtocolVersions, actualClientVersion: "2.5.0-beta1", actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions, actualClientVersion: "2.5.0-beta1", actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.False(result.Success);
@@ -48,10 +47,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("4.1.0-beta1")]
-        public async Task Evaluate_ReturnsSuccessIfProtocolVersionEqualOrHigherThanRequired(string minProtocolVersions)
+        public void Evaluate_ReturnsSuccessIfProtocolVersionEqualOrHigherThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = await EvaluateAsync(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "4.1.0");
+            var result = Evaluate(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "4.1.0");
 
             // Assert
             Assert.True(result.Success);
@@ -63,10 +62,10 @@ namespace NuGetGallery.Security
         [InlineData("3.0.0")]
         [InlineData("2.0.0,4.1.0")]
         [InlineData("2.5.0")]
-        public async Task Evaluate_ReturnsFailureIfProtocolVersionLowerThanRequired(string minProtocolVersions)
+        public void Evaluate_ReturnsFailureIfProtocolVersionLowerThanRequired(string minProtocolVersions)
         {
             // Arrange & Act
-            var result = await EvaluateAsync(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "2.5.0-beta1");
+            var result = Evaluate(minProtocolVersions, actualClientVersion: string.Empty, actualProtocolVersion: "2.5.0-beta1");
 
             // Assert
             Assert.False(result.Success);
@@ -74,10 +73,10 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async Task Evaluate_ReturnsFailureIfProtocolVersionLowerThenRequiredAndClientVersionHigher()
+        public void Evaluate_ReturnsFailureIfProtocolVersionLowerThenRequiredAndClientVersionHigher()
         {
             // Arrange & Act
-            var result = await EvaluateAsync("4.1.0", actualClientVersion: "4.1.0", actualProtocolVersion: "2.5.0-beta1");
+            var result = Evaluate("4.1.0", actualClientVersion: "4.1.0", actualProtocolVersion: "2.5.0-beta1");
 
             // Assert
             Assert.False(result.Success);
@@ -85,10 +84,10 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async Task Evaluate_ReturnsSuccessIfProtocolVersionHigherThenRequiredAndClientVersionLower()
+        public void Evaluate_ReturnsSuccessIfProtocolVersionHigherThenRequiredAndClientVersionLower()
         {
             // Arrange & Act
-            var result = await EvaluateAsync("4.1.0", actualClientVersion: "2.5.0-beta1", actualProtocolVersion: "4.1.0");
+            var result = Evaluate("4.1.0", actualClientVersion: "2.5.0-beta1", actualProtocolVersion: "4.1.0");
 
             // Assert
             Assert.True(result.Success);
@@ -96,17 +95,17 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async Task Evaluate_ReturnsFailureIfProtocolVersionHeaderIsMissing()
+        public void Evaluate_ReturnsFailureIfProtocolVersionHeaderIsMissing()
         {
             // Arrange & Act
-            var result = await EvaluateAsync(minProtocolVersions: "4.1.0", actualClientVersion: string.Empty, actualProtocolVersion: string.Empty);
+            var result = Evaluate(minProtocolVersions: "4.1.0", actualClientVersion: string.Empty, actualProtocolVersion: string.Empty);
 
             // Assert
             Assert.False(result.Success);
             Assert.NotNull(result.ErrorMessage);
         }
 
-        private Task<SecurityPolicyResult> EvaluateAsync(string minProtocolVersions, string actualClientVersion, string actualProtocolVersion)
+        private SecurityPolicyResult Evaluate(string minProtocolVersions, string actualClientVersion, string actualProtocolVersion)
         {
             var headers = new NameValueCollection();
             if (!string.IsNullOrEmpty(actualClientVersion))
@@ -130,7 +129,7 @@ namespace NuGetGallery.Security
             ).ToArray();
             var context = new UserSecurityPolicyEvaluationContext(policies, httpContext.Object);
 
-            return new RequireMinProtocolVersionForPushPolicy().EvaluateAsync(context);
+            return new RequireMinProtocolVersionForPushPolicy().Evaluate(context);
         }
     }
 }

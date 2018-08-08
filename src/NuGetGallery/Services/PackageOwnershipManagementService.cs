@@ -31,7 +31,7 @@ namespace NuGetGallery
             _auditingService = auditingService ?? throw new ArgumentNullException(nameof(auditingService));
         }
 
-        public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true)
+        public async Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user)
         {
             if (packageRegistration == null)
             {
@@ -43,58 +43,43 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(user));
             }
 
-            if (commitChanges)
+            using (var strategy = new SuspendDbExecutionStrategy())
+            using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
             {
-                using (var strategy = new SuspendDbExecutionStrategy())
-                using (var transaction = _entitiesContext.GetDatabase().BeginTransaction())
-                {
-                    await AddPackageOwnerTask(packageRegistration, user, commitChanges);
-
-                    transaction.Commit();
-                }
-            }
-            else
-            {
-                await AddPackageOwnerTask(packageRegistration, user, commitChanges);
-            }
-
-            await _auditingService.SaveAuditRecordAsync(
-                new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.AddOwner, user.Username));
-        }
-
-        private async Task AddPackageOwnerTask(PackageRegistration packageRegistration, User user, bool commitChanges = true)
-        {
-            Func<ReservedNamespace, bool> predicate =
+                Func<ReservedNamespace, bool> predicate =
                     reservedNamespace => reservedNamespace.IsPrefix
                         ? packageRegistration.Id.StartsWith(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase)
                         : packageRegistration.Id.Equals(reservedNamespace.Value, StringComparison.OrdinalIgnoreCase);
 
-            var userOwnedMatchingNamespacesForId = user
-                .ReservedNamespaces
-                .Where(predicate);
+                var userOwnedMatchingNamespacesForId = user
+                    .ReservedNamespaces
+                    .Where(predicate);
 
-            if (userOwnedMatchingNamespacesForId.Any())
-            {
-                if (!packageRegistration.IsVerified)
+                if (userOwnedMatchingNamespacesForId.Any())
                 {
-                    await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { packageRegistration }, isVerified: true, commitChanges: commitChanges);
-                }
+                    if (!packageRegistration.IsVerified)
+                    {
+                        await _packageService.UpdatePackageVerifiedStatusAsync(new List<PackageRegistration> { packageRegistration }, isVerified: true);
+                    }
 
-                userOwnedMatchingNamespacesForId
-                    .ToList()
-                    .ForEach(mn =>
-                        _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, packageRegistration));
+                    userOwnedMatchingNamespacesForId
+                        .ToList()
+                        .ForEach(mn =>
+                            _reservedNamespaceService.AddPackageRegistrationToNamespace(mn.Value, packageRegistration));
 
-                if (commitChanges)
-                {
                     // The 'AddPackageRegistrationToNamespace' does not commit its changes, so saving changes for consistency.
                     await _entitiesContext.SaveChangesAsync();
                 }
+
+                await _packageService.AddPackageOwnerAsync(packageRegistration, user);
+
+                await DeletePackageOwnershipRequestAsync(packageRegistration, user);
+
+                transaction.Commit();
             }
 
-            await _packageService.AddPackageOwnerAsync(packageRegistration, user, commitChanges);
-
-            await DeletePackageOwnershipRequestAsync(packageRegistration, user, commitChanges);
+            await _auditingService.SaveAuditRecordAsync(
+                new PackageRegistrationAuditRecord(packageRegistration, AuditedPackageRegistrationAction.AddOwner, user.Username));
         }
 
         public async Task<PackageOwnerRequest> AddPackageOwnershipRequestAsync(PackageRegistration packageRegistration, User requestingOwner, User newOwner)
@@ -179,7 +164,7 @@ namespace NuGetGallery
             await _entitiesContext.SaveChangesAsync();
         }
 
-        public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true)
+        public async Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner)
         {
             if (packageRegistration == null)
             {
@@ -194,10 +179,10 @@ namespace NuGetGallery
             var request = _packageOwnerRequestService.GetPackageOwnershipRequests(package: packageRegistration, newOwner: newOwner).FirstOrDefault();
             if (request != null)
             {
-                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request, commitChanges);
+                await _packageOwnerRequestService.DeletePackageOwnershipRequest(request);
             }
         }
-
+        
         private static bool OwnerHasPermissionsToRemove(User requestingOwner, User ownerToBeRemoved, PackageRegistration packageRegistration)
         {
             var reservedNamespaces = packageRegistration.ReservedNamespaces.ToList();

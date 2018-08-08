@@ -34,7 +34,7 @@ namespace NuGetGallery.Security
         {
             var policy = new ControlRequiredSignerPolicy();
 
-            Assert.ThrowsAsync<NotImplementedException>(() => policy.EvaluateAsync(context: null));
+            Assert.Throws<NotImplementedException>(() => policy.Evaluate(context: null));
         }
 
         [Fact]

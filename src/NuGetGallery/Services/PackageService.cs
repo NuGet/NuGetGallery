@@ -346,18 +346,15 @@ namespace NuGetGallery
             }
         }
 
-        public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner, bool commitChanges = true)
+        public async Task AddPackageOwnerAsync(PackageRegistration package, User newOwner)
         {
             package.Owners.Add(newOwner);
 
-            if (commitChanges)
-            {
-                await _packageRepository.CommitChangesAsync();
-            }
+            await _packageRepository.CommitChangesAsync();
 
             if (_securityPolicyService.IsSubscribed(newOwner, AutomaticallyOverwriteRequiredSignerPolicy.PolicyName))
             {
-                await SetRequiredSignerAsync(package, newOwner, commitChanges);
+                await SetRequiredSignerAsync(package, newOwner);
             }
         }
 
@@ -701,7 +698,7 @@ namespace NuGetGallery
         /// <param name="signer">A user.  May be <c>null</c>.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" /> is <c>null</c>.</exception>
-        public async Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true)
+        public async Task SetRequiredSignerAsync(PackageRegistration registration, User signer)
         {
             if (registration == null)
             {
@@ -741,10 +738,7 @@ namespace NuGetGallery
 
             if (isCommitRequired)
             {
-                if (commitChanges)
-                {
-                    await _packageRegistrationRepository.CommitChangesAsync();
-                }
+                await _packageRegistrationRepository.CommitChangesAsync();
 
                 var auditRecord = PackageRegistrationAuditRecord.CreateForSetRequiredSigner(
                     registration,

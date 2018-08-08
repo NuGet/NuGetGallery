@@ -619,9 +619,9 @@ namespace NuGetGallery.Services
                     packageOwnershipManagementService.Setup(m => m.GetPackageOwnershipRequests(null, null, _user))
                         .Returns(PackageOwnerRequests);
 
-                    packageOwnershipManagementService.Setup(m => m.DeletePackageOwnershipRequestAsync(It.IsAny<PackageRegistration>(), _user, true))
+                    packageOwnershipManagementService.Setup(m => m.DeletePackageOwnershipRequestAsync(It.IsAny<PackageRegistration>(), _user))
                         .Returns(Task.CompletedTask)
-                        .Callback<PackageRegistration, User, bool>((package, user, commitChanges) =>
+                        .Callback<PackageRegistration, User>((package, user) =>
                         {
                             PackageOwnerRequests.Remove(PackageOwnerRequests.First(r => r.PackageRegistration == package && r.NewOwner == user));
                         });
