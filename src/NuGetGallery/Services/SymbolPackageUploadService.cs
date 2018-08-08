@@ -58,7 +58,7 @@ namespace NuGetGallery
                 }
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
                 {
-                    if (symbolPackage.Published == null)
+                    if (!symbolPackage.Published.HasValue)
                     {
                         symbolPackage.Published = DateTime.UtcNow;
                     }
