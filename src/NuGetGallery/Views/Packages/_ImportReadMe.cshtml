@@ -69,7 +69,7 @@
                         <input type="text" id="ReadMeFileText" class="form-control" value="Browse for a Markdown Documentation file..."
                                aria-label="Upload documentation.md file" readonly />
                         <label for="ReadMeFileInput" id="ReadMeFileLabel" class="input-group-btn">
-                            <span class="btn btn-primary form-control" aria-label="Browse for a Markdown Documentation file" role="button">
+                            <span id="browse-for-readme-button" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for a Markdown Documentation file" role="button">
                                 Browse&hellip;<input type="file" accept=".md" data-bind="value: Edit.ReadMe.SourceFile" name="Edit.ReadMe.SourceFile" aria-labelledby="ReadMeFileLabel" id="ReadMeFileInput" style="display:none;" />
                             </span>
                         </label>

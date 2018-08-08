@@ -24,7 +24,8 @@ $(function () {
     function showModal() {
         $(document).on('ready', function (e) {
             $("#popUpModal").modal({
-                show: true
+                show: true,
+                focus: true
             });
         })
     };

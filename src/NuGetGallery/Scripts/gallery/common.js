@@ -205,6 +205,76 @@
         window.nuget.configureExpander(prefix, "ChevronRight", null, "ChevronDown", null);
     };
 
+    nuget.configureFileInputButton = function (id) {
+        // File input buttons should respond to keyboard events.
+        $("#" + id).on("keypress", function (e) {
+            var code = (e.keyCode || e.which);
+            var isInteract = (code == 13 /*enter*/ || code == 32 /*space*/) && !e.altKey && !e.ctrlKey && !e.metaKey && !e.shiftKey;
+            if (isInteract) {
+                $(this).click();
+            }
+        });
+    }
+
+    nuget.canElementBeTabbedTo = function (element) {
+        var isElement = function (type) {
+            return element.is(type);
+        }
+
+        var hasAttribute = function (attributeName) {
+            var attribute = element.attr(attributeName);
+            return typeof attribute !== typeof undefined && attribute !== false;
+        }
+
+        if (hasAttribute("tabindex")) {
+            // Elements that have had their tabindex set to -1 cannot be tabbed to.
+            return element.attr("tabindex") !== "-1";
+        }
+
+        // See https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Content_categories#Interactive_content
+        var alwaysInteractiveElements = ['a', 'button', 'details', 'embed', 'iframe', 'keygen', 'label', 'select', 'textarea'];
+        var i;
+        for (i = 0; i < alwaysInteractiveElements.length; i++) {
+            if (isElement(alwaysInteractiveElements[i])) {
+                return true;
+            }
+        }
+
+        return ((isElement("audio") && hasAttribute("controls")) ||
+            (isElement("img") && hasAttribute("usemap")) ||
+            (isElement("input") && element.attr("type") !== "hidden") ||
+            (isElement("menu") && element.attr("type") !== "toolbar") ||
+            (isElement("object") && hasAttribute("usemap")) ||
+            (isElement("video") && hasAttribute("controls")));
+    }
+
+    nuget.getFirstChildThatCanBeTabbedTo = function (element) {
+        if (window.nuget.canElementBeTabbedTo(element)) {
+            return element;
+        }
+
+        // If an element has its tabindex set to -1, none of its children can be tabbed to.
+        if (element.attr("tabindex") === "-1") {
+            return null;
+        }
+
+        var i;
+        var children = element.children();
+        for (i = 0; i < children.length; i++) {
+            var child = children.eq(i);
+            if (window.nuget.canElementBeTabbedTo(child)) {
+                return child;
+            }
+
+            var childChild = window.nuget.getFirstChildThatCanBeTabbedTo(child);
+            if (childChild !== null) {
+                return childChild;
+            }
+        }
+
+        return null;
+    }
+
     // Source: https://stackoverflow.com/a/27568129/52749
     // Detects whether SVG is supported in the browser.
     nuget.supportsSvg = function () {
@@ -399,6 +469,19 @@
                 var currInput = searchbox.val();
                 searchbox.val("");
                 searchbox.val(currInput);
+            }
+        });
+
+        $("#skipToContent").on('click', function () {
+            // Focus on the first element that can be tabbed to inside the "skippedToContent" element.
+            var skippedToContent = $("#skippedToContent");
+            var firstChildThatCanBeTabbedTo = window.nuget.getFirstChildThatCanBeTabbedTo(skippedToContent.first());
+            if (firstChildThatCanBeTabbedTo !== null) {
+                firstChildThatCanBeTabbedTo.focus();
+            } else {
+                // Focus on the "skippedToContent" element itself if we can't find an element on the page we can tab to.
+                // It's better to lose tab focus than to have the focus stay on the "Skip to Content" link. 
+                skippedToContent.focus();
             }
         });
     });

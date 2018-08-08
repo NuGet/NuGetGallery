@@ -72,7 +72,9 @@
                                         <input type="submit" class="btn btn-primary btn-danger form-control" id="delete-account" value="Submit request to delete my account" />
                                     </div>
                                     <div class="col-sm-6">
-                                        <a href="@Url.Home()" role="button" class="btn btn-default form-control" id="cancel-delete-account">Cancel</a>
+                                        <button type="button" onclick="window.location.href = '@Url.Home()'" class="btn btn-default form-control" id="cancel-delete-account">
+                                            Cancel
+                                        </button>
                                     </div>
                                 </div>
                             }

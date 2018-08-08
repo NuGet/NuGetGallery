@@ -9,7 +9,7 @@
 <section role="main" class="container main-container page-list-packages">
     <div class="row-heading clearfix">
         <div class="cell-heading">
-            <h1>
+            <h1 role="alert">
                 @if (String.IsNullOrEmpty(Model.SearchTerm))
                 {
                     if (Model.TotalCount == 1)
@@ -34,7 +34,6 @@
 
                     <text>returned for @Html.BreakWord(Model.SearchTerm)</text>
                 }
-
             </h1>
         </div>
         <div class="cell-controls">
