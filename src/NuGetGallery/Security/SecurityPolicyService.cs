@@ -116,7 +116,6 @@ namespace NuGetGallery.Security
                 yield return _controlRequiredSignerPolicy;
                 yield return _automaticallyOverwriteRequiredSignerPolicy;
                 yield return _organizationTenantPolicy;
-                yield return MicrosoftTeamSubscription;
             }
         }
 
