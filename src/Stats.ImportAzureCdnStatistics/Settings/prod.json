@@ -1,0 +1,19 @@
+{
+  "Initialization": {
+    "AzureCdnCloudStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$",
+    "AzureCdnCloudStorageContainerName": "nuget-cdnlogs-raw",
+    "AzureCdnPlatform": "HttpLargeObject",
+    "AzureCdnAccountNumber": "$$Prod-AzureCdn-AccountNumber$$"
+  },
+
+  "StatisticsDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.StatisticsDatabaseAddress};Initial Catalog=nuget-prod-statistics;User ID=$$Prod-StatisticsDBWriter-UserName$$;Password=$$Prod-StatisticsDBWriter-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

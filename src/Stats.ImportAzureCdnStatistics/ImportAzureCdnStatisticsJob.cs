@@ -6,66 +6,57 @@ using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
+using NuGet.Jobs.Configuration;
 using Stats.AzureCdnLogs.Common;
 
 namespace Stats.ImportAzureCdnStatistics
 {
-    public class Job
-        : JobBase
+    public class ImportAzureCdnStatisticsJob : JsonConfigurationJob
     {
-        private bool _aggregatesOnly;
-        private string _azureCdnAccountNumber;
-        private string _cloudStorageContainerName;
+        private ImportAzureCdnStatisticsConfiguration _configuration;
         private AzureCdnPlatform _azureCdnPlatform;
-        private ISqlConnectionFactory _statisticsDbConnectionFactory;
-        private CloudStorageAccount _cloudStorageAccount;
         private CloudBlobClient _cloudBlobClient;
         private LogFileProvider _blobLeaseManager;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            var azureCdnPlatform = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnPlatform);
-            var cloudStorageAccountConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageAccount);
-            _cloudStorageAccount = ValidateAzureCloudStorageAccount(cloudStorageAccountConnectionString);
+            _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<ImportAzureCdnStatisticsConfiguration>>().Value;
 
-            _azureCdnAccountNumber = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnAccountNumber);
-            _azureCdnPlatform = ValidateAzureCdnPlatform(azureCdnPlatform);
-            _cloudStorageContainerName = ValidateAzureContainerName(JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.AzureCdnCloudStorageContainerName));
+            _azureCdnPlatform = ValidateAzureCdnPlatform(_configuration.AzureCdnPlatform);
 
-            _aggregatesOnly = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.AggregatesOnly);
-
-            // construct a cloud blob client for the configured storage account
-            _cloudBlobClient = _cloudStorageAccount.CreateCloudBlobClient();
+            var cloudStorageAccount = ValidateAzureCloudStorageAccount(_configuration.AzureCdnCloudStorageAccount);
+            _cloudBlobClient = cloudStorageAccount.CreateCloudBlobClient();
             _cloudBlobClient.DefaultRequestOptions.RetryPolicy = new ExponentialRetry(TimeSpan.FromSeconds(10), 5);
 
-            // Get the source blob container (containing compressed log files)
-            // and construct a log source (fetching raw logs from the source blob container)
-            var sourceBlobContainer = _cloudBlobClient.GetContainerReference(_cloudStorageContainerName);
-            _blobLeaseManager = new LogFileProvider(sourceBlobContainer, LoggerFactory);
+            _blobLeaseManager = new LogFileProvider(
+                _cloudBlobClient.GetContainerReference(_configuration.AzureCdnCloudStorageContainerName),
+                LoggerFactory);
         }
 
         public override async Task Run()
         {
             // Get the target blob container (for archiving decompressed log files)
-            var targetBlobContainer = _cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-archive");
+            var targetBlobContainer = _cloudBlobClient.GetContainerReference(
+                _configuration.AzureCdnCloudStorageContainerName + "-archive");
             await targetBlobContainer.CreateIfNotExistsAsync();
 
             // Get the dead-letter table (corrupted or failed blobs will end up there)
-            var deadLetterBlobContainer = _cloudBlobClient.GetContainerReference(_cloudStorageContainerName + "-deadletter");
+            var deadLetterBlobContainer = _cloudBlobClient.GetContainerReference(
+                _configuration.AzureCdnCloudStorageContainerName + "-deadletter");
             await deadLetterBlobContainer.CreateIfNotExistsAsync();
 
             // Create a parser
-            var warehouse = new Warehouse(LoggerFactory, _statisticsDbConnectionFactory);
+            var warehouse = new Warehouse(LoggerFactory, OpenSqlConnectionAsync<StatisticsDbConfiguration>);
             var statisticsBlobContainerUtility = new StatisticsBlobContainerUtility(
                 targetBlobContainer,
                 deadLetterBlobContainer,
@@ -74,11 +65,13 @@ namespace Stats.ImportAzureCdnStatistics
             var logProcessor = new LogFileProcessor(statisticsBlobContainerUtility, LoggerFactory, warehouse);
 
             // Get the next to-be-processed raw log file using the cdn raw log file name prefix
-            var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_", _azureCdnPlatform.GetRawLogFilePrefix(), _azureCdnAccountNumber);
+            var prefix = string.Format(CultureInfo.InvariantCulture, "{0}_{1}_",
+                _azureCdnPlatform.GetRawLogFilePrefix(),
+                _configuration.AzureCdnAccountNumber);
 
             // Get next raw log file to be processed
             IReadOnlyCollection<string> alreadyAggregatedLogFiles = null;
-            if (_aggregatesOnly)
+            if (_configuration.AggregatesOnly)
             {
                 // We only want to process aggregates for the log files.
                 // Get the list of files we already processed so we can skip them.
@@ -90,9 +83,9 @@ namespace Stats.ImportAzureCdnStatistics
             {
                 var packageTranslator = new PackageTranslator("packagetranslations.json");
                 var packageStatisticsParser = new PackageStatisticsParser(packageTranslator, LoggerFactory);
-                await logProcessor.ProcessLogFileAsync(leasedLogFile, packageStatisticsParser, _aggregatesOnly);
+                await logProcessor.ProcessLogFileAsync(leasedLogFile, packageStatisticsParser, _configuration.AggregatesOnly);
 
-                if (_aggregatesOnly)
+                if (_configuration.AggregatesOnly)
                 {
                     _blobLeaseManager.TrackLastProcessedBlobUri(leasedLogFile.Uri);
                 }
@@ -138,6 +131,15 @@ namespace Stats.ImportAzureCdnStatistics
                 throw new ArgumentException("Job parameter for Azure Storage Container Name is not defined.");
             }
             return containerName;
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<ImportAzureCdnStatisticsConfiguration>(services, configurationRoot);
         }
     }
 }

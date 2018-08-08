@@ -1,0 +1,19 @@
+{
+  "Initialization": {
+    "AzureCdnCloudStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetdevlegacy;AccountKey=$$Dev-NuGetDevLegacyStorage-Key$$",
+    "AzureCdnCloudStorageContainerName": "nuget-cdnlogs-raw",
+    "AzureCdnPlatform": "HttpLargeObject",
+    "AzureCdnAccountNumber": "$$Dev-AzureCdn-AccountNumber$$"
+  },
+
+  "StatisticsDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.StatisticsDatabaseAddress};Initial Catalog=nuget-dev-statistics;User ID=$$Dev-StatisticsDBWriter-UserName$$;Password=$$Dev-StatisticsDBWriter-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

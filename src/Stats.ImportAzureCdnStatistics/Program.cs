@@ -9,7 +9,7 @@ namespace Stats.ImportAzureCdnStatistics
     {
         public static void Main(string[] args)
         {
-            var job = new Job();
+            var job = new ImportAzureCdnStatisticsJob();
             JobRunner.Run(job, args).Wait();
         }
     }
