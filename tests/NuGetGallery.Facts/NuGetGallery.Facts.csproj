@@ -87,6 +87,7 @@
     <Compile Include="Filters\UIAuthorizeAttributeFacts.cs" />
     <Compile Include="Framework\MemberDataHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelperFacts.cs" />
+    <Compile Include="Helpers\PackageHelperTests.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3Facts.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4Facts.cs" />
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
@@ -118,6 +119,7 @@
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
@@ -135,6 +137,8 @@
     <Compile Include="Services\PackageOwnerRequestServiceFacts.cs" />
     <Compile Include="Services\PackageOwnershipManagementServiceFacts.cs" />
     <Compile Include="Services\LoginDiscontinuationConfigurationFacts.cs" />
+    <Compile Include="Services\SymbolPackageUploadServiceFacts.cs" />
+    <Compile Include="Services\SymbolPackageServiceFacts.cs" />
     <Compile Include="Services\PermissionsHelpersFacts.cs" />
     <Compile Include="Services\ReadMeServiceFacts.cs" />
     <Compile Include="Infrastructure\UserAuditRecordFacts.cs" />

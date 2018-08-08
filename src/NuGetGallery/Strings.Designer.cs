@@ -1778,6 +1778,69 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to It looks like there is another copy of this symbols package pending validation(s). Please wait for the validation(s) to finish before trying to replace the symbols package..
+        /// </summary>
+        public static string SymbolsPackage_ConflictValidating {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_ConflictValidating", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg)..
+        /// </summary>
+        public static string SymbolsPackage_FailedToReadPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_FailedToReadPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid metadata items specified in nuspec. Please remove &apos;{0}&apos; from the nuspec..
+        /// </summary>
+        public static string SymbolsPackage_InvalidDataInNuspec {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_InvalidDataInNuspec", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid file found in the uploaded package. Symbols packages should only contain &apos;{0}&apos; files..
+        /// </summary>
+        public static string SymbolsPackage_InvalidFiles {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_InvalidFiles", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The uploaded package is not a valid symbols package. The required &apos;SymbolsPackage&apos; package type is missing..
+        /// </summary>
+        public static string SymbolsPackage_NotSymbolPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_NotSymbolPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A package with ID &apos;{0}&apos; and version &apos;{1}&apos; does not exist. Please upload the package before uploading its symbols..
+        /// </summary>
+        public static string SymbolsPackage_PackageIdAndVersionNotFound {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_PackageIdAndVersionNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
+        /// </summary>
+        public static string SymbolsPackage_UploadNotAllowed {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_UploadNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The title of your package, &apos;{0}&apos;, is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again..
         /// </summary>
         public static string TitleMatchesExistingRegistration {
@@ -2099,6 +2162,15 @@ namespace NuGetGallery {
         public static string UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner {
             get {
                 return ResourceManager.GetString("UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The previous package version &apos;{0}&apos; is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading..
+        /// </summary>
+        public static string UploadPackage_SignedToUnsignedTransition {
+            get {
+                return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
             }
         }
         

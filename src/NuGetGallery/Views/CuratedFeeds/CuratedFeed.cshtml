@@ -1,7 +1,6 @@
 ﻿@model CuratedFeedViewModel
 @{
     ViewBag.Title = "Curated Feed: " + Model.Name;
-    ViewBag.MdPageColumns = Constants.ColumnsFormMd;
     Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
@@ -9,7 +8,7 @@
     @ViewHelpers.AjaxAntiForgeryToken(Html)
 
     <div class="row">
-        <div class="col-md-12">
+        <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             <h1 class="text-center">Curated Feed <a href="@Url.CuratedPackageList(0, "", Model.Name)" class="ms-noWrap">@Model.Name</a></h1>
         </div>
     </div>

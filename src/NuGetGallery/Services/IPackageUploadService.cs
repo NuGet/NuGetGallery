@@ -10,6 +10,16 @@ namespace NuGetGallery
 {
     public interface IPackageUploadService
     {
+        /// <summary>
+        /// Validate the provided package archive reader before
+        /// <see cref="GeneratePackageAsync(string, PackageArchiveReader, PackageStreamMetadata, User, User)"/> is
+        /// called. This is useful for finding errors or warnings that should be caught before the user verifies their
+        /// UI package upload.
+        /// </summary>
+        /// <param name="nuGetPackage">The package archive reader.</param>
+        /// <returns>The package validation result.</returns>
+        Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage);
+
         Task<Package> GeneratePackageAsync(
             string id,
             PackageArchiveReader nugetPackage,
@@ -28,7 +38,7 @@ namespace NuGetGallery
         /// <param name="owner">The owner of the package.</param>
         /// <param name="currentUser">The current user.</param>
         /// <returns>The package validation result.</returns>
-        Task<PackageValidationResult> ValidatePackageAsync(
+        Task<PackageValidationResult> ValidateAfterGeneratePackageAsync(
             Package package,
             PackageArchiveReader nuGetPackage,
             User owner,

@@ -15,6 +15,11 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile);
 
         /// <summary>
+        /// Saves the contents of the package to the public container for available packages, will overwrite file if needed.
+        /// </summary>
+        Task SavePackageFileAsync(Package package, Stream packageFile, bool overwrite);
+
+        /// <summary>
         /// Downloads the package from the file storage and reads it into a stream.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package package);

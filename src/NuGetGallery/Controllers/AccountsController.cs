@@ -92,7 +92,7 @@ namespace NuGetGallery
         [HttpPost]
         [ActionName("ConfirmationRequired")]
         [ValidateAntiForgeryToken]
-        public virtual ActionResult ConfirmationRequiredPost(string accountName = null)
+        public virtual async Task<ActionResult> ConfirmationRequiredPost(string accountName = null)
         {
             var account = GetAccount(accountName);
 
@@ -108,7 +108,7 @@ namespace NuGetGallery
             ConfirmationViewModel model;
             if (!alreadyConfirmed)
             {
-                SendNewAccountEmail(account);
+                await SendNewAccountEmailAsync(account);
 
                 model = new ConfirmationViewModel(account)
                 {
@@ -122,7 +122,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        protected abstract void SendNewAccountEmail(User account);
+        protected abstract Task SendNewAccountEmailAsync(User account);
 
         [UIAuthorize(allowDiscontinuedLogins: true)]
         public virtual async Task<ActionResult> Confirm(string accountName, string token)
@@ -163,7 +163,7 @@ namespace NuGetGallery
                 // Change notice not required for new accounts.
                 if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
                 {
-                    MessageService.SendEmailChangeNoticeToPreviousEmailAddress(account, existingEmail);
+                    await MessageService.SendEmailChangeNoticeToPreviousEmailAddressAsync(account, existingEmail);
 
                     string returnUrl = HttpContext.GetConfirmationReturnUrl();
                     if (!String.IsNullOrEmpty(returnUrl))
@@ -254,13 +254,13 @@ namespace NuGetGallery
 
             if (account.Confirmed)
             {
-                SendEmailChangedConfirmationNotice(account);
+                await SendEmailChangedConfirmationNoticeAsync(account);
             }
 
             return RedirectToAction(AccountAction);
         }
 
-        protected abstract void SendEmailChangedConfirmationNotice(User account);
+        protected abstract Task SendEmailChangedConfirmationNoticeAsync(User account);
 
         [HttpPost]
         [UIAuthorize]

@@ -924,4 +924,29 @@ If you would like to update the linked Microsoft account you can do so from the 
     <value>The package was signed. The owner '{0}' must register the signing certificate to publish signed packages.</value>
     <comment>{0} is the signer name.</comment>
   </data>
+  <data name="SymbolsPackage_PackageIdAndVersionNotFound" xml:space="preserve">
+    <value>A package with ID '{0}' and version '{1}' does not exist. Please upload the package before uploading its symbols.</value>
+  </data>
+  <data name="SymbolsPackage_NotSymbolPackage" xml:space="preserve">
+    <value>The uploaded package is not a valid symbols package. The required 'SymbolsPackage' package type is missing.</value>
+  </data>
+  <data name="SymbolsPackage_FailedToReadPackage" xml:space="preserve">
+    <value>Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg).</value>
+  </data>
+  <data name="SymbolsPackage_InvalidDataInNuspec" xml:space="preserve">
+    <value>Invalid metadata items specified in nuspec. Please remove '{0}' from the nuspec.</value>
+  </data>
+  <data name="SymbolsPackage_InvalidFiles" xml:space="preserve">
+    <value>Invalid file found in the uploaded package. Symbols packages should only contain '{0}' files.</value>
+  </data>
+  <data name="SymbolsPackage_UploadNotAllowed" xml:space="preserve">
+    <value>You do not have the permissions to upload symbol packages.</value>
+  </data>
+  <data name="SymbolsPackage_ConflictValidating" xml:space="preserve">
+    <value>It looks like there is another copy of this symbols package pending validation(s). Please wait for the validation(s) to finish before trying to replace the symbols package.</value>
+  </data>
+  <data name="UploadPackage_SignedToUnsignedTransition" xml:space="preserve">
+    <value>The previous package version '{0}' is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading.</value>
+    <comment>{0} is the previous package's normalized version.</comment>
+  </data>
 </root>

@@ -160,10 +160,17 @@ namespace NuGetGallery
             {
                 if (uploadedFile != null)
                 {
-
                     var package = await SafeCreatePackage(currentUser, uploadedFile);
                     if (package == null)
                     {
+                        return View(model);
+                    }
+
+                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package);
+                    var validationErrorMessage = GetErrorMessageOrNull(validationResult);
+                    if (validationErrorMessage != null)
+                    {
+                        TempData["Message"] = validationErrorMessage;
                         return View(model);
                     }
 
@@ -180,8 +187,6 @@ namespace NuGetGallery
                         TempData["Message"] = ex.GetUserSafeMessage();
                         return View(model);
                     }
-
-                    model.IsUploadInProgress = true;
 
                     var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
                     bool isAllowed;
@@ -204,6 +209,7 @@ namespace NuGetGallery
                     }
 
                     var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+                    verifyRequest.Warnings.AddRange(validationResult.Warnings);
 
                     model.InProgressUpload = verifyRequest;
                 }
@@ -230,13 +236,11 @@ namespace NuGetGallery
 
             if (uploadFile == null)
             {
-                ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
                 return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
             }
 
             if (!Path.GetExtension(uploadFile.FileName).Equals(CoreConstants.NuGetPackageFileExtension, StringComparison.OrdinalIgnoreCase))
             {
-                ModelState.AddModelError(String.Empty, Strings.UploadFileMustBeNuGetPackage);
                 return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileMustBeNuGetPackage });
             }
 
@@ -257,11 +261,6 @@ namespace NuGetGallery
 
                     if (entryInTheFuture != null)
                     {
-                        ModelState.AddModelError(String.Empty, string.Format(
-                           CultureInfo.CurrentCulture,
-                           Strings.PackageEntryFromTheFuture,
-                           entryInTheFuture.Name));
-
                         return Json(HttpStatusCode.BadRequest, new[] {
                             string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name) });
                     }
@@ -284,8 +283,6 @@ namespace NuGetGallery
                         message = ex.Message;
                     }
 
-                    ModelState.AddModelError(String.Empty, message);
-
                     return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
                 finally
@@ -301,22 +298,14 @@ namespace NuGetGallery
                     foreach (var error in errors)
                     {
                         errorStrings.Add(error.ErrorMessage);
-                        ModelState.AddModelError(String.Empty, error.ErrorMessage);
                     }
 
-                    return Json(HttpStatusCode.BadRequest, errorStrings);
+                    return Json(HttpStatusCode.BadRequest, errorStrings.ToArray());
                 }
 
                 // Check min client version
                 if (nuspec.GetMinClientVersion() > Constants.MaxSupportedMinClientVersion)
                 {
-                    ModelState.AddModelError(
-                        string.Empty,
-                        string.Format(
-                            CultureInfo.CurrentCulture,
-                            Strings.UploadPackage_MinClientVersionOutOfRange,
-                            nuspec.GetMinClientVersion()));
-
                     return Json(HttpStatusCode.BadRequest, new[] {
                         string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_MinClientVersionOutOfRange, nuspec.GetMinClientVersion()) });
                 }
@@ -328,9 +317,6 @@ namespace NuGetGallery
                     ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
                         currentUser, new ActionOnNewPackageContext(id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
                 {
-                    ModelState.AddModelError(
-                        string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict));
-
                     var version = nuspec.GetVersion().ToNormalizedString();
                     _telemetryService.TrackPackagePushNamespaceConflictEvent(id, version, currentUser, User.Identity);
 
@@ -343,9 +329,6 @@ namespace NuGetGallery
                     if (ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(
                         currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
                     {
-                        ModelState.AddModelError(
-                          string.Empty, string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id));
-
                         return Json(HttpStatusCode.Conflict, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
                     }
 
@@ -395,10 +378,6 @@ namespace NuGetGallery
                                     existingPackage.Version);
                         }
 
-                        ModelState.AddModelError(
-                            string.Empty,
-                            message);
-
                         return Json(HttpStatusCode.Conflict, new[] { message });
                     }
                 }
@@ -407,11 +386,11 @@ namespace NuGetGallery
             }
 
             PackageMetadata packageMetadata;
+            IReadOnlyList<string> warnings;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
                 {
-                    ModelState.AddModelError(String.Empty, Strings.UploadFileIsRequired);
                     return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
                 }
 
@@ -433,9 +412,19 @@ namespace NuGetGallery
 
                     return Json(HttpStatusCode.BadRequest, new[] { ex.GetUserSafeMessage() });
                 }
+
+                var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package);
+                var validationJsonResult = GetJsonResultOrNull(validationResult);
+                if (validationJsonResult != null)
+                {
+                    return validationJsonResult;
+                }
+
+                warnings = validationResult.Warnings;
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            model.Warnings.AddRange(warnings);
 
             return Json(model);
         }
@@ -751,7 +740,7 @@ namespace NuGetGallery
 
             await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
-            _messageService.ReportAbuse(request);
+            await _messageService.ReportAbuseAsync(request);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
 
@@ -811,7 +800,7 @@ namespace NuGetGallery
 
             if (!deleted)
             {
-                NotifyReportMyPackageSupportRequest(reportForm, package, user, from);
+                await NotifyReportMyPackageSupportRequestAsync(reportForm, package, user, from);
             }
 
             return Redirect(Url.Package(package.PackageRegistration.Id, package.NormalizedVersion));
@@ -879,7 +868,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private void NotifyReportMyPackageSupportRequest(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
+        private async Task NotifyReportMyPackageSupportRequestAsync(ReportMyPackageViewModel reportForm, Package package, User user, MailAddress from)
         {
             var request = new ReportPackageRequest
             {
@@ -892,7 +881,7 @@ namespace NuGetGallery
                 CopySender = reportForm.CopySender
             };
 
-            _messageService.ReportMyPackage(request);
+            await _messageService.ReportMyPackageAsync(request);
 
             TempData["Message"] = Strings.SupportRequestSentTransientMessage;
         }
@@ -930,7 +919,7 @@ namespace NuGetGallery
                     comment: null,
                     editedBy: user.Username);
 
-                _messageService.SendPackageDeletedNotice(
+                await _messageService.SendPackageDeletedNoticeAsync(
                     package,
                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
@@ -971,7 +960,7 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         [ValidateRecaptchaResponse]
         [RequiresAccountConfirmation("contact package owners")]
-        public virtual ActionResult ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
+        public virtual async Task<ActionResult> ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
             // Html Encode the message
             contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
@@ -989,7 +978,7 @@ namespace NuGetGallery
 
             var user = GetCurrentUser();
             var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            _messageService.SendContactOwnersMessage(
+            await _messageService.SendContactOwnersMessageAsync(
                 fromAddress,
                 package,
                 Url.Package(package, false),
@@ -1355,7 +1344,7 @@ namespace NuGetGallery
             {
                 await _packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
 
-                SendAddPackageOwnerNotification(package, user);
+                await SendAddPackageOwnerNotificationAsync(package, user);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Success));
             }
@@ -1365,7 +1354,7 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
-                _messageService.SendPackageOwnerRequestRejectionNotice(requestingUser, user, package);
+                await _messageService.SendPackageOwnerRequestRejectionNoticeAsync(requestingUser, user, package);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -1407,7 +1396,7 @@ namespace NuGetGallery
 
             await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
-            _messageService.SendPackageOwnerRequestCancellationNotice(requestingUser, pendingUser, package);
+            await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(requestingUser, pendingUser, package);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }
@@ -1417,14 +1406,15 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">Package to which owner was added.</param>
         /// <param name="newOwner">Owner added.</param>
-        private void SendAddPackageOwnerNotification(PackageRegistration package, User newOwner)
+        private Task SendAddPackageOwnerNotificationAsync(PackageRegistration package, User newOwner)
         {
             var packageUrl = Url.Package(package.Id, version: null, relativeUrl: false);
             Func<User, bool> notNewOwner = o => !o.Username.Equals(newOwner.Username, StringComparison.OrdinalIgnoreCase);
 
             // Notify existing owners
             var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            notNewOwners.ForEach(owner => _messageService.SendPackageOwnerAddedNotice(owner, newOwner, package, packageUrl));
+            var tasks = notNewOwners.Select(owner => _messageService.SendPackageOwnerAddedNoticeAsync(owner, newOwner, package, packageUrl));
+            return Task.WhenAll(tasks);
         }
 
         internal virtual async Task<ActionResult> Edit(string id, string version, bool? listed, Func<Package, bool, string> urlFactory)
@@ -1602,6 +1592,14 @@ namespace NuGetGallery
                         }
                     }
 
+                    // Perform all the validations we can before adding the package to the entity context.
+                    var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(nugetPackage);
+                    var beforeValidationJsonResult = GetJsonResultOrNull(beforeValidationResult);
+                    if (beforeValidationJsonResult != null)
+                    {
+                        return beforeValidationJsonResult;
+                    }
+
                     // update relevant database tables
                     try
                     {
@@ -1621,28 +1619,16 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
 
-                    var validationResult = await _packageUploadService.ValidatePackageAsync(
+                    // Perform validations that require the package already being in the entity context.
+                    var afterValidationResult = await _packageUploadService.ValidateAfterGeneratePackageAsync(
                         package,
                         nugetPackage,
                         owner,
                         currentUser);
-                    switch (validationResult.Type)
+                    var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
+                    if (afterValidationJsonResult != null)
                     {
-                        case PackageValidationResultType.Accepted:
-                            break;
-                        case PackageValidationResultType.Invalid:
-                        case PackageValidationResultType.PackageShouldNotBeSigned:
-                            return Json(HttpStatusCode.BadRequest, new[] { validationResult.Message });
-                        case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
-                            return Json(
-                                HttpStatusCode.BadRequest,
-                                new[]
-                                {
-                                    validationResult.Message + " " +
-                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate
-                                });
-                        default:
-                            throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                        return afterValidationJsonResult;
                     }
 
                     if (formData.Edit != null)
@@ -1708,7 +1694,7 @@ namespace NuGetGallery
                         if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
                         {
                             // notify user unless async validation in blocking mode is used
-                            _messageService.SendPackageAddedNotice(package,
+                            await _messageService.SendPackageAddedNoticeAsync(package,
                                 Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                 Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                 Url.AccountSettings(relativeUrl: false));
@@ -1750,6 +1736,34 @@ namespace NuGetGallery
             {
                 _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
                 throw;
+            }
+        }
+
+        private JsonResult GetJsonResultOrNull(PackageValidationResult validationResult)
+        {
+            var errorMessage = GetErrorMessageOrNull(validationResult);
+            if (errorMessage == null)
+            {
+                return null;
+            }
+
+            return Json(HttpStatusCode.BadRequest, new[] { errorMessage });
+        }
+
+        private static string GetErrorMessageOrNull(PackageValidationResult validationResult)
+        {
+            switch (validationResult.Type)
+            {
+                case PackageValidationResultType.Accepted:
+                    return null;
+                case PackageValidationResultType.Invalid:
+                case PackageValidationResultType.PackageShouldNotBeSigned:
+                    return validationResult.Message;
+                case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
+                    return validationResult.Message + " " +
+                           Strings.UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate;
+                default:
+                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }
         }
 

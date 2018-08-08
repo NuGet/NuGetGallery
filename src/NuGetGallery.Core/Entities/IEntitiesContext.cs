@@ -18,6 +18,7 @@ namespace NuGetGallery
         IDbSet<UserSecurityPolicy> UserSecurityPolicies { get; set; }
         IDbSet<ReservedNamespace> ReservedNamespaces { get; set; }
         IDbSet<UserCertificate> UserCertificates { get; set; }
+        IDbSet<SymbolPackage> SymbolPackages { get; set; }
 
         Task<int> SaveChangesAsync();
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Set", Justification="This is to match the EF terminology.")]
