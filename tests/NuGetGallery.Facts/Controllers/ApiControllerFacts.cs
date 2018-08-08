@@ -590,13 +590,13 @@ namespace NuGetGallery
                     .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
 
                 controller.MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
-                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("Package not compliant.")));
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("Package not compliant.\n\rFix your package!")));
 
                 // Act
                 var result = await controller.CreatePackagePut();
 
                 // Assert
-                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "Package not compliant.");
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "Package not compliant. Fix your package!");
             }
 
             [Fact]

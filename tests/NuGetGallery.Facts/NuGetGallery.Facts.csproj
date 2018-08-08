@@ -119,6 +119,7 @@
     <Compile Include="Helpers\HtmlExtensionsFacts.cs" />
     <Compile Include="HttpContextBaseExtensionsFacts.cs" />
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
+    <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
