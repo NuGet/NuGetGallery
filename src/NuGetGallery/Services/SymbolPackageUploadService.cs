@@ -41,7 +41,7 @@ namespace NuGetGallery
         {
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
-            await _validationService.StartSymbolsPackageValidationAsync(symbolPackage);
+            await _validationService.StartValidationAsync(symbolPackage);
 
             if (symbolPackage.StatusKey != PackageStatus.Available
                 && symbolPackage.StatusKey != PackageStatus.Validating)

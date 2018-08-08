@@ -8,7 +8,8 @@ namespace NuGetGallery
     /// <summary>
     /// Initiates validation for a specific package.
     /// </summary>
-    public interface IPackageValidationInitiator<TEntity> where TEntity: IPackageEntity
+    public interface IPackageValidationInitiator<TPackageEntity> 
+        where TPackageEntity: IPackageEntity
     {
         /// <summary>
         /// Starts the validation for the specified IPackageEntity. The validation can be done asynchronously with respect
@@ -16,10 +17,10 @@ namespace NuGetGallery
         /// pending validation state is indicated by the package having the <see cref="PackageStatus.Validating"/>
         /// status.
         /// </summary>
-        /// <param name="package">The <see cref="TEntity"/> to initiate validation for.</param>
+        /// <param name="package">The <see cref="TPackageEntity"/> to initiate validation for.</param>
         /// <returns>
         /// The task which signals the completion of the validation initiation. The result of the <see cref="Task"/>
         /// is the <see cref="PackageStatus"/> that should be applied to the package.</returns>
-        Task<PackageStatus> StartValidationAsync(TEntity package);
+        Task<PackageStatus> StartValidationAsync(TPackageEntity package);
     }
 }

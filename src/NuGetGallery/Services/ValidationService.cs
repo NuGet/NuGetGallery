@@ -102,7 +102,7 @@ namespace NuGetGallery
             return issues;
         }
 
-        public async Task StartSymbolsPackageValidationAsync(SymbolPackage symbolPackage)
+        public async Task StartValidationAsync(SymbolPackage symbolPackage)
         {
             var symbolPackageStatus = await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
             await _symbolPackageService.UpdateStatusAsync(symbolPackage,

@@ -79,7 +79,7 @@ namespace NuGetGallery
             {
                 var validationService = new Mock<IValidationService>();
                 validationService
-                    .Setup(x => x.StartSymbolsPackageValidationAsync(It.IsAny<SymbolPackage>()))
+                    .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
                     .Returns((SymbolPackage sp) => {
                         sp.StatusKey = invalidStatus;
                         return Task.CompletedTask;

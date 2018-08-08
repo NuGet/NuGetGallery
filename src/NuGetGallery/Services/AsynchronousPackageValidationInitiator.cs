@@ -13,7 +13,8 @@ namespace NuGetGallery
     /// Initiates asynchronous validation on a package by enqueuing a message containing the package identity and a new
     /// <see cref="Guid"/>. The <see cref="Guid"/> represents a unique validation request.
     /// </summary>
-    public class AsynchronousPackageValidationInitiator<TPackage> : IPackageValidationInitiator<TPackage> where TPackage: IPackageEntity
+    public class AsynchronousPackageValidationInitiator<TPackageEntity> : IPackageValidationInitiator<TPackageEntity> 
+        where TPackageEntity: IPackageEntity
     {
         private readonly IPackageValidationEnqueuer _validationEnqueuer;
         private readonly IAppConfiguration _appConfiguration;
@@ -32,10 +33,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(IDiagnosticsService));
             }
 
-            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackage>));
+            _diagnosticsSource = diagnosticsService.SafeGetSource(nameof(AsynchronousPackageValidationInitiator<TPackageEntity>));
         }
 
-        public async Task<PackageStatus> StartValidationAsync(TPackage package)
+        public async Task<PackageStatus> StartValidationAsync(TPackageEntity package)
         {
             if (_appConfiguration.ReadOnlyMode)
             {

@@ -57,7 +57,7 @@ namespace NuGetGallery
             public async Task InitiatesTheValidation()
             {
                 // Arrange & Act
-                await _target.StartSymbolsPackageValidationAsync(_symbolPackage);
+                await _target.StartValidationAsync(_symbolPackage);
 
                 // Assert
                 _symbolInitiator.Verify(x => x.StartValidationAsync(_symbolPackage), Times.Once);
@@ -74,7 +74,7 @@ namespace NuGetGallery
                     .ReturnsAsync(packageStatus);
 
                 // Act
-                await _target.StartSymbolsPackageValidationAsync(_symbolPackage);
+                await _target.StartValidationAsync(_symbolPackage);
 
                 // Assert
                 _symbolPackageService.Verify(
