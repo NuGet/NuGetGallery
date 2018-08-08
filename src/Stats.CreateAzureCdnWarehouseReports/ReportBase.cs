@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Microsoft.WindowsAzure.Storage.RetryPolicies;
-using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -18,20 +18,20 @@ namespace Stats.CreateAzureCdnWarehouseReports
 
         protected readonly IReadOnlyCollection<StorageContainerTarget> Targets;
 
-        protected readonly ISqlConnectionFactory StatisticsDbConnectionFactory;
+        protected readonly Func<Task<SqlConnection>> OpenStatisticsSqlConnectionAsync;
 
-        protected ISqlConnectionFactory GalleryDbConnectionFactory;
+        protected Func<Task<SqlConnection>> OpenGallerySqlConnectionAsync;
 
         protected ReportBase(
             ILogger<ReportBase> logger,
             IEnumerable<StorageContainerTarget> targets,
-            ISqlConnectionFactory statisticsDbConnectionFactory,
-            ISqlConnectionFactory galleryDbConnectionFactory)
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
         {
             _logger = logger;
             Targets = targets.ToList().AsReadOnly();
-            StatisticsDbConnectionFactory = statisticsDbConnectionFactory;
-            GalleryDbConnectionFactory = galleryDbConnectionFactory;
+            OpenStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
+            OpenGallerySqlConnectionAsync = openGallerySqlConnectionAsync;
         }
 
         protected async Task<CloudBlobContainer> GetBlobContainer(StorageContainerTarget target)

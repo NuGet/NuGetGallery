@@ -7,35 +7,38 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
+using NuGet.Jobs.Configuration;
 
 namespace Stats.RollUpDownloadFacts
 {
-    public class Job
-        : JobBase
+    public class RollUpDownloadFactsJob : JsonConfigurationJob
     {
         private const string _startTemplateRecordsDeletion = "Package Dimension ID ";
         private const string _endTemplateFactDownloadDeletion = " records from [dbo].[Fact_Download]";
         private const int DefaultMinAgeInDays = 43;
-        private static int _minAgeInDays;
-        private static ISqlConnectionFactory _statisticsDbConnectionFactory;
+
+        private RollUpDownloadFactsConfiguration _configuration;
+        private int _minAgeInDays;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var statisticsDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatisticsDatabase);
-            _statisticsDbConnectionFactory = new AzureSqlConnectionFactory(statisticsDbConnectionString, secretInjector);
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            _minAgeInDays = JobConfigurationManager.TryGetIntArgument(jobArgsDictionary, JobArgumentNames.MinAgeInDays) ?? DefaultMinAgeInDays;
+            _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<RollUpDownloadFactsConfiguration>>().Value;
+
+            _minAgeInDays = _configuration.MinAgeInDays ?? DefaultMinAgeInDays;
             Logger.LogInformation("Min age in days: {MinAgeInDays}", _minAgeInDays);
         }
 
         public override async Task Run()
         {
-            using (var connection = await _statisticsDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenSqlConnectionAsync<StatisticsDbConfiguration>())
             {
                 connection.InfoMessage -= OnSqlConnectionInfoMessage;
                 connection.InfoMessage += OnSqlConnectionInfoMessage;
@@ -71,6 +74,15 @@ namespace Stats.RollUpDownloadFacts
 
                 ApplicationInsightsHelper.TrackRollUpMetric("Download Facts Deleted", value, packageDimensionId);
             }
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<RollUpDownloadFactsConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -9,7 +9,7 @@ namespace Stats.CreateAzureCdnWarehouseReports
     {
         static void Main(string[] args)
         {
-            var job = new Job();
+            var job = new CreateAzureCdnWarehouseReportsJob();
             JobRunner.Run(job, args).Wait();
         }
     }

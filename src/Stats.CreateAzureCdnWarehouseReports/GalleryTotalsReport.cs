@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
-using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -27,10 +26,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
             ILogger<GalleryTotalsReport> logger,
             CloudStorageAccount cloudStorageAccount,
             string statisticsContainerName,
-            ISqlConnectionFactory statisticsDbConnectionFactory,
-            ISqlConnectionFactory galleryDbConnectionFactory)
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
             : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) },
-                  statisticsDbConnectionFactory, galleryDbConnectionFactory)
+                  openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync)
         {
         }
 
@@ -38,12 +37,13 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             // gather package numbers from gallery database
             GalleryTotalsData totalsData;
-            _logger.LogInformation("Gathering Gallery Totals from {GalleryDataSource}/{GalleryInitialCatalog}...",
-                GalleryDbConnectionFactory.DataSource, GalleryDbConnectionFactory.InitialCatalog);
 
-            using (var connection = await GalleryDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenGallerySqlConnectionAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
+                _logger.LogInformation("Gathering Gallery Totals from {GalleryDataSource}/{GalleryInitialCatalog}...",
+                    connection.DataSource, connection.Database);
+
                 totalsData = (await connection.QueryWithRetryAsync<GalleryTotalsData>(
                     GalleryQuery, commandType: CommandType.Text, transaction: transaction)).First();
             }
@@ -52,12 +52,12 @@ namespace Stats.CreateAzureCdnWarehouseReports
             _logger.LogInformation("Unique packages: {UniquePackagesCount}", totalsData.UniquePackages);
 
             // gather download count data from statistics warehouse
-            _logger.LogInformation("Gathering Gallery Totals from {StatisticsDataSource}/{StatisticsInitialCatalog}...",
-                StatisticsDbConnectionFactory.DataSource, StatisticsDbConnectionFactory.InitialCatalog);
-
-            using (var connection = await StatisticsDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenStatisticsSqlConnectionAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
+                _logger.LogInformation("Gathering Gallery Totals from {StatisticsDataSource}/{StatisticsInitialCatalog}...",
+                    connection.DataSource, connection.Database);
+
                 totalsData.Downloads = (await connection.ExecuteScalarWithRetryAsync<long>(
                     WarehouseStoredProcedureName,
                     commandType: CommandType.StoredProcedure,

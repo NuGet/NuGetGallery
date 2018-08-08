@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Sql;
 
 namespace Stats.CreateAzureCdnWarehouseReports
 {
@@ -26,10 +25,10 @@ namespace Stats.CreateAzureCdnWarehouseReports
             ILogger<DownloadsPerToolVersionReport> logger,
             CloudStorageAccount cloudStorageAccount,
             string statisticsContainerName,
-            ISqlConnectionFactory statisticsDbConnectionFactory,
-            ISqlConnectionFactory galleryDbConnectionFactory)
+            Func<Task<SqlConnection>> openStatisticsSqlConnectionAsync,
+            Func<Task<SqlConnection>> openGallerySqlConnectionAsync)
             : base(logger, new[] { new StorageContainerTarget(cloudStorageAccount, statisticsContainerName) },
-                  statisticsDbConnectionFactory, galleryDbConnectionFactory)
+                  openStatisticsSqlConnectionAsync, openGallerySqlConnectionAsync)
         {
         }
 
@@ -37,12 +36,13 @@ namespace Stats.CreateAzureCdnWarehouseReports
         {
             // Gather download count data from statistics warehouse
             IReadOnlyCollection<ToolDownloadCountData> data;
-            _logger.LogInformation("Gathering Tools Download Counts from {DataSource}/{InitialCatalog}...",
-                StatisticsDbConnectionFactory.DataSource, StatisticsDbConnectionFactory.InitialCatalog);
 
-            using (var connection = await StatisticsDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenStatisticsSqlConnectionAsync())
             using (var transaction = connection.BeginTransaction(IsolationLevel.Snapshot))
             {
+                _logger.LogInformation("Gathering Tools Download Counts from {DataSource}/{InitialCatalog}...",
+                    connection.DataSource, connection.Database);
+
                 data = (await connection.QueryWithRetryAsync<ToolDownloadCountData>(
                     _storedProcedureName, commandType: CommandType.StoredProcedure, transaction: transaction, commandTimeout: _defaultCommandTimeout)).ToList();
             }
