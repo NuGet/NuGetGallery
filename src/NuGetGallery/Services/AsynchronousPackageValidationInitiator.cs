@@ -43,11 +43,25 @@ namespace NuGetGallery
                 throw new ReadOnlyModeException(Strings.CannotEnqueueDueToReadOnly);
             }
 
+            ValidatingType validatingType;
+            if (package is Package)
+            {
+                validatingType = ValidatingType.Package;
+            }
+            else if (package is SymbolPackage)
+            {
+                validatingType = ValidatingType.SymbolPackage;
+            }
+            else
+            {
+                throw new ArgumentException($"Unknown IPackageEntity type: {nameof(package)}");
+            }
+
             var data = new PackageValidationMessageData(
                 package.Id,
                 package.Version,
                 Guid.NewGuid(),
-                package.Type);
+                validatingType);
 
             var activityName = $"Enqueuing asynchronous package validation: " +
                 $"{data.PackageId} {data.PackageVersion} {data.ValidatingType} ({data.ValidationTrackingId})";
