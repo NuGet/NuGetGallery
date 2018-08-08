@@ -39,16 +39,16 @@ using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReader
 
 namespace NuGetGallery
 {
-    public static class BindingKeys
-    {
-        public const string PackageValidationTopic = "PackageValidationBindingKey";
-        public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
-        public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
-        public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
-    }
-
     public class DefaultDependenciesModule : Module
     {
+        public static class BindingKeys
+        {
+            public const string PackageValidationTopic = "PackageValidationBindingKey";
+            public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
+            public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
+            public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
