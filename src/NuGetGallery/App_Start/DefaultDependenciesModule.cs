@@ -388,9 +388,6 @@ namespace NuGetGallery
 
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
 
-            builder.RegisterType<MicrosoftTeamSubscription>()
-                .SingleInstance();
-
             // todo: bind all package curators by convention
             builder.RegisterType<WebMatrixPackageCurator>()
                 .AsSelf()

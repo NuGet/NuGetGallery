@@ -22,7 +22,7 @@ namespace NuGetGallery.Security
             };
         }
 
-        public override Task<SecurityPolicyResult> EvaluateAsync(UserSecurityPolicyEvaluationContext context)
+        public override SecurityPolicyResult Evaluate(UserSecurityPolicyEvaluationContext context)
         {
             throw new NotImplementedException();  // Not used.
         }

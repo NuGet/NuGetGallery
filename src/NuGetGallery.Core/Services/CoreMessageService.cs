@@ -32,54 +32,16 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public async Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
+        public async Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl)
         {
-            bool hasWarnings = warningMessages != null && warningMessages.Any();
-
-            string subject;
-            var warningMessagesPlaceholder = string.Empty;
-            if (hasWarnings)
-            {
-                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published with warnings - {package.PackageRegistration.Id} {package.Version}";
-                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
-            }
-            else
-            {
-                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
-            }
-
+            string subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package published - {package.PackageRegistration.Id} {package.Version}";
             string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
-{warningMessagesPlaceholder}
 
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
     To stop receiving emails as an owner of this package, sign in to the {CoreConfiguration.GalleryOwner.DisplayName} and
     [change your email notification settings]({emailSettingsUrl}).
 </em>";
-
-            using (var mailMessage = new MailMessage())
-            {
-                mailMessage.Subject = subject;
-                mailMessage.Body = body;
-                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
-
-                AddOwnersSubscribedToPackagePushedNotification(package.PackageRegistration, mailMessage);
-
-                if (mailMessage.To.Any())
-                {
-                    await SendMessageAsync(mailMessage);
-                }
-            }
-        }
-
-        public async Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages)
-        {
-            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package pushed with warnings - {package.PackageRegistration.Id} {package.Version}";
-            var warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
-
-            string body = $@"The package [{package.PackageRegistration.Id} {package.Version}]({packageUrl}) was recently pushed to {CoreConfiguration.GalleryOwner.DisplayName} by {package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
-{warningMessagesPlaceholder}
-";
 
             using (var mailMessage = new MailMessage())
             {

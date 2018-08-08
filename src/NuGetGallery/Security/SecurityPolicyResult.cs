@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace NuGetGallery.Security
 {
@@ -12,13 +10,11 @@ namespace NuGetGallery.Security
     /// </summary>
     public class SecurityPolicyResult
     {
-        private readonly List<string> _warningMessages;
-        public static SecurityPolicyResult SuccessResult = new SecurityPolicyResult(true, null, Array.Empty<string>());
+        public static SecurityPolicyResult SuccessResult = new SecurityPolicyResult(true, null);
 
-        private SecurityPolicyResult(bool success, string errorMessage, string[] warningMessages)
+        private SecurityPolicyResult(bool success, string errorMessage)
         {
             Success = success;
-            _warningMessages = warningMessages.ToList();
             ErrorMessage = errorMessage;
         }
 
@@ -34,23 +30,7 @@ namespace NuGetGallery.Security
                 throw new ArgumentNullException(nameof(errorMessage));
             }
 
-            return new SecurityPolicyResult(false, errorMessage, Array.Empty<string>());
-        }
-
-
-        /// <summary>
-        /// Create a warning package security policy result.
-        /// </summary>
-        /// <param name="warningMessages"></param>
-        /// <returns></returns>
-        public static SecurityPolicyResult CreateWarningResult(params string[] warningMessages)
-        {
-            if (warningMessages == null)
-            {
-                throw new ArgumentNullException(nameof(warningMessages));
-            }
-
-            return new SecurityPolicyResult(true, null, warningMessages);
+            return new SecurityPolicyResult(false, errorMessage);
         }
 
         /// <summary>
@@ -62,14 +42,5 @@ namespace NuGetGallery.Security
         /// Error message, if the security policy criteria was not met.
         /// </summary>
         public string ErrorMessage { get; }
-
-        public bool HasWarnings => _warningMessages.Any();
-
-        public IReadOnlyCollection<string> WarningMessages => _warningMessages;
-
-        public void AddWarnings(IReadOnlyCollection<string> warningMessages)
-        {
-            _warningMessages.AddRange(warningMessages);
-        }
     }
 }

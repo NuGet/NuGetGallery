@@ -393,7 +393,7 @@ namespace NuGetGallery.Controllers
                             else
                             {
                                 packageOwnershipManagementServiceMock
-                                    .Setup(p => p.AddPackageOwnerAsync(fakes.Package, userToAdd, true))
+                                    .Setup(p => p.AddPackageOwnerAsync(fakes.Package, userToAdd))
                                     .Returns(Task.CompletedTask)
                                     .Verifiable();
 
@@ -540,7 +540,7 @@ namespace NuGetGallery.Controllers
                         // Assert
                         Assert.True(data.success);
 
-                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser, true));
+                        packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser));
 
                         GetMock<IMessageService>()
                             .Verify(x => x.SendPackageOwnerRequestCancellationNoticeAsync(currentUser, requestedUser, package));

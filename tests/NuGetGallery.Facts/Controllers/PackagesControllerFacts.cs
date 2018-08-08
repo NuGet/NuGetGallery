@@ -96,13 +96,7 @@ namespace NuGetGallery
 
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
-            if (securityPolicyService == null)
-            {
-                securityPolicyService = new Mock<ISecurityPolicyService>();
-                securityPolicyService
-                    .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
-                    .ReturnsAsync(SecurityPolicyResult.SuccessResult);
-            }
+            securityPolicyService = securityPolicyService ?? new Mock<ISecurityPolicyService>();
 
             if (reservedNamespaceService == null)
             {
@@ -923,19 +917,19 @@ namespace NuGetGallery
                 // Assert
                 var model = ResultAssert.IsView<PackageOwnerConfirmationModel>(result, "ConfirmOwner");
                 Assert.Equal(ConfirmOwnershipResult.AlreadyOwner, model.Result);
-                packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, user, true));
+                packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, user));
             }
 
             public delegate Expression<Func<IPackageOwnershipManagementService, Task>> PackageOwnershipManagementServiceRequestExpression(PackageRegistration package, User user);
 
             private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForConfirmOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerAsync(package, user, true);
+                return packageOwnershipManagementService => packageOwnershipManagementService.AddPackageOwnerAsync(package, user);
             }
 
             private static Expression<Func<IPackageOwnershipManagementService, Task>> PackagesServiceForRejectOwnershipRequestExpression(PackageRegistration package, User user)
             {
-                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user, true);
+                return packageOwnershipManagementService => packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
             }
 
             public delegate Expression<Action<IMessageService>> MessageServiceForOwnershipRequestExpression(PackageOwnerRequest request);
@@ -1017,8 +1011,8 @@ namespace NuGetGallery
                 packageService.Setup(p => p.FindPackageRegistrationById(package.Id)).Returns(package);
 
                 var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
-                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
-                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner, true)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.AddPackageOwnerAsync(package, newOwner)).Returns(Task.CompletedTask).Verifiable();
+                packageOwnershipManagementService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, newOwner)).Returns(Task.CompletedTask).Verifiable();
 
                 var request = new PackageOwnerRequest
                 {
@@ -1195,7 +1189,7 @@ namespace NuGetGallery
                     var request = new PackageOwnerRequest() { RequestingOwner = userA, NewOwner = userB };
                     var packageOwnershipManagementRequestService = new Mock<IPackageOwnershipManagementService>();
                     packageOwnershipManagementRequestService.Setup(p => p.GetPackageOwnershipRequests(package, userA, userB)).Returns(new[] { request });
-                    packageOwnershipManagementRequestService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, userB, true)).Returns(Task.CompletedTask).Verifiable();
+                    packageOwnershipManagementRequestService.Setup(p => p.DeletePackageOwnershipRequestAsync(package, userB)).Returns(Task.CompletedTask).Verifiable();
 
                     var messageService = new Mock<IMessageService>();
 
@@ -4626,61 +4620,6 @@ namespace NuGetGallery
                     expectedMessage: message);
             }
 
-            [Fact]
-            public async Task WillShowTheValidationMessageWhenPackageSecurityPolicyCreatesErrorMessage()
-            {
-                var fakeUploadFileService = new Mock<IUploadFileService>();
-                using (var fakeFileStream = new MemoryStream())
-                {
-                    var expectedMessage = "The package is just bad.";
-
-                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
-                    fakePackageUploadService
-                        .Setup(x => x.ValidateAfterGeneratePackageAsync(
-                            It.IsAny<Package>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()))
-                        .ReturnsAsync(PackageValidationResult.Accepted);
-                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
-
-                    var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
-
-                    var securityPolicyService = new Mock<ISecurityPolicyService>();
-                    securityPolicyService
-                        .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>()))
-                        .ReturnsAsync(SecurityPolicyResult.CreateErrorResult(expectedMessage));
-
-                    var controller = CreateController(
-                        GetConfigurationService(),
-                        packageUploadService: fakePackageUploadService,
-                        uploadFileService: fakeUploadFileService,
-                        fakeNuGetPackage: fakeNuGetPackage,
-                        userService: fakeUserService,
-                        securityPolicyService: securityPolicyService);
-                    controller.SetCurrentUser(TestUtility.FakeUser);
-
-                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = TestUtility.FakeUser.Username });
-
-                    fakePackageUploadService.Verify(
-                        x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()),
-                        Times.Once);
-
-                    var jsonResult = Assert.IsType<JsonResult>(result);
-                    Assert.Equal((int)HttpStatusCode.BadRequest, controller.Response.StatusCode);
-                    var message = (jsonResult.Data as string[])[0];
-                    Assert.Equal(expectedMessage, message);
-                }
-            }
-
             [Theory]
             [InlineData(PackageValidationResultType.Invalid)]
             [InlineData(PackageValidationResultType.PackageShouldNotBeSigned)]
@@ -5408,7 +5347,7 @@ namespace NuGetGallery
 
                     // Assert
                     fakeMessageService
-                        .Verify(ms => ms.SendPackageAddedNoticeAsync(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
+                        .Verify(ms => ms.SendPackageAddedNoticeAsync(fakePackage, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
                         Times.Exactly(callExpected ? 1 : 0));
                 }
             }
