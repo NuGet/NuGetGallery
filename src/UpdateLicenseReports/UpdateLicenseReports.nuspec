@@ -18,5 +18,9 @@
     <file src="Scripts\PreDeploy.ps1" />
     <file src="Scripts\PostDeploy.ps1" />
     <file src="Scripts\nssm.exe" />
+
+    <file src="TestData\*.json" target="bin" />
+    
+    <file src="Settings\*.json" target="bin" />
   </files>
 </package>
