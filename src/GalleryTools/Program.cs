@@ -16,6 +16,7 @@ namespace GalleryTools
             commandLineApplication.HelpOption("-? | -h | --help");
             commandLineApplication.Command("hash", HashCommand.Configure);
             commandLineApplication.Command("reflow", ReflowCommand.Configure);
+            commandLineApplication.Command("fillrepodata", BackfillRepositoryMetadataCommand.Configure);
 
             try
             {
