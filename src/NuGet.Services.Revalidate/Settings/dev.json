@@ -6,7 +6,7 @@
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder",
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\.tools"
       ],
-      "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
+      "MaxPackageCreationDate": "2018-08-08T23:59:59.0000000Z",
       "SleepDurationBetweenBatches": "00:00:30"
     },
 
@@ -17,7 +17,7 @@
     },
 
     "MinPackageEventRate": 120,
-    "MaxPackageEventRate": 500,
+    "MaxPackageEventRate": 200,
 
     "AppInsights": {
       "AppId": "46f13c7d-635f-42c3-8120-593edeaad426",
