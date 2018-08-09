@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     [DisplayColumn("Title")]
     public class Package
-        : IEntity
+        : IEntity, IPackageEntity
     {
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it
@@ -243,5 +243,7 @@ namespace NuGetGallery
         public virtual Certificate Certificate { get; set; }
 
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
+
+        public string Id => PackageRegistration.Id;
     }
 }
