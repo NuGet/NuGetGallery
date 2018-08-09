@@ -312,6 +312,7 @@ namespace GalleryTools.Commands
                                 }
 
                                 counter++;
+                                Console.WriteLine(".");
                             }
                             else
                             {
@@ -346,6 +347,8 @@ namespace GalleryTools.Commands
             {
                 await _context.SaveChangesAsync();
                 await _cursor.WriteCursor(cursorTime);
+
+                Console.WriteLine("+");
             }
 
             private static void Initialize(string metadataFileName, string connectionString)
