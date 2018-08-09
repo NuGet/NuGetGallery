@@ -699,7 +699,7 @@ namespace NuGetGallery
                             if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                await MessageService.SendPackageAddedNoticeAsync(package,
+                                MessageService.SendPackageAddedNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false));

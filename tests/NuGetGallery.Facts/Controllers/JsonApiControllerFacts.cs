@@ -365,7 +365,7 @@ namespace NuGetGallery.Controllers
                                     .Verifiable();
                                 
                                 messageServiceMock
-                                    .Setup(m => m.SendPackageOwnerRequestAsync(
+                                    .Setup(m => m.SendPackageOwnerRequest(
                                         currentUser,
                                         userToAdd,
                                         fakes.Package,
@@ -374,19 +374,17 @@ namespace NuGetGallery.Controllers
                                         TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code",
                                         "Hello World! Html Encoded &lt;3",
                                         ""))
-                                    .Returns(Task.CompletedTask)
                                     .Verifiable();
 
                                 foreach (var owner in fakes.Package.Owners)
                                 {
                                     messageServiceMock
-                                        .Setup(m => m.SendPackageOwnerRequestInitiatedNoticeAsync(
+                                        .Setup(m => m.SendPackageOwnerRequestInitiatedNotice(
                                             currentUser,
                                             owner,
                                             userToAdd,
                                             fakes.Package,
                                             It.IsAny<string>()))
-                                        .Returns(Task.CompletedTask)
                                         .Verifiable();
                                 }
                             }
@@ -400,12 +398,11 @@ namespace NuGetGallery.Controllers
                                 foreach (var owner in fakes.Package.Owners)
                                 {
                                     messageServiceMock
-                                        .Setup(m => m.SendPackageOwnerAddedNoticeAsync(
+                                        .Setup(m => m.SendPackageOwnerAddedNotice(
                                             owner,
                                             userToAdd,
                                             fakes.Package,
                                             It.IsAny<string>()))
-                                        .Returns(Task.CompletedTask)
                                         .Verifiable();
                                 }
                             }
@@ -543,7 +540,7 @@ namespace NuGetGallery.Controllers
                         packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser));
 
                         GetMock<IMessageService>()
-                            .Verify(x => x.SendPackageOwnerRequestCancellationNoticeAsync(currentUser, requestedUser, package));
+                            .Verify(x => x.SendPackageOwnerRequestCancellationNotice(currentUser, requestedUser, package));
                     }
 
                     [Theory]
@@ -574,7 +571,7 @@ namespace NuGetGallery.Controllers
                         packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()));
 
                         GetMock<IMessageService>()
-                            .Verify(x => x.SendPackageOwnerRemovedNoticeAsync(currentUser, userToRemove, package));
+                            .Verify(x => x.SendPackageOwnerRemovedNotice(currentUser, userToRemove, package));
                     }
                 }
 
