@@ -258,8 +258,7 @@ namespace NuGetGallery
                     PasswordResetTokenExpirationDate = DateTime.UtcNow.AddHours(Constants.PasswordResetTokenExpirationHours)
                 };
                 GetMock<IMessageService>()
-                    .Setup(s => s.SendPasswordResetInstructionsAsync(user, resetUrl, true))
-                    .Returns(Task.CompletedTask);
+                    .Setup(s => s.SendPasswordResetInstructions(user, resetUrl, true));
                 GetMock<IUserService>()
                     .Setup(s => s.FindByEmailAddress("user"))
                     .Returns(user);
@@ -272,7 +271,7 @@ namespace NuGetGallery
                 await controller.ForgotPassword(model);
 
                 GetMock<IMessageService>()
-                    .Verify(s => s.SendPasswordResetInstructionsAsync(user, resetUrl, true));
+                    .Verify(s => s.SendPasswordResetInstructions(user, resetUrl, true));
             }
 
             [Fact]
@@ -448,7 +447,7 @@ namespace NuGetGallery
                 await controller.ResetPassword("user", "token", model, forgot: false);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNoticeAsync(cred.User,
+                    .Verify(m => m.SendCredentialAddedNotice(cred.User,
                                                              It.Is<CredentialViewModel>(c => c.Type == cred.Type)));
             }
 
@@ -953,7 +952,7 @@ namespace NuGetGallery
                     expirationInDays: 90);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendCredentialAddedNoticeAsync(user, It.IsAny<CredentialViewModel>()));
+                    .Verify(m => m.SendCredentialAddedNotice(user, It.IsAny<CredentialViewModel>()));
             }
         }
 
@@ -1310,7 +1309,7 @@ namespace NuGetGallery
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(m =>
-                                m.SendCredentialRemovedNoticeAsync(
+                                m.SendCredentialRemovedNotice(
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
                     .Verifiable();
@@ -1379,12 +1378,8 @@ namespace NuGetGallery
 
                 string actualConfirmUrl = null;
                 GetMock<IMessageService>()
-                    .Setup(a => a.SendPasswordResetInstructionsAsync(user, It.IsAny<string>(), false))
-                    .Returns<User, string, bool>((_, url, __) =>
-                    {
-                        actualConfirmUrl = url;
-                        return Task.CompletedTask;
-                    })
+                    .Setup(a => a.SendPasswordResetInstructions(user, It.IsAny<string>(), false))
+                    .Callback<User, string, bool>((_, url, __) => actualConfirmUrl = url)
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1515,10 +1510,9 @@ namespace NuGetGallery
                     .Completes()
                     .Verifiable();
                 GetMock<IMessageService>()
-                    .Setup(m => m.SendCredentialRemovedNoticeAsync(
+                    .Setup(m => m.SendCredentialRemovedNotice(
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Type == cred.Type)))
-                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -1622,10 +1616,9 @@ namespace NuGetGallery
                     .Verifiable();
                 GetMock<IMessageService>()
                     .Setup(m =>
-                                m.SendCredentialRemovedNoticeAsync(
+                                m.SendCredentialRemovedNotice(
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
-                    .Returns(Task.CompletedTask)
                     .Verifiable();
 
                 var controller = GetController<UsersController>();
@@ -2312,7 +2305,7 @@ namespace NuGetGallery
                 Assert.Equal(!successOnSentRequest, tempData);
                 GetMock<IMessageService>()
                     .Verify(
-                        stub => stub.SendAccountDeleteNoticeAsync(testUser), 
+                        stub => stub.SendAccountDeleteNotice(testUser), 
                         successOnSentRequest ? Times.Once() : Times.Never());
             }
 
@@ -2440,7 +2433,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAsync(
+                        m.SendOrganizationTransformRequest(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
                             It.IsAny<string>(),
@@ -2450,7 +2443,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(
-                        m => m.SendOrganizationTransformInitiatedNoticeAsync(
+                        m => m.SendOrganizationTransformInitiatedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
                             It.IsAny<string>()),
@@ -2485,7 +2478,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAsync(
+                        m.SendOrganizationTransformRequest(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
                             It.IsAny<string>(),
@@ -2495,7 +2488,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformInitiatedNoticeAsync(
+                        m.SendOrganizationTransformInitiatedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>(),
                             It.IsAny<string>()),
@@ -2524,7 +2517,7 @@ namespace NuGetGallery
                 Assert.IsType<RedirectResult>(result);
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendOrganizationTransformRequestAsync(
+                    .Verify(m => m.SendOrganizationTransformRequest(
                         It.IsAny<User>(),
                         It.IsAny<User>(),
                         It.IsAny<string>(),
@@ -2532,7 +2525,7 @@ namespace NuGetGallery
                         It.IsAny<string>()));
 
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendOrganizationTransformInitiatedNoticeAsync(
+                    .Verify(m => m.SendOrganizationTransformInitiatedNotice(
                         It.IsAny<User>(),
                         It.IsAny<User>(),
                         It.IsAny<string>()));
@@ -2566,7 +2559,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAcceptedNoticeAsync(
+                        m.SendOrganizationTransformRequestAcceptedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2597,7 +2590,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAcceptedNoticeAsync(
+                        m.SendOrganizationTransformRequestAcceptedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2629,7 +2622,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAcceptedNoticeAsync(
+                        m.SendOrganizationTransformRequestAcceptedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2656,7 +2649,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestAcceptedNoticeAsync(
+                        m.SendOrganizationTransformRequestAcceptedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()));
 
@@ -2718,7 +2711,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestRejectedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2745,7 +2738,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestRejectedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2774,7 +2767,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestRejectedNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()));
 
@@ -2826,7 +2819,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestCancelledNoticeAsync(
+                        m.SendOrganizationTransformRequestCancelledNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2854,7 +2847,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestCancelledNoticeAsync(
+                        m.SendOrganizationTransformRequestCancelledNotice(
                             It.IsAny<User>(),
                             It.IsAny<User>()));
 

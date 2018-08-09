@@ -43,7 +43,7 @@ namespace NuGetGallery
 
                 // assert: the HTML encoded message was passed to the service
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendContactSupportEmailAsync(
+                    .Verify(m => m.SendContactSupportEmail(
                         It.Is<ContactSupportRequest>(c =>
                             c.Message == expectedMessage
                             && c.SubjectLine == expectedSubjectLine)));
