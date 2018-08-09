@@ -1706,6 +1706,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package metadata contains a non-compliant copyright element..
+        /// </summary>
+        public static string SecurityPolicy_CopyrightNotCompliant {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_CopyrightNotCompliant", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A package verification key is required to push symbols. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireApiKeyWithPackageVerifyScope {
@@ -1715,11 +1724,57 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package metadata is missing required author &apos;{0}&apos;..
+        /// </summary>
+        public static string SecurityPolicy_RequiredAuthorMissing {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequiredAuthorMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata is missing required LicenseUrl..
+        /// </summary>
+        public static string SecurityPolicy_RequiredLicenseUrlMissing {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequiredLicenseUrlMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package metadata is missing required ProjectUrl..
+        /// </summary>
+        public static string SecurityPolicy_RequiredProjectUrlMissing {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequiredProjectUrlMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package is not compliant with metadata requirements for Microsoft packages on NuGet.org. Go to https://aka.ms/Microsoft-NuGet-Compliance for more information.
+        ///Policy violations: {0}.
+        /// </summary>
+        public static string SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A client version &apos;{0}&apos; or higher is required to be able to push packages. Please contact support@nuget.org to get more details..
         /// </summary>
         public static string SecurityPolicy_RequireMinProtocolVersionForPush {
             get {
                 return ResourceManager.GetString("SecurityPolicy_RequireMinProtocolVersionForPush", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You have not published a package with this prefix in the past. This means other users may be able to push packages starting with the same prefix. Contact account@nuget.org to reserve the prefix. Go to https://docs.microsoft.com/en-us/nuget/reference/id-prefix-reservation to learn more about Package ID prefix reservation..
+        /// </summary>
+        public static string SecurityPolicy_RequirePackagePrefixReserved {
+            get {
+                return ResourceManager.GetString("SecurityPolicy_RequirePackagePrefixReserved", resourceCulture);
             }
         }
         

@@ -376,8 +376,13 @@
     </Compile>
     <Compile Include="Security\AutomaticOverwriteRequiredSignerPolicy.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicy.cs" />
+    <Compile Include="Security\MicrosoftTeamSubscription.cs" />
+    <Compile Include="Security\PackageSecurityPolicyEvaluationContext.cs" />
+    <Compile Include="Security\PackageSecurityPolicyHandler.cs" />
     <Compile Include="Security\RequiredSignerPolicy.cs" />
+    <Compile Include="Security\RequirePackageMetadataCompliancePolicy.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicy.cs" />
+    <Compile Include="Security\SecurityPolicyHandler.cs" />
     <Compile Include="Services\AccountDeletionOrphanPackagePolicy.cs" />
     <Compile Include="Services\ActionOnNewPackageContext.cs" />
     <Compile Include="Services\ActionRequiringAccountPermissions.cs" />

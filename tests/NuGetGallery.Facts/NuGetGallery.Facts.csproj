@@ -123,6 +123,8 @@
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
+    <Compile Include="Security\MicrosoftTeamSubscriptionFacts.cs" />
+    <Compile Include="Security\RequireMicrosoftPackageCompliancePolicyFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
