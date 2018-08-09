@@ -180,10 +180,11 @@ namespace NuGetGallery.Security
         public Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(
             SecurityPolicyAction action,
             HttpContextBase httpContext,
-            Package package)
+            Package package,
+            User owner)
         {
             var account = httpContext.GetCurrentUser();
-            return EvaluatePackagePoliciesInternalAsync(action, package, account, account, httpContext);
+            return EvaluatePackagePoliciesInternalAsync(action, package, account, owner, httpContext);
         }
 
         private async Task<SecurityPolicyResult> EvaluatePackagePoliciesInternalAsync(
@@ -196,7 +197,7 @@ namespace NuGetGallery.Security
             bool auditSuccess = true)
         {
             httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            policies = policies ?? sourceAccount.SecurityPolicies;
+            policies = policies ?? targetAccount.SecurityPolicies;
 
             var relevantHandlers = PackageHandlers.Where(h => h.Action == action).ToList();
 
