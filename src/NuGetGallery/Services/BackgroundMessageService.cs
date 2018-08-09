@@ -5,20 +5,16 @@ using System;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
-using Elmah;
 using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Services
 {
     public class BackgroundMessageService : MessageService
     {
-        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService, ErrorLog errorLog)
+        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService)
             :base(mailSender, config, telemetryService)
         {
-            this.errorLog = errorLog;
         }
-
-        private ErrorLog errorLog;
 
         protected override Task SendMessageAsync(MailMessage mailMessage)
         {
@@ -38,7 +34,7 @@ namespace NuGetGallery.Services
                 catch (Exception ex)
                 {
                     // Log but swallow the exception.
-                    QuietLog.LogHandledException(ex, errorLog);
+                    QuietLog.LogHandledException(ex);
                 }
                 finally
                 {
