@@ -100,7 +100,7 @@ namespace NgTests.Infrastructure
             return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName));
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(Content.Keys.AsEnumerable().Select(x =>
                 ListMock.ContainsKey(x) ? ListMock[x] : new StorageListItem(x, DateTime.UtcNow)));

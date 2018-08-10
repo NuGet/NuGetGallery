@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -35,7 +36,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             Uri rootUri = _storage.ResolveUri("index.json");
 
-            string json = await _storage.LoadString(rootUri, cancellationToken);
+            string json = await _storage.LoadStringAsync(rootUri, cancellationToken);
 
             if (json != null)
             {

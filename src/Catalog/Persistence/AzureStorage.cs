@@ -105,7 +105,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return false;
         }
 
-        public override async Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override async Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
             var files = await _directory.ListBlobsAsync(cancellationToken);
 

@@ -37,7 +37,7 @@ namespace NgTests
             mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
-            await mockServer.AddStorage(catalogStorage);
+            await mockServer.AddStorageAsync(catalogStorage);
 
             // Make the first request for a catalog leaf node fail. This will cause the registration collector
             // to fail the first time but pass the second time.

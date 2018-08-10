@@ -35,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         protected override Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.Save(resourceUri, content, cancellationToken));
+            tasks.Add(_primaryStorage.SaveAsync(resourceUri, content, cancellationToken));
 
             foreach (var storage in _secondaryStorage)
             {
@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                         secondaryResourceUri, content);
                 }
 
-                tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, cancellationToken));
+                tasks.Add(storage.SaveAsync(secondaryResourceUri, secondaryContent, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
@@ -60,20 +60,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         protected override Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
         {
-            return _primaryStorage.Load(resourceUri, cancellationToken);
+            return _primaryStorage.LoadAsync(resourceUri, cancellationToken);
         }
 
         protected override Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.Delete(resourceUri, cancellationToken));
+            tasks.Add(_primaryStorage.DeleteAsync(resourceUri, cancellationToken));
 
             foreach (var storage in _secondaryStorage)
             {
                 var secondaryResourceUri = new Uri(resourceUri.ToString()
                     .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString()));
 
-                tasks.Add(storage.Delete(secondaryResourceUri, cancellationToken));
+                tasks.Add(storage.DeleteAsync(secondaryResourceUri, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
@@ -84,9 +84,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return _primaryStorage.Exists(fileName);
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
-            return _primaryStorage.List(cancellationToken);
+            return _primaryStorage.ListAsync(cancellationToken);
         }
 
         public override Uri GetUri(string name)

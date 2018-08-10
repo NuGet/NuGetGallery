@@ -134,7 +134,7 @@ namespace NgTests
             var mockServer = new MockServerHttpClientHandler();
 
             mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
-            await mockServer.AddStorage(catalogStorage);
+            await mockServer.AddStorageAsync(catalogStorage);
 
             return new CollectorHttpClient(mockServer);
         }

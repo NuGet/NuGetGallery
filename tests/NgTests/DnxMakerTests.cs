@@ -407,7 +407,7 @@ namespace NgTests
 
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
             var indexJsonUri = new Uri(storageForPackage.BaseAddress, "index.json");
-            var indexJson = await storageForPackage.Load(indexJsonUri, CancellationToken.None);
+            var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
             var indexObject = JObject.Parse(indexJson.GetContentString());
             var versions = indexObject["versions"].ToObject<string[]>();
             var expectedContent = GetExpectedIndexJsonContent(normalizedVersion);
@@ -433,7 +433,7 @@ namespace NgTests
 
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
             var indexJsonUri = new Uri(storageForPackage.BaseAddress, "index.json");
-            var indexJson = await storageForPackage.Load(indexJsonUri, CancellationToken.None);
+            var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.NotNull(indexJson);
             Assert.Equal(1, catalogToDnxStorage.Content.Count);
@@ -441,7 +441,7 @@ namespace NgTests
 
             await maker.UpdatePackageVersionIndexAsync(_packageId, v => v.Remove(version), CancellationToken.None);
 
-            indexJson = await storageForPackage.Load(indexJsonUri, CancellationToken.None);
+            indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.Null(indexJson);
             Assert.Equal(0, catalogToDnxStorage.Content.Count);
@@ -459,7 +459,7 @@ namespace NgTests
 
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
             var indexJsonUri = new Uri(storageForPackage.BaseAddress, "index.json");
-            var indexJson = await storageForPackage.Load(indexJsonUri, CancellationToken.None);
+            var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
 
             Assert.Null(indexJson);
             Assert.Equal(0, catalogToDnxStorage.Content.Count);
@@ -486,7 +486,7 @@ namespace NgTests
 
             var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
             var indexJsonUri = new Uri(storageForPackage.BaseAddress, "index.json");
-            var indexJson = await storageForPackage.Load(indexJsonUri, CancellationToken.None);
+            var indexJson = await storageForPackage.LoadAsync(indexJsonUri, CancellationToken.None);
             var indexObject = JObject.Parse(indexJson.GetContentString());
             var versions = indexObject["versions"].ToObject<string[]>();
 

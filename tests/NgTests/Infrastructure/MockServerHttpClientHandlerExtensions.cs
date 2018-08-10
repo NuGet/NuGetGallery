@@ -13,9 +13,9 @@ namespace NgTests.Infrastructure
 {
     public static class MockServerHttpClientHandlerExtensions
     {
-        public static async Task AddStorage(this MockServerHttpClientHandler handler, IStorage storage)
+        public static async Task AddStorageAsync(this MockServerHttpClientHandler handler, IStorage storage)
         {
-            var files = (await storage.List(CancellationToken.None)).Select(x => x.Uri);
+            var files = (await storage.ListAsync(CancellationToken.None)).Select(x => x.Uri);
 
             foreach (var file in files)
             {
@@ -24,7 +24,7 @@ namespace NgTests.Infrastructure
 
                 handler.SetAction(relativeFileUrl, async message =>
                 {
-                    var content = await storage.Load(storageFileUrl, CancellationToken.None);
+                    var content = await storage.LoadAsync(storageFileUrl, CancellationToken.None);
 
                     var response = new HttpResponseMessage(HttpStatusCode.OK);
 

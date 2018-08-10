@@ -29,8 +29,8 @@ namespace NgTests
             var aggregateStorageSub = aggregateStorageFactory.Create("sub");
 
             // Act
-            await aggregateStorageRoot.Save(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
-            await aggregateStorageSub.Save(new Uri("http://tempuri.org/firstone/sub/test.txt"), new StringStorageContent("test2"), CancellationToken.None);
+            await aggregateStorageRoot.SaveAsync(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
+            await aggregateStorageSub.SaveAsync(new Uri("http://tempuri.org/firstone/sub/test.txt"), new StringStorageContent("test2"), CancellationToken.None);
 
             // Assert
             Assert.Equal(2, storage1.Content.Count);
@@ -58,11 +58,11 @@ namespace NgTests
             var aggregateStorageRoot = aggregateStorageFactory.Create();
             var aggregateStorageSub = aggregateStorageFactory.Create("sub");
 
-            await aggregateStorageRoot.Save(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
-            await aggregateStorageSub.Save(new Uri("http://tempuri.org/firstone/sub/test.txt"), new StringStorageContent("test2"), CancellationToken.None);
+            await aggregateStorageRoot.SaveAsync(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
+            await aggregateStorageSub.SaveAsync(new Uri("http://tempuri.org/firstone/sub/test.txt"), new StringStorageContent("test2"), CancellationToken.None);
 
             // Act
-            await aggregateStorageRoot.Delete(new Uri("http://tempuri.org/firstone/test.txt"), CancellationToken.None);
+            await aggregateStorageRoot.DeleteAsync(new Uri("http://tempuri.org/firstone/test.txt"), CancellationToken.None);
 
             // Assert
             Assert.Equal(1, storage1.Content.Count);
@@ -89,12 +89,12 @@ namespace NgTests
             var aggregateStorageFactory = Create(storage1, storage2, storage3);
             var aggregateStorage = aggregateStorageFactory.Create();
 
-            await aggregateStorage.Save(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
+            await aggregateStorage.SaveAsync(new Uri("http://tempuri.org/firstone/test.txt"), new StringStorageContent("test1"), CancellationToken.None);
 
             // Act
-            var content1 = await aggregateStorage.Load(new Uri("http://tempuri.org/firstone/test.txt"), CancellationToken.None);
-            var content2 = await aggregateStorage.Load(new Uri("http://tempuri.org/secondone/test.txt"), CancellationToken.None);
-            var content3 = await aggregateStorage.Load(new Uri("http://tempuri.org/thirdone/test.txt"), CancellationToken.None);
+            var content1 = await aggregateStorage.LoadAsync(new Uri("http://tempuri.org/firstone/test.txt"), CancellationToken.None);
+            var content2 = await aggregateStorage.LoadAsync(new Uri("http://tempuri.org/secondone/test.txt"), CancellationToken.None);
+            var content3 = await aggregateStorage.LoadAsync(new Uri("http://tempuri.org/thirdone/test.txt"), CancellationToken.None);
 
             // Assert
             Assert.NotNull(content1);
@@ -127,7 +127,7 @@ namespace NgTests
             // Act
             foreach (var content in storageToReplay.Content)
             {
-                await aggregateStorage.Save(content.Key, content.Value, CancellationToken.None);
+                await aggregateStorage.SaveAsync(content.Key, content.Value, CancellationToken.None);
             }
 
             // Assert

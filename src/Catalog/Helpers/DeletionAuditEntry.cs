@@ -52,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
         {
             try
             {
-                return new DeletionAuditEntry(uri, await auditingStorage.LoadString(uri, cancellationToken));
+                return new DeletionAuditEntry(uri, await auditingStorage.LoadStringAsync(uri, cancellationToken));
             }
             catch (JsonReaderException)
             {
@@ -220,7 +220,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
             // Get all audit blobs (based on their filename which starts with a date that can be parsed).
             /// Filter on the <see cref="PackageIdentity"/> and <see cref="DateTime"/> fields provided.
             var auditRecords =
-                (await auditingStorage.List(cancellationToken)).Where(filterAuditRecord);
+                (await auditingStorage.ListAsync(cancellationToken)).Where(filterAuditRecord);
 
             return
                 (await Task.WhenAll(

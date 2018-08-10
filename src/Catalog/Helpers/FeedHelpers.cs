@@ -66,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 
             var stopwatch = Stopwatch.StartNew();
             var indexUri = storage.ResolveUri("index.json");
-            var json = await storage.LoadString(indexUri, cancellationToken);
+            var json = await storage.LoadStringAsync(indexUri, cancellationToken);
 
             if (json != null)
             {

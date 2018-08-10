@@ -112,7 +112,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var relativeAddress = GetRelativeAddressNuspec(id, version);
             var nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
 
-            await storage.Save(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
+            await storage.SaveAsync(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
 
             return nuspecUri;
         }
@@ -145,14 +145,14 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 // Store versions (sorted)
                 result.Sort();
 
-                await storage.Save(resourceUri, CreateContent(result.Select(version => version.ToNormalizedString())), cancellationToken);
+                await storage.SaveAsync(resourceUri, CreateContent(result.Select(version => version.ToNormalizedString())), cancellationToken);
             }
             else
             {
                 // Remove versions file if no versions are present
                 if (storage.Exists(relativeAddress))
                 {
-                    await storage.Delete(resourceUri, cancellationToken);
+                    await storage.DeleteAsync(resourceUri, cancellationToken);
                 }
             }
         }
@@ -161,7 +161,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             var relativeAddress = "index.json";
             var resourceUri = new Uri(storage.BaseAddress, relativeAddress);
-            var versions = GetVersions(await storage.LoadString(resourceUri, cancellationToken));
+            var versions = GetVersions(await storage.LoadStringAsync(resourceUri, cancellationToken));
 
             return new VersionsResult(relativeAddress, resourceUri, versions);
         }
@@ -195,7 +195,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             Uri nupkgUri = new Uri(storage.BaseAddress, GetRelativeAddressNupkg(id, version));
-            await storage.Save(nupkgUri, new StreamStorageContent(nupkgStream, "application/octet-stream", "max-age=120"), cancellationToken);
+            await storage.SaveAsync(nupkgUri, new StreamStorageContent(nupkgStream, "application/octet-stream", "max-age=120"), cancellationToken);
             return nupkgUri;
         }
 
@@ -205,7 +205,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             Uri nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
             if (storage.Exists(relativeAddress))
             {
-                await storage.Delete(nuspecUri, cancellationToken);
+                await storage.DeleteAsync(nuspecUri, cancellationToken);
             }
         }
 
@@ -215,7 +215,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             Uri nupkgUri = new Uri(storage.BaseAddress, relativeAddress);
             if (storage.Exists(relativeAddress))
             {
-                await storage.Delete(nupkgUri, cancellationToken);
+                await storage.DeleteAsync(nupkgUri, cancellationToken);
             }
         }
 

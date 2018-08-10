@@ -41,7 +41,7 @@ namespace CatalogTests
             Initialize();
 
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             // Act
             var result = await _collector.Run(CancellationToken.None);
@@ -65,7 +65,7 @@ namespace CatalogTests
             Initialize();
 
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             // Act
             var result = await _collector.Run(CancellationToken.None);

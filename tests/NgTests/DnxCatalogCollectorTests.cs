@@ -203,7 +203,7 @@ namespace NgTests
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
@@ -230,7 +230,7 @@ namespace NgTests
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.nuspec");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/unlistedpackage.1.0.0.nupkg",
@@ -264,7 +264,7 @@ namespace NgTests
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.nuspec");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackages();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
@@ -296,7 +296,7 @@ namespace NgTests
             var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
             var expectedNupkg = GetStreamBytes(nupkgStream);
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
@@ -332,7 +332,7 @@ namespace NgTests
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.nuspec");
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/otherpackage.1.0.0.nupkg",
@@ -362,7 +362,7 @@ namespace NgTests
             var nuspecUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.nuspec");
             var catalogStorage = Catalogs.CreateTestCatalogWithPackageCreatedThenDeleted();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/otherpackage.1.0.0.nupkg",
@@ -399,7 +399,7 @@ namespace NgTests
             });
             _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
 
-            await _catalogToDnxStorage.Save(
+            await _catalogToDnxStorage.SaveAsync(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
                 new StringStorageContent(GetExpectedIndexJsonContent("1.0.1")),
                 CancellationToken.None);
@@ -416,7 +416,7 @@ namespace NgTests
             };
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.1.nupkg",
@@ -468,7 +468,7 @@ namespace NgTests
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.1.nupkg",
@@ -503,7 +503,7 @@ namespace NgTests
         {
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.Return404OnUnknownAction = true;
 
@@ -527,7 +527,7 @@ namespace NgTests
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",
@@ -577,7 +577,7 @@ namespace NgTests
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/unlistedpackage.1.0.0.nupkg",
@@ -638,7 +638,7 @@ namespace NgTests
             var expectedNupkg = GetStreamBytes(nupkgStream);
             var catalogStorage = Catalogs.CreateTestCatalogWithMultipleEntriesWithSamePackageIdentityInSameBatch();
 
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             _mockServer.SetAction(
                 "/packages/listedpackage.1.0.0.nupkg",

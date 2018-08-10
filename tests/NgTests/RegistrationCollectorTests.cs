@@ -67,7 +67,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             // Make the first request for a catalog leaf node fail. This will cause the registration collector
             // to fail the first time but pass the second time.
@@ -131,7 +131,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             ReadWriteCursor front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -195,7 +195,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreeItemsForSamePackage(pageContent);
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             ReadWriteCursor front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
@@ -252,8 +252,8 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: true);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithSemVer2Package();
-            await _mockServer.AddStorage(catalogStorage);
-            
+            await _mockServer.AddStorageAsync(catalogStorage);
+
             var front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
             var back = MemoryCursor.CreateMax();
 
@@ -299,7 +299,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: true);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithSemVer2Package();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             var front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
             var back = MemoryCursor.CreateMax();
@@ -332,7 +332,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithSemVer2Package();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             var front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
             var back = MemoryCursor.CreateMax();
@@ -357,7 +357,7 @@ namespace NgTests
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithNonNormalizedDelete();
-            await _mockServer.AddStorage(catalogStorage);
+            await _mockServer.AddStorageAsync(catalogStorage);
 
             ReadWriteCursor front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
 
