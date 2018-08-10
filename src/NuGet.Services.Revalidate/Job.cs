@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -78,7 +79,7 @@ namespace NuGet.Services.Revalidate
 
                         preinstalledPackagesNames.UnionWith(packagesInPath);
                     }
-
+                        
                     File.WriteAllText(_preinstalledSetPath, JsonConvert.SerializeObject(preinstalledPackagesNames));
 
                     Logger.LogInformation("Rebuilt the preinstalled package set. Found {PreinstalledPackages} package ids", preinstalledPackagesNames.Count);
@@ -139,6 +140,7 @@ namespace NuGet.Services.Revalidate
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
             services.AddTransient<IPackageRevalidationStateService, PackageRevalidationStateService>();
+            services.AddTransient<IPackageRevalidationInserter, PackageRevalidationInserter>();
             services.AddTransient<IRevalidationJobStateService, RevalidationJobStateService>();
             services.AddTransient<IRevalidationStateService, RevalidationStateService>();
 

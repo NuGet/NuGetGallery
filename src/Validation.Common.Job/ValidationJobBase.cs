@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.ServiceBus;
@@ -37,7 +38,9 @@ namespace NuGet.Jobs.Validation
         protected override void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             base.ConfigureDefaultJobServices(services, configurationRoot);
-            
+
+            ConfigureDatabaseServices(services);
+
             services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
             services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
@@ -50,16 +53,6 @@ namespace NuGet.Jobs.Validation
                     readAccessGeoRedundant: false);
             });
             services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
-
-            services.AddScoped<IValidationEntitiesContext>(p =>
-            {
-                return new ValidationEntitiesContext(CreateSqlConnection<ValidationDbConfiguration>());
-            });
-
-            services.AddScoped<IEntitiesContext>(p =>
-            {
-                return new EntitiesContext(CreateSqlConnection<GalleryDbConfiguration>(), readOnly: true);
-            });
 
             services.AddTransient<ISubscriptionClient>(p =>
             {
@@ -84,6 +77,25 @@ namespace NuGet.Jobs.Validation
                 client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
 
                 return client;
+            });
+        }
+
+        private void ConfigureDatabaseServices(IServiceCollection services)
+        {
+            services.AddScoped<IValidationEntitiesContext>(p =>
+            {
+                var connectionFactory = p.GetRequiredService<ISqlConnectionFactory<ValidationDbConfiguration>>();
+                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                return new ValidationEntitiesContext(connection);
+            });
+
+            services.AddScoped<IEntitiesContext>(p =>
+            {
+                var connectionFactory = p.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
+                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+
+                return new EntitiesContext(connection, readOnly: true);
             });
         }
     }

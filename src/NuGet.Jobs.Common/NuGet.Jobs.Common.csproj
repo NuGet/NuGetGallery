@@ -50,8 +50,10 @@
     <Compile Include="Configuration\StatisticsDbConfiguration.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />
     <Compile Include="Configuration\ValidationStorageConfiguration.cs" />
+    <Compile Include="DelegateSqlConnectionFactory.cs" />
     <Compile Include="Extensions\LoggerExtensions.cs" />
     <Compile Include="Extensions\XElementExtensions.cs" />
+    <Compile Include="ISqlConnectionFactory.cs" />
     <Compile Include="JsonConfigurationJob.cs" />
     <Compile Include="SecretReader\ISecretReaderFactory.cs" />
     <Compile Include="SecretReader\SecretReaderFactory.cs" />

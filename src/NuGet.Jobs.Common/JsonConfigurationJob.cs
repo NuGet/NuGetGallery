@@ -117,6 +117,27 @@ namespace NuGet.Jobs
 
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
+
+            services.AddScoped<ISqlConnectionFactory<GalleryDbConfiguration>>(p =>
+            {
+                return new DelegateSqlConnectionFactory<GalleryDbConfiguration>(
+                    CreateSqlConnectionAsync<GalleryDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<GalleryDbConfiguration>>>());
+            });
+
+            services.AddScoped<ISqlConnectionFactory<StatisticsDbConfiguration>>(p =>
+            {
+                return new DelegateSqlConnectionFactory<StatisticsDbConfiguration>(
+                    CreateSqlConnectionAsync<StatisticsDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<StatisticsDbConfiguration>>>());
+            });
+
+            services.AddScoped<ISqlConnectionFactory<ValidationDbConfiguration>>(p =>
+            {
+                return new DelegateSqlConnectionFactory<ValidationDbConfiguration>(
+                    CreateSqlConnectionAsync<ValidationDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<ValidationDbConfiguration>>>());
+            });
         }
 
         private void ConfigureLibraries(IServiceCollection services)

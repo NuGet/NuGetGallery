@@ -16,6 +16,8 @@ using NuGet.Services.Sql;
 
 namespace NuGet.Jobs
 {
+    using ICoreSqlConnectionFactory = NuGet.Services.Sql.ISqlConnectionFactory;
+
     public abstract class JobBase
     {
         private readonly EventSource _jobEventSource;
@@ -29,7 +31,7 @@ namespace NuGet.Jobs
         {
             JobName = GetType().ToString();
             _jobEventSource = jobEventSource;
-            SqlConnectionFactories = new Dictionary<string, ISqlConnectionFactory>();
+            SqlConnectionFactories = new Dictionary<string, ICoreSqlConnectionFactory>();
         }
 
         public string JobName { get; private set; }
@@ -38,7 +40,7 @@ namespace NuGet.Jobs
 
         protected ILogger Logger { get; private set; }
 
-        private Dictionary<string, ISqlConnectionFactory> SqlConnectionFactories { get; }
+        private Dictionary<string, ICoreSqlConnectionFactory> SqlConnectionFactories { get; }
 
         public void SetLogger(ILoggerFactory loggerFactory, ILogger logger)
         {
@@ -56,11 +58,10 @@ namespace NuGet.Jobs
         /// </summary>
         public abstract Task Run();
 
-
         /// <summary>
         /// Test connection early to fail fast, and log connection diagnostics.
         /// </summary>
-        private async Task TestConnection(string name, ISqlConnectionFactory connectionFactory)
+        private async Task TestConnection(string name, ICoreSqlConnectionFactory connectionFactory)
         {
             try
             {
@@ -98,17 +99,17 @@ namespace NuGet.Jobs
         /// </summary>
         /// <returns>ConnectionStringBuilder, used for diagnostics.</returns>
         public SqlConnectionStringBuilder RegisterDatabase<T>(
-            IServiceProvider serviceProvider,
+            IServiceProvider services,
             bool testConnection = true)
             where T : IDbConfiguration
         {
-            if (serviceProvider == null)
+            if (services == null)
             {
-                throw new ArgumentNullException(nameof(serviceProvider));
+                throw new ArgumentNullException(nameof(services));
             }
 
-            var secretInjector = serviceProvider.GetRequiredService<ISecretInjector>();
-            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
+            var secretInjector = services.GetRequiredService<ISecretInjector>();
+            var connectionString = services.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
             var connectionFactory = new AzureSqlConnectionFactory(connectionString, secretInjector);
 
             return RegisterDatabase(GetDatabaseKey<T>(), connectionString, testConnection, secretInjector);
@@ -167,13 +168,13 @@ namespace NuGet.Jobs
             return connectionFactory.SqlConnectionStringBuilder;
         }
 
-        private ISqlConnectionFactory GetSqlConnectionFactory<T>()
+        private ICoreSqlConnectionFactory GetSqlConnectionFactory<T>()
             where T : IDbConfiguration
         {
             return GetSqlConnectionFactory(GetDatabaseKey<T>());
         }
 
-        private ISqlConnectionFactory GetSqlConnectionFactory(string name)
+        private ICoreSqlConnectionFactory GetSqlConnectionFactory(string name)
         {
             if (!SqlConnectionFactories.ContainsKey(name))
             {
