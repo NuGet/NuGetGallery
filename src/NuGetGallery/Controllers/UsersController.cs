@@ -613,15 +613,17 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            var packages = PackageService.FindPackagesByOwner(user, includeUnlisted: false)
-                .Where(p => p.PackageStatusKey == PackageStatus.Available)
-                .OrderByDescending(p => p.PackageRegistration.DownloadCount)
+            int maxResults = Constants.DefaultPackageListPageSize;
+            int skip = (page - 1) * maxResults;
+
+            var packages = PackageService.GetPagedPackagesByOwner(user, skip, maxResults, includeUnlisted: false)
                 .Select(p => new ListPackageItemViewModel(p, currentUser)
                 {
                     DownloadCount = p.PackageRegistration.DownloadCount
                 }).ToList();
+            var packageStatistics = PackageService.GetTotalPackagesStatisticsForOwner(user, includeUnlisted: false);
 
-            var model = new UserProfileModel(user, currentUser, packages, page - 1, Constants.DefaultPackageListPageSize, Url);
+            var model = new UserProfileModel(user, currentUser, packages, packageStatistics, page - 1, Constants.DefaultPackageListPageSize, Url);
 
             return View(model);
         }

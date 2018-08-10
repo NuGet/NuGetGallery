@@ -494,6 +494,7 @@
     <Compile Include="Services\PackageValidationResultType.cs" />
     <Compile Include="Services\PermissionsCheckResult.cs" />
     <Compile Include="Services\PermissionsRequirement.cs" />
+    <Compile Include="Services\ProfilePackageStatistics.cs" />
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />
