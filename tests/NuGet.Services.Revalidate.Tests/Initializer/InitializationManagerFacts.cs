@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Services.Validation;
@@ -22,7 +23,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             public async Task ThrowsIfAlreadyInitialized()
             {
                 // Arrange
-                _settings.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
+                _jobState.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
 
                 // Act & Assert
                 var e = await Assert.ThrowsAsync<InvalidOperationException>(() => _target.InitializeAsync());
@@ -223,6 +224,10 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                 _packageState.Verify(
                     s => s.AddPackageRevalidationsAsync(It.IsAny<IReadOnlyList<PackageRevalidation>>()),
                     Times.Exactly(expectedBatches));
+
+                // A scope should be created for each package set. Also, a scope should be created
+                // for each batch.
+                _scopeFactory.Verify(f => f.CreateScope(), Times.Exactly(4 + expectedBatches));
             }
 
             public static IEnumerable<object[]> PartitionsPackagesIntoBatchesOf1000OrLessVersionsData()
@@ -230,32 +235,32 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                 yield return new object[]
                 {
                     new[] { 1001 },
-                    1
+                    1,
                 };
 
                 yield return new object[]
                 {
                     new[] { 1, 1001, 1 },
-                    3
+                    3,
                 };
 
                 // Should be batched into two batches of 501 items.
                 yield return new object[]
                 {
                     new[] { 1, 500, 500, 1 },
-                    2
+                    2,
                 };
 
                 yield return new object[]
                 {
                     new[] { 500, 500 },
-                    1
+                    1,
                 };
 
                 yield return new object[]
                 {
                     Enumerable.Repeat(1, 1000).ToArray(),
-                    1
+                    1,
                 };
             }
 
@@ -277,7 +282,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                     .Callback(() => addRevalidationOrder = order++)
                     .Returns(Task.CompletedTask);
 
-                _settings
+                _jobState
                     .Setup(s => s.MarkAsInitializedAsync())
                     .Callback(() => markAsInitializedOrder = order++)
                     .Returns(Task.CompletedTask);
@@ -285,7 +290,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                 // Act & Assert
                 await _target.InitializeAsync();
 
-                _settings.Verify(s => s.MarkAsInitializedAsync(), Times.Once);
+                _jobState.Verify(s => s.MarkAsInitializedAsync(), Times.Once);
 
                 Assert.True(markAsInitializedOrder > addRevalidationOrder);
             }
@@ -396,7 +401,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             [Fact]
             public async Task ThrowsIfNotInitialized()
             {
-                _settings.Setup(s => s.IsInitializedAsync()).ReturnsAsync(false);
+                _jobState.Setup(s => s.IsInitializedAsync()).ReturnsAsync(false);
 
                 var e = await Assert.ThrowsAsync<Exception>(() => _target.VerifyInitializationAsync());
 
@@ -406,7 +411,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             [Fact]
             public async Task ThrowsIfAppropriatePackageCountDoesNotMatchRevalidationCount()
             {
-                _settings.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
+                _jobState.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
                 _packageFinder.Setup(f => f.AppropriatePackageCount()).Returns(100);
                 _packageState.Setup(s => s.PackageRevalidationCountAsync()).ReturnsAsync(50);
 
@@ -418,7 +423,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             [Fact]
             public async Task DoesNotThrowIfCountsMatch()
             {
-                _settings.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
+                _jobState.Setup(s => s.IsInitializedAsync()).ReturnsAsync(true);
                 _packageFinder.Setup(f => f.AppropriatePackageCount()).Returns(100);
                 _packageState.Setup(s => s.PackageRevalidationCountAsync()).ReturnsAsync(100);
 
@@ -428,25 +433,39 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
 
         public class FactsBase
         {
-            public readonly Mock<IRevalidationJobStateService> _settings;
+            public readonly Mock<IRevalidationJobStateService> _jobState;
             public readonly Mock<IPackageRevalidationStateService> _packageState;
             public readonly Mock<IPackageFinder> _packageFinder;
+            public readonly Mock<IServiceScopeFactory> _scopeFactory;
 
             public readonly InitializationConfiguration _config;
             public readonly InitializationManager _target;
 
             public FactsBase()
             {
-                _settings = new Mock<IRevalidationJobStateService>();
+                _jobState = new Mock<IRevalidationJobStateService>();
                 _packageState = new Mock<IPackageRevalidationStateService>();
                 _packageFinder = new Mock<IPackageFinder>();
+                _scopeFactory = new Mock<IServiceScopeFactory>();
+
+                var scope = new Mock<IServiceScope>();
+                var serviceProvider = new Mock<IServiceProvider>();
+
+                serviceProvider.Setup(p => p.GetService(typeof(IRevalidationJobStateService))).Returns(_jobState.Object);
+                serviceProvider.Setup(p => p.GetService(typeof(IPackageRevalidationStateService))).Returns(_packageState.Object);
+                serviceProvider.Setup(p => p.GetService(typeof(IPackageFinder))).Returns(_packageFinder.Object);
+                serviceProvider.Setup(p => p.GetService(typeof(IServiceScopeFactory))).Returns(_scopeFactory.Object);
+
+                scope.Setup(s => s.ServiceProvider).Returns(serviceProvider.Object);
+                _scopeFactory.Setup(s => s.CreateScope()).Returns(scope.Object);
 
                 _config = new InitializationConfiguration();
 
                 _target = new InitializationManager(
-                    _settings.Object,
+                    _jobState.Object,
                     _packageState.Object,
                     _packageFinder.Object,
+                    _scopeFactory.Object,
                     _config,
                     Mock.Of<ILogger<InitializationManager>>());
             }

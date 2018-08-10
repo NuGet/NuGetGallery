@@ -25,6 +25,8 @@ namespace NuGet.Services.Revalidate
 
         public async Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
         {
+            _logger.LogDebug("Persisting package revalidations to database...");
+
             var validationContext = _context as ValidationEntitiesContext;
 
             if (validationContext != null)
@@ -38,13 +40,19 @@ namespace NuGet.Services.Revalidate
                 _context.PackageRevalidations.Add(revalidation);
             }
 
+            _logger.LogDebug("Saving the validation context...");
+
             await _context.SaveChangesAsync();
+
+            _logger.LogDebug("Finished saving the validation context...");
 
             if (validationContext != null)
             {
                 validationContext.Configuration.AutoDetectChangesEnabled = true;
                 validationContext.Configuration.ValidateOnSaveEnabled = true;
             }
+
+            _logger.LogDebug("Finished persisting package revalidations to database...");
         }
 
         public async Task<int> RemovePackageRevalidationsAsync(int max)
