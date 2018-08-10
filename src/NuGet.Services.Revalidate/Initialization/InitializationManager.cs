@@ -122,7 +122,7 @@ namespace NuGet.Services.Revalidate
 
         private async Task InitializePackageSetAsync(string setName, HashSet<int> packageRegistrationKeys)
         {
-            var packageInformations = _packageFinder.FindPackageRegistrationInformation(setName, packageRegistrationKeys);
+            var packageInformations = await _packageFinder.FindPackageRegistrationInformationAsync(setName, packageRegistrationKeys);
 
             var chunks = packageInformations
                 .OrderByDescending(p => p.Downloads)

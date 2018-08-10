@@ -7,6 +7,8 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using NuGet.Versioning;
@@ -29,15 +31,18 @@ namespace NuGet.Services.Revalidate
         private static string MicrosoftAccountName = "Microsoft";
 
         private readonly IGalleryContext _galleryContext;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly InitializationConfiguration _config;
         private readonly ILogger<PackageFinder> _logger;
 
         public PackageFinder(
             IGalleryContext galleryContext,
+            IServiceScopeFactory scopeFactory,
             InitializationConfiguration config,
             ILogger<PackageFinder> logger)
         {
             _galleryContext = galleryContext ?? throw new ArgumentNullException(nameof(galleryContext));
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -105,7 +110,7 @@ namespace NuGet.Services.Revalidate
             return FindRegistrationKeys(RemainingSetName, r => !except.Contains(r.Key));
         }
 
-        public List<PackageRegistrationInformation> FindPackageRegistrationInformation(string setName, HashSet<int> packageRegistrationKeys)
+        public async Task<List<PackageRegistrationInformation>> FindPackageRegistrationInformationAsync(string setName, HashSet<int> packageRegistrationKeys)
         {
             // Fetch the packages' information in batches.
             var batches = packageRegistrationKeys.Batch(BatchSize);
@@ -121,23 +126,38 @@ namespace NuGet.Services.Revalidate
 
                 var batch = batches[batchIndex];
 
-                var packages = _galleryContext.PackageRegistrations
-                    .Where(r => batch.Contains(r.Key))
-                    .Select(r => new PackageRegistrationInformation
-                    {
-                        Key = r.Key,
-                        Id = r.Id,
-                        Downloads = r.DownloadCount,
-                        Versions = r.Packages.Count(),
-                    });
+                using (var scope = _scopeFactory.CreateScope())
+                {
+                    var scopedContext = scope.ServiceProvider.GetRequiredService<IGalleryContext>();
+                    var packages = scopedContext
+                        .PackageRegistrations
+                        .Where(r => batch.Contains(r.Key))
+                        .Select(r => new PackageRegistrationInformation
+                        {
+                            Key = r.Key,
+                            Id = r.Id,
+                            Downloads = r.DownloadCount,
+                            Versions = r.Packages.Count(),
+                        });
 
-                result.AddRange(packages);
+                    result.AddRange(packages);
+                }
 
                 _logger.LogInformation(
                     "Fetched batch {Batch} of {BatchesCount} of package informations for package set {SetName}",
                     batchIndex + 1,
                     batches.Count,
                     setName);
+
+                if (batchIndex < batches.Count - 1)
+                {
+                    _logger.LogInformation(
+                        "Sleeping for {SleepDuration} before fetching the next batch for package set {SetName}...",
+                        _config.SleepDurationBetweenBatches,
+                        setName);
+
+                    await Task.Delay(_config.SleepDurationBetweenBatches);
+                }
             }
 
             return result;

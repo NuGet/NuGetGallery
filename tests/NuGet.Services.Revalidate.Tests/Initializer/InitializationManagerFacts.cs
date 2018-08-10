@@ -39,8 +39,8 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                 _packageFinder.Setup(f => f.FindDependencyPackages(It.IsAny<HashSet<int>>())).Returns(new HashSet<int>());
                 _packageFinder.Setup(f => f.FindAllPackages(It.IsAny<HashSet<int>>())).Returns(new HashSet<int>());
 
-                _packageFinder.Setup(f => f.FindPackageRegistrationInformation(It.IsAny<string>(), It.IsAny<HashSet<int>>()))
-                    .Returns(new List<PackageRegistrationInformation>());
+                _packageFinder.Setup(f => f.FindPackageRegistrationInformationAsync(It.IsAny<string>(), It.IsAny<HashSet<int>>()))
+                    .ReturnsAsync(new List<PackageRegistrationInformation>());
 
                 var firstRemove = true;
 
@@ -339,20 +339,20 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                 }
 
                 _packageFinder
-                    .Setup(f => f.FindPackageRegistrationInformation(PackageFinder.MicrosoftSetName, It.IsAny<HashSet<int>>()))
-                    .Returns(RegistrationInformation(microsoftPackages));
+                    .Setup(f => f.FindPackageRegistrationInformationAsync(PackageFinder.MicrosoftSetName, It.IsAny<HashSet<int>>()))
+                    .ReturnsAsync(RegistrationInformation(microsoftPackages));
 
                 _packageFinder
-                    .Setup(f => f.FindPackageRegistrationInformation(PackageFinder.PreinstalledSetName, It.IsAny<HashSet<int>>()))
-                    .Returns(RegistrationInformation(preinstalledPackages));
+                    .Setup(f => f.FindPackageRegistrationInformationAsync(PackageFinder.PreinstalledSetName, It.IsAny<HashSet<int>>()))
+                    .ReturnsAsync(RegistrationInformation(preinstalledPackages));
 
                 _packageFinder
-                    .Setup(f => f.FindPackageRegistrationInformation(PackageFinder.DependencySetName, It.IsAny<HashSet<int>>()))
-                    .Returns(RegistrationInformation(dependencyPackages));
+                    .Setup(f => f.FindPackageRegistrationInformationAsync(PackageFinder.DependencySetName, It.IsAny<HashSet<int>>()))
+                    .ReturnsAsync(RegistrationInformation(dependencyPackages));
 
                 _packageFinder
-                    .Setup(f => f.FindPackageRegistrationInformation(PackageFinder.RemainingSetName, It.IsAny<HashSet<int>>()))
-                    .Returns(RegistrationInformation(remainingPackages));
+                    .Setup(f => f.FindPackageRegistrationInformationAsync(PackageFinder.RemainingSetName, It.IsAny<HashSet<int>>()))
+                    .ReturnsAsync(RegistrationInformation(remainingPackages));
 
                 // Build the list of versions for each version of packages.
                 var versions = microsoftPackages
