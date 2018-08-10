@@ -124,9 +124,9 @@
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\MicrosoftTeamSubscriptionFacts.cs" />
-    <Compile Include="Security\RequireMicrosoftPackageCompliancePolicyFacts.cs" />
     <Compile Include="Security\RequireMinProtocolVersionForPushPolicyFacts.cs" />
     <Compile Include="Security\RequireOrganizationTenantPolicyFacts.cs" />
+    <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />

@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NuGetGallery.Security
 {
-    public class RequireMicrosoftPackageCompliancePolicyFacts
+    public class RequirePackageMetadataCompliancePolicyFacts
     {
         public static object[] NonCompliantPackageMemberData
         {
