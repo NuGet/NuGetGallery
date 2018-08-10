@@ -472,7 +472,6 @@ namespace NuGetGallery
 
                 await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", fakePackageFile);
 
-                Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
                 fakeBlob.Verify();
             }
 
@@ -511,6 +510,41 @@ namespace NuGetGallery
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
 
                 Assert.Equal(contentType, fakeBlob.Object.Properties.ContentType);
+                fakeBlob.Verify(x => x.SetPropertiesAsync());
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public async Task WillSetTheBlobControlCacheOnPackagesFolder(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+                var fakePackageFile = new MemoryStream();
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(fakePackageFile, true)).Returns(Task.FromResult(0)).Verifiable();
+
+                await service.SaveFileAsync(folderName, "theFileName", fakePackageFile);
+
+                fakeBlob.Verify();
+
+                if (folderName == CoreConstants.PackagesFolderName)
+                {
+                    Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
+                }
+                else
+                {
+                    Assert.Null(fakeBlob.Object.Properties.CacheControl);
+                }
+
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
         }
