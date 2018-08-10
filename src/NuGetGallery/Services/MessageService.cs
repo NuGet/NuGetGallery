@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using AnglicanGeek.MarkdownMailer;
 using NuGetGallery.Configuration;
@@ -18,15 +16,14 @@ namespace NuGetGallery
 {
     public class MessageService : CoreMessageService, IMessageService
     {
-        public MessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService)
-            : base(mailSender, config)
+        protected MessageService()
         {
-            this.telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            smtpUri = config.SmtpUri?.Host;
         }
 
-        private readonly ITelemetryService telemetryService;
-        private readonly string smtpUri;
+        public MessageService(IMailSender mailSender, IAppConfiguration config)
+            : base(mailSender, config)
+        {
+        }
 
         public IAppConfiguration Config
         {
@@ -34,7 +31,7 @@ namespace NuGetGallery
             set { CoreConfiguration = value; }
         }
 
-        public async Task ReportAbuseAsync(ReportPackageRequest request)
+        public void ReportAbuse(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -82,11 +79,11 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task ReportMyPackageAsync(ReportPackageRequest request)
+        public void ReportMyPackage(ReportPackageRequest request)
         {
             string subject = "[{GalleryOwnerName}] Owner Support Request for '{Id}' version {Version} (Reason: {Reason})";
             subject = request.FillIn(subject, Config);
@@ -129,11 +126,11 @@ namespace NuGetGallery
                     // CCing helps to create a thread of email that can be augmented by the sending user
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendContactOwnersMessageAsync(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copySender)
+        public void SendContactOwnersMessage(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copySender)
         {
             string subject = "[{0}] Message for owners of the package '{1}'";
             string body = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '[{2} {3}]({4})'._
@@ -171,16 +168,12 @@ namespace NuGetGallery
 
                 if (mailMessage.To.Any())
                 {
-                    await SendMessageAsync(mailMessage);
-                    if (copySender)
-                    {
-                        await SendMessageToSenderAsync(mailMessage);
-                    }
+                    SendMessage(mailMessage, copySender);
                 }
             }
         }
 
-        public async Task SendNewAccountEmailAsync(User newUser, string confirmationUrl)
+        public void SendNewAccountEmail(User newUser, string confirmationUrl)
         {
             var isOrganization = newUser is Organization;
 
@@ -201,11 +194,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newUser.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
         
-        public async Task SendSigninAssistanceEmailAsync(MailAddress emailAddress, IEnumerable<Credential> credentials)
+        public void SendSigninAssistanceEmail(MailAddress emailAddress, IEnumerable<Credential> credentials)
         {
             string body = @"Hi there,
 
@@ -242,12 +235,12 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(emailAddress);
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
 
         }
         
-        public async Task SendEmailChangeConfirmationNoticeAsync(User user, string confirmationUrl)
+        public void SendEmailChangeConfirmationNotice(User user, string confirmationUrl)
         {
             string body = @"You recently changed your {0}'s {1} email address.
 
@@ -279,11 +272,11 @@ The {1} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(newEmailAddress);
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendEmailChangeNoticeToPreviousEmailAddressAsync(User user, string oldEmailAddress)
+        public void SendEmailChangeNoticeToPreviousEmailAddress(User user, string oldEmailAddress)
         {
             string body = @"The email address associated with your {0} {1} was recently changed from _{2}_ to _{3}_.
 
@@ -309,11 +302,11 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(new MailAddress(oldEmailAddress, user.Username));
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPasswordResetInstructionsAsync(User user, string resetPasswordUrl, bool forgotPassword)
+        public void SendPasswordResetInstructions(User user, string resetPasswordUrl, bool forgotPassword)
         {
             string body = string.Format(
                 CultureInfo.CurrentCulture,
@@ -332,11 +325,11 @@ The {0} Team";
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerRequestAsync(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage)
+        public void SendPackageOwnerRequest(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage)
         {
             if (!string.IsNullOrEmpty(policyMessage))
             {
@@ -379,11 +372,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerRequestInitiatedNoticeAsync(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl)
+        public void SendPackageOwnerRequestInitiatedNotice(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl)
         {
             var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}'");
 
@@ -408,11 +401,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerRequestRejectionNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package)
+        public void SendPackageOwnerRequestRejectionNotice(User requestingOwner, User newOwner, PackageRegistration package)
         {
             if (!requestingOwner.EmailAllowed)
             {
@@ -438,11 +431,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerRequestCancellationNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package)
+        public void SendPackageOwnerRequestCancellationNotice(User requestingOwner, User newOwner, PackageRegistration package)
         {
             var subject = string.Format(CultureInfo.CurrentCulture, $"[{Config.GalleryOwner.DisplayName}] Package ownership request for '{package.Id}' cancelled");
 
@@ -463,11 +456,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerAddedNoticeAsync(User toUser, User newOwner, PackageRegistration package, string packageUrl)
+        public void SendPackageOwnerAddedNotice(User toUser, User newOwner, PackageRegistration package, string packageUrl)
         {
             var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership update for '{package.Id}'";
 
@@ -487,11 +480,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 {
                     return;
                 }
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageOwnerRemovedNoticeAsync(User fromUser, User toUser, PackageRegistration package)
+        public void SendPackageOwnerRemovedNotice(User fromUser, User toUser, PackageRegistration package)
         {
             var subject = $"[{Config.GalleryOwner.DisplayName}] Package ownership removal for '{package.Id}'";
 
@@ -512,7 +505,7 @@ The {Config.GalleryOwner.DisplayName} Team";
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
@@ -521,11 +514,11 @@ The {Config.GalleryOwner.DisplayName} Team";
             return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.HandlePackageOwnershipRequest);
         }
 
-        public Task SendCredentialRemovedNoticeAsync(User user, CredentialViewModel removedCredentialViewModel)
+        public void SendCredentialRemovedNotice(User user, CredentialViewModel removedCredentialViewModel)
         {
             if (CredentialTypes.IsApiKey(removedCredentialViewModel.Type))
             {
-                return SendApiKeyChangeNoticeAsync(
+                SendApiKeyChangeNotice(
                     user,
                     removedCredentialViewModel,
                     Strings.Emails_ApiKeyRemoved_Body,
@@ -533,7 +526,7 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
             else
             {
-                return SendCredentialChangeNoticeAsync(
+                SendCredentialChangeNotice(
                     user,
                     removedCredentialViewModel,
                     Strings.Emails_CredentialRemoved_Body,
@@ -541,11 +534,11 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
-        public Task SendCredentialAddedNoticeAsync(User user, CredentialViewModel addedCredentialViewModel)
+        public void SendCredentialAddedNotice(User user, CredentialViewModel addedCredentialViewModel)
         {
             if (CredentialTypes.IsApiKey(addedCredentialViewModel.Type))
             {
-                return SendApiKeyChangeNoticeAsync(
+                SendApiKeyChangeNotice(
                     user,
                     addedCredentialViewModel,
                     Strings.Emails_ApiKeyAdded_Body,
@@ -553,7 +546,7 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
             else
             {
-                return SendCredentialChangeNoticeAsync(
+                SendCredentialChangeNotice(
                     user,
                     addedCredentialViewModel,
                     Strings.Emails_CredentialAdded_Body,
@@ -561,7 +554,7 @@ The {Config.GalleryOwner.DisplayName} Team";
             }
         }
 
-        private Task SendApiKeyChangeNoticeAsync(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
+        private void SendApiKeyChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
             string body = String.Format(
                 CultureInfo.CurrentCulture,
@@ -574,10 +567,10 @@ The {Config.GalleryOwner.DisplayName} Team";
                 Config.GalleryOwner.DisplayName,
                 Strings.CredentialType_ApiKey);
 
-            return SendSupportMessageAsync(user, body, subject);
+            SendSupportMessage(user, body, subject);
         }
 
-        private Task SendCredentialChangeNoticeAsync(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
+        private void SendCredentialChangeNotice(User user, CredentialViewModel changedCredentialViewModel, string bodyTemplate, string subjectTemplate)
         {
             // What kind of credential is this?
             string name = changedCredentialViewModel.AuthUI == null ? changedCredentialViewModel.TypeCaption : changedCredentialViewModel.AuthUI.AccountNoun;
@@ -593,10 +586,10 @@ The {Config.GalleryOwner.DisplayName} Team";
                 Config.GalleryOwner.DisplayName,
                 name);
 
-            return SendSupportMessageAsync(user, body, subject);
+            SendSupportMessage(user, body, subject);
         }
 
-        public async Task SendContactSupportEmailAsync(ContactSupportRequest request)
+        public void SendContactSupportEmail(ContactSupportRequest request)
         {
             string subject = string.Format(CultureInfo.CurrentCulture, "Support Request (Reason: {0})", request.SubjectLine);
 
@@ -621,11 +614,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 {
                     mailMessage.CC.Add(request.FromAddress);
                 }
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        private async Task SendSupportMessageAsync(User user, string body, string subject)
+        private void SendSupportMessage(User user, string body, string subject)
         {
             if (user == null)
             {
@@ -639,11 +632,11 @@ The {Config.GalleryOwner.DisplayName} Team";
                 mailMessage.From = Config.GalleryOwner;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendAccountDeleteNoticeAsync(User user)
+        public void SendAccountDeleteNotice(User user)
         {
             string body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.
 {2}When your account will be deleted, we will:{2}
@@ -670,11 +663,11 @@ Thanks,
                 mailMessage.From = Config.GalleryNoReplyAddress;
 
                 mailMessage.To.Add(user.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendPackageDeletedNoticeAsync(Package package, string packageUrl, string packageSupportUrl)
+        public void SendPackageDeletedNotice(Package package, string packageUrl, string packageSupportUrl)
         {
             string subject = "[{0}] Package deleted - {1} {2}";
             string body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
@@ -708,12 +701,12 @@ The {0} Team";
 
                 if (mailMessage.To.Any())
                 {
-                    await SendMessageAsync(mailMessage);
+                    SendMessage(mailMessage);
                 }
             }
         }
 
-        public async Task SendOrganizationTransformRequestAsync(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
+        public void SendOrganizationTransformRequest(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl)
         {
             if (!adminUser.EmailAllowed)
             {
@@ -743,11 +736,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(accountToTransform.ToMailAddress());
 
                 mailMessage.To.Add(adminUser.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationTransformInitiatedNoticeAsync(User accountToTransform, User adminUser, string cancellationUrl)
+        public void SendOrganizationTransformInitiatedNotice(User accountToTransform, User adminUser, string cancellationUrl)
         {
             if (!accountToTransform.EmailAllowed)
             {
@@ -775,11 +768,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
 
                 mailMessage.To.Add(accountToTransform.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationTransformRequestAcceptedNoticeAsync(User accountToTransform, User adminUser)
+        public void SendOrganizationTransformRequestAcceptedNotice(User accountToTransform, User adminUser)
         {
             if (!accountToTransform.EmailAllowed)
             {
@@ -801,21 +794,21 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
 
                 mailMessage.To.Add(accountToTransform.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public Task SendOrganizationTransformRequestRejectedNoticeAsync(User accountToTransform, User adminUser)
+        public void SendOrganizationTransformRequestRejectedNotice(User accountToTransform, User adminUser)
         {
-            return SendOrganizationTransformRequestRejectedNoticeInternalAsync(accountToTransform, adminUser, isCancelledByAdmin: true);
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: true);
         }
 
-        public Task SendOrganizationTransformRequestCancelledNoticeAsync(User accountToTransform, User adminUser)
+        public void SendOrganizationTransformRequestCancelledNotice(User accountToTransform, User adminUser)
         {
-            return SendOrganizationTransformRequestRejectedNoticeInternalAsync(accountToTransform, adminUser, isCancelledByAdmin: false);
+            SendOrganizationTransformRequestRejectedNoticeInternal(accountToTransform, adminUser, isCancelledByAdmin: false);
         }
 
-        private async Task SendOrganizationTransformRequestRejectedNoticeInternalAsync(User accountToTransform, User adminUser, bool isCancelledByAdmin)
+        private void SendOrganizationTransformRequestRejectedNoticeInternal(User accountToTransform, User adminUser, bool isCancelledByAdmin)
         {
             var accountToSendTo = isCancelledByAdmin ? accountToTransform : adminUser;
             var accountToReplyTo = isCancelledByAdmin ? adminUser : accountToTransform;
@@ -840,11 +833,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(accountToReplyTo.ToMailAddress());
 
                 mailMessage.To.Add(accountToSendTo.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMembershipRequestAsync(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
+        public void SendOrganizationMembershipRequest(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl)
         {
             if (!newUser.EmailAllowed)
             {
@@ -879,11 +872,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(adminUser.ToMailAddress());
 
                 mailMessage.To.Add(newUser.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMembershipRequestInitiatedNoticeAsync(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl)
+        public void SendOrganizationMembershipRequestInitiatedNotice(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl)
         {
             var membershipLevel = isAdmin ? "an administrator" : "a collaborator";
 
@@ -906,11 +899,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMembershipRequestRejectedNoticeAsync(Organization organization, User pendingUser)
+        public void SendOrganizationMembershipRequestRejectedNotice(Organization organization, User pendingUser)
         {
             string subject = $"[{Config.GalleryOwner.DisplayName}] Membership request for organization '{organization.Username}' declined";
 
@@ -931,11 +924,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                     return;
                 }
 
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMembershipRequestCancelledNoticeAsync(Organization organization, User pendingUser)
+        public void SendOrganizationMembershipRequestCancelledNotice(Organization organization, User pendingUser)
         {
             if (!pendingUser.EmailAllowed)
             {
@@ -957,11 +950,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(organization.ToMailAddress());
 
                 mailMessage.To.Add(pendingUser.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMemberUpdatedNoticeAsync(Organization organization, Membership membership)
+        public void SendOrganizationMemberUpdatedNotice(Organization organization, Membership membership)
         {
             if (!organization.EmailAllowed)
             {
@@ -986,11 +979,11 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(member.ToMailAddress());
 
                 mailMessage.To.Add(organization.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
-        public async Task SendOrganizationMemberRemovedNoticeAsync(Organization organization, User removedUser)
+        public void SendOrganizationMemberRemovedNotice(Organization organization, User removedUser)
         {
             if (!organization.EmailAllowed)
             {
@@ -1012,7 +1005,7 @@ The {Config.GalleryOwner.DisplayName} Team");
                 mailMessage.ReplyToList.Add(removedUser.ToMailAddress());
 
                 mailMessage.To.Add(organization.ToMailAddress());
-                await SendMessageAsync(mailMessage);
+                SendMessage(mailMessage);
             }
         }
 
@@ -1021,20 +1014,21 @@ The {Config.GalleryOwner.DisplayName} Team");
             return AddAddressesWithPermissionToEmail(mailMessage, user, ActionsRequiringPermissions.ManageAccount);
         }
 
-        protected override async Task AttemptSendMessageAsync(MailMessage mailMessage, int attemptNumber)
+        protected override void SendMessage(MailMessage mailMessage, bool copySender)
         {
-            bool success = false;
-            DateTimeOffset startTime = DateTimeOffset.UtcNow;
-            Stopwatch sw = Stopwatch.StartNew();
             try
             {
-                await base.AttemptSendMessageAsync(mailMessage, attemptNumber);
-                success = true;
+                base.SendMessage(mailMessage, copySender);
             }
-            finally
+            catch (InvalidOperationException ex)
             {
-                sw.Stop();
-                telemetryService.TrackSendEmail(smtpUri, startTime, sw.Elapsed, success, attemptNumber);
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
+            }
+            catch (SmtpException ex)
+            {
+                // Log but swallow the exception
+                QuietLog.LogHandledException(ex);
             }
         }
 

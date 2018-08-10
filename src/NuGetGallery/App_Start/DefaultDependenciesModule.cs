@@ -35,7 +35,6 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
-using NuGetGallery.Services;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
@@ -365,7 +364,7 @@ namespace NuGetGallery
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<BackgroundMessageService>()
+            builder.RegisterType<MessageService>()
                 .AsSelf()
                 .As<IMessageService>()
                 .InstancePerLifetimeScope();
