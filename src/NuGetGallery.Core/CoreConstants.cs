@@ -23,6 +23,8 @@ namespace NuGetGallery
         public const string CertificateContentType = "application/pkix-cert";
         public const string JsonContentType = "application/json";
 
+        public const string DefaultCacheControl = "max-age=120";
+
         public const string UserCertificatesFolderName = "user-certificates";
         public const string ContentFolderName = "content";
         public const string DownloadsFolderName = "downloads";

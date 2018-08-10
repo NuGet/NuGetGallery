@@ -472,6 +472,7 @@ namespace NuGetGallery
 
                 await service.SaveFileAsync(CoreConstants.PackagesFolderName, "theFileName", fakePackageFile);
 
+                Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
                 fakeBlob.Verify();
             }
 

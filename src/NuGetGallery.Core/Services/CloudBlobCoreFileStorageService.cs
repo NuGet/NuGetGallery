@@ -318,6 +318,7 @@ namespace NuGetGallery
             }
 
             blob.Properties.ContentType = GetContentType(folderName);
+            blob.Properties.CacheControl = CoreConstants.DefaultCacheControl;
             await blob.SetPropertiesAsync();
         }
 
