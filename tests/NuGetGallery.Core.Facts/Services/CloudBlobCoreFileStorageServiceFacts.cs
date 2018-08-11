@@ -73,7 +73,6 @@ namespace NuGetGallery
                 else if (!IncludePermissions && IncludeContentTypes)
                 {
                     folderNames = folderNames
-                        .Where(fn => fn[2] != null)
                         .Select(fn => new[] { fn[0], fn[2] })
                         .ToList();
                 }
