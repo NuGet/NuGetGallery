@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]>
                 {
-                    new object[] { CoreConstants.ContentFolderName, false, null, },
+                    new object[] { CoreConstants.ContentFolderName, false, CoreConstants.JsonContentType, },
                     new object[] { CoreConstants.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
