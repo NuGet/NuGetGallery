@@ -93,6 +93,8 @@ namespace NuGetGallery.Views
 
         public bool ShowAuthInHeader => true;
 
+        public bool LinkOpenSearchXml => true;
+
         protected NuGetViewBase()
         {
             _nugetContext = new Lazy<NuGetContext>(NuGetViewBase.GetNuGetContextThunk(this));
