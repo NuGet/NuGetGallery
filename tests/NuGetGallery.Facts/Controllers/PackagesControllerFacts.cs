@@ -100,7 +100,7 @@ namespace NuGetGallery
             {
                 securityPolicyService = new Mock<ISecurityPolicyService>();
                 securityPolicyService
-                    .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>(), It.IsAny<User>()))
+                    .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<Package>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
                     .ReturnsAsync(SecurityPolicyResult.SuccessResult);
             }
 
@@ -4648,7 +4648,7 @@ namespace NuGetGallery
 
                     var securityPolicyService = new Mock<ISecurityPolicyService>();
                     securityPolicyService
-                        .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<HttpContextBase>(), It.IsAny<Package>(), It.IsAny<User>()))
+                        .Setup(m => m.EvaluatePackagePoliciesAsync(SecurityPolicyAction.PackagePush, It.IsAny<Package>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
                         .ReturnsAsync(SecurityPolicyResult.CreateErrorResult(expectedMessage));
 
                     var controller = CreateController(

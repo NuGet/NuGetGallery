@@ -274,13 +274,13 @@ namespace NuGetGallery
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, HttpContext);
+            var user = GetCurrentUser();
+            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, user, HttpContext);
             if (!policyResult.Success)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
             }
 
-            var user = GetCurrentUser();
             var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
             var result = await VerifyPackageKeyInternalAsync(user, credential, id, version);
@@ -507,14 +507,15 @@ namespace NuGetGallery
             try
             {
                 var securityPolicyAction = SecurityPolicyAction.PackagePush;
-                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, HttpContext);
+
+                // Get the user
+                var currentUser = GetCurrentUser();
+
+                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, currentUser, HttpContext);
                 if (!policyResult.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
                 }
-
-                // Get the user
-                var currentUser = GetCurrentUser();
 
                 using (var packageStream = ReadPackageFromRequest())
                 {
@@ -657,10 +658,11 @@ namespace NuGetGallery
                                 currentUser);
                                 
                             var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
-                                securityPolicyAction, 
-                                HttpContext, 
+                                securityPolicyAction,
                                 package,
-                                owner);
+                                currentUser,
+                                owner,
+                                HttpContext);
 
                             if (!packagePolicyResult.Success)
                             {
