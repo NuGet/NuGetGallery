@@ -10,9 +10,10 @@
         var _uploadFormId;
         var _uploadFormData;
         var _pollingInterval = 250; // in ms
+        var _slowerPollingInterval = 1000; // in ms
         var _pingUrl;
-        var _failureCount;
         var _isUploadInProgress;
+        var _uploadStartTime;
 
         this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
             _pingUrl = pingUrl;
@@ -78,7 +79,7 @@
             if (InProgressPackage != null) {
                 bindData(InProgressPackage);
             }
-        }
+        };
 
         function resetFileSelectFeedback() {
             $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package...');
@@ -291,7 +292,7 @@
 
         function startProgressBar() {
             _isUploadInProgress = true;
-            _failureCount = 0;
+            _uploadStartTime = new Date();
 
             setProgressIndicator(0, '');
             $("#upload-progress-bar-container").removeClass("hidden");
@@ -301,6 +302,7 @@
         function endProgressBar() {
             $("#upload-progress-bar-container").addClass("hidden");
             _isUploadInProgress = false;
+            _uploadStartTime = null;
         }
 
         function getProgress() {
@@ -334,8 +336,17 @@
         }
 
         function onGetProgressError(result) {
-            if (++_failureCount < 3) {
-                setTimeout(getProgress, _pollingInterval);
+            if (_uploadStartTime) {
+                var currentTime = new Date();
+                var uploadDuration = currentTime - _uploadStartTime;
+
+                // Continue polling as if no errors have occurred for the 5 seconds of the upload.
+                // After that, poll at a slower pace for 5 minutes.
+                if (uploadDuration < 5 * 1000) {
+                    setTimeout(getProgress, _pollingInterval);
+                } else if (uploadDuration < 5 * 60 * 1000) {
+                    setTimeout(getProgress, _slowerPollingInterval);
+                }
             }
         }
 
