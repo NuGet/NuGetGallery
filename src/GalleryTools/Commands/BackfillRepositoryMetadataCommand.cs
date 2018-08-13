@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using Autofac;
+using CsvHelper;
+using CsvHelper.Configuration;
+using CsvHelper.TypeConversion;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -25,7 +27,7 @@ namespace GalleryTools.Commands
     /// This tool collect repository metadata for all packages in the DB from nuspec files in V3 flat container and updates DB with this data.
     /// Usage:
     /// 1. To collect repository metadata:
-    ///     a. Configure app.config with DB information and service index url
+    ///     a. Configure app.config with DB information and service index URL
     ///     b. Run this tool with: GalleryTools.exe -c
     /// This will create a file repositoryMetadata.txt with all collected data. You can stop the job anytime and restart. cursor.txt contains current position.    
     /// 
@@ -45,7 +47,7 @@ namespace GalleryTools.Commands
             CommandOption fileName = config.Option("-f | --file", "File to use", CommandOptionType.SingleValue);
 
             config.HelpOption("-? | -h | --help");
-            config.OnExecute(() =>
+            config.OnExecute(async () =>
             {
                 var builder = new ContainerBuilder();
                 builder.RegisterAssemblyModules(typeof(DefaultDependenciesModule).Assembly);
@@ -72,11 +74,11 @@ namespace GalleryTools.Commands
 
                     if (fileName.HasValue())
                     {
-                        UpdateDB.Run(fileName.Value(), connectionString).GetAwaiter().GetResult();
+                        await UpdateDB.Run(fileName.Value(), connectionString);
                     }
                     else
                     {
-                        UpdateDB.Run(connectionString).GetAwaiter().GetResult();
+                        await UpdateDB.Run(connectionString);
                     }
                 }
 
@@ -94,7 +96,7 @@ namespace GalleryTools.Commands
             private static string _flatContainerUri;
 
             private static EntitiesContext _context;
-            private static StreamWriter _metadataFileStreamWriter;
+            private static CsvWriter _csvWriter;
             private static Log _log;
             private static FileCursor _cursor;
             private static HttpClient _httpClient;
@@ -103,7 +105,7 @@ namespace GalleryTools.Commands
             {
                 try
                 {
-                    Initialize(connectionString, serviceDiscoveryUri);
+                    await Initialize(connectionString, serviceDiscoveryUri);
 
                     // Get start time from cursor.
                     var startTime = _cursor.GetCursorTime();
@@ -112,7 +114,10 @@ namespace GalleryTools.Commands
 
                     var packagesRepository = new EntityRepository<Package>(_context);
 
-                    var allPackages = packagesRepository.GetAll().Where(p => p.Created < lastCreateTime && p.Created > startTime && p.PackageStatusKey == PackageStatus.Available);
+                    var allPackages = packagesRepository.GetAll().Where(
+                        p => p.Created < lastCreateTime &&
+                             p.Created > startTime &&
+                             (p.PackageStatusKey == PackageStatus.Available || p.PackageStatusKey == PackageStatus.Validating));
                     allPackages = allPackages.Include(p => p.PackageRegistration).OrderBy(p => p.Key);
 
                     int counter = 0;
@@ -132,7 +137,7 @@ namespace GalleryTools.Commands
                                 !string.IsNullOrEmpty(repositoryMetadata.Url))
                             {
                                 Log.LogMessage($"Found repo information for package {packageId} {version}");
-                                await WriteMetadata(package.Created, packageId, version, repositoryMetadata);
+                                await WriteMetadata(new RepositoryMetadataLog(repositoryMetadata, package.Created, packageId, version));
                             }
                             else
                             {
@@ -161,20 +166,22 @@ namespace GalleryTools.Commands
                 Console.Read();
             }
 
-            private static void Initialize(string connectionString, Uri serviceDiscoveryUri)
+            private static async Task Initialize(string connectionString, Uri serviceDiscoveryUri)
             {
                 Log.LogMessage("Initializing");
 
                 _context = new EntitiesContext(connectionString, readOnly: true);
-                _metadataFileStreamWriter = new StreamWriter(RepositoryMetadataFileName, append: true);
+
+                var metadataFileStreamWriter = new StreamWriter(RepositoryMetadataFileName, append: true);
+                metadataFileStreamWriter.AutoFlush = true;
+                metadataFileStreamWriter.BaseStream.Seek(0, SeekOrigin.End);
+                _csvWriter = new CsvWriter(metadataFileStreamWriter);
+
                 _log = new Log(ErrorsFileName);
                 _cursor = new FileCursor(CursorFileName);
 
                 _httpClient = new HttpClient();
-                _flatContainerUri = GetFlatContainerUri(serviceDiscoveryUri);
-
-                _metadataFileStreamWriter.AutoFlush = true;
-                _metadataFileStreamWriter.BaseStream.Seek(0, SeekOrigin.End);
+                _flatContainerUri = await GetFlatContainerUriAsync(serviceDiscoveryUri);
             }
 
             private static void Dispose()
@@ -187,10 +194,10 @@ namespace GalleryTools.Commands
                     _context = null;
                 }
 
-                if (_metadataFileStreamWriter != null)
+                if (_csvWriter != null)
                 {
-                    _metadataFileStreamWriter.Dispose();
-                    _metadataFileStreamWriter = null;
+                    _csvWriter.Dispose();
+                    _csvWriter = null;
                 }
 
                 if (_log != null)
@@ -214,7 +221,7 @@ namespace GalleryTools.Commands
 
             private static async Task<RepositoryMetadata> GetRepositoryMetadata(string id, string normalizedVersion)
             {
-                string nuspecUri = $"{_flatContainerUri}{id.ToLowerInvariant()}/{normalizedVersion.ToLowerInvariant()}/{id.ToLowerInvariant()}.nuspec";
+                string nuspecUri = $"{_flatContainerUri}/{id.ToLowerInvariant()}/{normalizedVersion.ToLowerInvariant()}/{id.ToLowerInvariant()}.nuspec";
 
                 using (var nuspecStream = await _httpClient.GetStreamAsync(nuspecUri))
                 {
@@ -224,16 +231,17 @@ namespace GalleryTools.Commands
                 }
             }
 
-            private static string GetFlatContainerUri(Uri serviceDiscoveryUri)
+            private static async Task<string> GetFlatContainerUriAsync(Uri serviceDiscoveryUri)
             {
                 var serviceDiscoveryClient = new ServiceDiscoveryClient(serviceDiscoveryUri);
-                return serviceDiscoveryClient.GetEndpointsForResourceType("PackageBaseAddress/3.0.0").GetAwaiter().GetResult().First().AbsoluteUri;
+                var result = await serviceDiscoveryClient.GetEndpointsForResourceType("PackageBaseAddress/3.0.0");
+                return result.First().AbsoluteUri.TrimEnd('/');
             }
 
-            private static async Task WriteMetadata(DateTime creationDate, string packageId, string packageVersion, RepositoryMetadata repositoryMetadata)
+            private static async Task WriteMetadata(RepositoryMetadataLog metadata)
             {
-                await _metadataFileStreamWriter.WriteLineAsync(
-                    $"{creationDate.ToString("o")},{packageId},{packageVersion},{repositoryMetadata.Type},{repositoryMetadata.Url},{repositoryMetadata.Branch},{repositoryMetadata.Commit}");
+                _csvWriter.WriteRecord(metadata);
+                await _csvWriter.NextRecordAsync();
             }
 
             private static XDocument LoadXml(Stream stream)
@@ -260,9 +268,9 @@ namespace GalleryTools.Commands
             private const int BatchSize = 100;
 
             private static EntitiesContext _context;
+            private static CsvReader _csvReader;
             private static FileCursor _cursor;
             private static Log _log;
-            private static StreamReader _metadataFileReader;
 
             public static async Task Run(string connectionString)
             {
@@ -289,49 +297,52 @@ namespace GalleryTools.Commands
 
                     int counter = 0;
 
-                    var metadata = await TryReadNextMetadata();
+                    var result = await TryReadNextMetadata();
+                    RepositoryMetadataLog metadata = null;
 
-                    while (metadata.success)
+                    while (result.success)
                     {
+                        metadata = result.metadata;
+
                         // Skip packages with create date that we already processed in a previous run.
-                        if (metadata.createdDate >= startTime)
+                        if (metadata.CreationDate >= startTime)
                         {
-                            var package = packages.FirstOrDefault(p => p.PackageRegistration.Id == metadata.id && p.NormalizedVersion == metadata.version);
+                            var package = packages.FirstOrDefault(p => p.PackageRegistration.Id == metadata.PackageId && p.NormalizedVersion == metadata.PackageVersion);
 
                             if (package != null)
                             {
-                                package.RepositoryUrl = metadata.repositoryMetadata.Url;
+                                package.RepositoryUrl = metadata.Url;
 
-                                if (metadata.repositoryMetadata.Type.Length >= 100)
+                                if (metadata.Type.Length >= 100)
                                 {
-                                    await _log.LogError(metadata.id, metadata.version, $"Respository type too long: {metadata.repositoryMetadata.Type}");
+                                    await _log.LogError(metadata.PackageId, metadata.PackageVersion, $"Repository type too long: {metadata.Type}");
                                 }
                                 else
                                 {
-                                    package.RepositoryType = metadata.repositoryMetadata.Type;
+                                    package.RepositoryType = metadata.Type;
                                 }
 
                                 counter++;
-                                Console.WriteLine(".");
+                                Console.Write(".");
                             }
                             else
                             {
-                                await _log.LogError(metadata.id, metadata.version, "Couldn't find in DB");
+                                await _log.LogError(metadata.PackageId, metadata.PackageVersion, "Couldn't find in DB");
                             }
                         }
 
                         if (counter >= BatchSize)
                         {
-                            await CommitBatch(metadata.createdDate);
+                            await CommitBatch(metadata.CreationDate);
                             counter = 0;
                         }
 
-                        metadata = await TryReadNextMetadata();
+                        result = await TryReadNextMetadata();
                     }
 
                     if (counter > 0)
                     {
-                        await CommitBatch(metadata.createdDate);
+                        await CommitBatch(metadata.CreationDate);
                     }
                 }
                 finally
@@ -348,12 +359,17 @@ namespace GalleryTools.Commands
                 await _context.SaveChangesAsync();
                 await _cursor.WriteCursor(cursorTime);
 
-                Console.WriteLine("+");
+                Console.Write("+");
             }
 
             private static void Initialize(string metadataFileName, string connectionString)
             {
-                _metadataFileReader = new StreamReader(metadataFileName);
+                var metadataFileReader = new StreamReader(metadataFileName);
+
+                var configuration = new CsvHelper.Configuration.Configuration() { HasHeaderRecord = false };
+                configuration.RegisterClassMap<RepositoryMetadataLogMap>();
+                _csvReader = new CsvReader(metadataFileReader, configuration);
+
                 _context = new EntitiesContext(connectionString, readOnly: false);
                 _cursor = new FileCursor(CursorFileName);
                 _log = new Log(ErrorsFileName);
@@ -369,10 +385,10 @@ namespace GalleryTools.Commands
                     _context = null;
                 }
 
-                if (_metadataFileReader != null)
+                if (_csvReader != null)
                 {
-                    _metadataFileReader.Dispose();
-                    _metadataFileReader = null;
+                    _csvReader.Dispose();
+                    _csvReader = null;
                 }
 
                 if (_log != null)
@@ -382,26 +398,42 @@ namespace GalleryTools.Commands
                 }
             }
 
-            private static async Task<(bool success, DateTime createdDate, string id, string version, RepositoryMetadata repositoryMetadata)> TryReadNextMetadata()
+            private static async Task<(bool success, RepositoryMetadataLog metadata)> TryReadNextMetadata()
             {
-                (bool success, DateTime createdDate, string id, string version, RepositoryMetadata repositoryMetadata) result = (false, DateTime.MinValue, string.Empty, string.Empty, null);
-
-                var line = await _metadataFileReader.ReadLineAsync();
-
-                if (!string.IsNullOrWhiteSpace(line))
+                if (!await _csvReader.ReadAsync())
                 {
-                    var splitLine = line.Split(',');
-
-                    if (splitLine.Count() >= 5 && DateTime.TryParse(splitLine[0], out result.createdDate))
-                    {
-                        result.success = true;
-                        result.id = splitLine[1];
-                        result.version = splitLine[2];
-                        result.repositoryMetadata = new RepositoryMetadata(type: splitLine[3], url: splitLine[4], branch: string.Empty, commit: string.Empty);
-                    }
+                    return (success: false, metadata: null);
                 }
 
-                return result;
+                var record = _csvReader.GetRecord<RepositoryMetadataLog>();
+                return (success: true, metadata: record);
+            }
+        }
+
+        private class RepositoryMetadataLog : RepositoryMetadata
+        {
+            public DateTime CreationDate { get; set; }
+            public string PackageId { get; set; }
+            public string PackageVersion { get; set; }
+
+            public RepositoryMetadataLog()
+            {
+            }
+
+            public RepositoryMetadataLog(RepositoryMetadata repositoryMetadata, DateTime creationDate, string packageId, string packageVersion) : 
+                base(repositoryMetadata.Type, repositoryMetadata.Url, repositoryMetadata.Branch, repositoryMetadata.Commit)
+            {
+                CreationDate = creationDate;
+                PackageId = packageId;
+                PackageVersion = packageVersion;
+            }
+        }
+
+        private class RepositoryMetadataLogMap : ClassMap<RepositoryMetadataLog>
+        {
+            public RepositoryMetadataLogMap()
+            {
+                Map(x => x.CreationDate).TypeConverter<DateTimeConverter>();
             }
         }
 
