@@ -13,7 +13,7 @@
     </title>
 
     <link href="@Url.Content("~/favicon.ico")" rel="shortcut icon" type="image/x-icon" />
-    @if (ViewBag.HideOpenSearch != true)
+    @if (LinkOpenSearchXml == true)
     {
         <link title="NuGet.org" type="application/opensearchdescription+xml" href="@Url.Content("~/opensearch.xml")" rel="search">
     }
