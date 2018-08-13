@@ -8,10 +8,10 @@ This tool collect repository metadata for all packages in the DB from nuspec fil
 Usage:
 1. To collect repository metadata:
     a. Configure app.config with DB information and service index url
-    b. Run this tool with: GalleryTools.exe -c
+    b. Run this tool with: GalleryTools.exe fillrepodata -c
 This will create a file repositoryMetadata.txt with all collected data. You can stop the job anytime and restart. cursor.txt contains current position.    
      
 2. To update DB:
-    a. Run GalleryTools.exe -u  
+    a. Run GalleryTools.exe fillrepodata -u  
 This will update DB from file repositoryMetadata.txt. You can stop the job anytime and restart.
     
