@@ -6,7 +6,7 @@ namespace UpdateLicenseReports
     {
         static void Main(string[] args)
         {
-            var job = new Job();
+            var job = new UpdateLicenseReportsJob();
             JobRunner.Run(job, args).Wait();
         }
     }

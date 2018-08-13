@@ -6,20 +6,20 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Services.Sql;
 using Gallery.CredentialExpiration.Models;
+using NuGet.Jobs.Configuration;
 
 namespace Gallery.CredentialExpiration
 {
     public class GalleryCredentialExpiration : ICredentialExpirationExporter
     {
+        private readonly Job _job;
         private readonly CredentialExpirationJobMetadata _jobMetadata;
-        private readonly ISqlConnectionFactory _galleryDatabase;
 
-        public GalleryCredentialExpiration(CredentialExpirationJobMetadata jobMetadata, ISqlConnectionFactory galleryDatabase)
+        public GalleryCredentialExpiration(Job job, CredentialExpirationJobMetadata jobMetadata)
         {
+            _job = job;
             _jobMetadata = jobMetadata;
-            _galleryDatabase = galleryDatabase;
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace Gallery.CredentialExpiration
             var minNotificationDate = ConvertToString(GetMinNotificationDate());
 
             // Connect to database
-            using (var galleryConnection = await _galleryDatabase.CreateAsync())
+            using (var galleryConnection = await _job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
                 // Fetch credentials that expire in _warnDaysBeforeExpiration days 
                 // + the user's e-mail address
@@ -84,7 +84,10 @@ namespace Gallery.CredentialExpiration
         {
             // Send email to the accounts that will have credentials expiring in the next _warnDaysBeforeExpiration days and did not have any warning email sent yet.
             // Avoid cases when the cursor is out of date and MaxProcessedCredentialsTime < JobRuntime
-            var sendEmailsDateLeftBoundary = (_jobMetadata.JobCursor.MaxProcessedCredentialsTime > _jobMetadata.JobRunTime) ? _jobMetadata.JobCursor.MaxProcessedCredentialsTime : _jobMetadata.JobRunTime;
+            var sendEmailsDateLeftBoundary = (_jobMetadata.JobCursor.MaxProcessedCredentialsTime > _jobMetadata.JobRunTime)
+                ? _jobMetadata.JobCursor.MaxProcessedCredentialsTime
+                : _jobMetadata.JobRunTime;
+
             return credentialSet.Where( x => x.Expires > sendEmailsDateLeftBoundary).ToList();
         }
 

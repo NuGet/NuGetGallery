@@ -1,15 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.Common;
+using System.Diagnostics.Tracing;
 using System.IO;
-using System.Net;
-using System.Net.Http;
-using System.Reflection;
-using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.ApplicationInsights;
@@ -21,26 +18,27 @@ using NuGet.Jobs.Configuration;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
-using NuGet.Services.ServiceBus;
-using NuGet.Services.Sql;
-using NuGet.Services.Validation;
-using NuGetGallery;
-using NuGetGallery.Diagnostics;
 
-namespace NuGet.Jobs.Validation
+namespace NuGet.Jobs
 {
     public abstract class JsonConfigurationJob : JobBase
     {
+        private const string InitializationConfigurationSectionName = "Initialization";
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
+        private const string StatisticsDbConfigurationSectionName = "StatisticsDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
-        private const string PackageDownloadTimeoutName = "PackageDownloadTimeout";
 
-        /// <summary>
-        /// The maximum number of concurrent connections that can be established to a single server.
-        /// </summary>
-        private const int MaximumConnectionsPerServer = 64;
+        public JsonConfigurationJob()
+            : this(null)
+        {
+        }
+
+        public JsonConfigurationJob(EventSource jobEventSource)
+            : base(jobEventSource)
+        {
+        }
 
         /// <summary>
         /// The argument this job uses to determine the configuration file's path.
@@ -64,7 +62,7 @@ namespace NuGet.Jobs.Validation
 
             _serviceProvider = GetServiceProvider(configurationRoot, secretInjector);
 
-            ServicePointManager.DefaultConnectionLimit = MaximumConnectionsPerServer;
+            RegisterDatabases(_serviceProvider);
         }
 
         private IConfigurationRoot GetConfigurationRoot(string configurationFilename, out ISecretInjector secretInjector)
@@ -109,70 +107,36 @@ namespace NuGet.Jobs.Validation
             return new AutofacServiceProvider(containerBuilder.Build());
         }
 
-        protected virtual DbConnection CreateDbConnection<T>(IServiceProvider serviceProvider) where T : IDbConfiguration
-        {
-            var connectionString = serviceProvider.GetRequiredService<IOptionsSnapshot<T>>().Value.ConnectionString;
-            var connectionFactory = new AzureSqlConnectionFactory(connectionString,
-                serviceProvider.GetRequiredService<ISecretInjector>());
-
-            return Task.Run(() => connectionFactory.CreateAsync()).Result;
-        }
-
-        private void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        protected virtual void ConfigureDefaultJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
+            services.Configure<StatisticsDbConfiguration>(configurationRoot.GetSection(StatisticsDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
 
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
-            services.AddTransient<ICommonTelemetryService, CommonTelemetryService>();
-            services.AddTransient<IDiagnosticsService, LoggerDiagnosticsService>();
-            services.AddTransient<IFileDownloader, PackageDownloader>();
 
-            services.AddTransient<ICloudBlobClient>(c =>
+            services.AddScoped<ISqlConnectionFactory<GalleryDbConfiguration>>(p =>
             {
-                var configurationAccessor = c.GetRequiredService<IOptionsSnapshot<ValidationStorageConfiguration>>();
-                return new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ConnectionString,
-                    readAccessGeoRedundant: false);
-            });
-            services.AddTransient<ICoreFileStorageService, CloudBlobCoreFileStorageService>();
-
-            services.AddScoped<IValidationEntitiesContext>(p =>
-            {
-                return new ValidationEntitiesContext(CreateDbConnection<ValidationDbConfiguration>(p));
+                return new DelegateSqlConnectionFactory<GalleryDbConfiguration>(
+                    CreateSqlConnectionAsync<GalleryDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<GalleryDbConfiguration>>>());
             });
 
-            services.AddScoped<IEntitiesContext>(p =>
+            services.AddScoped<ISqlConnectionFactory<StatisticsDbConfiguration>>(p =>
             {
-                return new EntitiesContext(CreateDbConnection<GalleryDbConfiguration>(p), readOnly: true);
+                return new DelegateSqlConnectionFactory<StatisticsDbConfiguration>(
+                    CreateSqlConnectionAsync<StatisticsDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<StatisticsDbConfiguration>>>());
             });
 
-            services.AddTransient<ISubscriptionClient>(p =>
+            services.AddScoped<ISqlConnectionFactory<ValidationDbConfiguration>>(p =>
             {
-                var config = p.GetRequiredService<IOptionsSnapshot<ServiceBusConfiguration>>().Value;
-
-                return new SubscriptionClientWrapper(config.ConnectionString, config.TopicPath, config.SubscriptionName);
-            });
-
-            services.AddSingleton(p =>
-            {
-                var assembly = Assembly.GetEntryAssembly();
-                var assemblyName = assembly.GetName().Name;
-                var assemblyVersion = assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "0.0.0";
-
-                var client = new HttpClient(new WebRequestHandler
-                {
-                    AllowPipelining = true,
-                    AutomaticDecompression = (DecompressionMethods.GZip | DecompressionMethods.Deflate),
-                });
-
-                client.Timeout = configurationRoot.GetValue<TimeSpan>(PackageDownloadTimeoutName);
-                client.DefaultRequestHeaders.Add("User-Agent", $"{assemblyName}/{assemblyVersion}");
-
-                return client;
+                return new DelegateSqlConnectionFactory<ValidationDbConfiguration>(
+                    CreateSqlConnectionAsync<ValidationDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<ValidationDbConfiguration>>>());
             });
         }
 
@@ -182,6 +146,35 @@ namespace NuGet.Jobs.Validation
             services.Add(ServiceDescriptor.Scoped(typeof(IOptionsSnapshot<>), typeof(NonCachingOptionsSnapshot<>)));
             services.AddSingleton(LoggerFactory);
             services.AddLogging();
+        }
+
+        protected virtual void RegisterDatabases(IServiceProvider serviceProvider)
+        {
+            var galleryDb = serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>();
+            if (!string.IsNullOrEmpty(galleryDb.Value?.ConnectionString))
+            {
+                RegisterDatabase<GalleryDbConfiguration>(serviceProvider);
+            }
+
+            var statisticsDb = serviceProvider.GetRequiredService<IOptionsSnapshot<StatisticsDbConfiguration>>();
+            if (!string.IsNullOrEmpty(statisticsDb.Value?.ConnectionString))
+            {
+                RegisterDatabase<StatisticsDbConfiguration>(serviceProvider);
+            }
+
+            var validationDb = serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>();
+            if (!string.IsNullOrEmpty(validationDb.Value?.ConnectionString))
+            {
+                RegisterDatabase<ValidationDbConfiguration>(serviceProvider);
+            }
+        }
+
+        protected virtual void ConfigureInitializationSection<TConfiguration>(
+            IServiceCollection services,
+            IConfigurationRoot configurationRoot)
+            where TConfiguration : class
+        {
+            services.Configure<TConfiguration>(configurationRoot.GetSection(InitializationConfigurationSectionName));
         }
 
         /// <summary>

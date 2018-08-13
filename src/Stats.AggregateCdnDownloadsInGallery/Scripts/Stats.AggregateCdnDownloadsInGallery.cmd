@@ -8,14 +8,8 @@ echo "Starting job - #{Jobs.stats.aggregatecdndownloadsingallery.Title}"
 title #{Jobs.stats.aggregatecdndownloadsingallery.Title}
 
 start /w stats.aggregatecdndownloadsingallery.exe ^
-	-VaultName "#{Deployment.Azure.KeyVault.VaultName}" ^
-	-ClientId "#{Deployment.Azure.KeyVault.ClientId}" ^
-	-CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" ^
-	-StatisticsDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.StatisticsDatabase}" ^
-	-DestinationDatabase "#{Jobs.stats.aggregatecdndownloadsingallery.DestinationDatabase}" ^
+	-Configuration "#{Jobs.stats.aggregatecdndownloadsingallery.Configuration}" ^
 	-InstrumentationKey "#{Jobs.stats.aggregatecdndownloadsingallery.InstrumentationKey}" ^
-	-BatchSize "#{Jobs.stats.aggregatecdndownloadsingallery.BatchSize}" ^
-	-BatchSleepSeconds "#{Jobs.stats.aggregatecdndownloadsingallery.BatchSleepSeconds}" ^
 	-verbose true ^
 	-Interval #{Jobs.stats.aggregatecdndownloadsingallery.Interval}
 

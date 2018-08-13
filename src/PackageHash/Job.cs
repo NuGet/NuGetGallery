@@ -18,7 +18,7 @@ using NuGetGallery;
 
 namespace NuGet.Services.PackageHash
 {
-    public class Job : JsonConfigurationJob
+    public class Job : ValidationJobBase
     {
         private const string PackageHashConfigurationSectionName = "PackageHash";
 

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Entity;
 using System.Data.Entity.Infrastructure;
 using System.Linq;
@@ -15,36 +16,22 @@ namespace NuGet.Services.Revalidate
     public class PackageRevalidationStateService : IPackageRevalidationStateService
     {
         private readonly IValidationEntitiesContext _context;
+        private readonly IPackageRevalidationInserter _inserter;
         private readonly ILogger<PackageRevalidationStateService> _logger;
 
-        public PackageRevalidationStateService(IValidationEntitiesContext context, ILogger<PackageRevalidationStateService> logger)
+        public PackageRevalidationStateService(
+            IValidationEntitiesContext context,
+            IPackageRevalidationInserter inserter,
+            ILogger<PackageRevalidationStateService> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _inserter = inserter ?? throw new ArgumentNullException(nameof(inserter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
+        public Task AddPackageRevalidationsAsync(IReadOnlyList<PackageRevalidation> revalidations)
         {
-            var validationContext = _context as ValidationEntitiesContext;
-
-            if (validationContext != null)
-            {
-                validationContext.Configuration.AutoDetectChangesEnabled = false;
-                validationContext.Configuration.ValidateOnSaveEnabled = false;
-            }
-
-            foreach (var revalidation in revalidations)
-            {
-                _context.PackageRevalidations.Add(revalidation);
-            }
-
-            await _context.SaveChangesAsync();
-
-            if (validationContext != null)
-            {
-                validationContext.Configuration.AutoDetectChangesEnabled = true;
-                validationContext.Configuration.ValidateOnSaveEnabled = true;
-            }
+            return _inserter.AddPackageRevalidationsAsync(revalidations);
         }
 
         public async Task<int> RemovePackageRevalidationsAsync(int max)

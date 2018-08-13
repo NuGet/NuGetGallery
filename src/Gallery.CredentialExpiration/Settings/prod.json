@@ -1,0 +1,24 @@
+{
+  "Initialization": {
+    "AllowEmailResendAfterDays": 7,
+    "ContainerName": "credentialexpiration",
+    "DataStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$",
+    "GalleryAccountUrl": "https://www.nuget.org/account/ApiKeys",
+    "GalleryBrand": "NuGet Gallery",
+    "MailFrom": "support@nuget.org",
+    "SmtpUri": "#{Jobs.gallery.credentialexpiration.SmtpUri}",
+    "WarnDaysBeforeExpiration": 7,
+    "WhatIf": false
+  },
+
+  "GalleryDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;User ID=$$Prod-GalleryDBReadOnly-UserName$$;Password=$$Prod-GalleryDBReadOnly-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

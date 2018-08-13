@@ -9,7 +9,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
     {
         public static void Main(string[] args)
         {
-            var job = new Job();
+            var job = new AggregateCdnDownloadsJob();
             JobRunner.Run(job, args).Wait();
         }
     }

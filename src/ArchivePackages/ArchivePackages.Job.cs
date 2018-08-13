@@ -4,20 +4,23 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Diagnostics.Tracing;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
 using Dapper;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
+using NuGet.Jobs.Configuration;
 
 namespace ArchivePackages
 {
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
         private readonly JobEventSource JobEventSourceLog = JobEventSource.Log;
         private const string ContentTypeJson = "application/json";
@@ -26,6 +29,8 @@ namespace ArchivePackages
         private const string DefaultPackagesContainerName = "packages";
         private const string DefaultPackagesArchiveContainerName = "ng-backups";
         private const string DefaultCursorBlobName = "cursor.json";
+
+        private InitializationConfiguration Configuration { get; set; }
 
         /// <summary>
         /// Gets or sets an Azure Storage Uri referring to a container to use as the source for package blobs
@@ -44,6 +49,7 @@ namespace ArchivePackages
         /// DestinationContainerName should be same as the primary destination
         /// </summary>
         public CloudStorageAccount SecondaryDestination { get; set; }
+
         /// <summary>
         /// Destination Container name for both Primary and Secondary destinations. Also, for the cursor blob
         /// </summary>
@@ -53,8 +59,11 @@ namespace ArchivePackages
         /// Blob containing the cursor data. Cursor data comprises of cursorDateTime
         /// </summary>
         public string CursorBlobName { get; set; }
-        
-        private ISqlConnectionFactory _packageDbConnectionFactory;
+
+        /// <summary>
+        /// Gallery database registration, for diagnostics.
+        /// </summary>
+        private SqlConnectionStringBuilder GalleryDatabase { get; set; }
 
         protected CloudBlobContainer SourceContainer { get; private set; }
 
@@ -66,33 +75,34 @@ namespace ArchivePackages
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var packageDbConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PackageDatabase);
-            _packageDbConnectionFactory = new AzureSqlConnectionFactory(packageDbConnectionString, secretInjector);
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            Source = CloudStorageAccount.Parse(
-                        JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.Source));
+            Configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
 
-            PrimaryDestination = CloudStorageAccount.Parse(
-                                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.PrimaryDestination));
+            GalleryDatabase = GetDatabaseRegistration<GalleryDbConfiguration>();
 
-            var secondaryDestinationCstr = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SecondaryDestination);
-            SecondaryDestination = string.IsNullOrEmpty(secondaryDestinationCstr) ? null : CloudStorageAccount.Parse(secondaryDestinationCstr);
+            Source = CloudStorageAccount.Parse(Configuration.Source);
 
-            SourceContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.SourceContainerName) ?? DefaultPackagesContainerName;
+            PrimaryDestination = CloudStorageAccount.Parse(Configuration.PrimaryDestination);
 
-            DestinationContainerName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.DestinationContainerName) ?? DefaultPackagesArchiveContainerName;
+            if (!string.IsNullOrEmpty(Configuration.SecondaryDestination))
+            {
+                SecondaryDestination = CloudStorageAccount.Parse(Configuration.SecondaryDestination);
+            }
+
+            SourceContainerName = Configuration.SourceContainerName ?? DefaultPackagesContainerName;
+            DestinationContainerName = Configuration.DestinationContainerName ?? DefaultPackagesArchiveContainerName;
 
             SourceContainer = Source.CreateCloudBlobClient().GetContainerReference(SourceContainerName);
             PrimaryDestinationContainer = PrimaryDestination.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
             SecondaryDestinationContainer = SecondaryDestination?.CreateCloudBlobClient().GetContainerReference(DestinationContainerName);
 
-            CursorBlobName = JobConfigurationManager.TryGetArgument(jobArgsDictionary, JobArgumentNames.CursorBlob) ?? DefaultCursorBlobName;
+            CursorBlobName = Configuration.CursorBlob ?? DefaultCursorBlobName;
         }
 
         public override async Task Run()
         {
-            JobEventSourceLog.PreparingToArchive(Source.Credentials.AccountName, SourceContainer.Name, PrimaryDestination.Credentials.AccountName, PrimaryDestinationContainer.Name, _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
+            JobEventSourceLog.PreparingToArchive(Source.Credentials.AccountName, SourceContainer.Name, PrimaryDestination.Credentials.AccountName, PrimaryDestinationContainer.Name, GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
             await Archive(PrimaryDestinationContainer);
 
             // todo: consider reusing package query for primary and secondary archives
@@ -124,9 +134,9 @@ namespace ArchivePackages
 
             JobEventSourceLog.CursorData(cursorDateTime.ToString(DateTimeFormatSpecifier));
 
-            JobEventSourceLog.GatheringPackagesToArchiveFromDb(_packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
+            JobEventSourceLog.GatheringPackagesToArchiveFromDb(GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
             List<PackageRef> packages;
-            using (var connection = await _packageDbConnectionFactory.CreateAsync())
+            using (var connection = await OpenSqlConnectionAsync<GalleryDbConfiguration>())
             {
                 packages = (await connection.QueryAsync<PackageRef>(@"
 			    SELECT pr.Id, p.NormalizedVersion AS Version, p.Hash, p.LastEdited, p.Published
@@ -135,7 +145,7 @@ namespace ArchivePackages
 			    WHERE Published > @cursorDateTime OR LastEdited > @cursorDateTime", new { cursorDateTime = cursorDateTime }))
                     .ToList();
             }
-            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, _packageDbConnectionFactory.DataSource, _packageDbConnectionFactory.InitialCatalog);
+            JobEventSourceLog.GatheredPackagesToArchiveFromDb(packages.Count, GalleryDatabase.DataSource, GalleryDatabase.InitialCatalog);
 
             var archiveSet = packages
                 .AsParallel()
@@ -193,129 +203,14 @@ namespace ArchivePackages
                 JobEventSourceLog.StartedCopy(sourceBlob.Name, destBlob.Name);
             }
         }
-    }
 
-    [EventSource(Name = "Outercurve-NuGet-Jobs-ArchivePackages")]
-    public class JobEventSource : EventSource
-    {
-        public static readonly JobEventSource Log = new JobEventSource();
-
-        private JobEventSource() { }
-
-        [Event(
-            eventId: 1,
-            Level = EventLevel.Informational,
-            Message = "Preparing to archive packages from {0}/{1} to primary destination {2}/{3} using package data from {4}/{5}")]
-        public void PreparingToArchive(string sourceAccount, string sourceContainer, string destAccount, string destContainer, string dbServer, string dbName) { WriteEvent(1, sourceAccount, sourceContainer, destAccount, destContainer, dbServer, dbName); }
-
-        [Event(
-            eventId: 2,
-            Level = EventLevel.Informational,
-            Message = "Preparing to archive packages to secondary destination {0}/{1}")]
-        public void PreparingToArchive2(string destAccount, string destContainer) { WriteEvent(2, destAccount, destContainer); }
-
-        [Event(
-            eventId: 3,
-            Level = EventLevel.Informational,
-            Message = "Cursor data: CursorDateTime is {0}")]
-        public void CursorData(string cursorDateTime) { WriteEvent(3, cursorDateTime); }
-
-        [Event(
-            eventId: 4,
-            Level = EventLevel.Informational,
-            Task = Tasks.GatheringDbPackages,
-            Opcode = EventOpcode.Start,
-            Message = "Gathering list of packages to archive from {0}/{1}")]
-        public void GatheringPackagesToArchiveFromDb(string dbServer, string dbName) { WriteEvent(4, dbServer, dbName); }
-
-        [Event(
-            eventId: 5,
-            Level = EventLevel.Informational,
-            Task = Tasks.GatheringDbPackages,
-            Opcode = EventOpcode.Stop,
-            Message = "Gathered {0} packages to archive from {1}/{2}")]
-        public void GatheredPackagesToArchiveFromDb(int gathered, string dbServer, string dbName) { WriteEvent(5, gathered, dbServer, dbName); }
-
-        [Event(
-            eventId: 6,
-            Level = EventLevel.Informational,
-            Task = Tasks.ArchivingPackages,
-            Opcode = EventOpcode.Start,
-            Message = "Starting archive of {0} packages.")]
-        public void StartingArchive(int count) { WriteEvent(6, count); }
-
-        [Event(
-            eventId: 7,
-            Level = EventLevel.Informational,
-            Task = Tasks.ArchivingPackages,
-            Opcode = EventOpcode.Stop,
-            Message = "Started archive.")]
-        public void StartedArchive() { WriteEvent(7); }
-
-        [Event(
-            eventId: 8,
-            Level = EventLevel.Informational,
-            Message = "Archive already exists: {0}")]
-        public void ArchiveExists(string blobName) { WriteEvent(8, blobName); }
-
-        [Event(
-            eventId: 9,
-            Level = EventLevel.Warning,
-            Message = "Source Blob does not exist: {0}")]
-        public void SourceBlobMissing(string blobName) { WriteEvent(9, blobName); }
-
-        [Event(
-            eventId: 12,
-            Level = EventLevel.Informational,
-            Task = Tasks.StartingPackageCopy,
-            Opcode = EventOpcode.Start,
-            Message = "Starting copy of {0} to {1}.")]
-        public void StartingCopy(string source, string dest) { WriteEvent(12, source, dest); }
-
-        [Event(
-            eventId: 13,
-            Level = EventLevel.Informational,
-            Task = Tasks.StartingPackageCopy,
-            Opcode = EventOpcode.Stop,
-            Message = "Started copy of {0} to {1}.")]
-        public void StartedCopy(string source, string dest) { WriteEvent(13, source, dest); }
-
-        [Event(
-            eventId: 14,
-            Level = EventLevel.Informational,
-            Message = "NewCursor data: CursorDateTime is {0}")]
-        public void NewCursorData(string cursorDateTime) { WriteEvent(14, cursorDateTime); }
-    }
-
-    public static class Tasks
-    {
-        public const EventTask GatheringDbPackages = (EventTask)0x1;
-        public const EventTask ArchivingPackages = (EventTask)0x2;
-        public const EventTask StartingPackageCopy = (EventTask)0x3;
-    }
-
-    public class PackageRef
-    {
-        public PackageRef(string id, string version, string hash)
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
         {
-            Id = id;
-            Version = version;
-            Hash = hash;
         }
-        public PackageRef(string id, string version, string hash, DateTime lastEdited)
-            : this(id, version, hash)
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
-            LastEdited = lastEdited;
+            ConfigureInitializationSection<InitializationConfiguration>(services, configurationRoot);
         }
-        public PackageRef(string id, string version, string hash, DateTime lastEdited, DateTime published)
-            : this(id, version, hash, lastEdited)
-        {
-            Published = published;
-        }
-        public string Id { get; set; }
-        public string Version { get; set; }
-        public string Hash { get; set; }
-        public DateTime? LastEdited { get; set; }
-        public DateTime? Published { get; set; }
     }
 }

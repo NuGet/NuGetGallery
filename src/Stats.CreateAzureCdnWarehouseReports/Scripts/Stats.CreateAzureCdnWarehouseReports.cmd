@@ -3,26 +3,16 @@
 cd bin
 
 :Top
-	echo "Starting job - #{Jobs.stats.createazurecdnwarehousereports.Title}"
+echo "Starting job - #{Jobs.stats.createazurecdnwarehousereports.Title}"
 
-	title #{Jobs.stats.createazurecdnwarehousereports.Title}
+title #{Jobs.stats.createazurecdnwarehousereports.Title}
 
-	start /w stats.createazurecdnwarehousereports.exe ^
-		-VaultName "#{Deployment.Azure.KeyVault.VaultName}" ^
-		-ClientId "#{Deployment.Azure.KeyVault.ClientId}" ^
-		-CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" ^
-		-AzureCdnCloudStorageAccount "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageAccount}" ^
-		-AzureCdnCloudStorageContainerName "#{Jobs.stats.createazurecdnwarehousereports.AzureCdn.CloudStorageContainerName}" ^
-		-StatisticsDatabase "#{Jobs.stats.createazurecdnwarehousereports.StatisticsDatabase}" ^
-		-SourceDatabase "#{Jobs.stats.createazurecdnwarehousereports.SourceDatabase}" ^
-		-DataStorageAccount "#{Jobs.stats.createazurecdnwarehousereports.DataStorageAccount}" ^
-		-InstrumentationKey "#{Jobs.stats.createazurecdnwarehousereports.InstrumentationKey}" ^
-		-DataContainerName "#{Jobs.stats.createazurecdnwarehousereports.DataContainerName}" ^
-		-CommandTimeOut "#{Jobs.stats.createazurecdnwarehousereports.CommandTimeOut}" ^
-		-PerPackageReportDegreeOfParallelism "#{Jobs.stats.createazurecdnwarehousereports.PerPackageReportDegreeOfParallelism}" ^
-		-verbose true ^
-		-Interval #{Jobs.stats.createazurecdnwarehousereports.Interval} 
+start /w stats.createazurecdnwarehousereports.exe ^
+    -Configuration "#{Jobs.stats.createazurecdnwarehousereports.Configuration}"
+	-InstrumentationKey "#{Jobs.stats.createazurecdnwarehousereports.InstrumentationKey}" ^
+	-Interval #{Jobs.stats.createazurecdnwarehousereports.Interval}  ^
+	-verbose true
 
-	echo "Finished #{Jobs.stats.createazurecdnwarehousereports.Title}"
+echo "Finished #{Jobs.stats.createazurecdnwarehousereports.Title}"
 
-	goto Top
+goto Top

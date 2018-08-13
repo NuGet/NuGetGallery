@@ -3,33 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
-using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
 
 namespace Gallery.Maintenance
 {
     /// <summary>
     /// Runs all <see cref="MaintenanceTask"/>s against the Gallery database.
     /// </summary>
-    public class Job : JobBase
+    public class Job : JsonConfigurationJob
     {
-
-        public ISqlConnectionFactory GalleryDatabase { get; private set; }
-
-        public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
-        {
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var databaseConnectionString = JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.GalleryDatabase);
-
-            GalleryDatabase = new AzureSqlConnectionFactory(databaseConnectionString, secretInjector);
-        }
-
         public override async Task Run()
         {
             var failedTasks = new List<string>();
@@ -87,6 +75,14 @@ namespace Gallery.Maintenance
             return typedCreateLoggerMethod
                 .MakeGenericMethod(type)
                 .Invoke(null, new object[] { LoggerFactory }) as ILogger;
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
         }
     }
 }

@@ -31,7 +31,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             _warehouse = warehouse ?? throw new ArgumentNullException(nameof(warehouse));
             _statisticsBlobContainerUtility = statisticsBlobContainerUtility ?? throw new ArgumentNullException(nameof(statisticsBlobContainerUtility));
-            _logger = loggerFactory.CreateLogger<Job>();
+            _logger = loggerFactory.CreateLogger<ImportAzureCdnStatisticsJob>();
         }
 
         public async Task ProcessLogFileAsync(ILeasedLogFile logFile, IPackageStatisticsParser packageStatisticsParser, bool aggregatesOnly = false)

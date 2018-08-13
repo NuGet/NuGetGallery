@@ -46,13 +46,21 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="UpdateLicenseReports.Job.cs" />
+    <Compile Include="Configuration\UpdateLicenseReportsConfiguration.cs" />
+    <Compile Include="PackageLicenseReport.cs" />
+    <Compile Include="UpdateLicenseReportsJob.cs" />
     <Compile Include="UpdateLicenseReports.Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Scripts\*" />
+    <None Include="Settings\dev.json" />
+    <None Include="Settings\int.json" />
+    <None Include="Settings\prod.json" />
+    <None Include="TestData\LicenseServiceSampleResponse.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="UpdateLicenseReports.nuspec" />
   </ItemGroup>
   <ItemGroup>
@@ -73,9 +81,6 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json.Schema">
       <Version>2.0.10</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.25.0-master-30453</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

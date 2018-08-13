@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using NuGet.Services.Validation;
 using NuGet.Versioning;
@@ -18,6 +19,7 @@ namespace NuGet.Services.Revalidate
         private readonly IRevalidationJobStateService _jobState;
         private readonly IPackageRevalidationStateService _packageState;
         private readonly IPackageFinder _packageFinder;
+        private readonly IServiceScopeFactory _scopeFactory;
         private readonly InitializationConfiguration _config;
         private readonly ILogger<InitializationManager> _logger;
 
@@ -25,12 +27,14 @@ namespace NuGet.Services.Revalidate
             IRevalidationJobStateService jobState,
             IPackageRevalidationStateService packageState,
             IPackageFinder packageFinder,
+            IServiceScopeFactory scopeFactory,
             InitializationConfiguration config,
             ILogger<InitializationManager> logger)
         {
             _jobState = jobState ?? throw new ArgumentNullException(nameof(jobState));
             _packageState = packageState ?? throw new ArgumentNullException(nameof(packageState));
             _packageFinder = packageFinder ?? throw new ArgumentNullException(nameof(packageFinder));
+            _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -122,59 +126,83 @@ namespace NuGet.Services.Revalidate
 
         private async Task InitializePackageSetAsync(string setName, HashSet<int> packageRegistrationKeys)
         {
-            var packageInformations = _packageFinder.FindPackageRegistrationInformation(setName, packageRegistrationKeys);
-
-            var chunks = packageInformations
-                .OrderByDescending(p => p.Downloads)
-                .WeightedBatch(BatchSize, p => p.Versions);
-
-            for (var chunkIndex = 0; chunkIndex < chunks.Count; chunkIndex++)
+            using (var scope = _scopeFactory.CreateScope())
             {
-                while (await _jobState.IsKillswitchActiveAsync())
-                {
-                    _logger.LogInformation(
-                        "Delaying initialization of chunk {Chunk} of {Chunks} for package set {SetName} due to active killswitch",
-                        chunkIndex + 1,
-                        chunks.Count,
-                        setName);
+                var scopedPackageFinder = scope.ServiceProvider.GetRequiredService<IPackageFinder>();
+                var scopedJobState = scope.ServiceProvider.GetRequiredService<IRevalidationJobStateService>();
+                var scopedScopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
-                    await Task.Delay(_config.SleepDurationBetweenBatches);
+                var packageInformations = await scopedPackageFinder.FindPackageRegistrationInformationAsync(setName, packageRegistrationKeys);
+                var chunks = packageInformations
+                    .OrderByDescending(p => p.Downloads)
+                    .WeightedBatch(BatchSize, p => p.Versions);
+
+                for (var chunkIndex = 0; chunkIndex < chunks.Count; chunkIndex++)
+                {
+                    while (await scopedJobState.IsKillswitchActiveAsync())
+                    {
+                        _logger.LogInformation(
+                            "Delaying initialization of chunk {Chunk} of {Chunks} for package set {SetName} due to active killswitch",
+                            chunkIndex + 1,
+                            chunks.Count,
+                            setName);
+
+                        await Task.Delay(_config.SleepDurationBetweenBatches);
+                    }
+
+                    await InitializePackageSetChunkAsync(setName, chunks, chunkIndex, scopedScopeFactory, _logger);
+
+                    // Sleep if this is not the last chunk to prevent overloading the database.
+                    if (chunkIndex < chunks.Count - 1)
+                    {
+                        _logger.LogInformation(
+                            "Sleeping for {SleepDuration} before initializing the next chunk...",
+                            _config.SleepDurationBetweenBatches);
+
+                        await Task.Delay(_config.SleepDurationBetweenBatches);
+                    }
                 }
 
-                _logger.LogInformation(
-                    "Initializing chunk {Chunk} of {Chunks} for package set {SetName}...",
-                    chunkIndex + 1,
-                    chunks.Count,
-                    setName);
+                _logger.LogInformation("Finished initializing package set {SetName}", setName);
+            }
+        }
+
+        private static async Task InitializePackageSetChunkAsync(
+            string setName,
+            List<List<PackageRegistrationInformation>> chunks,
+            int chunkIndex,
+            IServiceScopeFactory scopeFactory,
+            ILogger<InitializationManager> logger)
+        {
+            logger.LogInformation(
+                "Initializing chunk {Chunk} of {Chunks} for package set {SetName}...",
+                chunkIndex + 1,
+                chunks.Count,
+                setName);
+
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var scopedPackageState = scope.ServiceProvider.GetRequiredService<IPackageRevalidationStateService>();
+                var scopedPackageFinder = scope.ServiceProvider.GetRequiredService<IPackageFinder>();
 
                 var chunk = chunks[chunkIndex];
-                var versions = _packageFinder.FindAppropriateVersions(chunk);
+                var versions = scopedPackageFinder.FindAppropriateVersions(chunk);
 
-                await InitializeRevalidationsAsync(chunk, versions);
+                await InitializeRevalidationsAsync(chunk, versions, scopedPackageState, logger);
 
-                _logger.LogInformation(
+                logger.LogInformation(
                     "Initialized chunk {Chunk} of {Chunks} for package set {SetName}",
                     chunkIndex + 1,
                     chunks.Count,
                     setName);
-
-                // Sleep if this is not the last chunk to prevent overloading the database.
-                if (chunkIndex < chunks.Count - 1)
-                {
-                    _logger.LogInformation(
-                        "Sleeping for {SleepDuration} before initializing the next chunk...",
-                        _config.SleepDurationBetweenBatches);
-
-                    await Task.Delay(_config.SleepDurationBetweenBatches);
-                }
             }
-
-            _logger.LogInformation("Finished initializing package set {SetName}", setName);
         }
 
-        private async Task InitializeRevalidationsAsync(
+        private static async Task InitializeRevalidationsAsync(
             List<PackageRegistrationInformation> packageRegistrations,
-            Dictionary<int, List<NuGetVersion>> versions)
+            Dictionary<int, List<NuGetVersion>> versions,
+            IPackageRevalidationStateService packageState,
+            ILogger<InitializationManager> logger)
         {
             var revalidations = new List<PackageRevalidation>();
 
@@ -184,7 +212,7 @@ namespace NuGet.Services.Revalidate
 
                 if (!versions.ContainsKey(packageRegistration.Key) || versions[packageRegistration.Key].Count == 0)
                 {
-                    _logger.LogWarning("Could not find any versions of package {PackageId} to revalidate", packageId);
+                    logger.LogWarning("Could not find any versions of package {PackageId} to revalidate", packageId);
 
                     continue;
                 }
@@ -205,7 +233,7 @@ namespace NuGet.Services.Revalidate
                 }
             }
 
-            await _packageState.AddPackageRevalidationsAsync(revalidations);
+            await packageState.AddPackageRevalidationsAsync(revalidations);
         }
     }
 }

@@ -3,12 +3,16 @@
 cd bin
 
 :Top
-	echo "Starting job - #{Jobs.stats.importazurecdnstatistics.Title}"
+echo "Starting job - #{Jobs.stats.importazurecdnstatistics.Title}"
 	
-	title #{Jobs.stats.importazurecdnstatistics.Title}
+title #{Jobs.stats.importazurecdnstatistics.Title}
 
-	start /w stats.importazurecdnstatistics.exe -VaultName "#{Deployment.Azure.KeyVault.VaultName}" -ClientId "#{Deployment.Azure.KeyVault.ClientId}" -CertificateThumbprint "#{Deployment.Azure.KeyVault.CertificateThumbprint}" -AzureCdnCloudStorageAccount "#{Jobs.stats.importazurecdnstatistics.AzureCdn.CloudStorageAccount}" -AzureCdnCloudStorageContainerName "#{Jobs.stats.importazurecdnstatistics.AzureCdn.CloudStorageContainerName}" -AzureCdnPlatform "#{Jobs.stats.importazurecdnstatistics.AzureCdn.Platform}" -AzureCdnAccountNumber "#{Jobs.stats.importazurecdnstatistics.AzureCdn.AccountNumber}" -StatisticsDatabase "#{Jobs.stats.importazurecdnstatistics.StatisticsDatabase}" -InstrumentationKey "#{Jobs.stats.importazurecdnstatistics.InstrumentationKey}" -verbose true -Interval #{Jobs.stats.importazurecdnstatistics.Interval} 
+start /w stats.importazurecdnstatistics.exe ^
+    -Configuration "#{Jobs.stats.importazurecdnstatistics.Configuration}" ^
+    -InstrumentationKey "#{Jobs.stats.importazurecdnstatistics.InstrumentationKey}" ^
+    -Interval #{Jobs.stats.importazurecdnstatistics.Interval} ^
+    -verbose true
 
-	echo "Finished #{Jobs.stats.importazurecdnstatistics.Title}"
+echo "Finished #{Jobs.stats.importazurecdnstatistics.Title}"
 
-	goto Top
+goto Top

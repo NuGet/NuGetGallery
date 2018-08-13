@@ -15,29 +15,6 @@ namespace NuGet.Services.Revalidate.Tests.Services
 {
     public class PackageRevalidationStateServiceFacts
     {
-        public class TheAddPackageRevalidationsAsyncMethod : FactsBase
-        {
-            [Fact]
-            public async Task AddsRevalidations()
-            {
-                // Arrange
-                var revalidations = new List<PackageRevalidation>
-                {
-                    new PackageRevalidation { PackageId = "A" },
-                    new PackageRevalidation { PackageId = "B" }
-                };
-
-                _context.Mock();
-                
-                // Act & Assert
-                await _target.AddPackageRevalidationsAsync(revalidations);
-
-                Assert.Equal(2, _context.Object.PackageRevalidations.Count());
-
-                _context.Verify(c => c.SaveChangesAsync(), Times.Once);
-            }
-        }
-
         public class TheRemoveRevalidationsAsyncMethod : FactsBase
         {
             [Fact]
@@ -124,6 +101,7 @@ namespace NuGet.Services.Revalidate.Tests.Services
 
                 _target = new PackageRevalidationStateService(
                     _context.Object,
+                    Mock.Of<IPackageRevalidationInserter>(),
                     Mock.Of<ILogger<PackageRevalidationStateService>>());
             }
         }

@@ -53,6 +53,9 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="Scripts\*" />
+    <None Include="Settings\dev.json" />
+    <None Include="Settings\int.json" />
+    <None Include="Settings\prod.json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
@@ -66,9 +69,6 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>9.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Sql">
-      <Version>2.25.0-master-30263</Version>
     </PackageReference>
     <PackageReference Include="System.Net.Http">
       <Version>4.3.3</Version>

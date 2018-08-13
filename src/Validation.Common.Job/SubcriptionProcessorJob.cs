@@ -12,7 +12,7 @@ using NuGet.Services.ServiceBus;
 
 namespace NuGet.Jobs.Validation
 {
-    public abstract class SubcriptionProcessorJob<T> : JsonConfigurationJob
+    public abstract class SubcriptionProcessorJob<T> : ValidationJobBase
     {
         private const string SubscriptionProcessorConfigurationSectionName = "ServiceBus";
 

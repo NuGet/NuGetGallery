@@ -9,7 +9,7 @@ namespace Stats.RollUpDownloadFacts
     {
         public static void Main(string[] args)
         {
-            var job = new Job();
+            var job = new RollUpDownloadFactsJob();
             JobRunner.Run(job, args).Wait();
         }
     }

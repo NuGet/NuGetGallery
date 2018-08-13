@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Revalidate
@@ -41,7 +42,7 @@ namespace NuGet.Services.Revalidate
         /// <param name="setName">The name of this set of packages.</param>
         /// <param name="packageRegistrationKeys">The set of package registration keys.</param>
         /// <returns>Information about each package registration, if it exists in the database.</returns>
-        List<PackageRegistrationInformation> FindPackageRegistrationInformation(string setName, HashSet<int> packageRegistrationKeys);
+        Task<List<PackageRegistrationInformation>> FindPackageRegistrationInformationAsync(string setName, HashSet<int> packageRegistrationKeys);
 
         /// <summary>
         /// Find versions that are appropriate for revalidations.

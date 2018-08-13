@@ -6,7 +6,7 @@
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder",
         "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder\\.tools"
       ],
-      "MaxPackageCreationDate": "2021-03-01T23:52:40.7022034+00:00", // TODO: Update this when repository signing is enabled
+      "MaxPackageCreationDate": "2018-08-08T23:59:59.0000000Z",
       "SleepDurationBetweenBatches": "00:00:30"
     },
 
@@ -17,7 +17,7 @@
     },
 
     "MinPackageEventRate": 120,
-    "MaxPackageEventRate": 500,
+    "MaxPackageEventRate": 200,
 
     "AppInsights": {
       "AppId": "718e0c81-9132-4bf2-b24b-aa625dafd800",
@@ -31,10 +31,10 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;Integrated Security=False;User ID=$$Int-GalleryDBReadOnly-UserName$$;Password=$$Int-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;Integrated Security=False;User ID=$$Int-GalleryDBReadOnly-UserName$$;Password=$$Int-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-int-validation;Integrated Security=False;User ID=$$Int-ValidationDBWriter-UserName$$;Password=$$Int-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.DatabaseAddress};Initial Catalog=nuget-int-validation;Integrated Security=False;User ID=$$Int-ValidationDBWriter-UserName$$;Password=$$Int-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationStorage": {
     "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetint0;AccountKey=$$Int-NuGetInt0Storage-Key$$"

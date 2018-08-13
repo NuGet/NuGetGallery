@@ -14,9 +14,11 @@ using Stats.ImportAzureCdnStatistics;
 
 namespace Stats.RefreshClientDimension
 {
+    using ICoreSqlConnectionFactory = NuGet.Services.Sql.ISqlConnectionFactory;
+
     public class RefreshClientDimensionJob : JobBase
     {
-        private static ISqlConnectionFactory _statisticsDbConnectionFactory;
+        private static ICoreSqlConnectionFactory _statisticsDbConnectionFactory;
         private static string _targetClientName;
         private static string _userAgentFilter;
 

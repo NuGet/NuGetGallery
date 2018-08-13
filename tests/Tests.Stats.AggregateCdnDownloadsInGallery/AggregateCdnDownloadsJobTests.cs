@@ -8,7 +8,7 @@ using IPackageIdGroup = System.Linq.IGrouping<string, Stats.AggregateCdnDownload
 
 namespace Stats.AggregateCdnDownloadsInGallery
 {
-    public class JobTests
+    public class AggregateCdnDownloadsJobTests
     {
 
         public class PopGroupBatch
@@ -55,7 +55,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                 }.GroupBy(x => x.PackageId).OrderByDescending(x => x.Key));
 
                 // Act
-                var groupBatch = Job.PopGroupBatch(data, batchSize);
+                var groupBatch = AggregateCdnDownloadsJob.PopGroupBatch(data, batchSize);
 
                 // Assert
                 Assert.Equal(expectedGroupCount, groupBatch.Count);

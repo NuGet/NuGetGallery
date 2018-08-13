@@ -58,12 +58,14 @@
     <Compile Include="Services\HealthService.cs" />
     <Compile Include="Services\IGalleryService.cs" />
     <Compile Include="Services\IHealthService.cs" />
+    <Compile Include="Services\IPackageRevalidationInserter.cs" />
     <Compile Include="Services\IRevalidationQueue.cs" />
     <Compile Include="Services\IRevalidationJobStateService.cs" />
     <Compile Include="Services\IPackageRevalidationStateService.cs" />
     <Compile Include="Services\IRevalidationService.cs" />
     <Compile Include="Services\IRevalidationThrottler.cs" />
     <Compile Include="Services\ISingletonService.cs" />
+    <Compile Include="Services\PackageRevalidationInserter.cs" />
     <Compile Include="Services\RevalidationOperation.cs" />
     <Compile Include="Services\RevalidationQueue.cs" />
     <Compile Include="Services\RevalidationResult.cs" />
@@ -85,6 +87,7 @@
     <None Include="Scripts\PostDeploy.ps1" />
     <None Include="Scripts\PreDeploy.ps1" />
     <None Include="Scripts\NuGet.Services.Revalidate.cmd" />
+    <None Include="Scripts\NuGet.Services.Revalidate.Initialize.cmd" />
     <None Include="Settings\dev.json" />
     <None Include="Settings\int.json" />
     <None Include="Settings\prod.json" />

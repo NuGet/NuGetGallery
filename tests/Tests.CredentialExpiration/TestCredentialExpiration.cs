@@ -23,7 +23,7 @@ namespace Tests.CredentialExpiration
         {
             _jobMetadata = jobMetadata;
             _credentialSet = credentialSet;
-            _galleryCredentialsExpiration = new GalleryCredentialExpiration(jobMetadata, null);
+            _galleryCredentialsExpiration = new GalleryCredentialExpiration(null, jobMetadata);
             _maxNotificationDate = _galleryCredentialsExpiration.GetMaxNotificationDate();
             _minNotificationDate = _galleryCredentialsExpiration.GetMinNotificationDate();
         }

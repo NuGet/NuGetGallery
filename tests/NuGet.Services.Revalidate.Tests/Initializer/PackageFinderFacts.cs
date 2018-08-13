@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NuGet.Versioning;
@@ -207,7 +209,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
         public class TheFindPackageRegistrationInformationMethod : FactsBase
         {
             [Fact]
-            public void FindsRegistrationInformation()
+            public async Task FindsRegistrationInformation()
             {
                 // Arrange
                 // Package registration 3 isn't in the input set and should be ignored.
@@ -249,7 +251,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                     });
 
                 // Act and assert
-                var actual = _target.FindPackageRegistrationInformation("Name", new HashSet<int> { 1, 2 });
+                var actual = await _target.FindPackageRegistrationInformationAsync("Name", new HashSet<int> { 1, 2 });
 
                 Assert.Equal(2, actual.Count);
                 Assert.Equal(1, actual[0].Key);
@@ -264,7 +266,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             }
 
             [Fact]
-            public void PackageCountDoesntFilterPackagesThatWontBeRevalidated()
+            public async Task PackageCountDoesntFilterPackagesThatWontBeRevalidated()
             {
                 // Arrange
                 // Package registration 3 isn't in the input set and should be ignored.
@@ -294,7 +296,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
                     });
 
                 // Act & Assert
-                var actual = _target.FindPackageRegistrationInformation("Name", new HashSet<int> { 1 });
+                var actual = await _target.FindPackageRegistrationInformationAsync("Name", new HashSet<int> { 1 });
 
                 Assert.Single(actual);
                 Assert.Equal(1, actual[0].Key);
@@ -464,6 +466,7 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
         public class FactsBase
         {
             public readonly Mock<IEntitiesContext> _context;
+            public readonly Mock<IServiceScopeFactory> _scopeFactory;
 
             public readonly InitializationConfiguration _config;
             public readonly PackageFinder _target;
@@ -471,10 +474,19 @@ namespace NuGet.Services.Revalidate.Tests.Initializer
             public FactsBase()
             {
                 _context = new Mock<IEntitiesContext>();
+                _scopeFactory = new Mock<IServiceScopeFactory>();
                 _config = new InitializationConfiguration();
+
+                var scope = new Mock<IServiceScope>();
+                var serviceProvider = new Mock<IServiceProvider>();
+
+                _scopeFactory.Setup(s => s.CreateScope()).Returns(scope.Object);
+                scope.Setup(s => s.ServiceProvider).Returns(serviceProvider.Object);
+                serviceProvider.Setup(p => p.GetService(typeof(IEntitiesContext))).Returns(_context.Object);
 
                 _target = new PackageFinder(
                     _context.Object,
+                    _scopeFactory.Object,
                     _config,
                     Mock.Of<ILogger<PackageFinder>>());
             }
