@@ -47,16 +47,6 @@ namespace NuGet.Services.Revalidate
             _preinstalledSetPath = JobConfigurationManager.TryGetArgument(jobArgsDictionary, RebuildPreinstalledSetArgumentName);
             _initialize = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, InitializeArgumentName);
             _verifyInitialization = JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, VerifyInitializationArgumentName);
-
-            if (_initialize && !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once))
-            {
-                throw new Exception($"Argument {JobArgumentNames.Once} is required if argument {InitializeArgumentName} is present.");
-            }
-
-            if (_verifyInitialization && !JobConfigurationManager.TryGetBoolArgument(jobArgsDictionary, JobArgumentNames.Once))
-            {
-                throw new Exception($"Argument {JobArgumentNames.Once} is required if argument {VerifyInitializationArgumentName} is present.");
-            }
         }
 
         public override async Task Run()

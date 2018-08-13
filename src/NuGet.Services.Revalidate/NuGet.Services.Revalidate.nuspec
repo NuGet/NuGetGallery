@@ -13,6 +13,7 @@
     <file src="bin\$configuration$\*.*" target="bin"/>
 
     <file src="Scripts\NuGet.Services.Revalidate.cmd" />
+    <file src="Scripts\NuGet.Services.Revalidate.Initialize.cmd" />
 
     <file src="Scripts\Functions.ps1" />
     <file src="Scripts\PreDeploy.ps1" />
