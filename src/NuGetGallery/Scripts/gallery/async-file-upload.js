@@ -340,7 +340,7 @@
                 var currentTime = new Date();
                 var uploadDuration = currentTime - _uploadStartTime;
 
-                // Continue polling as if no errors have occurred for the 5 seconds of the upload.
+                // Continue polling as if no errors have occurred for the first 5 seconds of the upload.
                 // After that, poll at a slower pace for 5 minutes.
                 if (uploadDuration < 5 * 1000) {
                     setTimeout(getProgress, _pollingInterval);
