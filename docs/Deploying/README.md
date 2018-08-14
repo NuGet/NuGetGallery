@@ -1,6 +1,6 @@
 # Deploying the NuGet Gallery
 
-To run the NuGet Gallery you need to provision the following common resources:
+To run the NuGet Gallery in Azure you need to provision the following resources:
 
 1. A SQL Database to hold the package metadata.
 2. A location in which to store package files. The Gallery supports two at the moment: Local File System and Azure Storage Account.
@@ -18,21 +18,23 @@ This guide will instruct you on hosting the Gallery to an Azure App Service. We 
 
 We recommend provisioning a dedicated Azure SQL Databases Server for the Gallery.
 
-Follow the instrctions [here](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-get-started-portal)
+Follow the instrctions [here](https://docs.microsoft.com/en-us/azure/sql-database/sql-database-get-started-portal) to create an Azure SQL DB.
 Copy the connection string from the portal. It should look something like:
 ```
 Server=[servername].database.windows.net;Database=NuGetGallery;User ID=[username];Password=[password];Trusted_Connection=False;Encrypt=True
 ```
 
-Now, it's time to update your new DB with the Gallery SQL schema. Open the NuGetGallery solution in Visual Studio.
+Now, it's time to update your new DB with the Gallery SQL schema. 
 
-1. Open the [web.config](https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery/Web.config#L183) and replace the Gallery.SqlServer connection string with this value.
+1. Open the NuGetGallery solution in Visual Studio.
 
-2. Expand the "Package Manager Console" tool window:
+2. Open the [web.config](https://github.com/NuGet/NuGetGallery/blob/master/src/NuGetGallery/Web.config#L183) and replace the Gallery.SqlServer connection string with this value.
+
+3. Expand the "Package Manager Console" tool window:
 
 ![Package Manager Console](images/03-PackageManagerConsole.png)
 
-3. In the Package Manager console, type the following command
+4. In the Package Manager console, type the following command:
 
 ```PowerShell
 Update-Database -ConfigurationTypeName MigrationsConfiguration
@@ -56,4 +58,4 @@ You are almost done! Here are additional configurations in web.config:
 1. Gallery.SiteRoot - set with the URL of your Gallery website. For example: _https://mygallery.azurewebsites.net_
 2. Gallery.SmtpUri (optional)- set SMTP credentials if you would like to receive e-mails from the service.
 
-Now you are ready to publish the Gallery to your own Azure app service. To do this through Visual Studio follow the instructions [here](https://docs.microsoft.com/en-us/visualstudio/deployment/quickstart-deploy-to-azure)
+Now you are ready to publish the Gallery to your own Azure app service. To do this through Visual Studio follow the instructions [here](https://docs.microsoft.com/en-us/visualstudio/deployment/quickstart-deploy-to-azure).
