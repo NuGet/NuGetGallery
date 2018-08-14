@@ -80,10 +80,6 @@ namespace NuGetGallery.TestUtils
             RepositoryMetadata repositoryMetadata = null,
             bool isSigned = false)
         {
-            licenseUrl = licenseUrl ?? new Uri("http://thelicenseurl/");
-            projectUrl = projectUrl ?? new Uri("http://theprojecturl/");
-            iconUrl = iconUrl ?? new Uri("http://theiconurl/");
-
             if (packageDependencyGroups == null)
             {
                 packageDependencyGroups = new[]

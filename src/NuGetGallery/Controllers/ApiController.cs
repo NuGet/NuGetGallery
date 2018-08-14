@@ -274,13 +274,13 @@ namespace NuGetGallery
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, HttpContext);
+            var user = GetCurrentUser();
+            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, user, HttpContext);
             if (!policyResult.Success)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
             }
 
-            var user = GetCurrentUser();
             var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
             var result = await VerifyPackageKeyInternalAsync(user, credential, id, version);
@@ -506,14 +506,16 @@ namespace NuGetGallery
 
             try
             {
-                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackagePush, HttpContext);
+                var securityPolicyAction = SecurityPolicyAction.PackagePush;
+
+                // Get the user
+                var currentUser = GetCurrentUser();
+
+                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, currentUser, HttpContext);
                 if (!policyResult.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
                 }
-
-                // Get the user
-                var currentUser = GetCurrentUser();
 
                 using (var packageStream = ReadPackageFromRequest())
                 {
@@ -654,6 +656,18 @@ namespace NuGetGallery
                                 packageStreamMetadata,
                                 owner,
                                 currentUser);
+                                
+                            var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
+                                securityPolicyAction,
+                                package,
+                                currentUser,
+                                owner,
+                                HttpContext);
+
+                            if (!packagePolicyResult.Success)
+                            {
+                                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, packagePolicyResult.ErrorMessage);
+                            }
 
                             // Perform validations that require the package already being in the entity context.
                             var afterValidationResult = await PackageUploadService.ValidateAfterGeneratePackageAsync(
@@ -702,7 +716,17 @@ namespace NuGetGallery
                                 MessageService.SendPackageAddedNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                    Url.AccountSettings(relativeUrl: false));
+                                    Url.AccountSettings(relativeUrl: false),
+                                    packagePolicyResult.WarningMessages);
+                            }
+                            // Emit warning messages if any
+                            else if (packagePolicyResult.HasWarnings)
+                            {
+                                // Notify user of push unless async validation in blocking mode is used
+                                MessageService.SendPackageAddedWithWarningsNotice(package,
+                                    Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                                    packagePolicyResult.WarningMessages);
                             }
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);

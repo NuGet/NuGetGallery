@@ -3,6 +3,7 @@
 
 using System.Security.Claims;
 using System.Security.Principal;
+using System.Threading.Tasks;
 using System.Web;
 using Moq;
 using NuGetGallery.Authentication;
@@ -14,11 +15,11 @@ namespace NuGetGallery.Security
     public class RequirePackageVerifyScopePolicyFacts
     {
         [Fact]
-        public void Evaluate_ReturnsSuccessIfClaimHasPackageVerifyScope()
+        public async Task Evaluate_ReturnsSuccessIfClaimHasPackageVerifyScope()
         {
             // Arrange and Act
             var scopes = "[{\"a\":\"package:verify\", \"s\":\"*\"}]";
-            var result = Evaluate(scopes);
+            var result = await EvaluateAsync(scopes);
 
             // Assert
             Assert.True(result.Success);
@@ -26,10 +27,10 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public void Evaluate_ReturnsFailureIfEmptyScopeClaim()
+        public async Task Evaluate_ReturnsFailureIfEmptyScopeClaim()
         {
             // Arrange and Act
-            var result = Evaluate(string.Empty);
+            var result = await EvaluateAsync(string.Empty);
 
             // Assert
             Assert.False(result.Success);
@@ -39,17 +40,17 @@ namespace NuGetGallery.Security
         [Theory]
         [InlineData("[{\"a\":\"package:push\", \"s\":\"*\"}]")]
         [InlineData("[{\"a\":\"package:pushversion\", \"s\":\"*\"}]")]
-        public void Evaluate_ReturnsFailureIfClaimDoesNotHavePackageVerifyScope(string scopes)
+        public async Task Evaluate_ReturnsFailureIfClaimDoesNotHavePackageVerifyScope(string scopes)
         {
             // Arrange and Act
-            var result = Evaluate(scopes);
+            var result = await EvaluateAsync(scopes);
 
             // Assert
             Assert.False(result.Success);
             Assert.NotNull(result.ErrorMessage);
         }
 
-        private SecurityPolicyResult Evaluate(string scopes)
+        private Task<SecurityPolicyResult> EvaluateAsync(string scopes)
         {
             var identity = AuthenticationService.CreateIdentity(
                 new User("testUser"),
@@ -71,7 +72,7 @@ namespace NuGetGallery.Security
                 new UserSecurityPolicy[] { new UserSecurityPolicy("RequireApiKeyWithPackageVerifyScopePolicy", "Subscription") },
                 httpContext.Object);
 
-            return new RequirePackageVerifyScopePolicy().Evaluate(context);
+            return new RequirePackageVerifyScopePolicy().EvaluateAsync(context);
         }
     }
 }

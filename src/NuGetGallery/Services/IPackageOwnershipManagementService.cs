@@ -16,7 +16,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageRegistration">The package registration that is intended to get ownership.</param>
         /// <param name="user">The user to add as an owner to the package.</param>
-        Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user);
+        Task AddPackageOwnerAsync(PackageRegistration packageRegistration, User user, bool commitChanges = true);
 
         /// <summary>
         /// Add the pending ownership request.
@@ -42,7 +42,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageRegistration">The package registration that has pending ownership request.</param>
         /// <param name="newOwner">The user to be removed from pending ownership.</param>
-        Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner);
+        Task DeletePackageOwnershipRequestAsync(PackageRegistration packageRegistration, User newOwner, bool commitChanges = true);
 
         /// <summary>
         /// Gets <see cref="PackageOwnerRequest"/>s that match the provided conditions.

@@ -1617,6 +1617,18 @@ namespace NuGetGallery
 
                         return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
+                                       
+                    var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
+                                    SecurityPolicyAction.PackagePush,
+                                    package,
+                                    currentUser,
+                                    owner,
+                                    HttpContext);
+
+                    if (!packagePolicyResult.Success)
+                    {
+                        return Json(HttpStatusCode.BadRequest, new[] { packagePolicyResult.ErrorMessage });
+                    }
 
                     // Perform validations that require the package already being in the entity context.
                     var afterValidationResult = await _packageUploadService.ValidateAfterGeneratePackageAsync(
