@@ -3,15 +3,14 @@
 
 using System.Collections.Generic;
 using NuGet.Services.Validation;
-using System.Threading.Tasks;
 
 namespace NuGetGallery.Services
 {
     public interface ICoreMessageService
     {
-        Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null);
-        Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages);
-        Task SendPackageValidationFailedNoticeAsync(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl);
-        Task SendValidationTakingTooLongNoticeAsync(Package package, string packageUrl);
+        void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null);
+        void SendPackageAddedWithWarningsNotice(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages);
+        void SendPackageValidationFailedNotice(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl);
+        void SendValidationTakingTooLongNotice(Package package, string packageUrl);
     }
 }

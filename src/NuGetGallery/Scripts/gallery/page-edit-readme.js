@@ -228,6 +228,8 @@ var bindReadMeData = (function () {
             clearReadMeError();
             displayReadMeEditMarkdown();
         });
+
+        window.nuget.configureFileInputButton("browse-for-readme-button");
     }
 
     function previewReadMeAsync(callback, error) {

@@ -3,12 +3,11 @@
 
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace NuGetGallery
 {
     public class SymbolPackage
-        : IEntity, IEquatable<SymbolPackage>
+        : IEntity, IPackageEntity, IEquatable<SymbolPackage>
     {
         public int Key { get; set; }
 
@@ -50,6 +49,10 @@ namespace NuGetGallery
         /// Used for optimistic concurrency when updating the symbols.
         /// </summary>
         public byte[] RowVersion { get; set; }
+
+        public string Id => Package?.Id;
+
+        public string Version => Package?.Version;
 
         public bool Equals(SymbolPackage other)
         {

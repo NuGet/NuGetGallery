@@ -30,7 +30,8 @@ namespace NuGetGallery.Security
         private static readonly RequireOrganizationTenantPolicy _organizationTenantPolicy
             = RequireOrganizationTenantPolicy.Create();
 
-        private readonly IComponentContext _componentContext;
+        private readonly Lazy<IUserService> _userService;
+        private readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementService;
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -53,7 +54,8 @@ namespace NuGetGallery.Security
             IAuditingService auditing,
             IDiagnosticsService diagnostics,
             IAppConfiguration configuration,
-            IComponentContext componentContext,
+            Lazy<IUserService> userService,
+            Lazy<IPackageOwnershipManagementService> packageOwnershipManagementService,
             MicrosoftTeamSubscription microsoftTeamSubscription = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -67,8 +69,9 @@ namespace NuGetGallery.Security
             Diagnostics = diagnostics.SafeGetSource(nameof(SecurityPolicyService));
             Configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             DefaultSubscription = new DefaultSubscription();
-            _componentContext = componentContext ?? throw new ArgumentNullException(nameof(componentContext));
             MicrosoftTeamSubscription = microsoftTeamSubscription;
+            _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
+            _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
         /// <summary>
@@ -138,14 +141,18 @@ namespace NuGetGallery.Security
         /// <returns></returns>
         public async Task<SecurityPolicyResult> EvaluateUserPoliciesAsync(
             SecurityPolicyAction action,
+            User currentUser,
             HttpContextBase httpContext)
         {
+            currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+
             // Evaluate default policies
             if (Configuration.EnforceDefaultSecurityPolicies)
             {
                 var defaultPolicies = DefaultSubscription.Policies;
 
-                var result = await EvaluateUserPoliciesInternalAsync(action, httpContext, defaultPolicies, auditSuccess: false);
+                var result = await EvaluateUserPoliciesInternalAsync(action, currentUser, httpContext, defaultPolicies, auditSuccess: false);
                 if (!result.Success)
                 {
                     return result;
@@ -153,20 +160,18 @@ namespace NuGetGallery.Security
             }
 
             // Evaluate user specific policies
-            return await EvaluateUserPoliciesInternalAsync(action, httpContext, auditSuccess: true);
+            return await EvaluateUserPoliciesInternalAsync(action, currentUser, httpContext, auditSuccess: true);
         }
 
         private Task<SecurityPolicyResult> EvaluateUserPoliciesInternalAsync(
             SecurityPolicyAction action,
+            User currentUser,
             HttpContextBase httpContext,
             IEnumerable<UserSecurityPolicy> policies = null,
             bool auditSuccess = true)
         {
-            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-
-            var account = httpContext.GetCurrentUser();
-            policies = policies ?? account.SecurityPolicies;
-            return EvaluateInternalAsync(action, policies, account, account, httpContext, auditSuccess);
+            policies = policies ?? currentUser.SecurityPolicies;
+            return EvaluateInternalAsync(action, policies, currentUser, currentUser, httpContext, auditSuccess);
         }
 
         /// <summary>
@@ -179,11 +184,16 @@ namespace NuGetGallery.Security
         /// <returns></returns>
         public Task<SecurityPolicyResult> EvaluatePackagePoliciesAsync(
             SecurityPolicyAction action,
-            HttpContextBase httpContext,
-            Package package)
+            Package package,
+            User currentUser,
+            User owner,
+            HttpContextBase httpContext)
         {
-            var account = httpContext.GetCurrentUser();
-            return EvaluatePackagePoliciesInternalAsync(action, package, account, account, httpContext);
+            currentUser = currentUser ?? throw new ArgumentNullException(nameof(currentUser));
+            owner = owner ?? throw new ArgumentNullException(nameof(owner));
+            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
+
+            return EvaluatePackagePoliciesInternalAsync(action, package, currentUser, owner, httpContext);
         }
 
         private async Task<SecurityPolicyResult> EvaluatePackagePoliciesInternalAsync(
@@ -195,8 +205,7 @@ namespace NuGetGallery.Security
             IEnumerable<UserSecurityPolicy> policies = null,
             bool auditSuccess = true)
         {
-            httpContext = httpContext ?? throw new ArgumentNullException(nameof(httpContext));
-            policies = policies ?? sourceAccount.SecurityPolicies;
+            policies = policies ?? targetAccount.SecurityPolicies;
 
             var relevantHandlers = PackageHandlers.Where(h => h.Action == action).ToList();
 
@@ -208,8 +217,8 @@ namespace NuGetGallery.Security
                 if (foundPolicies.Any())
                 {
                     var context = new PackageSecurityPolicyEvaluationContext(
-                        _componentContext.Resolve<IUserService>(),
-                        _componentContext.Resolve<IPackageOwnershipManagementService>(),
+                        _userService.Value,
+                        _packageOwnershipManagementService.Value,
                         foundPolicies,
                         package,
                         sourceAccount,

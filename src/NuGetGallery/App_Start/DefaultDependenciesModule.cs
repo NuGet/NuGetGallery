@@ -35,13 +35,20 @@ using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
 using NuGetGallery.Security;
-using NuGetGallery.Services;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
 {
     public class DefaultDependenciesModule : Module
     {
+        public static class BindingKeys
+        {
+            public const string PackageValidationTopic = "PackageValidationBindingKey";
+            public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
+            public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
+            public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
+        }
+
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
@@ -357,7 +364,7 @@ namespace NuGetGallery
                 .As<IMailSender>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<BackgroundMessageService>()
+            builder.RegisterType<MessageService>()
                 .AsSelf()
                 .As<IMessageService>()
                 .InstancePerLifetimeScope();
@@ -389,7 +396,8 @@ namespace NuGetGallery
             RegisterCookieComplianceService(builder, configuration, diagnosticsService);
 
             builder.RegisterType<MicrosoftTeamSubscription>()
-                .SingleInstance();
+                .AsSelf()
+                .InstancePerLifetimeScope();
 
             // todo: bind all package curators by convention
             builder.RegisterType<WebMatrixPackageCurator>()
@@ -469,8 +477,22 @@ namespace NuGetGallery
                 .RegisterType<ServiceBusMessageSerializer>()
                 .As<IServiceBusMessageSerializer>();
 
+            // We need to setup two enqueuers for Package validation and symbol validation each publishes 
+            // to a different topic for validation.
             builder
                 .RegisterType<PackageValidationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.PackageValidationTopic)))
+                .Keyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer)
+                .As<IPackageValidationEnqueuer>();
+
+            builder
+                .RegisterType<PackageValidationEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)))
+                .Keyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer)
                 .As<IPackageValidationEnqueuer>();
 
             if (configuration.Current.AsynchronousPackageValidationEnabled)
@@ -478,27 +500,48 @@ namespace NuGetGallery
                 ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
 
                 builder
-                    .RegisterType<AsynchronousPackageValidationInitiator>()
-                    .As<IPackageValidationInitiator>();
+                    .Register(c => {
+                        return new AsynchronousPackageValidationInitiator<Package>(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IPackageValidationInitiator<Package>>();
+
+                builder
+                    .Register(c => {
+                        return new AsynchronousPackageValidationInitiator<SymbolPackage>(
+                            c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
+                            c.Resolve<IAppConfiguration>(),
+                            c.Resolve<IDiagnosticsService>());
+                    }).As<IPackageValidationInitiator<SymbolPackage>>();
 
                 // we retrieve the values here (on main thread) because otherwise it would run in another thread
                 // and potentially cause a deadlock on async operation.
                 var validationConnectionString = configuration.ServiceBus.Validation_ConnectionString;
                 var validationTopicName = configuration.ServiceBus.Validation_TopicName;
+                var symbolsValidationConnectionString = configuration.ServiceBus.SymbolsValidation_ConnectionString;
+                var symbolsValidationTopicName = configuration.ServiceBus.SymbolsValidation_TopicName;
 
                 builder
-                    .Register(c => new TopicClientWrapper(
-                        validationConnectionString,
-                        validationTopicName))
+                    .Register(c => new TopicClientWrapper(validationConnectionString, validationTopicName))
                     .As<ITopicClient>()
                     .SingleInstance()
+                    .Keyed<ITopicClient>(BindingKeys.PackageValidationTopic)
+                    .OnRelease(x => x.Close());
+
+                builder
+                    .Register(c => new TopicClientWrapper(symbolsValidationConnectionString, symbolsValidationTopicName))
+                    .As<ITopicClient>()
+                    .SingleInstance()
+                    .Keyed<ITopicClient>(BindingKeys.SymbolsPackageValidationTopic)
                     .OnRelease(x => x.Close());
             }
             else
             {
+                // This will register all the instances of ImmediatePackageValidator<T> as IPackageValidationInitiator<T> where T is a typeof(IPackageEntity)
                 builder
-                    .RegisterType<ImmediatePackageValidator>()
-                    .As<IPackageValidationInitiator>();
+                    .RegisterGeneric(typeof(ImmediatePackageValidator<>))
+                    .As(typeof(IPackageValidationInitiator<>));
             }
 
             builder.RegisterType<ValidationAdminService>()

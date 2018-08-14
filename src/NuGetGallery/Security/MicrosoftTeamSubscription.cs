@@ -12,7 +12,7 @@ namespace NuGetGallery.Security
         private Lazy<List<UserSecurityPolicy>> _policies = new Lazy<List<UserSecurityPolicy>>(InitializePoliciesList, isThreadSafe: true);
 
         internal const string MicrosoftUsername = "Microsoft";
-        internal const string Name = nameof(MicrosoftTeamSubscription);
+        internal const string Name = "MicrosoftTeamSubscription";
 
         public string SubscriptionName => Name;
 

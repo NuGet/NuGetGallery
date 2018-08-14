@@ -274,13 +274,13 @@ namespace NuGetGallery
         [ActionName("VerifyPackageKey")]
         public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
-            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, HttpContext);
+            var user = GetCurrentUser();
+            var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, user, HttpContext);
             if (!policyResult.Success)
             {
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
             }
 
-            var user = GetCurrentUser();
             var credential = user.GetCurrentApiKeyCredential(User.Identity);
 
             var result = await VerifyPackageKeyInternalAsync(user, credential, id, version);
@@ -507,14 +507,15 @@ namespace NuGetGallery
             try
             {
                 var securityPolicyAction = SecurityPolicyAction.PackagePush;
-                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, HttpContext);
+
+                // Get the user
+                var currentUser = GetCurrentUser();
+
+                var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(securityPolicyAction, currentUser, HttpContext);
                 if (!policyResult.Success)
                 {
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, policyResult.ErrorMessage);
                 }
-
-                // Get the user
-                var currentUser = GetCurrentUser();
 
                 using (var packageStream = ReadPackageFromRequest())
                 {
@@ -657,9 +658,11 @@ namespace NuGetGallery
                                 currentUser);
                                 
                             var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
-                                securityPolicyAction, 
-                                HttpContext, 
-                                package);
+                                securityPolicyAction,
+                                package,
+                                currentUser,
+                                owner,
+                                HttpContext);
 
                             if (!packagePolicyResult.Success)
                             {
@@ -710,7 +713,7 @@ namespace NuGetGallery
                             if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                await MessageService.SendPackageAddedNoticeAsync(package,
+                                MessageService.SendPackageAddedNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false),
@@ -720,7 +723,7 @@ namespace NuGetGallery
                             else if (packagePolicyResult.HasWarnings)
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                await MessageService.SendPackageAddedWithWarningsNoticeAsync(package,
+                                MessageService.SendPackageAddedWithWarningsNotice(package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     packagePolicyResult.WarningMessages);

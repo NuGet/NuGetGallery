@@ -12,13 +12,14 @@
         @<text>
             <div class="row form-group">
                 <div class="col-sm-6">
-                    <a role="button" href="@Url.CuratedFeed(curatedFeed)"
-                        class="btn btn-primary form-control">Manage</a>
+                    <button type="button" onclick="window.location.href = '@Url.CuratedFeed(curatedFeed)'" class="btn btn-primary form-control">
+                        Manage
+                    </button>
                 </div>
                 <div class="col-sm-6">
-                    <a href="#" role="button" class="btn btn-default form-control" id="cancel-curated-feed-@curatedFeed">
+                    <button type="button" class="btn btn-default form-control" id="cancel-curated-feed-@curatedFeed">
                         Cancel
-                    </a>
+                    </button>
                 </div>
             </div>
         </text>)

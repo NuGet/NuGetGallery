@@ -12,5 +12,11 @@ namespace NuGetGallery.Configuration
 
         [DisplayName("Validation.TopicName")]
         public string Validation_TopicName { get; set; }
+
+        [DisplayName("SymbolsValidation.ConnectionString")]
+        public string SymbolsValidation_ConnectionString { get; set; }
+
+        [DisplayName("SymbolsValidation.TopicName")]
+        public string SymbolsValidation_TopicName { get; set; }
     }
 }

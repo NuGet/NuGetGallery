@@ -41,10 +41,7 @@ namespace NuGetGallery
         {
             var symbolPackage = _symbolPackageService.CreateSymbolPackage(package, packageStreamMetadata);
 
-            // TODO: Add Validations for symbols, for now set the status to Available. https://github.com/NuGet/NuGetGallery/issues/6235 
-            // Add validating type to be symbols when sending message to the orchestrator.
-            symbolPackage.StatusKey = PackageStatus.Available;
-            symbolPackage.Published = DateTime.UtcNow;
+            await _validationService.StartValidationAsync(symbolPackage);
 
             if (symbolPackage.StatusKey != PackageStatus.Available
                 && symbolPackage.StatusKey != PackageStatus.Validating)
@@ -61,6 +58,11 @@ namespace NuGetGallery
                 }
                 else if (symbolPackage.StatusKey == PackageStatus.Available)
                 {
+                    if (!symbolPackage.Published.HasValue)
+                    {
+                        symbolPackage.Published = DateTime.UtcNow;
+                    }
+
                     // Mark any other associated available symbol packages for deletion.
                     var availableSymbolPackages = package
                         .SymbolPackages

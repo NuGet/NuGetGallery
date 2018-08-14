@@ -11,7 +11,7 @@ using Xunit;
 
 namespace NuGetGallery.Security
 {
-    public class RequireMicrosoftPackageCompliancePolicyFacts
+    public class RequirePackageMetadataCompliancePolicyFacts
     {
         public static object[] NonCompliantPackageMemberData
         {
@@ -53,7 +53,7 @@ namespace NuGetGallery.Security
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
-            var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
+            var newMicrosoftCompliantPackage = Fakes.CreateCompliantPackage("1.0", newPackageRegistration);
 
             var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
             packageOwnershipManagementService
@@ -64,7 +64,7 @@ namespace NuGetGallery.Security
             var userService = new Mock<IUserService>(MockBehavior.Strict);
             userService
                 .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, It.IsAny<bool>()))
-                .Returns(Fakes.MicrosoftUser)
+                .Returns(Fakes.RequiredCoOwner)
                 .Verifiable();
 
 
@@ -84,7 +84,7 @@ namespace NuGetGallery.Security
         }
 
         [Fact]
-        public async Task Evaluate_SilentlySucceedsWhenMicrosoftUserDoesNotExist()
+        public async Task Evaluate_SilentlySucceedsWhenRequiredCoOwnerDoesNotExist()
         {
             // Arrange
             var subscription = new MicrosoftTeamSubscription();
@@ -108,7 +108,7 @@ namespace NuGetGallery.Security
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
-            var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
+            var newMicrosoftCompliantPackage = Fakes.CreateCompliantPackage("1.0", newPackageRegistration);
 
             var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
             packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
@@ -130,11 +130,11 @@ namespace NuGetGallery.Security
             Assert.NotEmpty(result.WarningMessages);
             Assert.Contains(Strings.SecurityPolicy_RequirePackagePrefixReserved, result.WarningMessages);
             Assert.False(newPackageRegistration.IsVerified);
-            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.MicrosoftUser, false), Times.Once);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.RequiredCoOwner, false), Times.Once);
         }
 
         [Fact]
-        public async Task Evaluate_CompliantPackage_AddsMicrosoftOwner()
+        public async Task Evaluate_CompliantPackage_AddsRequiredCoOwner()
         {
             // Arrange
             var subscription = new MicrosoftTeamSubscription();
@@ -142,7 +142,7 @@ namespace NuGetGallery.Security
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
-            var newMicrosoftCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
+            var newMicrosoftCompliantPackage = Fakes.CreateCompliantPackage("1.0", newPackageRegistration);
 
             var packageOwnershipManagementService = new Mock<IPackageOwnershipManagementService>();
             packageOwnershipManagementService.Setup(m => m.AddPackageOwnerAsync(newPackageRegistration, It.IsAny<User>(), false)).Returns(Task.CompletedTask);
@@ -159,7 +159,7 @@ namespace NuGetGallery.Security
 
             // Assert
             Assert.True(result.Success);
-            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.MicrosoftUser, false), Times.Once);
+            packageOwnershipManagementService.Verify(s => s.AddPackageOwnerAsync(newPackageRegistration, Fakes.RequiredCoOwner, false), Times.Once);
         }
 
         [Theory]
@@ -172,7 +172,6 @@ namespace NuGetGallery.Security
 
             var nugetUser = new User("NuGet");
             var newPackageRegistration = new PackageRegistration { Id = "NewPackageId", Owners = new List<User> { nugetUser } };
-            var newNonCompliantPackage = Fakes.CreateMicrosoftCompliantPackage("1.0", newPackageRegistration);
 
             var context = CreateTestContext(
                 true,
@@ -202,7 +201,7 @@ namespace NuGetGallery.Security
             {
                 userService
                     .Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
-                    .Returns(Fakes.MicrosoftUser);
+                    .Returns(Fakes.RequiredCoOwner);
             }
             else
             {
@@ -227,7 +226,7 @@ namespace NuGetGallery.Security
         {
             static Fakes()
             {
-                MicrosoftUser = new User(MicrosoftTeamSubscription.MicrosoftUsername);
+                RequiredCoOwner = new User(MicrosoftTeamSubscription.MicrosoftUsername);
             }
 
             public Fakes(
@@ -239,11 +238,6 @@ namespace NuGetGallery.Security
                 var key = 39;
 
                 Owner = new User("testPackageOwner")
-                {
-                    Key = key++
-                };
-
-                MicrosoftOrganization = new Organization(MicrosoftTeamSubscription.MicrosoftUsername)
                 {
                     Key = key++
                 };
@@ -279,7 +273,7 @@ namespace NuGetGallery.Security
                 };
             }
 
-            public static Package CreateMicrosoftCompliantPackage(string version, PackageRegistration packageRegistration)
+            public static Package CreateCompliantPackage(string version, PackageRegistration packageRegistration)
             {
                 return new Package
                 {
@@ -301,22 +295,22 @@ namespace NuGetGallery.Security
                 var nonCompliantPackages = new List<Package>();
 
                 // Ensure copyright is non-compliant.
-                var nonCompliantPackage1 = CreateMicrosoftCompliantPackage(version, newPackageRegistration);
+                var nonCompliantPackage1 = CreateCompliantPackage(version, newPackageRegistration);
                 nonCompliantPackage1.Copyright = null;
                 nonCompliantPackages.Add(nonCompliantPackage1);
 
                 // Ensure projectUrl is non-compliant.
-                var nonCompliantPackage2 = CreateMicrosoftCompliantPackage(version, newPackageRegistration);
+                var nonCompliantPackage2 = CreateCompliantPackage(version, newPackageRegistration);
                 nonCompliantPackage2.ProjectUrl = null;
                 nonCompliantPackages.Add(nonCompliantPackage2);
 
                 // Ensure licenseUrl is non-compliant.
-                var nonCompliantPackage3 = CreateMicrosoftCompliantPackage(version, newPackageRegistration);
+                var nonCompliantPackage3 = CreateCompliantPackage(version, newPackageRegistration);
                 nonCompliantPackage3.LicenseUrl = null;
                 nonCompliantPackages.Add(nonCompliantPackage3);
 
                 // Ensure authors is non-compliant.
-                var nonCompliantPackage4 = CreateMicrosoftCompliantPackage(version, newPackageRegistration);
+                var nonCompliantPackage4 = CreateCompliantPackage(version, newPackageRegistration);
                 nonCompliantPackage4.FlattenedAuthors = "NuGet";
                 nonCompliantPackages.Add(nonCompliantPackage4);
 
@@ -326,11 +320,10 @@ namespace NuGetGallery.Security
             public User Owner { get; }
 
             public Package NewPackageVersion { get; }
-
-            public Organization MicrosoftOrganization { get; }
-
+            
             public PackageRegistration ExistingPackageRegistration { get; }
-            public static User MicrosoftUser { get; }
+
+            public static User RequiredCoOwner { get; }
         }
     }
 }
