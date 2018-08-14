@@ -311,15 +311,15 @@ namespace GalleryTools.Commands
 
                             if (package != null)
                             {
-                                package.RepositoryUrl = metadata.Url;
+                                package.RepositoryUrl = metadata.RepositoryMetadata.Url;
 
-                                if (metadata.Type.Length >= 100)
+                                if (metadata.RepositoryMetadata.Type.Length >= 100)
                                 {
-                                    await _log.LogError(metadata.PackageId, metadata.PackageVersion, $"Repository type too long: {metadata.Type}");
+                                    await _log.LogError(metadata.PackageId, metadata.PackageVersion, $"Repository type too long: {metadata.RepositoryMetadata.Type}");
                                 }
                                 else
                                 {
-                                    package.RepositoryType = metadata.Type;
+                                    package.RepositoryType = metadata.RepositoryMetadata.Type;
                                 }
 
                                 counter++;
@@ -410,22 +410,23 @@ namespace GalleryTools.Commands
             }
         }
 
-        private class RepositoryMetadataLog : RepositoryMetadata
+        private class RepositoryMetadataLog
         {
             public DateTime CreationDate { get; set; }
             public string PackageId { get; set; }
             public string PackageVersion { get; set; }
+            public RepositoryMetadata RepositoryMetadata { get; set; }
 
             public RepositoryMetadataLog()
             {
             }
 
-            public RepositoryMetadataLog(RepositoryMetadata repositoryMetadata, DateTime creationDate, string packageId, string packageVersion) : 
-                base(repositoryMetadata.Type, repositoryMetadata.Url, repositoryMetadata.Branch, repositoryMetadata.Commit)
+            public RepositoryMetadataLog(RepositoryMetadata repositoryMetadata, DateTime creationDate, string packageId, string packageVersion)
             {
                 CreationDate = creationDate;
                 PackageId = packageId;
                 PackageVersion = packageVersion;
+                RepositoryMetadata = repositoryMetadata;
             }
         }
 
@@ -434,6 +435,12 @@ namespace GalleryTools.Commands
             public RepositoryMetadataLogMap()
             {
                 Map(x => x.CreationDate).TypeConverter<DateTimeConverter>();
+                Map(x => x.PackageId).Index(1);
+                Map(x => x.PackageVersion).Index(2);
+                Map(x => x.RepositoryMetadata.Type).Index(3);
+                Map(x => x.RepositoryMetadata.Url).Index(4);
+                Map(x => x.RepositoryMetadata.Branch).Index(5);
+                Map(x => x.RepositoryMetadata.Commit).Index(6);
             }
         }
 
