@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -20,14 +19,13 @@ namespace NuGet.Services.Validation.Orchestrator
         /// The value picked today is based off of the maximum duration we wait when downloading packages using the
         /// <see cref="IFileDownloader"/>.
         /// </summary>
-        private static readonly TimeSpan AccessDuration = TimeSpan.FromMinutes(10);
+        protected static readonly TimeSpan AccessDuration = TimeSpan.FromMinutes(10);
 
-        private readonly ICoreFileStorageService _fileStorageService;
-        private readonly IFileDownloader _fileDownloader;
-        private readonly ITelemetryService _telemetryService;
-        private readonly ILogger<ValidationFileService> _logger;
-        private IFileMetadataService _fileMetadataService;
-
+        protected readonly ICoreFileStorageService _fileStorageService;
+        protected readonly IFileDownloader _fileDownloader;
+        protected readonly ITelemetryService _telemetryService;
+        protected readonly ILogger<ValidationFileService> _logger;
+        protected IFileMetadataService _fileMetadataService;
 
         public ValidationFileService(
             ICoreFileStorageService fileStorageService,
@@ -147,7 +145,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 AccessConditionWrapper.GenerateEmptyCondition());
         }
 
-        public Task CopyValidationPackageToPackageFileAsync(PackageValidationSet validationSet)
+        public virtual Task CopyValidationPackageToPackageFileAsync(PackageValidationSet validationSet)
         {
             var fileName = BuildFileName(validationSet,
                 _fileMetadataService.FileSavePathTemplate,
@@ -161,7 +159,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 AccessConditionWrapper.GenerateIfNotExistsCondition());
         }
 
-        public Task CopyValidationSetPackageToPackageFileAsync(
+        public virtual Task CopyValidationSetPackageToPackageFileAsync(
             PackageValidationSet validationSet,
             IAccessCondition destAccessCondition)
         {
@@ -290,7 +288,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 destAccessCondition);
         }
 
-        private static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
+        protected static string BuildValidationSetPackageFileName(PackageValidationSet validationSet, string extension)
         {
             return $"validation-sets/{validationSet.ValidationTrackingId}/" +
                 $"{validationSet.PackageId.ToLowerInvariant()}." +

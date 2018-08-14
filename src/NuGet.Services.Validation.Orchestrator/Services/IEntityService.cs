@@ -21,13 +21,6 @@ namespace NuGet.Services.Validation.Orchestrator
         IValidatingEntity<T> FindPackageByIdAndVersionStrict(string id, string version);
 
         /// <summary>
-        /// Retrieve an entity with the specified key.
-        /// </summary>
-        /// <param name="key">The entity key.</param>
-        /// <returns></returns>
-        IValidatingEntity<T> FindByKey(int key);
-
-        /// <summary>
         /// Update the status of the entity.
         /// </summary>
         /// <param name="entity"></param>

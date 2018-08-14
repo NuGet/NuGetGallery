@@ -21,10 +21,11 @@ namespace NuGet.Jobs.Validation.Symbols.Core
         /// </summary>
         /// <param name="stream">The zip stream.</param>
         /// <param name="targetDirectory">The target diorectoryu where to extract.</param>
+        /// <param name="filterFileExtensions">A list of file extension to filter. Only files with extension in this list will be extracted.</param>
         /// <param name="filterFileNames">A collection of full symbol file names to be used for filtering.
         /// For example if the <paramref name="stream"/> contains foo.dll and bar.dll 
         /// and the <paramref name="filterFileNames"/> contains only foo.pdb than only the foo.dll wil be extracted.</param>
         /// <returns>The list of the full paths for the extracted files.</returns>
-        List<string> ExtractFilesFromZipStream(Stream stream, string targetDirectory, IEnumerable<string> filterFileNames = null);
+        List<string> ExtractFilesFromZipStream(Stream stream, string targetDirectory, IEnumerable<string> filterFileExtensions, IEnumerable<string> filterFileNames = null);
     }
 }

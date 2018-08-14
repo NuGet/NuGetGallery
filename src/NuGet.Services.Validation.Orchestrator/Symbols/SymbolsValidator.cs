@@ -70,6 +70,8 @@ namespace NuGet.Services.Validation.Symbols
             }
 
             var validatorStatus = await _validatorStateService.GetStatusAsync(request);
+            // See issue https://github.com/NuGet/NuGetGallery/issues/6249
+            validatorStatus.ValidatingType = ValidatingType.SymbolPackage;
 
             if (validatorStatus.State != ValidationStatus.NotStarted)
             {

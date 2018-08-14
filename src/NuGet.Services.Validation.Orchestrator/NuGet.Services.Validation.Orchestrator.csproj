@@ -51,10 +51,15 @@
     <Compile Include="DiskMailSender.cs" />
     <Compile Include="Configuration\EmailConfiguration.cs" />
     <Compile Include="Error.cs" />
+    <Compile Include="SymbolMessageService.cs" />
+    <Compile Include="Symbols\SymbolScanOnlyConfiguration.cs" />
+    <Compile Include="Symbols\SymbolCriteriaEvaluator.cs" />
+    <Compile Include="Symbols\SymbolScanValidator.cs" />
     <Compile Include="PackageSigning\Scan\ScanValidator.cs" />
     <Compile Include="Services\IEntityService.cs" />
     <Compile Include="IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
+    <Compile Include="Services\SymbolEntityService.cs" />
     <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsIngesterConfiguration.cs" />
@@ -95,8 +100,11 @@
     <Compile Include="Telemetry\TelemetryService.cs" />
     <Compile Include="Configuration\ValidationConfiguration.cs" />
     <Compile Include="Configuration\ValidationConfigurationItem.cs" />
+    <Compile Include="ValidatingEntitites\SymbolPackageValidatingEntity.cs" />
     <Compile Include="ValidatingEntitites\PackageValidatingEntity.cs" />
     <Compile Include="ValidationFailureBehavior.cs" />
+    <Compile Include="SymbolValidationMessageHandler.cs" />
+    <Compile Include="ValidationSymbolFileService.cs" />
     <Compile Include="ValidationPackageFileService.cs" />
     <Compile Include="ValidationSetProcessorResult.cs" />
     <Compile Include="Vcs\IPackageCriteria.cs" />
@@ -106,7 +114,7 @@
     <Compile Include="Vcs\VcsConfiguration.cs" />
     <Compile Include="Vcs\VcsValidator.cs" />
     <Compile Include="Configuration\ValidationDbConfiguration.cs" />
-    <Compile Include="ValidationMessageHandler.cs" />
+    <Compile Include="PackageValidationMessageHandler.cs" />
     <Compile Include="ValidationOutcomeProcessor.cs" />
     <Compile Include="ValidationRequest.cs" />
     <Compile Include="ValidationSetProcessor.cs" />
@@ -117,6 +125,9 @@
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
+    </None>
+    <None Include="symbolsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

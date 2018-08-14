@@ -81,7 +81,7 @@ namespace Validation.Symbols.Tests
                 var service = new ZipArchiveService();
 
                 // Act + Assert
-                Assert.Throws<ArgumentNullException>(() => service.Extract(null, "Dir1"));
+                Assert.Throws<ArgumentNullException>(() => service.Extract(null, "Dir1", new List<string> {".pdb"}));
                 Assert.Throws<ArgumentNullException>(() => ZipArchiveService.ReadFilesFromZipStream(input, null));
             }
 
@@ -117,7 +117,7 @@ namespace Validation.Symbols.Tests
                 var service = new TestZipArchiveService();
 
                 // Act
-                var result = service.Extract(input, "Dir1", symbolFilter);
+                var result = service.Extract(input, "Dir1", null, symbolFilter);
 
                 // Assert 
                 Assert.Equal(expected.Length, result.Count());

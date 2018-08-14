@@ -23,7 +23,7 @@ namespace Validation.Symbols
         private static readonly string[] PEExtensionsPatterns = new string[] { "*.dll", "*.exe" };
         private static readonly string SymbolExtensionPattern = "*.pdb";
         private static readonly string[] PEExtensions = new string[] { ".dll", ".exe" };
-        private static readonly string SymbolExtension = ".pdb";
+        private static readonly string[] SymbolExtension = new string[] { ".pdb" };
 
         private readonly ISymbolsFileService _symbolFileService;
         private readonly IZipArchiveService _zipArchiveService;
@@ -82,10 +82,10 @@ namespace Validation.Symbols
                 try
                 {
                     _logger.LogInformation("Extracting symbols to {TargetDirectory}", targetDirectory);
-                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory);
+                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory, SymbolExtension);
 
                     _logger.LogInformation("Extracting dlls to {TargetDirectory}", targetDirectory);
-                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, symbolFiles);
+                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, PEExtensions, symbolFiles);
 
                     var status = ValidateSymbolMatching(targetDirectory, packageId, packageNormalizedVersion);
                     return status;
