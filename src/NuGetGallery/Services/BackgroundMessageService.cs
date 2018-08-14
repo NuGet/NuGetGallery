@@ -4,6 +4,7 @@
 using System;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Configuration;
@@ -12,41 +13,58 @@ namespace NuGetGallery.Services
 {
     public class BackgroundMessageService : MessageService
     {
-        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService, ErrorLog errorLog)
+        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService, ErrorLog errorLog, Func<BackgroundMessageService> messageServiceFactory)
             :base(mailSender, config, telemetryService)
         {
-            this.errorLog = errorLog;
+            _errorLog = errorLog ?? throw new ArgumentNullException(nameof(errorLog));
+            _messageServiceFactory = messageServiceFactory ?? throw new ArgumentNullException(nameof(messageServiceFactory));
+            _sentMessage = false;
         }
 
-        private ErrorLog errorLog;
+        private ErrorLog _errorLog;
+        private Func<BackgroundMessageService> _messageServiceFactory;
+        private bool _sentMessage;
 
         protected override Task SendMessageAsync(MailMessage mailMessage)
         {
-            // Send email as background task, as we don't want to delay the HTTP response.
-            // Particularly when sending email fails and needs to be retried with a delay.
-            // MailMessage is IDisposable, so first clone the  message, to ensure if the
-            // caller disposes it, the message is available until the async task is complete.
+            // Some MVC controller actions send more than one message. Since this method sends
+            // the message async, we need a new IMessageService per email, to avoid calling
+            // SmtpClient.SendAsync on an instance already with an Async operation in progress.
 
-            var messageCopy = CloneMessage(mailMessage);
-
-            Task.Run(async () =>
+            if (_sentMessage)
             {
-                try
-                {
-                    await base.SendMessageAsync(messageCopy);
-                }
-                catch (Exception ex)
-                {
-                    // Log but swallow the exception.
-                    QuietLog.LogHandledException(ex, errorLog);
-                }
-                finally
-                {
-                    messageCopy.Dispose();
-                }
-            });
+                var newMessageService = _messageServiceFactory.Invoke();
+                return newMessageService.SendMessageAsync(mailMessage);
+            }
+            else
+            {
+                _sentMessage = true;
 
-            return Task.CompletedTask;
+                // Send email as background task, as we don't want to delay the HTTP response.
+                // Particularly when sending email fails and needs to be retried with a delay.
+                // MailMessage is IDisposable, so first clone the  message, to ensure if the
+                // caller disposes it, the message is available until the async task is complete.
+                var messageCopy = CloneMessage(mailMessage);
+
+                HostingEnvironment.QueueBackgroundWorkItem(async _ =>
+                    {
+                        try
+                        {
+                            await base.SendMessageAsync(messageCopy);
+                        }
+                        catch (Exception ex)
+                        {
+                            // Log but swallow the exception.
+                            QuietLog.LogHandledException(ex, _errorLog);
+                        }
+                        finally
+                        {
+                            messageCopy.Dispose();
+                        }
+                    });
+
+                return Task.CompletedTask;
+            }
         }
 
         private MailMessage CloneMessage(MailMessage mailMessage)
