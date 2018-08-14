@@ -3,7 +3,7 @@
     "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-int-validation;Integrated Security=False;User ID=$$Int-ValidationDBWriter-UserName$$;Password=$$Int-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ServiceBus": {
-    "ConnectionString": "Endpoint=sb://nugetint.servicebus.windows.net/;SharedAccessKeyName=validator;SharedAccessKey=$$Int-ServiceBus-SharedAccessKey-Validation-symbolvalidator$$",
+    "ConnectionString": "Endpoint=sb://nugetint.servicebus.windows.net/;SharedAccessKeyName=validator;SharedAccessKey=$$Int-ServiceBus-SharedAccessKey-SymbolValidator-ValidatorListener$$",
     "TopicPath": "symbol-validator",
     "SubscriptionName": "symbol-validator",
     "MaxConcurrentCalls": "1"
