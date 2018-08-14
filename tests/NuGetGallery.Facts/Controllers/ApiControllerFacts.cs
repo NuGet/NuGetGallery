@@ -1349,6 +1349,32 @@ namespace NuGetGallery
             public class CalledByUserWithMicrosoftTeamSubscription
                 : TestContainer
             {
+                private const string _packageId = "theId";
+                private static readonly User _requiredCoOwner = new User
+                {
+                    Username = MicrosoftTeamSubscription.MicrosoftUsername
+                };
+
+                private readonly User _user;
+                private readonly Mock<IUserService> _userServiceMock;
+
+                public CalledByUserWithMicrosoftTeamSubscription()
+                {
+                    // Arrange
+                    var microsoftTeamSubscription = new MicrosoftTeamSubscription();
+                    _user = new User()
+                    {
+                        EmailAddress = "confirmed@email.com",
+                        Username = "theUser",
+                        SecurityPolicies = microsoftTeamSubscription.Policies.ToList()
+                    };
+
+                    _userServiceMock = new Mock<IUserService>(MockBehavior.Strict);
+                    _userServiceMock.Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
+                        .Returns(_requiredCoOwner)
+                        .Verifiable();
+                }
+
                 public static IEnumerable<object[]> NonCompliantPackages_Data
                 {
                     get
@@ -1379,7 +1405,7 @@ namespace NuGetGallery
                                 packageId,
                                 "1.0.0",
                                 isSigned: false,
-                                authors: $"{user.Username},{MicrosoftTeamSubscription.MicrosoftUsername}",
+                                authors: $"{user.Username},{_requiredCoOwner.Username}",
                                 licenseUrl: null,
                                 projectUrl: new Uri("https://www.nuget.org")).Object,
                             user);
@@ -1390,7 +1416,7 @@ namespace NuGetGallery
                                 packageId,
                                 "1.0.0",
                                 isSigned: false,
-                                authors: $"{user.Username},{MicrosoftTeamSubscription.MicrosoftUsername}",
+                                authors: $"{user.Username},{_requiredCoOwner.Username}",
                                 licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
                                 projectUrl: null).Object,
                             user);
@@ -1400,53 +1426,34 @@ namespace NuGetGallery
                 [Fact]
                 public async Task AddsRequiredCoOwnerWhenPackageWithNewRegistrationIdIsCompliant()
                 {
-                    // Arrange
-                    var packageId = "theId";
-                    var microsoftTeamSubscription = new MicrosoftTeamSubscription();
-                    var user = new User()
-                    {
-                        EmailAddress = "confirmed@email.com",
-                        Username = "theUser",
-                        SecurityPolicies = microsoftTeamSubscription.Policies.ToList()
-                    };
-                    var requiredCoOwner = new User()
-                    {
-                        Username = MicrosoftTeamSubscription.MicrosoftUsername
-                    };
-
                     var nuGetPackageMock = CreatePackage(
-                        packageId,
+                        _packageId,
                         "1.0.0",
                         isSigned: true,
-                        authors: $"{user.Username},{requiredCoOwner.Username}",
+                        authors: $"{_user.Username},{_requiredCoOwner.Username}",
                         licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
                         projectUrl: new Uri("https://www.nuget.org"));
 
-                    var userServiceMock = new Mock<IUserService>(MockBehavior.Strict);
-                    userServiceMock.Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
-                        .Returns(requiredCoOwner)
-                        .Verifiable();
-
                     var packageOwnershipManagementServiceMock = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
                     packageOwnershipManagementServiceMock
-                        .Setup(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), requiredCoOwner, false /* not committing changes! */))
+                        .Setup(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), _requiredCoOwner, false /* not committing changes! */))
                         .Returns(Task.CompletedTask)
                         .Verifiable();
 
                     var securityPolicyService = CreateSecurityPolicyService(
-                        new Lazy<IUserService>(() => userServiceMock.Object),
+                        new Lazy<IUserService>(() => _userServiceMock.Object),
                         new Lazy<IPackageOwnershipManagementService>(() => packageOwnershipManagementServiceMock.Object));
 
                     var controller = new TestableApiController(
                         GetConfigurationService(),
                         MockBehavior.Strict,
                         securityPolicyService,
-                        userServiceMock.Object);
+                        _userServiceMock.Object);
 
-                    controller.SetCurrentUser(user);
+                    controller.SetCurrentUser(_user);
                     controller.SetupPackageFromInputStream(nuGetPackageMock.Object.GetStream());
                     controller.MockPackageService
-                        .Setup(m => m.FindPackageRegistrationById(packageId))
+                        .Setup(m => m.FindPackageRegistrationById(_packageId))
                         .Returns((PackageRegistration)null)
                         .Verifiable();
                     controller.MockPackageService
@@ -1463,7 +1470,7 @@ namespace NuGetGallery
                     Assert.NotNull(statusCodeResult);
                     Assert.Equal((int)HttpStatusCode.Created, statusCodeResult.StatusCode);
 
-                    userServiceMock.VerifyAll();
+                    _userServiceMock.VerifyAll();
                     packageOwnershipManagementServiceMock.VerifyAll();
                     controller.MockPackageService.VerifyAll();
                 }
@@ -1473,37 +1480,22 @@ namespace NuGetGallery
                 public async Task DoesNotAddRequiredCoOwnerWhenPackageIsNotCompliant(TestPackageReader packageReader, User user)
                 {
                     // Arrange
-                    var packageId = "theId";
-                    var requiredCoOwner = new User()
-                    {
-                        Username = MicrosoftTeamSubscription.MicrosoftUsername
-                    };
-
-                    var userServiceMock = new Mock<IUserService>(MockBehavior.Strict);
-                    userServiceMock.Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
-                        .Returns(requiredCoOwner)
-                        .Verifiable();
-
                     var packageOwnershipManagementServiceMock = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
-                    packageOwnershipManagementServiceMock
-                        .Setup(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), requiredCoOwner, false /* not committing changes! */))
-                        .Returns(Task.CompletedTask)
-                        .Verifiable();
 
                     var securityPolicyService = CreateSecurityPolicyService(
-                        new Lazy<IUserService>(() => userServiceMock.Object),
+                        new Lazy<IUserService>(() => _userServiceMock.Object),
                         new Lazy<IPackageOwnershipManagementService>(() => packageOwnershipManagementServiceMock.Object));
 
                     var controller = new TestableApiController(
                         GetConfigurationService(),
                         MockBehavior.Strict,
                         securityPolicyService,
-                        userServiceMock.Object);
+                        _userServiceMock.Object);
 
                     controller.SetCurrentUser(user);
                     controller.SetupPackageFromInputStream(packageReader.GetStream());
                     controller.MockPackageService
-                        .Setup(m => m.FindPackageRegistrationById(packageId))
+                        .Setup(m => m.FindPackageRegistrationById(_packageId))
                         .Returns((PackageRegistration)null)
                         .Verifiable();
                     controller.MockPackageService
@@ -1520,8 +1512,9 @@ namespace NuGetGallery
                     Assert.NotNull(statusCodeResult);
                     Assert.Equal((int)HttpStatusCode.BadRequest, statusCodeResult.StatusCode);
 
-                    userServiceMock.VerifyAll();
-                    packageOwnershipManagementServiceMock.Verify(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), requiredCoOwner, false), Times.Never, "Required co-owner should not be added for non-compliant package.");
+                    _userServiceMock.VerifyAll();
+                    packageOwnershipManagementServiceMock.Verify(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), _requiredCoOwner, false), Times.Never, "Required co-owner should not be added for non-compliant package.");
+                    controller.MockPackageService.VerifyAll();
                     controller.MockPackageService.VerifyAll();
                 }
 
