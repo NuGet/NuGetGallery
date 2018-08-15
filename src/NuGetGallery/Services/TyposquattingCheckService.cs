@@ -10,8 +10,8 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckService
     {
-        private static readonly char[] _SpecialCharacters = {'.', '_', '-'}; 
-        private static readonly Dictionary<char, string> _SimilarCharacterDictionary = new Dictionary<char, string>()
+        private static readonly char[] SpecialCharacters = {'.', '_', '-'}; 
+        private static readonly Dictionary<char, string> SimilarCharacterDictionary = new Dictionary<char, string>()
         {
             {'a', "AÀÁÂÃÄÅàáâãäåĀāĂăĄąǍǎǞǟǠǡǺǻȀȁȂȃȦȧȺΆΑάαἀἁἂἃἄἅἆἇἈἉἊἋἌἍἎἏӐӑӒӓὰάᾀᾁᾂᾃᾄᾅᾆᾇᾈᾊᾋᾌᾍᾎᾏᾰᾱᾲᾳᾴᾶᾷᾸᾹᾺΆᾼАДад"},
             {'b', "BƀƁƂƃƄƅɃḂḃΒϦЂБВЪЬвъьѢѣҌҍႦႪხҔҕӃӄ" },
@@ -43,17 +43,17 @@ namespace NuGetGallery
             {'8', "Ȣȣ"},
             {'_', ".-" }
         };
-        private static Dictionary<char, char> _NormalizedMappingDictionary = new Dictionary<char, char>();
+        private static readonly Dictionary<char, char> NormalizedMappingDictionary = GetNormalizedMappingDictionary(SimilarCharacterDictionary);
 
         // TODO: Threshold parameters will be saved in the configuration file. 
-        private const int _TyposquattingThreshold1 = 0;
-        private const int _TyposquattingThreshold2 = 1;
-        private const int _TyposquattingThreshold3 = 2;
-        private const int _TyposquattingThresholdInterval1 = 30;
-        private const int _TyposquattingThresholdInterval2 = 50;
+        private const int TyposquattingThreshold1 = 0;
+        private const int TyposquattingThreshold2 = 1;
+        private const int TyposquattingThreshold3 = 2;
+        private const int TyposquattingThresholdInterval1 = 30;
+        private const int TyposquattingThresholdInterval2 = 50;
 
         // TODO: popular packages checklist will be implemented
-        private List<string> _PackageIdCheckList = new List<string>();
+        private List<string> _packageIdCheckList = new List<string>();
 
         private class BasicEditDistanceInfo
         {
@@ -63,7 +63,6 @@ namespace NuGetGallery
 
         public TyposquattingCheckService()
         {
-            _NormalizedMappingDictionary = GetNormalizedMappingDictionary(_SimilarCharacterDictionary);
         }
 
         public TyposquattingCheckService(List<string> packageIdCheckList) : this()
@@ -73,11 +72,11 @@ namespace NuGetGallery
 
         public void SetPackageIdCheckList(List<string> packageIdCheckList)
         {
-            _PackageIdCheckList = packageIdCheckList;
+            _packageIdCheckList = packageIdCheckList;
             return;
         }      
         
-        private Dictionary<char, char> GetNormalizedMappingDictionary(Dictionary<char, string> similarCharacterDictionary)
+        private static Dictionary<char, char> GetNormalizedMappingDictionary(Dictionary<char, string> similarCharacterDictionary)
         {
             Dictionary<char, char> normalizedMappingDictionary = new Dictionary<char, char>();
             foreach(var item in similarCharacterDictionary)
@@ -93,17 +92,17 @@ namespace NuGetGallery
 
         private int GetThreshold(string packageId)
         {
-            if (packageId.Length < _TyposquattingThresholdInterval1)
+            if (packageId.Length < TyposquattingThresholdInterval1)
             {
-                return _TyposquattingThreshold1;
+                return TyposquattingThreshold1;
             }
-            else if (packageId.Length >= _TyposquattingThresholdInterval1 && packageId.Length < _TyposquattingThresholdInterval2)
+            else if (packageId.Length >= TyposquattingThresholdInterval1 && packageId.Length < TyposquattingThresholdInterval2)
             {
-                return _TyposquattingThreshold2;
+                return TyposquattingThreshold2;
             }
             else
             {
-                return _TyposquattingThreshold3;
+                return TyposquattingThreshold3;
             }   
         }
 
@@ -112,9 +111,9 @@ namespace NuGetGallery
             StringBuilder normalizedStr = new StringBuilder(str);
             for (int i = 0; i < normalizedStr.Length; i++)
             {
-                if (_NormalizedMappingDictionary.ContainsKey(normalizedStr[i]))
+                if (NormalizedMappingDictionary.ContainsKey(normalizedStr[i]))
                 {
-                    normalizedStr[i] = _NormalizedMappingDictionary[normalizedStr[i]];
+                    normalizedStr[i] = NormalizedMappingDictionary[normalizedStr[i]];
                 }
             }
             
@@ -132,7 +131,7 @@ namespace NuGetGallery
             uploadedPackageId = NormalizeString(uploadedPackageId);
 
             int countCollision = 0;
-            Parallel.ForEach(_PackageIdCheckList, (packageId, loopState) =>
+            Parallel.ForEach(_packageIdCheckList, (packageId, loopState) =>
             {
                 if (IsDistanceLessThanThreshold(uploadedPackageId, packageId, threshold))
                 {
@@ -155,8 +154,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(str2));
             }
 
-            string newStr1 = Regex.Replace(str1, "[" + new string(_SpecialCharacters) + "]", ""); 
-            string newStr2 = Regex.Replace(str2, "[" + new string(_SpecialCharacters) + "]", "");
+            string newStr1 = Regex.Replace(str1, "[" + new string(SpecialCharacters) + "]", ""); 
+            string newStr2 = Regex.Replace(str2, "[" + new string(SpecialCharacters) + "]", "");
             if (Math.Abs(newStr1.Length - newStr2.Length) > threshold)
             {
                 return false;
@@ -293,11 +292,11 @@ namespace NuGetGallery
             {
                 if (alignedStr1[i] != alginedStr2[i])
                 {
-                    if (alignedStr1[i] == '*' && _SpecialCharacters.Contains(alginedStr2[i]))
+                    if (alignedStr1[i] == '*' && SpecialCharacters.Contains(alginedStr2[i]))
                     {
                         sameSubstitution += 1;
                     }
-                    else if (_SpecialCharacters.Contains(alignedStr1[i]) && alginedStr2[i] == '*')
+                    else if (SpecialCharacters.Contains(alignedStr1[i]) && alginedStr2[i] == '*')
                     {
                         sameSubstitution += 1;
                     }
