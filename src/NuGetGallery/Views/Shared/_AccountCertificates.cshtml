@@ -29,7 +29,14 @@
 
 @helper InformAboutOrgSettingsPage()
 {
-    @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, you would need to go to the <a href="@Url.ManageMyOrganizations()">organization's settings page</a>.</text>)
+    if (Model.IsOrganization)
+    {
+        @ViewHelpers.AlertInfo(@<text>To manage certificates for your individual account, go to <a href="@Url.AccountSettings()">your account's settings page</a>.</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, go to the <a href="@Url.ManageMyOrganizations()">organization's settings page</a>.</text>)
+    }
 }
 
 @ViewHelpers.Section(
