@@ -103,5 +103,12 @@ namespace NuGetGallery
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="registration" />
         /// is <c>null</c>.</exception>
         Task SetRequiredSignerAsync(PackageRegistration registration, User signer, bool commitChanges = true);
+
+        /// <summary>
+        /// Get the checklist of package Ids for typo-squatting.
+        /// </summary>
+        /// <param name="typosquattingCheckListLength">checklist length for typo-squatting</param>
+        /// <returns>A list of strings which contains the package IDs we want to protect</returns>
+        List<string> GetTyposquattingCheckList(int typosquattingCheckListLength);
     }
 }
