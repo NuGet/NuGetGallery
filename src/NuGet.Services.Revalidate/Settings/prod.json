@@ -19,6 +19,8 @@
     "MinPackageEventRate": 120,
     "MaxPackageEventRate": 200,
 
+    "RetryLaterSleep": "00:00:30",
+
     "AppInsights": {
       "AppId": "338f6804-b1a9-4fe3-bba7-c93064e7ae7b",
       "ApiKey": "$$Prod-ApplicationInsights-ApiKey-Gallery-RevalidationJob$$"
@@ -26,7 +28,7 @@
 
     "Queue": {
       "MaximumAttempts": 5,
-      "SleepBetweenAttempts": "00:05:00"
+      "SleepBetweenAttempts": "00:00:30"
     }
   },
 

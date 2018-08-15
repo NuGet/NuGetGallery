@@ -13,11 +13,13 @@
     "Health": {
       "ContainerName": "status",
       "StatusBlobName": "status.json",
-      "ComponentPath":  "NuGet/Package Publishing"
+      "ComponentPath": "NuGet/Package Publishing"
     },
 
     "MinPackageEventRate": 120,
     "MaxPackageEventRate": 200,
+
+    "RetryLaterSleep": "00:00:30",
 
     "AppInsights": {
       "AppId": "46f13c7d-635f-42c3-8120-593edeaad426",
@@ -26,7 +28,7 @@
 
     "Queue": {
       "MaximumAttempts": 5,
-      "SleepBetweenAttempts": "00:05:00"
+      "SleepBetweenAttempts": "00:00:30"
     }
   },
 

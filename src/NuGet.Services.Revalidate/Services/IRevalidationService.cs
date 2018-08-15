@@ -5,10 +5,15 @@ using System.Threading.Tasks;
 
 namespace NuGet.Services.Revalidate
 {
+    /// <summary>
+    /// Starts revalidations until there are no more pending revalidations.
+    /// </summary>
     public interface IRevalidationService
     {
+        /// <summary>
+        /// Start revalidations until there are no more pending revalidations.
+        /// </summary>
+        /// <returns></returns>
         Task RunAsync();
-
-        Task<RevalidationResult> StartNextRevalidationAsync();
     }
 }

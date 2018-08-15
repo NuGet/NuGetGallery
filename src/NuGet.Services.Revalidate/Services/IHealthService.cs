@@ -8,9 +8,9 @@ namespace NuGet.Services.Revalidate
     public interface IHealthService
     {
         /// <summary>
-        /// Determine whether the NuGet service is healthy.
+        /// Determine whether NuGet's ingestion pipeline is healthy.
         /// </summary>
-        /// <returns>Whether the NuGet service is healthy.</returns>
+        /// <returns>Whether the NuGet ingestion pipeline is healthy.</returns>
         Task<bool> IsHealthyAsync();
     }
 }
