@@ -633,8 +633,13 @@
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
-                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download</a>
+                        <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download Package</a>
                         &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
+                    </li>
+                    <li>
+                        <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
+                        <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download Symbols</a>
+                        &nbsp;(@Model.AvailableSymbolPackage.FileSize.ToUserFriendlyBytesLabel())
                     </li>
                     <li class="no-clickonce">
                         <i class="ms-Icon ms-Icon--OpenInNewWindow" aria-hidden="true"></i>

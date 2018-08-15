@@ -278,6 +278,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case CoreConstants.PackagesFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
 
                 case CoreConstants.DownloadsFolderName:

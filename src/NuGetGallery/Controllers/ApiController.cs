@@ -55,6 +55,7 @@ namespace NuGetGallery
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
+        public ISymbolPackageFileService SymbolPackageFileService { get; set; }
         public ISymbolPackageService SymbolPackageService { get; set; }
         public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
         public IContentObjectService ContentObjectService { get; set; }
@@ -85,6 +86,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
+            ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageService symbolPackageService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IContentObjectService contentObjectService)
@@ -109,6 +111,7 @@ namespace NuGetGallery
             ReservedNamespaceService = reservedNamespaceService;
             PackageUploadService = packageUploadService;
             StatisticsService = null;
+            SymbolPackageFileService = symbolPackageFileService;
             SymbolPackageService = symbolPackageService;
             SymbolPackageUploadService = symbolPackageUploadService;
             ContentObjectService = contentObjectService;
@@ -136,21 +139,35 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
+            ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageService symbolPackageService,
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IContentObjectService contentObjectService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, symbolPackageUploadServivce,
-                  contentObjectService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService, 
+                  symbolPackageService, symbolPackageUploadServivce, contentObjectService)
         {
             StatisticsService = statisticsService;
+        }
+
+
+        [HttpGet]
+        [ActionName("GetSymbolPackageApi")]
+        public virtual async Task<ActionResult> GetSymbolPackage(string id, string version)
+        {
+            return await GetPackageInternal(id, version, isSymbolPackage: true);
         }
 
         [HttpGet]
         [ActionName("GetPackageApi")]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
+        {
+            return await GetPackageInternal(id, version, isSymbolPackage: false);
+        }
+
+        protected async Task<ActionResult> GetPackageInternal(string id, string version, bool isSymbolPackage)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -212,9 +229,18 @@ namespace NuGetGallery
                 await PackageService.IncrementDownloadCountAsync(id, version);
             }
 
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(
-                HttpContext.Request.Url,
-                id, version);
+            if (isSymbolPackage)
+            {
+                return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
+                    HttpContext.Request.Url,
+                    id, version);
+            }
+            else
+            {
+                return await PackageFileService.CreateDownloadPackageActionResultAsync(
+                    HttpContext.Request.Url,
+                    id, version);
+            }
         }
 
         [HttpGet]

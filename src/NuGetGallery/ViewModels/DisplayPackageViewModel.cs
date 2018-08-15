@@ -26,6 +26,11 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
+            AvailableSymbolPackage = package
+                .SymbolPackages
+                .Where(sp => sp.StatusKey == PackageStatus.Available)
+                .FirstOrDefault();
+
             if (packageHistory.Any())
             {
                 // calculate the number of days since the package registration was created
@@ -62,6 +67,8 @@ namespace NuGetGallery
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
+        public SymbolPackage AvailableSymbolPackage { get; private set; }
+        public SymbolPackage PendingSymbolPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
