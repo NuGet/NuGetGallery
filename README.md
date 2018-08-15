@@ -49,7 +49,7 @@ This should help prevent unwanted file commits.
 
 ## Deploy
 
-You will find [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md) instructions on how to deploy the Gallery to Azure.
+You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
 
 ## Contribute
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 
