@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -119,7 +121,28 @@ namespace NuGetGallery
             return normalizedStr.ToString();
         }
 
-        public bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
+        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId)
+        {
+            if (uploadedPackageId == null)
+            {
+                throw new ArgumentNullException(nameof(uploadedPackageId));
+            }
+
+            int countCollision = 0;
+            int threshold = GetThreshold(uploadedPackageId);
+            Parallel.ForEach(_PackageIdCheckList, (packageId, loopState) =>
+            {
+                if (IsDistanceLessThanThreshold(uploadedPackageId, packageId, threshold))
+                {
+                    Interlocked.Increment(ref countCollision);
+                    loopState.Stop();
+                }
+            });
+
+            return countCollision != 0;
+        }
+
+        private bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
         {
             if (str1 == null)
             {
