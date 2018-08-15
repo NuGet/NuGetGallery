@@ -104,17 +104,10 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         private async Task<SignatureValidatorResult> HandleUnsignedPackageAsync(Context context)
         {
-            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
-
-            if (packageRegistration.IsSigningRequired())
+            var validationResult = await ValidatePackageRegistrationSigningRequirementsAsync(context);
+            if (validationResult != null)
             {
-                _logger.LogWarning(
-                    "Package {PackageId} {PackageVersion} for validation {ValidationId} must be signed but is unsigned.",
-                    context.Message.PackageId,
-                    context.Message.PackageVersion,
-                    context.Message.ValidationId);
-
-                return await RejectAsync(context, ValidationIssue.PackageIsNotSigned);
+                return validationResult;
             }
 
             _logger.LogInformation(
@@ -507,33 +500,21 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
 
         private async Task<SignatureValidatorResult> PerformFinalValidationAsync(Context context)
         {
-            var signingCertificate = context.Signature.SignerInfo.Certificate;
-            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
+            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
 
-            if (context.Signature.Type == SignatureType.Author)
+            // Ensure the signature matches the package registration's signing requirements.
+            var validationResult = await ValidatePackageRegistrationSigningRequirementsAsync(context);
+            if (validationResult != null)
             {
-                // Block packages with any unknown signing certificates.
-                var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
-
-                if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
-                {
-                    _logger.LogWarning(
-                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
-                        context.Message.PackageId,
-                        context.Message.PackageVersion,
-                        context.Message.ValidationId,
-                        signingFingerprint);
-
-                    return await RejectAsync(
-                        context,
-                        new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
-                }
+                return validationResult;
             }
-            else if (context.Signature.Type != SignatureType.Repository)
+
+            if (context.Signature.Type != SignatureType.Author &&
+                context.Signature.Type != SignatureType.Repository)
             {
                 _logger.LogInformation(
                     "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it " +
-                    "is not author signed: {SignatureType}",
+                    "is neither author nor repository signed: {SignatureType}",
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     context.Message.ValidationId,
@@ -560,6 +541,9 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
             }
 
             // Do a full verification of all signatures.
+            var signingCertificate = context.Signature.SignerInfo.Certificate;
+            var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
+
             var verifyResult = await _formatValidator.ValidateAllSignaturesAsync(
                 context.PackageReader,
                 context.HasRepositorySignature,
@@ -588,6 +572,65 @@ namespace NuGet.Jobs.Validation.PackageSigning.ProcessSignature
                     context.Message.PackageId,
                     context.Message.PackageVersion,
                     signingFingerprint);
+            }
+
+            return null;
+        }
+
+        private async Task<SignatureValidatorResult> ValidatePackageRegistrationSigningRequirementsAsync(Context context)
+        {
+            // Skip signing requirement checks if the package is already available. This is needed otherwise revalidating
+            // a package after its owners have changed their signing requirements may fail.
+            var package = _corePackageService.FindPackageByIdAndVersionStrict(context.Message.PackageId, context.Message.PackageVersion);
+
+            if (package.PackageStatusKey == PackageStatus.Available)
+            {
+                _logger.LogInformation(
+                    "Package {PackageId} {PackageVersion} for validation {ValidationId} is already available, " +
+                    "skipping the package registration's certificate signing requirements",
+                    context.Message.PackageId,
+                    context.Message.PackageVersion,
+                    context.Message.ValidationId);
+
+                return null;
+            }
+
+            var packageRegistration = _corePackageService.FindPackageRegistrationById(context.Message.PackageId);
+
+            if (context.Signature == null || context.Signature.Type == SignatureType.Repository)
+            {
+                // Block unsigned packages if the registration requires a signature.
+                if (packageRegistration.IsSigningRequired())
+                {
+                    _logger.LogWarning(
+                        "Package {PackageId} {PackageVersion} for validation {ValidationId} must be signed but is unsigned.",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId);
+
+                    return await RejectAsync(context, ValidationIssue.PackageIsNotSigned);
+                }
+            }
+
+            if (context.Signature?.Type == SignatureType.Author)
+            {
+                var signingCertificate = context.Signature.SignerInfo.Certificate;
+                var signingFingerprint = signingCertificate.ComputeSHA256Thumbprint();
+
+                // Block packages with any unknown signing certificates.
+                if (!packageRegistration.IsAcceptableSigningCertificate(signingFingerprint))
+                {
+                    _logger.LogWarning(
+                        "Signed package {PackageId} {PackageVersion} is blocked for validation {ValidationId} since it has an unknown certificate fingerprint: {UnknownFingerprint}",
+                        context.Message.PackageId,
+                        context.Message.PackageVersion,
+                        context.Message.ValidationId,
+                        signingFingerprint);
+
+                    return await RejectAsync(
+                        context,
+                        new UnauthorizedCertificateFailure(signingCertificate.Thumbprint.ToLowerInvariant()));
+                }
             }
 
             return null;

@@ -197,7 +197,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
         public async Task<MemoryStream> GetAuthorSignedPackageStream1Async()
         {
-            TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, await _fixture.GetSigningCertificateThumbprintAsync());
+            TestUtility.RequireSignedPackage(
+                _corePackageService,
+                _message.PackageId,
+                _message.PackageVersion,
+                await _fixture.GetSigningCertificateThumbprintAsync());
             return await _fixture.GetAuthorSignedPackageStream1Async(_output);
         }
 
@@ -233,7 +237,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                         _output);
                 }
 
-                TestUtility.RequireSignedPackage(_corePackageService, TestResources.UnsignedPackageId, certificate.Certificate.ComputeSHA256Thumbprint());
+                TestUtility.RequireSignedPackage(
+                    _corePackageService,
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion,
+                    certificate.Certificate.ComputeSHA256Thumbprint());
                 _message = _unsignedPackageMessage;
 
                 // Act
@@ -270,6 +278,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 TestUtility.RequireSignedPackage(_corePackageService, 
                     TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
                     await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _packageStream = new MemoryStream(packageBytes);
@@ -317,6 +326,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 TestUtility.RequireSignedPackage(_corePackageService,
                     TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
                     await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _packageStream = new MemoryStream(packageBytes);
@@ -365,7 +375,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 // Wait for the OCSP response cached by the operating system during signing to get stale.
                 await certificateWithUnavailableRevocation.WaitForResponseExpirationAsync();
 
-                TestUtility.RequireSignedPackage(_corePackageService, TestResources.UnsignedPackageId, certificateWithUnavailableRevocation.Certificate.ComputeSHA256Thumbprint());
+                TestUtility.RequireSignedPackage(
+                    _corePackageService,
+                    TestResources.UnsignedPackageId,
+                    TestResources.UnsignedPackageVersion,
+                    certificateWithUnavailableRevocation.Certificate.ComputeSHA256Thumbprint());
                 _message = _unsignedPackageMessage;
 
                 // Act
@@ -471,6 +485,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Arrange
             SetSignatureContent(
                 TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 configuredSignedCms: signedCms =>
                 {
@@ -478,6 +493,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     {
                         TestUtility.RequireSignedPackage(_corePackageService, 
                             TestResources.SignedPackageLeafId,
+                            TestResources.SignedPackageLeaf1Version,
                             additionalCertificate.ComputeSHA256Thumbprint());
                         signedCms.ComputeSignature(new CmsSigner(additionalCertificate));
                     }
@@ -510,7 +526,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, counterCertificate.ComputeSHA256Thumbprint());
+                        TestUtility.RequireSignedPackage(
+                            _corePackageService,
+                            _message.PackageId,
+                            _message.PackageVersion,
+                            counterCertificate.ComputeSHA256Thumbprint());
 
                         var cmsSigner = new CmsSigner(counterCertificate);
                         cmsSigner.SignedAttributes.Add(AttributeUtility.CreateCommitmentTypeIndication(SignatureType.Author));
@@ -543,7 +563,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -573,7 +593,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -603,7 +623,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -635,7 +655,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -666,7 +686,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 output: _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -703,7 +723,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 }
 
                 // Initialize the subject of testing.
-                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
                 _message = _unsignedPackageMessage;
 
                 var target = CreateSignatureValidator(
@@ -734,7 +754,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -773,7 +793,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     output: _output);
 
                 // Initialize the subject of testing.
-                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
                 _message = _unsignedPackageMessage;
 
                 var target = CreateSignatureValidator(
@@ -811,7 +831,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             AddFileToPackageStream(_packageStream);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -841,7 +861,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 _output);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             var target = CreateSignatureValidator(
@@ -884,7 +904,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                     output: _output);
 
                 // Initialize the subject of testing.
-                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+                TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
                 _message = _unsignedPackageMessage;
 
                 var target = CreateSignatureValidator(
@@ -926,7 +946,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             AddFileToPackageStream(_packageStream);
 
             // Initialize the subject of testing.
-            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId);
+            TestUtility.RequireUnsignedPackage(_corePackageService, TestResources.UnsignedPackageId, TestResources.UnsignedPackageVersion);
             _message = _unsignedPackageMessage;
 
             _validationEntitiesContext.Object.PackageSigningStates.Add(new PackageSigningState
@@ -1342,7 +1362,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
         {
             // Arrange
             var certificate = await _fixture.GetSigningCertificateAsync();
-            TestUtility.RequireSignedPackage(_corePackageService, TestResources.SignedPackageLeafId, TestResources.Leaf1Thumbprint);
+            TestUtility.RequireSignedPackage(
+                _corePackageService,
+                TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
+                TestResources.Leaf1Thumbprint);
             _packageStream = await _fixture.RepositorySignPackageStreamAsync(
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 certificate,
@@ -1395,6 +1419,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
                 TestUtility.RequireSignedPackage(_corePackageService,
                     TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
                     await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _message = new SignatureValidationMessage(
@@ -1448,6 +1473,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 
                 TestUtility.RequireSignedPackage(_corePackageService,
                     TestResources.SignedPackageLeafId,
+                    TestResources.SignedPackageLeaf1Version,
                     await _fixture.GetSigningCertificateThumbprintAsync());
 
                 _message = new SignatureValidationMessage(
@@ -1530,7 +1556,11 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 {
                     using (var counterCertificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
                     {
-                        TestUtility.RequireSignedPackage(_corePackageService, _message.PackageId, counterCertificate.ComputeSHA256Thumbprint());
+                        TestUtility.RequireSignedPackage(
+                            _corePackageService,
+                            _message.PackageId,
+                            _message.PackageVersion,
+                            counterCertificate.ComputeSHA256Thumbprint());
 
                         var cmsSigner = new CmsSigner(counterCertificate);
                         foreach (var type in counterSignatureTypes)
@@ -1615,6 +1645,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Arrange
             SetSignatureContent(
                 TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 "!!--:::FOO...");
 
@@ -1640,6 +1671,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             // Arrange
             SetSignatureContent(
                 TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 "Version:2" + Environment.NewLine + Environment.NewLine + "2.16.840.1.101.3.4.2.1-Hash:hash");
 
@@ -1666,6 +1698,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
                 hashValue: "hash");
             SetSignatureContent(
                 TestResources.SignedPackageLeafId,
+                TestResources.SignedPackageLeaf1Version,
                 TestResources.GetResourceStream(TestResources.SignedPackageLeaf1),
                 content.GetBytes());
 
@@ -1787,6 +1820,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
         private void SetSignatureContent(
             string packageId,
+            string packageVersion,
             MemoryStream packageStream,
             byte[] signatureContent = null,
             Action<SignedCms> configuredSignedCms = null)
@@ -1801,7 +1835,7 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 
             using (var certificate = SigningTestUtility.GenerateCertificate(subjectName: null, modifyGenerator: null))
             {
-                TestUtility.RequireSignedPackage(_corePackageService, packageId, certificate.ComputeSHA256Thumbprint());
+                TestUtility.RequireSignedPackage(_corePackageService, packageId, packageVersion, certificate.ComputeSHA256Thumbprint());
 
                 var contentInfo = new ContentInfo(signatureContent);
                 var signedCms = new SignedCms(contentInfo);
@@ -1816,9 +1850,9 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             }
         }
 
-        private void SetSignatureContent(string packageId, MemoryStream packageStream, string signatureContent)
+        private void SetSignatureContent(string packageId, string packageVersion, MemoryStream packageStream, string signatureContent)
         {
-            SetSignatureContent(packageId, packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
+            SetSignatureContent(packageId, packageVersion, packageStream, signatureContent: Encoding.UTF8.GetBytes(signatureContent));
         }
 
         private void AddFileToPackageStream(MemoryStream packageStream)
