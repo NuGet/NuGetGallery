@@ -128,8 +128,10 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageId));
             }
 
-            int countCollision = 0;
             int threshold = GetThreshold(uploadedPackageId);
+            uploadedPackageId = NormalizeString(uploadedPackageId);
+
+            int countCollision = 0;
             Parallel.ForEach(_PackageIdCheckList, (packageId, loopState) =>
             {
                 if (IsDistanceLessThanThreshold(uploadedPackageId, packageId, threshold))
@@ -165,8 +167,6 @@ namespace NuGetGallery
 
         private int GetDistance(string str1, string str2, int threshold)
         {
-            str1 = NormalizeString(str1);
-
             BasicEditDistanceInfo basicEditDistanceInfo = GetBasicEditDistanceWithPath(str1, str2);
             if (basicEditDistanceInfo.Distance <= threshold)
             {
