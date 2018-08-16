@@ -462,7 +462,7 @@
                             {
                                 rowCount++;
                                 @VersionListDivider(rowCount, versionsExpanded)
-                                <tr>
+                                <tr class="@(packageVersion.IsCurrent(Model) ? "bg-info" : null)">
                                     <td class="signature-info-cell">
                                         @if (Model.IsCertificatesUIEnabled && !string.IsNullOrEmpty(packageVersion.SignatureInformation))
                                         {
@@ -471,13 +471,7 @@
                                     </td>
                                     <td>
                                         <a href="@Url.Package(packageVersion)" title="@packageVersion.FullVersion">
-                                            <b>
                                                 @packageVersion.Version.Abbreviate(30)
-                                                @if (packageVersion.IsCurrent(Model))
-                                                {
-                                                    @:(current)
-                                                }
-                                            </b>
                                         </a>
                                     </td>
                                     <td>
