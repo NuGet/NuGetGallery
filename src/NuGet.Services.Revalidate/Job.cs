@@ -143,6 +143,7 @@ namespace NuGet.Services.Revalidate
             services.AddTransient<IHealthService, HealthService>();
             services.AddTransient<IRevalidationQueue, RevalidationQueue>();
             services.AddTransient<IRevalidationService, RevalidationService>();
+            services.AddTransient<IRevalidationStarter, RevalidationStarter>();
             services.AddTransient<IRevalidationThrottler, RevalidationThrottler>();
             services.AddTransient<ISingletonService, SingletonService>();
 

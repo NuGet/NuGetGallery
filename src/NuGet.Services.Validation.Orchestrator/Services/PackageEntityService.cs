@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using NuGetGallery;
 using NuGetGallery.Packaging;
@@ -24,11 +23,6 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             var p = _galleryEntityService.FindPackageByIdAndVersionStrict(id, version);
             return p == null ? null : new PackageValidatingEntity(p);
-        }
-
-        public IValidatingEntity<Package> FindByKey(int key)
-        {
-            throw new NotImplementedException();
         }
 
         public async Task UpdateStatusAsync(Package entity, PackageStatus newStatus, bool commitChanges = true)

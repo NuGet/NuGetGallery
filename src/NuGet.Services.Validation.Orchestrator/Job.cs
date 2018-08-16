@@ -27,6 +27,8 @@ using NuGet.Jobs.Validation.Common;
 using NuGet.Jobs.Validation.PackageSigning.Messages;
 using NuGet.Jobs.Validation.ScanAndSign;
 using NuGet.Jobs.Validation.Storage;
+using NuGet.Services.Validation.Symbols;
+using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Configuration;
 using NuGet.Services.KeyVault;
 using NuGet.Services.Logging;
@@ -52,6 +54,7 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageSigningSectionName = "PackageSigning";
         private const string PackageCertificatesSectionName = "PackageCertificates";
         private const string ScanAndSignSectionName = "ScanAndSign";
+        private const string SymbolScanOnlySectionName = "SymbolScanOnly";
         private const string RunnerConfigurationSectionName = "RunnerConfiguration";
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
@@ -65,9 +68,16 @@ namespace NuGet.Services.Validation.Orchestrator
         private const string PackageSignatureBindingKey = PackageSigningSectionName;
         private const string PackageCertificatesBindingKey = PackageCertificatesSectionName;
         private const string ScanAndSignBindingKey = ScanAndSignSectionName;
+        private const string SymbolsScanBindingKey = "SymbolsScan";
         private const string ScanBindingKey = "Scan";
         private const string ValidationStorageBindingKey = "ValidationStorage";
         private const string OrchestratorBindingKey = "Orchestrator";
+
+        private const string SymbolsValidatorSectionName = "SymbolsValidator";
+        private const string SymbolsValidationBindingKey = SymbolsValidatorSectionName;
+
+        private const string SymbolsIngesterSectionName = "SymbolsIngester";
+        private const string SymbolsIngesterBindingKey = SymbolsIngesterSectionName;
 
         private static readonly TimeSpan KeyVaultSecretCachingTimeout = TimeSpan.FromDays(1);
 
@@ -101,7 +111,6 @@ namespace NuGet.Services.Validation.Orchestrator
                 Logger.LogInformation("Configuration validation successful");
                 return;
             }
-
             var runner = GetRequiredService<OrchestrationRunner>();
             await runner.RunOrchestrationAsync();
         }
@@ -146,7 +155,7 @@ namespace NuGet.Services.Validation.Orchestrator
             ConfigureLibraries(services);
             ConfigureJobServices(services, configurationRoot);
 
-            return CreateProvider(services);
+            return CreateProvider(services, configurationRoot);
         }
 
         private void ConfigureLibraries(IServiceCollection services)
@@ -180,7 +189,11 @@ namespace NuGet.Services.Validation.Orchestrator
             services.Configure<SmtpConfiguration>(configurationRoot.GetSection(SmtpConfigurationSectionName));
             services.Configure<EmailConfiguration>(configurationRoot.GetSection(EmailConfigurationSectionName));
             services.Configure<ScanAndSignConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
+            services.Configure<SymbolScanOnlyConfiguration>(configurationRoot.GetSection(SymbolScanOnlySectionName));
             services.Configure<ScanAndSignEnqueuerConfiguration>(configurationRoot.GetSection(ScanAndSignSectionName));
+
+            services.Configure<SymbolsValidationConfiguration>(configurationRoot.GetSection(SymbolsValidatorSectionName));
+            services.Configure<SymbolsIngesterConfiguration>(configurationRoot.GetSection(SymbolsIngesterSectionName));
 
             services.AddTransient<ConfigurationValidator>();
             services.AddTransient<OrchestrationRunner>();
@@ -213,7 +226,8 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IPackageValidationEnqueuer, PackageValidationEnqueuer>();
             services.AddTransient<IValidatorProvider, ValidatorProvider>();
             services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
-            services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandler>();
+            // Only one Orchestrator Message Handler will be registered.
+            ConfigureOrchestratorMessageHandler(services, configurationRoot);
             services.AddTransient<IServiceBusMessageSerializer, ServiceBusMessageSerializer>();
             services.AddTransient<IBrokeredMessageSerializer<PackageValidationMessageData>, PackageValidationMessageDataSerializationAdapter>();
             services.AddTransient<ICriteriaEvaluator<Package>, PackageCriteriaEvaluator>();
@@ -227,8 +241,6 @@ namespace NuGet.Services.Validation.Orchestrator
                         readAccessGeoRedundant: false);
                 });
             services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
-            services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
-            services.AddTransient<IValidationFileService, ValidationFileService>();
             services.AddTransient<IFileDownloader, PackageDownloader>();
             services.AddTransient<IStatusProcessor<Package>, EntityStatusProcessor<Package>>();
             services.AddTransient<IValidationSetProvider<Package>, ValidationSetProvider<Package>>();
@@ -295,9 +307,12 @@ namespace NuGet.Services.Validation.Orchestrator
 
                 return client;
             });
+
+            ConfigureFileServices(services, configurationRoot);
+            ConfigureOrchestratorSymbolTypes(services);
         }
 
-        private static IServiceProvider CreateProvider(IServiceCollection services)
+        private static IServiceProvider CreateProvider(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
@@ -360,10 +375,26 @@ namespace NuGet.Services.Validation.Orchestrator
                     IMessageHandler<PackageValidationMessageData>>(
                         OrchestratorBindingKey);
 
-            ConfigurePackageSigningValidators(containerBuilder);
-            ConfigurePackageCertificatesValidator(containerBuilder);
-            ConfigureScanAndSignProcessor(containerBuilder);
-            ConfigureScanValidator(containerBuilder);
+            // Configure Validators
+            var validatingType = configurationRoot
+                .GetSection(RunnerConfigurationSectionName)
+                .GetValue(nameof(OrchestrationRunnerConfiguration.ValidatingType), ValidatingType.Package);
+            switch (validatingType)
+            {
+                case ValidatingType.Package:
+                    ConfigurePackageSigningValidators(containerBuilder);
+                    ConfigurePackageCertificatesValidator(containerBuilder);
+                    ConfigureScanAndSignProcessor(containerBuilder);
+                    ConfigureScanValidator(containerBuilder);
+                    break;
+                case ValidatingType.SymbolPackage:
+                    ConfigureSymbolScanValidator(containerBuilder);
+                    ConfigureSymbolsValidator(containerBuilder);
+                    ConfigureSymbolsIngester(containerBuilder);
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown type: {validatingType}");
+            }
 
             return new AutofacServiceProvider(containerBuilder.Build());
         }
@@ -470,6 +501,34 @@ namespace NuGet.Services.Validation.Orchestrator
                 .AsSelf();
         }
 
+        private static void ConfigureSymbolScanValidator(ContainerBuilder builder)
+        {
+            builder
+                .Register(c =>
+                {
+                    var configuration = c.Resolve<IOptionsSnapshot<SymbolScanOnlyConfiguration>>().Value.ServiceBus;
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(SymbolsScanBindingKey);
+
+            builder
+                .RegisterType<ValidatorStateService>()
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.SymbolScan)
+                .Keyed<IValidatorStateService>(SymbolsScanBindingKey);
+
+            builder
+                .RegisterType<ScanAndSignEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), SymbolsScanBindingKey)
+                .As<IScanAndSignEnqueuer>();
+
+            builder
+                .RegisterType<SymbolScanValidator>()
+                .WithKeyedParameter(typeof(IValidatorStateService), SymbolsScanBindingKey)
+                .AsSelf();
+        }
+
         private static void ConfigureScanValidator(ContainerBuilder builder)
         {
             builder
@@ -485,9 +544,134 @@ namespace NuGet.Services.Validation.Orchestrator
                 .AsSelf();
         }
 
+        private static void ConfigureOrchestratorMessageHandler(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            var validatingType = configurationRoot
+                .GetSection(RunnerConfigurationSectionName)
+                .GetValue(nameof(OrchestrationRunnerConfiguration.ValidatingType), ValidatingType.Package);
+            switch (validatingType)
+            {
+                case ValidatingType.Package:
+                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, PackageValidationMessageHandler>();
+                    break;
+                case ValidatingType.SymbolPackage:
+                    services.AddTransient<IMessageHandler<PackageValidationMessageData>, SymbolValidationMessageHandler>();
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown type: {validatingType}");
+            }
+        }
+
+        /// <summary>
+        /// Configure the initialization of the File Service.
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configurationRoot"></param>
+        private static void ConfigureFileServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            services.AddTransient<NuGetGallery.ICoreFileStorageService, NuGetGallery.CloudBlobCoreFileStorageService>();
+            var validatingType = configurationRoot
+                .GetSection(RunnerConfigurationSectionName)
+                .GetValue(nameof(OrchestrationRunnerConfiguration.ValidatingType), ValidatingType.Package);
+            switch (validatingType)
+            {
+                case ValidatingType.Package:
+                    services.AddTransient<IFileMetadataService, PackageFileMetadataService>();
+                    services.AddTransient<IValidationFileService, ValidationFileService>();
+                    break;
+                case ValidatingType.SymbolPackage:
+                    services.AddTransient<IFileMetadataService, SymbolPackageFileMetadataService>();
+                    services.AddTransient<IValidationFileService, ValidationSymbolFileService>();
+                    break;
+                default:
+                    throw new NotImplementedException($"Unknown type: {validatingType}");
+            }
+        }
+
+        private static void ConfigureOrchestratorSymbolTypes(IServiceCollection services)
+        {
+            services.AddTransient<IEntityService<SymbolPackage>, SymbolEntityService>();
+            services.AddTransient<IValidationSetProvider<SymbolPackage>, ValidationSetProvider<SymbolPackage>>();
+            services.AddTransient<ICoreSymbolPackageService, CoreSymbolPackageService>();
+            services.AddTransient<ICriteriaEvaluator<SymbolPackage>, SymbolCriteriaEvaluator>();
+            services.AddTransient<IValidationOutcomeProcessor<SymbolPackage>, ValidationOutcomeProcessor<SymbolPackage>>();
+            services.AddTransient<IStatusProcessor<SymbolPackage>, EntityStatusProcessor<SymbolPackage>>();
+            services.AddTransient<IValidationSetProvider<SymbolPackage>, ValidationSetProvider<SymbolPackage>>();
+            services.AddTransient<IMessageService<SymbolPackage>, SymbolPackageMessageService>();
+            services.AddTransient<IBrokeredMessageSerializer<SymbolsValidatorMessage>, SymbolsValidatorMessageSerializer>();
+            services.AddTransient<ISymbolsValidationEntitiesService, SymbolsValidationEntitiesService>();
+        }
+
+        private static void ConfigureSymbolsValidator(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ValidatorStateService>()
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.SymbolsValidator)
+                .Keyed<IValidatorStateService>(SymbolsValidationBindingKey);
+
+            builder
+                .Register(c =>
+                {
+                    var configuration = c.Resolve<IOptionsSnapshot<SymbolsValidationConfiguration>>().Value.ServiceBus;
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(SymbolsValidationBindingKey);
+
+            builder
+                .RegisterType<SymbolsMessageEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), SymbolsValidationBindingKey)
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(TimeSpan?),
+                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<SymbolsValidationConfiguration>>().Value.MessageDelay)
+                .Keyed<ISymbolsMessageEnqueuer>(SymbolsValidationBindingKey)
+                .As<ISymbolsMessageEnqueuer>();
+
+            builder
+                .RegisterType<SymbolsValidator>()
+                .WithKeyedParameter(typeof(IValidatorStateService), SymbolsValidationBindingKey)
+                .WithKeyedParameter(typeof(ISymbolsMessageEnqueuer), SymbolsValidationBindingKey)
+                .AsSelf();
+        }
+
+        private static void ConfigureSymbolsIngester(ContainerBuilder builder)
+        {
+            builder
+                .RegisterType<ValidatorStateService>()
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(string),
+                    (pi, ctx) => ValidatorName.SymbolsIngester)
+                .Keyed<IValidatorStateService>(SymbolsIngesterBindingKey);
+
+            builder
+                .Register(c =>
+                {
+                    var configuration = c.Resolve<IOptionsSnapshot<SymbolsIngesterConfiguration>>().Value.ServiceBus;
+                    return new TopicClientWrapper(configuration.ConnectionString, configuration.TopicPath);
+                })
+                .Keyed<ITopicClient>(SymbolsIngesterBindingKey);
+
+            builder
+                .RegisterType<SymbolsMessageEnqueuer>()
+                .WithKeyedParameter(typeof(ITopicClient), SymbolsIngesterBindingKey)
+                .WithParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(TimeSpan?),
+                    (pi, ctx) => ctx.Resolve<IOptionsSnapshot<SymbolsIngesterConfiguration>>().Value.MessageDelay)
+                .Keyed<ISymbolsMessageEnqueuer>(SymbolsIngesterBindingKey)
+                .As<ISymbolsMessageEnqueuer>();
+
+            builder
+                .RegisterType<SymbolsIngester>()
+                .WithKeyedParameter(typeof(IValidatorStateService), SymbolsIngesterBindingKey)
+                .WithKeyedParameter(typeof(ISymbolsMessageEnqueuer), SymbolsIngesterBindingKey)
+                .AsSelf();
+        }
+
         private T GetRequiredService<T>()
         {
             return _serviceProvider.GetRequiredService<T>();
         }
+
     }
 }

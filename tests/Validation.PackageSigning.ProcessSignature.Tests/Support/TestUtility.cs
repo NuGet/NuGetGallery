@@ -9,14 +9,22 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
 {
     internal static class TestUtility
     {
-        internal static void RequireUnsignedPackage(Mock<ICorePackageService> corePackageService, string packageId)
+        internal static void RequireUnsignedPackage(
+            Mock<ICorePackageService> corePackageService,
+            string packageId,
+            string packageVersion,
+            PackageStatus status = PackageStatus.Validating)
         {
-            var packageRegistration = new PackageRegistration()
+            var packageRegistration = new PackageRegistration
             {
                 Key = 1,
                 Id = packageId
             };
-            var user = new User()
+            var package = new Package
+            {
+                PackageStatusKey = status
+            };
+            var user = new User
             {
                 Key = 2
             };
@@ -24,31 +32,37 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             packageRegistration.Owners.Add(user);
 
             corePackageService
-                .Setup(x => x.FindPackageRegistrationById(It.Is<string>(id => id == packageId)))
+                .Setup(x => x.FindPackageRegistrationById(packageId))
                 .Returns(packageRegistration);
+
+            corePackageService
+                .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                .Returns(package);
         }
 
         internal static void RequireSignedPackage(
             Mock<ICorePackageService> corePackageService,
             string packageId,
-            string thumbprint = null)
+            string packageVersion,
+            string thumbprint = null,
+            PackageStatus status = PackageStatus.Validating)
         {
-            var packageRegistration = new PackageRegistration()
+            var packageRegistration = new PackageRegistration
             {
                 Key = 1,
                 Id = packageId
             };
-            var user = new User()
-            {
-                Key = 2
-            };
-            var certificate = new Certificate()
+
+            var package = new Package { PackageStatusKey = status };
+            var user = new User { Key = 2 };
+
+            var certificate = new Certificate
             {
                 Key = 3,
                 Thumbprint = thumbprint ?? Guid.NewGuid().ToString()
             };
 
-            user.UserCertificates.Add(new UserCertificate()
+            user.UserCertificates.Add(new UserCertificate
             {
                 Key = 4,
                 CertificateKey = certificate.Key,
@@ -60,8 +74,12 @@ namespace Validation.PackageSigning.ProcessSignature.Tests
             packageRegistration.Owners.Add(user);
 
             corePackageService
-                .Setup(x => x.FindPackageRegistrationById(It.Is<string>(id => id == packageId)))
+                .Setup(x => x.FindPackageRegistrationById(packageId))
                 .Returns(packageRegistration);
+
+            corePackageService
+                .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                .Returns(package);
         }
     }
 }

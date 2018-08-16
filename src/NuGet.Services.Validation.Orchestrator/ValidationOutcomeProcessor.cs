@@ -263,7 +263,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // Schedule another check if we haven't reached the validation set timeout yet.
             if (validationSetDuration <= _validationConfiguration.TimeoutValidationSetAfter)
             {
-                var messageData = new PackageValidationMessageData(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
+                var messageData = new PackageValidationMessageData(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId, validationSet.ValidatingType);
                 var postponeUntil = DateTimeOffset.UtcNow + _validationConfiguration.ValidationMessageRecheckPeriod;
 
                 await _validationEnqueuer.StartValidationAsync(messageData, postponeUntil);

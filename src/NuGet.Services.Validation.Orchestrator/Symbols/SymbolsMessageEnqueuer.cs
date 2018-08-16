@@ -12,17 +12,17 @@ namespace NuGet.Services.Validation.Symbols
     public class SymbolsMessageEnqueuer : ISymbolsMessageEnqueuer
     {
         private readonly ITopicClient _topicClient;
-        private readonly IOptionsSnapshot<SymbolsValidationConfiguration> _configuration;
+        private readonly TimeSpan? _messageDelay;
         private readonly IBrokeredMessageSerializer<SymbolsValidatorMessage> _serializer;
 
         public SymbolsMessageEnqueuer(
             ITopicClient topicClient,
             IBrokeredMessageSerializer<SymbolsValidatorMessage> serializer,
-            IOptionsSnapshot<SymbolsValidationConfiguration> configuration)
+            TimeSpan? messageDelay)
         {
             _topicClient = topicClient ?? throw new ArgumentNullException(nameof(topicClient));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _messageDelay = messageDelay;
         }
 
         public async Task EnqueueSymbolsValidationMessageAsync(IValidationRequest request)
@@ -34,7 +34,7 @@ namespace NuGet.Services.Validation.Symbols
                 snupkgUrl: request.NupkgUrl);
             var brokeredMessage = _serializer.Serialize(message);
 
-            var visibleAt = DateTimeOffset.UtcNow + (_configuration.Value.MessageDelay ?? TimeSpan.Zero);
+            var visibleAt = DateTimeOffset.UtcNow + (_messageDelay ?? TimeSpan.Zero);
             brokeredMessage.ScheduledEnqueueTimeUtc = visibleAt;
 
             await _topicClient.SendAsync(brokeredMessage);

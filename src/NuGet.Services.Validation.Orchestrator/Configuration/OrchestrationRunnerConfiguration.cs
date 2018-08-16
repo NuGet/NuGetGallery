@@ -19,6 +19,11 @@ namespace NuGet.Services.Validation.Orchestrator
         public TimeSpan ShutdownWaitInterval { get; set; }
 
         /// <summary>
+
+        /// Information used by the initialization to register the correct IMessageHandler to be used by the Orchestrator.
+        /// /// </summary>
+        public ValidatingType ValidatingType { get; set; }
+
         /// Max number of concurrent calls to be handled by the service bus library
         /// </summary>
         public int MaxConcurrentCalls { get; set; }

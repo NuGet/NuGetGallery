@@ -71,6 +71,7 @@
     <Compile Include="Services\PackageRevalidationStateServiceFacts.cs" />
     <Compile Include="Services\RevalidationQueueFacts.cs" />
     <Compile Include="Services\RevalidationServiceFacts.cs" />
+    <Compile Include="Services\RevalidationStarterFacts.cs" />
     <Compile Include="Services\RevalidationThrottlerFacts.cs" />
     <Compile Include="TestData\TestResources.cs" />
   </ItemGroup>

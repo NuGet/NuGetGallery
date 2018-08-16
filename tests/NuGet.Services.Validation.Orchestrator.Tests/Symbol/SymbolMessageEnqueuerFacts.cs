@@ -39,7 +39,6 @@ namespace NuGet.Services.Validation.Symbols
 
         private readonly Mock<ITopicClient> _topicClient;
         private readonly Mock<IBrokeredMessageSerializer<SymbolsValidatorMessage>> _serializer;
-        private readonly Mock<IOptionsSnapshot<SymbolsValidationConfiguration>> _options;
         private readonly SymbolsValidationConfiguration _configuration;
         private readonly Mock<IBrokeredMessage> _brokeredMessage;
         private readonly Mock<IValidationRequest> _validationRequest;
@@ -60,9 +59,6 @@ namespace NuGet.Services.Validation.Symbols
             _topicClient = new Mock<ITopicClient>();
 
             _serializer = new Mock<IBrokeredMessageSerializer<SymbolsValidatorMessage>>();
-            _options = new Mock<IOptionsSnapshot<SymbolsValidationConfiguration>>();
-
-            _options.Setup(x => x.Value).Returns(() => _configuration);
             _serializer
                 .Setup(x => x.Serialize(It.IsAny<SymbolsValidatorMessage>()))
                 .Returns(() => _brokeredMessage.Object);
@@ -70,7 +66,7 @@ namespace NuGet.Services.Validation.Symbols
             _target = new SymbolsMessageEnqueuer(
                 _topicClient.Object,
                 _serializer.Object,
-                _options.Object);
+                TimeSpan.FromSeconds(1));
         }
     }
 }

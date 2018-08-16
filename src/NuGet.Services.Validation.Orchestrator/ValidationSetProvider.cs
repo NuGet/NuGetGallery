@@ -139,6 +139,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 PackageValidations = new List<PackageValidation>(),
                 Updated = now,
                 ValidationTrackingId = message.ValidationTrackingId,
+                ValidatingType = message.ValidatingType
             };
 
             foreach (var validation in _validationConfiguration.Validations)

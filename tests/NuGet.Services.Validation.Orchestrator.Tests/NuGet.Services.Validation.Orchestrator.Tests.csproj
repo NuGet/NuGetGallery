@@ -56,9 +56,12 @@
     <Compile Include="PackageStatusProcessorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Symbol\SymbolMessageEnqueuerFacts.cs" />
+    <Compile Include="Symbol\SymbolEntityServiceFacts.cs" />
+    <Compile Include="Symbol\SymbolScanValidatorFacts.cs" />
     <Compile Include="Symbol\SymbolsIngesterFacts.cs" />
     <Compile Include="Symbol\SymbolValidatorFacts.cs" />
     <Compile Include="TelemetryServiceFacts.cs" />
+    <Compile Include="SymbolValidationMessageHandlerFacts.cs" />
     <Compile Include="ValidationMessageHandlerFacts.cs" />
     <Compile Include="ValidationOutcomeProcessorFacts.cs" />
     <Compile Include="ValidationPackageFileServiceFacts.cs" />
@@ -107,6 +110,10 @@
     <ProjectReference Include="..\..\src\Validation.PackageSigning.Core\Validation.PackageSigning.Core.csproj">
       <Project>{91C060DA-736F-4DA9-A57F-CB3AC0E6CB10}</Project>
       <Name>Validation.PackageSigning.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\src\Validation.ScanAndSign.Core\Validation.ScanAndSign.Core.csproj">
+      <Project>{dfac2769-4b67-4fbc-ad60-d93a39dd45ae}</Project>
+      <Name>Validation.ScanAndSign.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\src\Validation.Symbols.Core\Validation.Symbols.Core.csproj">
       <Project>{17510a22-176f-4e96-a867-e79f1b54f54f}</Project>

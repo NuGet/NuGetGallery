@@ -33,7 +33,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
             return entries;
         }
 
-        public List<string> ExtractFilesFromZipStream(Stream stream, string targetDirectory, IEnumerable<string> filterFileNames = null)
+        public List<string> ExtractFilesFromZipStream(Stream stream, string targetDirectory, IEnumerable<string> filterFileExtension = null, IEnumerable<string> filterFileNames = null)
         {
             if (stream == null)
             {
@@ -42,7 +42,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
             List<string> entries;
             using (ZipArchive archive = new ZipArchive(stream, ZipArchiveMode.Read, true))
             {
-                entries = Extract(archive.Entries, targetDirectory, filterFileNames).ToList();
+                entries = Extract(archive.Entries, targetDirectory, filterFileExtension, filterFileNames).ToList();
             }
             // Set the position back to 0 in case that the stream advances
             stream.Position = 0;
@@ -51,6 +51,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
 
         public IEnumerable<string> Extract(IReadOnlyCollection<ZipArchiveEntry> entries,
           string targetDirectory,
+          IEnumerable<string> filterFileExtensions = null,
           IEnumerable<string> symbolFilter = null)
         {
             if (entries == null)
@@ -68,6 +69,10 @@ namespace NuGet.Jobs.Validation.Symbols.Core
                    Where(e => !string.IsNullOrEmpty(e.Name)).
                    Where((e) =>
                    {
+                       if(filterFileExtensions != null && !filterFileExtensions.Contains(Path.GetExtension(e.FullName)))
+                       {
+                           return false;
+                       }
                        if (symbolFilterWithoutExtensions == null)
                        {
                            return true;
