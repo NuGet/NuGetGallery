@@ -55,6 +55,7 @@ namespace NuGetGallery
         public IReservedNamespaceService ReservedNamespaceService { get; set; }
         public IPackageUploadService PackageUploadService { get; set; }
         public IPackageDeleteService PackageDeleteService { get; set; }
+        public ISymbolPackageFileService SymbolPackageFileService { get; set; }
         public ISymbolPackageService SymbolPackageService { get; set; }
         public ISymbolPackageUploadService SymbolPackageUploadService { get; set; }
         public IContentObjectService ContentObjectService { get; set; }
@@ -85,6 +86,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
+            ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageService symbolPackageService,
             ISymbolPackageUploadService symbolPackageUploadService,
             IContentObjectService contentObjectService)
@@ -109,6 +111,7 @@ namespace NuGetGallery
             ReservedNamespaceService = reservedNamespaceService;
             PackageUploadService = packageUploadService;
             StatisticsService = null;
+            SymbolPackageFileService = symbolPackageFileService;
             SymbolPackageService = symbolPackageService;
             SymbolPackageUploadService = symbolPackageUploadService;
             ContentObjectService = contentObjectService;
@@ -136,21 +139,35 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IPackageUploadService packageUploadService,
             IPackageDeleteService packageDeleteService,
+            ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageService symbolPackageService,
             ISymbolPackageUploadService symbolPackageUploadServivce,
             IContentObjectService contentObjectService)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageService, symbolPackageUploadServivce,
-                  contentObjectService)
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService, 
+                  symbolPackageService, symbolPackageUploadServivce, contentObjectService)
         {
             StatisticsService = statisticsService;
+        }
+
+
+        [HttpGet]
+        [ActionName("GetSymbolPackageApi")]
+        public virtual async Task<ActionResult> GetSymbolPackage(string id, string version)
+        {
+            return await GetPackageInternal(id, version, isSymbolPackage: true);
         }
 
         [HttpGet]
         [ActionName("GetPackageApi")]
         public virtual async Task<ActionResult> GetPackage(string id, string version)
+        {
+            return await GetPackageInternal(id, version, isSymbolPackage: false);
+        }
+
+        protected internal async Task<ActionResult> GetPackageInternal(string id, string version, bool isSymbolPackage = false)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -160,25 +177,31 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            // if version is non-null, check if it's semantically correct and normalize it.
-            if (!String.IsNullOrEmpty(version))
+            Package package = null;
+            try
             {
-                NuGetVersion dummy;
-                if (!NuGetVersion.TryParse(version, out dummy))
+                if (!string.IsNullOrEmpty(version))
                 {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
-                }
+                    // if version is non-null, check if it's semantically correct and normalize it.
+                    NuGetVersion dummy;
+                    if (!NuGetVersion.TryParse(version, out dummy))
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
+                    }
 
-                // Normalize the version
-                version = NuGetVersionFormatter.Normalize(version);
-            }
-            else
-            {
-                // If version is null, get the latest version from the database.
-                // This ensures that on package restore scenario where version will be non null, we don't hit the database.
-                try
+                    // Normalize the version
+                    version = NuGetVersionFormatter.Normalize(version);
+
+                    if (isSymbolPackage)
+                    {
+                        package = PackageService.FindPackageByIdAndVersionStrict(id, version);
+                    }
+                }
+                else
                 {
-                    var package = PackageService.FindPackageByIdAndVersion(
+                    // If version is null, get the latest version from the database.
+                    // This ensures that on package restore scenario where version will be non null, we don't hit the database.
+                    package = PackageService.FindPackageByIdAndVersion(
                         id,
                         version,
                         SemVerLevelKey.SemVer2,
@@ -186,35 +209,54 @@ namespace NuGetGallery
 
                     if (package == null)
                     {
-                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                     }
+
                     version = package.NormalizedVersion;
-
-                }
-                catch (SqlException e)
-                {
-                    QuietLog.LogHandledException(e);
-
-                    // Database was unavailable and we don't have a version, return a 503
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
-                }
-                catch (DataException e)
-                {
-                    QuietLog.LogHandledException(e);
-
-                    // Database was unavailable and we don't have a version, return a 503
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
             }
-
-            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+            catch (SqlException e)
             {
-                await PackageService.IncrementDownloadCountAsync(id, version);
+                QuietLog.LogHandledException(e);
+
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+            }
+            catch (DataException e)
+            {
+                QuietLog.LogHandledException(e);
+
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
 
-            return await PackageFileService.CreateDownloadPackageActionResultAsync(
-                HttpContext.Request.Url,
-                id, version);
+            if (isSymbolPackage)
+            {
+                var latestSymbolPackage = package?
+                    .SymbolPackages
+                    .OrderByDescending(sp => sp.Created)
+                    .FirstOrDefault();
+
+                if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
+                }
+
+                return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
+                    HttpContext.Request.Url,
+                    id, version);
+            }
+            else
+            {
+                if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+                {
+                    await PackageService.IncrementDownloadCountAsync(id, version);
+                }
+
+                return await PackageFileService.CreateDownloadPackageActionResultAsync(
+                    HttpContext.Request.Url,
+                    id, version);
+            }
         }
 
         [HttpGet]
@@ -303,7 +345,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Write an audit record
@@ -806,7 +848,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
@@ -838,7 +880,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID

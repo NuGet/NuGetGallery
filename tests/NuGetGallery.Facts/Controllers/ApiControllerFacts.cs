@@ -51,6 +51,7 @@ namespace NuGetGallery
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
+        public Mock<ISymbolPackageFileService> MockSymbolPackageFileService { get; set; }
         public Mock<ISymbolPackageService> MockSymbolPackageService { get; set; }
         public Mock<IContentObjectService> MockContentObjectService { get; set; }
         public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }
@@ -75,6 +76,7 @@ namespace NuGetGallery
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = securityPolicyService ?? (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
+            SymbolPackageFileService = (MockSymbolPackageFileService = new Mock<ISymbolPackageFileService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
             SymbolPackageService = (MockSymbolPackageService = new Mock<ISymbolPackageService>()).Object;
@@ -244,7 +246,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -695,7 +697,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -1688,20 +1690,24 @@ namespace NuGetGallery
         public class TheGetPackageAction
             : TestContainer
         {
-            [Fact]
-            public async Task GetPackageReturns400ForEvilPackageName()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturns400ForEvilPackageName(bool isSymbolPackage)
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var result = await controller.GetPackageInternal("../..", "1.0.0.0", isSymbolPackage);
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
             }
 
-            [Fact]
-            public async Task GetPackageReturns400ForEvilPackageVersion()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturns400ForEvilPackageVersion(bool isSymbolPackage)
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var result2 = await controller.GetPackageInternal("Foo", "10../..1.0", isSymbolPackage);
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
             }
@@ -1716,35 +1722,110 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
                     .Returns((Package)null).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 // Act
-                var result = await controller.GetPackage(packageId, packageVersion);
+                var result = await controller.GetPackageInternal(packageId, packageVersion);
 
                 // Assert
-                Assert.IsType<RedirectResult>(result); // all we want to check is that we're redirecting to storage
-                //var httpNotFoundResult = (RedirectResult)result;
-                //Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, packageId, packageVersion), httpNotFoundResult.StatusDescription);
-                //controller.MockPackageService.Verify();
+                Assert.IsType<RedirectResult>(result);
             }
 
             [Fact]
-            public async Task GetPackageReturnsPackageIfItExists()
+            public async Task GetPackageReturns404ForSymbolPackageIfPackageIsNotFound()
+            {
+                // Arrange
+                const string packageId = "Baz";
+                const string packageVersion = "1.0.1";
+
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Returns((Package)null).Verifiable();
+
+                // Act
+                var result = (HttpStatusCodeWithBodyResult) await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task GetPackageReturns404ForNotAvailableLatestSymbolPackage(PackageStatus status)
+            {
+                // Arrange
+                const string packageId = "Baz";
+                const string packageVersion = "1.0.1";
+                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = packageId }, Version = packageVersion };
+                var latestSymbolPackage = new SymbolPackage()
+                {
+                    Key = 1,
+                    Package = package,
+                    StatusKey = status,
+                    Created = DateTime.Today.AddDays(-1)
+                };
+                var oldAvailableSymbolPackage = new SymbolPackage()
+                {
+                    Key = 2,
+                    Package = package,
+                    StatusKey = PackageStatus.Available,
+                    Created = DateTime.Today.AddDays(-2)
+                };
+                package.SymbolPackages.Add(oldAvailableSymbolPackage);
+                package.SymbolPackages.Add(latestSymbolPackage);
+
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Returns(package).Verifiable();
+
+                // Act
+                var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturnsPackageIfItExists(bool isSymbolPackage)
             {
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
                 var actionResult = new EmptyResult();
+                var availableSymbolPackage = new SymbolPackage()
+                {
+                    Key = 2,
+                    Package = package,
+                    StatusKey = PackageStatus.Available,
+                    Created = DateTime.Today.AddDays(-1)
+                };
+                package.SymbolPackages.Add(availableSymbolPackage);
+
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                // controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
-                // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                controller
+                    .MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, "1.0.1"))
+                    .Returns(package);
+                controller
+                    .MockPackageFileService
+                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
+                controller
+                    .MockSymbolPackageFileService
+                    .Setup(s => s.CreateDownloadSymbolPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
                 headers.Add("NuGet-Operation", "Install");
@@ -1761,11 +1842,19 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "1.0.01");
+                var result = await controller.GetPackageInternal(packageId, "1.0.01", isSymbolPackage);
 
                 // Assert
                 Assert.Same(actionResult, result);
-                controller.MockPackageFileService.Verify();
+                if (isSymbolPackage)
+                {
+                    controller.MockSymbolPackageFileService.Verify();
+                }
+                else
+                {
+                    controller.MockPackageFileService.Verify();
+                }
+
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
             }
@@ -1777,10 +1866,11 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                //controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                controller
+                    .MockPackageFileService
+                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
                 headers.Add("NuGet-Operation", "Install");
@@ -1797,7 +1887,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "1.0.0");
+                var result = await controller.GetPackageInternal("Baz", "1.0.0");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1837,7 +1927,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "");
+                var result = await controller.GetPackageInternal(packageId, "");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1876,7 +1966,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "");
+                var result = await controller.GetPackageInternal("Baz", "");
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
