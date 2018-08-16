@@ -177,25 +177,31 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            // if version is non-null, check if it's semantically correct and normalize it.
-            if (!string.IsNullOrEmpty(version))
+            // If version is null, get the latest version from the database.
+            // This ensures that on package restore scenario where version will be non null, we don't hit the database.
+            Package package = null;
+            try
             {
-                NuGetVersion dummy;
-                if (!NuGetVersion.TryParse(version, out dummy))
+                // if version is non-null, check if it's semantically correct and normalize it.
+                if (!string.IsNullOrEmpty(version))
                 {
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
-                }
+                    NuGetVersion dummy;
+                    if (!NuGetVersion.TryParse(version, out dummy))
+                    {
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The package version is not a valid semantic version");
+                    }
 
-                // Normalize the version
-                version = NuGetVersionFormatter.Normalize(version);
-            }
-            else
-            {
-                // If version is null, get the latest version from the database.
-                // This ensures that on package restore scenario where version will be non null, we don't hit the database.
-                try
+                    // Normalize the version
+                    version = NuGetVersionFormatter.Normalize(version);
+
+                    if (isSymbolPackage)
+                    {
+                        package = PackageService.FindPackageByIdAndVersionStrict(id, version);
+                    }
+                }
+                else
                 {
-                    var package = PackageService.FindPackageByIdAndVersion(
+                    package = PackageService.FindPackageByIdAndVersion(
                         id,
                         version,
                         SemVerLevelKey.SemVer2,
@@ -207,49 +213,46 @@ namespace NuGetGallery
                     }
 
                     version = package.NormalizedVersion;
-
-                    if (isSymbolPackage)
-                    {
-                        var latestSymbolPackage = package
-                            .SymbolPackages
-                            .OrderBy(sp => sp.Created)
-                            .FirstOrDefault();
-
-                        if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
-                        {
-                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
-                        }
-                    }
-                }
-                catch (SqlException e)
-                {
-                    QuietLog.LogHandledException(e);
-
-                    // Database was unavailable and we don't have a version, return a 503
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
-                }
-                catch (DataException e)
-                {
-                    QuietLog.LogHandledException(e);
-
-                    // Database was unavailable and we don't have a version, return a 503
-                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
                 }
             }
-
-            if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+            catch (SqlException e)
             {
-                await PackageService.IncrementDownloadCountAsync(id, version);
+                QuietLog.LogHandledException(e);
+
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
+            }
+            catch (DataException e)
+            {
+                QuietLog.LogHandledException(e);
+
+                // Database was unavailable and we don't have a version, return a 503
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
             }
 
             if (isSymbolPackage)
             {
+                var latestSymbolPackage = package?
+                    .SymbolPackages
+                    .OrderByDescending(sp => sp.Created)
+                    .FirstOrDefault();
+
+                if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
+                {
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
+                }
+
                 return await SymbolPackageFileService.CreateDownloadSymbolPackageActionResultAsync(
                     HttpContext.Request.Url,
                     id, version);
             }
             else
             {
+                if (ConfigurationService.Features.TrackPackageDownloadCountInLocalDatabase)
+                {
+                    await PackageService.IncrementDownloadCountAsync(id, version);
+                }
+
                 return await PackageFileService.CreateDownloadPackageActionResultAsync(
                     HttpContext.Request.Url,
                     id, version);

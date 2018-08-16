@@ -28,7 +28,7 @@ namespace NuGetGallery
 
             LatestSymbolPackage = package
                 .SymbolPackages
-                .OrderBy(sp => sp.Created)
+                .OrderByDescending(sp => sp.Created)
                 .FirstOrDefault();
 
             if (packageHistory.Any())
