@@ -226,7 +226,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -627,7 +627,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -1413,7 +1413,7 @@ namespace NuGetGallery
             public async Task GetPackageReturns400ForEvilPackageName()
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var result = await controller.GetPackageInternal("../..", "1.0.0.0");
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
             }
@@ -1422,7 +1422,7 @@ namespace NuGetGallery
             public async Task GetPackageReturns400ForEvilPackageVersion()
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var result2 = await controller.GetPackageInternal("Foo", "10../..1.0");
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
             }
@@ -1444,7 +1444,7 @@ namespace NuGetGallery
                               .Verifiable();
 
                 // Act
-                var result = await controller.GetPackage(packageId, packageVersion);
+                var result = await controller.GetPackageInternal(packageId, packageVersion);
 
                 // Assert
                 Assert.IsType<RedirectResult>(result); // all we want to check is that we're redirecting to storage
@@ -1482,7 +1482,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "1.0.01");
+                var result = await controller.GetPackageInternal(packageId, "1.0.01");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1518,7 +1518,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "1.0.0");
+                var result = await controller.GetPackageInternal("Baz", "1.0.0");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1558,7 +1558,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "");
+                var result = await controller.GetPackageInternal(packageId, "");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1597,7 +1597,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "");
+                var result = await controller.GetPackageInternal("Baz", "");
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);

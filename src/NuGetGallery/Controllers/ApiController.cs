@@ -167,7 +167,7 @@ namespace NuGetGallery
             return await GetPackageInternal(id, version, isSymbolPackage: false);
         }
 
-        protected async Task<ActionResult> GetPackageInternal(string id, string version, bool isSymbolPackage)
+        protected internal async Task<ActionResult> GetPackageInternal(string id, string version, bool isSymbolPackage = false)
         {
             // some security paranoia about URL hacking somehow creating e.g. open redirects
             // validate user input: explicit calls to the same validators used during Package Registrations
@@ -178,7 +178,7 @@ namespace NuGetGallery
             }
 
             // if version is non-null, check if it's semantically correct and normalize it.
-            if (!String.IsNullOrEmpty(version))
+            if (!string.IsNullOrEmpty(version))
             {
                 NuGetVersion dummy;
                 if (!NuGetVersion.TryParse(version, out dummy))
@@ -203,10 +203,23 @@ namespace NuGetGallery
 
                     if (package == null)
                     {
-                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                        return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
                     }
+
                     version = package.NormalizedVersion;
 
+                    if (isSymbolPackage)
+                    {
+                        var latestSymbolPackage = package
+                            .SymbolPackages
+                            .OrderBy(sp => sp.Created)
+                            .FirstOrDefault();
+
+                        if (latestSymbolPackage == null || latestSymbolPackage.StatusKey != PackageStatus.Available)
+                        {
+                            return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.SymbolsPackage_PackageNotAvailable, id, version));
+                        }
+                    }
                 }
                 catch (SqlException e)
                 {
@@ -329,7 +342,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Write an audit record
@@ -808,7 +821,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID
@@ -840,7 +853,7 @@ namespace NuGetGallery
             if (package == null)
             {
                 return new HttpStatusCodeWithBodyResult(
-                    HttpStatusCode.NotFound, String.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
+                    HttpStatusCode.NotFound, string.Format(CultureInfo.CurrentCulture, Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
             // Check if the current user's scopes allow listing/unlisting the current package ID

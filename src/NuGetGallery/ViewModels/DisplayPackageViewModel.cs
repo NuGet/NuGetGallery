@@ -26,9 +26,9 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            AvailableSymbolPackage = package
+            LatestSymbolPackage = package
                 .SymbolPackages
-                .Where(sp => sp.StatusKey == PackageStatus.Available)
+                .OrderBy(sp => sp.Created)
                 .FirstOrDefault();
 
             if (packageHistory.Any())
@@ -67,8 +67,7 @@ namespace NuGetGallery
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
-        public SymbolPackage AvailableSymbolPackage { get; private set; }
-        public SymbolPackage PendingSymbolPackage { get; private set; }
+        public SymbolPackage LatestSymbolPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }

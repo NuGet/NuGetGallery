@@ -27,7 +27,7 @@ namespace NuGetGallery
         public const string Profile = "Profile";
         public const string DisplayPackage = "package-route";
         public const string DownloadPackage = "DownloadPackage";
-        public const string DownloadSymbolsPackage = "DownloadSymbolPackage";
+        public const string DownloadSymbolsPackage = "DownloadSymbolsPackage";
         public const string DownloadNuGetExe = "DownloadNuGetExe";
         public const string Home = "Home";
         public const string Stats = "Stats";
