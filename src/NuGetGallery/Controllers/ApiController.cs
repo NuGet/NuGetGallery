@@ -177,14 +177,12 @@ namespace NuGetGallery
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, "The format of the package id is invalid");
             }
 
-            // If version is null, get the latest version from the database.
-            // This ensures that on package restore scenario where version will be non null, we don't hit the database.
             Package package = null;
             try
             {
-                // if version is non-null, check if it's semantically correct and normalize it.
                 if (!string.IsNullOrEmpty(version))
                 {
+                    // if version is non-null, check if it's semantically correct and normalize it.
                     NuGetVersion dummy;
                     if (!NuGetVersion.TryParse(version, out dummy))
                     {
@@ -201,6 +199,8 @@ namespace NuGetGallery
                 }
                 else
                 {
+                    // If version is null, get the latest version from the database.
+                    // This ensures that on package restore scenario where version will be non null, we don't hit the database.
                     package = PackageService.FindPackageByIdAndVersion(
                         id,
                         version,

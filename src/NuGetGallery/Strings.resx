@@ -950,6 +950,6 @@ If you would like to update the linked Microsoft account you can do so from the 
     <comment>{0} is the previous package's normalized version.</comment>
   </data>
   <data name="SymbolsPackage_PackageNotAvailable" xml:space="preserve">
-    <value>No availabe symbol package found ID {0} and version {1}.</value>
+    <value>No availabe symbol package found for ID {0} and version {1}.</value>
   </data>
 </root>
