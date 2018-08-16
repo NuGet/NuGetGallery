@@ -386,7 +386,13 @@ namespace NuGetGallery
 
             await Auditing.SaveAuditRecordAsync(new UserAuditRecord(user, AuditedUserAction.ChangeEmail, newEmailAddress));
 
-            user.UpdateEmailAddress(newEmailAddress, Crypto.GenerateToken);
+            user.UpdateUnconfirmedEmailAddress(newEmailAddress, Crypto.GenerateToken);
+
+            if (!Config.ConfirmEmailAddresses)
+            {
+                user.ConfirmEmailAddress();
+            }
+
             await UserRepository.CommitChangesAsync();
         }
 
@@ -554,6 +560,11 @@ namespace NuGetGallery
                 CreatedUtc = DateTimeProvider.UtcNow,
                 Members = new List<Membership>()
             };
+
+            if (!Config.ConfirmEmailAddresses)
+            {
+                organization.ConfirmEmailAddress();
+            }
 
             var membership = new Membership { Organization = organization, Member = adminUser, IsAdmin = true };
 

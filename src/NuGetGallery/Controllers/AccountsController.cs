@@ -252,7 +252,7 @@ namespace NuGetGallery
                 return AccountView(account, model);
             }
 
-            if (account.Confirmed)
+            if (account.Confirmed && !string.IsNullOrEmpty(account.UnconfirmedEmailAddress))
             {
                 SendEmailChangedConfirmationNotice(account);
             }
