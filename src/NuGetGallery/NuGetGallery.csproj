@@ -1687,10 +1687,6 @@
     <Content Include="Areas\Admin\DynamicData\PageTemplates\Insert.aspx" />
     <Content Include="Areas\Admin\DynamicData\PageTemplates\List.aspx" />
     <Content Include="Areas\Admin\DynamicData\Site.css" />
-    <Content Include="Content\font-awesome\font-awesome-ie7.min.css" />
-    <Content Include="Content\font-awesome\font-awesome.css" />
-    <Content Include="Content\font-awesome\font-awesome.min.css" />
-    <Content Include="Content\font\fontawesome-webfont.svg" />
     <Content Include="Content\Images\errorPage.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_b.png" />
     <Content Include="Content\Images\icons\nuget_32_mono_w.png" />
@@ -1739,10 +1735,6 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
-    <Content Include="Content\font\fontawesome-webfont.eot" />
-    <Content Include="Content\font\fontawesome-webfont.ttf" />
-    <Content Include="Content\font\fontawesome-webfont.woff" />
-    <Content Include="Content\font\FontAwesome.otf" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

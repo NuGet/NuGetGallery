@@ -131,14 +131,6 @@ namespace NuGetGallery
 
             BundleTable.Bundles.Add(stylesBundle);
 
-            // Add font-awesome.
-            // It needs 
-            // - a separate bundle because of relative pathing in the @font-face directive
-            // - To be a bundle for auto-selection of ".min.css"
-            var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
-            fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
-            BundleTable.Bundles.Add(fontAwesomeBundle);
-
             // Add scripts bundles
             var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
