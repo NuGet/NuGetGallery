@@ -22,7 +22,7 @@
     "RetryLaterSleep": "00:00:30",
 
     "AppInsights": {
-      "AppId": "718e0c81-9132-4bf2-b24b-aa625dafd800",
+      "AppId": "e7d35e2b-cfa8-41b3-a77e-32a6c089b6e4",
       "ApiKey": "$$Int-ApplicationInsights-ApiKey-Gallery-RevalidationJob$$"
     },
 
