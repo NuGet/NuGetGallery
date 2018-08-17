@@ -9,12 +9,14 @@ using System.ComponentModel;
 
 namespace NuGetGallery
 {
-    public class TyposquattingCheckService
+    public class TyposquattingCheckService : ITyposquattingCheckService
     {
+        private static IPackageService PackageService { get; set; }
+
         private static readonly HashSet<char> SpecialCharacters = new HashSet<char>{'.', '_', '-'};
         private static readonly string SpecialCharactersToString = "[" + new string(SpecialCharacters.ToArray()) + "]";
         private const char PlaceholderForAlignment = '*';  // This const place holder variable is used for strings alignment 
-
+        
         /// <summary>
         /// The following dictionary is built through picking up similar characters manually from wiki unicode page.
         /// https://en.wikipedia.org/wiki/List_of_Unicode_characters
@@ -80,11 +82,12 @@ namespace NuGetGallery
         }
 
         public TyposquattingCheckService()
-        {
+        {            
         }
 
-        public TyposquattingCheckService(List<PackageInfo> packagesCheckList, List<ThresholdInfo> thresholdsList) : this()
+        public TyposquattingCheckService(List<PackageInfo> packagesCheckList, List<ThresholdInfo> thresholdsList, IPackageService packageService) : this()
         {
+            PackageService = packageService;
             SetPackageIdCheckList(packagesCheckList);
             SetThresholdsList(thresholdsList);
         }
@@ -142,7 +145,7 @@ namespace NuGetGallery
             return normalizedStr.ToString();
         }
 
-        public static bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)
+        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)
         {
             if (uploadedPackageId == null)
             {
@@ -163,6 +166,15 @@ namespace NuGetGallery
                 {
                     if (IsDistanceLessThanThreshold(uploadedPackageId, package.Id, threshold))
                     {
+                        var owners = PackageService.FindPackageRegistrationById(package.Id).Owners;
+                        foreach (var owner in owners)
+                        {
+                            if (owner.Username == uploadedPackageOwner.Username)
+                            {
+                                return;
+                            }
+                        }
+
                         Interlocked.Increment(ref countCollision);
                         loopState.Stop();
                     }
