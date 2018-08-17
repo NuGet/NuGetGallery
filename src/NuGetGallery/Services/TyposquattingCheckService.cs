@@ -58,7 +58,7 @@ namespace NuGetGallery
         // TODO: Threshold parameters will be saved in the configuration file.
         // https://github.com/NuGet/Engineering/issues/1645
         private static List<ThresholdInfo> _thresholdsList = new List<ThresholdInfo>();
-
+        
         // TODO: popular packages checklist will be implemented
         // https://github.com/NuGet/Engineering/issues/1624
         private static List<PackageInfo> _packagesCheckList = new List<PackageInfo>();
@@ -133,12 +133,12 @@ namespace NuGetGallery
 
         private static string NormalizeString(string str)
         {
-            StringBuilder normalizedStr = new StringBuilder(str);
+            var normalizedStr = new StringBuilder(str);
             for (int i = 0; i < normalizedStr.Length; i++)
             {
-                if (NormalizedMappingDictionary.ContainsKey(normalizedStr[i]))
+                if (NormalizedMappingDictionary.TryGetValue(normalizedStr[i], out var normalizedCharacter))
                 {
-                    normalizedStr[i] = NormalizedMappingDictionary[normalizedStr[i]];
+                    normalizedStr[i] = normalizedCharacter;
                 }
             }
             
@@ -367,7 +367,7 @@ namespace NuGetGallery
     public class PackageInfo
     {
         public string Id { get; set; }
-        public List<string> Owners { get; set; }
+        public HashSet<string> Owners { get; set; }
     }
 
     public class ThresholdInfo
