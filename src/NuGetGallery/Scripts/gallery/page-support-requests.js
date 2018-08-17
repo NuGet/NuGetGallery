@@ -24,9 +24,9 @@ var EditViewModel = (function () {
 
         this.updateSupportRequest = function (success, error) {
             var model = {
-                issueKey: $self.issue.Key,
-                assignedToId: $self.editAssignedToId,
-                issueStatusId: $self.editIssueStatusId,
+                issueKey: $self.issue().Key,
+                assignedToId: $self.editAssignedToId(),
+                issueStatusId: $self.editIssueStatusId(),
                 comment: $self.editIssueComment()
             };
 
@@ -35,11 +35,11 @@ var EditViewModel = (function () {
                 type: 'POST',
                 cache: false,
                 dataType: 'json',
-                data: addAjaxAntiForgeryToken(model),
+                data: window.nuget.addAjaxAntiForgeryToken(model),
                 success: success
             })
                 .error(error);
-        }
+        };
     };
 }());
 
@@ -56,7 +56,10 @@ var SupportRequestsViewModel = (function () {
         this.editAssignedToCtrl = $('#editAssignedTo').get(0);
         this.editIssueStatusCtrl = $('#editIssueStatus').get(0);
         this.editIssueCommentCtrl = $('#editIssueComment').get(0);
+        this.editViewModel = new EditViewModel(editUrl);
+
         this.historyTableCtrl = $('#history-table').get(0);
+        this.historyViewModel = new HistoryViewModel();
 
         this.assignedToFilter = ko.observable();
         this.issueStatusIdFilter = ko.observable();
@@ -104,12 +107,10 @@ var SupportRequestsViewModel = (function () {
                         primary: 'ui-icon-mail-closed'
                     }
                 });
-        }
+        };
 
         this.updateSupportRequest = function () {
-            var updatedViewModel = ko.dataFor($self.editSupportRequestForm);
-
-            updatedViewModel.updateSupportRequest(
+            $self.editViewModel.updateSupportRequest(
                 function () {
                     $self.pageNumber(0);
                     $self.filter();
@@ -118,7 +119,7 @@ var SupportRequestsViewModel = (function () {
                 function (jqXhr, textStatus, errorThrown) {
                     alert("Error: " + errorThrown);
                 });
-        }
+        };
 
         this.historyDialog = $('#history-dialog').dialog({
             autoOpen: false,
@@ -161,19 +162,15 @@ var SupportRequestsViewModel = (function () {
         });
 
         this.editSupportRequest = function (supportRequestViewModel) {
-
-            var editViewModel = new EditViewModel($self.editUrl);
-            editViewModel.issue = supportRequestViewModel;
-            editViewModel.assignedToChoices = $self.assignedToChoices;
-            editViewModel.issueStatusChoices = $self.issueStatusChoices.filter(function (value) {
+            
+            $self.editViewModel.issue(supportRequestViewModel);
+            $self.editViewModel.assignedToChoices($self.assignedToChoices());
+            $self.editViewModel.issueStatusChoices($self.issueStatusChoices.filter(function (value) {
                 return value.Text !== 'Unresolved';
-            });
+            })());
 
-            editViewModel.editAssignedToId = supportRequestViewModel.AssignedTo;
-            editViewModel.editIssueStatusId = supportRequestViewModel.IssueStatusId;
-
-            ko.cleanNode($self.editSupportRequestForm);
-            ko.applyBindings(editViewModel, $self.editSupportRequestForm);
+            $self.editViewModel.editAssignedToId(supportRequestViewModel.AssignedTo);
+            $self.editViewModel.editIssueStatusId(supportRequestViewModel.IssueStatusId);
 
             $self.editSupportRequestDialog.dialog('option', 'title', 'Edit SR-' + supportRequestViewModel.Key);
             $self.editSupportRequestDialog.dialog('open');
@@ -196,10 +193,9 @@ var SupportRequestsViewModel = (function () {
                 cache: false,
                 dataType: 'json',
                 success: function (data) {
-
-                    var historyViewModel = ko.dataFor($self.historyTableCtrl);
-                    historyViewModel.issue(supportRequestViewModel);
-                    historyViewModel.historyEntries(data);
+                    
+                    $self.historyViewModel.issue(supportRequestViewModel);
+                    $self.historyViewModel.historyEntries(data);
 
                     $self.historyDialog.dialog('option', 'title', 'History for SR-' + supportRequestViewModel.Key);
                     $self.historyDialog.dialog('open');
@@ -217,15 +213,15 @@ var SupportRequestsViewModel = (function () {
                 return supportRequestViewModel.SiteRoot + 'Profiles/' + supportRequestViewModel.CreatedBy;
             }
             return '#';
-        }
+        };
 
         this.generatePackageDetailsUrl = function (supportRequestViewModel) {
             return supportRequestViewModel.SiteRoot + 'packages/' + supportRequestViewModel.PackageId + '/' + supportRequestViewModel.PackageVersion;
-        }
+        };
 
         this.generateHistoryUrl = function (supportRequestViewModel) {
             return $self.historyUrl + '?id=' + supportRequestViewModel.Key;
-        }
+        };
 
         this.getStyleForIssueStatus = function (supportRequestViewModel) {
             if (supportRequestViewModel.IssueStatusName.toUpperCase() === 'NEW') {
@@ -237,7 +233,7 @@ var SupportRequestsViewModel = (function () {
             else {
                 return 'color: #FF8D00; style: bold;';
             }
-        }
+        };
 
         this.applyFilter = function () {
             $self.filter($self.pageNumber(), $self.take());

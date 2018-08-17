@@ -114,30 +114,7 @@ namespace NuGetGallery
 
         private static void BundlingPostStart()
         {
-            var jQueryBundle = new ScriptBundle("~/Scripts/jquery")
-                .Include("~/Scripts/jquery-{version}.js");
-            BundleTable.Bundles.Add(jQueryBundle);
-
-            ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
-                new ScriptResourceDefinition
-                {
-                    Path = jQueryBundle.Path
-                });
-
-            var scriptBundle = new ScriptBundle("~/Scripts/all")
-                .Include("~/Scripts/jquery-{version}.js")
-                .Include("~/Scripts/jquery.validate.js")
-                .Include("~/Scripts/jquery.validate.unobtrusive.js")
-                .Include("~/Scripts/jquery.timeago.js")
-                .Include("~/Scripts/nugetgallery.js");
-            BundleTable.Bundles.Add(scriptBundle);
-
-            // Modernizr needs to be delivered at the top of the page but putting it in a bundle gets us a cache-buster.
-            // TODO: Use minified modernizr!
-            var modernizrBundle = new ScriptBundle("~/Scripts/modernizr")
-                .Include("~/Scripts/modernizr-{version}.js");
-            BundleTable.Bundles.Add(modernizrBundle);
-
+            // Add primary style bundle
             Bundle stylesBundle = new StyleBundle("~/Content/css");
             foreach (string filename in new[] {
                     "Site.css",
@@ -154,30 +131,15 @@ namespace NuGetGallery
 
             BundleTable.Bundles.Add(stylesBundle);
 
-            // Needs a) a separate bundle because of relative pathing in the @font-face directive
-            // b) To be a bundle for auto-selection of ".min.css"
+            // Add font-awesome.
+            // It needs 
+            // - a separate bundle because of relative pathing in the @font-face directive
+            // - To be a bundle for auto-selection of ".min.css"
             var fontAwesomeBundle = new StyleBundle("~/Content/font-awesome/css");
             fontAwesomeBundle.Include("~/Content/font-awesome/font-awesome.css");
             BundleTable.Bundles.Add(fontAwesomeBundle);
 
-            // Support Requests admin area bundle
-            var jQueryUiStylesBundle = new StyleBundle("~/Content/themes/custom/jqueryui")
-                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css");
-            BundleTable.Bundles.Add(jQueryUiStylesBundle);
-
-            var supportRequestStylesBundle = new StyleBundle("~/Content/supportrequests")
-                .Include("~/Content/admin/SupportRequestStyles.css");
-            BundleTable.Bundles.Add(supportRequestStylesBundle);
-
-            var supportRequestsBundle = new ScriptBundle("~/Scripts/supportrequests")
-                .Include("~/Scripts/jquery-ui-{version}.js")
-                .Include("~/Scripts/gallery/moment-2.18.1.js")
-                .Include("~/Scripts/gallery/knockout-3.4.2.js")
-                .Include("~/Scripts/knockout-projections.js")
-                .Include("~/Scripts/supportrequests.js");
-            BundleTable.Bundles.Add(supportRequestsBundle);
-
-            // Add bundles for the site redesign
+            // Add scripts bundles
             var newStyleBundle = new StyleBundle("~/Content/gallery/css/site.min.css");
             newStyleBundle
                 .Include("~/Content/gallery/css/bootstrap.css")
@@ -185,7 +147,7 @@ namespace NuGetGallery
                 .Include("~/Content/gallery/css/fabric.css");
             BundleTable.Bundles.Add(newStyleBundle);
 
-            var newScriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
+            var scriptBundle = new ScriptBundle("~/Scripts/gallery/site.min.js")
                 .Include("~/Scripts/gallery/jquery-1.12.4.js")
                 .Include("~/Scripts/gallery/jquery.validate-1.16.0.js")
                 .Include("~/Scripts/gallery/jquery.validate.unobtrusive-3.2.6.js")
@@ -194,7 +156,7 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/moment-2.18.1.js")
                 .Include("~/Scripts/gallery/common.js")
                 .Include("~/Scripts/gallery/autocomplete.js");
-            BundleTable.Bundles.Add(newScriptBundle);
+            BundleTable.Bundles.Add(scriptBundle);
 
             var d3ScriptBundle = new ScriptBundle("~/Scripts/gallery/stats.min.js")
                 .Include("~/Scripts/d3/d3.js")
@@ -243,6 +205,25 @@ namespace NuGetGallery
                 .Include("~/Scripts/gallery/page-add-organization.js")
                 .Include("~/Scripts/gallery/md5.js");
             BundleTable.Bundles.Add(addOrganizationScriptBundle);
+
+            // This is needed for the Admin database viewer.
+            ScriptManager.ScriptResourceMapping.AddDefinition("jquery",
+                new ScriptResourceDefinition { Path = scriptBundle.Path });
+
+            // Add support requests bundles
+            var jQueryUiStylesBundle = new StyleBundle("~/Content/themes/custom/jqueryui")
+                .Include("~/Content/themes/custom/jquery-ui-1.10.3.custom.css");
+            BundleTable.Bundles.Add(jQueryUiStylesBundle);
+
+            var supportRequestStylesBundle = new StyleBundle("~/Content/page-support-requests")
+                .Include("~/Content/admin/SupportRequestStyles.css");
+            BundleTable.Bundles.Add(supportRequestStylesBundle);
+
+            var supportRequestsBundle = new ScriptBundle("~/Scripts/page-support-requests")
+                .Include("~/Scripts/gallery/jquery-ui-{version}.js")
+                .Include("~/Scripts/gallery/knockout-projections.js")
+                .Include("~/Scripts/gallery/page-support-requests.js");
+            BundleTable.Bundles.Add(supportRequestsBundle);
         }
 
         private static void AppPostStart(IAppConfiguration configuration)

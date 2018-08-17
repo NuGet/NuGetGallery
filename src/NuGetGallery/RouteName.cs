@@ -42,6 +42,7 @@ namespace NuGetGallery
         public const string PackageOwnerRejection = "PackageOwnerRejection";
         public const string PackageOwnerCancellation = "PackageOwnerCancellation";
         public const string PackageAction = "PackageAction";
+        public const string PackageDeleteAction = "PackageDeleteAction";
         public const string PushPackageApi = "PushPackageApi";
         public const string PublishPackageApi = "PublishPackageApi";
         public const string DeletePackageApi = "DeletePackageApi";

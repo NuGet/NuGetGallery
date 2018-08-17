@@ -3,7 +3,7 @@
     ViewBag.Title = "Package Locking";
 }
 
-<section>
+<section role="main" class="container main-container">
     <h2>Package Locking</h2>
 
     <form method="get" action="@Url.Action(actionName: "Search")">
@@ -36,7 +36,7 @@
                 <button type="button" onclick="selectall()">Select All</button>
                 <button type="button" onclick="deselectall()">Deselect All</button>
                 <p>
-                    <table>
+                    <table class="table">
                         <thead>
                             <tr>
                                 <th>Id</th>
@@ -44,14 +44,14 @@
                             </tr>
                         </thead>
                         <tbody>
-                        @for (int i = 0; i < Model.PackageLockStates.Count; i++)
-                        {
-                            <tr>
-                                <td>@Html.DisplayTextFor(model => model.PackageLockStates[i].Id)</td>
-                                @Html.HiddenFor(model => model.PackageLockStates[i].Id)
-                                <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
-                            </tr>
-                        }
+                            @for (int i = 0; i < Model.PackageLockStates.Count; i++)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayTextFor(model => model.PackageLockStates[i].Id)</td>
+                                    @Html.HiddenFor(model => model.PackageLockStates[i].Id)
+                                    <td>@Html.CheckBoxFor(model => model.PackageLockStates[i].IsLocked, new { @class = "islockedcheckbox" })</td>
+                                </tr>
+                            }
                         </tbody>
                     </table>
                 </p>
@@ -65,7 +65,6 @@
 </section>
 
 @section BottomScripts {
-    @Scripts.Render("~/Scripts/gallery/site.min.js")
     <script>
         function selectall() {
             $('.islockedcheckbox:checkbox').each(function () {

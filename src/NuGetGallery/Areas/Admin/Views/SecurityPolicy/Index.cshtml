@@ -6,69 +6,66 @@
 
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
-<section>
-    <article id="stage">
+<section role="main" class="container main-container">
+    <div class="message-container" data-bind="visible: message">
+        @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
+    </div>
 
-        <div class="message" style="display: none" data-bind="text: message, visible: message"></div>
+    <h2>User Security Policies</h2>
 
-        <h2>User Security Policies</h2>
+    <form>
+        <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" value="Search" title="Search" data-bind="click: search" />
+    </form><br />
 
-        <form>
-            <textarea placeholder="Search for usernames (comma-separated)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
-            <input type="button" value="Search" title="Search" data-bind="click: search" />
-        </form><br />
+    <div data-bind="visible: searchResults().length > 0">
 
-            <div data-bind="visible: searchResults().length > 0">
-                
-                <div class="message warning" style="display: none;" data-bind="visible: searchNotFoundResults().length > 0">
-                    <strong>The following users were not found:</strong><br />
-                    <span data-bind="text: searchNotFoundResults().join(',')"></span>
-                </div>
-                
-                @using (Html.BeginForm())
-                {
-                    <div>
-                        <table id="searchResults" class="sexy-table">
-                            <thead>
-                                <tr>
-                                    <th>Username</th>
-                                    @foreach (var subscription in Model.SubscriptionNames)
-                                    {
-                                        <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
-                                    }
-                                </tr>
-                            </thead>
-                            <tbody id="policies" data-bind="foreach: searchResults">
-                                <tr>
-                                    <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
-                                    @foreach (var subscription in Model.SubscriptionNames)
-                                    {
-                                        <td><input type="checkbox" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
-                                    }
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+        <div class="message warning" style="display: none;" data-bind="visible: searchNotFoundResults().length > 0">
+            <strong>The following users were not found:</strong><br />
+            <span data-bind="text: searchNotFoundResults().join(',')"></span>
+        </div>
 
-                    <div class="danger-zone" style="display: none;" data-bind="visible: changeTracker">
-                    
-                    <fieldset id="update-form" class="form">
-                        <p>
-                            Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
-                        </p>
-
-                        <input type="submit" value="I understand, update policies." title="I understand, update policies." data-bind="click: update"  />
-                        <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
-                        </fieldset>
-                    </div>
-                }
-
+        @using (Html.BeginForm())
+        {
+            <div>
+                <table id="searchResults" class="table">
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            @foreach (var subscription in Model.SubscriptionNames)
+                            {
+                                <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState.@subscription" />@subscription</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody id="policies" data-bind="foreach: searchResults">
+                        <tr>
+                            <td><a href="#" data-bind="text: Username, attr: { href: $parent.generateUserUrl($data) }"></a></td>
+                            @foreach (var subscription in Model.SubscriptionNames)
+                            {
+                                <td><input type="checkbox" data-bind="checked: $data.Selected.@subscription, value: $parent.generateValue($data, '@subscription')" /></td>
+                            }
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-</article>
+
+            <div class="danger-zone" style="display: none;" data-bind="visible: changeTracker">
+
+                <fieldset id="update-form" class="form">
+                    <p>
+                        Onboarding users to security policy subscriptions could result in changes which <strong>CANNOT</strong> be undone.
+                    </p>
+
+                    <input type="submit" value="I understand, update policies." title="I understand, update policies." data-bind="click: update" />
+                    <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
+                </fieldset>
+            </div>
+        }
+    </div>
 </section>
 
 @section BottomScripts {
-    @Scripts.Render("~/Scripts/gallery/site.min.js")
     <script>
         $(document).ready(function () {
             var viewModel = function () {

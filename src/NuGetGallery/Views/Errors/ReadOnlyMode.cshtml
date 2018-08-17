@@ -1,7 +1,6 @@
 ﻿@{
     ViewBag.Title = "Read-only Mode";
     Response.StatusCode = 503;
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 @ViewHelpers.ErrorPage(Url, Html, "503", "Read-only Mode", @<text>

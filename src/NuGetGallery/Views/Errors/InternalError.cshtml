@@ -1,7 +1,6 @@
 ﻿@{
     ViewBag.Title = "Internal Server Error";
     Response.StatusCode = 500;
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 @ViewHelpers.ErrorPage(Url, Html, "500", "Internal Server Error", @<text>
