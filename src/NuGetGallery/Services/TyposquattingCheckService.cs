@@ -71,21 +71,13 @@ namespace NuGetGallery
         
         private enum PathInfo
         {
-            [Description("Match")]
-            MATCH,
-            [Description("Delete")]
-            DELETE,
-            [Description("Substitute")]
-            SUBSTITUTE,
-            [Description("Insert")]
-            INSERT,
+            match,
+            delete,
+            substitute,
+            insert,
         }
-
-        public TyposquattingCheckService()
-        {            
-        }
-
-        public TyposquattingCheckService(List<PackageInfo> packagesCheckList, List<ThresholdInfo> thresholdsList, IPackageService packageService) : this()
+   
+        public TyposquattingCheckService(List<PackageInfo> packagesCheckList, List<ThresholdInfo> thresholdsList, IPackageService packageService) 
         {
             PackageService = packageService;
             SetPackageIdCheckList(packagesCheckList);
@@ -226,17 +218,17 @@ namespace NuGetGallery
             var distances = new int[str1.Length + 1, str2.Length + 1];
             var path = new PathInfo[str1.Length + 1, str2.Length + 1];
             distances[0, 0] = 0;
-            path[0, 0] = PathInfo.MATCH;
+            path[0, 0] = PathInfo.match;
             for (int i = 1; i <= str1.Length; i++)
             {
                 distances[i, 0] = i;
-                path[i, 0] = PathInfo.DELETE;
+                path[i, 0] = PathInfo.delete;
             }
 
             for (int j = 1; j <= str2.Length; j++)
             {
                 distances[0, j] = j;
-                path[0, j] = PathInfo.INSERT;
+                path[0, j] = PathInfo.insert;
             }
 
             for (int i = 1; i <= str1.Length; i++)
@@ -246,23 +238,23 @@ namespace NuGetGallery
                     if (str1[i - 1] == str2[j - 1])
                     {
                         distances[i, j] = distances[i - 1, j - 1];
-                        path[i, j] = PathInfo.MATCH;
+                        path[i, j] = PathInfo.match;
                     }
                     else
                     {
                         distances[i, j] = distances[i - 1, j - 1] + 1;
-                        path[i, j] = PathInfo.SUBSTITUTE;
+                        path[i, j] = PathInfo.substitute; 
 
                         if (distances[i - 1, j] + 1 < distances[i, j])
                         {
                             distances[i, j] = distances[i - 1, j] + 1;
-                            path[i, j] = PathInfo.DELETE;
+                            path[i, j] = PathInfo.delete;
                         }
 
                         if (distances[i, j - 1] + 1 < distances[i, j])
                         {
                             distances[i, j] = distances[i, j - 1] + 1;
-                            path[i, j] = PathInfo.INSERT;
+                            path[i, j] = PathInfo.insert;
                         }
                     }
                 }
@@ -291,19 +283,19 @@ namespace NuGetGallery
             {
                 switch (path[i, j])
                 {
-                    case PathInfo.MATCH:
+                    case PathInfo.match:
                         i--;
                         j--;
                         break;
-                    case PathInfo.SUBSTITUTE:
+                    case PathInfo.substitute:
                         i--;
                         j--;
                         break;
-                    case PathInfo.DELETE:
+                    case PathInfo.delete:
                         newStr2.Insert(j, PlaceholderForAlignment);
                         i--;
                         break;
-                    case PathInfo.INSERT:
+                    case PathInfo.insert:
                         newStr1.Insert(i, PlaceholderForAlignment);
                         j--;
                         break;
