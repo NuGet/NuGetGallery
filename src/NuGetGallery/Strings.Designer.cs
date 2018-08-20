@@ -152,7 +152,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot add a member by their email address. Please enter their username instead..
+        ///   Looks up a localized string similar to You must add a member by username, not an email address..
         /// </summary>
         public static string AddMember_NameIsEmail {
             get {
@@ -233,7 +233,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot add an owner by their emaill address. Please enter their username instead..
+        ///   Looks up a localized string similar to You must add an owner by username, not an email address..
         /// </summary>
         public static string AddOwner_NameIsEmail {
             get {
@@ -2004,7 +2004,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to You cannot choose an administrator by their email address. Please enter their username instead..
+        ///   Looks up a localized string similar to You must choose an administrator by username, not an email address..
         /// </summary>
         public static string TransformAccount_AdminNameIsEmail {
             get {
