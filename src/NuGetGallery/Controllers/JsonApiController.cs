@@ -119,7 +119,7 @@ namespace NuGetGallery
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        _messageService.SendPackageOwnerAddedNotice(owner, model.User, model.Package, packageUrl);
+                        await _messageService.SendPackageOwnerAddedNoticeAsync(owner, model.User, model.Package, packageUrl);
                     }
                 }
                 else
@@ -147,12 +147,12 @@ namespace NuGetGallery
                         model.User.Username,
                         relativeUrl: false);
 
-                    _messageService.SendPackageOwnerRequest(model.CurrentUser, model.User, model.Package, packageUrl,
+                    await _messageService.SendPackageOwnerRequestAsync(model.CurrentUser, model.User, model.Package, packageUrl,
                         confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        _messageService.SendPackageOwnerRequestInitiatedNotice(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                        await _messageService.SendPackageOwnerRequestInitiatedNoticeAsync(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
                     }
                 }
 
@@ -190,12 +190,12 @@ namespace NuGetGallery
                         throw new InvalidOperationException("You can't remove the only owner from a package.");
                     }
                     await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction:true);
-                    _messageService.SendPackageOwnerRemovedNotice(model.CurrentUser, model.User, model.Package);
+                    await _messageService.SendPackageOwnerRemovedNoticeAsync(model.CurrentUser, model.User, model.Package);
                 }
                 else
                 {
                     await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(model.Package, model.User);
-                    _messageService.SendPackageOwnerRequestCancellationNotice(model.CurrentUser, model.User, model.Package);
+                    await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(model.CurrentUser, model.User, model.Package);
                 }
 
                 return Json(new { success = true });

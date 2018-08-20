@@ -1,7 +1,5 @@
-[NuGet Gallery](http://nuget.org/) — Where packages are found 
+﻿[NuGet Gallery](http://nuget.org/) — Where packages are found 
 =======================================================================
-
-[![Build status](https://ci.appveyor.com/api/projects/status/6ob8lbutfecvi5n3/branch/master?svg=true)](https://ci.appveyor.com/project/NuGetteam/nugetgallery/branch/master)
 
 This is an implementation of the NuGet Gallery and API. This serves as the back-end and community 
 website for the NuGet client. For information about the NuGet project, visit the [Home repository](https://github.com/nuget/home).
@@ -48,6 +46,10 @@ You can undo this with this command:
     git update-index --no-assume-unchanged .vs/config/applicationhost.config
 
 This should help prevent unwanted file commits.
+
+## Deploy
+
+You will find instructions on how to deploy the Gallery to Azure [here](https://github.com/NuGet/NuGetGallery/blob/master/docs/Deploying/README.md).
 
 ## Contribute
 If you find a bug with the gallery, please visit the [Issue tracker](https://github.com/NuGet/NuGetGallery/issues) and 

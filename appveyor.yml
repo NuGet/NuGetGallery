@@ -1,8 +1,0 @@
-version: 3.1.{build}
-configuration: Release
-nuget:
-  disable_publish_on_pr: true
-build_script:
-- cmd: build.cmd
-artifacts:
-- path: 'artifacts\*.nupkg'

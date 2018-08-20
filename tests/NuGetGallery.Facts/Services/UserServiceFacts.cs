@@ -1156,10 +1156,35 @@ namespace NuGetGallery
                     Users = new[] { user }
                 };
 
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
+
                 await service.ChangeEmailAddress(user, "new@example.org");
 
                 Assert.Equal("old@example.org", user.EmailAddress);
                 Assert.Equal("new@example.org", user.UnconfirmedEmailAddress);
+                service.FakeEntitiesContext.VerifyCommitChanges();
+            }
+
+            [Fact]
+            public async Task AutomaticallyConfirmsWhenConfirmEmailAddressesConfigurationIsFalse()
+            {
+                var user = new User { Username = "Bob", EmailAddress = "old@example.org" };
+                var service = new TestableUserServiceWithDBFaking
+                {
+                    Users = new[] { user }
+                };
+
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(false);
+
+                await service.ChangeEmailAddress(user, "new@example.org");
+
+                Assert.Equal("new@example.org", user.EmailAddress);
+                Assert.Null(user.UnconfirmedEmailAddress);
+                Assert.Null(user.EmailConfirmationToken);
                 service.FakeEntitiesContext.VerifyCommitChanges();
             }
 
@@ -1177,6 +1202,10 @@ namespace NuGetGallery
                 {
                     Users = new User[] { user },
                 };
+
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 await service.ChangeEmailAddress(user, "new@example.com");
                 Assert.NotNull(user.EmailConfirmationToken);
@@ -1196,6 +1225,10 @@ namespace NuGetGallery
                 {
                     Users = new User[] { user },
                 };
+
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 await service.ChangeEmailAddress(user, "old@example.com");
                 Assert.True(user.Confirmed);
@@ -1220,6 +1253,10 @@ namespace NuGetGallery
                 {
                     Users = new User[] { user },
                 };
+
+                service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(true);
 
                 await service.ChangeEmailAddress(user, "old@example.com");
                 Assert.Equal("pending-token", user.EmailConfirmationToken);
@@ -1784,10 +1821,15 @@ namespace NuGetGallery
 
             private TestableUserService _service = new TestableUserService();
 
-            [Fact]
-            public async Task WithUsernameConflict_ThrowsEntityException()
+            public static IEnumerable<object[]> ConfirmEmailAddresses_Config => MemberDataHelper.AsDataSet(false, true);
+
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WithUsernameConflict_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 var conflictUsername = "ialreadyexist";
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
@@ -1802,10 +1844,13 @@ namespace NuGetGallery
                 Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
-            [Fact]
-            public async Task WithEmailConflict_ThrowsEntityException()
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WithEmailConflict_ThrowsEntityException(bool confirmEmailAddresses)
             {
                 var conflictEmail = "ialreadyexist@existence.com";
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
@@ -1820,24 +1865,30 @@ namespace NuGetGallery
                 Assert.False(_service.Auditing.WroteRecord<UserAuditRecord>());
             }
 
-            [Fact]
-            public async Task WhenAdminHasNoTenant_ReturnsNewOrgWithoutPolicy()
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WhenAdminHasNoTenant_ReturnsNewOrgWithoutPolicy(bool confirmEmailAddresses)
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var org = await InvokeAddOrganization(admin: new User(AdminName) { Credentials = new Credential[0] });
 
-                AssertNewOrganizationReturned(org, subscribedToPolicy: false);
+                AssertNewOrganizationReturned(org, subscribedToPolicy: false, confirmEmailAddresses: confirmEmailAddresses);
             }
 
-            [Fact]
-            public async Task WhenAdminHasUnsupportedTenant_ReturnsNewOrgWithoutPolicy()
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WhenAdminHasUnsupportedTenant_ReturnsNewOrgWithoutPolicy(bool confirmEmailAddresses)
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
@@ -1850,15 +1901,18 @@ namespace NuGetGallery
 
                 var org = await InvokeAddOrganization();
 
-                AssertNewOrganizationReturned(org, subscribedToPolicy: false);
+                AssertNewOrganizationReturned(org, subscribedToPolicy: false, confirmEmailAddresses: confirmEmailAddresses);
             }
 
-            [Fact]
-            public async Task WhenSubscribingToPolicyFails_ReturnsNewOrgWithoutPolicy()
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WhenSubscribingToPolicyFails_ReturnsNewOrgWithoutPolicy(bool confirmEmailAddresses)
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
@@ -1875,15 +1929,18 @@ namespace NuGetGallery
 
                 var org = await InvokeAddOrganization();
 
-                AssertNewOrganizationReturned(org, subscribedToPolicy: true);
+                AssertNewOrganizationReturned(org, subscribedToPolicy: true, confirmEmailAddresses: confirmEmailAddresses);
             }
 
-            [Fact]
-            public async Task WhenSubscribingToPolicySucceeds_ReturnsNewOrg()
+            [Theory]
+            [MemberData(nameof(ConfirmEmailAddresses_Config))]
+            public async Task WhenSubscribingToPolicySucceeds_ReturnsNewOrg(bool confirmEmailAddresses)
             {
                 _service.MockEntitiesContext
                     .Setup(x => x.Users)
                     .Returns(Enumerable.Empty<User>().MockDbSet().Object);
+
+                SetUpConfirmEmailAddressesConfig(confirmEmailAddresses);
 
                 var mockLoginDiscontinuationConfiguration = new Mock<ILoginDiscontinuationConfiguration>();
                 mockLoginDiscontinuationConfiguration
@@ -1900,7 +1957,7 @@ namespace NuGetGallery
 
                 var org = await InvokeAddOrganization();
 
-                AssertNewOrganizationReturned(org, subscribedToPolicy: true);
+                AssertNewOrganizationReturned(org, subscribedToPolicy: true, confirmEmailAddresses: confirmEmailAddresses);
             }
 
             private Task<Organization> InvokeAddOrganization(string orgName = OrgName, string orgEmail = OrgEmail, User admin = null)
@@ -1925,14 +1982,26 @@ namespace NuGetGallery
                 return _service.AddOrganizationAsync(orgName, orgEmail, admin);
             }
 
-            private void AssertNewOrganizationReturned(Organization org, bool subscribedToPolicy)
+            private void AssertNewOrganizationReturned(Organization org, bool subscribedToPolicy, bool confirmEmailAddresses)
             {
                 Assert.Equal(OrgName, org.Username);
-                Assert.Equal(OrgEmail, org.UnconfirmedEmailAddress);
+
+                if (confirmEmailAddresses)
+                {
+                    Assert.Null(org.EmailAddress);
+                    Assert.Equal(OrgEmail, org.UnconfirmedEmailAddress);
+                    Assert.NotNull(org.EmailConfirmationToken);
+                }
+                else
+                {
+                    Assert.Null(org.UnconfirmedEmailAddress);
+                    Assert.Equal(OrgEmail, org.EmailAddress);
+                    Assert.Null(org.EmailConfirmationToken);
+                }
+
                 Assert.Equal(OrgCreatedUtc, org.CreatedUtc);
                 Assert.True(org.EmailAllowed);
                 Assert.True(org.NotifyPackagePushed);
-                Assert.True(!string.IsNullOrEmpty(org.EmailConfirmationToken));
 
                 // Both the organization and the admin must have a membership to each other.
                 Func<Membership, bool> hasMembership = m => m.Member.Username == AdminName && m.Organization.Username == OrgName && m.IsAdmin;
@@ -1948,6 +2017,13 @@ namespace NuGetGallery
                     ar.AffectedMemberUsername == AdminName &&
                     ar.AffectedMemberIsAdmin == true));
                 _service.MockEntitiesContext.Verify(x => x.SaveChangesAsync(), Times.Once());
+            }
+
+            private void SetUpConfirmEmailAddressesConfig(bool confirmEmailAddresses)
+            {
+                _service.MockConfig
+                    .Setup(x => x.ConfirmEmailAddresses)
+                    .Returns(confirmEmailAddresses);
             }
         }
         public class TheRejectTransformUserToOrganizationRequestMethod
