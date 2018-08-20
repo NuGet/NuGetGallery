@@ -48,7 +48,7 @@ namespace NuGetGallery
             {
                 var folderNames = new List<object[]>
                 {
-                    new object[] { CoreConstants.ContentFolderName, false, null, },
+                    new object[] { CoreConstants.ContentFolderName, false, CoreConstants.JsonContentType, },
                     new object[] { CoreConstants.DownloadsFolderName, true, CoreConstants.OctetStreamContentType },
                     new object[] { CoreConstants.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
@@ -73,7 +73,6 @@ namespace NuGetGallery
                 else if (!IncludePermissions && IncludeContentTypes)
                 {
                     folderNames = folderNames
-                        .Where(fn => fn[2] != null)
                         .Select(fn => new[] { fn[0], fn[2] })
                         .ToList();
                 }
@@ -510,6 +509,41 @@ namespace NuGetGallery
                 await service.SaveFileAsync(folderName, "theFileName", new MemoryStream());
 
                 Assert.Equal(contentType, fakeBlob.Object.Properties.ContentType);
+                fakeBlob.Verify(x => x.SetPropertiesAsync());
+            }
+
+            [Theory]
+            [FolderNamesData]
+            public async Task WillSetTheBlobControlCacheOnPackagesFolder(string folderName)
+            {
+                var fakeBlobClient = new Mock<ICloudBlobClient>();
+                var fakeBlobContainer = new Mock<ICloudBlobContainer>();
+                fakeBlobContainer.Setup(x => x.CreateIfNotExistAsync()).Returns(Task.FromResult(0));
+                fakeBlobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>())).Returns(Task.FromResult(0));
+                var fakeBlob = new Mock<ISimpleCloudBlob>();
+                fakeBlobClient.Setup(x => x.GetContainerReference(It.IsAny<string>())).Returns(fakeBlobContainer.Object);
+                fakeBlobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>())).Returns(fakeBlob.Object);
+                fakeBlob.Setup(x => x.Properties).Returns(new BlobProperties());
+                fakeBlob.Setup(x => x.Uri).Returns(new Uri("http://theUri"));
+                fakeBlob.Setup(x => x.DeleteIfExistsAsync()).Returns(Task.FromResult(0));
+                fakeBlob.Setup(x => x.SetPropertiesAsync()).Returns(Task.FromResult(0));
+                var service = CreateService(fakeBlobClient: fakeBlobClient);
+                var fakePackageFile = new MemoryStream();
+                fakeBlob.Setup(x => x.UploadFromStreamAsync(fakePackageFile, true)).Returns(Task.FromResult(0)).Verifiable();
+
+                await service.SaveFileAsync(folderName, "theFileName", fakePackageFile);
+
+                fakeBlob.Verify();
+
+                if (folderName == CoreConstants.PackagesFolderName)
+                {
+                    Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
+                }
+                else
+                {
+                    Assert.Null(fakeBlob.Object.Properties.CacheControl);
+                }
+
                 fakeBlob.Verify(x => x.SetPropertiesAsync());
             }
         }

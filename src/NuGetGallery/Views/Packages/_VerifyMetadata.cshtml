@@ -44,11 +44,11 @@
 <script type="text/html" id="verify-metadata-template">
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
-                <!-- ko if: $data.Warnings -->
-                <div data-bind="foreach: $data.Warnings">
-                    @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
-                </div>
-                <!-- /ko -->
+            <!-- ko if: $data.Warnings -->
+            <div data-bind="foreach: $data.Warnings">
+                @ViewHelpers.AlertWarning(@<text><span data-bind="text: $data"></span></text>)
+            </div>
+            <!-- /ko -->
 
             <div class="verify-package-field">
                 <label for="Id" class="verify-package-field-heading">Package ID</label>
@@ -67,7 +67,7 @@
             <div class="verify-package-field form-group editable">
                 <label for="Owner" class="verify-package-field-heading" data-bind="text: $data.IsNewId ? 'Owner' : 'Owners'"></label>
                 <!-- ko if: $data.PossibleOwners.length > 1 && $data.IsNewId -->
-                <select aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
+                <select id="Owner" aria-required="true" class="form-control" data-val="true" data-val-required="You must select an owner for your package!" name="Owner" data-bind="foreach: $data.PossibleOwners">
                     <option data-bind="value: $data, text: $data"></option>
                 </select>
                 <!-- /ko -->

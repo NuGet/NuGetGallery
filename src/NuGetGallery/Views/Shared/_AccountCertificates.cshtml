@@ -29,7 +29,14 @@
 
 @helper InformAboutOrgSettingsPage()
 {
-    @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, you would need to go to the <a href="@Url.ManageMyOrganizations()">organization's settings page</a>.</text>)
+    if (Model.IsOrganization)
+    {
+        @ViewHelpers.AlertInfo(@<text>To manage certificates for your individual account, go to <a href="@Url.AccountSettings()">your account's settings page</a>.</text>)
+    }
+    else
+    {
+        @ViewHelpers.AlertInfo(@<text>To manage certificates for an organization, go to the <a href="@Url.ManageMyOrganizations()">organization's settings page</a>.</text>)
+    }
 }
 
 @ViewHelpers.Section(
@@ -119,9 +126,9 @@
                 </div>
                 <div class="col-sm-6">
                     <label for="input-select-file" id="CertificateFileLabel" class="input-group-btn">
-                        <a id="register-new" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for certificate" role="button">
+                        <span id="register-new" class="btn btn-primary form-control" tabindex="0" aria-label="Browse for certificate" role="button">
                             Register new<input type="file" name="uploadFile" accept=".cer" aria-labelledby="CertificateFileLabel" id="input-select-file" style="display:none;" />
-                        </a>
+                        </span>
                     </label>
                 </div>
             </form>

@@ -307,6 +307,26 @@ namespace NuGetGallery
             return version == null ? EnsureTrailingSlash(result) : result;
         }
 
+        public static string SymbolPackageDownload(
+            this UrlHelper url,
+            int feedVersion,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            string result = GetRouteLink(
+                url,
+                routeName: $"v{feedVersion}{RouteName.DownloadSymbolsPackage}",
+                relativeUrl: false,
+                routeValues: new RouteValueDictionary
+                {
+                    { "Id", id },
+                    { "Version", version }
+                });
+
+            // Ensure trailing slashes for versionless package URLs, as a fix for package filenames that look like known file extensions
+            return version == null ? EnsureTrailingSlash(result) : result;
+        }
         public static string ExplorerDeepLink(
             this UrlHelper url,
             int feedVersion,

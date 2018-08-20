@@ -15,7 +15,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var package = new Package();
-                var target = new ImmediatePackageValidator();
+                var target = new ImmediatePackageValidator<IPackageEntity>();
 
                 // Act
                 var actual = await target.StartValidationAsync(package);

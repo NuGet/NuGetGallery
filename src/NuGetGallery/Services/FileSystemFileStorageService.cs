@@ -25,12 +25,12 @@ namespace NuGetGallery
 
         public Task<ActionResult> CreateDownloadFileActionResultAsync(Uri requestUrl, string folderName, string fileName)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -51,12 +51,12 @@ namespace NuGetGallery
 
         public Task DeleteFileAsync(string folderName, string fileName)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -72,12 +72,12 @@ namespace NuGetGallery
 
         public Task<bool> FileExistsAsync(string folderName, string fileName)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -90,12 +90,12 @@ namespace NuGetGallery
 
         public Task<Stream> GetFileAsync(string folderName, string fileName)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -108,12 +108,12 @@ namespace NuGetGallery
 
         public Task<IFileReference> GetFileReferenceAsync(string folderName, string fileName, string ifNoneMatch = null)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -127,12 +127,12 @@ namespace NuGetGallery
 
         public Task SaveFileAsync(string folderName, string fileName, Stream packageFile, bool overwrite = true)
         {
-            if (String.IsNullOrWhiteSpace(folderName))
+            if (string.IsNullOrWhiteSpace(folderName))
             {
                 throw new ArgumentNullException(nameof(folderName));
             }
 
-            if (String.IsNullOrWhiteSpace(fileName))
+            if (string.IsNullOrWhiteSpace(fileName))
             {
                 throw new ArgumentNullException(nameof(fileName));
             }
@@ -278,6 +278,7 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case CoreConstants.PackagesFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
                     return CoreConstants.PackageContentType;
 
                 case CoreConstants.DownloadsFolderName:
@@ -285,7 +286,7 @@ namespace NuGetGallery
 
                 default:
                     throw new InvalidOperationException(
-                        String.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
+                        string.Format(CultureInfo.CurrentCulture, "The folder name {0} is not supported.", folderName));
             }
         }
     }

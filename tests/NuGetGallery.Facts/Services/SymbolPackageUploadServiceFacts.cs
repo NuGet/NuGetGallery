@@ -72,6 +72,26 @@ namespace NuGetGallery
 
         public class TheCreateAndUploadSymbolsPackageMethod
         {
+            [Theory]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.FailedValidation)]
+            public async Task WillThrowExceptionIfValidationDoesNotSetValidStatus(PackageStatus invalidStatus)
+            {
+                var validationService = new Mock<IValidationService>();
+                validationService
+                    .Setup(x => x.StartValidationAsync(It.IsAny<SymbolPackage>()))
+                    .Returns((SymbolPackage sp) => {
+                        sp.StatusKey = invalidStatus;
+                        return Task.CompletedTask;
+                    })
+                    .Verifiable();
+
+                var service = CreateService(validationService: validationService);
+
+                var package = new Package();
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.CreateAndUploadSymbolsPackage(package, new PackageStreamMetadata(), new MemoryStream()));
+            }
+
             [Fact]
             public async Task WillReturnConflictIfFileExistsInContainer()
             {

@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
+using Autofac;
 using Moq;
 using Newtonsoft.Json.Linq;
 using NuGet.Packaging;
@@ -21,10 +22,12 @@ using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
+using NuGetGallery.TestUtils;
 using Xunit;
 
 namespace NuGetGallery
@@ -48,6 +51,7 @@ namespace NuGetGallery
         public Mock<IReservedNamespaceService> MockReservedNamespaceService { get; private set; }
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
+        public Mock<ISymbolPackageFileService> MockSymbolPackageFileService { get; set; }
         public Mock<ISymbolPackageService> MockSymbolPackageService { get; set; }
         public Mock<IContentObjectService> MockContentObjectService { get; set; }
         public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }
@@ -56,20 +60,23 @@ namespace NuGetGallery
 
         public TestableApiController(
             IGalleryConfigurationService configurationService,
-            MockBehavior behavior = MockBehavior.Default)
+            MockBehavior behavior = MockBehavior.Default,
+            ISecurityPolicyService securityPolicyService = null,
+            IUserService userService = null)
         {
             SetOwinContextOverride(Fakes.CreateOwinContext());
             ApiScopeEvaluator = (MockApiScopeEvaluator = new Mock<IApiScopeEvaluator>()).Object;
             EntitiesContext = (MockEntitiesContext = new Mock<IEntitiesContext>()).Object;
             PackageService = (MockPackageService = new Mock<IPackageService>(behavior)).Object;
-            UserService = (MockUserService = new Mock<IUserService>(behavior)).Object;
+            UserService = userService ?? (MockUserService = new Mock<IUserService>(behavior)).Object;
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
             AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
-            SecurityPolicyService = (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
+            SecurityPolicyService = securityPolicyService ?? (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
+            SymbolPackageFileService = (MockSymbolPackageFileService = new Mock<ISymbolPackageFileService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
             SymbolPackageService = (MockSymbolPackageService = new Mock<ISymbolPackageService>()).Object;
@@ -95,9 +102,14 @@ namespace NuGetGallery
             MockTelemetryService = new Mock<ITelemetryService>();
             TelemetryService = MockTelemetryService.Object;
 
-            MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
-                .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
-            
+            if (MockSecurityPolicyService != null)
+            {
+                MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+                MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<Package>(), It.IsAny<User>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.SuccessResult));
+            }
+
             MockReservedNamespaceService
                 .Setup(s => s.GetReservedNamespacesForId(It.IsAny<string>()))
                 .Returns(new ReservedNamespace[0]);
@@ -108,15 +120,23 @@ namespace NuGetGallery
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
-                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) => {
+                .Returns((string id, PackageArchiveReader nugetPackage, PackageStreamMetadata packageStreamMetadata, User owner, User currentUser) =>
+                {
                     var packageMetadata = PackageMetadata.FromNuspecReader(
                         nugetPackage.GetNuspecReader(),
                         strict: true);
 
+                    var packageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = false };
+                    packageRegistration.Owners.Add(owner);
+
                     var package = new Package();
-                    package.PackageRegistration = new PackageRegistration { Id = packageMetadata.Id, IsVerified = false };
+                    package.PackageRegistration = packageRegistration;
                     package.Version = packageMetadata.Version.ToString();
                     package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, packageMetadata.GetDependencyGroups().AsPackageDependencyEnumerable());
+                    package.FlattenedAuthors = packageMetadata.Authors.Flatten();
+                    package.LicenseUrl = packageMetadata.LicenseUrl?.ToString();
+                    package.ProjectUrl = packageMetadata.ProjectUrl?.ToString();
+                    package.Copyright = packageMetadata.Copyright;
 
                     return Task.FromResult(package);
                 });
@@ -185,8 +205,8 @@ namespace NuGetGallery
                     if (result == PermissionsCheckResult.Allowed)
                     {
                         yield return MemberDataHelper.AsData(
-                            new ApiScopeEvaluationResult(new User("testOwner") { Key = 94443 }, result, scopesAreValid: true), 
-                            HttpStatusCode.Forbidden, 
+                            new ApiScopeEvaluationResult(new User("testOwner") { Key = 94443 }, result, scopesAreValid: true),
+                            HttpStatusCode.Forbidden,
                             Strings.ApiKeyOwnerUnconfirmed);
                     }
 
@@ -226,7 +246,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreateSymbolPackage_WillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -481,7 +501,7 @@ namespace NuGetGallery
                 // Arrange
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.MockSecurityPolicyService
-                    .Setup(x => x.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                    .Setup(x => x.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
                     .Throws<Exception>();
                 var user = new User("test") { Key = 1 };
                 controller.SetCurrentUser(user);
@@ -536,7 +556,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = new TestableApiController(GetConfigurationService());
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("A")));
 
                 // Act
@@ -544,6 +564,56 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "A");
+            }
+
+            [Fact]
+            public async Task CreatePackage_Returns400IfPackageSecurityPolicyFails()
+            {
+                // Arrange
+                var packageId = "theId";
+                var packageRegistration = new PackageRegistration { Id = packageId };
+                packageRegistration.Id = packageId;
+                var package = new Package
+                {
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.42"
+                };
+                packageRegistration.Packages.Add(package);
+
+                var controller = new TestableApiController(GetConfigurationService());
+
+                controller.MockPackageService.Setup(p => p.FindPackageRegistrationById(It.IsAny<string>()))
+                    .Returns(packageRegistration);
+
+                var fakes = Get<Fakes>();
+                var currentUser = fakes.User;
+                controller.SetCurrentUser(currentUser);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        currentUser,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadNewPackageVersion,
+                        packageRegistration,
+                        NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
+
+                controller.MockApiScopeEvaluator
+                    .Setup(evaluateApiScope)
+                    .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.Allowed, scopesAreValid: true));
+
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluatePackagePoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<Package>(), currentUser, owner, It.IsAny<HttpContextBase>()))
+                    .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult("Package not compliant.\n\rFix your package!")));
+
+                // Act
+                var result = await controller.CreatePackagePut();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest, "Package not compliant. Fix your package!");
             }
 
             [Fact]
@@ -584,10 +654,10 @@ namespace NuGetGallery
             }
 
             [Theory]
-            [InlineData(false, false,  true)]
-            [InlineData( true, false,  true)]
-            [InlineData(false,  true,  true)]
-            [InlineData( true,  true, false)]
+            [InlineData(false, false, true)]
+            [InlineData(true, false, true)]
+            [InlineData(false, true, true)]
+            [InlineData(true, true, false)]
             public async Task CreatePackageWillSendPackageAddedNotice(bool asyncValidationEnabled, bool blockingValidationEnabled, bool callExpected)
             {
                 // Arrange
@@ -622,12 +692,12 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockMessageService
-                    .Verify(ms => ms.SendPackageAddedNotice(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()),
+                    .Verify(ms => ms.SendPackageAddedNoticeAsync(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
                     Times.Exactly(callExpected ? 1 : 0));
             }
 
             [Fact]
-            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackage()
+            public async Task CreatePackageWillReturn400IfFileIsNotANuGetPackageInternal()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -738,10 +808,10 @@ namespace NuGetGallery
                 // Assert
                 controller.MockPackageDeleteService.Verify(
                     x => x.HardDeletePackagesAsync(
-                        It.IsAny<IEnumerable<Package>>(), 
-                        It.IsAny<User>(), 
-                        It.IsAny<string>(), 
-                        It.IsAny<string>(), 
+                        It.IsAny<IEnumerable<Package>>(),
+                        It.IsAny<User>(),
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
                         It.IsAny<bool>()),
                     Times.Never());
 
@@ -786,11 +856,11 @@ namespace NuGetGallery
                 // Assert
                 controller.MockPackageDeleteService.Verify(
                     x => x.HardDeletePackagesAsync(
-                        new[] { conflictingPackage }, 
+                        new[] { conflictingPackage },
                         currentUser,
                         Strings.FailedValidationHardDeleteReason,
                         Strings.AutomatedPackageDeleteSignature,
-                        false), 
+                        false),
                     Times.Once());
 
                 controller.MockTelemetryService.Verify(
@@ -992,7 +1062,7 @@ namespace NuGetGallery
                         owner,
                         currentUser),
                     Times.Once);
-                
+
                 controller.MockApiScopeEvaluator.Verify(evaluateApiScope);
             }
 
@@ -1042,9 +1112,9 @@ namespace NuGetGallery
                 controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(
                     (record) =>
                     {
-                        return 
-                            record.UsernameOrEmail == currentUser.Username && 
-                            record.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner && 
+                        return
+                            record.UsernameOrEmail == currentUser.Username &&
+                            record.Action == AuditedAuthenticatedOperationAction.PackagePushAttemptByNonOwner &&
                             record.AttemptedPackage.Id == packageId &&
                             record.AttemptedPackage.Version == packageVersion;
                     });
@@ -1277,6 +1347,217 @@ namespace NuGetGallery
                 Assert.Equal((int)HttpStatusCode.Forbidden, statusCodeResult.StatusCode);
                 Assert.Contains(PackageId, statusCodeResult.StatusDescription);
             }
+
+            public class CalledByUserWithMicrosoftTeamSubscription
+                : TestContainer
+            {
+                private const string _packageId = "theId";
+                private static readonly User _requiredCoOwner = new User
+                {
+                    Username = MicrosoftTeamSubscription.MicrosoftUsername
+                };
+
+                private readonly User _user;
+                private readonly Mock<IUserService> _userServiceMock;
+
+                public CalledByUserWithMicrosoftTeamSubscription()
+                {
+                    // Arrange
+                    var microsoftTeamSubscription = new MicrosoftTeamSubscription();
+                    _user = new User()
+                    {
+                        EmailAddress = "confirmed@email.com",
+                        Username = "theUser",
+                        SecurityPolicies = microsoftTeamSubscription.Policies.ToList()
+                    };
+
+                    _userServiceMock = new Mock<IUserService>(MockBehavior.Strict);
+                    _userServiceMock.Setup(m => m.FindByUsername(MicrosoftTeamSubscription.MicrosoftUsername, false))
+                        .Returns(_requiredCoOwner)
+                        .Verifiable();
+                }
+
+                public static IEnumerable<object[]> NonCompliantPackages_Data
+                {
+                    get
+                    {
+                        var packageId = "theId";
+                        var microsoftTeamSubscription = new MicrosoftTeamSubscription();
+                        var user = new User()
+                        {
+                            EmailAddress = "confirmed@email.com",
+                            Username = "theUser",
+                            SecurityPolicies = microsoftTeamSubscription.Policies.ToList()
+                        };
+
+                        // Missing required co-owner
+                        yield return MemberDataHelper.AsData(
+                            CreatePackage(
+                                packageId,
+                                "1.0.0",
+                                isSigned: false,
+                                authors: $"{user.Username}",
+                                licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
+                                projectUrl: new Uri("https://www.nuget.org")).Object,
+                            user);
+
+                        // Missing license url
+                        yield return MemberDataHelper.AsData(
+                            CreatePackage(
+                                packageId,
+                                "1.0.0",
+                                isSigned: false,
+                                authors: $"{user.Username},{_requiredCoOwner.Username}",
+                                licenseUrl: null,
+                                projectUrl: new Uri("https://www.nuget.org")).Object,
+                            user);
+
+                        // Missing project url
+                        yield return MemberDataHelper.AsData(
+                            CreatePackage(
+                                packageId,
+                                "1.0.0",
+                                isSigned: false,
+                                authors: $"{user.Username},{_requiredCoOwner.Username}",
+                                licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
+                                projectUrl: null).Object,
+                            user);
+                    }
+                }
+
+                [Fact]
+                public async Task AddsRequiredCoOwnerWhenPackageWithNewRegistrationIdIsCompliant()
+                {
+                    var nuGetPackageMock = CreatePackage(
+                        _packageId,
+                        "1.0.0",
+                        isSigned: true,
+                        authors: $"{_user.Username},{_requiredCoOwner.Username}",
+                        licenseUrl: new Uri("https://github.com/NuGet/NuGetGallery/blob/master/LICENSE.txt"),
+                        projectUrl: new Uri("https://www.nuget.org"));
+
+                    var packageOwnershipManagementServiceMock = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
+                    packageOwnershipManagementServiceMock
+                        .Setup(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), _requiredCoOwner, false /* not committing changes! */))
+                        .Returns(Task.CompletedTask)
+                        .Verifiable();
+
+                    var securityPolicyService = CreateSecurityPolicyService(
+                        new Lazy<IUserService>(() => _userServiceMock.Object),
+                        new Lazy<IPackageOwnershipManagementService>(() => packageOwnershipManagementServiceMock.Object));
+
+                    var controller = new TestableApiController(
+                        GetConfigurationService(),
+                        MockBehavior.Strict,
+                        securityPolicyService,
+                        _userServiceMock.Object);
+
+                    controller.SetCurrentUser(_user);
+                    controller.SetupPackageFromInputStream(nuGetPackageMock.Object.GetStream());
+                    controller.MockPackageService
+                        .Setup(m => m.FindPackageRegistrationById(_packageId))
+                        .Returns((PackageRegistration)null)
+                        .Verifiable();
+                    controller.MockPackageService
+                        .Setup(m => m.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                        .Returns(Task.FromResult(true))
+                        .Verifiable();
+
+                    // Act
+                    var result = await controller.CreatePackagePut();
+
+                    // Assert
+                    var statusCodeResult = result as HttpStatusCodeWithServerWarningResult;
+
+                    Assert.NotNull(statusCodeResult);
+                    Assert.Equal((int)HttpStatusCode.Created, statusCodeResult.StatusCode);
+
+                    _userServiceMock.VerifyAll();
+                    packageOwnershipManagementServiceMock.VerifyAll();
+                    controller.MockPackageService.VerifyAll();
+                }
+
+                [Theory]
+                [MemberData(nameof(NonCompliantPackages_Data))]
+                public async Task DoesNotAddRequiredCoOwnerWhenPackageIsNotCompliant(TestPackageReader packageReader, User user)
+                {
+                    // Arrange
+                    var packageOwnershipManagementServiceMock = new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict);
+
+                    var securityPolicyService = CreateSecurityPolicyService(
+                        new Lazy<IUserService>(() => _userServiceMock.Object),
+                        new Lazy<IPackageOwnershipManagementService>(() => packageOwnershipManagementServiceMock.Object));
+
+                    var controller = new TestableApiController(
+                        GetConfigurationService(),
+                        MockBehavior.Strict,
+                        securityPolicyService,
+                        _userServiceMock.Object);
+
+                    controller.SetCurrentUser(user);
+                    controller.SetupPackageFromInputStream(packageReader.GetStream());
+                    controller.MockPackageService
+                        .Setup(m => m.FindPackageRegistrationById(_packageId))
+                        .Returns((PackageRegistration)null)
+                        .Verifiable();
+                    controller.MockPackageService
+                        .Setup(m => m.EnsureValid(It.IsAny<PackageArchiveReader>()))
+                        .Returns(Task.FromResult(true))
+                        .Verifiable();
+
+                    // Act
+                    var result = await controller.CreatePackagePut();
+
+                    // Assert
+                    var statusCodeResult = result as HttpStatusCodeWithBodyResult;
+
+                    Assert.NotNull(statusCodeResult);
+                    Assert.Equal((int)HttpStatusCode.BadRequest, statusCodeResult.StatusCode);
+
+                    _userServiceMock.VerifyAll();
+                    packageOwnershipManagementServiceMock.Verify(m => m.AddPackageOwnerAsync(It.IsAny<PackageRegistration>(), _requiredCoOwner, false), Times.Never, "Required co-owner should not be added for non-compliant package.");
+                    controller.MockPackageService.VerifyAll();
+                    controller.MockPackageService.VerifyAll();
+                }
+
+                private static ISecurityPolicyService CreateSecurityPolicyService(
+                    Lazy<IUserService> userServiceFactory,
+                    Lazy<IPackageOwnershipManagementService> packageOwnershipManagementServiceFactory)
+                {
+                    var entitiesContext = new FakeEntitiesContext();
+                    var auditing = new Mock<IAuditingService>().Object;
+                    var diagnostics = new Mock<IDiagnosticsService>().Object;
+
+                    var configurationMock = new Mock<IAppConfiguration>(MockBehavior.Strict);
+                    configurationMock.SetupGet(m => m.EnforceDefaultSecurityPolicies).Returns(false);
+
+                    return new SecurityPolicyService(
+                        entitiesContext,
+                        auditing,
+                        diagnostics,
+                        configurationMock.Object,
+                        userServiceFactory,
+                        packageOwnershipManagementServiceFactory);
+                }
+
+                private static Mock<TestPackageReader> CreatePackage(
+                    string id,
+                    string version,
+                    bool isSigned,
+                    string authors,
+                    Uri licenseUrl,
+                    Uri projectUrl)
+                {
+                    return PackageServiceUtility.CreateNuGetPackage(
+                        id: id,
+                        version: version,
+                        isSigned: isSigned,
+                        authors: authors,
+                        copyright: "(c) Microsoft Corporation. All rights reserved.",
+                        projectUrl: projectUrl,
+                        licenseUrl: licenseUrl);
+                }
+            }
         }
 
         public class TheDeletePackageAction
@@ -1342,7 +1623,7 @@ namespace NuGetGallery
             {
                 var fakes = Get<Fakes>();
                 var currentUser = fakes.User;
-                
+
                 var id = "theId";
                 var package = new Package
                 {
@@ -1409,20 +1690,24 @@ namespace NuGetGallery
         public class TheGetPackageAction
             : TestContainer
         {
-            [Fact]
-            public async Task GetPackageReturns400ForEvilPackageName()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturns400ForEvilPackageName(bool isSymbolPackage)
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result = await controller.GetPackage("../..", "1.0.0.0");
+                var result = await controller.GetPackageInternal("../..", "1.0.0.0", isSymbolPackage);
                 var badRequestResult = (HttpStatusCodeWithBodyResult)result;
                 Assert.Equal(400, badRequestResult.StatusCode);
             }
 
-            [Fact]
-            public async Task GetPackageReturns400ForEvilPackageVersion()
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturns400ForEvilPackageVersion(bool isSymbolPackage)
             {
                 var controller = new TestableApiController(GetConfigurationService());
-                var result2 = await controller.GetPackage("Foo", "10../..1.0");
+                var result2 = await controller.GetPackageInternal("Foo", "10../..1.0", isSymbolPackage);
                 var badRequestResult2 = (HttpStatusCodeWithBodyResult)result2;
                 Assert.Equal(400, badRequestResult2.StatusCode);
             }
@@ -1437,35 +1722,110 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
                 controller.MockPackageService
-                    .Setup(x => x.FindPackageByIdAndVersion(packageId, packageVersion, SemVerLevelKey.SemVer2, false))
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
                     .Returns((Package)null).Verifiable();
                 controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(It.IsAny<Uri>(), packageId, packageVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 // Act
-                var result = await controller.GetPackage(packageId, packageVersion);
+                var result = await controller.GetPackageInternal(packageId, packageVersion);
 
                 // Assert
-                Assert.IsType<RedirectResult>(result); // all we want to check is that we're redirecting to storage
-                //var httpNotFoundResult = (RedirectResult)result;
-                //Assert.Equal(String.Format(Strings.PackageWithIdAndVersionNotFound, packageId, packageVersion), httpNotFoundResult.StatusDescription);
-                //controller.MockPackageService.Verify();
+                Assert.IsType<RedirectResult>(result);
             }
 
             [Fact]
-            public async Task GetPackageReturnsPackageIfItExists()
+            public async Task GetPackageReturns404ForSymbolPackageIfPackageIsNotFound()
+            {
+                // Arrange
+                const string packageId = "Baz";
+                const string packageVersion = "1.0.1";
+
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Returns((Package)null).Verifiable();
+
+                // Act
+                var result = (HttpStatusCodeWithBodyResult) await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(PackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task GetPackageReturns404ForNotAvailableLatestSymbolPackage(PackageStatus status)
+            {
+                // Arrange
+                const string packageId = "Baz";
+                const string packageVersion = "1.0.1";
+                var package = new Package() { PackageRegistration = new PackageRegistration() { Id = packageId }, Version = packageVersion };
+                var latestSymbolPackage = new SymbolPackage()
+                {
+                    Key = 1,
+                    Package = package,
+                    StatusKey = status,
+                    Created = DateTime.Today.AddDays(-1)
+                };
+                var oldAvailableSymbolPackage = new SymbolPackage()
+                {
+                    Key = 2,
+                    Package = package,
+                    StatusKey = PackageStatus.Available,
+                    Created = DateTime.Today.AddDays(-2)
+                };
+                package.SymbolPackages.Add(oldAvailableSymbolPackage);
+                package.SymbolPackages.Add(latestSymbolPackage);
+
+                var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, packageVersion))
+                    .Returns(package).Verifiable();
+
+                // Act
+                var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
+
+                // Assert
+                Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task GetPackageReturnsPackageIfItExists(bool isSymbolPackage)
             {
                 // Arrange
                 const string packageId = "Baz";
                 var package = new Package() { Version = "1.0.01", NormalizedVersion = "1.0.1" };
                 var actionResult = new EmptyResult();
+                var availableSymbolPackage = new SymbolPackage()
+                {
+                    Key = 2,
+                    Package = package,
+                    StatusKey = PackageStatus.Available,
+                    Created = DateTime.Today.AddDays(-1)
+                };
+                package.SymbolPackages.Add(availableSymbolPackage);
+
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                // controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion(PackageId, "1.0.1", false)).Returns(package);
-                // controller.MockPackageService.Setup(x => x.AddDownloadStatistics(It.IsAny<PackageStatistics>())).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                controller
+                    .MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(packageId, "1.0.1"))
+                    .Returns(package);
+                controller
+                    .MockPackageFileService
+                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
+                controller
+                    .MockSymbolPackageFileService
+                    .Setup(s => s.CreateDownloadSymbolPackageActionResultAsync(HttpRequestUrl, packageId, package.NormalizedVersion))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
                 headers.Add("NuGet-Operation", "Install");
@@ -1482,11 +1842,19 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "1.0.01");
+                var result = await controller.GetPackageInternal(packageId, "1.0.01", isSymbolPackage);
 
                 // Assert
                 Assert.Same(actionResult, result);
-                controller.MockPackageFileService.Verify();
+                if (isSymbolPackage)
+                {
+                    controller.MockSymbolPackageFileService.Verify();
+                }
+                else
+                {
+                    controller.MockPackageFileService.Verify();
+                }
+
                 controller.MockPackageService.Verify();
                 controller.MockUserService.Verify();
             }
@@ -1498,10 +1866,11 @@ namespace NuGetGallery
                 var actionResult = new EmptyResult();
 
                 var controller = new TestableApiController(GetConfigurationService(), MockBehavior.Strict);
-                //controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersion("Baz", "1.0.0", false)).Throws(new DataException("Can't find the database")).Verifiable();
-                controller.MockPackageFileService.Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
-                              .Returns(Task.FromResult<ActionResult>(actionResult))
-                              .Verifiable();
+                controller
+                    .MockPackageFileService
+                    .Setup(s => s.CreateDownloadPackageActionResultAsync(HttpRequestUrl, "Baz", "1.0.0"))
+                    .Returns(Task.FromResult<ActionResult>(actionResult))
+                    .Verifiable();
 
                 NameValueCollection headers = new NameValueCollection();
                 headers.Add("NuGet-Operation", "Install");
@@ -1518,7 +1887,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "1.0.0");
+                var result = await controller.GetPackageInternal("Baz", "1.0.0");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1558,7 +1927,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage(packageId, "");
+                var result = await controller.GetPackageInternal(packageId, "");
 
                 // Assert
                 Assert.Same(actionResult, result);
@@ -1597,7 +1966,7 @@ namespace NuGetGallery
                 controller.ControllerContext = controllerContext;
 
                 // Act
-                var result = await controller.GetPackage("Baz", "");
+                var result = await controller.GetPackageInternal("Baz", "");
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.ServiceUnavailable, Strings.DatabaseUnavailable_TrySpecificVersion);
@@ -1684,7 +2053,7 @@ namespace NuGetGallery
                 controller.MockPackageService.Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns(package);
 
                 controller.SetCurrentUser(currentUser);
-                
+
                 ResultAssert.IsEmpty(await controller.PublishPackage("theId", "1.0.42"));
 
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(package, true));
@@ -1902,7 +2271,7 @@ namespace NuGetGallery
                 // Arrange
                 var errorResult = "A";
                 var controller = SetupController(credentialType, null, package: null);
-                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<HttpContextBase>()))
+                controller.MockSecurityPolicyService.Setup(s => s.EvaluateUserPoliciesAsync(It.IsAny<SecurityPolicyAction>(), It.IsAny<User>(), It.IsAny<HttpContextBase>()))
                     .Returns(Task.FromResult(SecurityPolicyResult.CreateErrorResult(errorResult)));
 
                 // Act
@@ -1991,7 +2360,7 @@ namespace NuGetGallery
                 controller.MockTelemetryService.Verify(x => x.TrackVerifyPackageKeyEvent(PackageId, PackageVersion,
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, (int)expectedStatusCode), Times.Once);
             }
-            
+
             [Fact]
             public Task Returns200_VerifyV1()
             {
