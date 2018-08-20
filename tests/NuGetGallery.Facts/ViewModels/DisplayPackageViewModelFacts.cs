@@ -13,6 +13,14 @@ namespace NuGetGallery.ViewModels
 {
     public class DisplayPackageViewModelFacts
     {
+        private Random gen = new Random();
+        DateTime RandomDay()
+        {
+            DateTime start = new DateTime(1995, 1, 1);
+            int range = (DateTime.Today - start).Days;
+            return start.AddDays(gen.Next(range));
+        }
+
         [Theory]
         [InlineData("https://www.github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
         [InlineData("https://github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
@@ -74,6 +82,39 @@ namespace NuGetGallery.ViewModels
             Assert.Equal("1.0.2-beta", packageVersions[2].Version);
             Assert.Equal("1.0.2", packageVersions[1].Version);
             Assert.Equal("1.0.10", packageVersions[0].Version);
+        }
+
+        [Fact]
+        public void TheCtorReturnsLatestSymbolPackageByDateCreated()
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                Dependencies = Enumerable.Empty<PackageDependency>().ToList(),
+                PackageRegistration = new PackageRegistration
+                {
+                    Owners = Enumerable.Empty<User>().ToList(),
+                }
+            };
+
+            var symbolPackageList = new List<SymbolPackage>();
+            for (var i = 0; i < 5; i++)
+            {
+                symbolPackageList.Add(
+                    new SymbolPackage()
+                    {
+                        Key = i,
+                        Package = package,
+                        StatusKey = PackageStatus.Available,
+                        Created = (i == 0) ? DateTime.Today : RandomDay()
+                    });
+            }
+
+            package.SymbolPackages = symbolPackageList;
+
+            var viewModel = new DisplayPackageViewModel(package, null, packageHistory: Enumerable.Empty<Package>().OrderBy(x => 1));
+
+            Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolPackage);
         }
 
         [Fact]

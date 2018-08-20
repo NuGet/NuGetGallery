@@ -119,6 +119,17 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillSetTheResultContentTypeForTheSymbolPackagesFolder()
+            {
+                var service = CreateService();
+
+                var result = await service.CreateDownloadFileActionResultAsync(HttpRequestUrl, CoreConstants.SymbolPackagesFolderName, "theFileName") as FilePathResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(CoreConstants.PackageContentType, result.ContentType);
+            }
+
+            [Fact]
             public async Task WillSetTheResultDownloadFilePath()
             {
                 var service = CreateService();

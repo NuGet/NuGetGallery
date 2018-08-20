@@ -657,6 +657,12 @@ namespace NuGetGallery
                 constraints: new { httpMethod = new HttpMethodConstraint("GET") });
 
             routes.MapRoute(
+                "v2" + RouteName.DownloadSymbolsPackage,
+                "api/v2/symbolpackage/{id}/{version}",
+                defaults: new { controller = "Api", action = "GetSymbolPackageApi", version = UrlParameter.Optional },
+                constraints: new { httpMethod = new HttpMethodConstraint("GET") });
+
+            routes.MapRoute(
                 "v2" + RouteName.PushPackageApi,
                 "api/v2/package",
                 defaults: new { controller = "Api", action = "PushPackageApi" },

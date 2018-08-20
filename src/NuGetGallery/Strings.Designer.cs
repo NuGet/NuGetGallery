@@ -1887,6 +1887,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No available symbols package found for ID {0} and version {1}..
+        /// </summary>
+        public static string SymbolsPackage_PackageNotAvailable {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_PackageNotAvailable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
         /// </summary>
         public static string SymbolsPackage_UploadNotAllowed {

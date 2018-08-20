@@ -154,7 +154,7 @@ namespace NuGetGallery
             UnconfirmedEmailAddress = null;
         }
 
-        public void UpdateEmailAddress(string newEmailAddress, Func<string> generateToken)
+        public void UpdateUnconfirmedEmailAddress(string newEmailAddress, Func<string> generateToken)
         {
             if (!string.IsNullOrEmpty(UnconfirmedEmailAddress))
             {

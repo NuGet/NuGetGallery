@@ -968,4 +968,7 @@ Policy violations: {0}</value>
     <value>The previous package version '{0}' is author signed but the uploaded package is unsigned. To avoid this warning, sign the package before uploading.</value>
     <comment>{0} is the previous package's normalized version.</comment>
   </data>
+  <data name="SymbolsPackage_PackageNotAvailable" xml:space="preserve">
+    <value>No available symbols package found for ID {0} and version {1}.</value>
+  </data>
 </root>

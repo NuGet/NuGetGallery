@@ -2,11 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
+using System.Threading.Tasks;
 using AnglicanGeek.MarkdownMailer;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
@@ -15,9 +17,11 @@ namespace NuGetGallery.Services
 {
     public class CoreMessageService : ICoreMessageService
     {
-        protected CoreMessageService()
-        {
-        }
+        private static readonly ReadOnlyCollection<TimeSpan> RetryDelays = Array.AsReadOnly(new[] {
+            TimeSpan.FromSeconds(0.1),
+            TimeSpan.FromSeconds(1),
+            TimeSpan.FromSeconds(10)
+        });
 
         public CoreMessageService(IMailSender mailSender, ICoreMessageServiceConfiguration coreConfiguration)
         {
@@ -28,7 +32,7 @@ namespace NuGetGallery.Services
         public IMailSender MailSender { get; protected set; }
         public ICoreMessageServiceConfiguration CoreConfiguration { get; protected set; }
 
-        public void SendPackageAddedNotice(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
+        public async Task SendPackageAddedNoticeAsync(Package package, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
         {
             bool hasWarnings = warningMessages != null && warningMessages.Any();
 
@@ -63,12 +67,12 @@ namespace NuGetGallery.Services
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
 
-        public void SendPackageAddedWithWarningsNotice(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages)
+        public async Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages)
         {
             var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package pushed with warnings - {package.PackageRegistration.Id} {package.Version}";
             var warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
@@ -87,12 +91,12 @@ namespace NuGetGallery.Services
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
 
-        public void SendPackageValidationFailedNotice(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
+        public async Task SendPackageValidationFailedNoticeAsync(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
         {
             var validationIssues = validationSet.GetValidationIssues();
 
@@ -133,7 +137,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
@@ -169,7 +173,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        public void SendValidationTakingTooLongNotice(Package package, string packageUrl)
+        public async Task SendValidationTakingTooLongNoticeAsync(Package package, string packageUrl)
         {
             string subject = "[{0}] Package validation taking longer than expected - {1} {2}";
             string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +
@@ -201,7 +205,7 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
 
                 if (mailMessage.To.Any())
                 {
-                    SendMessage(mailMessage, copySender: false);
+                    await SendMessageAsync(mailMessage);
                 }
             }
         }
@@ -231,30 +235,54 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
-        protected void SendMessage(MailMessage mailMessage)
+        protected virtual async Task SendMessageAsync(MailMessage mailMessage)
         {
-            SendMessage(mailMessage, copySender: false);
+            int attempt = 0;
+            bool success = false;
+            while (!success)
+            {
+                try
+                {
+                    await AttemptSendMessageAsync(mailMessage, attempt + 1);
+                    success = true;
+                }
+                catch (SmtpException)
+                {
+                    if (attempt < RetryDelays.Count)
+                    {
+                        await Task.Delay(RetryDelays[attempt]);
+                        attempt++;
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+            }
         }
 
-        virtual protected void SendMessage(MailMessage mailMessage, bool copySender)
+        protected virtual Task AttemptSendMessageAsync(MailMessage mailMessage, int attemptNumber)
         {
+            // AnglicanGeek.MarkdownMailer doesn't have an async overload
             MailSender.Send(mailMessage);
-            if (copySender)
+            return Task.CompletedTask;
+        }
+
+        protected async Task SendMessageToSenderAsync(MailMessage mailMessage)
+        {
+            using (var senderCopy = new MailMessage(
+                CoreConfiguration.GalleryOwner,
+                mailMessage.ReplyToList.First()))
             {
-                var senderCopy = new MailMessage(
-                    CoreConfiguration.GalleryOwner,
-                    mailMessage.ReplyToList.First())
-                {
-                    Subject = mailMessage.Subject + " [Sender Copy]",
-                    Body = string.Format(
-                            CultureInfo.CurrentCulture,
-                            "You sent the following message via {0}: {1}{1}{2}",
-                            CoreConfiguration.GalleryOwner.DisplayName,
-                            Environment.NewLine,
-                            mailMessage.Body),
-                };
+                senderCopy.Subject = mailMessage.Subject + " [Sender Copy]";
+                senderCopy.Body = string.Format(
+                        CultureInfo.CurrentCulture,
+                        "You sent the following message via {0}: {1}{1}{2}",
+                        CoreConfiguration.GalleryOwner.DisplayName,
+                        Environment.NewLine,
+                        mailMessage.Body);
                 senderCopy.ReplyToList.Add(mailMessage.ReplyToList.First());
-                MailSender.Send(senderCopy);
+                await SendMessageAsync(senderCopy);
             }
         }
     }
