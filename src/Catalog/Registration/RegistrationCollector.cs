@@ -82,8 +82,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return item["nuget:id"].ToString();
         }
 
-        protected override async Task ProcessGraphs(
-            KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs,
+        protected override async Task ProcessGraphsAsync(
+            KeyValuePair<string, IReadOnlyDictionary<string, IGraph>> sortedGraphs,
             CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
@@ -94,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     { TelemetryConstants.Id, sortedGraphs.Key.ToLowerInvariant() }
                 }))
             {
-                var legacyTask = RegistrationMaker.Process(
+                var legacyTask = RegistrationMaker.ProcessAsync(
                     registrationKey: new RegistrationKey(sortedGraphs.Key),
                     newItems: sortedGraphs.Value,
                     shouldInclude: _shouldIncludeSemVer2,
@@ -108,7 +108,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 if (_semVer2StorageFactory != null)
                 {
-                    var semVer2Task = RegistrationMaker.Process(
+                    var semVer2Task = RegistrationMaker.ProcessAsync(
                        registrationKey: new RegistrationKey(sortedGraphs.Key),
                        newItems: sortedGraphs.Value,
                        storageFactory: _semVer2StorageFactory,

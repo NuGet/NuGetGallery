@@ -22,9 +22,9 @@ namespace NuGet.Services.Metadata.Catalog
         public bool Concurrent { get; set; }
 
         protected override async Task<bool> OnProcessBatch(
-            CollectorHttpClient client, 
+            CollectorHttpClient client,
             IEnumerable<JToken> items,
-            JToken context, 
+            JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (KeyValuePair<T, IList<JObject>> sortedBatch in sortedItems)
             {
-                Task task = ProcessSortedBatch(client, sortedBatch, context, cancellationToken);
+                Task task = ProcessSortedBatchAsync(client, sortedBatch, context, cancellationToken);
 
                 tasks.Add(task);
 
@@ -66,10 +66,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected abstract T GetKey(JObject item);
 
-        protected abstract Task ProcessSortedBatch(
-            CollectorHttpClient client, 
-            KeyValuePair<T, IList<JObject>> sortedBatch, 
-            JToken context, 
+        protected abstract Task ProcessSortedBatchAsync(
+            CollectorHttpClient client,
+            KeyValuePair<T, IList<JObject>> sortedBatch,
+            JToken context,
             CancellationToken cancellationToken);
     }
 }

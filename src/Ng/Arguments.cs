@@ -71,7 +71,6 @@ namespace Ng
         public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
         public const string SemVer2StoragePath = "semVer2StoragePath";
 
-        public const string UnlistShouldDelete = "unlistShouldDelete";
         public const string UseCompressedStorage = "useCompressedStorage";
         public const string UseSemVer2Storage = "useSemVer2Storage";
 

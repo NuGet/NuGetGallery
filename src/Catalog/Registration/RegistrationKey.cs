@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Linq;
 using VDS.RDF;
@@ -10,11 +11,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
     {
         public RegistrationKey(string id)
         {
-            Id = id;
+            Id = id ?? throw new ArgumentNullException(nameof(id)); ;
         }
 
         public string Id { get; }
-            
+
         public override string ToString()
         {
             return Id.ToLowerInvariant();
@@ -34,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 return false;
             }
 
-            return StringComparer.OrdinalIgnoreCase.Equals(Id, rhs.Id); 
+            return StringComparer.OrdinalIgnoreCase.Equals(Id, rhs.Id);
         }
 
         public static RegistrationKey Promote(string resourceUri, IGraph graph)

@@ -291,7 +291,7 @@ namespace Ng.Jobs
 
             // Write command files
             _log.WriteLine("Start preparing lightning reindex command files...");
-           
+
             string templateFileContents;
             using (var templateStreamReader = new StreamReader(_templateFile))
             {
@@ -333,7 +333,7 @@ namespace Ng.Jobs
                         //the not required arguments need to be added only if they were passed in
                         //they cannot be hardcoded in the template
                         string optionalArguments = string.Empty;
-                        if(_arguments.ContainsKey(Arguments.StorageSuffix))
+                        if (_arguments.ContainsKey(Arguments.StorageSuffix))
                         {
                             optionalArguments = optionalArguments + $" -{Arguments.StorageSuffix} {_arguments[Arguments.StorageSuffix]}";
                         }
@@ -475,9 +475,9 @@ namespace Ng.Jobs
             return Task.FromResult(true);
         }
 
-        private async Task ProcessGraphsAsync(string packageId, IDictionary<string, IGraph> sortedGraphs)
+        private async Task ProcessGraphsAsync(string packageId, IReadOnlyDictionary<string, IGraph> sortedGraphs)
         {
-            await RegistrationMaker.Process(
+            await RegistrationMaker.ProcessAsync(
                 new RegistrationKey(packageId),
                 sortedGraphs,
                 _shouldIncludeSemVer2,
@@ -491,7 +491,7 @@ namespace Ng.Jobs
 
             if (_storageFactories.SemVer2StorageFactory != null)
             {
-                await RegistrationMaker.Process(
+                await RegistrationMaker.ProcessAsync(
                     new RegistrationKey(packageId),
                     sortedGraphs,
                     _storageFactories.SemVer2StorageFactory,

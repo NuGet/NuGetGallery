@@ -78,7 +78,7 @@ namespace CatalogTests
 
         private class TestSortingGraphCollector : SortingGraphCollector
         {
-            private readonly ConcurrentBag<KeyValuePair<string, IDictionary<string, IGraph>>> _allSortedGraphs;
+            private readonly ConcurrentBag<KeyValuePair<string, IReadOnlyDictionary<string, IGraph>>> _allSortedGraphs;
 
             public TestSortingGraphCollector(Uri index, Uri[] types, Func<HttpMessageHandler> handlerFunc) : base(
                 index,
@@ -86,12 +86,12 @@ namespace CatalogTests
                 new Mock<ITelemetryService>().Object,
                 handlerFunc)
             {
-                _allSortedGraphs = new ConcurrentBag<KeyValuePair<string, IDictionary<string, IGraph>>>();
+                _allSortedGraphs = new ConcurrentBag<KeyValuePair<string, IReadOnlyDictionary<string, IGraph>>>();
             }
 
-            public IEnumerable<KeyValuePair<string, IDictionary<string, IGraph>>> AllSortedGraphs => _allSortedGraphs;
+            public IEnumerable<KeyValuePair<string, IReadOnlyDictionary<string, IGraph>>> AllSortedGraphs => _allSortedGraphs;
 
-            protected override Task ProcessGraphs(KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
+            protected override Task ProcessGraphsAsync(KeyValuePair<string, IReadOnlyDictionary<string, IGraph>> sortedGraphs, CancellationToken cancellationToken)
             {
                 _allSortedGraphs.Add(sortedGraphs);
                 return Task.FromResult(0);

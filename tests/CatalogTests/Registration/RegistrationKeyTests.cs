@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Metadata.Catalog.Registration;
@@ -10,6 +11,14 @@ namespace CatalogTests.Registration
 {
     public class RegistrationKeyTests
     {
+        [Fact]
+        public void Constructor_WhenIdIsNull_Throws()
+        {
+            var exception = Assert.Throws<ArgumentNullException>(() => new RegistrationKey(id: null));
+
+            Assert.Equal("id", exception.ParamName);
+        }
+
         [Theory]
         [MemberData(nameof(RegistrationKeys))]
         public void EqualsIgnoresCase(string idA, string idB, bool expectedEquals)
@@ -41,6 +50,16 @@ namespace CatalogTests.Registration
 
             // Assert
             Assert.Equal(hashCodeA, hashCodeB);
+        }
+
+        [Theory]
+        [InlineData("a")]
+        [InlineData("A")]
+        public void ToString_Always_ReturnsLowerCase(string id)
+        {
+            var key = new RegistrationKey(id);
+
+            Assert.Equal(id.ToLowerInvariant(), key.ToString());
         }
 
         public static IEnumerable<object[]> RegistrationKeys

@@ -4,7 +4,6 @@
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Security.Cryptography;
 using NuGet.Versioning;
 
@@ -43,10 +42,10 @@ namespace NgTests.Infrastructure
 
         internal static TestPackage Create(Random random)
         {
-            var id = CreateRandomAlphanumericString(random);
+            var id = TestUtility.CreateRandomAlphanumericString(random);
             var version = CreateRandomVersion(random);
-            var author = CreateRandomAlphanumericString(random);
-            var description = CreateRandomAlphanumericString(random);
+            var author = TestUtility.CreateRandomAlphanumericString(random);
+            var description = TestUtility.CreateRandomAlphanumericString(random);
             var nuspec = CreateNuspec(id, version, author, description);
 
             using (var rng = RandomNumberGenerator.Create())
@@ -55,16 +54,6 @@ namespace NgTests.Infrastructure
 
                 return new TestPackage(id, version, author, description, stream);
             }
-        }
-
-        private static string CreateRandomAlphanumericString(Random random)
-        {
-            const string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-
-            return new string(
-                Enumerable.Repeat(characters, count: 16)
-                    .Select(s => s[random.Next(s.Length)])
-                    .ToArray());
         }
 
         private static string CreateNuspec(string id, NuGetVersion version, string author, string description)

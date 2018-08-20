@@ -67,7 +67,6 @@ namespace Ng.Jobs
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var source = arguments.GetOrThrow<string>(Arguments.Source);
-            var unlistShouldDelete = arguments.GetOrDefault(Arguments.UnlistShouldDelete, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
