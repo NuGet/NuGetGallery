@@ -116,8 +116,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
         }
 
-        [Fact]
-        public async Task SendsValidatingTooLongMessageOnce()
+        [Theory]
+        [InlineData(PackageStatus.Available, false)]
+        [InlineData(PackageStatus.Deleted, false)]
+        [InlineData(PackageStatus.Validating, true)]
+        [InlineData(PackageStatus.FailedValidation, false)]
+        public async Task SendsValidatingTooLongMessageOnlyIfPackageIsInValidatingState(PackageStatus packageStatus, bool shouldSend)
         {
             const int postponeMinutes = 1;
 
@@ -129,6 +133,8 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             ValidationSet.Created = DateTime.UtcNow - TimeSpan.FromMinutes(21);
             ValidationSet.Updated = DateTime.UtcNow - TimeSpan.FromMinutes(15);
+
+            PackageValidatingEntity.EntityRecord.PackageStatusKey = packageStatus;
 
             ValidationStorageServiceMock
                 .Setup(s => s.UpdateValidationSetAsync(It.IsAny<PackageValidationSet>()))
@@ -143,14 +149,28 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var processor = CreateProcessor();
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
 
-            TelemetryServiceMock
-                .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Once);
-            MessageServiceMock
-                .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Once);
-            ValidationEnqueuerMock
-                .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
-            PackageFileServiceMock
-                .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+            if (shouldSend)
+            {
+                TelemetryServiceMock
+                    .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Once);
+                MessageServiceMock
+                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Once);
+                ValidationEnqueuerMock
+                    .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                PackageFileServiceMock
+                    .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+            }
+            else
+            {
+                TelemetryServiceMock
+                    .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Never);
+                MessageServiceMock
+                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Never);
+                ValidationEnqueuerMock
+                    .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
+                PackageFileServiceMock
+                    .Verify(x => x.DeletePackageForValidationSetAsync(It.IsAny<PackageValidationSet>()), Times.Never);
+            }
 
             TelemetryServiceMock.ResetCalls();
             MessageServiceMock.ResetCalls();

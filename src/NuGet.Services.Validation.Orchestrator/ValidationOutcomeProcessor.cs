@@ -221,6 +221,7 @@ namespace NuGet.Services.Validation.Orchestrator
             // is greater than the configured threshold. Service Bus message duplication for a single validation
             // set will not cause multiple notices to be sent due to the row version on PackageValidationSet.
             if (tooLongNotificationAllowed &&
+                validatingEntity.Status == PackageStatus.Validating &&
                 validationSetDuration > _validationConfiguration.ValidationSetNotificationTimeout &&
                 previousDuration <= _validationConfiguration.ValidationSetNotificationTimeout &&
                 await _validationStorageService.GetValidationSetCountAsync(validatingEntity) == 1)
