@@ -337,8 +337,30 @@ namespace NuGetGallery.Controllers
 
                     public class TheAddPackageOwnerMethod : TestContainer
                     {
+                        public static IEnumerable<object[]> AllCanManagePackageOwners_Data => ThePackageOwnerMethods.AllCanManagePackageOwners_Data;
                         public static IEnumerable<object[]> AllCanManagePackageOwnersPairedWithCanBeAdded_Data = TheAddPackageOwnerMethods.AllCanManagePackageOwnersPairedWithCanBeAdded_Data;
                         public static IEnumerable<object[]> PendingOwnerPropagatesPolicy_Data => TheAddPackageOwnerMethods.PendingOwnerPropagatesPolicy_Data;
+
+                        [Theory]
+                        [MemberData(nameof(AllCanManagePackageOwners_Data))]
+                        public async Task FailsIfUserInputIsEmailAddress(Func<Fakes,User> getCurrentUser)
+                        {
+                            // Arrange
+                            var fakes = Get<Fakes>();
+                            var currentUser = getCurrentUser(fakes);
+                            var usernameToAdd = "notAUsername@email.com";
+                            var package = fakes.Package;
+                            var controller = GetController<JsonApiController>();
+                            controller.SetCurrentUser(currentUser);
+
+                            // Act
+                            var result = await controller.AddPackageOwner(package.Id, usernameToAdd, "a message");
+                            dynamic data = result.Data;
+
+                            // Assert
+                            Assert.False(data.success);
+                            Assert.Equal(Strings.AddOwner_NameIsEmail, data.message);
+                        }
 
                         [Theory]
                         [MemberData(nameof(AllCanManagePackageOwnersPairedWithCanBeAdded_Data))]
