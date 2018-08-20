@@ -152,6 +152,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You cannot add a member by their email address. Please enter their username instead..
+        /// </summary>
+        public static string AddMember_NameIsEmail {
+            get {
+                return ResourceManager.GetString("AddMember_NameIsEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details..
         /// </summary>
         public static string AddMember_PolicyFailure {
@@ -220,6 +229,15 @@ namespace NuGetGallery {
         public static string AddOwner_CurrentUserNotFound {
             get {
                 return ResourceManager.GetString("AddOwner_CurrentUserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot add an owner by their emaill address. Please enter their username instead..
+        /// </summary>
+        public static string AddOwner_NameIsEmail {
+            get {
+                return ResourceManager.GetString("AddOwner_NameIsEmail", resourceCulture);
             }
         }
         
@@ -1982,6 +2000,15 @@ namespace NuGetGallery {
         public static string TransformAccount_AdminMustBeDifferentAccount {
             get {
                 return ResourceManager.GetString("TransformAccount_AdminMustBeDifferentAccount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You cannot choose an administrator by their email address. Please enter their username instead..
+        /// </summary>
+        public static string TransformAccount_AdminNameIsEmail {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminNameIsEmail", resourceCulture);
             }
         }
         

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
@@ -137,11 +138,18 @@ namespace NuGetGallery
         {
             var accountToTransform = GetCurrentUser();
 
-            var adminUser = UserService.FindByUsername(transformViewModel.AdminUsername);
+            var adminUsername = transformViewModel.AdminUsername;
+            if (Regex.IsMatch(adminUsername, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            {
+                ModelState.AddModelError(string.Empty, Strings.TransformAccount_AdminNameIsEmail);
+                return View(transformViewModel);
+            }
+
+            var adminUser = UserService.FindByUsername(adminUsername);
             if (adminUser == null)
             {
-                ModelState.AddModelError(string.Empty, String.Format(CultureInfo.CurrentCulture,
-                    Strings.TransformAccount_AdminAccountDoesNotExist, transformViewModel.AdminUsername));
+                ModelState.AddModelError(string.Empty, string.Format(CultureInfo.CurrentCulture,
+                    Strings.TransformAccount_AdminAccountDoesNotExist, adminUsername));
                 return View(transformViewModel);
             }
 

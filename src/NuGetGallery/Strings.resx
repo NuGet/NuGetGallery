@@ -971,4 +971,13 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_PackageNotAvailable" xml:space="preserve">
     <value>No available symbols package found for ID {0} and version {1}.</value>
   </data>
+  <data name="AddMember_NameIsEmail" xml:space="preserve">
+    <value>You cannot add a member by their email address. Please enter their username instead.</value>
+  </data>
+  <data name="AddOwner_NameIsEmail" xml:space="preserve">
+    <value>You cannot add an owner by their emaill address. Please enter their username instead.</value>
+  </data>
+  <data name="TransformAccount_AdminNameIsEmail" xml:space="preserve">
+    <value>You cannot choose an administrator by their email address. Please enter their username instead.</value>
+  </data>
 </root>
