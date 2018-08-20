@@ -123,7 +123,7 @@ namespace NuGetGallery
             throw new ArgumentException("There is no predefined typo-squatting threshold for this package Id!");
         }
 
-        private static string NormalizeString(string str)
+        public static string NormalizeString(string str)
         {
             var normalizedStr = new StringBuilder(str);
             for (int i = 0; i < normalizedStr.Length; i++)
@@ -176,7 +176,7 @@ namespace NuGetGallery
             return countCollision != 0;
         }
 
-        private static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
+        protected internal static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
         {
             if (str1 == null)
             {
