@@ -15,7 +15,7 @@ namespace NuGetGallery.Security
         public void Policies_ReturnsMicrosoftTeamSubscriptionPolicies()
         {
             // Arrange.
-            var subscription = CreateSecurityPolicyService().UserSubscriptions.Single();
+            var subscription = CreateSecurityPolicyService().Subscriptions.Single();
             var policy = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageMetadataCompliancePolicy.PolicyName));
 
             // Act & Assert.
