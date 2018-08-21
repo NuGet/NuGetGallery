@@ -2,7 +2,7 @@
   "Initialization": {
     "AzureCdnCloudStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$",
     "AzureCdnCloudStorageContainerName": "nuget-cdnstats",
-    "PrimaryDestination": "DefaultEndpointsProtocol=https;AccountName=nugetprod0;AccountKey=$$Prod-NuGetProd0Storage-Key$$"
+    "PrimaryDestination": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"
   },
 
   "GalleryDb": {
