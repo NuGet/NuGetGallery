@@ -14,49 +14,64 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public abstract class RegistrationLeafValidator : RegistrationValidator
     {
         public RegistrationLeafValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
+            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationLeafValidator> logger) : base(feedToSource, logger)
         {
         }
 
-        protected override async Task<bool> ShouldRun(ValidationContext data)
+        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            return
-                await base.ShouldRun(data) &&
+            var shouldRunTask = context.GetCachedResultAsync(
+                Keys.ShouldRunAsync,
+                new Lazy<Task<bool>>(() => base.ShouldRunAsync(context)));
+            var v2Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV2,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
+            var v3Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV3,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
+            var v2Leaf = await context.GetCachedResultAsync(
+                Keys.GetLeafAsyncV2,
+                new Lazy<Task<PackageRegistrationLeafMetadata>>(() => GetLeafAsync(V2Resource, context)));
+            var v3Leaf = await context.GetCachedResultAsync(
+                Keys.GetLeafAsyncV3,
+                new Lazy<Task<PackageRegistrationLeafMetadata>>(() => GetLeafAsync(V3Resource, context)));
 
-                await ShouldRunLeaf(
-                    data,
-                    await GetIndex(V2Resource, data),
-                    await GetIndex(V3Resource, data)) && 
-
-                await ShouldRunLeaf(
-                    data,
-                    await GetLeaf(V2Resource, data),
-                    await GetLeaf(V3Resource, data));
+            return await shouldRunTask
+                && await ShouldRunLeafAsync(context, v2Index, v3Index)
+                && await ShouldRunLeafAsync(context, v2Leaf, v3Leaf);
         }
 
-        protected override async Task RunInternal(ValidationContext data)
+        protected override async Task RunInternalAsync(ValidationContext context)
         {
             var exceptions = new List<Exception>();
 
+            var v2Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV2,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
+            var v3Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV3,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
+
             try
             {
-                await CompareLeaf(
-                    data,
-                    await GetIndex(V2Resource, data),
-                    await GetIndex(V3Resource, data));
+                await CompareLeafAsync(context, v2Index, v3Index);
             }
             catch (Exception e)
             {
                 exceptions.Add(new ValidationException("Registration index metadata does not match the FindPackagesById metadata!", e));
             }
 
+            var v2Leaf = await context.GetCachedResultAsync(
+                Keys.GetLeafAsyncV2,
+                new Lazy<Task<PackageRegistrationLeafMetadata>>(() => GetLeafAsync(V2Resource, context)));
+            var v3Leaf = await context.GetCachedResultAsync(
+                Keys.GetLeafAsyncV3,
+                new Lazy<Task<PackageRegistrationLeafMetadata>>(() => GetLeafAsync(V3Resource, context)));
+
             try
             {
-                await CompareLeaf(
-                    data,
-                    await GetLeaf(V2Resource, data),
-                    await GetLeaf(V3Resource, data));
+                await CompareLeafAsync(context, v2Leaf, v3Leaf);
             }
             catch (Exception e)
             {
@@ -69,8 +84,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             }
         }
 
-        public abstract Task<bool> ShouldRunLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3);
+        public abstract Task<bool> ShouldRunLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3);
 
-        public abstract Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3);
+        public abstract Task CompareLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3);
     }
 }

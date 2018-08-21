@@ -12,22 +12,15 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationVersionValidator : RegistrationIndexValidator
     {
         public RegistrationVersionValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
-            ILogger<RegistrationVersionValidator> logger) 
+            IDictionary<FeedType, SourceRepository> feedToSource,
+            ILogger<RegistrationVersionValidator> logger)
             : base(feedToSource, logger)
         {
         }
 
-        public override Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task CompareIndexAsync(ValidationContext context, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
         {
-            return Task.FromResult(v2 != null && v3 != null);
-        }
-
-        public override Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
-        {
-            var isEqual =
-                v2.Version ==
-                v3.Version;
+            var isEqual = v2.Version == v3.Version;
 
             if (!isEqual)
             {

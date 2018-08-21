@@ -18,34 +18,54 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
         }
 
-        protected override async Task<bool> ShouldRun(ValidationContext data)
+        protected override async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            return 
-                await base.ShouldRun(data) &&
+            var shouldRunTask = context.GetCachedResultAsync(
+                Keys.ShouldRunAsync,
+                new Lazy<Task<bool>>(() => base.ShouldRunAsync(context)));
+            var v2Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV2,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
+            var v3Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV3,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
+            var shouldRunIndexTask = context.GetCachedResultAsync(
+                Keys.ShouldRunIndexAsync,
+                new Lazy<Task<bool>>(() => ShouldRunIndexAsync(context, v2Index, v3Index)));
 
-                await ShouldRunIndex(
-                    data, 
-                    await GetIndex(V2Resource, data), 
-                    await GetIndex(V3Resource, data));
+            return await shouldRunTask && await shouldRunIndexTask;
         }
 
-        protected override async Task RunInternal(ValidationContext data)
+        protected override async Task RunInternalAsync(ValidationContext context)
         {
+            var v2Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV2,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V2Resource, context)));
+            var v3Index = await context.GetCachedResultAsync(
+                Keys.GetIndexAsyncV3,
+                new Lazy<Task<PackageRegistrationIndexMetadata>>(() => GetIndexAsync(V3Resource, context)));
+
             try
             {
-                await CompareIndex(
-                    data,
-                    await GetIndex(V2Resource, data),
-                    await GetIndex(V3Resource, data));
+                await CompareIndexAsync(context, v2Index, v3Index);
             }
             catch (Exception e)
             {
-                 throw new ValidationException("Registration index metadata does not match the FindPackagesById metadata!", e);
+                throw new ValidationException("Registration index metadata does not match the FindPackagesById metadata!", e);
             }
         }
 
-        public abstract Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3);
+        public Task<bool> ShouldRunIndexAsync(
+            ValidationContext context,
+            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata v3)
+        {
+            return Task.FromResult(v2 != null && v3 != null);
+        }
 
-        public abstract Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3);
+        public abstract Task CompareIndexAsync(
+            ValidationContext context,
+            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata v3);
     }
 }

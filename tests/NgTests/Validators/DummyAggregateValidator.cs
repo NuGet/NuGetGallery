@@ -23,7 +23,7 @@ namespace NgTests
             return new AggregateValidationResult(this, _results);
         }
 
-        public Task<AggregateValidationResult> ValidateAsync(ValidationContext data)
+        public Task<AggregateValidationResult> ValidateAsync(ValidationContext context)
         {
             return Task.FromResult(Validate());
         }

@@ -21,9 +21,9 @@ namespace NgTests
                 {
                     yield return new object[]
                     {
-                            validator,
-                            pair.Item1,
-                            pair.Item2
+                        validator,
+                        pair.Item1,
+                        pair.Item2
                     };
                 }
             }
@@ -39,10 +39,10 @@ namespace NgTests
                 {
                     yield return new object[]
                     {
-                            validator,
-                            pair.Item1,
-                            pair.Item2,
-                            pair.Item3
+                        validator,
+                        pair.Item1,
+                        pair.Item2,
+                        pair.Item3
                     };
                 }
             }
@@ -65,7 +65,7 @@ namespace NgTests
                     PackageRegistrationIndexMetadata v2,
                     PackageRegistrationIndexMetadata v3)
                 {
-                    await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
+                    await validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
                 }
 
                 [Theory]
@@ -76,7 +76,7 @@ namespace NgTests
                     PackageRegistrationIndexMetadata v3)
                 {
                     await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
-                        () => validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                        () => validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -87,7 +87,7 @@ namespace NgTests
                     PackageRegistrationIndexMetadata v3,
                     bool shouldPass)
                 {
-                    var compareTask = Task.Run(async () => await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    var compareTask = Task.Run(async () => await validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
 
                     if (shouldPass)
                     {
@@ -116,7 +116,7 @@ namespace NgTests
                     PackageRegistrationLeafMetadata v2,
                     PackageRegistrationLeafMetadata v3)
                 {
-                    await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
+                    await validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
                 }
 
                 [Theory]
@@ -127,7 +127,7 @@ namespace NgTests
                     PackageRegistrationLeafMetadata v3)
                 {
                     await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
-                        () => validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                        () => validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -138,7 +138,7 @@ namespace NgTests
                     PackageRegistrationLeafMetadata v3,
                     bool shouldPass)
                 {
-                    var compareTask = Task.Run(async () => await validator.CompareLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    var compareTask = Task.Run(async () => await validator.CompareLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
 
                     if (shouldPass)
                     {
@@ -168,7 +168,7 @@ namespace NgTests
                     PackageRegistrationIndexMetadata v2,
                     PackageRegistrationIndexMetadata v3)
                 {
-                    Assert.Equal(true, await validator.ShouldRunLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(true, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -178,7 +178,7 @@ namespace NgTests
                     PackageRegistrationIndexMetadata v2,
                     PackageRegistrationIndexMetadata v3)
                 {
-                    Assert.Equal(false, await validator.ShouldRunLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(false, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
             }
 
@@ -195,7 +195,7 @@ namespace NgTests
                     PackageRegistrationLeafMetadata v2,
                     PackageRegistrationLeafMetadata v3)
                 {
-                    Assert.Equal(true, await validator.ShouldRunLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(true, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
 
                 [Theory]
@@ -205,7 +205,7 @@ namespace NgTests
                     PackageRegistrationLeafMetadata v2,
                     PackageRegistrationLeafMetadata v3)
                 {
-                    Assert.Equal(false, await validator.ShouldRunLeaf(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    Assert.Equal(false, await validator.ShouldRunLeafAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
                 }
             }
         }

@@ -13,6 +13,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// Runs each <see cref="IValidator"/> and returns an <see cref="AggregateValidationResult"/> containing all results.
         /// </summary>
-        Task<AggregateValidationResult> ValidateAsync(ValidationContext data);
+        Task<AggregateValidationResult> ValidateAsync(ValidationContext context);
     }
 }

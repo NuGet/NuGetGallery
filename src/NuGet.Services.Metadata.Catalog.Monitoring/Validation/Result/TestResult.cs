@@ -17,8 +17,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// </summary>
         Fail,
         /// <summary>
-        /// The test was skipped (<see cref="Validator.ShouldRun(ValidationContext)"/> threw or returned false).
+        /// The test was skipped (<see cref="Validator.ShouldRunAsync(ValidationContext)"/> threw or returned false).
         /// </summary>
         Skip
-    };
+    }
 }

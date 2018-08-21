@@ -44,14 +44,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             CommonLogger = logger.AsCommon();
         }
 
-        public async Task<ValidationResult> ValidateAsync(ValidationContext data)
+        public async Task<ValidationResult> ValidateAsync(ValidationContext context)
         {
             try
             {
                 bool shouldRun = false;
                 try
                 {
-                    shouldRun = await ShouldRun(data);
+                    shouldRun = await ShouldRunAsync(context);
                 }
                 catch (Exception e)
                 {
@@ -60,7 +60,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
                 if (shouldRun)
                 {
-                    await RunInternal(data);
+                    await RunInternalAsync(context);
                 }
                 else
                 {
@@ -78,20 +78,20 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// Checks that the current batch of catalog entries contains the entry that was created from the current state of the V2 feed.
         /// </summary>
-        protected virtual async Task<bool> ShouldRun(ValidationContext data)
+        protected virtual async Task<bool> ShouldRunAsync(ValidationContext context)
         {
-            var timestampV2 = await _timestampMetadataResourceV2.GetAsync(data);
-            var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(data.Client, data.Entries);
-            
+            var timestampV2 = await _timestampMetadataResourceV2.GetAsync(context);
+            var timestampCatalog = await PackageTimestampMetadata.FromCatalogEntries(context.Client, context.Entries);
+
             if (!timestampV2.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog, 
+                throw new TimestampComparisonException(timestampV2, timestampCatalog,
                     "Cannot get timestamp data for package from the V2 feed!");
             }
 
             if (!timestampCatalog.Last.HasValue)
             {
-                throw new TimestampComparisonException(timestampV2, timestampCatalog, 
+                throw new TimestampComparisonException(timestampV2, timestampCatalog,
                     "Cannot get timestamp data for package from the catalog!");
             }
 
@@ -106,7 +106,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             return timestampCatalog.Last == timestampV2.Last;
         }
 
-        protected abstract Task RunInternal(ValidationContext data);
+        protected abstract Task RunInternalAsync(ValidationContext context);
     }
 
     /// <summary>

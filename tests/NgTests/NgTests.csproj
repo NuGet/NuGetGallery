@@ -319,6 +319,7 @@
     <Compile Include="Validators\RegistrationLeafValidatorTests.cs" />
     <Compile Include="Validators\RegistrationIdValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationVersionValidatorTestData.cs" />
+    <Compile Include="Validators\ValidationContextTests.cs" />
     <Compile Include="Validators\ValidatorTests.cs" />
     <Compile Include="Validators\ValidatorTestUtility.cs" />
   </ItemGroup>

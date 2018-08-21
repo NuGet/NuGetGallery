@@ -7,10 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using NuGet.Packaging.Core;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -31,12 +30,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             StorageFactory auditingStorageFactory,
             ILogger<PackageValidator> logger)
         {
-            if (aggregateValidators == null || !aggregateValidators.Any())
+            var validators = aggregateValidators?.ToList();
+
+            if (aggregateValidators == null || !validators.Any())
             {
                 throw new ArgumentException("Must supply at least one endpoint!", nameof(aggregateValidators));
             }
 
-            AggregateValidators = aggregateValidators.ToList();
+            AggregateValidators = validators;
             _auditingStorageFactory = auditingStorageFactory ?? throw new ArgumentNullException(nameof(auditingStorageFactory));
             _logger = logger;
         }

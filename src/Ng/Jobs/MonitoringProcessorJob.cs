@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.ApplicationInsights;
 using Microsoft.Extensions.Logging;
 using NuGet.Packaging.Core;
 using NuGet.Protocol;
@@ -74,23 +73,25 @@ namespace Ng.Jobs
 
         protected override async Task RunInternal(CancellationToken cancellationToken)
         {
-            await ParallelAsync.Repeat(() => ProcessPackages(cancellationToken));
+            await ParallelAsync.Repeat(() => ProcessPackagesAsync(cancellationToken));
         }
 
-        private async Task ProcessPackages(CancellationToken token)
+        private async Task ProcessPackagesAsync(CancellationToken token)
         {
             StorageQueueMessage<PackageValidatorContext> queueMessage = null;
             do
             {
                 Logger.LogInformation("Fetching next queue message.");
                 queueMessage = await _queue.GetNextAsync(token);
-                await HandleQueueMessage(queueMessage, token);
+                await HandleQueueMessageAsync(queueMessage, token);
             } while (queueMessage != null);
 
             Logger.LogInformation("No messages left in queue.");
         }
 
-        private async Task HandleQueueMessage(StorageQueueMessage<PackageValidatorContext> queueMessage, CancellationToken token)
+        private async Task HandleQueueMessageAsync(
+            StorageQueueMessage<PackageValidatorContext> queueMessage,
+            CancellationToken token)
         {
             if (queueMessage == null)
             {
@@ -102,7 +103,7 @@ namespace Ng.Jobs
 
             try
             {
-                await RunPackageValidator(queuedContext, token);
+                await RunPackageValidatorAsync(queuedContext, token);
                 // The validations ran successfully and were saved to storage.
                 // We can remove the message from the queue because it was processed.
                 messageWasProcessed = true;
@@ -110,11 +111,11 @@ namespace Ng.Jobs
             catch (Exception e)
             {
                 // Validations failed to run! Save this failed status to storage.
-                await SaveFailedPackageMonitoringStatus(queuedContext, e, token);
+                await SaveFailedPackageMonitoringStatusAsync(queuedContext, e, token);
                 // We can then remove the message from the queue because this failed status can be used to requeue the message.
                 messageWasProcessed = true;
             }
-            
+
             // Note that if both validations fail and saving the failure status fail, we cannot remove the message from the queue.
             if (messageWasProcessed)
             {
@@ -122,7 +123,9 @@ namespace Ng.Jobs
             }
         }
 
-        private async Task RunPackageValidator(PackageValidatorContext queuedContext, CancellationToken token)
+        private async Task RunPackageValidatorAsync(
+            PackageValidatorContext queuedContext,
+            CancellationToken token)
         {
             var feedPackage = queuedContext.Package;
             Logger.LogInformation("Running PackageValidator on PackageValidatorContext for {PackageId} {PackageVersion}.", feedPackage.Id, feedPackage.Version);
@@ -138,7 +141,7 @@ namespace Ng.Jobs
                     "Attempting to fetch most recent catalog entry from registration.",
                     feedPackage.Id, feedPackage.Version);
 
-                catalogEntries = await FetchCatalogIndexEntriesFromRegistration(feedPackage, token);
+                catalogEntries = await FetchCatalogIndexEntriesFromRegistrationAsync(feedPackage, token);
             }
 
             var existingStatus = await _statusService.GetAsync(feedPackage, token);
@@ -164,7 +167,9 @@ namespace Ng.Jobs
             await _statusService.UpdateAsync(status, token);
         }
 
-        private async Task<IEnumerable<CatalogIndexEntry>> FetchCatalogIndexEntriesFromRegistration(FeedPackageIdentity feedPackage, CancellationToken token)
+        private async Task<IEnumerable<CatalogIndexEntry>> FetchCatalogIndexEntriesFromRegistrationAsync(
+            FeedPackageIdentity feedPackage,
+            CancellationToken token)
         {
             var id = feedPackage.Id;
             var version = NuGetVersion.Parse(feedPackage.Version);
@@ -189,7 +194,10 @@ namespace Ng.Jobs
             };
         }
 
-        private async Task SaveFailedPackageMonitoringStatus(PackageValidatorContext queuedContext, Exception exception, CancellationToken token)
+        private async Task SaveFailedPackageMonitoringStatusAsync(
+            PackageValidatorContext queuedContext,
+            Exception exception,
+            CancellationToken token)
         {
             var feedPackage = new FeedPackageIdentity(queuedContext.Package.Id, queuedContext.Package.Version);
 
