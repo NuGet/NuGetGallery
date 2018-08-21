@@ -15,7 +15,7 @@ namespace NuGetGallery.Security
         public void Policies_ReturnsMinClientAndPackageVerifyScopePolicies()
         {
             // Arrange.
-            var subscription = CreateSecurityPolicyService().UserSubscriptions.Single();
+            var subscription = CreateSecurityPolicyService().Subscriptions.Single();
             var policy1 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequireMinProtocolVersionForPushPolicy.PolicyName));
             var policy2 = subscription.Policies.FirstOrDefault(p => p.Name.Equals(RequirePackageVerifyScopePolicy.PolicyName));
 

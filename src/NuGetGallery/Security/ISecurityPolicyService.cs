@@ -13,14 +13,9 @@ namespace NuGetGallery.Security
     public interface ISecurityPolicyService
     {
         /// <summary>
-        /// Available user security policy subscriptions.
+        /// Available security policy subscriptions.
         /// </summary>
-        IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions { get; }
-
-        /// <summary>
-        /// Available organization security policy subscriptions.
-        /// </summary>
-        IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions { get; }
+        IEnumerable<IUserSecurityPolicySubscription> Subscriptions { get; }
 
         /// <summary>
         /// Check if a user is subscribed to one or more security policies.

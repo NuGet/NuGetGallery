@@ -97,22 +97,9 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Available user security policy subscriptions.
+        /// Available policy subscriptions.
         /// </summary>
-        public virtual IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions
-        {
-            get
-            {
-                yield return _controlRequiredSignerPolicy;
-                yield return _automaticallyOverwriteRequiredSignerPolicy;
-                yield return MicrosoftTeamSubscription;
-            }
-        }
-
-        /// <summary>
-        /// Available organization security policy subscriptions.
-        /// </summary>
-        public virtual IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions
+        public virtual IEnumerable<IUserSecurityPolicySubscription> Subscriptions
         {
             get
             {
@@ -125,9 +112,7 @@ namespace NuGetGallery.Security
 
         private IUserSecurityPolicySubscription GetSubscription(User user, string subscriptionName)
         {
-            return (user is Organization)
-                ? OrganizationSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase))
-                : UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            return Subscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
