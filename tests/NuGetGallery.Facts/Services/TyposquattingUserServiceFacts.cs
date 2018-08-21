@@ -14,17 +14,17 @@ namespace NuGetGallery
         public void CheckTrueTyposquattingUserService()
         {
             // Arrange            
-            PackageRegistration package = new PackageRegistration();
-            User user = new User();
+            var package = new PackageRegistration();
+            var user = new User();
             user.Username = "owner1";
             package.Owners.Add(user);
 
-            string packageId = "microsoft_netframework_v1";
+            var packageId = "microsoft_netframework_v1";
             _packageService
                 .Setup(x => x.FindPackageRegistrationById(packageId))
                 .Returns(package);
 
-            TyposquattingUserService newService = new TyposquattingUserService(_packageService.Object);
+            var newService = new TyposquattingUserService(_packageService.Object);
             
             // Act
             var ownersDoubleCheckResult = newService.CanUserTyposquat(packageId, "owner1");
@@ -37,16 +37,16 @@ namespace NuGetGallery
         public void CheckFalseTyposquattingUserService()
         {
             // Arrange            
-            PackageRegistration package = new PackageRegistration();
-            User user = new User();
+            var package = new PackageRegistration();
+            var user = new User();
             user.Username = "owner2";
             
-            string packageId = "microsoft_netframework_v1";
+            var packageId = "microsoft_netframework_v1";
             _packageService
                 .Setup(x => x.FindPackageRegistrationById(packageId))
                 .Returns(package);
 
-            TyposquattingUserService newService = new TyposquattingUserService(_packageService.Object);
+            var newService = new TyposquattingUserService(_packageService.Object);
 
             // Act
             var ownersDoubleCheckResult = newService.CanUserTyposquat(packageId, "owner1");
@@ -60,18 +60,18 @@ namespace NuGetGallery
         {
             // Arrange  
             PackageRegistration package = null;
-            string packageId = "microsoft_netframework_v1";
+            var packageId = "microsoft_netframework_v1";
             _packageService
                 .Setup(x => x.FindPackageRegistrationById(packageId))
                 .Returns(package);
 
-            TyposquattingUserService newService = new TyposquattingUserService(_packageService.Object);
+            var newService = new TyposquattingUserService(_packageService.Object);
 
             // Act
             var ownersDoubleCheckResult = newService.CanUserTyposquat(packageId, "owner1");
 
             // Assert
-            Assert.True(ownersDoubleCheckResult);
+            Assert.False(ownersDoubleCheckResult);
         }
     }
 }

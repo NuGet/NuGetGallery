@@ -34,13 +34,13 @@ namespace NuGetGallery
         public void CheckNotTyposquattingByDifferentOwnersTest()
         {
             // Arrange            
-            User owner = new User();
-            string uploadedPackageId = "new_package_for_testing";
+            var owner = new User();
+            var uploadedPackageId = "new_package_for_testing";
             _typosquattingOwnersDoubleCheck
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            TyposquattingCheckService newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService._packagesCheckList = _checkList;
+            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
+            TyposquattingCheckService.PackagesCheckList = _checkList;
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, owner);
@@ -53,14 +53,14 @@ namespace NuGetGallery
         public void CheckNotTyposquattingBySameOwnersTest()
         {
             // Arrange            
-            User owner = new User();
+            var owner = new User();
             owner.Username = "owner1";
-            string uploadedPackageId = "microsoft_netframework.v1";
+            var uploadedPackageId = "microsoft_netframework.v1";
             _typosquattingOwnersDoubleCheck
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            TyposquattingCheckService newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService._packagesCheckList = _checkList;
+            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
+            TyposquattingCheckService.PackagesCheckList = _checkList;
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, owner);
@@ -73,15 +73,15 @@ namespace NuGetGallery
         public void CheckNotTyposquattingByDifferentOwnersThroughDoubleCheckTest()
         {
             // Arrange            
-            User owner = new User();
+            var owner = new User();
             owner.Username = "newOwner1";
-            string uploadedPackageId = "Microsoft_NetFramework.v1";
+            var uploadedPackageId = "Microsoft_NetFramework.v1";
 
             _typosquattingOwnersDoubleCheck
                 .Setup(x => x.CanUserTyposquat("microsoft_netframework_v1", "newOwner1"))
                 .Returns(true);
-            TyposquattingCheckService newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService._packagesCheckList = _checkList;
+            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
+            TyposquattingCheckService.PackagesCheckList = _checkList;
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, owner);
@@ -94,13 +94,13 @@ namespace NuGetGallery
         public void CheckTyposquattingByDifferentOwnersTest()
         {
             // Arrange            
-            User owner = new User();
-            string uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
+            var owner = new User();
+            var uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
             _typosquattingOwnersDoubleCheck
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            TyposquattingCheckService newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService._packagesCheckList = _checkList;
+            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
+            TyposquattingCheckService.PackagesCheckList = _checkList;
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, owner);
@@ -113,13 +113,13 @@ namespace NuGetGallery
         public void CheckTyposquattingNulluploadedPackageId()
         {
             // Arrange            
-            User owner = new User();
+            var owner = new User();
             string uploadedPackageId = null;
             _typosquattingOwnersDoubleCheck
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            TyposquattingCheckService newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService._packagesCheckList = _checkList;
+            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
+            TyposquattingCheckService.PackagesCheckList = _checkList;
 
             // Act
             var exception = Assert.Throws<ArgumentNullException>(

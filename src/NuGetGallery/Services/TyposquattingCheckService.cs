@@ -69,7 +69,7 @@ namespace NuGetGallery
 
         // TODO: popular packages checklist will be implemented
         // https://github.com/NuGet/Engineering/issues/1624
-        public static List<PackageInfo> _packagesCheckList { get; set; }
+        public static List<PackageInfo> PackagesCheckList { get; set; }
 
         private class BasicEditDistanceInfo
         {
@@ -142,8 +142,10 @@ namespace NuGetGallery
             uploadedPackageId = NormalizeString(uploadedPackageId);
 
             int countCollision = 0;
-            Parallel.ForEach(_packagesCheckList, (package, loopState) =>
+            Parallel.ForEach(PackagesCheckList, (package, loopState) =>
             {
+                // TODO: handle the package which is owned by an organization. 
+                // https://github.com/NuGet/Engineering/issues/1656
                 if (package.Owners.Contains(uploadedPackageOwner.Username))
                 {
                     return;
