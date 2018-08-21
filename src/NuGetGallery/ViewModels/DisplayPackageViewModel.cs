@@ -185,7 +185,8 @@ namespace NuGetGallery
 
         private bool IsGitHubUri(Uri uri)
         {
-            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) || string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public enum RepositoryKind
