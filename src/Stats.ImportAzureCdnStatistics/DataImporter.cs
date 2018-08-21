@@ -10,6 +10,12 @@ namespace Stats.ImportAzureCdnStatistics
 {
     internal class DataImporter
     {
+        public enum Table
+        {
+            Fact_Dist_Download,
+            Fact_Download
+        }
+
         private readonly Func<Task<SqlConnection>> _openStatisticsSqlConnectionAsync;
         private const string _sqlSelectTop1FromTable = "SELECT TOP 1 * FROM [dbo].[{0}]";
 
@@ -18,8 +24,9 @@ namespace Stats.ImportAzureCdnStatistics
             _openStatisticsSqlConnectionAsync = openStatisticsSqlConnectionAsync;
         }
 
-        public async Task<DataTable> GetDataTableAsync(string tableName)
+        public async Task<DataTable> GetDataTableAsync(Table table)
         {
+            var tableName = table.ToString();
             var dataTable = new DataTable();
             var query = string.Format(_sqlSelectTop1FromTable, tableName);
 
