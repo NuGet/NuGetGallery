@@ -56,8 +56,6 @@ namespace NuGetGallery
         };
         private static readonly IReadOnlyDictionary<char, char> NormalizedMappingDictionary = GetNormalizedMappingDictionary(SimilarCharacterDictionary);
 
-        private readonly ITyposquattingUserService _userTyposquattingService;
-
         // TODO: Threshold parameters will be saved in the configuration file.
         // https://github.com/NuGet/Engineering/issues/1645
         private static List<ThresholdInfo> _thresholdsList = new List<ThresholdInfo>
@@ -70,6 +68,8 @@ namespace NuGetGallery
         // TODO: popular packages checklist will be implemented
         // https://github.com/NuGet/Engineering/issues/1624
         public static List<PackageInfo> PackagesCheckList { get; set; }
+
+        private readonly ITyposquattingUserService _userTyposquattingService;
 
         private class BasicEditDistanceInfo
         {
@@ -95,7 +95,7 @@ namespace NuGetGallery
             var normalizedMappingDictionary = new Dictionary<char, char>();
             foreach (var item in similarCharacterDictionary)
             {
-                foreach(char c in item.Value)
+                foreach(var c in item.Value)
                 {
                     normalizedMappingDictionary[c] = item.Key;
                 }
@@ -120,7 +120,7 @@ namespace NuGetGallery
         private static string NormalizeString(string str)
         {
             var normalizedStr = new StringBuilder(str);
-            for (int i = 0; i < normalizedStr.Length; i++)
+            for (var i = 0; i < normalizedStr.Length; i++)
             {
                 if (NormalizedMappingDictionary.TryGetValue(normalizedStr[i], out var normalizedCharacter))
                 {
@@ -138,10 +138,15 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageId));
             }
 
-            int threshold = GetThreshold(uploadedPackageId);
+            if (uploadedPackageOwner == null)
+            {
+                throw new ArgumentNullException(nameof(uploadedPackageOwner));
+            }
+
+            var threshold = GetThreshold(uploadedPackageId);
             uploadedPackageId = NormalizeString(uploadedPackageId);
 
-            int countCollision = 0;
+            var countCollision = 0;
             Parallel.ForEach(PackagesCheckList, (package, loopState) =>
             {
                 // TODO: handle the package which is owned by an organization. 
@@ -178,8 +183,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(str2));
             }
 
-            string newStr1 = Regex.Replace(str1, SpecialCharactersToString, string.Empty);
-            string newStr2 = Regex.Replace(str2, SpecialCharactersToString, string.Empty);
+            var newStr1 = Regex.Replace(str1, SpecialCharactersToString, string.Empty);
+            var newStr2 = Regex.Replace(str2, SpecialCharactersToString, string.Empty);
             if (Math.Abs(newStr1.Length - newStr2.Length) > threshold)
             {
                 return false;
@@ -196,7 +201,7 @@ namespace NuGetGallery
                 return basicEditDistanceInfo.Distance;
             }
             var alignedStrings = TraceBackAndAlignStrings(basicEditDistanceInfo.Path, str1, str2);
-            int refreshedEditDistance = RefreshEditDistance(alignedStrings[0], alignedStrings[1], basicEditDistanceInfo.Distance);
+            var refreshedEditDistance = RefreshEditDistance(alignedStrings[0], alignedStrings[1], basicEditDistanceInfo.Distance);
 
             return refreshedEditDistance;
         }
@@ -210,21 +215,21 @@ namespace NuGetGallery
             var path = new PathInfo[str1.Length + 1, str2.Length + 1];
             distances[0, 0] = 0;
             path[0, 0] = PathInfo.Match;
-            for (int i = 1; i <= str1.Length; i++)
+            for (var i = 1; i <= str1.Length; i++)
             {
                 distances[i, 0] = i;
                 path[i, 0] = PathInfo.Delete;
             }
 
-            for (int j = 1; j <= str2.Length; j++)
+            for (var j = 1; j <= str2.Length; j++)
             {
                 distances[0, j] = j;
                 path[0, j] = PathInfo.Insert;
             }
 
-            for (int i = 1; i <= str1.Length; i++)
+            for (var i = 1; i <= str1.Length; i++)
             {
-                for (int j = 1; j <= str2.Length; j++)
+                for (var j = 1; j <= str2.Length; j++)
                 {
                     if (str1[i - 1] == str2[j - 1])
                     {
@@ -265,12 +270,12 @@ namespace NuGetGallery
         /// </summary>
         private static string[] TraceBackAndAlignStrings(PathInfo[,] path, string str1, string str2)
         {
-            StringBuilder newStr1 = new StringBuilder(str1);
-            StringBuilder newStr2 = new StringBuilder(str2);
-            string[] alignedStrs = new string[2];
+            var newStr1 = new StringBuilder(str1);
+            var newStr2 = new StringBuilder(str2);
+            var alignedStrs = new string[2];
 
-            int i = str1.Length;
-            int j = str2.Length;
+            var i = str1.Length;
+            var j = str2.Length;
             while (i > 0 && j > 0)
             {
                 switch (path[i, j])
@@ -296,12 +301,12 @@ namespace NuGetGallery
                 }
             }
 
-            for (int k = 0; k < i; k++)
+            for (var k = 0; k < i; k++)
             {
                 newStr2.Insert(k, PlaceholderForAlignment);
             }
 
-            for (int k = 0; k < j; k++)
+            for (var k = 0; k < j; k++)
             {
                 newStr1.Insert(k, PlaceholderForAlignment);
             }
@@ -324,8 +329,8 @@ namespace NuGetGallery
                 throw new ArgumentException("The lengths of two aligned strings are not same!");
             }
 
-            int sameSubstitution = 0;
-            for (int i = 0; i < alignedStr2.Length; i++)
+            var sameSubstitution = 0;
+            for (var i = 0; i < alignedStr2.Length; i++)
             {
                 if (alignedStr1[i] != alignedStr2[i])
                 {
