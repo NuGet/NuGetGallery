@@ -55,6 +55,8 @@ namespace NuGetGallery
             DownloadsPerDay = 0;
 
             PushedBy = pushedBy;
+
+            InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
         }
 
         public bool ValidatingTooLong { get; set; }
@@ -104,6 +106,8 @@ namespace NuGetGallery
         public string PushedBy { get; private set; }
 
         public bool IsCertificatesUIEnabled { get; set; }
+        public string RepositoryUrl { get; set; }
+        public RepositoryKind RepositoryType { get; private set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 
@@ -146,6 +150,49 @@ namespace NuGetGallery
             }
 
             return _pushedByCache[userPushedBy];
+        }
+
+        private void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
+        {
+            RepositoryType = RepositoryKind.Unknown;
+
+            if (Uri.TryCreate(repositoryUrl, UriKind.Absolute, out var repoUri))
+            {
+                if (repoUri.IsHttpsProtocol())
+                {
+                    RepositoryUrl = repositoryUrl;
+                }
+
+                if (IsGitHubUri(repoUri))
+                {
+                    RepositoryType = RepositoryKind.GitHub;
+
+                    // Fix-up git:// to https:// for GitHub URLs (we should add this fix-up to other repos in the future)
+                    if (repoUri.IsGitProtocol())
+                    {
+                        var uri = new UriBuilder(repoUri);
+                        uri.Scheme = Uri.UriSchemeHttps;
+
+                        RepositoryUrl = uri.ToString();
+                    }
+                }
+                else if (PackageHelper.IsGitRepositoryType(repositoryType))
+                {
+                    RepositoryType = RepositoryKind.Git;
+                }
+            }
+        }
+
+        private bool IsGitHubUri(Uri uri)
+        {
+            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) || string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        public enum RepositoryKind
+        {
+            Unknown,
+            Git,
+            GitHub,
         }
     }
 }

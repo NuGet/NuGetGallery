@@ -561,17 +561,17 @@
                         </a>
                     </li>
                 }
-                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.RepositoryUrl, secureOnly: true))
+                @if (!Model.Deleted && Model.RepositoryUrl != null)
                 {
                     <li>
                         @switch (Model.RepositoryType)
                         {
-                            case PackageViewModel.RepositoryKind.GitHub:
+                            case DisplayPackageViewModel.RepositoryKind.GitHub:
                                 <img class="icon" aria-hidden="true" alt="GitHub logo"
                                      src="@Url.Absolute("~/Content/gallery/img/github.svg")"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/github-32x32.png")) />
                                 break;
-                            case PackageViewModel.RepositoryKind.Git:
+                            case DisplayPackageViewModel.RepositoryKind.Git:
                                 <img class="icon" aria-hidden="true" alt="Git logo"
                                      src="@Url.Absolute("~/Content/gallery/img/git.svg")"
                                      @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/git-32x32.png")) />

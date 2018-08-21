@@ -14,15 +14,18 @@ namespace NuGetGallery.Packaging
 {
     public class ManifestValidator
     {
-        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader)
+        public static IEnumerable<ValidationResult> Validate(Stream nuspecStream, out NuspecReader nuspecReader, out PackageMetadata packageMetadata)
         {
+            packageMetadata = null;
+
             try
             {
                 nuspecReader = new NuspecReader(nuspecStream);
                 var rawMetadata = nuspecReader.GetMetadata();
                 if (rawMetadata != null && rawMetadata.Any())
                 {
-                    return ValidateCore(PackageMetadata.FromNuspecReader(nuspecReader, strict: true));
+                    packageMetadata = PackageMetadata.FromNuspecReader(nuspecReader, strict: true);
+                    return ValidateCore(packageMetadata);
                 }
             }
             catch (Exception ex)

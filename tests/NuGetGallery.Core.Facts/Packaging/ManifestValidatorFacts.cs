@@ -527,10 +527,8 @@ namespace NuGetGallery.Packaging
 
         private static string[] GetErrors(Stream nuspecStream)
         {
-            NuspecReader reader;
-
             return ManifestValidator
-                .Validate(nuspecStream, out reader)
+                .Validate(nuspecStream, out var reader, out var metadata)
                 .Select(r => r.ErrorMessage)
                 .ToArray();
         }

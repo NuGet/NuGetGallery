@@ -24,7 +24,7 @@ namespace NuGetGallery
             {
                 if (secureOnly)
                 {
-                    return uri.Scheme == Uri.UriSchemeHttps;
+                    return IsHttpsProtocol(uri);
                 }
 
                 return uri.Scheme == Uri.UriSchemeHttps
@@ -32,6 +32,21 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        public static bool IsHttpsProtocol(this Uri uri)
+        {
+            return uri.Scheme == Uri.UriSchemeHttps;
+        }
+
+        public static bool IsGitProtocol(this Uri uri)
+        {
+            return uri.Scheme == Constants.GitRepository;
+        }
+
+        public static bool IsGitRepositoryType(string repositoryType)
+        {
+            return string.Compare(repositoryType, Constants.GitRepository, ignoreCase: true) == 0;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
@@ -124,6 +139,11 @@ namespace NuGetGallery
             if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100");
+            }
+
+            if (packageMetadata.RepositoryUrl != null && packageMetadata.RepositoryUrl.AbsoluteUri.Length > 4000)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000");
             }
         }
     }

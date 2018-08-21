@@ -2509,6 +2509,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos;. The provided URL will not be displayed..
+        /// </summary>
+        public static string WarningRepositoryUrl {
+            get {
+                return ResourceManager.GetString("WarningRepositoryUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos; or &apos;git&apos;. The provided URL will not be displayed..
+        /// </summary>
+        public static string WarningRepositoryUrlForGit {
+            get {
+                return ResourceManager.GetString("WarningRepositoryUrlForGit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package will only be available to download with SemVer 2.0.0 compatible NuGet clients, such as Visual Studio 2017 (version 15.3) and above or NuGet client 4.3 and above. For more information, see https://go.microsoft.com/fwlink/?linkid=852248..
         /// </summary>
         public static string WarningSemVer2PackagePushed {

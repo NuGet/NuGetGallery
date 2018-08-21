@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGetGallery.Configuration;
 using NuGetGallery.Packaging;
 using NuGetGallery.TestUtils;
@@ -190,7 +191,8 @@ namespace NuGetGallery
                 _packageRegistration.Packages.Add(_package);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -218,7 +220,8 @@ namespace NuGetGallery
                 _packageRegistration.Packages.Add(_package);
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -244,7 +247,8 @@ namespace NuGetGallery
                 });
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object, 
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -265,7 +269,8 @@ namespace NuGetGallery
                 });
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -276,7 +281,8 @@ namespace NuGetGallery
             public async Task AcceptsSignedPackages()
             {
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -293,7 +299,8 @@ namespace NuGetGallery
                 _packageRegistration = null;
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object);
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -301,6 +308,76 @@ namespace NuGetGallery
                 _packageService.Verify(
                     x => x.FindPackageRegistrationById(It.IsAny<string>()),
                     Times.Once);
+            }
+
+            public static IEnumerable<object[]> WarnsOnMalformedRepositoryMetadata_Data = new []
+            {
+                new object[] { null, null, null },
+                new object[] { "git", null, null },
+                new object[] { "git", "http://something", Strings.WarningRepositoryUrlForGit },
+                new object[] { "git", "https://something", null },
+                new object[] { "git", "git://something", null },
+                new object[] { "something", "git://something", Strings.WarningRepositoryUrl },
+                new object[] { "something", "https://something", null }
+            };
+
+            [MemberData(nameof(WarnsOnMalformedRepositoryMetadata_Data))]
+            [Theory]
+            public async Task WarnsOnMalformedRepositoryMetadata(string repositoryType, string repositoryUrl, string expectedWarning)
+            {
+                // Arrange
+                _nuGetPackage = GeneratePackage(
+                    repositoryMetadata: new RepositoryMetadata() { Url = repositoryUrl, Type = repositoryType },
+                    isSigned: false);
+                _packageRegistration = null;
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+
+                // Assert
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+
+                if (expectedWarning == null)
+                {
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(1, result.Warnings.Count());
+                    Assert.Equal(expectedWarning, result.Warnings.First());
+                }
+            }
+
+            [Fact]
+            public async Task AggregatesWarnings()
+            {
+                // Arrange
+                _package.NormalizedVersion = "2.0.1";
+                _nuGetPackage = GeneratePackage(
+                    version: _package.NormalizedVersion,
+                    repositoryMetadata: new RepositoryMetadata() { Url = "http://bad", Type = null },
+                    isSigned: false);
+
+                var previous = new Package
+                {
+                    CertificateKey = 1,
+                    NormalizedVersion = "2.0.0-ALPHA",
+                    PackageStatusKey = PackageStatus.Available,
+                };
+                _packageRegistration.Packages.Add(previous);
+                _packageRegistration.Packages.Add(_package);
+
+                // Act
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Equal(2, result.Warnings.Count());
             }
         }
 
@@ -856,11 +933,12 @@ namespace NuGetGallery
                     _config.Object);
             }
 
-            protected static Mock<TestPackageReader> GeneratePackage(string version = "1.2.3-alpha.0", bool isSigned = true)
+            protected static Mock<TestPackageReader> GeneratePackage(string version = "1.2.3-alpha.0", RepositoryMetadata repositoryMetadata = null, bool isSigned = true)
             {
                 return PackageServiceUtility.CreateNuGetPackage(
                     id: "theId",
                     version: version,
+                    repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned);
             }
         }

@@ -591,7 +591,8 @@ namespace NuGetGallery
                             }
 
                             NuspecReader nuspec;
-                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec).ToArray();
+                            PackageMetadata packageMetadata;
+                            var errors = ManifestValidator.Validate(packageToPush.GetNuspec(), out nuspec, out packageMetadata).ToArray();
                             if (errors.Length > 0)
                             {
                                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));
@@ -676,7 +677,7 @@ namespace NuGetGallery
                             }
 
                             // Perform all the validations we can before adding the package to the entity context.
-                            var beforeValidationResult = await PackageUploadService.ValidateBeforeGeneratePackageAsync(packageToPush);
+                            var beforeValidationResult = await PackageUploadService.ValidateBeforeGeneratePackageAsync(packageToPush, packageMetadata);
                             var beforeValidationActionResult = GetActionResultOrNull(beforeValidationResult);
                             if (beforeValidationActionResult != null)
                             {
