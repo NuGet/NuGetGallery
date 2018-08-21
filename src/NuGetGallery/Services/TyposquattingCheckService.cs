@@ -13,12 +13,11 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckService : ITyposquattingCheckService
     {
-        private readonly ITyposquattingOwnersDoubleCheck _typosquattingOwnersDoubleCheck;
+        private const char PlaceholderForAlignment = '*';  // This const place holder variable is used for strings alignment 
 
         private static readonly HashSet<char> SpecialCharacters = new HashSet<char> { '.', '_', '-' };
         private static readonly string SpecialCharactersToString = "[" + new string(SpecialCharacters.ToArray()) + "]";
-        private const char PlaceholderForAlignment = '*';  // This const place holder variable is used for strings alignment 
-
+        
         /// <summary>
         /// The following dictionary is built through picking up similar characters manually from wiki unicode page.
         /// https://en.wikipedia.org/wiki/List_of_Unicode_characters
@@ -57,6 +56,8 @@ namespace NuGetGallery
         };
         private static readonly IReadOnlyDictionary<char, char> NormalizedMappingDictionary = GetNormalizedMappingDictionary(SimilarCharacterDictionary);
 
+        private readonly ITyposquattingUserService _userTyposquattingService;
+
         // TODO: Threshold parameters will be saved in the configuration file.
         // https://github.com/NuGet/Engineering/issues/1645
         private static List<ThresholdInfo> _thresholdsList = new List<ThresholdInfo>
@@ -84,9 +85,9 @@ namespace NuGetGallery
             Insert,
         }   
         
-        public TyposquattingCheckService(ITyposquattingOwnersDoubleCheck typosquattingOwnersDoubleCheck) 
+        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService) 
         {
-            _typosquattingOwnersDoubleCheck = typosquattingOwnersDoubleCheck ?? throw new ArgumentNullException(nameof(typosquattingOwnersDoubleCheck));
+            _userTyposquattingService = typosquattingUserService ?? throw new ArgumentNullException(nameof(typosquattingUserService));
         }
 
         private static Dictionary<char, char> GetNormalizedMappingDictionary(IReadOnlyDictionary<char, string> similarCharacterDictionary)
@@ -116,7 +117,7 @@ namespace NuGetGallery
             throw new ArgumentException("There is no predefined typo-squatting threshold for this package Id!");
         }
 
-        public static string NormalizeString(string str)
+        private static string NormalizeString(string str)
         {
             var normalizedStr = new StringBuilder(str);
             for (int i = 0; i < normalizedStr.Length; i++)
@@ -147,26 +148,24 @@ namespace NuGetGallery
                 {
                     return;
                 }
-                else
-                {
-                    if (IsDistanceLessThanThreshold(uploadedPackageId, package.Id, threshold))
-                    {
-                        // Double check the owners list in the latest DB. 
-                        if (_typosquattingOwnersDoubleCheck.IsOwnerAllowedTyposquatting(package.Id, uploadedPackageOwner.Username))
-                        {
-                            return;
-                        }
 
-                        Interlocked.Increment(ref countCollision);
-                        loopState.Stop();
+                if (IsDistanceLessThanThreshold(uploadedPackageId, package.Id, threshold))
+                {
+                    // Double check the owners list in the latest DB. 
+                    if (_userTyposquattingService.CanUserTyposquat(package.Id, uploadedPackageOwner.Username))
+                    {
+                        return;
                     }
-                }                
+
+                    Interlocked.Increment(ref countCollision);
+                    loopState.Stop();
+                }
             });
 
             return countCollision != 0;
         }
 
-        protected internal static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
+        private static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
         {
             if (str1 == null)
             {
@@ -192,7 +191,7 @@ namespace NuGetGallery
             var basicEditDistanceInfo = GetBasicEditDistanceWithPath(str1, str2);
             if (basicEditDistanceInfo.Distance <= threshold)
             {
-                return basicEditDistanceInfo.Distance;  
+                return basicEditDistanceInfo.Distance;
             }
             var alignedStrings = TraceBackAndAlignStrings(basicEditDistanceInfo.Path, str1, str2);
             int refreshedEditDistance = RefreshEditDistance(alignedStrings[0], alignedStrings[1], basicEditDistanceInfo.Distance);
