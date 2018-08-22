@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
@@ -108,8 +109,12 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public async Task<JsonResult> AddPackageOwner(string id, string username, string message)
         {
-            ManagePackageOwnerModel model;
-            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out model))
+            if (Regex.IsMatch(username, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            {
+                return Json(new { success = false, message = Strings.AddOwner_NameIsEmail }, JsonRequestBehavior.AllowGet);
+            }
+
+            if (TryGetManagePackageOwnerModel(id, username, isAddOwner: true, model: out var model))
             {
                 var packageUrl = Url.Package(model.Package.Id, version: null, relativeUrl: false);
 
