@@ -26,7 +26,7 @@ Function Get-BuildTools {
             [string]$Path
         )
         
-        $DirectoryPath = (Join-Path $NuGetClientRoot $FilePath)
+        $DirectoryPath = (Join-Path $NuGetClientRoot $Path)
         if (-not (Test-Path $DirectoryPath)) {
             New-Item -Path $DirectoryPath -ItemType "directory"
         }
