@@ -159,16 +159,9 @@ namespace NgTests
 
         protected AggregateStorageFactory Create(MemoryStorage primaryStorage, MemoryStorage secondaryStorage, params MemoryStorage[] storages)
         {
-            var storageFactories = new List<StorageFactory>();
-            storageFactories.Add(new TestStorageFactory(name => primaryStorage.WithName(name)));
-            storageFactories.Add(new TestStorageFactory(name => secondaryStorage.WithName(name)));
+            const AggregateStorage.WriteSecondaryStorageContentInterceptor interceptor = null;
 
-            foreach (var storage in storages)
-            {
-                storageFactories.Add(new TestStorageFactory(name => storage.WithName(name)));
-            }
-
-            return new AggregateStorageFactory(storageFactories.First(), storageFactories.Skip(1).ToArray());
+            return CreateWithInterceptor(interceptor, primaryStorage, secondaryStorage, storages);
         }
 
         protected AggregateStorageFactory CreateWithInterceptor(AggregateStorage.WriteSecondaryStorageContentInterceptor interceptor, MemoryStorage primaryStorage, MemoryStorage secondaryStorage, params MemoryStorage[] storages)
@@ -182,7 +175,11 @@ namespace NgTests
                 storageFactories.Add(new TestStorageFactory(name => storage.WithName(name)));
             }
 
-            return new AggregateStorageFactory(storageFactories.First(), storageFactories.Skip(1).ToArray(), interceptor);
+            return new AggregateStorageFactory(
+                storageFactories.First(),
+                storageFactories.Skip(1).ToArray(),
+                interceptor,
+                verbose: false);
         }
 
         protected void AssertUriAndContentExists(MemoryStorage storage, Uri uri, string expectedContent)

@@ -16,10 +16,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public abstract class Storage : IStorage
     {
         public Uri BaseAddress { get; protected set; }
-        public bool Verbose { get; set; }
-        public int SaveCount { get; protected set; }
-        public int LoadCount { get; protected set; }
-        public int DeleteCount { get; protected set; }
+        public bool Verbose { get; protected set; }
 
         public Storage(Uri baseAddress)
         {
@@ -32,21 +29,56 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return BaseAddress.ToString();
         }
 
-        protected abstract Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
-        protected abstract Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken);
-        protected abstract Task OnDelete(Uri resourceUri, CancellationToken cancellationToken);
+        protected abstract Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken);
+        protected abstract Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken);
+        protected abstract Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken);
+        protected abstract Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken);
 
-        public async Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        public virtual Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
+            Uri resourceUri,
+            CancellationToken cancellationToken)
         {
-            SaveCount++;
+            throw new NotImplementedException();
+        }
 
-            TraceMethod(nameof(SaveAsync), resourceUri);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+        public async Task CopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            TraceMethod(nameof(CopyAsync), sourceUri);
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                await OnSave(resourceUri, content, cancellationToken);
+                await OnCopyAsync(sourceUri, destinationStorage, destinationUri, destinationProperties, cancellationToken);
+            }
+            catch (Exception e)
+            {
+                TraceException(nameof(CopyAsync), sourceUri, e);
+                throw;
+            }
+
+            TraceExecutionTime(nameof(CopyAsync), sourceUri, stopwatch.ElapsedMilliseconds);
+        }
+
+        public async Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        {
+            TraceMethod(nameof(SaveAsync), resourceUri);
+
+            var stopwatch = Stopwatch.StartNew();
+
+            try
+            {
+                await OnSaveAsync(resourceUri, content, cancellationToken);
             }
             catch (Exception e)
             {
@@ -54,22 +86,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 throw;
             }
 
-            sw.Stop();
-            TraceExecutionTime(nameof(SaveAsync), resourceUri, sw.ElapsedMilliseconds);
+            TraceExecutionTime(nameof(SaveAsync), resourceUri, stopwatch.ElapsedMilliseconds);
         }
 
         public async Task<StorageContent> LoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            LoadCount++;
             StorageContent storageContent = null;
 
             TraceMethod(nameof(LoadAsync), resourceUri);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                storageContent = await OnLoad(resourceUri, cancellationToken);
+                storageContent = await OnLoadAsync(resourceUri, cancellationToken);
             }
             catch (Exception e)
             {
@@ -77,22 +107,20 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 throw;
             }
 
-            sw.Stop();
-            TraceExecutionTime(nameof(LoadAsync), resourceUri, sw.ElapsedMilliseconds);
+            TraceExecutionTime(nameof(LoadAsync), resourceUri, stopwatch.ElapsedMilliseconds);
+
             return storageContent;
         }
 
         public async Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            DeleteCount++;
-
             TraceMethod(nameof(DeleteAsync), resourceUri);
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
+
+            var stopwatch = Stopwatch.StartNew();
 
             try
             {
-                await OnDelete(resourceUri, cancellationToken);
+                await OnDeleteAsync(resourceUri, cancellationToken);
             }
             catch (StorageException e)
             {
@@ -116,8 +144,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 throw;
             }
 
-            sw.Stop();
-            TraceExecutionTime(nameof(DeleteAsync), resourceUri, sw.ElapsedMilliseconds);
+            TraceExecutionTime(nameof(DeleteAsync), resourceUri, stopwatch.ElapsedMilliseconds);
         }
 
         public async Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken)
@@ -140,13 +167,6 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         public abstract Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken);
 
         public abstract bool Exists(string fileName);
-
-        public void ResetStatistics()
-        {
-            SaveCount = 0;
-            LoadCount = 0;
-            DeleteCount = 0;
-        }
 
         public Uri ResolveUri(string relativeUri)
         {

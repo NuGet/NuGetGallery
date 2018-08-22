@@ -20,12 +20,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
         public AzureCloudBlockBlob(CloudBlockBlob blob)
         {
-            if (blob == null)
-            {
-                throw new ArgumentNullException(nameof(blob));
-            }
+            _blob = blob ?? throw new ArgumentNullException(nameof(blob));
+        }
 
-            _blob = blob;
+        public Task<bool> ExistsAsync(CancellationToken cancellationToken)
+        {
+            return _blob.ExistsAsync();
         }
 
         public async Task FetchAttributesAsync(CancellationToken cancellationToken)

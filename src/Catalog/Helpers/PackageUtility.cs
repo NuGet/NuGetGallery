@@ -7,7 +7,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
 {
     public static class PackageUtility
     {
-        public static string GetPackageFileNameLowercase(string packageId, string packageVersion)
+        public static string GetPackageFileName(string packageId, string packageVersion)
         {
             if (string.IsNullOrEmpty(packageId))
             {
@@ -19,7 +19,7 @@ namespace NuGet.Services.Metadata.Catalog.Helpers
                 throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(packageVersion));
             }
 
-            return $"{packageId.ToLowerInvariant()}.{packageVersion.ToLowerInvariant()}.nupkg";
+            return $"{packageId}.{packageVersion}.nupkg";
         }
     }
 }

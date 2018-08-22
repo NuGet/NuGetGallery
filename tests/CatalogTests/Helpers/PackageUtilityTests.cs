@@ -12,10 +12,10 @@ namespace CatalogTests.Helpers
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void GetPackageFileNameLowercase_WhenPackageIdIsNullOrEmpty_Throws(string packageId)
+        public void GetPackageFileName_WhenPackageIdIsNullOrEmpty_Throws(string packageId)
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => PackageUtility.GetPackageFileNameLowercase(packageId, packageVersion: "a"));
+                () => PackageUtility.GetPackageFileName(packageId, packageVersion: "a"));
 
             Assert.Equal("packageId", exception.ParamName);
         }
@@ -23,10 +23,10 @@ namespace CatalogTests.Helpers
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public void GetPackageFileNameLowercase_WhenPackageVersionIsNullOrEmpty_Throws(string packageVersion)
+        public void GetPackageFileName_WhenPackageVersionIsNullOrEmpty_Throws(string packageVersion)
         {
             var exception = Assert.Throws<ArgumentException>(
-                () => PackageUtility.GetPackageFileNameLowercase(packageId: "a", packageVersion: packageVersion));
+                () => PackageUtility.GetPackageFileName(packageId: "a", packageVersion: packageVersion));
 
             Assert.Equal("packageVersion", exception.ParamName);
         }
@@ -34,11 +34,11 @@ namespace CatalogTests.Helpers
         [Theory]
         [InlineData("a", "b")]
         [InlineData("A", "B")]
-        public void GetPackageFileNameLowercase_WithValidArguments_ReturnsFileName(string packageId, string packageVersion)
+        public void GetPackageFileName_WithValidArguments_ReturnsFileName(string packageId, string packageVersion)
         {
-            var packageFileName = PackageUtility.GetPackageFileNameLowercase(packageId, packageVersion);
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, packageVersion);
 
-            Assert.Equal("a.b.nupkg", packageFileName);
+            Assert.Equal($"{packageId}.{packageVersion}.nupkg", packageFileName);
         }
     }
 }

@@ -24,6 +24,23 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public HashSet<Uri> Loaded { get; private set; }
         public HashSet<Uri> Saved { get; private set; }
 
+        public Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
+            Uri resourceUri,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task CopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             Task result = _innerStorage.SaveAsync(resourceUri, content, cancellationToken);

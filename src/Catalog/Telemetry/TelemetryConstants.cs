@@ -35,6 +35,7 @@ namespace NuGet.Services.Metadata.Catalog
         public const string StatusCode = "StatusCode";
         public const string Success = "Success";
         public const string Uri = "Uri";
+        public const string UsePackageSourceFallback = "UsePackageSourceFallback";
         public const string Version = "Version";
     }
 }

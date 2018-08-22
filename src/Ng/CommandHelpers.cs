@@ -114,10 +114,8 @@ namespace Ng
                 var aggregateStorageFactory = new CatalogAggregateStorageFactory(
                     storageFactory,
                     new[] { compressedStorageFactory },
-                    secondaryStorageBaseUrlRewriter.Rewrite)
-                {
-                    Verbose = verbose
-                };
+                    secondaryStorageBaseUrlRewriter.Rewrite,
+                    verbose);
 
                 legacyStorageFactory = aggregateStorageFactory;
             }
@@ -139,6 +137,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.StorageContainer },
                 { Arguments.StoragePath, Arguments.StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
@@ -161,6 +160,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.CompressedStorageContainer },
                 { Arguments.StoragePath, Arguments.CompressedStoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
@@ -183,6 +183,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.SemVer2StorageContainer },
                 { Arguments.StoragePath, Arguments.SemVer2StoragePath },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix },
+                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds },
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
@@ -205,6 +206,7 @@ namespace Ng
                 { Arguments.StorageContainer, Arguments.StorageContainer + suffix },
                 { Arguments.StoragePath, Arguments.StoragePath + suffix },
                 { Arguments.StorageSuffix, Arguments.StorageSuffix + suffix },
+                { Arguments.StorageUseServerSideCopy, Arguments.StorageUseServerSideCopy + suffix },
                 { Arguments.StorageOperationMaxExecutionTimeInSeconds, Arguments.StorageOperationMaxExecutionTimeInSeconds + suffix },
                 { Arguments.StorageServerTimeoutInSeconds, Arguments.StorageServerTimeoutInSeconds }
             };
@@ -234,7 +236,7 @@ namespace Ng
 
                 if (storageBaseAddress != null)
                 {
-                    return new CatalogFileStorageFactory(storageBaseAddress, storagePath) { Verbose = verbose };
+                    return new CatalogFileStorageFactory(storageBaseAddress, storagePath, verbose);
                 }
 
                 TraceRequiredArgument(argumentNameMap[Arguments.StorageBaseAddress]);
@@ -250,19 +252,24 @@ namespace Ng
                 var storageSuffix = arguments.GetOrDefault<string>(argumentNameMap[Arguments.StorageSuffix]);
                 var storageOperationMaxExecutionTime = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageOperationMaxExecutionTimeInSeconds]));
                 var storageServerTimeout = MaxExecutionTime(arguments.GetOrDefault<int>(argumentNameMap[Arguments.StorageServerTimeoutInSeconds]));
+                var storageUseServerSideCopy = arguments.GetOrDefault<bool>(argumentNameMap[Arguments.StorageUseServerSideCopy]);
 
                 var credentials = new StorageCredentials(storageAccountName, storageKeyValue);
 
                 var account = string.IsNullOrEmpty(storageSuffix) ?
-                                new CloudStorageAccount(credentials, useHttps: true) :
-                                new CloudStorageAccount(credentials, storageSuffix, useHttps: true);
-                return new CatalogAzureStorageFactory(account,
-                                               storageContainer,
-                                               storageOperationMaxExecutionTime,
-                                               storageServerTimeout,
-                                               storagePath,
-                                               storageBaseAddress)
-                { Verbose = verbose, CompressContent = compressed };
+                    new CloudStorageAccount(credentials, useHttps: true) :
+                    new CloudStorageAccount(credentials, storageSuffix, useHttps: true);
+
+                return new CatalogAzureStorageFactory(
+                    account,
+                    storageContainer,
+                    storageOperationMaxExecutionTime,
+                    storageServerTimeout,
+                    storagePath,
+                    storageBaseAddress,
+                    storageUseServerSideCopy,
+                    compressed,
+                    verbose);
             }
             throw new ArgumentException($"Unrecognized storageType \"{storageType}\"");
         }

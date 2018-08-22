@@ -28,6 +28,8 @@ namespace NgTests
         private const string _nuspecData = "nuspec data";
         private const int _maxDegreeOfParallelism = 20;
         private static readonly HttpContent _noContent = new ByteArrayContent(new byte[0]);
+        private const IAzureStorage _nullPreferredPackageSourceStorage = null;
+        private static readonly Uri _contentBaseAddress = new Uri("http://tempuri.org/packages/");
 
         private MemoryStorage _catalogToDnxStorage;
         private TestStorageFactory _catalogToDnxStorageFactory;
@@ -50,13 +52,12 @@ namespace NgTests
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
-                new Mock<ITelemetryService>().Object,
+                _nullPreferredPackageSourceStorage,
+                _contentBaseAddress,
+                Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
-                () => _mockServer)
-            {
-                ContentBaseAddress = new Uri("http://tempuri.org/packages/")
-            };
+                () => _mockServer);
 
             _cursorJsonUri = _catalogToDnxStorage.ResolveUri("cursor.json");
         }
@@ -72,6 +73,8 @@ namespace NgTests
                     () => new DnxCatalogCollector(
                         index,
                         new TestStorageFactory(),
+                        _nullPreferredPackageSourceStorage,
+                        _contentBaseAddress,
                         Mock.Of<ITelemetryService>(),
                         Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
@@ -93,8 +96,10 @@ namespace NgTests
                     () => new DnxCatalogCollector(
                         new Uri("https://nuget.test"),
                         storageFactory,
-                        Mock.Of<ITelemetryService>(),
-                        Mock.Of<ILogger>(),
+                        _nullPreferredPackageSourceStorage,
+                        contentBaseAddress: null,
+                        telemetryService: Mock.Of<ITelemetryService>(),
+                        logger: Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
@@ -106,16 +111,16 @@ namespace NgTests
         [Fact]
         public void Constructor_WhenTelemetryServiceIsNull_Throws()
         {
-            ITelemetryService telemetryService = null;
-
             using (var clientHandler = new HttpClientHandler())
             {
                 var exception = Assert.Throws<ArgumentNullException>(
                     () => new DnxCatalogCollector(
                         new Uri("https://nuget.test"),
                         new TestStorageFactory(),
-                        telemetryService,
-                        Mock.Of<ILogger>(),
+                        _nullPreferredPackageSourceStorage,
+                        contentBaseAddress: null,
+                        telemetryService: null,
+                        logger: Mock.Of<ILogger>(),
                         maxDegreeOfParallelism: 1,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
@@ -135,6 +140,8 @@ namespace NgTests
                     () => new DnxCatalogCollector(
                         new Uri("https://nuget.test"),
                         new TestStorageFactory(),
+                        _nullPreferredPackageSourceStorage,
+                        null,
                         Mock.Of<ITelemetryService>(),
                         logger,
                         maxDegreeOfParallelism: 1,
@@ -156,9 +163,11 @@ namespace NgTests
                     () => new DnxCatalogCollector(
                         new Uri("https://nuget.test"),
                         new TestStorageFactory(),
-                        Mock.Of<ITelemetryService>(),
-                        Mock.Of<ILogger>(),
-                        maxDegreeOfParallelism,
+                        _nullPreferredPackageSourceStorage,
+                        contentBaseAddress: null,
+                        telemetryService: Mock.Of<ITelemetryService>(),
+                        logger: Mock.Of<ILogger>(),
+                        maxDegreeOfParallelism: maxDegreeOfParallelism,
                         handlerFunc: () => clientHandler,
                         httpClientTimeout: TimeSpan.Zero));
 
@@ -173,8 +182,10 @@ namespace NgTests
             new DnxCatalogCollector(
                 new Uri("https://nuget.test"),
                 new TestStorageFactory(),
-                Mock.Of<ITelemetryService>(),
-                Mock.Of<ILogger>(),
+                _nullPreferredPackageSourceStorage,
+                contentBaseAddress: null,
+                telemetryService: Mock.Of<ITelemetryService>(),
+                logger: Mock.Of<ILogger>(),
                 maxDegreeOfParallelism: 1,
                 handlerFunc: null,
                 httpClientTimeout: TimeSpan.Zero);
@@ -188,8 +199,10 @@ namespace NgTests
                 new DnxCatalogCollector(
                     new Uri("https://nuget.test"),
                     new TestStorageFactory(),
-                    Mock.Of<ITelemetryService>(),
-                    Mock.Of<ILogger>(),
+                    _nullPreferredPackageSourceStorage,
+                    contentBaseAddress: null,
+                    telemetryService: Mock.Of<ITelemetryService>(),
+                    logger: Mock.Of<ILogger>(),
                     maxDegreeOfParallelism: 1,
                     handlerFunc: () => clientHandler,
                     httpClientTimeout: null);
@@ -385,19 +398,19 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenPackageIsAlreadySynchronized_SkipsPackage()
+        public async Task Run_WithNonIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
         {
-            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
-            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
-            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
-            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.1.zip");
-            var expectedNupkg = GetStreamBytes(nupkgStream);
-
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
                 new Uri("http://tempuri.org/packages/listedpackage.1.0.1.nupkg"),
             });
             _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
+
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
+            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.1.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
 
             await _catalogToDnxStorage.SaveAsync(
                 new Uri("http://tempuri.org/listedpackage/index.json"),
@@ -407,13 +420,12 @@ namespace NgTests
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
-                new Mock<ITelemetryService>().Object,
+                _nullPreferredPackageSourceStorage,
+                _contentBaseAddress,
+                Mock.Of<ITelemetryService>(),
                 _logger,
                 _maxDegreeOfParallelism,
-                () => _mockServer)
-            {
-                ContentBaseAddress = new Uri("http://tempuri.org/packages/")
-            };
+                () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
             await _mockServer.AddStorageAsync(catalogStorage);
@@ -441,12 +453,118 @@ namespace NgTests
         }
 
         [Fact]
+        public async Task Run_WithIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
+        {
+            _catalogToDnxStorage = new AzureSynchronizedMemoryStorageStub(new[]
+            {
+                new Uri("http://tempuri.org/packages/listedpackage.1.0.0.nupkg")
+            }, areRequiredPropertiesPresentAsync: true);
+            _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
+
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
+            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
+
+            await _catalogToDnxStorage.SaveAsync(
+                new Uri("http://tempuri.org/listedpackage/index.json"),
+                new StringStorageContent(GetExpectedIndexJsonContent("1.0.0")),
+                CancellationToken.None);
+
+            _target = new DnxCatalogCollector(
+                new Uri("http://tempuri.org/index.json"),
+                _catalogToDnxStorageFactory,
+                _nullPreferredPackageSourceStorage,
+                _contentBaseAddress,
+                Mock.Of<ITelemetryService>(),
+                _logger,
+                _maxDegreeOfParallelism,
+                () => _mockServer);
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
+            await _mockServer.AddStorageAsync(catalogStorage);
+
+            _mockServer.SetAction(
+                "/packages/listedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(2, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.False(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
+
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.0"), Encoding.UTF8.GetString(indexJson));
+        }
+
+        [Fact]
+        public async Task Run_WithFakeIAzureStorage_WhenPackageIsAlreadySynchronizedButDoesNotHaveRequiredProperties_ProcessesPackage()
+        {
+            _catalogToDnxStorage = new AzureSynchronizedMemoryStorageStub(new[]
+            {
+                new Uri("http://tempuri.org/packages/listedpackage.1.0.0.nupkg")
+            }, areRequiredPropertiesPresentAsync: false);
+            _catalogToDnxStorageFactory = new TestStorageFactory(name => _catalogToDnxStorage.WithName(name));
+
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.nuspec");
+            var nupkgStream = File.OpenRead("Packages\\ListedPackage.1.0.0.zip");
+            var expectedNupkg = GetStreamBytes(nupkgStream);
+
+            await _catalogToDnxStorage.SaveAsync(
+                new Uri("http://tempuri.org/listedpackage/index.json"),
+                new StringStorageContent(GetExpectedIndexJsonContent("1.0.0")),
+                CancellationToken.None);
+
+            _target = new DnxCatalogCollector(
+                new Uri("http://tempuri.org/index.json"),
+                _catalogToDnxStorageFactory,
+                _nullPreferredPackageSourceStorage,
+                _contentBaseAddress,
+                Mock.Of<ITelemetryService>(),
+                _logger,
+                _maxDegreeOfParallelism,
+                () => _mockServer);
+
+            var catalogStorage = Catalogs.CreateTestCatalogWithOnePackage();
+            await _mockServer.AddStorageAsync(catalogStorage);
+
+            _mockServer.SetAction(
+                "/packages/listedpackage.1.0.0.nupkg",
+                request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(nupkgStream) }));
+
+            var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
+            ReadCursor back = MemoryCursor.CreateMax();
+
+            await _target.Run(front, back, CancellationToken.None);
+
+            Assert.Equal(4, _catalogToDnxStorage.Content.Count);
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(indexJsonUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nupkgUri));
+            Assert.True(_catalogToDnxStorage.Content.ContainsKey(nuspecUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(_cursorJsonUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.TryGetValue(indexJsonUri, out var indexJson));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(nupkgUri));
+            Assert.True(_catalogToDnxStorage.ContentBytes.ContainsKey(nuspecUri));
+
+            Assert.Equal(GetExpectedIndexJsonContent("1.0.0"), Encoding.UTF8.GetString(indexJson));
+        }
+
+        [Fact]
         public async Task Run_WhenPackageIsAlreadySynchronizedButNotInIndex_ProcessesPackage()
         {
-            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
-            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
-            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
-
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
                 new Uri("http://tempuri.org/packages/listedpackage.1.0.1.nupkg"),
@@ -455,16 +573,19 @@ namespace NgTests
             _mockServer = new MockServerHttpClientHandler();
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
+            var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
+            var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.1.0.1.nupkg");
+            var nuspecUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.1/listedpackage.nuspec");
+
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
-                new Mock<ITelemetryService>().Object,
+                _nullPreferredPackageSourceStorage,
+                _contentBaseAddress,
+                Mock.Of<ITelemetryService>(),
                 new Mock<ILogger>().Object,
                 _maxDegreeOfParallelism,
-                () => _mockServer)
-            {
-                ContentBaseAddress = new Uri("http://tempuri.org/packages/")
-            };
+                () => _mockServer);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
 
@@ -711,11 +832,11 @@ namespace NgTests
 
         private class SynchronizedMemoryStorage : MemoryStorage
         {
-            private readonly HashSet<Uri> _synchronizedUris;
+            protected HashSet<Uri> SynchronizedUris { get; private set; }
 
             public SynchronizedMemoryStorage(IEnumerable<Uri> synchronizedUris)
             {
-                _synchronizedUris = new HashSet<Uri>(synchronizedUris);
+                SynchronizedUris = new HashSet<Uri>(synchronizedUris);
             }
 
             protected SynchronizedMemoryStorage(
@@ -725,12 +846,12 @@ namespace NgTests
                 HashSet<Uri> synchronizedUris)
                 : base(baseAddress, content, contentBytes)
             {
-                _synchronizedUris = synchronizedUris;
+                SynchronizedUris = synchronizedUris;
             }
 
             public override Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)
             {
-                return Task.FromResult(_synchronizedUris.Contains(firstResourceUri));
+                return Task.FromResult(SynchronizedUris.Contains(firstResourceUri));
             }
 
             public override Storage WithName(string name)
@@ -739,7 +860,56 @@ namespace NgTests
                     new Uri(BaseAddress + name),
                     Content,
                     ContentBytes,
-                    _synchronizedUris);
+                    SynchronizedUris);
+            }
+        }
+
+        private class AzureSynchronizedMemoryStorageStub : SynchronizedMemoryStorage, IAzureStorage
+        {
+            private readonly bool _areRequiredPropertiesPresentAsync;
+
+            internal AzureSynchronizedMemoryStorageStub(
+                IEnumerable<Uri> synchronizedUris,
+                bool areRequiredPropertiesPresentAsync)
+                : base(synchronizedUris)
+            {
+                _areRequiredPropertiesPresentAsync = areRequiredPropertiesPresentAsync;
+            }
+
+            protected AzureSynchronizedMemoryStorageStub(
+                Uri baseAddress,
+                ConcurrentDictionary<Uri, StorageContent> content,
+                ConcurrentDictionary<Uri, byte[]> contentBytes,
+                HashSet<Uri> synchronizedUris,
+                bool areRequiredPropertiesPresentAsync)
+                : base(baseAddress, content, contentBytes, synchronizedUris)
+            {
+                _areRequiredPropertiesPresentAsync = areRequiredPropertiesPresentAsync;
+            }
+
+            public override Storage WithName(string name)
+            {
+                return new AzureSynchronizedMemoryStorageStub(
+                    new Uri(BaseAddress + name),
+                    Content,
+                    ContentBytes,
+                    SynchronizedUris,
+                    _areRequiredPropertiesPresentAsync);
+            }
+
+            public Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(Uri blobUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<bool> HasPropertiesAsync(Uri blobUri, string contentType, string cacheControl)
+            {
+                return Task.FromResult(_areRequiredPropertiesPresentAsync);
             }
         }
     }

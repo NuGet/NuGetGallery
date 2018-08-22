@@ -23,7 +23,8 @@ namespace NuGet.Services.V3PerPackage
         {
             var fileSystemStorage = new FileStorageFactory(
                 new Uri("http://localhost/"),
-                Directory.GetCurrentDirectory());
+                Directory.GetCurrentDirectory(),
+                verbose: false);
 
             var front = new DurableCursor(
                 new Uri("http://localhost/cursor.json"),

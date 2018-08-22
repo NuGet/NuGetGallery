@@ -26,8 +26,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         public async Task<DnxEntry> AddPackageAsync(
             Stream nupkgStream,
             string nuspec,
-            string id,
-            string version,
+            string packageId,
+            string normalizedPackageVersion,
             CancellationToken cancellationToken)
         {
             if (nupkgStream == null)
@@ -40,23 +40,57 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(nuspec));
             }
 
-            if (string.IsNullOrEmpty(id))
+            if (string.IsNullOrEmpty(packageId))
             {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(id));
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(packageId));
             }
 
-            if (string.IsNullOrEmpty(version))
+            if (string.IsNullOrEmpty(normalizedPackageVersion))
             {
-                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(version));
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(normalizedPackageVersion));
             }
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var storage = _storageFactory.Create(id);
-            var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
+            var storage = _storageFactory.Create(packageId);
+            var nuspecUri = await SaveNuspecAsync(storage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
+            var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, packageId, normalizedPackageVersion, cancellationToken);
 
-            var nuspecUri = await SaveNuspecAsync(storage, id, normalizedVersion, nuspec, cancellationToken);
-            var nupkgUri = await SaveNupkgAsync(nupkgStream, storage, id, normalizedVersion, cancellationToken);
+            return new DnxEntry(nupkgUri, nuspecUri);
+        }
+
+        public async Task<DnxEntry> AddPackageAsync(
+            IStorage sourceStorage,
+            string nuspec,
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            if (sourceStorage == null)
+            {
+                throw new ArgumentNullException(nameof(sourceStorage));
+            }
+
+            if (string.IsNullOrEmpty(nuspec))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(nuspec));
+            }
+
+            if (string.IsNullOrEmpty(packageId))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(packageId));
+            }
+
+            if (string.IsNullOrEmpty(normalizedPackageVersion))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(normalizedPackageVersion));
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var destinationStorage = _storageFactory.Create(packageId);
+            var nuspecUri = await SaveNuspecAsync(destinationStorage, packageId, normalizedPackageVersion, nuspec, cancellationToken);
+            var nupkgUri = await CopyNupkgAsync(sourceStorage, destinationStorage, packageId, normalizedPackageVersion, cancellationToken);
 
             return new DnxEntry(nupkgUri, nuspecUri);
         }
@@ -111,8 +145,9 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         {
             var relativeAddress = GetRelativeAddressNuspec(id, version);
             var nuspecUri = new Uri(storage.BaseAddress, relativeAddress);
+            var content = new StringStorageContent(nuspec, "text/xml", DnxConstants.DefaultCacheControl);
 
-            await storage.SaveAsync(nuspecUri, new StringStorageContent(nuspec, "text/xml", "max-age=120"), cancellationToken);
+            await storage.SaveAsync(nuspecUri, content, cancellationToken);
 
             return nuspecUri;
         }
@@ -195,8 +230,34 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
         private async Task<Uri> SaveNupkgAsync(Stream nupkgStream, Storage storage, string id, string version, CancellationToken cancellationToken)
         {
             Uri nupkgUri = new Uri(storage.BaseAddress, GetRelativeAddressNupkg(id, version));
-            await storage.SaveAsync(nupkgUri, new StreamStorageContent(nupkgStream, "application/octet-stream", "max-age=120"), cancellationToken);
+            var content = new StreamStorageContent(
+                nupkgStream,
+                DnxConstants.ApplicationOctetStreamContentType,
+                DnxConstants.DefaultCacheControl);
+
+            await storage.SaveAsync(nupkgUri, content, cancellationToken);
+
             return nupkgUri;
+        }
+
+        private async Task<Uri> CopyNupkgAsync(
+            IStorage sourceStorage,
+            Storage destinationStorage,
+            string id, string version, CancellationToken cancellationToken)
+        {
+            var packageFileName = PackageUtility.GetPackageFileName(id, version);
+            var sourceUri = sourceStorage.ResolveUri(packageFileName);
+            var destinationRelativeUri = GetRelativeAddressNupkg(id, version);
+            var destinationUri = destinationStorage.ResolveUri(destinationRelativeUri);
+
+            await sourceStorage.CopyAsync(
+                sourceUri,
+                destinationStorage,
+                destinationUri,
+                DnxConstants.RequiredBlobProperties,
+                cancellationToken);
+
+            return destinationUri;
         }
 
         private async Task DeleteNuspecAsync(Storage storage, string id, string version, CancellationToken cancellationToken)

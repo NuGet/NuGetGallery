@@ -82,25 +82,30 @@ namespace NuGet.Services.Metadata.Catalog
             return item;
         }
 
-        private async Task<PackageCatalogItem> GetPackageViaStorageAsync(FeedPackageDetails packageItem, CancellationToken cancellationToken)
+        private async Task<PackageCatalogItem> GetPackageViaStorageAsync(
+            FeedPackageDetails packageItem,
+            CancellationToken cancellationToken)
         {
             PackageCatalogItem item = null;
-            var packageFileName = PackageUtility.GetPackageFileNameLowercase(packageItem.PackageId, packageItem.PackageVersion);
-            var blob = await _storage.GetCloudBlockBlobReferenceAsync(packageFileName);
+            var packageId = packageItem.PackageId.ToLowerInvariant();
+            var packageVersion = packageItem.PackageVersion.ToLowerInvariant();
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, packageVersion);
+            var blobUri = _storage.ResolveUri(packageFileName);
+            var blob = await _storage.GetCloudBlockBlobReferenceAsync(blobUri);
 
-            if (blob == null)
+            if (!await blob.ExistsAsync(cancellationToken))
             {
                 _telemetryService.TrackMetric(
                     TelemetryConstants.NonExistentBlob,
                     metric: 1,
-                    properties: GetProperties(packageItem, blob));
+                    properties: GetProperties(packageId, packageVersion, blob));
 
                 return item;
             }
 
             using (_telemetryService.TrackDuration(
                 TelemetryConstants.PackageBlobReadSeconds,
-                GetProperties(packageItem, blob: null)))
+                GetProperties(packageId, packageVersion, blob: null)))
             {
                 await blob.FetchAttributesAsync(cancellationToken);
 
@@ -146,7 +151,7 @@ namespace NuGet.Services.Metadata.Catalog
                             _telemetryService.TrackMetric(
                                 TelemetryConstants.BlobModified,
                                 metric: 1,
-                                properties: GetProperties(packageItem, blob));
+                                properties: GetProperties(packageId, packageVersion, blob));
                         }
                     }
                 }
@@ -155,7 +160,7 @@ namespace NuGet.Services.Metadata.Catalog
                     _telemetryService.TrackMetric(
                         TelemetryConstants.NonExistentPackageHash,
                         metric: 1,
-                        properties: GetProperties(packageItem, blob));
+                        properties: GetProperties(packageId, packageVersion, blob));
                 }
             }
 
@@ -224,10 +229,18 @@ namespace NuGet.Services.Metadata.Catalog
 
         private static Dictionary<string, string> GetProperties(FeedPackageDetails packageItem, ICloudBlockBlob blob)
         {
+            return GetProperties(
+                packageItem.PackageId.ToLowerInvariant(),
+                packageItem.PackageVersion.ToLowerInvariant(),
+                blob);
+        }
+
+        private static Dictionary<string, string> GetProperties(string packageId, string packageVersion, ICloudBlockBlob blob)
+        {
             var properties = new Dictionary<string, string>()
             {
-                { TelemetryConstants.Id, packageItem.PackageId.ToLowerInvariant() },
-                { TelemetryConstants.Version, packageItem.PackageVersion.ToLowerInvariant() }
+                { TelemetryConstants.Id, packageId },
+                { TelemetryConstants.Version, packageVersion }
             };
 
             if (blob != null)

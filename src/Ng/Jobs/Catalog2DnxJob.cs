@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Configuration;
 using NuGet.Services.Metadata.Catalog;
 using NuGet.Services.Metadata.Catalog.Dnx;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace Ng.Jobs
 {
@@ -45,7 +46,12 @@ namespace Ng.Jobs
                    + $"[-{Arguments.Verbose} true|false] "
                    + $"[-{Arguments.Interval} <seconds>]"
                    + $"[-{Arguments.HttpClientTimeoutInSeconds} <seconds>]"
-                   + $"[-{Arguments.StorageSuffix} <suffix for the targeted storage if different than default>]";
+                   + $"[-{Arguments.StorageSuffix} <suffix for the targeted storage if different than default>]"
+                   + $"[-{Arguments.PreferAlternatePackageSourceStorage} true|false "
+                   + $"-{Arguments.StorageAccountNamePreferredPackageSourceStorage} <azure-acc> "
+                   + $"-{Arguments.StorageKeyValuePreferredPackageSourceStorage} <azure-key> "
+                   + $"-{Arguments.StorageContainerPreferredPackageSourceStorage} <azure-container>"
+                   + $"-{Arguments.StorageUseServerSideCopy} true|false]";
         }
 
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
@@ -57,20 +63,33 @@ namespace Ng.Jobs
             var httpClientTimeoutInSeconds = arguments.GetOrDefault<int?>(Arguments.HttpClientTimeoutInSeconds);
             var httpClientTimeout = httpClientTimeoutInSeconds.HasValue ? (TimeSpan?)TimeSpan.FromSeconds(httpClientTimeoutInSeconds.Value) : null;
 
-            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\"", source, storageFactory);
+            StorageFactory preferredPackageSourceStorageFactory = null;
+            IAzureStorage preferredPackageSourceStorage = null;
+
+            var preferAlternatePackageSourceStorage = arguments.GetOrDefault(Arguments.PreferAlternatePackageSourceStorage, defaultValue: false);
+
+            if (preferAlternatePackageSourceStorage)
+            {
+                preferredPackageSourceStorageFactory = CommandHelpers.CreateSuffixedStorageFactory("PreferredPackageSourceStorage", arguments, verbose);
+                preferredPackageSourceStorage = preferredPackageSourceStorageFactory.Create() as IAzureStorage;
+            }
+
+            Logger.LogInformation("CONFIG source: \"{ConfigSource}\" storage: \"{Storage}\" preferred package source storage: \"{PreferredPackageSourceStorage}\"",
+                source,
+                storageFactory,
+                preferredPackageSourceStorageFactory);
             Logger.LogInformation("HTTP client timeout: {Timeout}", httpClientTimeout);
 
             _collector = new DnxCatalogCollector(
                 new Uri(source),
                 storageFactory,
+                preferredPackageSourceStorage,
+                contentBaseAddress == null ? null : new Uri(contentBaseAddress),
                 TelemetryService,
                 Logger,
                 MaxDegreeOfParallelism,
                 CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose),
-                httpClientTimeout)
-            {
-                ContentBaseAddress = contentBaseAddress == null ? null : new Uri(contentBaseAddress)
-            };
+                httpClientTimeout);
 
             var storage = storageFactory.Create();
             _front = new DurableCursor(storage.ResolveUri("cursor.json"), storage, MemoryCursor.MinValue);

@@ -9,9 +9,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
     {
         public string GetPackagePath(string id, string version)
         {
-            version = NuGetVersionUtility.NormalizeVersion(version);
+            var idLowerCase = id.ToLowerInvariant();
+            var versionLowerCase = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
 
-            var packageFileName = PackageUtility.GetPackageFileNameLowercase(id, version);
+            var packageFileName = PackageUtility.GetPackageFileName(idLowerCase, versionLowerCase);
 
             return $"packages/{packageFileName}";
         }

@@ -2,15 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Moq;
 using Newtonsoft.Json.Linq;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog.Dnx;
 using NuGet.Services.Metadata.Catalog.Helpers;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Versioning;
 using Xunit;
 
@@ -18,6 +21,11 @@ namespace NgTests
 {
     public class DnxMakerTests
     {
+        private const string _expectedCacheControl = "max-age=120";
+        private const string _expectedNuspecContentType = "text/xml";
+        private const string _expectedPackageContentType = "application/octet-stream";
+        private const string _expectedPackageVersionIndexJsonCacheControl = "no-store";
+        private const string _expectedPackageVersionIndexJsonContentType = "application/json";
         private const string _packageId = "testid";
         private const string _nupkgData = "nupkg data";
         private const string _nuspecData = "nuspec data";
@@ -174,8 +182,8 @@ namespace NgTests
                 () => maker.AddPackageAsync(
                     nupkgStream: null,
                     nuspec: "a",
-                    id: "b",
-                    version: "c",
+                    packageId: "b",
+                    normalizedPackageVersion: "c",
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nupkgStream", exception.ParamName);
@@ -192,8 +200,8 @@ namespace NgTests
                 () => maker.AddPackageAsync(
                     Stream.Null,
                     nuspec,
-                    id: "a",
-                    version: "b",
+                    packageId: "a",
+                    normalizedPackageVersion: "b",
                     cancellationToken: CancellationToken.None));
 
             Assert.Equal("nuspec", exception.ParamName);
@@ -203,7 +211,7 @@ namespace NgTests
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task AddPackageAsync_WhenIdIsNullOrEmpty_Throws(string id)
+        public async Task AddPackageAsync_WhenPackageIdIsNullOrEmpty_Throws(string packageId)
         {
             var maker = CreateDnxMaker();
 
@@ -211,18 +219,18 @@ namespace NgTests
                 () => maker.AddPackageAsync(
                     Stream.Null,
                     nuspec: "a",
-                    id: id,
-                    version: "b",
+                    packageId: packageId,
+                    normalizedPackageVersion: "b",
                     cancellationToken: CancellationToken.None));
 
-            Assert.Equal("id", exception.ParamName);
+            Assert.Equal("packageId", exception.ParamName);
             Assert.StartsWith("The argument must not be null or empty.", exception.Message);
         }
 
         [Theory]
         [InlineData(null)]
         [InlineData("")]
-        public async Task AddPackageAsync_WhenVersionIsNullOrEmpty_Throws(string version)
+        public async Task AddPackageAsync_WhenNormalizedPackageVersionIsNullOrEmpty_Throws(string normalizedPackageVersion)
         {
             var maker = CreateDnxMaker();
 
@@ -230,11 +238,11 @@ namespace NgTests
                 () => maker.AddPackageAsync(
                     Stream.Null,
                     nuspec: "a",
-                    id: "b",
-                    version: version,
+                    packageId: "b",
+                    normalizedPackageVersion: normalizedPackageVersion,
                     cancellationToken: CancellationToken.None));
 
-            Assert.Equal("version", exception.ParamName);
+            Assert.Equal("normalizedPackageVersion", exception.ParamName);
             Assert.StartsWith("The argument must not be null or empty.", exception.Message);
         }
 
@@ -247,8 +255,8 @@ namespace NgTests
                 () => maker.AddPackageAsync(
                     Stream.Null,
                     nuspec: "a",
-                    id: "b",
-                    version: "c",
+                    packageId: "b",
+                    normalizedPackageVersion: "c",
                     cancellationToken: new CancellationToken(canceled: true)));
         }
 
@@ -274,11 +282,131 @@ namespace NgTests
                 Assert.Equal(2, catalogToDnxStorage.Content.Count);
                 Assert.Equal(2, storageForPackage.Content.Count);
 
-                Verify(catalogToDnxStorage, expectedNupkg, _nupkgData);
-                Verify(catalogToDnxStorage, expectedNuspec, _nuspecData);
-                Verify(storageForPackage, expectedNupkg, _nupkgData);
-                Verify(storageForPackage, expectedNuspec, _nuspecData);
+                Verify(catalogToDnxStorage, expectedNupkg, _nupkgData, _expectedCacheControl, _expectedPackageContentType);
+                Verify(catalogToDnxStorage, expectedNuspec, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
+                Verify(storageForPackage, expectedNupkg, _nupkgData, _expectedCacheControl, _expectedPackageContentType);
+                Verify(storageForPackage, expectedNuspec, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
             }
+        }
+
+        [Fact]
+        public async Task AddPackageAsync_WithStorage_WhenSourceStorageIsNull_Throws()
+        {
+            var maker = CreateDnxMaker();
+
+            var exception = await Assert.ThrowsAsync<ArgumentNullException>(
+                () => maker.AddPackageAsync(
+                    sourceStorage: null,
+                    nuspec: "a",
+                    packageId: "b",
+                    normalizedPackageVersion: "c",
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal("sourceStorage", exception.ParamName);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task AddPackageAsync_WithStorage_WhenNuspecIsNullOrEmpty_Throws(string nuspec)
+        {
+            var maker = CreateDnxMaker();
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => maker.AddPackageAsync(
+                    Mock.Of<IStorage>(),
+                    nuspec,
+                    packageId: "a",
+                    normalizedPackageVersion: "b",
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal("nuspec", exception.ParamName);
+            Assert.StartsWith("The argument must not be null or empty.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task AddPackageAsync_WithStorage_WhenPackageIdIsNullOrEmpty_Throws(string id)
+        {
+            var maker = CreateDnxMaker();
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => maker.AddPackageAsync(
+                    Mock.Of<IStorage>(),
+                    nuspec: "a",
+                    packageId: id,
+                    normalizedPackageVersion: "b",
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal("packageId", exception.ParamName);
+            Assert.StartsWith("The argument must not be null or empty.", exception.Message);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public async Task AddPackageAsync_WithStorage_WhenNormalizedPackageVersionIsNullOrEmpty_Throws(string version)
+        {
+            var maker = CreateDnxMaker();
+
+            var exception = await Assert.ThrowsAsync<ArgumentException>(
+                () => maker.AddPackageAsync(
+                    Mock.Of<IStorage>(),
+                    nuspec: "a",
+                    packageId: "b",
+                    normalizedPackageVersion: version,
+                    cancellationToken: CancellationToken.None));
+
+            Assert.Equal("normalizedPackageVersion", exception.ParamName);
+            Assert.StartsWith("The argument must not be null or empty.", exception.Message);
+        }
+
+        [Fact]
+        public async Task AddPackageAsync_WithStorage_WhenCancelled_Throws()
+        {
+            var maker = CreateDnxMaker();
+
+            await Assert.ThrowsAsync<OperationCanceledException>(
+                () => maker.AddPackageAsync(
+                    Mock.Of<IStorage>(),
+                    nuspec: "a",
+                    packageId: "b",
+                    normalizedPackageVersion: "c",
+                    cancellationToken: new CancellationToken(canceled: true)));
+        }
+
+        [Theory]
+        [MemberData(nameof(PackageVersions))]
+        public async Task AddPackageAsync_WithStorage_WithIStorage_PopulatesStorageWithNupkgAndNuspec(string version)
+        {
+            var catalogToDnxStorage = new AzureStorageStub();
+            var catalogToDnxStorageFactory = new TestStorageFactory(name => catalogToDnxStorage.WithName(name));
+            var maker = new DnxMaker(catalogToDnxStorageFactory);
+            var normalizedVersion = NuGetVersionUtility.NormalizeVersion(version);
+            var sourceStorage = new AzureStorageStub();
+
+            var dnxEntry = await maker.AddPackageAsync(
+                sourceStorage,
+                _nuspecData,
+                _packageId,
+                normalizedVersion,
+                CancellationToken.None);
+
+            var expectedNuspecUri = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.nuspec");
+            var expectedNupkgUri = new Uri($"{catalogToDnxStorage.BaseAddress}{_packageId}/{normalizedVersion}/{_packageId}.{normalizedVersion}.nupkg");
+            var expectedSourceUri = new Uri(sourceStorage.BaseAddress, $"{_packageId}.{normalizedVersion}.nupkg");
+            var storageForPackage = (MemoryStorage)catalogToDnxStorageFactory.Create(_packageId);
+
+            Assert.Equal(expectedNuspecUri, dnxEntry.Nuspec);
+            Assert.Equal(expectedNupkgUri, dnxEntry.Nupkg);
+            Assert.Equal(2, catalogToDnxStorage.Content.Count);
+            Assert.Equal(2, storageForPackage.Content.Count);
+
+            Verify(catalogToDnxStorage, expectedNupkgUri, expectedSourceUri.AbsoluteUri, _expectedCacheControl, _expectedPackageContentType);
+            Verify(catalogToDnxStorage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
+            Verify(storageForPackage, expectedNupkgUri, expectedSourceUri.AbsoluteUri, _expectedCacheControl, _expectedPackageContentType);
+            Verify(storageForPackage, expectedNuspecUri, _nuspecData, _expectedCacheControl, _expectedNuspecContentType);
         }
 
         [Theory]
@@ -415,8 +543,8 @@ namespace NgTests
             Assert.Equal(1, catalogToDnxStorage.Content.Count);
             Assert.Equal(1, storageForPackage.Content.Count);
 
-            Verify(catalogToDnxStorage, indexJsonUri, expectedContent);
-            Verify(storageForPackage, indexJsonUri, expectedContent);
+            Verify(catalogToDnxStorage, indexJsonUri, expectedContent, _expectedPackageVersionIndexJsonCacheControl, _expectedPackageVersionIndexJsonContentType);
+            Verify(storageForPackage, indexJsonUri, expectedContent, _expectedPackageVersionIndexJsonCacheControl, _expectedPackageVersionIndexJsonContentType);
 
             Assert.Equal(new[] { normalizedVersion }, versions);
         }
@@ -548,9 +676,17 @@ namespace NgTests
             return $"{{\r\n  \"versions\": [\r\n    \"{version}\"\r\n  ]\r\n}}";
         }
 
-        private static void Verify(MemoryStorage storage, Uri uri, string expectedContent)
+        private static void Verify(
+            MemoryStorage storage,
+            Uri uri,
+            string expectedContent,
+            string expectedCacheControl,
+            string expectedContentType)
         {
-            Assert.True(storage.Content.ContainsKey(uri));
+            Assert.True(storage.Content.TryGetValue(uri, out var content));
+            Assert.Equal(expectedCacheControl, content.CacheControl);
+            Assert.Equal(expectedContentType, content.ContentType);
+
             Assert.True(storage.ContentBytes.TryGetValue(uri, out var bytes));
             Assert.Equal(Encoding.UTF8.GetBytes(expectedContent), bytes);
 
@@ -565,6 +701,66 @@ namespace NgTests
                 var utc = DateTime.UtcNow;
                 Assert.NotNull(list.LastModifiedUtc);
                 Assert.InRange(list.LastModifiedUtc.Value, utc.AddMinutes(-1), utc);
+            }
+        }
+
+        private sealed class AzureStorageStub : MemoryStorage, IAzureStorage
+        {
+            internal AzureStorageStub()
+            {
+            }
+
+            private AzureStorageStub(
+                Uri baseAddress,
+                ConcurrentDictionary<Uri, StorageContent> content,
+                ConcurrentDictionary<Uri, byte[]> contentBytes)
+                : base(baseAddress, content, contentBytes)
+            {
+            }
+
+            public override Storage WithName(string name)
+            {
+                return new AzureStorageStub(
+                    new Uri(BaseAddress + name),
+                    Content,
+                    ContentBytes);
+            }
+
+            public Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(Uri blobUri)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<ICloudBlockBlob> GetCloudBlockBlobReferenceAsync(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task<bool> HasPropertiesAsync(Uri blobUri, string contentType, string cacheControl)
+            {
+                throw new NotImplementedException();
+            }
+
+            protected override Task OnCopyAsync(
+                Uri sourceUri,
+                IStorage destinationStorage,
+                Uri destinationUri,
+                IReadOnlyDictionary<string, string> destinationProperties,
+                CancellationToken cancellationToken)
+            {
+                var destinationMemoryStorage = (AzureStorageStub)destinationStorage;
+
+                string cacheControl = null;
+                string contentType = null;
+
+                destinationProperties?.TryGetValue(StorageConstants.CacheControl, out cacheControl);
+                destinationProperties?.TryGetValue(StorageConstants.ContentType, out contentType);
+
+                destinationMemoryStorage.Content[destinationUri] = new StringStorageContent(sourceUri.AbsoluteUri, contentType, cacheControl);
+                destinationMemoryStorage.ContentBytes[destinationUri] = Encoding.UTF8.GetBytes(sourceUri.AbsoluteUri);
+                destinationMemoryStorage.ListMock[destinationUri] = new StorageListItem(destinationUri, DateTime.UtcNow);
+
+                return Task.FromResult(0);
             }
         }
     }

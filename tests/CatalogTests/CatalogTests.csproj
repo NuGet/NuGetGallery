@@ -202,7 +202,11 @@
     <Compile Include="Helpers\UtilsTests.cs" />
     <Compile Include="PackageCatalogItemCreatorTests.cs" />
     <Compile Include="PackageCatalogItemTests.cs" />
+    <Compile Include="Persistence\AggregateStorageTests.cs" />
     <Compile Include="Persistence\AzureCloudBlockBlobTests.cs" />
+    <Compile Include="Persistence\FileStorageTests.cs" />
+    <Compile Include="Persistence\OptimisticConcurrencyControlTokenTests.cs" />
+    <Compile Include="Registration\RecordingStorageTests.cs" />
     <Compile Include="ReadOnlyGraphTests.cs" />
     <Compile Include="Registration\FlatContainerPackagePathProviderTests.cs" />
     <Compile Include="Registration\RegistrationEntryKeyTests.cs" />

@@ -12,7 +12,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         Uri BaseAddress { get; }
 
+        Task CopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellation);
         Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken);
+        Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
+            Uri resourceUri,
+            CancellationToken cancellationToken);
         Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken);
         Task<StorageContent> LoadAsync(Uri resourceUri, CancellationToken cancellationToken);
         Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken);

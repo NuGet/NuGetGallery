@@ -200,6 +200,56 @@ namespace NgTests.Data {
         ///    &quot;AppendOnlyCatalog&quot;,
         ///    &quot;Permalink&quot;
         ///  ],
+        ///  &quot;commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///      &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///      &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///      &quot;count&quot;: 4
+        ///    }
+        ///  ],
+        ///  &quot;nuget:las [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogStorageWithOnePackageIndex {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageWithOnePackageIndex", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/page0.json&quot;,
+        ///  &quot;@type&quot;: &quot;CatalogPage&quot;,
+        ///  &quot;commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///  &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///  &quot;count&quot;: 1,
+        ///  &quot;items&quot;: [
+        ///    {
+        ///      &quot;@id&quot;: &quot;http://tempuri.org/data/2015.10.12.10.08.54/listedpackage.1.0.0.json&quot;,
+        ///      &quot;@type&quot;: &quot;nuget:PackageDetails&quot;,
+        ///      &quot;commitId&quot;: &quot;9a37734f-1960-4c07-8934-c8bc797e35c1&quot;,
+        ///      &quot;commitTimeStamp&quot;: &quot;2015-10-12T10:08:54.1506742Z&quot;,
+        ///      &quot;nuget:id&quot;: &quot;ListedPackage&quot;,
+        ///      &quot;nuget:ve [rest of string was truncated]&quot;;.
+        /// </summary>
+        public static string TestCatalogStorageWithOnePackagePage {
+            get {
+                return ResourceManager.GetString("TestCatalogStorageWithOnePackagePage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {
+        ///  &quot;@id&quot;: &quot;http://tempuri.org/index.json&quot;,
+        ///  &quot;@type&quot;: [
+        ///    &quot;CatalogRoot&quot;,
+        ///    &quot;AppendOnlyCatalog&quot;,
+        ///    &quot;Permalink&quot;
+        ///  ],
         ///  &quot;commitId&quot;: &quot;afc8c1f4-486e-4142-b3ec-cf5841eb8883&quot;,
         ///  &quot;commitTimeStamp&quot;: &quot;2015-10-13T06:40:07.7850657Z&quot;,
         ///  &quot;count&quot;: 1,

@@ -51,6 +51,13 @@ namespace Ng
         public const string StorageServerTimeoutInSeconds = "storageServerTimeoutInSeconds";
         public const string HttpClientTimeoutInSeconds = "httpClientTimeoutInSeconds";
 
+        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
+        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
+        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
+
+        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
+
+        public const string StorageUseServerSideCopy = "storageUseServerSideCopy";
         #endregion
 
         #region Catalog2Lucene
@@ -102,11 +109,7 @@ namespace Ng
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
-        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
-        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
-        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
 
-        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
         public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
         #endregion
 

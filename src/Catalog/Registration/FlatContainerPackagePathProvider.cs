@@ -13,13 +13,14 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         {
             _container = container;
         }
+
         public string GetPackagePath(string id, string version)
         {
-            version = NuGetVersionUtility.NormalizeVersion(version);
+            var idLowerCase = id.ToLowerInvariant();
+            var versionLowerCase = NuGetVersionUtility.NormalizeVersion(version).ToLowerInvariant();
+            var packageFileName = PackageUtility.GetPackageFileName(idLowerCase, versionLowerCase);
 
-            var packageFileName = PackageUtility.GetPackageFileNameLowercase(id, version);
-
-            return $"{_container}/{id.ToLowerInvariant()}/{version.ToLowerInvariant()}/{packageFileName}";
+            return $"{_container}/{idLowerCase}/{versionLowerCase}/{packageFileName}";
         }
     }
 }

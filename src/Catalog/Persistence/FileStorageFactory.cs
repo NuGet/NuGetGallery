@@ -7,12 +7,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorageFactory : StorageFactory
     {
-        string _path;
-        
-        public FileStorageFactory(Uri baseAddress, string path)
+        private readonly string _path;
+
+        public FileStorageFactory(Uri baseAddress, string path, bool verbose)
         {
             BaseAddress = new Uri(baseAddress.ToString().TrimEnd('/') + '/');
             _path = path.TrimEnd('\\') + '\\';
+
+            Verbose = verbose;
         }
 
         public override Storage Create(string name = null)
@@ -20,7 +22,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             string fileSystemPath = (name == null) ? _path.Trim('\\') : _path + name;
             string uriPath = name ?? string.Empty;
 
-            return new FileStorage(BaseAddress + uriPath, fileSystemPath) { Verbose = Verbose };
+            return new FileStorage(BaseAddress + uriPath, fileSystemPath, Verbose);
         }
     }
 }

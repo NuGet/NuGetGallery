@@ -14,6 +14,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         string ETag { get; }
         Uri Uri { get; }
 
+        Task<bool> ExistsAsync(CancellationToken cancellationToken);
         Task FetchAttributesAsync(CancellationToken cancellationToken);
         Task<IReadOnlyDictionary<string, string>> GetMetadataAsync(CancellationToken cancellationToken);
         Task<Stream> GetStreamAsync(CancellationToken cancellationToken);

@@ -204,5 +204,24 @@ namespace NgTests.Data
 
             return catalogStorage;
         }
+
+        public static MemoryStorage CreateTestCatalogWithOnePackage()
+        {
+            var catalogStorage = new MemoryStorage();
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "index.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithOnePackageIndex));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "page0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithOnePackagePage));
+
+            catalogStorage.Content.TryAdd(
+                new Uri(catalogStorage.BaseAddress, "data/2015.10.12.10.08.54/listedpackage.1.0.0.json"),
+                new StringStorageContent(TestCatalogEntries.TestCatalogStorageWithThreePackagesListedPackage100));
+
+            return catalogStorage;
+        }
     }
 }

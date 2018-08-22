@@ -218,20 +218,20 @@ namespace NuGet.Services.V3PerPackage
                 context.Process.FlatContainerStoragePath);
 
             var storageFactory = serviceProvider.GetRequiredService<StorageFactory>();
+            IAzureStorage preferredPackageSourceStorage = null;
             var httpClientTimeout = TimeSpan.FromMinutes(10);
             var maxDegreeOfParallelism = ServicePointManager.DefaultConnectionLimit;
 
             var collector = new DnxCatalogCollector(
                 catalogIndexUri,
                 storageFactory,
+                preferredPackageSourceStorage,
+                context.Global.ContentBaseAddress,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
                 serviceProvider.GetRequiredService<ILogger>(),
                 maxDegreeOfParallelism,
                 () => serviceProvider.GetRequiredService<HttpMessageHandler>(),
-                httpClientTimeout)
-            {
-                ContentBaseAddress = context.Global.ContentBaseAddress,
-            };
+                httpClientTimeout);
 
             var lowercasePackageIds = packageContexts.Select(x => x.PackageId.ToLowerInvariant());
             using (await _stringLocker.AcquireAsync(lowercasePackageIds, TimeSpan.FromMinutes(5)))
