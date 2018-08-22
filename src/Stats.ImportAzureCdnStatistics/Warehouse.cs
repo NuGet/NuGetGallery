@@ -126,7 +126,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_openStatisticsSqlConnectionAsync);
-            var factsDataTable = await dataImporter.GetDataTableAsync("Fact_Download");
+            var factsDataTable = await dataImporter.GetDataTableAsync(DataImporter.Table.Fact_Download);
 
             var knownOperationsAvailable = operations.Any();
             var knownClientsAvailable = clients.Any();
@@ -247,7 +247,7 @@ namespace Stats.ImportAzureCdnStatistics
 
             // create facts data rows by linking source data with dimensions
             var dataImporter = new DataImporter(_openStatisticsSqlConnectionAsync);
-            var dataTable = await dataImporter.GetDataTableAsync("Fact_Dist_Download");
+            var dataTable = await dataImporter.GetDataTableAsync(DataImporter.Table.Fact_Dist_Download);
 
             var knownClientsAvailable = clients.Any();
             var knownPlatformsAvailable = platforms.Any();
