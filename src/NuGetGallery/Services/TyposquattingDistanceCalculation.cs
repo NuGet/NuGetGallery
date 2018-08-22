@@ -30,6 +30,26 @@ namespace NuGetGallery
             Insert,
         }
 
+        public static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
+        {
+            if (str1 == null)
+            {
+                throw new ArgumentNullException(nameof(str1));
+            }
+            if (str2 == null)
+            {
+                throw new ArgumentNullException(nameof(str2));
+            }
+
+            var newStr1 = Regex.Replace(str1, SpecialCharactersToString, string.Empty);
+            var newStr2 = Regex.Replace(str2, SpecialCharactersToString, string.Empty);
+            if (Math.Abs(newStr1.Length - newStr2.Length) > threshold)
+            {
+                return false;
+            }
+
+            return GetDistance(str1, str2, threshold) <= threshold;
+        }
         private static int GetDistance(string str1, string str2, int threshold)
         {
             var basicEditDistanceInfo = GetBasicEditDistanceWithPath(str1, str2);
@@ -187,27 +207,6 @@ namespace NuGetGallery
             }
 
             return basicEditDistance - sameSubstitution;
-        }
-
-        public static bool IsDistanceLessThanThreshold(string str1, string str2, int threshold)
-        {
-            if (str1 == null)
-            {
-                throw new ArgumentNullException(nameof(str1));
-            }
-            if (str2 == null)
-            {
-                throw new ArgumentNullException(nameof(str2));
-            }
-
-            var newStr1 = Regex.Replace(str1, SpecialCharactersToString, string.Empty);
-            var newStr2 = Regex.Replace(str2, SpecialCharactersToString, string.Empty);
-            if (Math.Abs(newStr1.Length - newStr2.Length) > threshold)
-            {
-                return false;
-            }
-
-            return GetDistance(str1, str2, threshold) <= threshold;
-        }
+        }        
     }
 }

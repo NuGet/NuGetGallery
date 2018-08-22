@@ -144,5 +144,59 @@ namespace NuGetGallery
             // Assert
             Assert.Equal(nameof(uploadedPackageOwner), exception.ParamName);
         }
+
+
+        [Theory]
+        [InlineData("Microsoft_NetFramework_v1", "Microsoft.NetFramework.v1", 0)]
+        [InlineData("Microsoft_NetFramework_v1", "microsoft-netframework-v1", 0)]
+        [InlineData("Microsoft_NetFramework_v1", "MicrosoftNetFrameworkV1", 0)]
+        [InlineData("Microsoft_NetFramework_v1", "Mícr0s0ft_NetFrάmѐw0rk_v1", 0)]
+        [InlineData("Dotnet.Script.Core.RoslynDependencies", "dotnet-script-core-rõslyndependencies", 1)]
+        [InlineData("Dotnet.Script.Core.RoslynDependencies", "DotnetScriptCoreRoslyndependncies", 1)]
+        [InlineData("MichaelBrandonMorris.Extensions.CollectionExtensions", "Michaelbrandonmorris.Extension.CollectionExtension", 2)]
+        [InlineData("MichaelBrandonMorris.Extensions.CollectionExtensions", "MichaelBrandonMoris_Extensions_CollectionExtension", 2)]
+        public void CheckTyposquattingDistance(string str1, string str2, int threshold)
+        {
+            // Arrange 
+            str1 = TyposquattingStringNormalization.NormalizeString(str1);
+            str2 = TyposquattingStringNormalization.NormalizeString(str2);
+
+            // Act
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(str1, str2, threshold);
+            
+            // Assert
+            Assert.True(checkResult);
+        }
+        [Theory]
+        [InlineData("Lappa.ORM", "JCTools.I18N", 0)]
+        [InlineData("Cake.Intellisense.Core", "Cake.IntellisenseGenerator", 0)]
+        [InlineData("Hangfire.Net40", "Hangfire.SqlServer.Net40", 0)]
+        [InlineData("LogoFX.Client.Tests.Integration.SpecFlow.Core", "LogoFX.Client.Testing.EndToEnd.SpecFlow", 1)]
+        [InlineData("cordova-plugin-ms-adal.TypeScript.DefinitelyTyped", "eonasdan-bootstrap-datetimepicker.TypeScript.DefinitelyTyped", 2)]
+        public void CheckNotTyposquattingDistance(string str1, string str2, int threshold)
+        {
+            // Arrange
+            str1 = TyposquattingStringNormalization.NormalizeString(str1);
+            str2 = TyposquattingStringNormalization.NormalizeString(str2);
+
+            // Act
+            var checkResult = TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(str1, str2, threshold);
+            
+            // Assert
+            Assert.False(checkResult);
+        }
+        
+        [Theory]
+        [InlineData("Microsoft_NetFramework_v1", "microsoft_netframework_v1")]
+        [InlineData("Microsoft.NetFramework-v1", "microsoft_netframework_v1")]
+        [InlineData("mícr0s0ft.nёtFrǎmȇwὀrk.v1", "microsoft_netframework_v1")]
+        public void CheckNormalization(string str1, string str2)
+        {
+            // Arrange and Act
+            str1 = TyposquattingStringNormalization.NormalizeString(str1);
+
+            // Assert
+            Assert.Equal(str1, str2);
+        }
     }
 }
