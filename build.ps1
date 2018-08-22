@@ -13,6 +13,8 @@ param (
     [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
 )
 
+Set-StrictMode -Version 1.0
+
 # This script should fail the build if any issue occurs.
 trap {
     Write-Host "BUILD FAILED: $_" -ForegroundColor Red
