@@ -4,13 +4,20 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using Autofac;
+using Autofac.Core;
+using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 using NuGet.Services.Incidents;
+using NuGet.Services.Status.Table.Manual;
+using StatusAggregator.Manual;
 using StatusAggregator.Parse;
 using StatusAggregator.Table;
 
@@ -26,10 +33,14 @@ namespace StatusAggregator
 
             AddLogging(serviceCollection);
             AddConfiguration(serviceCollection, jobArgsDictionary);
-            AddStorage(serviceCollection);
             AddServices(serviceCollection);
 
-            _serviceProvider = serviceCollection.BuildServiceProvider();
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.Populate(serviceCollection);
+
+            AddStorage(containerBuilder);
+
+            _serviceProvider = new AutofacServiceProvider(containerBuilder.Build());
         }
 
         public override Task Run()
@@ -48,9 +59,21 @@ namespace StatusAggregator
             serviceCollection.AddTransient<IIncidentFactory, IncidentFactory>();
             AddParsing(serviceCollection);
             serviceCollection.AddTransient<IIncidentUpdater, IncidentUpdater>();
+            AddManualStatusChangeHandling(serviceCollection);
             serviceCollection.AddTransient<IStatusUpdater, StatusUpdater>();
             serviceCollection.AddTransient<IStatusExporter, StatusExporter>();
             serviceCollection.AddTransient<StatusAggregator>();
+        }
+
+        private static void AddManualStatusChangeHandling(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddTransient<IManualStatusChangeHandler<AddStatusEventManualChangeEntity>, AddStatusEventManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler<EditStatusEventManualChangeEntity>, EditStatusEventManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler<DeleteStatusEventManualChangeEntity>, DeleteStatusEventManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler<AddStatusMessageManualChangeEntity>, AddStatusMessageManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler<EditStatusMessageManualChangeEntity>, EditStatusMessageManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler<DeleteStatusMessageManualChangeEntity>, DeleteStatusMessageManualChangeHandler>();
+            serviceCollection.AddTransient<IManualStatusChangeHandler, ManualStatusChangeHandler>();
         }
 
         private static void AddParsing(IServiceCollection serviceCollection)
@@ -66,31 +89,78 @@ namespace StatusAggregator
             serviceCollection.AddTransient<IAggregateIncidentParser, AggregateIncidentParser>();
         }
 
-        private static void AddStorage(IServiceCollection serviceCollection)
+        private const string StorageAccountNameParameter = "name";
+
+        private const string PrimaryStorageAccountName = "Primary";
+        private const string SecondaryStorageAccountName = "Secondary";
+
+        private static void AddStorage(ContainerBuilder containerBuilder)
         {
-            serviceCollection.AddSingleton(
-                serviceProvider =>
-                {
-                    var configuration = serviceProvider.GetRequiredService<StatusAggregatorConfiguration>();
-                    return CloudStorageAccount.Parse(configuration.StorageAccount);
-                });
+            var statusStorageConnectionBuilders = new StatusStorageConnectionBuilder[]
+            {
+                new StatusStorageConnectionBuilder(PrimaryStorageAccountName, configuration => configuration.StorageAccount),
+                new StatusStorageConnectionBuilder(SecondaryStorageAccountName, configuration => configuration.StorageAccountSecondary)
+            };
+            
+            // Add all storages to the container by name.
+            foreach (var statusStorageConnectionBuilder in 
+                // Register the primary storage last, so it will be the default and will be used unless a specific storage is referenced.
+                statusStorageConnectionBuilders.OrderBy(b => b.Name == PrimaryStorageAccountName))
+            {
+                var name = statusStorageConnectionBuilder.Name;
+                
+                containerBuilder
+                    .Register(ctx => GetCloudStorageAccount(ctx, statusStorageConnectionBuilder))
+                    .As<CloudStorageAccount>()
+                    .Named<CloudStorageAccount>(name);
 
-            serviceCollection.AddSingleton<ITableWrapper>(
-                serviceProvider =>
-                {
-                    var storageAccount = serviceProvider.GetRequiredService<CloudStorageAccount>();
-                    var configuration = serviceProvider.GetRequiredService<StatusAggregatorConfiguration>();
-                    return new TableWrapper(storageAccount, configuration.TableName);
-                });
+                containerBuilder
+                    .Register(ctx =>
+                    {
+                        var storageAccount = ctx.ResolveNamed<CloudStorageAccount>(name);
+                        return GetTableWrapper(ctx, storageAccount);
+                    })
+                    .As<ITableWrapper>()
+                    .Named<ITableWrapper>(name);
 
-            serviceCollection.AddSingleton(
-                serviceProvider =>
-                {
-                    var storageAccount = serviceProvider.GetRequiredService<CloudStorageAccount>();
-                    var blobClient = storageAccount.CreateCloudBlobClient();
-                    var configuration = serviceProvider.GetRequiredService<StatusAggregatorConfiguration>();
-                    return blobClient.GetContainerReference(configuration.ContainerName);
-                });
+                containerBuilder
+                    .Register(ctx =>
+                    {
+                        var storageAccount = ctx.ResolveNamed<CloudStorageAccount>(name);
+                        return GetCloudBlobContainer(ctx, storageAccount);
+                    })
+                    .As<CloudBlobContainer>()
+                    .Named<CloudBlobContainer>(name);
+
+                // We need to listen to manual status change updates from each storage.
+                containerBuilder
+                    .RegisterType<ManualStatusChangeUpdater>()
+                    .WithParameter(new NamedParameter(StorageAccountNameParameter, name))
+                    .WithParameter(new ResolvedParameter(
+                        (pi, ctx) => pi.ParameterType == typeof(ITableWrapper),
+                        (pi, ctx) => ctx.ResolveNamed<ITableWrapper>(name)))
+                    .As<IManualStatusChangeUpdater>()
+                    .Named<IManualStatusChangeUpdater>(name);
+            }
+        }
+
+        private static CloudStorageAccount GetCloudStorageAccount(IComponentContext ctx, StatusStorageConnectionBuilder statusStorageConnectionBuilder)
+        {
+            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
+            return CloudStorageAccount.Parse(statusStorageConnectionBuilder.GetConnectionString(configuration));
+        }
+
+        private static ITableWrapper GetTableWrapper(IComponentContext ctx, CloudStorageAccount storageAccount)
+        {
+            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
+            return new TableWrapper(storageAccount, configuration.TableName);
+        }
+
+        private static CloudBlobContainer GetCloudBlobContainer(IComponentContext ctx, CloudStorageAccount storageAccount)
+        {
+            var blobClient = storageAccount.CreateCloudBlobClient();
+            var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
+            return blobClient.GetContainerReference(configuration.ContainerName);
         }
 
         private const int _defaultEventStartMessageDelayMinutes = 15;
@@ -101,8 +171,10 @@ namespace StatusAggregator
         {
             var configuration = new StatusAggregatorConfiguration()
             {
-                StorageAccount = 
+                StorageAccount =
                     JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusStorageAccount),
+                StorageAccountSecondary =
+                    JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusStorageAccountSecondary),
                 ContainerName = 
                     JobConfigurationManager.GetArgument(jobArgsDictionary, JobArgumentNames.StatusContainerName),
                 TableName = 

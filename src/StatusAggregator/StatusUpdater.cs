@@ -3,14 +3,20 @@
 
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Extensions;
+using StatusAggregator.Manual;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace StatusAggregator
 {
     public class StatusUpdater : IStatusUpdater
     {
+        private const string ManualCursorBaseName = "manual";
+        private const string IncidentCursorName = "incident";
+
         private readonly ICursor _cursor;
+        private readonly IEnumerable<IManualStatusChangeUpdater> _manualStatusChangeUpdaters;
         private readonly IIncidentUpdater _incidentUpdater;
         private readonly IEventUpdater _eventUpdater;
 
@@ -18,12 +24,14 @@ namespace StatusAggregator
 
         public StatusUpdater(
             ICursor cursor,
+            IEnumerable<IManualStatusChangeUpdater> manualStatusChangeUpdaters,
             IIncidentUpdater incidentUpdater,
             IEventUpdater eventUpdater,
             ILogger<StatusUpdater> logger)
         {
             _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
-            _incidentUpdater = incidentUpdater ?? throw new ArgumentNullException(nameof(IncidentUpdater));
+            _manualStatusChangeUpdaters = manualStatusChangeUpdaters ?? throw new ArgumentNullException(nameof(manualStatusChangeUpdaters));
+            _incidentUpdater = incidentUpdater ?? throw new ArgumentNullException(nameof(incidentUpdater));
             _eventUpdater = eventUpdater ?? throw new ArgumentNullException(nameof(eventUpdater));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -32,17 +40,26 @@ namespace StatusAggregator
         {
             using (_logger.Scope("Updating service status."))
             {
-                var lastCursor = await _cursor.Get();
-
-                await _incidentUpdater.RefreshActiveIncidents();
-                var nextCursor = await _incidentUpdater.FetchNewIncidents(lastCursor);
-
-                await _eventUpdater.UpdateActiveEvents(nextCursor ?? DateTime.UtcNow);
-
-                if (nextCursor.HasValue)
+                foreach (var manualStatusChangeUpdater in _manualStatusChangeUpdaters)
                 {
-                    await _cursor.Set(nextCursor.Value);
+                    await ProcessCursor($"{ManualCursorBaseName}{manualStatusChangeUpdater.Name}", manualStatusChangeUpdater.ProcessNewManualChanges);
                 }
+
+                await ProcessCursor(IncidentCursorName, async (value) =>
+                {
+                    await _incidentUpdater.RefreshActiveIncidents();
+                    return await _incidentUpdater.FetchNewIncidents(value);
+                });
+            }
+        }
+
+        private async Task ProcessCursor(string name, Func<DateTime, Task<DateTime?>> processCursor)
+        {
+            var lastCursor = await _cursor.Get(name);
+            var nextCursor = await processCursor(lastCursor);
+            if (nextCursor.HasValue)
+            {
+                await _cursor.Set(name, nextCursor.Value);
             }
         }
     }

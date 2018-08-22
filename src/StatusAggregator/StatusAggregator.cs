@@ -4,35 +4,39 @@
 using Microsoft.WindowsAzure.Storage.Blob;
 using StatusAggregator.Table;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StatusAggregator
 {
     public class StatusAggregator
     {
-        private readonly CloudBlobContainer _container;
-        private readonly ITableWrapper _table;
+        private readonly IEnumerable<CloudBlobContainer> _containers;
+        private readonly IEnumerable<ITableWrapper> _tables;
 
         private readonly IStatusUpdater _statusUpdater;
         private readonly IStatusExporter _statusExporter;
 
         public StatusAggregator(
-            CloudBlobContainer container,
-            ITableWrapper table,
+            IEnumerable<CloudBlobContainer> containers,
+            IEnumerable<ITableWrapper> tables,
             IStatusUpdater statusUpdater,
             IStatusExporter statusExporter)
         {
-            _container = container ?? throw new ArgumentNullException(nameof(container));
-            _table = table ?? throw new ArgumentNullException(nameof(table));
+            _containers = containers ?? throw new ArgumentNullException(nameof(containers));
+            _tables = tables ?? throw new ArgumentNullException(nameof(tables));
             _statusUpdater = statusUpdater ?? throw new ArgumentNullException(nameof(statusUpdater));
             _statusExporter = statusExporter ?? throw new ArgumentNullException(nameof(statusExporter));
         }
 
         public async Task Run()
         {
-            await _table.CreateIfNotExistsAsync();
-            await _container.CreateIfNotExistsAsync();
-
+            // Initialize all tables and containers.
+            await Task.WhenAll(_tables.Select(t => t.CreateIfNotExistsAsync()));
+            await Task.WhenAll(_containers.Select(c => c.CreateIfNotExistsAsync()));
+            
+            // Update and export the status.
             await _statusUpdater.Update();
             await _statusExporter.Export();
         }

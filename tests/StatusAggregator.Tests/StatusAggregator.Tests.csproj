@@ -46,6 +46,13 @@
   <ItemGroup>
     <Compile Include="EventUpdaterTests.cs" />
     <Compile Include="IncidentFactoryTests.cs" />
+    <Compile Include="Manual\AddStatusEventManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\AddStatusMessageManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\DeleteStatusEventManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\DeleteStatusMessageManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\EditStatusEventManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\EditStatusMessageManualChangeHandlerFacts.cs" />
+    <Compile Include="Manual\ManualStatusChangeUtilityFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -62,13 +69,13 @@
       <Version>4.7.145</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Incidents">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-sb-tablegeo-38564</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-master-38796</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status.Table">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-master-38796</Version>
     </PackageReference>
     <PackageReference Include="System.Threading.Tasks.Extensions">
       <Version>4.3.0</Version>

@@ -25,16 +25,45 @@ namespace StatusAggregator.Table
             return _table.CreateIfNotExistsAsync();
         }
 
-        public async Task<T> Retrieve<T>(string partitionKey, string rowKey) 
+        public async Task<T> RetrieveAsync<T>(string partitionKey, string rowKey) 
             where T : class, ITableEntity
         {
             var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
             return (await _table.ExecuteAsync(operation)).Result as T;
         }
 
+        public Task InsertAsync(ITableEntity tableEntity)
+        {
+            return ExecuteOperationAsync(TableOperation.Insert(tableEntity));
+        }
+
         public Task InsertOrReplaceAsync(ITableEntity tableEntity)
         {
-            var operation = TableOperation.InsertOrReplace(tableEntity);
+            return ExecuteOperationAsync(TableOperation.InsertOrReplace(tableEntity));
+        }
+
+        public Task ReplaceAsync(ITableEntity tableEntity)
+        {
+            return ExecuteOperationAsync(TableOperation.Replace(tableEntity));
+        }
+
+        public Task DeleteAsync(string partitionKey, string rowKey)
+        {
+            return DeleteAsync(partitionKey, rowKey, TableUtility.ETagWildcard);
+        }
+
+        public Task DeleteAsync(string partitionKey, string rowKey, string eTag)
+        {
+            return DeleteAsync(new TableEntity(partitionKey, rowKey) { ETag = eTag });
+        }
+
+        public Task DeleteAsync(ITableEntity tableEntity)
+        {
+            return ExecuteOperationAsync(TableOperation.Delete(tableEntity));
+        }
+
+        private Task ExecuteOperationAsync(TableOperation operation)
+        {
             return _table.ExecuteAsync(operation);
         }
 
