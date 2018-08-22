@@ -44,7 +44,7 @@ namespace NuGetGallery
             {'8', "Ȣȣ"},
             {'_', ".-" }
         };
-
+        
         private static readonly IReadOnlyDictionary<char, char> NormalizedMappingDictionary = GetNormalizedMappingDictionary(SimilarCharacterDictionary);
 
         public static string NormalizeString(string str)
