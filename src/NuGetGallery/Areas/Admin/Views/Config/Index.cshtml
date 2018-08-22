@@ -4,69 +4,76 @@
     ViewBag.Tab = "Admin";
 }
 
-<h2>Configuration Values</h2>
-<table class="sexy-table" style="display: block; overflow: auto">
-    <thead>
-        <tr>
-            <th>Key</th>
-            <th>Type</th>
-            <th>Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var pair in Model.AppSettings)
-        {
+<section role="main" class="container main-container">
+    <h2>Configuration Values</h2>
+    <table class="table" style="overflow: auto">
+        <thead>
             <tr>
-                <td>@pair.Key</td>
-                <td>@pair.Value.Item1.Name</td>
-                @if(pair.Value.Item2 != null) {
-                    <td>@pair.Value.Item2.ToString()</td>
-                } else {
-                    <td><em>null</em></td>
+                <th>Key</th>
+                <th>Type</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pair in Model.AppSettings)
+            {
+                <tr>
+                    <td>@pair.Key</td>
+                    <td>@pair.Value.Item1.Name</td>
+                    @if (pair.Value.Item2 != null)
+                    {
+                        <td>@pair.Value.Item2.ToString()</td>
+                    }
+                    else
+                    {
+                        <td><em>null</em></td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h2>Feature Status</h2>
+    <table class="table" style="overflow: auto">
+        <thead>
+            <tr>
+                <th>Config Name</th>
+                <th>Description</th>
+                <th>Enabled</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var feature in Model.Features)
+            {
+                <tr>
+                    <td>Feature.@feature.Property.Name</td>
+                    <td>@feature.Description</td>
+                    <td>@(feature.Enabled ? "✔ Enabled" : "✖ Disabled")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <h2>Authentication Configuration</h2>
+    @foreach (var provider in Model.AuthProviders)
+    {
+        <h3>@provider.Name Provider</h3>
+        <table class="table" style="overflow: auto">
+            <thead>
+                <tr>
+                    <th>Config Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var configPair in provider.Config)
+                {
+                    <tr>
+                        <td>@configPair.Key</td>
+                        <td>@(String.IsNullOrEmpty(configPair.Value) ? "<Default>" : configPair.Value)</td>
+                    </tr>
                 }
-            </tr>
-        }
-    </tbody>
-</table>
-
-<h2>Feature Status</h2>
-<table class="sexy-table" style="display: block; overflow: auto">
-    <thead>
-        <tr>
-            <th>Config Name</th>
-            <th>Description</th>
-            <th>Enabled</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var feature in Model.Features)
-        {
-            <tr>
-                <td>Feature.@feature.Property.Name</td>
-                <td>@feature.Description</td>
-                <td>@(feature.Enabled ? "✔ Enabled" : "✖ Disabled")</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<h2>Authentication Configuration</h2>
-@foreach(var provider in Model.AuthProviders) {
-    <h3>@provider.Name Provider</h3>
-    <table class="sexy-table" style="display: block; overflow: auto">
-    <thead>
-        <tr>
-            <th>Config Name</th>
-            <th>Value</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach(var configPair in provider.Config) {
-            <tr>
-                <td>@configPair.Key</td> 
-                <td>@(String.IsNullOrEmpty(configPair.Value) ? "<Default>" : configPair.Value)</td>
-            </tr>
-        }
-    </tbody>
-</table>
-}
+            </tbody>
+        </table>
+    }
+</section>

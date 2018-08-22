@@ -3,42 +3,41 @@
     ViewBag.Title = "Manage Package Listing for " + Model.Id;
     ViewBag.Tab = "Packages";
     ViewBag.MdPageColumns = Constants.ColumnsFormMd;
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-delete-package">
     <div class="row">
         <div class="@ViewHelpers.GetColumnClasses(ViewBag)">
             @Html.Partial(
-                "_PackageHeading", 
+                "_PackageHeading",
                 new PackageHeadingModel(
-                    Model, 
+                    Model,
                     "Delete",
                     linkIdOnly: true))
 
-             @if (Model.IsLocked && !User.IsAdministrator())
-             {
+            @if (Model.IsLocked && !User.IsAdministrator())
+            {
                 <div class="validation-error-message-list">
                     @ViewHelpers.AlertDanger(
-                        @<text>
-                            <span>
-                                Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
-                                <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
-                            </span>
-                        </text>)
+                            @<text>
+                                <span>
+                                    Package '@Model.Id' has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact
+                                    <a href="mailto:support@nuget.org?subject=@HttpUtility.UrlPathEncode(string.Format("Requesting support for a locked package - '{0}'", Model.Id))">support@nuget.org</a>.
+                                </span>
+                            </text>)
                 </div>
-             }
-             else
-             {
-                 if (Model.IsLocked && User.IsAdministrator())
-                 {
+            }
+            else
+            {
+                if (Model.IsLocked && User.IsAdministrator())
+                {
                     <div class="validation-error-message-list">
                         @ViewHelpers.AlertDanger(
-                            @<text>
-                                <span>Package '@Model.Id' has been locked.</span>
-                            </text>)
+                                @<text>
+                                    <span>Package '@Model.Id' has been locked.</span>
+                                </text>)
                     </div>
-                 }
+                }
 
                 <h2>
                     <a href="#" role="button" data-toggle="collapse" data-target="#select-version" aria-expanded="true" aria-controls="select-version" id="show-select-version">
@@ -75,10 +74,10 @@
                         @if (!User.IsAdministrator())
                         {
                             @ViewHelpers.AlertInfo(
-                            @<text>
-                                You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
-                            </text>
-                                   )
+                                @<text>
+                                    You can control how your packages are listed using the checkbox below. As per <a href="https://docs.microsoft.com/en-us/nuget/policies/deleting-packages">policy</a>, permanent deletion is not supported as it would break every project depending on the availability of the package. For more assistance, <a href="@Url.ReportAbuse(Model.Id, Model.Version)" title="Contact Support">Contact Support</a>.
+                                </text>
+                                    )
                         }
 
                         @using (Html.BeginForm("UpdateListed", "Packages"))
@@ -112,61 +111,21 @@
                 </h2>
                 <div class="list-unstyled panel-collapse collapse" id="delete-package">
                     @ViewHelpers.AlertDanger(
-                @<text>
-                    <strong>Deleting this package will make it unavailable for download and package restore.</strong><br />
-                    This package version has been downloaded @Model.DownloadCount times (@Model.TotalDownloadCount downloads in total).
-                    Deleting it may break a large number of development teams.
-                    If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
-                </text>
-                    )
+                                    @<text>
+                                        <strong>Deleting this package will make it unavailable for download and package restore.</strong><br />
+                                        This package version has been downloaded @Model.DownloadCount times (@Model.TotalDownloadCount downloads in total).
+                                        Deleting it may break a large number of development teams.
+                                        If the package should be removed from search results but still be available for restore, consider unlisting the package instead.
+                                    </text>)
 
                     @using (Html.BeginForm("Delete", "Packages", FormMethod.Post, new { id = "delete-form" }))
                     {
-                        @Html.AntiForgeryToken()
                         foreach (var p in Model.DeletePackagesRequest.Packages)
                         {
                             <input type="hidden" name="DeletePackagesRequest.Packages[]" value="@p" />
                         }
 
-                        <div id="form-field-reason" class="form-group @Html.HasErrorFor(m => m.DeletePackagesRequest.Reason)">
-                            @Html.ShowLabelFor(m => m.DeletePackagesRequest.Reason)
-                            @Html.ShowEnumDropDownListFor(m => m.DeletePackagesRequest.Reason, Model.DeletePackagesRequest.ReasonChoices, "<Choose a Reason>")
-                            @Html.ShowValidationMessagesFor(m => m.DeletePackagesRequest.Reason)
-                        </div>
-
-                        <div class="form-group @Html.HasErrorFor(m => m.DeletePackagesRequest.Signature)">
-                            @Html.ShowLabelFor(m => m.DeletePackagesRequest.Signature)
-                            @Html.ShowTextBoxFor(m => m.DeletePackagesRequest.Signature)
-                            @Html.ShowValidationMessagesFor(m => m.DeletePackagesRequest.Signature)
-                        </div>
-
-                        <div class="form-group">
-                            @Html.ShowCheckboxFor(m => m.DeletePackagesRequest.SoftDelete)
-                            @Html.ShowLabelFor(m => m.DeletePackagesRequest.SoftDelete)
-
-                            <p>
-                                This will prevent new packages with the same id and version from being pushed to the gallery. It also displays "Package was deleted" on the package details page, helping existing users of the package to identify it was deleted.
-                            </p>
-                        </div>
-
-                        <div class="form-group" id="DeleteEmptyPackageRegistrationContainer" style="display: none;">
-                            @Html.ShowCheckboxFor(m => m.DeletePackagesRequest.DeleteEmptyPackageRegistration)
-                            @Html.ShowLabelFor(m => m.DeletePackagesRequest.DeleteEmptyPackageRegistration)
-
-                            <p>
-                                This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
-                            </p>
-                        </div>
-
-                        <hr />
-                        <p>
-                            This action <strong>CANNOT</strong> be undone. This will permanently delete the package @Model.Id @Model.Version and make it unavailable for download and package restore.
-                        </p>
-                        <hr />
-
-                        <div class="form-group">
-                            <input type="submit" class="btn btn-danger form-control" value="I understand the consequences, delete this package" />
-                        </div>
+                        @Html.Partial("_DeletePackage", Model.DeletePackagesRequest)
                     }
                 </div>
             }

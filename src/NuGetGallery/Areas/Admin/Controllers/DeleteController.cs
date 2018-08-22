@@ -142,7 +142,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             if (string.IsNullOrWhiteSpace(request.BulkList))
             {
-                TempData["Message"] = "Must specify a list of hard-deleted packages to reflow in bulk!";
+                TempData["ErrorMessage"] = "Must specify a list of hard-deleted packages to reflow in bulk!";
 
                 return View(nameof(Reflow));
             }
@@ -172,7 +172,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
             {
                 _telemetryService.TraceException(e);
 
-                TempData["Message"] = e.GetUserSafeMessage();
+                TempData["ErrorMessage"] = e.GetUserSafeMessage();
 
                 return View(nameof(Reflow));
             }
@@ -198,7 +198,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
 
             if (failures.Any())
             {
-                TempData["Message"] = string.Join(" ", failures.ToArray());
+                TempData["ErrorMessage"] = string.Join(" ", failures.ToArray());
             }
             else
             {

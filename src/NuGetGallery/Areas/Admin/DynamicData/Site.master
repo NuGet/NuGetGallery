@@ -12,7 +12,6 @@
         <title>NuGet Gallery Database Administration</title>
         <%: Styles.Render("~/Content/css") %>
         <link href="~/favicon.ico" runat="server" rel="shortcut icon" type="image/x-icon" />
-        <%: Scripts.Render("~/Scripts/modernizr") %>
         <asp:ContentPlaceHolder id="head" runat="server">
         </asp:ContentPlaceHolder>
     </head>
@@ -55,7 +54,7 @@
             </div>
         </div>
     </div>
-    <%: Scripts.Render("~/Scripts/all") %>
+    <%: Scripts.Render("~/Scripts/gallery/site.min.js") %>
 
 </body>
 </html>
