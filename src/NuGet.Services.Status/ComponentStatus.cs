@@ -11,16 +11,16 @@ namespace NuGet.Services.Status
         /// <summary>
         /// The <see cref="IReadOnlyComponent"/> is performing as expected.
         /// </summary>
-        Up,
+        Up = 0,
 
         /// <summary>
         /// Some portion of the <see cref="IReadOnlyComponent"/> is not performing as expected.
         /// </summary>
-        Degraded,
+        Degraded = 1,
 
         /// <summary>
         /// The <see cref="IReadOnlyComponent"/> is completely unfunctional.
         /// </summary>
-        Down
+        Down = 2,
     }
 }

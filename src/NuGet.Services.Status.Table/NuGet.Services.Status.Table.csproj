@@ -40,9 +40,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Manual\AddStatusEventManualChangeEntity.cs" />
+    <Compile Include="Manual\AddStatusMessageManualChangeEntity.cs" />
     <Compile Include="CursorEntity.cs" />
+    <Compile Include="Manual\DeleteStatusEventManualChangeEntity.cs" />
+    <Compile Include="Manual\DeleteStatusMessageManualChangeEntity.cs" />
+    <Compile Include="Manual\EditStatusEventManualChangeEntity.cs" />
+    <Compile Include="Manual\EditStatusMessageManualChangeEntity.cs" />
     <Compile Include="EventEntity.cs" />
     <Compile Include="IncidentEntity.cs" />
+    <Compile Include="Manual\ManualStatusChangeEntity.cs" />
+    <Compile Include="Manual\ManualStatusChangeType.cs" />
     <Compile Include="MessageEntity.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Utility.cs" />

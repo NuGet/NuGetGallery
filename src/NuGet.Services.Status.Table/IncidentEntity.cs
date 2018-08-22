@@ -72,7 +72,7 @@ namespace NuGet.Services.Status.Table
             set { }
         }
 
-        private static string GetRowKey(string id, string affectedComponentPath, ComponentStatus affectedComponentStatus)
+        public static string GetRowKey(string id, string affectedComponentPath, ComponentStatus affectedComponentStatus)
         {
             return $"{id}_{Utility.ToRowKeySafeComponentPath(affectedComponentPath)}_{affectedComponentStatus}";
         }

@@ -80,7 +80,7 @@ namespace NuGet.Services.Status.Table
             return new Event(AffectedComponentPath, (ComponentStatus)AffectedComponentStatus, StartTime, EndTime, messages);
         }
 
-        private static string GetRowKey(string affectedComponentPath, DateTime startTime)
+        public static string GetRowKey(string affectedComponentPath, DateTime startTime)
         {
             return $"{Utility.ToRowKeySafeComponentPath(affectedComponentPath)}_{startTime.ToString("o")}";
         }

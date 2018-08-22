@@ -17,12 +17,17 @@ namespace NuGet.Services.Status.Table
         {
         }
 
-        public MessageEntity(EventEntity eventEntity, DateTime time, string contents)
-            : base(DefaultPartitionKey, GetRowKey(eventEntity, time))
+        public MessageEntity(string eventRowKey, DateTime time, string contents)
+            : base(DefaultPartitionKey, GetRowKey(eventRowKey, time))
         {
-            EventRowKey = eventEntity.RowKey;
+            EventRowKey = eventRowKey;
             Time = time;
             Contents = contents;
+        }
+
+        public MessageEntity(EventEntity eventEntity, DateTime time, string contents)
+            : this(eventEntity.RowKey, time, contents)
+        {
         }
 
         public string EventRowKey { get; set; }
@@ -34,9 +39,14 @@ namespace NuGet.Services.Status.Table
             return new Message(Time, Contents);
         }
 
-        private static string GetRowKey(EventEntity eventEntity, DateTime time)
+        public static string GetRowKey(string eventRowKey, DateTime time)
         {
-            return $"{eventEntity.RowKey}_{time.ToString("o")}";
+            return $"{eventRowKey}_{time.ToString("o")}";
+        }
+
+        public static string GetRowKey(EventEntity eventEntity, DateTime time)
+        {
+            return GetRowKey(eventEntity.RowKey, time);
         }
     }
 }

@@ -9,18 +9,24 @@ namespace NuGet.Services.Status.Table
     public class CursorEntity : TableEntity
     {
         public const string DefaultPartitionKey = "cursors";
-        public const string DefaultRowKey = "1";
 
         public CursorEntity()
         {
         }
 
-        public CursorEntity(DateTime value)
-            : base(DefaultPartitionKey, DefaultRowKey)
+        public CursorEntity(string name, DateTime value)
+            : base(DefaultPartitionKey, GetRowKey(name))
         {
             Value = value;
         }
 
+        public string Name => RowKey;
+
         public DateTime Value { get; set; }
+
+        public static string GetRowKey(string name)
+        {
+            return name;
+        }
     }
 }
