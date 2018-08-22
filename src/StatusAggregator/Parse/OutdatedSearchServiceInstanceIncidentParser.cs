@@ -5,18 +5,22 @@ using Microsoft.Extensions.Logging;
 using NuGet.Services.Incidents;
 using NuGet.Services.Status;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace StatusAggregator.Parse
 {
     public class OutdatedSearchServiceInstanceIncidentParser : EnvironmentPrefixIncidentParser
     {
-        private const string SubtitleRegEx = "A search service instance is using an outdated index!";
+        private const string SubtitleRegEx = "All search service instances are using an outdated index!";
 
         public OutdatedSearchServiceInstanceIncidentParser(
             IEnumerable<IIncidentParsingFilter> filters, 
             ILogger<OutdatedSearchServiceInstanceIncidentParser> logger)
-            : base(SubtitleRegEx, filters, logger)
+            : base(
+                  SubtitleRegEx, 
+                  filters.Where(f => !(f is SeverityFilter)), // The incident is always severity 4.
+                  logger)
         {
         }
 
