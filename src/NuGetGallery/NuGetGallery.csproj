@@ -1977,7 +1977,7 @@
     <PackageReference Include="d3">
       <Version>5.4.0</Version>
     </PackageReference>
-    <PackageReference Include="DynamicData.EFCodeFirstProvider">
+    <PackageReference Include="DynamicData.EFCodeFirstProvider.StrongName">
       <Version>0.3.0</Version>
     </PackageReference>
     <PackageReference Include="elmah.corelibrary.strongname">
@@ -2061,7 +2061,7 @@
     <PackageReference Include="Microsoft.AspNet.WebApi.Core">
       <Version>5.2.3</Version>
     </PackageReference>
-    <PackageReference Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression">
+    <PackageReference Include="Microsoft.AspNet.WebApi.MessageHandlers.Compression.StrongName">
       <Version>1.3.0</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.AspNet.WebApi.OData">
@@ -2190,13 +2190,13 @@
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
     </PackageReference>
-    <PackageReference Include="QueryInterceptor">
+    <PackageReference Include="QueryInterceptor.StrongName">
       <Version>0.1.4237.2400</Version>
     </PackageReference>
     <PackageReference Include="RouteMagic">
       <Version>1.1.3</Version>
     </PackageReference>
-    <PackageReference Include="Strathweb.CacheOutput.WebApi2">
+    <PackageReference Include="Strathweb.CacheOutput.WebApi2.StrongName">
       <Version>0.9.0</Version>
     </PackageReference>
     <PackageReference Include="System.Diagnostics.Debug">
@@ -2211,14 +2211,17 @@
     <PackageReference Include="System.Net.Http">
       <Version>4.3.1</Version>
     </PackageReference>
+    <PackageReference Include="WebActivator.StrongName">
+      <Version>1.4.4</Version>
+    </PackageReference>
     <PackageReference Include="WebActivatorEx">
       <Version>2.0.6</Version>
     </PackageReference>
-    <PackageReference Include="WebBackgrounder">
-      <Version>0.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="WebBackgrounder.EntityFramework">
+    <PackageReference Include="WebBackgrounder.EntityFramework.StrongName">
       <Version>0.1.0</Version>
+    </PackageReference>
+    <PackageReference Include="WebBackgrounder.StrongName">
+      <Version>0.2.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Caching">
       <Version>1.7.0</Version>
