@@ -125,9 +125,18 @@ namespace BasicSearchTests.FunctionalTests.Core
             // Assert.True(package.FlattenedDependencies == ""); TODO: Reenable this when catalog2lucene has been fixed, tracked by Gallery issue #4029 - Loic Sharma @ 5/30/2017
             Assert.True(package.Dependencies.Count() == 0);
             Assert.True(package.SupportedFrameworks.Count() == 0);
-            Assert.True(package.Hash == "5KJqge5+IYZkmba5C/pRVwjqwwaF1YM28xs6AiWMoxfxE/dzFVXJ5QGR7Rx2JmKWPLwz0R3eO+jWjd4lRX1WxA==");
+
+            try
+            {
+                Convert.FromBase64String(package.Hash);
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException("Package hash should be a valid Base64 encoded string!", e);
+            }
+
             Assert.True(package.HashAlgorithm == "SHA512");
-            Assert.True(package.PackageFileSize == 3943);
+            Assert.True(package.PackageFileSize > 0);
             Assert.True(package.RequireslicenseAcceptance == false);
         }
 
