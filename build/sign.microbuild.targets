@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+  "EnumerateFilesToSign" is a custom target that runs after build and signs the output assembly of the project. This
+  target only runs if the "SignAssembly" is true (which enables delayed signing) and if "SignType" is not "none". This
+  latter condition is to allow builds to disable signing explicitly, which is an optimization for Cloud Service builds.
+  Cloud Service builds do a solution build then a "Publish" on the .ccproj. Only that "Publish" step needs to sign
+  things.
+  -->
+  <Target Name="EnumerateFilesToSign" AfterTargets="AfterBuild" Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
+    <ItemGroup>
+      <FilesToSign Include="$(TargetPath)">
+        <Authenticode>Microsoft</Authenticode>
+        <StrongName>MsSharedLib72</StrongName>
+      </FilesToSign>
+    </ItemGroup>
+    <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
+  </Target>
+</Project>
