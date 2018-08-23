@@ -94,20 +94,20 @@ namespace NuGet.Services.BasicSearch
             // Overwrite the index's Azure Directory cache path if configured ot use an Azure Local Storage resource.
             if (!string.IsNullOrEmpty(config.AzureDirectoryCacheLocalResourceName))
             {
-                if (!SafeRoleEnvironment.IsAvailable)
+                if (SafeRoleEnvironment.TryGetLocalResourceRootPath(config.AzureDirectoryCacheLocalResourceName, out var path))
                 {
-                    _logger.LogWarning(
-                        "Cannot use Azure Local Resource {LocalResourceName} for caching when the RoleEnvironment is not available",
-                        config.AzureDirectoryCacheLocalResourceName);
-                }
-                else
-                {
-                    config.AzureDirectoryCachePath = SafeRoleEnvironment.GetLocalResourceRootPath(config.AzureDirectoryCacheLocalResourceName);
+                    config.AzureDirectoryCachePath = path;
 
                     _logger.LogInformation(
                         "Set Azure Directory cache path to Azure Local Resource = {LocalResourceName}, Path = {LocalResourcePath}",
                         config.AzureDirectoryCacheLocalResourceName,
                         config.AzureDirectoryCachePath);
+                }
+                else
+                {
+                    _logger.LogWarning(
+                        "Cannot use Azure Local Resource {LocalResourceName} for caching when the RoleEnvironment is not available",
+                        config.AzureDirectoryCacheLocalResourceName);
                 }
             }
 

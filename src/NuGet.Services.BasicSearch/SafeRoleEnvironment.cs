@@ -1,93 +1,66 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using Microsoft.WindowsAzure.ServiceRuntime;
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace NuGet.Services.BasicSearch
 {
     /// <summary>
-    /// Safe role environment which allows this application to be run on both Azure Cloud Services and Azure Web Sites.
+    /// A safe wrapper for <see cref="RoleEnvironment"/>.
+    /// How this service is deployed (e.g. Cloud Service, Web App) determines whether or not <see cref="RoleEnvironment"/> is accessible.
+    /// <see cref="Microsoft.WindowsAzure.ServiceRuntime"/> is loaded from the machine and not from the bin directory, so it may or may not be present on the machine.
     /// </summary>
     internal static class SafeRoleEnvironment
     {
-        private const string _serviceRuntimeAssembly = "Microsoft.WindowsAzure.ServiceRuntime";
-        private const string _roleEnvironmentTypeName = "Microsoft.WindowsAzure.ServiceRuntime.RoleEnvironment";
-        private const string _isAvailablePropertyName = "IsAvailable";
-
-        public static bool IsAvailable { get; private set; }
-
-        static SafeRoleEnvironment()
+        public static bool TryGetConfigurationSettingValue(string configurationSettingName, out string value)
         {
-            // Find out if the code is running in the cloud service context.
-            Assembly assembly = GetServiceRuntimeAssembly();
-            if (assembly != null)
-            {
-                Type roleEnvironmentType = assembly.GetType(_roleEnvironmentTypeName, false);
-                if (roleEnvironmentType != null)
-                {
-                    PropertyInfo isAvailableProperty = roleEnvironmentType.GetProperty(_isAvailablePropertyName);
-
-                    try
-                    {
-                        IsAvailable = isAvailableProperty != null && (bool)isAvailableProperty.GetValue(null, new object[] { });
-                    }
-                    catch (TargetInvocationException)
-                    {
-                        IsAvailable = false;
-                    }
-                }
-            }
+            return TryGetField(() => RoleEnvironment.GetConfigurationSettingValue(configurationSettingName), out value);
         }
 
-        /// <summary>
-        /// Delegate the call because we don't want RoleEnvironment appearing in the function scope of the caller because that
-        /// would trigger the assembly load: the very thing we are attempting to avoid
-        /// </summary>
-        /// <param name="configurationSettingName"></param>
-        /// <returns></returns>
-        public static string GetConfigurationSettingValue(string configurationSettingName)
+        public static bool TryGetDeploymentId(out string id)
         {
-            return RoleEnvironment.GetConfigurationSettingValue(configurationSettingName);
+            return TryGetField(() => RoleEnvironment.DeploymentId, out id);
         }
 
-        public static string GetDeploymentId()
+        public static bool TryGetLocalResourceRootPath(string name, out string path)
         {
-            if (IsAvailable)
-            {
-                return RoleEnvironment.DeploymentId;
-            }
-
-            return string.Empty;
+            return TryGetField(() => RoleEnvironment.GetLocalResource(name).RootPath, out path);
         }
 
-        public static string GetLocalResourceRootPath(string name)
+        private static bool _assemblyIsAvailable = true;
+        private static bool TryGetField<T>(Func<T> getValue, out T value)
         {
-            return RoleEnvironment.GetLocalResource(name).RootPath;
-        }
-
-        /// <summary>
-        /// Loads and returns the latest available version of the service runtime assembly.
-        /// </summary>
-        /// <returns>Loaded assembly, if any.</returns>
-        private static Assembly GetServiceRuntimeAssembly()
-        {
-            Assembly assembly = null;
+            value = default(T);
 
             try
             {
-                assembly = Assembly.LoadWithPartialName(_serviceRuntimeAssembly);
+                if (!_assemblyIsAvailable || !RoleEnvironment.IsAvailable)
+                {
+                    // If RoleEnvironment isn't available, we can't access it.
+                    return false;
+                }
+
+                value = getValue();
+                return true;
             }
             catch (Exception e)
             {
-                if (!(e is FileNotFoundException || e is FileLoadException || e is BadImageFormatException))
+                if (e is FileNotFoundException || e is FileLoadException || e is BadImageFormatException)
                 {
+                    // If an exception related to loading files is thrown, the assembly is not available.
+                    // Cache the fact that it is not available so we don't repeatedly throw and catch exceptions.
+                    _assemblyIsAvailable = false;
+                    return false;
+                }
+                else
+                {
+                    // If an exception unrelated to loading files is thrown, the assembly must have thrown the exception itself.
+                    // Rethrow the exception so it can be handled by the caller.
                     throw;
                 }
             }
-
-            return assembly;
         }
     }
 }
