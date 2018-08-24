@@ -20,7 +20,7 @@ namespace CatalogTests.Helpers
         [JsonProperty(CatalogConstants.Count)]
         internal int Count { get; }
         [JsonProperty(CatalogConstants.Items)]
-        internal RegistrationIndexPage[] Items { get; }
+        internal RegistrationPage[] Items { get; }
         [JsonProperty(CatalogConstants.ContextKeyword)]
         internal JObject ContextKeyword { get; }
 
@@ -31,7 +31,7 @@ namespace CatalogTests.Helpers
             string commitId,
             string commitTimeStamp,
             int count,
-            RegistrationIndexPage[] items,
+            RegistrationPage[] items,
             JObject contextKeyword)
         {
             IdKeyword = idKeyword;

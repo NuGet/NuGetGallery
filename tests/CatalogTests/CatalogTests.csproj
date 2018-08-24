@@ -194,10 +194,11 @@
     <Compile Include="Helpers\NuGetVersionUtilityTests.cs" />
     <Compile Include="Helpers\CatalogPackageDetails.cs" />
     <Compile Include="Helpers\PackageUtilityTests.cs" />
+    <Compile Include="Helpers\RegistrationIndependentPage.cs" />
     <Compile Include="Helpers\RegistrationIndex.cs" />
-    <Compile Include="Helpers\RegistrationIndexPackageDetails.cs" />
-    <Compile Include="Helpers\RegistrationIndexPage.cs" />
     <Compile Include="Helpers\RegistrationPackage.cs" />
+    <Compile Include="Helpers\RegistrationPage.cs" />
+    <Compile Include="Helpers\RegistrationIndependentPackage.cs" />
     <Compile Include="Helpers\RegistrationPackageDetails.cs" />
     <Compile Include="Helpers\UtilsTests.cs" />
     <Compile Include="PackageCatalogItemCreatorTests.cs" />

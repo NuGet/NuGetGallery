@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CatalogTests.Helpers;
@@ -27,8 +28,7 @@ namespace CatalogTests.Registration
     {
         private const string _cacheControl = "no-store";
         private const string _contentType = "application/json";
-        private const int _partitionSize = 1;
-        private const int _packageCountThreshold = 128;
+        private const int _defaultPackageCountThreshold = 128;
 
         private static readonly Uri _contentBaseAddress = new Uri("https://nuget.test/");
         private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings()
@@ -49,23 +49,10 @@ namespace CatalogTests.Registration
         public async Task ProcessAsync_WithEmptyStorageAndEmptyNewItems_DoesNotCreateAnything()
         {
             var emptyItems = new Dictionary<string, IGraph>();
-            var storage = await ProcessAsync(emptyItems, packageId: null);
+            var storage = await ProcessAsync(emptyItems, packageId: null, partitionSize: 1);
 
             Assert.Empty(storage.Content);
             Assert.Empty(storage.ContentBytes);
-        }
-
-        [Fact]
-        public async Task ProcessAsync_WithEmptyStorageAndOneNewItem_CreatesIndexAndLeaf()
-        {
-            var packageDetails = new CatalogPackageDetails();
-            var newItem = CreateNewItem(packageDetails);
-            var storage = await ProcessAsync(newItem, packageDetails.Id);
-
-            Verify(
-                storage,
-                expectedStorageContentCount: 2,
-                expectedPage: new ExpectedPage(packageDetails));
         }
 
         [Theory]
@@ -89,15 +76,12 @@ namespace CatalogTests.Registration
 
                 var expectedPages = Repaginate(pages, partitionSize);
 
-                Verify(
-                    storage,
-                    expectedStorageContentCount: pages.Count + 1 /*index*/,
-                    expectedPages: expectedPages);
+                Verify(storage, expectedPages, partitionSize);
             }
         }
 
         [Fact]
-        public async Task ProcessAsync_WithVariablePartitionSize_RepaginatesOlderPages()
+        public async Task ProcessAsync_WithVariablePartitionSize_RepaginatesExistingPages()
         {
             var partitionSize = 2;
             var packageVersionCount = partitionSize * 2;
@@ -117,10 +101,7 @@ namespace CatalogTests.Registration
 
                 expectedPages = Repaginate(pages, partitionSize);
 
-                Verify(
-                    storage,
-                    expectedStorageContentCount: pages.Count + 1 /*index*/,
-                    expectedPages: expectedPages);
+                Verify(storage, expectedPages, partitionSize);
             }
 
             partitionSize = 3;
@@ -134,10 +115,66 @@ namespace CatalogTests.Registration
 
             expectedPages = Repaginate(pages, partitionSize);
 
-            Verify(
-                storage,
-                expectedStorageContentCount: pages.Count + 1 /*index*/,
-                expectedPages: expectedPages);
+            Verify(storage, expectedPages, partitionSize);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_WhenNewPackageVersionWouldChangeExistingPage_RepaginatesExistingPage()
+        {
+            const int partitionSize = 2;
+            var pages = new List<ExpectedPage>();
+            CatalogPackageDetails packageDetails;
+            IReadOnlyDictionary<string, IGraph> newItem;
+            MemoryStorage storage;
+            IReadOnlyList<ExpectedPage> expectedPages;
+
+            for (var i = 0; i < 2; ++i)
+            {
+                packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{i * 2}");
+                newItem = CreateNewItem(packageDetails);
+                storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
+
+                pages.Add(new ExpectedPage(packageDetails));
+
+                expectedPages = Repaginate(pages, partitionSize);
+
+                Verify(storage, expectedPages, partitionSize);
+            }
+
+            packageDetails = new CatalogPackageDetails(id: "a", version: "1.0.1");
+            newItem = CreateNewItem(packageDetails);
+            storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
+
+            pages.Insert(index: 1, item: new ExpectedPage(packageDetails));
+
+            expectedPages = Repaginate(pages, partitionSize);
+
+            Verify(storage, expectedPages, partitionSize);
+        }
+
+        [Fact]
+        public async Task ProcessAsync_WithCustomPackageCountThreshold_TransitionsToPageWhenThresholdHit()
+        {
+            const int partitionSize = 2;
+            const int packageCountThreshold = 2;
+            var pages = new List<ExpectedPage>();
+            CatalogPackageDetails packageDetails;
+            IReadOnlyDictionary<string, IGraph> newItem;
+            MemoryStorage storage;
+            IReadOnlyList<ExpectedPage> expectedPages;
+
+            for (var i = 0; i < 2; ++i)
+            {
+                packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{i}");
+                newItem = CreateNewItem(packageDetails);
+                storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize, packageCountThreshold);
+
+                pages.Add(new ExpectedPage(packageDetails));
+
+                expectedPages = Repaginate(pages, partitionSize);
+
+                Verify(storage, expectedPages, partitionSize, packageCountThreshold);
+            }
         }
 
         private static IReadOnlyDictionary<string, IGraph> CreateNewItem(CatalogPackageDetails packageDetails)
@@ -161,7 +198,8 @@ namespace CatalogTests.Registration
         private async Task<MemoryStorage> ProcessAsync(
             IReadOnlyDictionary<string, IGraph> newItems,
             string packageId,
-            int? partitionSize = null)
+            int partitionSize,
+            int packageCountThreshold = _defaultPackageCountThreshold)
         {
             var registrationKey = new RegistrationKey(packageId?.ToLowerInvariant() ?? string.Empty);
 
@@ -170,8 +208,8 @@ namespace CatalogTests.Registration
                 newItems,
                 _storageFactory,
                 _contentBaseAddress,
-                partitionSize ?? _partitionSize,
-                _packageCountThreshold,
+                partitionSize,
+                packageCountThreshold,
                 _telemetryService.Object,
                 CancellationToken.None);
 
@@ -180,32 +218,41 @@ namespace CatalogTests.Registration
 
         private void Verify(
             MemoryStorage registrationStorage,
-            int expectedStorageContentCount,
-            ExpectedPage expectedPage)
+            IReadOnlyList<ExpectedPage> expectedPages,
+            int partitionSize,
+            int packageCountThreshold = _defaultPackageCountThreshold)
         {
-            Verify(registrationStorage, expectedStorageContentCount, new[] { expectedPage });
-        }
+            var expectedStorageContentCount = expectedPages.SelectMany(page => page.Details).Count();
 
-        private void Verify(
-            MemoryStorage registrationStorage,
-            int expectedStorageContentCount,
-            IReadOnlyList<ExpectedPage> expectedPages)
-        {
+            expectedStorageContentCount += expectedStorageContentCount / packageCountThreshold;
+
+            ++expectedStorageContentCount; // index
+
             Assert.Equal(expectedStorageContentCount, registrationStorage.Content.Count);
 
             var firstPage = expectedPages.First();
             var packageId = firstPage.Details.First().Id.ToLowerInvariant();
-            var indexUri = new Uri(GetRegistrationPackageIndexUri(packageId));
+            var indexUri = GetRegistrationPackageIndexUri(packageId);
             var index = GetStorageContent<RegistrationIndex>(registrationStorage, indexUri);
 
-            VerifyIndex(index, indexUri, packageId, expectedPages);
+            VerifyRegistrationIndex(
+                registrationStorage,
+                index,
+                indexUri,
+                packageId,
+                expectedPages,
+                partitionSize,
+                packageCountThreshold);
         }
 
-        private void VerifyIndex(
+        private void VerifyRegistrationIndex(
+            MemoryStorage registrationStorage,
             RegistrationIndex index,
             Uri indexUri,
             string packageId,
-            IReadOnlyList<ExpectedPage> expectedPages)
+            IReadOnlyList<ExpectedPage> expectedPages,
+            int partitionSize,
+            int packageCountThreshold)
         {
             Assert.Equal(indexUri.AbsoluteUri, index.IdKeyword);
             Assert.Equal(
@@ -220,15 +267,41 @@ namespace CatalogTests.Registration
             for (var i = 0; i < index.Count; ++i)
             {
                 var page = index.Items[i];
-                var expectedPageVersionRange = expectedPages[i];
+                var expectedPage = expectedPages[i];
+                var expectFullPage = i < index.Count - 1;
 
-                VerifyIndexItems(
-                    page,
-                    indexUri,
-                    packageId,
-                    expectedPageVersionRange,
-                    index.CommitId,
-                    index.CommitTimeStamp);
+                if (expectFullPage)
+                {
+                    Assert.Equal(partitionSize, page.Count);
+                }
+                else
+                {
+                    Assert.InRange(page.Count, low: 1, high: partitionSize);
+                }
+
+                if (page.Count == packageCountThreshold)
+                {
+                    VerifyRegistrationPageReference(
+                        registrationStorage,
+                        page,
+                        packageId,
+                        expectedPage,
+                        index.CommitId,
+                        index.CommitTimeStamp);
+                }
+                else
+                {
+                    var pageUri = GetRegistrationPageUri(packageId, expectedPage);
+
+                    VerifyRegistrationPage(
+                        registrationStorage,
+                        page,
+                        pageUri,
+                        packageId,
+                        expectedPage,
+                        index.CommitId,
+                        index.CommitTimeStamp);
+                }
             }
 
             var expectedContext = new JObject(
@@ -282,88 +355,137 @@ namespace CatalogTests.Registration
             Assert.Equal(expectedContext.ToString(), index.ContextKeyword.ToString());
         }
 
-        private void VerifyIndexItems(
-            RegistrationIndexPage items,
-            Uri indexUri,
+        private void VerifyRegistrationPage(
+            MemoryStorage registrationStorage,
+            RegistrationPage page,
+            Uri pageUri,
             string packageId,
             ExpectedPage expectedPage,
             string commitId,
             string commitTimeStamp)
         {
-            Assert.Equal(
-                GetRegistrationPackageIndexUri(packageId) + $"#page/{expectedPage.LowerVersion}/{expectedPage.UpperVersion}",
-                items.IdKeyword);
-            Assert.Equal(CatalogConstants.CatalogCatalogPage, items.TypeKeyword);
-            Assert.Equal(commitId, items.CommitId);
-            Assert.Equal(commitTimeStamp, items.CommitTimeStamp);
-            Assert.Equal(items.Count, items.Items.Length);
-            Assert.Equal(GetRegistrationPackageIndexUri(packageId), items.Parent);
-            Assert.Equal(expectedPage.LowerVersion, items.Lower);
-            Assert.Equal(expectedPage.UpperVersion, items.Upper);
+            var packageIndexUri = GetRegistrationPackageIndexUri(packageId);
 
-            for (var i = 0; i < items.Count; ++i)
+            Assert.Equal(pageUri.AbsoluteUri, page.IdKeyword);
+            Assert.Equal(CatalogConstants.CatalogCatalogPage, page.TypeKeyword);
+            Assert.Equal(commitId, page.CommitId);
+            Assert.Equal(commitTimeStamp, page.CommitTimeStamp);
+            Assert.Equal(expectedPage.LowerVersion, page.Lower);
+            Assert.Equal(expectedPage.UpperVersion, page.Upper);
+            Assert.Equal(page.Count, page.Items.Length);
+            Assert.Equal(packageIndexUri.AbsoluteUri, page.Parent);
+
+            for (var i = 0; i < page.Count; ++i)
             {
-                var item = items.Items[i];
+                var item = page.Items[i];
                 var packageDetails = expectedPage.Details[i];
 
-                VerifyIndexItem(item, packageDetails, commitId, commitTimeStamp);
+                VerifyRegistrationPackage(registrationStorage, item, packageDetails, commitId, commitTimeStamp);
             }
         }
 
-        private void VerifyIndexItem(
-            RegistrationIndexPackageDetails item,
+        private void VerifyRegistrationPageReference(
+            MemoryStorage registrationStorage,
+            RegistrationPage page,
+            string packageId,
+            ExpectedPage expectedPage,
+            string commitId,
+            string commitTimeStamp)
+        {
+            var pageUri = GetRegistrationPageReferenceUri(packageId, expectedPage);
+
+            Assert.Equal(pageUri.AbsoluteUri, page.IdKeyword);
+            Assert.Equal(CatalogConstants.CatalogCatalogPage, page.TypeKeyword);
+            Assert.Equal(commitId, page.CommitId);
+            Assert.Equal(commitTimeStamp, page.CommitTimeStamp);
+            Assert.Equal(expectedPage.LowerVersion, page.Lower);
+            Assert.Equal(expectedPage.UpperVersion, page.Upper);
+
+            Assert.Null(page.Items);
+            Assert.Null(page.Parent);
+
+            var independentPage = GetStorageContent<RegistrationIndependentPage>(registrationStorage, pageUri);
+
+            VerifyRegistrationPage(
+                registrationStorage,
+                independentPage,
+                pageUri,
+                packageId,
+                expectedPage,
+                commitId,
+                commitTimeStamp);
+
+            JObject expectedContext = GetExpectedIndexOrPageContext();
+
+            Assert.Equal(expectedContext.ToString(), independentPage.ContextKeyword.ToString());
+        }
+
+        private void VerifyRegistrationPackage(
+            MemoryStorage registrationStorage,
+            RegistrationPackage package,
             CatalogPackageDetails packageDetails,
             string commitId,
             string commitTimeStamp)
         {
             var packageId = packageDetails.Id.ToLowerInvariant();
             var packageVersion = packageDetails.Version.ToLowerInvariant();
+            var packageVersionUri = GetRegistrationPackageVersionUri(packageId, packageVersion);
+            var packageContentUri = GetPackageContentUri(packageId, packageVersion);
 
-            Assert.Equal(GetRegistrationPackageVersionUri(packageId, packageVersion), item.IdKeyword);
-            Assert.Equal(CatalogConstants.Package, item.TypeKeyword);
-            Assert.Equal(commitId, item.CommitId);
-            Assert.Equal(commitTimeStamp, item.CommitTimeStamp);
-            Assert.Equal(packageDetails.IdKeyword, item.CatalogEntry.IdKeyword);
-            Assert.Equal(CatalogConstants.PackageDetails, item.CatalogEntry.TypeKeyword);
-            Assert.Equal(packageDetails.Authors, item.CatalogEntry.Authors);
-            Assert.Equal(packageDetails.Description, item.CatalogEntry.Description);
-            Assert.Empty(item.CatalogEntry.IconUrl);
-            Assert.Equal(packageDetails.Id, item.CatalogEntry.Id);
-            Assert.Empty(item.CatalogEntry.Language);
-            Assert.Empty(item.CatalogEntry.LicenseUrl);
-            Assert.Equal(packageDetails.Listed, item.CatalogEntry.Listed);
-            Assert.Empty(item.CatalogEntry.MinClientVersion);
-            Assert.Equal(GetPackageContentUri(packageId, packageVersion), item.CatalogEntry.PackageContent);
-            Assert.Empty(item.CatalogEntry.ProjectUrl);
-            Assert.Equal(GetRegistrationDateTime(packageDetails.Published), item.CatalogEntry.Published);
-            Assert.Equal(packageDetails.RequireLicenseAcceptance, item.CatalogEntry.RequireLicenseAcceptance);
-            Assert.Empty(item.CatalogEntry.Summary);
-            Assert.Equal(new[] { string.Empty }, item.CatalogEntry.Tags);
-            Assert.Empty(item.CatalogEntry.Title);
-            Assert.Equal(packageDetails.Version, item.CatalogEntry.Version);
+            Assert.Equal(packageVersionUri.AbsoluteUri, package.IdKeyword);
+            Assert.Equal(CatalogConstants.Package, package.TypeKeyword);
+            Assert.Equal(commitId, package.CommitId);
+            Assert.Equal(commitTimeStamp, package.CommitTimeStamp);
+            Assert.Equal(packageDetails.IdKeyword, package.CatalogEntry.IdKeyword);
+            Assert.Equal(CatalogConstants.PackageDetails, package.CatalogEntry.TypeKeyword);
+            Assert.Equal(packageDetails.Authors, package.CatalogEntry.Authors);
+            Assert.Equal(packageDetails.Description, package.CatalogEntry.Description);
+            Assert.Empty(package.CatalogEntry.IconUrl);
+            Assert.Equal(packageDetails.Id, package.CatalogEntry.Id);
+            Assert.Empty(package.CatalogEntry.Language);
+            Assert.Empty(package.CatalogEntry.LicenseUrl);
+            Assert.Equal(packageDetails.Listed, package.CatalogEntry.Listed);
+            Assert.Empty(package.CatalogEntry.MinClientVersion);
+            Assert.Equal(packageContentUri.AbsoluteUri, package.CatalogEntry.PackageContent);
+            Assert.Empty(package.CatalogEntry.ProjectUrl);
+            Assert.Equal(GetRegistrationDateTime(packageDetails.Published), package.CatalogEntry.Published);
+            Assert.Equal(packageDetails.RequireLicenseAcceptance, package.CatalogEntry.RequireLicenseAcceptance);
+            Assert.Empty(package.CatalogEntry.Summary);
+            Assert.Equal(new[] { string.Empty }, package.CatalogEntry.Tags);
+            Assert.Empty(package.CatalogEntry.Title);
+            Assert.Equal(packageDetails.Version, package.CatalogEntry.Version);
 
-            var leafUri = new Uri(GetRegistrationPackageVersionUri(packageId, packageVersion));
-            var registrationStorage = (MemoryStorage)_storageFactory.Create(packageId);
-            var leaf = GetStorageContent<RegistrationPackage>(registrationStorage, leafUri);
+            var independentPackageUri = GetRegistrationPackageVersionUri(packageId, packageVersion);
+            var independentPackage = GetStorageContent<RegistrationIndependentPackage>(
+                registrationStorage,
+                independentPackageUri);
 
-            VerifyLeaf(leaf, leafUri, packageDetails, packageId, packageVersion);
+            VerifyRegistrationIndependentPackage(
+                independentPackage,
+                independentPackageUri,
+                packageDetails,
+                packageId,
+                packageVersion);
         }
 
-        private void VerifyLeaf(
-            RegistrationPackage leaf,
-            Uri expectedIdKeyword,
+        private void VerifyRegistrationIndependentPackage(
+            RegistrationIndependentPackage package,
+            Uri packageUri,
             CatalogPackageDetails packageDetails,
             string packageId,
             string packageVersion)
         {
-            Assert.Equal(expectedIdKeyword.AbsoluteUri, leaf.IdKeyword);
+            var packageContentUri = GetPackageContentUri(packageId, packageVersion);
+            var packageIndexUri = GetRegistrationPackageIndexUri(packageId);
+
+            Assert.Equal(packageUri.AbsoluteUri, package.IdKeyword);
             Assert.Equal(
                 new[] { CatalogConstants.Package, CatalogConstants.NuGetCatalogSchemaPermalinkUri },
-                leaf.TypeKeyword);
-            Assert.Equal(packageDetails.Listed, leaf.Listed);
-            Assert.Equal(GetPackageContentUri(packageId, packageVersion), leaf.PackageContent);
-            Assert.Equal(GetRegistrationDateTime(packageDetails.Published), leaf.Published);
-            Assert.Equal(GetRegistrationPackageIndexUri(packageId), leaf.Registration);
+                package.TypeKeyword);
+            Assert.Equal(packageDetails.Listed, package.Listed);
+            Assert.Equal(packageContentUri.AbsoluteUri, package.PackageContent);
+            Assert.Equal(GetRegistrationDateTime(packageDetails.Published), package.Published);
+            Assert.Equal(packageIndexUri.AbsoluteUri, package.Registration);
 
             var expectedContext = new JObject(
                 new JProperty(CatalogConstants.VocabKeyword, CatalogConstants.NuGetSchemaUri),
@@ -381,7 +503,58 @@ namespace CatalogTests.Registration
                     new JObject(
                         new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))));
 
-            Assert.Equal(expectedContext.ToString(), leaf.ContextKeyword.ToString());
+            Assert.Equal(expectedContext.ToString(), package.ContextKeyword.ToString());
+        }
+
+        private static JObject GetExpectedIndexOrPageContext()
+        {
+            return new JObject(
+                new JProperty(CatalogConstants.VocabKeyword, CatalogConstants.NuGetSchemaUri),
+                new JProperty(CatalogConstants.Catalog, CatalogConstants.NuGetCatalogSchemaUri),
+                new JProperty(CatalogConstants.Xsd, CatalogConstants.XmlSchemaUri),
+                new JProperty(CatalogConstants.Items,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.CatalogItem),
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
+                new JProperty(CatalogConstants.CommitTimeStamp,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.CatalogCommitTimeStamp),
+                        new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+                new JProperty(CatalogConstants.CommitId,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.CatalogCommitId))),
+                new JProperty(CatalogConstants.Count,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.CatalogCount))),
+                new JProperty(CatalogConstants.Parent,
+                    new JObject(
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.CatalogParent),
+                        new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))),
+                new JProperty(CatalogConstants.Tags,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Tag))),
+                new JProperty(CatalogConstants.PackageTargetFrameworks,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.PackageTargetFramework))),
+                new JProperty(CatalogConstants.DependencyGroups,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.DependencyGroup))),
+                new JProperty(CatalogConstants.Dependencies,
+                    new JObject(
+                        new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword),
+                        new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Dependency))),
+                new JProperty(CatalogConstants.PackageContent,
+                    new JObject(
+                        new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))),
+                new JProperty(CatalogConstants.Published,
+                    new JObject(
+                        new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+                new JProperty(CatalogConstants.Registration,
+                    new JObject(
+                        new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))));
         }
 
         private static string GetRegistrationDateTime(string catalogDateTime)
@@ -401,7 +574,7 @@ namespace CatalogTests.Registration
             Assert.Equal(_cacheControl, jTokenStorageContent.CacheControl);
             Assert.Equal(_contentType, jTokenStorageContent.ContentType);
 
-            var properties = typeof(T).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance);
+            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
 
             // Verify that no new properties were added unexpectedly.
             Assert.Equal(properties.Length, ((JObject)jTokenStorageContent.Content).Count);
@@ -414,19 +587,31 @@ namespace CatalogTests.Registration
             }
         }
 
-        private static string GetPackageContentUri(string packageId, string packageVersion)
+        private static Uri GetPackageContentUri(string packageId, string packageVersion)
         {
-            return $"{_contentBaseAddress.AbsoluteUri}packages/{packageId}.{packageVersion}.nupkg";
+            return new Uri($"{_contentBaseAddress.AbsoluteUri}packages/{packageId}.{packageVersion}.nupkg");
         }
 
-        private string GetRegistrationPackageIndexUri(string packageId)
+        private Uri GetRegistrationPageUri(string packageId, ExpectedPage expectedPage)
         {
-            return $"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/index.json";
+            return new Uri(GetRegistrationPackageIndexUri(packageId),
+                $"#page/{expectedPage.LowerVersion}/{expectedPage.UpperVersion}");
         }
 
-        private string GetRegistrationPackageVersionUri(string packageId, string packageVersion)
+        private Uri GetRegistrationPageReferenceUri(string packageId, ExpectedPage expectedPage)
         {
-            return $"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/{packageVersion}.json";
+            return new Uri($"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/page"
+                + $"/{expectedPage.LowerVersion}/{expectedPage.UpperVersion}.json");
+        }
+
+        private Uri GetRegistrationPackageIndexUri(string packageId)
+        {
+            return new Uri($"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/index.json");
+        }
+
+        private Uri GetRegistrationPackageVersionUri(string packageId, string packageVersion)
+        {
+            return new Uri($"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/{packageVersion}.json");
         }
 
         private static IReadOnlyList<ExpectedPage> Repaginate(

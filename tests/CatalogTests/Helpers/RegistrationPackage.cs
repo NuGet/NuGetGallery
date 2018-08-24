@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using NgTests;
 
 namespace CatalogTests.Helpers
@@ -12,39 +11,35 @@ namespace CatalogTests.Helpers
         [JsonProperty(CatalogConstants.IdKeyword)]
         internal string IdKeyword { get; }
         [JsonProperty(CatalogConstants.TypeKeyword)]
-        internal string[] TypeKeyword { get; }
+        internal string TypeKeyword { get; }
+        [JsonProperty(CatalogConstants.CommitId)]
+        internal string CommitId { get; }
+        [JsonProperty(CatalogConstants.CommitTimeStamp)]
+        internal string CommitTimeStamp { get; }
         [JsonProperty(CatalogConstants.CatalogEntry)]
-        internal string CatalogEntry { get; }
-        [JsonProperty(CatalogConstants.Listed)]
-        internal bool Listed { get; }
+        internal RegistrationPackageDetails CatalogEntry { get; }
         [JsonProperty(CatalogConstants.PackageContent)]
         internal string PackageContent { get; }
-        [JsonProperty(CatalogConstants.Published)]
-        internal string Published { get; }
         [JsonProperty(CatalogConstants.Registration)]
         internal string Registration { get; }
-        [JsonProperty(CatalogConstants.ContextKeyword)]
-        internal JObject ContextKeyword { get; }
 
         [JsonConstructor]
         internal RegistrationPackage(
             string idKeyword,
-            string[] typeKeyword,
-            string catalogEntry,
-            bool listed,
+            string typeKeyword,
+            string commitId,
+            string commitTimeStamp,
+            RegistrationPackageDetails catalogEntry,
             string packageContent,
-            string published,
-            string registration,
-            JObject contextKeyword)
+            string registration)
         {
             IdKeyword = idKeyword;
             TypeKeyword = typeKeyword;
+            CommitId = commitId;
+            CommitTimeStamp = commitTimeStamp;
             CatalogEntry = catalogEntry;
-            Listed = listed;
             PackageContent = packageContent;
-            Published = published;
             Registration = registration;
-            ContextKeyword = contextKeyword;
         }
     }
 }

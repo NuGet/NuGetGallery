@@ -6,35 +6,35 @@ using NgTests;
 
 namespace CatalogTests.Helpers
 {
-    internal sealed class RegistrationIndexPage
+    internal class RegistrationPage
     {
         [JsonProperty(CatalogConstants.IdKeyword)]
-        internal string IdKeyword { get; }
+        public string IdKeyword { get; protected set; }
         [JsonProperty(CatalogConstants.TypeKeyword)]
-        internal string TypeKeyword { get; }
+        public string TypeKeyword { get; protected set; }
         [JsonProperty(CatalogConstants.CommitId)]
-        internal string CommitId { get; }
+        public string CommitId { get; }
         [JsonProperty(CatalogConstants.CommitTimeStamp)]
-        internal string CommitTimeStamp { get; }
+        public string CommitTimeStamp { get; protected set; }
         [JsonProperty(CatalogConstants.Count)]
-        internal int Count { get; }
+        public int Count { get; protected set; }
         [JsonProperty(CatalogConstants.Items)]
-        internal RegistrationIndexPackageDetails[] Items { get; }
+        public RegistrationPackage[] Items { get; protected set; }
         [JsonProperty(CatalogConstants.Parent)]
-        internal string Parent { get; }
+        public string Parent { get; protected set; }
         [JsonProperty(CatalogConstants.Lower)]
-        internal string Lower { get; }
+        public string Lower { get; protected set; }
         [JsonProperty(CatalogConstants.Upper)]
-        internal string Upper { get; }
+        public string Upper { get; protected set; }
 
         [JsonConstructor]
-        internal RegistrationIndexPage(
+        internal RegistrationPage(
             string idKeyword,
             string typeKeyword,
             string commitId,
             string commitTimeStamp,
             int count,
-            RegistrationIndexPackageDetails[] items,
+            RegistrationPackage[] items,
             string parent,
             string lower,
             string upper)

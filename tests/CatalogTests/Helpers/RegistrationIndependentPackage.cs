@@ -2,44 +2,49 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NgTests;
 
 namespace CatalogTests.Helpers
 {
-    internal sealed class RegistrationIndexPackageDetails
+    internal sealed class RegistrationIndependentPackage
     {
         [JsonProperty(CatalogConstants.IdKeyword)]
         internal string IdKeyword { get; }
         [JsonProperty(CatalogConstants.TypeKeyword)]
-        internal string TypeKeyword { get; }
-        [JsonProperty(CatalogConstants.CommitId)]
-        internal string CommitId { get; }
-        [JsonProperty(CatalogConstants.CommitTimeStamp)]
-        internal string CommitTimeStamp { get; }
+        internal string[] TypeKeyword { get; }
         [JsonProperty(CatalogConstants.CatalogEntry)]
-        internal RegistrationPackageDetails CatalogEntry { get; }
+        internal string CatalogEntry { get; }
+        [JsonProperty(CatalogConstants.Listed)]
+        internal bool Listed { get; }
         [JsonProperty(CatalogConstants.PackageContent)]
         internal string PackageContent { get; }
+        [JsonProperty(CatalogConstants.Published)]
+        internal string Published { get; }
         [JsonProperty(CatalogConstants.Registration)]
         internal string Registration { get; }
+        [JsonProperty(CatalogConstants.ContextKeyword)]
+        internal JObject ContextKeyword { get; }
 
         [JsonConstructor]
-        internal RegistrationIndexPackageDetails(
+        internal RegistrationIndependentPackage(
             string idKeyword,
-            string typeKeyword,
-            string commitId,
-            string commitTimeStamp,
-            RegistrationPackageDetails catalogEntry,
+            string[] typeKeyword,
+            string catalogEntry,
+            bool listed,
             string packageContent,
-            string registration)
+            string published,
+            string registration,
+            JObject contextKeyword)
         {
             IdKeyword = idKeyword;
             TypeKeyword = typeKeyword;
-            CommitId = commitId;
-            CommitTimeStamp = commitTimeStamp;
             CatalogEntry = catalogEntry;
+            Listed = listed;
             PackageContent = packageContent;
+            Published = published;
             Registration = registration;
+            ContextKeyword = contextKeyword;
         }
     }
 }
