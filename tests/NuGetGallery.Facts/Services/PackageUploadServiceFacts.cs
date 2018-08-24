@@ -192,7 +192,7 @@ namespace NuGetGallery
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -219,9 +219,7 @@ namespace NuGetGallery
                 _packageRegistration.Packages.Add(previous);
                 _packageRegistration.Packages.Add(_package);
 
-                var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                var result = await _target.ValidateBeforeGeneratePackageAsync(_nuGetPackage.Object, GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -248,7 +246,7 @@ namespace NuGetGallery
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object, 
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -270,7 +268,7 @@ namespace NuGetGallery
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -282,7 +280,7 @@ namespace NuGetGallery
             {
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -300,7 +298,7 @@ namespace NuGetGallery
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -314,10 +312,10 @@ namespace NuGetGallery
             {
                 new object[] { null, null, null },
                 new object[] { "git", null, null },
-                new object[] { "git", "http://something", Strings.WarningRepositoryUrlForGit },
+                new object[] { "git", "http://something", Strings.WarningNotHttpsOrGitRepositoryUrlScheme },
                 new object[] { "git", "https://something", null },
                 new object[] { "git", "git://something", null },
-                new object[] { "something", "git://something", Strings.WarningRepositoryUrl },
+                new object[] { "something", "git://something", Strings.WarningNotHttpsRepositoryUrlScheme },
                 new object[] { "something", "https://something", null }
             };
 
@@ -332,9 +330,7 @@ namespace NuGetGallery
                 _packageRegistration = null;
 
                 // Act
-                var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                var result = await _target.ValidateBeforeGeneratePackageAsync(_nuGetPackage.Object, GetPackageMetadata(_nuGetPackage));
 
                 // Assert
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
@@ -373,11 +369,16 @@ namespace NuGetGallery
                 // Act
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
-                    PackageMetadata.FromNuspecReader(_nuGetPackage.Object.GetNuspecReader(), strict: true));
+                    GetPackageMetadata(_nuGetPackage));
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Equal(2, result.Warnings.Count());
+            }
+
+            private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
+            {
+                return PackageMetadata.FromNuspecReader(mockPackage.Object.GetNuspecReader(), strict: true);
             }
         }
 

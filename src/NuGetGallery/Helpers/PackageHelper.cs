@@ -46,7 +46,7 @@ namespace NuGetGallery
 
         public static bool IsGitRepositoryType(string repositoryType)
         {
-            return string.Compare(repositoryType, Constants.GitRepository, ignoreCase: true) == 0;
+            return Constants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]

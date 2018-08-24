@@ -971,10 +971,10 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_PackageNotAvailable" xml:space="preserve">
     <value>No available symbols package found for ID {0} and version {1}.</value>
   </data>
-  <data name="WarningRepositoryUrlForGit" xml:space="preserve">
+  <data name="WarningNotHttpsOrGitRepositoryUrlScheme" xml:space="preserve">
     <value>Repository URL scheme should be 'https' or 'git'. The provided URL will not be displayed.</value>
   </data>
-  <data name="WarningRepositoryUrl" xml:space="preserve">
+  <data name="WarningNotHttpsRepositoryUrlScheme" xml:space="preserve">
     <value>Repository URL scheme should be 'https'. The provided URL will not be displayed.</value>
   </data>
 </root>

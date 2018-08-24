@@ -55,7 +55,12 @@ namespace NuGetGallery
 
             result = CheckRepositoryMetadata(packageMetadata, warnings);
 
-            return result ?? PackageValidationResult.AcceptedWithWarnings(warnings);
+            if (result != null)
+            {
+                return result;
+            }
+
+            return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
         /// <summary>
@@ -75,15 +80,14 @@ namespace NuGetGallery
             {
                 if (!packageMetadata.RepositoryUrl.IsGitProtocol() && !packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningRepositoryUrlForGit);
+                    warnings.Add(Strings.WarningNotHttpsOrGitRepositoryUrlScheme);
                 }
             }
             else
             {
-                // Not git repo type
                 if (!packageMetadata.RepositoryUrl.IsHttpsProtocol())
                 {
-                    warnings.Add(Strings.WarningRepositoryUrl);
+                    warnings.Add(Strings.WarningNotHttpsRepositoryUrlScheme);
                 }
             }
 

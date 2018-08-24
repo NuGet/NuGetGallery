@@ -47,16 +47,13 @@
             <!-- ko if: $data.Warnings -->
             @ViewHelpers.AlertWarning(
                             @<span>
-                                <text>We found the following issues(s):</text>
+                                We found the following issues(s):
                                 <ul data-bind="foreach: $data.Warnings">
                                     <li><span data-bind="text: $data"></span></li>
                                 </ul>
-                                <text>To make changes, we recommend you cancel the upload, make the edits in the nuspec, and upload a new package.
+                                We recommend that you fix these issues and upload a new package.
                                     <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-                                </text>
                             </span>)
-
-            <text></text>
             <!-- /ko -->
 
             <div class="verify-package-field">

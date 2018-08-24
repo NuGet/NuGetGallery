@@ -31,6 +31,7 @@ namespace NuGetGallery.Packaging
             catch (Exception ex)
             {
                 nuspecReader = null;
+                packageMetadata = null;
                 return new[] { new ValidationResult(ex.Message) };
             }
 

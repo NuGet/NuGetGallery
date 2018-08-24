@@ -2509,20 +2509,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos;. The provided URL will not be displayed..
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos; or &apos;git&apos;. The provided URL will not be displayed..
         /// </summary>
-        public static string WarningRepositoryUrl {
+        public static string WarningNotHttpsOrGitRepositoryUrlScheme {
             get {
-                return ResourceManager.GetString("WarningRepositoryUrl", resourceCulture);
+                return ResourceManager.GetString("WarningNotHttpsOrGitRepositoryUrlScheme", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos; or &apos;git&apos;. The provided URL will not be displayed..
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos;. The provided URL will not be displayed..
         /// </summary>
-        public static string WarningRepositoryUrlForGit {
+        public static string WarningNotHttpsRepositoryUrlScheme {
             get {
-                return ResourceManager.GetString("WarningRepositoryUrlForGit", resourceCulture);
+                return ResourceManager.GetString("WarningNotHttpsRepositoryUrlScheme", resourceCulture);
             }
         }
         

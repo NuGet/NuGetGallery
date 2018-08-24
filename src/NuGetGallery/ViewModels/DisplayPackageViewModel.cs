@@ -106,7 +106,7 @@ namespace NuGetGallery
         public string PushedBy { get; private set; }
 
         public bool IsCertificatesUIEnabled { get; set; }
-        public string RepositoryUrl { get; set; }
+        public string RepositoryUrl { get; private set; }
         public RepositoryKind RepositoryType { get; private set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
