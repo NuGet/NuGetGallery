@@ -14,7 +14,7 @@
     }
 }
 
-<section>
+<section role="main" class="container main-container">
     <h2>Package Validations</h2>
 
     <form method="get" action="@Url.Action(actionName: "Search")">
@@ -90,7 +90,7 @@
                     }
                     else
                     {
-                        <table class="sexy-table" style="width: 100%">
+                        <table class="table" style="width: 100%">
                             <thead>
                                 <tr>
                                     <th>Key</th>
@@ -138,9 +138,4 @@
             }
         </div>
     }
-
 </section>
-
-@section BottomScripts {
-    @Scripts.Render("~/Scripts/gallery/site.min.js")
-}

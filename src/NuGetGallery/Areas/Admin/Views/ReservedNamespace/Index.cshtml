@@ -5,83 +5,80 @@
 
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
-<section>
-    <article id="stage">
-        <div class="message" style="display: none" data-bind="text: message, visible: message"></div>
-        <h2>Reserve Namespace</h2>
-        <form>
-            <div class="form-horizontal">
-                <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
-                <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
-            </div>
-        </form><br />
-
-        <div data-bind="visible: allPrefixResults().length > 0">
-            @using (Html.BeginForm())
-            {
-                <div id="prefixResult" data-bind="foreach: allPrefixResults">
-                    <table>
-                        <tr>
-                            <td>
-                                <span style="font-weight: bold">Details:</span>
-                                <div style="margin-left: 20px">
-                                    <div>
-                                        <span style="font-weight: bold">Namespace: </span>
-                                        <span data-bind="text: $data.prefix.Value" />
-                                    </div>
-                                    <div>
-                                        <label>
-                                            <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <label>
-                                            <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
-                                        </label>
-                                    </div>
-                                    <div>
-                                        <span style="font-weight: bold">Matching Pattern: </span>
-                                        <span data-bind="text: $data.pattern" />
-                                    </div>
-                                    <!-- ko if: $data.isExisting -->
-                                    <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
-                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
-                                    <!-- /ko -->
-                                    <!-- ko ifnot: $data.isExisting -->
-                                    <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
-                                           data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
-                                    <!-- /ko -->
-                                </div>
-                            </td>
-                            <td style="vertical-align: top">
-                                <!-- ko if: $data.isExisting -->
-                                <span style="font-weight: bold">Owners:</span>
-                                <div style="margin-left: 20px">
-                                    <div id="prefixOwners" data-bind="foreach: $data.owners">
-                                        <div style="margin: 5px">
-                                            <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
-                                            <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
-                                        </div>
-                                    </div>
-                                    <div style="margin: 5px">
-                                        <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
-                                        <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
-                                    </div>
-                                </div>
-                                <!-- /ko -->
-                            </td>
-                        </tr>
-                    </table>
-                </div>
-            }
+<section role="main" class="container main-container">
+    <div class="message-container" data-bind="visible: message">
+        @ViewHelpers.AlertInfo(@<text><span class="message" data-bind="text: message"></span></text>)
+    </div>
+    <h2>Reserve Namespace</h2>
+    <form>
+        <div class="form-horizontal">
+            <input type="text" placeholder="Search for a prefix" autocomplete="on" autofocus data-bind="value: prefixSearchQuery" />
+            <input type="button" value="Search Prefix" title="Search Prefix" data-bind="click: prefixSearch" />
         </div>
-    </article>
+    </form><br />
 
+    <div data-bind="visible: allPrefixResults().length > 0">
+        @using (Html.BeginForm())
+        {
+            <div id="prefixResult" data-bind="foreach: allPrefixResults">
+                <table>
+                    <tr>
+                        <td>
+                            <span style="font-weight: bold">Details:</span>
+                            <div style="margin-left: 20px">
+                                <div>
+                                    <span style="font-weight: bold">Namespace: </span>
+                                    <span data-bind="text: $data.prefix.Value" />
+                                </div>
+                                <div>
+                                    <label>
+                                        <input type="checkbox" data-bind="checked: $data.prefix.IsSharedNamespace, disable: $data.isExisting" />IsSharedNamespace
+                                    </label>
+                                </div>
+                                <div>
+                                    <label>
+                                        <input type="checkbox" data-bind="checked: $data.prefix.IsPrefix, disable: $data.isExisting" value="IsPrefix" />IsPrefix
+                                    </label>
+                                </div>
+                                <div>
+                                    <span style="font-weight: bold">Matching Pattern: </span>
+                                    <span data-bind="text: $data.pattern" />
+                                </div>
+                                <!-- ko if: $data.isExisting -->
+                                <input style="margin-top: 5px" type="submit" value="Deallocate Namespace" title="Delete this namespace"
+                                       data-bind="click: $parent.managePrefix.bind(this, $data.prefix, false)" />
+                                <!-- /ko -->
+                                <!-- ko ifnot: $data.isExisting -->
+                                <input style="margin-top: 5px" type="submit" value="Reserve Namespace" title="Add this namespace"
+                                       data-bind="click: $parent.managePrefix.bind(this, $data.prefix, true)" />
+                                <!-- /ko -->
+                            </div>
+                        </td>
+                        <td style="vertical-align: top">
+                            <!-- ko if: $data.isExisting -->
+                            <span style="font-weight: bold">Owners:</span>
+                            <div style="margin-left: 20px">
+                                <div id="prefixOwners" data-bind="foreach: $data.owners">
+                                    <div style="margin: 5px">
+                                        <a href="#" target="_blank" data-bind="text: $data, attr: { href: $root.generateUserUrl($data) }"></a>
+                                        <input style="float: right" type="button" value="Remove" title="Remove this owner" data-bind="click: $root.removeOwner.bind(this, $data, $parent.prefix)" />
+                                    </div>
+                                </div>
+                                <div style="margin: 5px">
+                                    <input type="text" placeholder="Enter username" autocomplete="off" data-bind="value: $parent.newOwner, valueUpdate: 'afterkeydown'" />
+                                    <input type="button" value="Add" title="Add new owner for this prefix" data-bind="click: $parent.addOwner.bind(this, $data.prefix), enable: $parent.newOwner().length > 0" />
+                                </div>
+                            </div>
+                            <!-- /ko -->
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        }
+    </div>
 </section>
 
 @section BottomScripts {
-    @Scripts.Render(@Url.Content("~/Scripts/knockout-2.2.1.js"))
-    @Scripts.Render(@Url.Content("~/Scripts/gallery/common.js"))
     <script>
         $(document).ready(function () {
             var viewModel = function () {

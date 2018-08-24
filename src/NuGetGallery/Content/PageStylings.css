@@ -488,14 +488,6 @@ form .async-upload-progress-advance {
     margin-right: 5px;
 }
 
-/* Delete Package (unlist page) */
-
-#unlist-form {
-    border: solid 1px #ccc;
-    margin: 20px;
-    padding: 10px;
-}
-
 /* Report Abuse*/
 
 #form-field-reason {

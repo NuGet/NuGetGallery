@@ -10,8 +10,10 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
+    [string]$BuildBranch = '9f570166c49e93a911e54505a8041f3a123e69b1'
 )
+
+Set-StrictMode -Version 1.0
 
 # This script should fail the build if any issue occurs.
 trap {

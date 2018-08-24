@@ -5,7 +5,6 @@
 @{
     ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 

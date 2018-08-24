@@ -196,6 +196,30 @@ namespace NuGetGallery
             [Theory]
             [InlineData(false)]
             [InlineData(true)]
+            public async Task WhenMemberNameIsEmail_ThrowEntityException(bool isAdmin)
+            {
+                // Arrange
+                var fakes = new Fakes();
+                var service = new TestableUserService();
+                service.MockUserRepository.Setup(r => r.GetAll())
+                    .Returns(new[] {
+                        fakes.Organization
+                    }.AsQueryable());
+
+                // Act
+                var e = await Assert.ThrowsAsync<EntityException>(async () =>
+                {
+                    await service.AddMembershipRequestAsync(fakes.Organization, "notAUser@email.com", isAdmin);
+                });
+
+                Assert.Equal(Strings.AddMember_NameIsEmail, e.Message);
+
+                service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Never);
+            }
+
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
             public async Task WhenMemberNotFound_ThrowEntityException(bool isAdmin)
             {
                 // Arrange
