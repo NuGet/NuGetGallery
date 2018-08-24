@@ -53,6 +53,7 @@ namespace NuGetGallery
                     new object[] { CoreConstants.PackageBackupsFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.PackageReadMesFolderName, false, CoreConstants.TextContentType },
                     new object[] { CoreConstants.PackagesFolderName, true, CoreConstants.PackageContentType },
+                    new object[] { CoreConstants.SymbolPackagesFolderName, true, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.UploadsFolderName, false, CoreConstants.PackageContentType },
                     new object[] { CoreConstants.UserCertificatesFolderName, false, CoreConstants.CertificateContentType },
                     new object[] { CoreConstants.ValidationFolderName, false, CoreConstants.PackageContentType }
@@ -535,7 +536,7 @@ namespace NuGetGallery
 
                 fakeBlob.Verify();
 
-                if (folderName == CoreConstants.PackagesFolderName)
+                if (folderName == CoreConstants.PackagesFolderName || folderName == CoreConstants.SymbolPackagesFolderName)
                 {
                     Assert.Equal(CoreConstants.DefaultCacheControl, fakeBlob.Object.Properties.CacheControl);
                 }
