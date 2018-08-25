@@ -97,7 +97,7 @@
             EditReadmeManager.init(
                 realModel,
                 '@Url.EditPackage(Model.PackageId, Model.Version)',
-                '@Url.Package(Model.PackageId, Model.Version)');
+                '@Url.Referrer(Url.Package(Model.PackageId, Model.Version))');
 
             if (document.referrer != null
                 && document.referrer.toLocaleLowerCase().endsWith("edit")
