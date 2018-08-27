@@ -4,7 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 using NuGetGallery.Framework;
+using Xunit;
 using static NuGetGallery.DisplayPackageViewModel;
 
 namespace NuGetGallery.ViewModels
