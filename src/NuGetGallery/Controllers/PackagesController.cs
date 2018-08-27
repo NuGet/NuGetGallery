@@ -165,15 +165,7 @@ namespace NuGetGallery
                     {
                         return View(model);
                     }
-
-                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package);
-                    var validationErrorMessage = GetErrorMessageOrNull(validationResult);
-                    if (validationErrorMessage != null)
-                    {
-                        TempData["Message"] = validationErrorMessage;
-                        return View(model);
-                    }
-
+                  
                     try
                     {
                         packageMetadata = PackageMetadata.FromNuspecReader(
@@ -185,6 +177,14 @@ namespace NuGetGallery
                         _telemetryService.TraceException(ex);
 
                         TempData["Message"] = ex.GetUserSafeMessage();
+                        return View(model);
+                    }
+
+                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package, packageMetadata);
+                    var validationErrorMessage = GetErrorMessageOrNull(validationResult);
+                    if (validationErrorMessage != null)
+                    {
+                        TempData["Message"] = validationErrorMessage;
                         return View(model);
                     }
 
@@ -249,6 +249,7 @@ namespace NuGetGallery
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
             IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
+            PackageMetadata packageMetadata;
 
             using (var uploadStream = uploadFile.InputStream)
             {
@@ -291,7 +292,7 @@ namespace NuGetGallery
                 }
 
                 NuspecReader nuspec;
-                var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec).ToArray();
+                var errors = ManifestValidator.Validate(packageArchiveReader.GetNuspec(), out nuspec, out packageMetadata).ToArray();
                 if (errors.Length > 0)
                 {
                     var errorStrings = new List<string>();
@@ -385,7 +386,6 @@ namespace NuGetGallery
                 await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
             }
 
-            PackageMetadata packageMetadata;
             IReadOnlyList<string> warnings;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
@@ -413,7 +413,7 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { ex.GetUserSafeMessage() });
                 }
 
-                var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package);
+                var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package, packageMetadata);
                 var validationJsonResult = GetJsonResultOrNull(validationResult);
                 if (validationJsonResult != null)
                 {
@@ -1593,7 +1593,7 @@ namespace NuGetGallery
                     }
 
                     // Perform all the validations we can before adding the package to the entity context.
-                    var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(nugetPackage);
+                    var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(nugetPackage, packageMetadata);
                     var beforeValidationJsonResult = GetJsonResultOrNull(beforeValidationResult);
                     if (beforeValidationJsonResult != null)
                     {

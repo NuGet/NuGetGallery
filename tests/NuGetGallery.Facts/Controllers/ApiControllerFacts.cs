@@ -116,7 +116,7 @@ namespace NuGetGallery
 
             MockPackageUploadService
                 .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                    It.IsAny<PackageArchiveReader>()))
+                    It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             MockPackageUploadService.Setup(x => x.GeneratePackageAsync(It.IsAny<string>(), It.IsAny<PackageArchiveReader>(), It.IsAny<PackageStreamMetadata>(), It.IsAny<User>(), It.IsAny<User>()))
@@ -917,7 +917,7 @@ namespace NuGetGallery
                 controller
                     .MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>()))
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
                     .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageA }));
                 controller
                     .MockPackageUploadService
@@ -986,14 +986,14 @@ namespace NuGetGallery
                 controller.SetupPackageFromInputStream(nuGetPackage);
                 controller.MockPackageUploadService
                     .Setup(x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>()))
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()))
                     .ReturnsAsync(new PackageValidationResult(type, string.Empty));
 
                 await controller.CreatePackagePut();
 
                 controller.MockPackageUploadService.Verify(
                     x => x.ValidateBeforeGeneratePackageAsync(
-                        It.IsAny<PackageArchiveReader>()),
+                        It.IsAny<PackageArchiveReader>(), It.IsAny<PackageMetadata>()),
                     Times.Once);
             }
 

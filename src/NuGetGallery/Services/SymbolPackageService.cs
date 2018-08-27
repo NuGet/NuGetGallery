@@ -122,7 +122,7 @@ namespace NuGetGallery
             PackageHelper.ValidateNuGetPackageMetadata(metadata);
 
             // Validate nuspec manifest.
-            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), out var nuspec).ToArray();
+            var errors = ManifestValidator.Validate(symbolPackage.GetNuspec(), out var nuspec, out var packageMetadata).ToArray();
             if (errors.Length > 0)
             {
                 var errorsString = string.Join("', '", errors.Select(error => error.ErrorMessage));

@@ -725,6 +725,27 @@ namespace NuGetGallery
                 // Assert
                 Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100"), ex.Message);
             }
+
+            [Fact]
+            private async Task WillThrowIfTheRepositoryUrlIsLongerThan4000()
+            {
+                // Arrange
+                var service = CreateService();
+
+                var repositoryMetadata = new NuGet.Packaging.Core.RepositoryMetadata()
+                {
+                    Type = "git",
+                    Url = "https://github.com/NuGet/NuGetGallery" + new string('a', 4000),
+                };
+
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(repositoryMetadata: repositoryMetadata);
+
+                // Act
+                var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
+
+                // Assert
+                Assert.Equal(string.Format(Strings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000"), ex.Message);
+            }
         }
 
         public class TheFindPackageByIdAndVersionMethod

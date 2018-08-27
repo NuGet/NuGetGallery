@@ -40,19 +40,58 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage)
+        public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
         {
             var warnings = new List<string>();
 
             var result = await CheckForUnsignedPushAfterAuthorSignedAsync(
                 nuGetPackage,
                 warnings);
+
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = CheckRepositoryMetadata(packageMetadata, warnings);
+
             if (result != null)
             {
                 return result;
             }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        /// <summary>
+        /// Validate repository metadata: 
+        /// 1. If the type is "git" - allow the URL scheme "git://" or "https://". We will translate "git://" to "https://" at display time for known domains.
+        /// 2. For types other then "git" - URL scheme should be "https://"
+        /// </summary>
+        private PackageValidationResult CheckRepositoryMetadata(PackageMetadata packageMetadata, List<string> warnings)
+        {
+            if (packageMetadata.RepositoryUrl == null)
+            {
+                return null;
+            }
+
+            // git repository type
+            if (PackageHelper.IsGitRepositoryType(packageMetadata.RepositoryType))
+            {
+                if (!packageMetadata.RepositoryUrl.IsGitProtocol() && !packageMetadata.RepositoryUrl.IsHttpsProtocol())
+                {
+                    warnings.Add(Strings.WarningNotHttpsOrGitRepositoryUrlScheme);
+                }
+            }
+            else
+            {
+                if (!packageMetadata.RepositoryUrl.IsHttpsProtocol())
+                {
+                    warnings.Add(Strings.WarningNotHttpsRepositoryUrlScheme);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>

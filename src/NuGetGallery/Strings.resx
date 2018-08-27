@@ -980,4 +980,10 @@ Policy violations: {0}</value>
   <data name="TransformAccount_AdminNameIsEmail" xml:space="preserve">
     <value>You must choose an administrator by username, not an email address.</value>
   </data>
+  <data name="WarningNotHttpsOrGitRepositoryUrlScheme" xml:space="preserve">
+    <value>Repository URL scheme should be 'https' or 'git'. The provided URL will not be displayed.</value>
+  </data>
+  <data name="WarningNotHttpsRepositoryUrlScheme" xml:space="preserve">
+    <value>Repository URL scheme should be 'https'. The provided URL will not be displayed.</value>
+  </data>
 </root>

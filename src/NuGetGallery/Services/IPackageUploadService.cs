@@ -18,7 +18,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="nuGetPackage">The package archive reader.</param>
         /// <returns>The package validation result.</returns>
-        Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage);
+        Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata);
 
         Task<Package> GeneratePackageAsync(
             string id,

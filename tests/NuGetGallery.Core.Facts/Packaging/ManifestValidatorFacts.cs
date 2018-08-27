@@ -5,7 +5,6 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Text;
-using NuGet.Packaging;
 using Xunit;
 
 namespace NuGetGallery.Packaging
@@ -525,12 +524,23 @@ namespace NuGetGallery.Packaging
             Assert.Equal(new[] { $"Invalid package version for a dependency with id 'a.b.c' in package 'packageA.1.0.1-alpha': '{versionRange}'" }, errors);
         }
 
+        [Fact]
+        public void ReturnsPackageMetadataForValidNuspec()
+        {
+            // Arrange
+            var nuspecStream = CreateNuspecStream(NuSpecSemVer200);
+
+            // Act
+            ManifestValidator.Validate(nuspecStream, out var reader, out var packageMetadata);
+
+            // Assert
+            Assert.NotNull(packageMetadata);
+        }
+
         private static string[] GetErrors(Stream nuspecStream)
         {
-            NuspecReader reader;
-
             return ManifestValidator
-                .Validate(nuspecStream, out reader)
+                .Validate(nuspecStream, out var reader, out var metadata)
                 .Select(r => r.ErrorMessage)
                 .ToArray();
         }

@@ -227,7 +227,6 @@
         function bindData(model) {
             $("#verify-package-block").remove();
             $("#submit-block").remove();
-            $("#verify-warning-container").addClass("hidden");
             $("#verify-collapser-container").addClass("hidden");
             $("#submit-collapser-container").addClass("hidden");
 
@@ -269,10 +268,6 @@
                 $('#iconurl-field').on('change', function () {
                     $('#icon-preview').attr('src', $('#iconurl-field').val());
                 });
-
-                if ($("#validation-failure-list .alert").length === 0) {
-                    $("#verify-warning-container").removeClass("hidden");
-                }
 
                 $("#verify-collapser-container").removeClass("hidden");
                 $("#submit-collapser-container").removeClass("hidden");

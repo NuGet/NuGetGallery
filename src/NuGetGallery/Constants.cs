@@ -93,6 +93,8 @@ namespace NuGetGallery
 
         public const string DevelopmentEnvironment = "Development";
 
+        public const string GitRepository = "git";
+
         public static class ContentNames
         {
             public static readonly string ReadOnly = "ReadOnly";
