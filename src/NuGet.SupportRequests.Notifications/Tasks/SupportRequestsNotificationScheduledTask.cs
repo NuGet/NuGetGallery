@@ -2,12 +2,9 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.KeyVault;
-using NuGet.Services.Sql;
 using NuGet.SupportRequests.Notifications.Notifications;
 using NuGet.SupportRequests.Notifications.Services;
 using NuGet.SupportRequests.Notifications.Templates;
@@ -18,17 +15,19 @@ namespace NuGet.SupportRequests.Notifications.Tasks
       : IScheduledTask
         where TNotification : INotification
     {
+        private InitializationConfiguration _configuration;
+
         private readonly SupportRequestRepository _supportRequestRepository;
         private readonly MessagingService _messagingService;
 
         protected SupportRequestsNotificationScheduledTask(
-            IServiceContainer serviceContainer,
-            IDictionary<string, string> jobArgsDictionary,
+            InitializationConfiguration configuration,
+            Func<Task<SqlConnection>> openSupportRequestSqlConnectionAsync,
             ILoggerFactory loggerFactory)
         {
-            if (jobArgsDictionary == null)
+            if (configuration == null)
             {
-                throw new ArgumentNullException(nameof(jobArgsDictionary));
+                throw new ArgumentNullException(nameof(configuration));
             }
 
             if (loggerFactory == null)
@@ -36,17 +35,13 @@ namespace NuGet.SupportRequests.Notifications.Tasks
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            var smtpUri = jobArgsDictionary[JobArgumentNames.SmtpUri];
-            _messagingService = new MessagingService(loggerFactory, smtpUri);
-
-            var secretInjector = (ISecretInjector)serviceContainer.GetService(typeof(ISecretInjector));
-            var supportDbConnectionString = jobArgsDictionary[JobArgumentNames.SourceDatabase];
-            var supportDbConnectionFactory = new AzureSqlConnectionFactory(supportDbConnectionString, secretInjector);
+            _messagingService = new MessagingService(loggerFactory, configuration.SmtpUri);
             
-            _supportRequestRepository = new SupportRequestRepository(loggerFactory, supportDbConnectionFactory);
+            _supportRequestRepository = new SupportRequestRepository(loggerFactory, openSupportRequestSqlConnectionAsync);
         }
 
         protected abstract Task<TNotification> BuildNotification(SupportRequestRepository supportRequestRepository, DateTime referenceTime);
+
         protected abstract string BuildNotificationBody(string template, TNotification notification);
 
         public async Task RunAsync()

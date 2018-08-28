@@ -1,36 +1,50 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Threading.Tasks;
+using Autofac;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using NuGet.Jobs;
+using NuGet.Jobs.Configuration;
 
 namespace NuGet.SupportRequests.Notifications
 {
     internal class Job
-        : JobBase
+        : JsonConfigurationJob
     {
-        private IServiceContainer _serviceContainer;
-        private IDictionary<string, string> _jobArgsDictionary;
+        private InitializationConfiguration _configuration;
+        private string _taskName;
 
         public override void Init(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary)
         {
-            if (!jobArgsDictionary.ContainsKey(JobArgumentNames.ScheduledTask))
-            {
-                throw new NotSupportedException("The required argument -Task is missing.");
-            }
+            base.Init(serviceContainer, jobArgsDictionary);
 
-            _serviceContainer = serviceContainer ?? throw new ArgumentNullException(nameof(serviceContainer));
-            _jobArgsDictionary = jobArgsDictionary;
+            _taskName = jobArgsDictionary[JobArgumentNames.ScheduledTask];
+            _configuration = _serviceProvider.GetRequiredService<IOptionsSnapshot<InitializationConfiguration>>().Value;
         }
 
         public override async Task Run()
         {
-            var scheduledTask = ScheduledTaskFactory.Create(_serviceContainer, _jobArgsDictionary, LoggerFactory);
+            var scheduledTask = ScheduledTaskFactory.Create(
+                _taskName,
+                _configuration,
+                OpenSqlConnectionAsync<SupportRequestDbConfiguration>,
+                LoggerFactory);
 
             await scheduledTask.RunAsync();
+        }
+
+        protected override void ConfigureAutofacServices(ContainerBuilder containerBuilder)
+        {
+        }
+
+        protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
+        {
+            ConfigureInitializationSection<InitializationConfiguration>(services, configurationRoot);
         }
     }
 }

@@ -26,6 +26,7 @@ namespace NuGet.Jobs
         private const string InitializationConfigurationSectionName = "Initialization";
         private const string GalleryDbConfigurationSectionName = "GalleryDb";
         private const string StatisticsDbConfigurationSectionName = "StatisticsDb";
+        private const string SupportRequestDbConfigurationSectionName = "SupportRequestDb";
         private const string ValidationDbConfigurationSectionName = "ValidationDb";
         private const string ServiceBusConfigurationSectionName = "ServiceBus";
         private const string ValidationStorageConfigurationSectionName = "ValidationStorage";
@@ -111,6 +112,7 @@ namespace NuGet.Jobs
         {
             services.Configure<GalleryDbConfiguration>(configurationRoot.GetSection(GalleryDbConfigurationSectionName));
             services.Configure<StatisticsDbConfiguration>(configurationRoot.GetSection(StatisticsDbConfigurationSectionName));
+            services.Configure<SupportRequestDbConfiguration>(configurationRoot.GetSection(SupportRequestDbConfigurationSectionName));
             services.Configure<ValidationDbConfiguration>(configurationRoot.GetSection(ValidationDbConfigurationSectionName));
             services.Configure<ServiceBusConfiguration>(configurationRoot.GetSection(ServiceBusConfigurationSectionName));
             services.Configure<ValidationStorageConfiguration>(configurationRoot.GetSection(ValidationStorageConfigurationSectionName));
@@ -118,25 +120,20 @@ namespace NuGet.Jobs
             services.AddSingleton(new TelemetryClient());
             services.AddTransient<ITelemetryClient, TelemetryClientWrapper>();
 
-            services.AddScoped<ISqlConnectionFactory<GalleryDbConfiguration>>(p =>
-            {
-                return new DelegateSqlConnectionFactory<GalleryDbConfiguration>(
-                    CreateSqlConnectionAsync<GalleryDbConfiguration>,
-                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<GalleryDbConfiguration>>>());
-            });
+            AddScopedSqlConnectionFactory<GalleryDbConfiguration>(services);
+            AddScopedSqlConnectionFactory<StatisticsDbConfiguration>(services);
+            AddScopedSqlConnectionFactory<SupportRequestDbConfiguration>(services);
+            AddScopedSqlConnectionFactory<ValidationDbConfiguration>(services);
+        }
 
-            services.AddScoped<ISqlConnectionFactory<StatisticsDbConfiguration>>(p =>
+        private void AddScopedSqlConnectionFactory<TDbConfiguration>(IServiceCollection services)
+            where TDbConfiguration : IDbConfiguration
+        {
+            services.AddScoped<ISqlConnectionFactory<TDbConfiguration>>(p =>
             {
-                return new DelegateSqlConnectionFactory<StatisticsDbConfiguration>(
-                    CreateSqlConnectionAsync<StatisticsDbConfiguration>,
-                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<StatisticsDbConfiguration>>>());
-            });
-
-            services.AddScoped<ISqlConnectionFactory<ValidationDbConfiguration>>(p =>
-            {
-                return new DelegateSqlConnectionFactory<ValidationDbConfiguration>(
-                    CreateSqlConnectionAsync<ValidationDbConfiguration>,
-                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<ValidationDbConfiguration>>>());
+                return new DelegateSqlConnectionFactory<TDbConfiguration>(
+                    CreateSqlConnectionAsync<TDbConfiguration>,
+                    p.GetRequiredService<ILogger<DelegateSqlConnectionFactory<TDbConfiguration>>>());
             });
         }
 
@@ -150,22 +147,19 @@ namespace NuGet.Jobs
 
         protected virtual void RegisterDatabases(IServiceProvider serviceProvider)
         {
-            var galleryDb = serviceProvider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>();
-            if (!string.IsNullOrEmpty(galleryDb.Value?.ConnectionString))
-            {
-                RegisterDatabase<GalleryDbConfiguration>(serviceProvider);
-            }
+            RegisterDatabaseIfConfigured<GalleryDbConfiguration>(serviceProvider);
+            RegisterDatabaseIfConfigured<StatisticsDbConfiguration>(serviceProvider);
+            RegisterDatabaseIfConfigured<SupportRequestDbConfiguration>(serviceProvider);
+            RegisterDatabaseIfConfigured<ValidationDbConfiguration>(serviceProvider);
+        }
 
-            var statisticsDb = serviceProvider.GetRequiredService<IOptionsSnapshot<StatisticsDbConfiguration>>();
-            if (!string.IsNullOrEmpty(statisticsDb.Value?.ConnectionString))
+        private void RegisterDatabaseIfConfigured<TDbConfiguration>(IServiceProvider serviceProvider)
+            where TDbConfiguration : IDbConfiguration
+        {
+            var dbConfiguration = serviceProvider.GetRequiredService<IOptionsSnapshot<TDbConfiguration>>();
+            if (!string.IsNullOrEmpty(dbConfiguration.Value?.ConnectionString))
             {
-                RegisterDatabase<StatisticsDbConfiguration>(serviceProvider);
-            }
-
-            var validationDb = serviceProvider.GetRequiredService<IOptionsSnapshot<ValidationDbConfiguration>>();
-            if (!string.IsNullOrEmpty(validationDb.Value?.ConnectionString))
-            {
-                RegisterDatabase<ValidationDbConfiguration>(serviceProvider);
+                RegisterDatabase<TDbConfiguration>(serviceProvider);
             }
         }
 

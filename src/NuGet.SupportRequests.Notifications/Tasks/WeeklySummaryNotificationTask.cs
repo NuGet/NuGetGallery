@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,12 +22,12 @@ namespace NuGet.SupportRequests.Notifications.Tasks
         private readonly string _targetEmailAddress;
 
         public WeeklySummaryNotificationTask(
-            IServiceContainer serviceContainer,
-            IDictionary<string, string> jobArgsDictionary,
+            InitializationConfiguration configuration,
+            Func<Task<SqlConnection>> openSupportRequestSqlConnectionAsync,
             ILoggerFactory loggerFactory)
-          : base(serviceContainer, jobArgsDictionary, loggerFactory)
+          : base(configuration, openSupportRequestSqlConnectionAsync, loggerFactory)
         {
-            _targetEmailAddress = jobArgsDictionary[_argumentNameTargetEmailAddress];
+            _targetEmailAddress = configuration.TargetEmailAddress;
         }
 
         protected override async Task<WeeklySummaryNotification> BuildNotification(

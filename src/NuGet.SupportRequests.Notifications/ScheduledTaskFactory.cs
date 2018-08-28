@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.ComponentModel.Design;
+using System.Data.SqlClient;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace NuGet.SupportRequests.Notifications
@@ -12,11 +12,15 @@ namespace NuGet.SupportRequests.Notifications
     {
         private const string _tasksNamespace = "NuGet.SupportRequests.Notifications.Tasks";
 
-        public static IScheduledTask Create(IServiceContainer serviceContainer, IDictionary<string, string> jobArgsDictionary, ILoggerFactory loggerFactory)
+        public static IScheduledTask Create(
+            string scheduledTaskName,
+            InitializationConfiguration configuration,
+            Func<Task<SqlConnection>> openSupportRequestSqlConnectionAsync,
+            ILoggerFactory loggerFactory)
         {
-            if (jobArgsDictionary == null)
+            if (configuration == null)
             {
-                throw new ArgumentNullException(nameof(jobArgsDictionary));
+                throw new ArgumentNullException(nameof(configuration));
             }
 
             if (loggerFactory == null)
@@ -24,16 +28,19 @@ namespace NuGet.SupportRequests.Notifications
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            var scheduledTaskName = jobArgsDictionary[JobArgumentNames.ScheduledTask];
-            var scheduledTask = GetTaskOfType(scheduledTaskName, serviceContainer, jobArgsDictionary, loggerFactory);
+            var scheduledTask = GetTaskOfType(
+                scheduledTaskName,
+                configuration,
+                openSupportRequestSqlConnectionAsync,
+                loggerFactory);
 
             return scheduledTask;
         }
 
         private static IScheduledTask GetTaskOfType(
             string taskName,
-            IServiceContainer serviceContainer,
-            IDictionary<string, string> jobArgsDictionary,
+            InitializationConfiguration configuration,
+            Func<Task<SqlConnection>> openSupportRequestSqlConnectionAsync,
             ILoggerFactory loggerFactory)
         {
             if (string.IsNullOrEmpty(taskName))
@@ -51,7 +58,12 @@ namespace NuGet.SupportRequests.Notifications
             IScheduledTask scheduledTask;
             if (scheduledTaskType != null && typeof(IScheduledTask).IsAssignableFrom(scheduledTaskType))
             {
-                var args = new object[] { serviceContainer, jobArgsDictionary, loggerFactory };
+                var args = new object[] {
+                    configuration,
+                    openSupportRequestSqlConnectionAsync,
+                    loggerFactory
+                };
+
                 scheduledTask = (IScheduledTask)Activator.CreateInstance(scheduledTaskType, args);
             }
             else

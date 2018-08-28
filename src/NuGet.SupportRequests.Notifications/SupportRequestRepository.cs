@@ -8,7 +8,6 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using NuGet.Services.Sql;
 using NuGet.SupportRequests.Notifications.Models;
 
 namespace NuGet.SupportRequests.Notifications
@@ -20,29 +19,29 @@ namespace NuGet.SupportRequests.Notifications
         private const string _parameterNamePagerDutyUsername = "pagerDutyUserName";
         private readonly DateTime _defaultSqlDateTime = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
         private readonly ILogger _logger;
-        private readonly ISqlConnectionFactory _supportDbConnectionFactory;
+        private readonly Func<Task<SqlConnection>> _openSupportRequestSqlConnectionAsync;
 
         public SupportRequestRepository(
             ILoggerFactory loggerFactory,
-            ISqlConnectionFactory supportDbConnectionFactory)
+            Func<Task<SqlConnection>> openSupportRequestSqlConnectionAsync)
         {
             if (loggerFactory == null)
             {
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
-            if (supportDbConnectionFactory == null)
+            if (openSupportRequestSqlConnectionAsync == null)
             {
-                throw new ArgumentNullException(nameof(supportDbConnectionFactory));
+                throw new ArgumentNullException(nameof(openSupportRequestSqlConnectionAsync));
             }
 
             _logger = loggerFactory.CreateLogger<SupportRequestRepository>();
-            _supportDbConnectionFactory = supportDbConnectionFactory;
+            _openSupportRequestSqlConnectionAsync = openSupportRequestSqlConnectionAsync;
         }
 
         internal async Task<SqlConnection> OpenConnectionAsync()
         {
-            var connection = await _supportDbConnectionFactory.CreateAsync();
+            var connection = await _openSupportRequestSqlConnectionAsync();
             connection.InfoMessage += OnSqlConnectionInfoMessage;
 
             return connection;

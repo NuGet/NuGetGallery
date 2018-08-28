@@ -1,0 +1,19 @@
+﻿{
+  "Initialization": {
+    "PagerDutyAccountName": "nuget",
+    "PagerDutyApiKey": "$$Dev-PagerDuty-ApiKey$$",
+    "SmtpUri": "#{Jobs.supportrequests.notifications.SmtpUri}",
+    "TargetEmailAddress": "#{Jobs.supportrequests.notifications.weeklysummarynotification.TargetEmailAddress}"
+  },
+
+  "SupportRequestDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.SupportRequestDatabaseAddress};Initial Catalog=nuget-dev-supportrequest;User ID=$$Dev-SupportRequestDBWriter-UserName$$;Password=$$Dev-SupportRequestDBWriter-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}
