@@ -7,6 +7,9 @@
   Cloud Service builds do a solution build then a "Publish" on the .ccproj. Only that "Publish" step needs to sign
   things.
   -->
+  <ItemGroup>
+    <SignFilesDependsOn Include="EnumerateFilesToSign" />
+  </ItemGroup>
   <Target Name="EnumerateFilesToSign" AfterTargets="AfterBuild" Condition="'$(SignAssembly)' == 'true' AND '$(SignType)' != 'none'">
     <ItemGroup>
       <FilesToSign Include="$(TargetPath)">
