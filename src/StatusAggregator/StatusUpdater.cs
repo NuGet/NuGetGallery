@@ -45,15 +45,17 @@ namespace StatusAggregator
                     await ProcessCursor($"{ManualCursorBaseName}{manualStatusChangeUpdater.Name}", manualStatusChangeUpdater.ProcessNewManualChanges);
                 }
 
-                await ProcessCursor(IncidentCursorName, async (value) =>
+                var incidentCursor = await ProcessCursor(IncidentCursorName, async (value) =>
                 {
                     await _incidentUpdater.RefreshActiveIncidents();
                     return await _incidentUpdater.FetchNewIncidents(value);
                 });
+
+                await _eventUpdater.UpdateActiveEvents(incidentCursor);
             }
         }
 
-        private async Task ProcessCursor(string name, Func<DateTime, Task<DateTime?>> processCursor)
+        private async Task<DateTime> ProcessCursor(string name, Func<DateTime, Task<DateTime?>> processCursor)
         {
             var lastCursor = await _cursor.Get(name);
             var nextCursor = await processCursor(lastCursor);
@@ -61,6 +63,8 @@ namespace StatusAggregator
             {
                 await _cursor.Set(name, nextCursor.Value);
             }
+
+            return nextCursor ?? lastCursor;
         }
     }
 }

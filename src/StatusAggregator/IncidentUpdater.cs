@@ -16,7 +16,6 @@ namespace StatusAggregator
     public class IncidentUpdater : IIncidentUpdater
     {
         private readonly ITableWrapper _table;
-        private readonly IEventUpdater _eventUpdater;
         private readonly IAggregateIncidentParser _aggregateIncidentParser;
         private readonly IIncidentApiClient _incidentApiClient;
         private readonly IIncidentFactory _incidentFactory;
@@ -26,7 +25,6 @@ namespace StatusAggregator
 
         public IncidentUpdater(
             ITableWrapper table,
-            IEventUpdater eventUpdater,
             IIncidentApiClient incidentApiClient,
             IAggregateIncidentParser aggregateIncidentParser,
             IIncidentFactory incidentFactory,
@@ -34,7 +32,6 @@ namespace StatusAggregator
             ILogger<IncidentUpdater> logger)
         {
             _table = table ?? throw new ArgumentNullException(nameof(table));
-            _eventUpdater = eventUpdater ?? throw new ArgumentNullException(nameof(eventUpdater));
             _incidentApiClient = incidentApiClient ?? throw new ArgumentNullException(nameof(incidentApiClient));
             _aggregateIncidentParser = aggregateIncidentParser ?? throw new ArgumentNullException(nameof(aggregateIncidentParser));
             _incidentFactory = incidentFactory ?? throw new ArgumentNullException(nameof(incidentFactory));

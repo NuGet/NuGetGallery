@@ -164,7 +164,7 @@ namespace StatusAggregator
         }
 
         private const int _defaultEventStartMessageDelayMinutes = 15;
-        private const int _defaultEventEndDelayMinutes = 10;
+        private const int _defaultEventEndDelayMinutes = 15;
         private const int _defaultEventVisibilityPeriod = 10;
 
         private static void AddConfiguration(IServiceCollection serviceCollection, IDictionary<string, string> jobArgsDictionary)
