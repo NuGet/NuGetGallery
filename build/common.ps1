@@ -569,6 +569,76 @@ Function New-Package {
     }
 }
 
+Function New-ProjectPackage {
+    [CmdletBinding()]
+    param(
+        [Alias('target')]
+        [string]$TargetFilePath,
+        [string]$TargetProfile,
+        [string]$Configuration,
+        [string]$ReleaseLabel,
+        [string]$BuildNumber,
+        [switch]$NoPackageAnalysis,
+        [string]$PackageId,
+        [string]$Version,
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
+        [switch]$Symbols,
+        [string]$Branch,
+        [switch]$IncludeReferencedProjects
+    )
+    Trace-Log "Creating package from @""$TargetFilePath"""
+    
+    $MSBuildExe = Get-MSBuildExe $MSBuildVersion
+    
+    $opts = , $TargetFilePath
+    $opts += "/t:pack"
+    
+    $opts += "/p:Configuration=$Configuration;BuildNumber=$(Format-BuildNumber $BuildNumber)"
+    $opts += "/p:PackageOutputPath=$Artifacts"
+    
+    if ($PackageId) {
+        $opts += "/p:PackageId=$PackageId"
+    }
+    
+    if ($Version){
+        $PackageVersion = $Version
+    }
+    elseif ($ReleaseLabel) {
+        $PackageVersion = Get-PackageVersion $ReleaseLabel $BuildNumber
+    }
+    
+    if ($PackageVersion) {
+        $opts += "/p:PackageVersion=$PackageVersion"
+    }
+    
+    if ($TargetProfile) {
+        $opts += "/p:TargetProfile=$TargetProfile"
+    }
+    
+    if ($NoPackageAnalysis) {
+        $opts += '/p:NoPackageAnalysis=True'
+    }
+    
+    if ($Symbols) {
+        $opts += "/p:IncludeSymbols=True"
+    }
+    
+    if (-not (Test-Path $Artifacts)) {
+        New-Item $Artifacts -Type Directory
+    }
+    
+    $OutputDir = Join-Path $Artifacts $TargetProfile
+    if (-not (Test-Path $OutputDir)) {
+        New-Item $OutputDir -Type Directory
+    }
+    
+    Trace-Log "$MsBuildExe $opts"
+    & $MsBuildExe $opts
+    if (-not $?) {
+        Error-Log "Pack failed for @""$TargetFilePath"". Code: ${LASTEXITCODE}"
+    }
+}
+
 Function Set-AppSetting($webConfig, [string]$name, [string]$value) {
     $setting = $webConfig.configuration.appSettings.add | where { $_.key -eq $name }
     if($setting) {
