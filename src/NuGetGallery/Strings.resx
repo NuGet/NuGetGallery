@@ -986,4 +986,7 @@ Policy violations: {0}</value>
   <data name="WarningNotHttpsRepositoryUrlScheme" xml:space="preserve">
     <value>Repository URL scheme should be 'https'. The provided URL will not be displayed.</value>
   </data>
+  <data name="UploadPackage_PackageContainsTooManyEntries" xml:space="preserve">
+    <value>The package contains too many files and/or folders.</value>
+  </data>
 </root>

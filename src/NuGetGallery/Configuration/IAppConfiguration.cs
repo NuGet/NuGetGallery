@@ -339,5 +339,10 @@ namespace NuGetGallery.Configuration
         /// by the owner.
         /// </summary>
         bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
+
+        /// <summary>
+        /// Whether or not to synchronously reject packages on push/upload that have too many package entries.
+        /// </summary>
+        bool RejectPackagesWithTooManyPackageEntries { get; set; }
     }
 }

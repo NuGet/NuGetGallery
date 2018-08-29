@@ -171,7 +171,8 @@ namespace NuGetGallery
             IEnumerable<ClientPackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
             Action<ZipArchive> populatePackage = null,
-            bool isSymbolPackage = false)
+            bool isSymbolPackage = false,
+            int? desiredTotalEntryCount = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -187,7 +188,7 @@ namespace NuGetGallery
                 {
                     populatePackage(packageArchive);
                 }
-            });
+            }, desiredTotalEntryCount);
         }
 
         public static Stream CreateTestSymbolPackageStream(string id, string version, Action<ZipArchive> populatePackage = null)
@@ -218,14 +219,41 @@ namespace NuGetGallery
             });
         }
 
-        public static Stream CreateTestPackageStream(Action<ZipArchive> populatePackage)
+        public static Stream CreateTestPackageStream(Action<ZipArchive> populatePackage, int? desiredTotalEntryCount = null)
         {
             var packageStream = new MemoryStream();
-            using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, true))
+            using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Create, leaveOpen: true))
             {
                 if (populatePackage != null)
                 {
                     populatePackage(packageArchive);
+                }
+            }
+
+            if (desiredTotalEntryCount.HasValue)
+            {
+                int packageEntryCount;
+
+                using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Read, leaveOpen: true))
+                {
+                    packageEntryCount = packageArchive.Entries.Count;
+                }
+
+                if (desiredTotalEntryCount.Value < packageEntryCount)
+                {
+                    throw new ArgumentException(
+                        $"The desired count ({desiredTotalEntryCount.Value}) of package entries is less than the actual count ({packageEntryCount}) of package entries.",
+                        nameof(desiredTotalEntryCount));
+                }
+
+                using (var packageArchive = new ZipArchive(packageStream, ZipArchiveMode.Update, leaveOpen: true))
+                {
+                    while (packageEntryCount < desiredTotalEntryCount.Value)
+                    {
+                        packageArchive.CreateEntry(Guid.NewGuid().ToString());
+
+                        ++packageEntryCount;
+                    }
                 }
             }
 

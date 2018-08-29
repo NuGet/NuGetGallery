@@ -2220,6 +2220,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The package contains too many files and/or folders..
+        /// </summary>
+        public static string UploadPackage_PackageContainsTooManyEntries {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageContainsTooManyEntries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package must be signed with a registered certificate..
         /// </summary>
         public static string UploadPackage_PackageIsNotSigned {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -374,6 +375,69 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Equal(2, result.Warnings.Count());
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WithTooManyPackageEntries_WhenRejectPackagesWithTooManyPackageEntriesIsFalse_AcceptsPackage(bool isSigned)
+            {
+                var desiredTotalEntryCount = isSigned ? ushort.MaxValue : ushort.MaxValue - 1;
+
+                _nuGetPackage = GeneratePackage(isSigned: isSigned, desiredTotalEntryCount: desiredTotalEntryCount);
+                _config
+                    .Setup(x => x.RejectPackagesWithTooManyPackageEntries)
+                    .Returns(false);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WithTooManyPackageEntries_WhenRejectPackagesWithTooManyPackageEntriesIsTrue_RejectsPackage(bool isSigned)
+            {
+                var desiredTotalEntryCount = isSigned ? ushort.MaxValue : ushort.MaxValue - 1;
+
+                _nuGetPackage = GeneratePackage(isSigned: isSigned, desiredTotalEntryCount: desiredTotalEntryCount);
+                _config
+                    .Setup(x => x.RejectPackagesWithTooManyPackageEntries)
+                    .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The package contains too many files and/or folders.", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData(true)]
+            [InlineData(false)]
+            public async Task WithNotTooManyPackageEntries_WhenRejectPackagesWithTooManyPackageEntriesIsTrue_AcceptsPackage(bool isSigned)
+            {
+                var desiredTotalEntryCount = (isSigned ? ushort.MaxValue : ushort.MaxValue - 1) - 1;
+
+                _nuGetPackage = GeneratePackage(isSigned: isSigned, desiredTotalEntryCount: desiredTotalEntryCount);
+                _config
+                    .Setup(x => x.RejectPackagesWithTooManyPackageEntries)
+                    .Returns(true);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
@@ -934,13 +998,18 @@ namespace NuGetGallery
                     _config.Object);
             }
 
-            protected static Mock<TestPackageReader> GeneratePackage(string version = "1.2.3-alpha.0", RepositoryMetadata repositoryMetadata = null, bool isSigned = true)
+            protected static Mock<TestPackageReader> GeneratePackage(
+                string version = "1.2.3-alpha.0",
+                RepositoryMetadata repositoryMetadata = null,
+                bool isSigned = true,
+                int? desiredTotalEntryCount = null)
             {
                 return PackageServiceUtility.CreateNuGetPackage(
                     id: "theId",
                     version: version,
                     repositoryMetadata: repositoryMetadata,
-                    isSigned: isSigned);
+                    isSigned: isSigned,
+                    desiredTotalEntryCount: desiredTotalEntryCount);
             }
         }
     }
