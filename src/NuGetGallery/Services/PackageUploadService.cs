@@ -44,7 +44,14 @@ namespace NuGetGallery
         {
             var warnings = new List<string>();
 
-            var result = await CheckForUnsignedPushAfterAuthorSignedAsync(
+            var result = await CheckPackageEntryCountAsync(nuGetPackage, warnings);
+
+            if (result != null)
+            {
+                return result;
+            }
+
+            result = await CheckForUnsignedPushAfterAuthorSignedAsync(
                 nuGetPackage,
                 warnings);
 
@@ -61,6 +68,34 @@ namespace NuGetGallery
             }
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
+            PackageArchiveReader nuGetPackage,
+            List<string> warnings)
+        {
+            if (!_config.RejectPackagesWithTooManyPackageEntries)
+            {
+                return null;
+            }
+
+            const ushort maxPackageEntryCount = ushort.MaxValue - 1;
+
+            var packageEntryCount = nuGetPackage.GetFiles().Count();
+
+            if (await nuGetPackage.IsSignedAsync(CancellationToken.None))
+            {
+                if (packageEntryCount > maxPackageEntryCount)
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsTooManyEntries);
+                }
+            }
+            else if (packageEntryCount >= maxPackageEntryCount)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_PackageContainsTooManyEntries);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -212,10 +247,10 @@ namespace NuGetGallery
                         else
                         {
                             return new PackageValidationResult(
-                               PackageValidationResultType.PackageShouldNotBeSigned,
-                               string.Format(
-                                   Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
-                                   owner.Username));
+                                PackageValidationResultType.PackageShouldNotBeSigned,
+                                string.Format(
+                                    Strings.UploadPackage_PackageIsSignedButMissingCertificate_RequiredSigner,
+                                    owner.Username));
                         }
                     }
                 }
