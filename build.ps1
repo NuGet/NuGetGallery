@@ -93,11 +93,11 @@ Invoke-BuildStep 'Building solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating artifacts' {
-        $packageId = 'NuGetGallery.Core'+$PackageSuffix 
-		New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
-		-ev +BuildErrors
-	}
-	
+    $packageId = 'NuGetGallery.Core'+$PackageSuffix 
+    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
+    -ev +BuildErrors
+}
+
 Trace-Log ('-' * 60)
 
 ## Calculating Build time
