@@ -768,23 +768,13 @@ namespace NuGetGallery
             return GetHttpResultFromFailedApiScopeEvaluationHelper(evaluationResult, id, versionString, HttpStatusCode.Forbidden);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
-        {
-            return GetHttpResultFromFailedApiScopeEvaluation(result, id, ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(version));
-        }
-
         /// <remarks>
         /// Push returns <see cref="HttpStatusCode.Unauthorized"/> instead of <see cref="HttpStatusCode.Forbidden"/> for failures not related to reserved namespaces.
         /// This is inconsistent with both the rest of our API and the HTTP standard, but it is an existing behavior that we must support.
         /// </remarks>
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(version), HttpStatusCode.Unauthorized);
-        }
-
-        private string ParseNuGetVersionForHttpResultForFailedApiScopeEvaluation(NuGetVersion version)
-        {
-            return version.ToNormalizedString();
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version.ToNormalizedString(), HttpStatusCode.Unauthorized);
         }
 
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, string versionString, HttpStatusCode statusCodeOnFailure)

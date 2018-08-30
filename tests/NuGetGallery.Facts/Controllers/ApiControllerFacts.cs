@@ -726,12 +726,13 @@ namespace NuGetGallery
             {
                 // Arrange
                 var packageId = "theId";
+                var packageVersion = "1.0.42";
                 var packageRegistration = new PackageRegistration { Id = packageId };
                 packageRegistration.Id = packageId;
                 var package = new Package
                 {
                     PackageRegistration = packageRegistration,
-                    Version = "1.0.42"
+                    Version = packageVersion
                 };
                 packageRegistration.Packages.Add(package);
 
@@ -743,7 +744,7 @@ namespace NuGetGallery
                 var currentUser = fakes.User;
                 controller.SetCurrentUser(currentUser);
 
-                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, "1.0.42");
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, packageVersion);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 controller.MockApiScopeEvaluator
@@ -917,9 +918,11 @@ namespace NuGetGallery
                 var currentUser = fakes.User;
 
                 var id = "theId";
+                var version = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = id }
+                    PackageRegistration = new PackageRegistration { Id = id },
+                    Version = version
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
@@ -936,7 +939,7 @@ namespace NuGetGallery
                         NuGetScopes.PackageUnlist))
                     .Returns(evaluationResult);
 
-                var result = await controller.DeletePackage("theId", "1.0.42");
+                var result = await controller.DeletePackage(id, version);
 
                 ResultAssert.IsStatusCode(
                     result,
@@ -1248,9 +1251,11 @@ namespace NuGetGallery
                 var currentUser = fakes.User;
 
                 var id = "theId";
+                var version = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
                 var package = new Package
                 {
-                    PackageRegistration = new PackageRegistration { Id = id }
+                    PackageRegistration = new PackageRegistration { Id = id },
+                    Version = version
                 };
 
                 var controller = new TestableApiController(GetConfigurationService());
@@ -1267,7 +1272,7 @@ namespace NuGetGallery
                         NuGetScopes.PackageUnlist))
                     .Returns(evaluationResult);
 
-                var result = await controller.PublishPackage("theId", "1.0.42");
+                var result = await controller.PublishPackage(id, version);
 
                 ResultAssert.IsStatusCode(
                     result,
@@ -1569,6 +1574,7 @@ namespace NuGetGallery
             public async Task Returns403IfScopeDoesNotMatch(string credentialType, string[] expectedRequestedActions, ApiScopeEvaluationResult apiScopeEvaluationResult, HttpStatusCode expectedStatusCode, string description)
             {
                 // Arrange
+                PackageVersion = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration() { Id = PackageId },
