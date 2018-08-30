@@ -44,7 +44,7 @@
 <script type="text/html" id="verify-metadata-template">
     <div class="collapse in" id="verify-package-section">
         <div data-bind="if: $data">
-            <!-- ko if: $data.Warnings -->
+            <!-- ko if: $data.Warnings && $data.Warnings.length > 0 -->
             @ViewHelpers.AlertWarning(
                             @<span>
                                 We found the following issue(s):
