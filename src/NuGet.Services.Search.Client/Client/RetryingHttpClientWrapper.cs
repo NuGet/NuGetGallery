@@ -32,9 +32,9 @@ namespace NuGet.Services.Search.Client
 
         public RetryingHttpClientWrapper(HttpClient httpClient, IEndpointHealthIndicatorStore endpointHealthIndicatorStore, Action<Exception> onException)
         {
-            _httpClient = httpClient;
-            _endpointHealthIndicatorStore = endpointHealthIndicatorStore;
-            _onException = onException;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _endpointHealthIndicatorStore = endpointHealthIndicatorStore ?? throw new ArgumentNullException(nameof(endpointHealthIndicatorStore));
+            _onException = onException ?? throw new ArgumentNullException(nameof(onException));
         }
 
         public async Task<string> GetStringAsync(IEnumerable<Uri> endpoints)

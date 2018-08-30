@@ -57,7 +57,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     "SearchGalleryQueryService/3.0.0-rc", 
                     null, 
                     _healthIndicatorStore, 
-                    (exception) => QuietLog.LogHandledException(exception), 
+                    QuietLog.LogHandledException, 
                     new TracingHttpHandler(Trace), 
                     new CorrelatingHttpClientHandler());
             }
@@ -102,7 +102,7 @@ namespace NuGetGallery.Infrastructure.Lucene
                     config.SearchServiceResourceType, 
                     credentials, 
                     _healthIndicatorStore,
-                    (exception) => QuietLog.LogHandledException(exception),
+                    QuietLog.LogHandledException,
                     new TracingHttpHandler(Trace), 
                     new CorrelatingHttpClientHandler());
             }
