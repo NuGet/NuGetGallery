@@ -11,28 +11,21 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckServiceFacts
     {
-        private static List<ThresholdInfo> _thresholdsList = new List<ThresholdInfo>
-        {
-            new ThresholdInfo { LowerBound = 0, UpperBound = 30, Threshold = 0 },
-            new ThresholdInfo { LowerBound = 30, UpperBound = 50, Threshold = 1 },
-            new ThresholdInfo { LowerBound = 50, UpperBound = 120, Threshold = 2 }
-        };
-
-        private static List<string> packageIds = new List<string>
+        private static List<string> _packageIds = new List<string>
         {
             "microsoft_netframework_v1",
-            "resxtocs_core",
-            "gisrestapi",
-            "xamarinfirebase",
-            "shsoft_infrastructure",
-            "telegram_net_core",
-            "selenium_webDriver_microsoftdriver"
+            "WindowsAzure.Caching",
+            "SinglePageApplication",
+            "PoliteCaptcha",
+            "AspNetRazor.Core",
+            "System.Json",
+            "System.Spatial"
         };
 
-        private static List<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, packageIds.Count()).Select(i =>
+        private static List<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
                 new PackageRegistration()
                 {
-                    Id = packageIds[i],
+                    Id = _packageIds[i],
                     DownloadCount = new Random().Next(0, 10000),
                     IsVerified = true,
                 }).ToList();
@@ -120,6 +113,7 @@ namespace NuGetGallery
             _packageRegistrationRepository
                 .Setup(x => x.GetAll())
                 .Returns(_pacakgeRegistrationsList.AsQueryable());
+
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
             
             // Act
@@ -135,11 +129,12 @@ namespace NuGetGallery
         {
             // Arrange
             User uploadedPackageOwner = null;
-            string uploadedPackageId = "microsoft_netframework_v1";
+            var uploadedPackageId = "microsoft_netframework_v1";
 
             _packageRegistrationRepository
                 .Setup(x => x.GetAll())
                 .Returns(_pacakgeRegistrationsList.AsQueryable());
+
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
   
             // Act
@@ -148,6 +143,29 @@ namespace NuGetGallery
 
             // Assert
             Assert.Equal(nameof(uploadedPackageOwner), exception.ParamName);
+        }
+
+        [Fact]
+        public void CheckTyposquattingEmptyChecklist()
+        {
+            // Arrange            
+            var uploadedPackageOwner = new User();
+            var uploadedPackageId = "microsoft_netframework_v1";
+
+            _typosquattingUserService
+                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(false);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(new List<PackageRegistration>().AsQueryable());
+
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
         }
 
         [Theory]
