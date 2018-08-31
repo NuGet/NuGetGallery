@@ -395,6 +395,9 @@ namespace NuGetGallery
         [ActionName("PushSymbolPackageApi")]
         public virtual async Task<ActionResult> CreateSymbolPackagePutAsync()
         {
+            string id = null;
+            string normalizedVersion = null;
+
             try
             {
                 // Get the user
@@ -422,8 +425,9 @@ namespace NuGetGallery
                         using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: false))
                         {
                             var nuspec = packageToPush.GetNuspecReader();
-                            var id = nuspec.GetId();
+                            id = nuspec.GetId();
                             var version = nuspec.GetVersion();
+                            normalizedVersion = version.ToNormalizedStringSafe();
 
                             // Ensure the corresponding package exists before pushing a snupkg.
                             var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
@@ -433,7 +437,7 @@ namespace NuGetGallery
                                     CultureInfo.CurrentCulture,
                                     Strings.SymbolsPackage_PackageIdAndVersionNotFound,
                                     id,
-                                    version.ToNormalizedStringSafe()));
+                                    normalizedVersion));
                             }
 
                             // Check if this user has the permissions to push the corresponding symbol package
@@ -463,7 +467,7 @@ namespace NuGetGallery
                                 {
                                     message = ex.Message;
                                 }
-
+                                TelemetryService.TrackSymbolPackageFailedGalleryValidationEvent(id, normalizedVersion);
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                             }
 
@@ -475,6 +479,8 @@ namespace NuGetGallery
                                     CoreConstants.Sha512HashAlgorithmId),
                                 Size = symbolPackageStream.Length
                             };
+
+                            TelemetryService.TrackSymbolPackagePushEvent(id, normalizedVersion);
 
                             PackageCommitResult commitResult = await SymbolPackageUploadService.CreateAndUploadSymbolsPackage(
                                 package,
@@ -515,7 +521,7 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 ex.Log();
-
+                TelemetryService.TrackSymbolPackagePushFailureEvent(id, normalizedVersion);
                 throw ex;
             }
         }
