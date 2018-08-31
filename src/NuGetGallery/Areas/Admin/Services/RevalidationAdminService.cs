@@ -20,7 +20,7 @@ namespace NuGetGallery.Areas.Admin.Services
         {
             var recentCutoff = DateTime.UtcNow.Subtract(TimeSpan.FromHours(1));
 
-            var pending = _revalidations.GetAll().Count(r => !r.Enqueued.HasValue);
+            var pending = _revalidations.GetAll().Count(r => !r.Enqueued.HasValue && !r.Completed);
             var started = _revalidations.GetAll().Count(r => r.Enqueued.HasValue);
             var recent = _revalidations.GetAll().Count(r => r.Enqueued.HasValue && r.Enqueued >= recentCutoff);
 
