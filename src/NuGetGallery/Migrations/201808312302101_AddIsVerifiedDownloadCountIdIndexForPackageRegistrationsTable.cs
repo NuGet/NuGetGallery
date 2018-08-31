@@ -3,12 +3,12 @@ namespace NuGetGallery.Migrations
     using System;
     using System.Data.Entity.Migrations;
     
-    public partial class IX_AddIsVerifiedDownloadCountIndexForPackageRegistrationsTable : DbMigration
+    public partial class AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable : DbMigration
     {
         public override void Up()
         {
             // Used for getting checklist for typosquatting
-            CreateIndex(table: "PackageRegistrations", columns: new[] { "IsVerified", "DownloadCount"}, name: "IX_PackageRegistration_IsVerified_DownloadCount");
+            Sql("CREATE NONCLUSTERED INDEX [IX_PackageRegistration_IsVerified_DownloadCount] ON [dbo].[PackageRegistrations] ([IsVerified], [DownloadCount]) INCLUDE ([Id])");
         }
         
         public override void Down()

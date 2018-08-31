@@ -19,9 +19,9 @@ namespace NuGetGallery
         // https://github.com/NuGet/Engineering/issues/1645
         private static readonly IReadOnlyList<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
         {
-            new ThresholdInfo (0, 30, 0),
-            new ThresholdInfo (30, 50, 1 ),
-            new ThresholdInfo (50, 121, 2)
+            new ThresholdInfo (lowerBound: 0, upperBound: 30, threshod: 0),
+            new ThresholdInfo (lowerBound: 30, upperBound: 50, threshod: 1),
+            new ThresholdInfo (lowerBound: 50, upperBound: 121, threshod: 2)
         };
 
         private readonly ITyposquattingUserService _userTyposquattingService;

@@ -7,13 +7,13 @@ namespace NuGetGallery.Migrations
     using System.Resources;
     
     [GeneratedCode("EntityFramework.Migrations", "6.1.3-40302")]
-    public sealed partial class IX_AddIsVerifiedDownloadCountIndexForPackageRegistrationsTable : IMigrationMetadata
+    public sealed partial class AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable : IMigrationMetadata
     {
-        private readonly ResourceManager Resources = new ResourceManager(typeof(IX_AddIsVerifiedDownloadCountIndexForPackageRegistrationsTable));
+        private readonly ResourceManager Resources = new ResourceManager(typeof(AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable));
         
         string IMigrationMetadata.Id
         {
-            get { return "201808312215409_IX_AddIsVerifiedDownloadCountIndexForPackageRegistrationsTable"; }
+            get { return "201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable"; }
         }
         
         string IMigrationMetadata.Source
