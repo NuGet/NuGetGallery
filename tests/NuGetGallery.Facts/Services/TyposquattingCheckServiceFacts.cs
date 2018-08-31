@@ -33,6 +33,13 @@ namespace NuGetGallery
         private static Mock<ITyposquattingUserService> _typosquattingUserService = new Mock<ITyposquattingUserService>();
         private static Mock<IEntityRepository<PackageRegistration>> _packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
 
+        public TyposquattingCheckServiceFacts()
+        {
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
+        }
+
         [Fact]
         public void CheckNotTyposquattingByDifferentOwnersTest()
         {
@@ -42,10 +49,7 @@ namespace NuGetGallery
 
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
+                .Returns(false);            
 
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
@@ -67,10 +71,7 @@ namespace NuGetGallery
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
-
+           
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
             
             // Act
@@ -90,10 +91,7 @@ namespace NuGetGallery
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
-
+           
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
             // Act
@@ -109,10 +107,6 @@ namespace NuGetGallery
             // Arrange            
             var uploadedPackageOwner = new User();
             string uploadedPackageId = null;
-
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
 
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
             
@@ -131,10 +125,6 @@ namespace NuGetGallery
             User uploadedPackageOwner = null;
             var uploadedPackageId = "microsoft_netframework_v1";
 
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
-
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
   
             // Act
@@ -151,10 +141,6 @@ namespace NuGetGallery
             // Arrange
             var uploadedPackageOwner = new User();
             var uploadedPackageId = "";
-
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
 
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
