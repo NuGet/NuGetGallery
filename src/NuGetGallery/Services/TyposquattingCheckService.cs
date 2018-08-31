@@ -13,15 +13,15 @@ namespace NuGetGallery
     {
         // TODO: Length of checklist will be saved in the configuration file.
         // https://github.com/NuGet/Engineering/issues/1645
-        private static int TyposquattingCheckListLength = 20000;
+        private const int TyposquattingCheckListLength = 20000;
 
         // TODO: Threshold parameters will be saved in the configuration file.
         // https://github.com/NuGet/Engineering/issues/1645
-        private static List<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
+        private static readonly IReadOnlyList<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
         {
-            new ThresholdInfo { LowerBound = 0, UpperBound = 30, Threshold = 0 },
-            new ThresholdInfo { LowerBound = 30, UpperBound = 50, Threshold = 1 },
-            new ThresholdInfo { LowerBound = 50, UpperBound = 121, Threshold = 2 }
+            new ThresholdInfo (0, 30, 0),
+            new ThresholdInfo (30, 50, 1 ),
+            new ThresholdInfo (50, 121, 2)
         };
 
         private readonly ITyposquattingUserService _userTyposquattingService;
@@ -94,8 +94,14 @@ namespace NuGetGallery
 
     public class ThresholdInfo
     {
-        public int LowerBound { get; set; }
-        public int UpperBound { get; set; }
-        public int Threshold { get; set; }
+        public int LowerBound { get; }
+        public int UpperBound { get; }
+        public int Threshold { get; }
+        public ThresholdInfo(int lowerBound, int upperBound, int threshod)
+        {
+            LowerBound = lowerBound;
+            UpperBound = upperBound;
+            Threshold = Threshold;
+        }        
     }
 }

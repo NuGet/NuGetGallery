@@ -146,7 +146,7 @@ namespace NuGetGallery
         }
 
         [Fact]
-        public void CheckTyposquattingEmptyPackageId()
+        public void CheckTyposquattingEmptyUploadedPackageId()
         {
             // Arrange
             var uploadedPackageOwner = new User();
