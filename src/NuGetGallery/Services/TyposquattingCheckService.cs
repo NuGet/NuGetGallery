@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace NuGetGallery
 {
@@ -27,14 +28,14 @@ namespace NuGetGallery
         private static ConcurrentDictionary<string, string> NormalizedPackageIdDict { get; set; } = new ConcurrentDictionary<string, string>();
 
         private readonly ITyposquattingUserService _userTyposquattingService;
-        private readonly ITyposquattingPackagesCheckListService _typosquattingPackagesCheckListService;
- 
-        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService, ITyposquattingPackagesCheckListService typosquattingPackageListService)
+        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+
+        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService, IEntityRepository<PackageRegistration> packageRegistrationRepository)
         {
             _userTyposquattingService = typosquattingUserService ?? throw new ArgumentNullException(nameof(typosquattingUserService));
-            _typosquattingPackagesCheckListService = typosquattingPackageListService ?? throw new ArgumentNullException(nameof(typosquattingPackageListService));
+            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
         }
-
+              
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)
         {
             if (uploadedPackageId == null)
@@ -47,7 +48,12 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageOwner));
             }
 
-            PackagesCheckList = _typosquattingPackagesCheckListService.GetTyposquattingChecklist(TyposquattingCheckListLength);
+            PackagesCheckList = _packageRegistrationRepository.GetAll()
+                .OrderByDescending(pr => pr.IsVerified)
+                .OrderByDescending(pr => pr.DownloadCount)
+                .Select(pr => pr.Id)
+                .Take(TyposquattingCheckListLength)
+                .ToList();
 
             var threshold = GetThreshold(uploadedPackageId);
             uploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);

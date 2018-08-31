@@ -397,7 +397,6 @@
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingCheckService.cs" />
-    <Compile Include="Services\ITyposquattingPackagesCheckListService.cs" />
     <Compile Include="Services\ITyposquattingUserService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
@@ -509,7 +508,6 @@
     <Compile Include="Services\TelemetryClientWrapper.cs" />
     <Compile Include="Services\TyposquattingCheckService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
-    <Compile Include="Services\TyposquattingPackagesCheckListService.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
     <Compile Include="Services\TyposquattingUserService.cs" />
     <Compile Include="Services\ValidationService.cs" />

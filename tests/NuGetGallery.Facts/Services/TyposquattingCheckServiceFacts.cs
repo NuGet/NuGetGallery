@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using Xunit;
 
@@ -17,7 +18,7 @@ namespace NuGetGallery
             new ThresholdInfo { LowerBound = 50, UpperBound = 120, Threshold = 2 }
         };
 
-        private static List<string> _checkList = new List<string>
+        private static List<string> packageIds = new List<string>
         {
             "microsoft_netframework_v1",
             "resxtocs_core",
@@ -28,8 +29,16 @@ namespace NuGetGallery
             "selenium_webDriver_microsoftdriver"
         };
 
+        private static List<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, packageIds.Count()).Select(i =>
+                new PackageRegistration()
+                {
+                    Id = packageIds[i],
+                    DownloadCount = new Random().Next(0, 10000),
+                    IsVerified = true,
+                }).ToList();
+
         private static Mock<ITyposquattingUserService> _typosquattingUserService = new Mock<ITyposquattingUserService>();
-        private static Mock<ITyposquattingPackagesCheckListService> _typosquattingPackagesCheckListService = new Mock<ITyposquattingPackagesCheckListService>();
+        private static Mock<IEntityRepository<PackageRegistration>> _packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
 
         [Fact]
         public void CheckNotTyposquattingByDifferentOwnersTest()
@@ -41,11 +50,11 @@ namespace NuGetGallery
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            _typosquattingPackagesCheckListService
-                .Setup(x => x.GetTyposquattingChecklist(It.IsAny<int>()))
-                .Returns(_checkList);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _typosquattingPackagesCheckListService.Object);
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
@@ -65,11 +74,11 @@ namespace NuGetGallery
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(true);
-            _typosquattingPackagesCheckListService
-                .Setup(x => x.GetTyposquattingChecklist(It.IsAny<int>()))
-                .Returns(_checkList);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _typosquattingPackagesCheckListService.Object);
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
             
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
@@ -88,11 +97,11 @@ namespace NuGetGallery
             _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            _typosquattingPackagesCheckListService
-                .Setup(x => x.GetTyposquattingChecklist(It.IsAny<int>()))
-                .Returns(_checkList);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _typosquattingPackagesCheckListService.Object);
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
@@ -108,10 +117,10 @@ namespace NuGetGallery
             var uploadedPackageOwner = new User();
             string uploadedPackageId = null;
 
-            _typosquattingPackagesCheckListService
-                .Setup(x => x.GetTyposquattingChecklist(It.IsAny<int>()))
-                .Returns(_checkList);
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _typosquattingPackagesCheckListService.Object);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
             
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
@@ -128,10 +137,10 @@ namespace NuGetGallery
             User uploadedPackageOwner = null;
             string uploadedPackageId = "microsoft_netframework_v1";
 
-            _typosquattingPackagesCheckListService
-                .Setup(x => x.GetTyposquattingChecklist(It.IsAny<int>()))
-                .Returns(_checkList);
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _typosquattingPackagesCheckListService.Object);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
   
             // Act
             var exception = Assert.Throws<ArgumentNullException>(

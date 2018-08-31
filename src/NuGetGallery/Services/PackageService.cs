@@ -756,21 +756,5 @@ namespace NuGetGallery
                 _telemetryService.TrackRequiredSignerSet(registration.Id);
             }
         }
-
-        /// <summary>
-        /// Get the checklist for typo-squatting: select the reserved packages firstly, then select the packages with larger download counts.
-        /// In this way, we firstly protect the reserved packages and then protect the popular packages with given checklist length.
-        /// </summary>
-        /// <param name="typosquattingCheckListLength">checklist length for typo-squatting</param>
-        /// <returns>A list of strings which contains the package IDs we want to protect</returns>
-        public List<string> GetTyposquattingCheckList(int typosquattingCheckListLength)
-        {
-            return _packageRegistrationRepository.GetAll()
-                .OrderByDescending(pr => pr.IsVerified)
-                .OrderByDescending(pr => pr.DownloadCount)
-                .Select(pr => pr.Id)
-                .Take(typosquattingCheckListLength)
-                .ToList();
-        }
     }
 }
