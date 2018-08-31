@@ -21,10 +21,8 @@ namespace NuGetGallery
         {
             new ThresholdInfo { LowerBound = 0, UpperBound = 30, Threshold = 0 },
             new ThresholdInfo { LowerBound = 30, UpperBound = 50, Threshold = 1 },
-            new ThresholdInfo { LowerBound = 50, UpperBound = 120, Threshold = 2 }
+            new ThresholdInfo { LowerBound = 50, UpperBound = 121, Threshold = 2 }
         };
-
-        private static ConcurrentDictionary<string, string> NormalizedPackageIdDictionary { get; set; } = new ConcurrentDictionary<string, string>();
 
         private readonly ITyposquattingUserService _userTyposquattingService;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
@@ -49,7 +47,7 @@ namespace NuGetGallery
 
             var packagesCheckList = _packageRegistrationRepository.GetAll()
                 .OrderByDescending(pr => pr.IsVerified)
-                .OrderByDescending(pr => pr.DownloadCount)
+                .ThenByDescending(pr => pr.DownloadCount)
                 .Select(pr => pr.Id)
                 .Take(TyposquattingCheckListLength)
                 .ToList();
@@ -62,7 +60,7 @@ namespace NuGetGallery
             {
                 // TODO: handle the package which is owned by an organization. 
                 // https://github.com/NuGet/Engineering/issues/1656
-                string normalizedPackageId = NormalizedPackageIdDictionary.GetOrAdd(packageId, TyposquattingStringNormalization.NormalizeString);
+                string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
                 if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(uploadedPackageId, normalizedPackageId, threshold))
                 {
                     collisionPackageIds.Add(packageId);
@@ -84,7 +82,7 @@ namespace NuGetGallery
         {
             foreach (var thresholdInfo in ThresholdsList)
             {
-                if (packageId.Length > thresholdInfo.LowerBound && packageId.Length <= thresholdInfo.UpperBound)
+                if (packageId.Length >= thresholdInfo.LowerBound && packageId.Length < thresholdInfo.UpperBound)
                 {
                     return thresholdInfo.Threshold;
                 }

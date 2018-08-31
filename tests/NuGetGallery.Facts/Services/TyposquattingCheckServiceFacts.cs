@@ -146,6 +146,26 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void CheckTyposquattingEmptyPackageId()
+        {
+            // Arrange
+            var uploadedPackageOwner = new User();
+            var uploadedPackageId = "";
+
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
+
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+        }
+
+        [Fact]
         public void CheckTyposquattingEmptyChecklist()
         {
             // Arrange            
