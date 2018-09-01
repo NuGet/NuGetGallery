@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Moq;
 using Xunit;
 
@@ -10,25 +11,34 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckServiceFacts
     {
-        private static List<ThresholdInfo> _thresholdsList = new List<ThresholdInfo>
+        private static List<string> _packageIds = new List<string>
         {
-            new ThresholdInfo { LowerBound = 0, UpperBound = 30, Threshold = 0 },
-            new ThresholdInfo { LowerBound = 30, UpperBound = 50, Threshold = 1 },
-            new ThresholdInfo { LowerBound = 50, UpperBound = 120, Threshold = 2 }
+            "microsoft_netframework_v1",
+            "WindowsAzure.Caching",
+            "SinglePageApplication",
+            "PoliteCaptcha",
+            "AspNetRazor.Core",
+            "System.Json",
+            "System.Spatial"
         };
 
-        private static List<PackageInfo> _checkList = new List<PackageInfo>
-        {
-            new PackageInfo { Id = "microsoft_netframework_v1", Owners = new HashSet<string> { "owner1" } },
-            new PackageInfo { Id = "resxtocs_core", Owners = new HashSet<string> { "owner2" } },
-            new PackageInfo { Id = "gisrestapi", Owners = new HashSet<string> { "owner3" } },
-            new PackageInfo { Id = "xamarinfirebase", Owners = new HashSet<string> { "owner4" } },
-            new PackageInfo { Id = "shsoft_infrastructure", Owners = new HashSet<string> { "owner5" } },
-            new PackageInfo { Id = "telegram_net_core", Owners = new HashSet<string> { "owner6" } },
-            new PackageInfo { Id = "selenium_webDriver_microsoftdriver", Owners = new HashSet<string> { "owner7" } }
-        };
+        private static List<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
+                new PackageRegistration()
+                {
+                    Id = _packageIds[i],
+                    DownloadCount = new Random().Next(0, 10000),
+                    IsVerified = true,
+                }).ToList();
 
-        private static Mock<ITyposquattingUserService> _typosquattingOwnersDoubleCheck = new Mock<ITyposquattingUserService>();
+        private static Mock<ITyposquattingUserService> _typosquattingUserService = new Mock<ITyposquattingUserService>();
+        private static Mock<IEntityRepository<PackageRegistration>> _packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+
+        public TyposquattingCheckServiceFacts()
+        {
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(_pacakgeRegistrationsList.AsQueryable());
+        }
 
         [Fact]
         public void CheckNotTyposquattingByDifferentOwnersTest()
@@ -36,11 +46,12 @@ namespace NuGetGallery
             // Arrange            
             var uploadedPackageOwner = new User();
             var uploadedPackageId = "new_package_for_testing";
-            _typosquattingOwnersDoubleCheck
+
+            _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
+                .Returns(false);            
+
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
@@ -56,33 +67,13 @@ namespace NuGetGallery
             var uploadedPackageOwner = new User();
             uploadedPackageOwner.Username = "owner1";
             var uploadedPackageId = "microsoft_netframework.v1";
-            _typosquattingOwnersDoubleCheck
+
+            _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
-
-            // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
-
-            // Assert
-            Assert.False(typosquattingCheckResult);
-        }
-
-        [Fact]
-        public void CheckNotTyposquattingByDifferentOwnersThroughDoubleCheckTest()
-        {
-            // Arrange            
-            var uploadedPackageOwner = new User();
-            uploadedPackageOwner.Username = "newOwner1";
-            var uploadedPackageId = "Microsoft_NetFramework.v1";
-
-            _typosquattingOwnersDoubleCheck
-                .Setup(x => x.CanUserTyposquat("microsoft_netframework_v1", "newOwner1"))
                 .Returns(true);
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
-
+           
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+            
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
 
@@ -96,11 +87,12 @@ namespace NuGetGallery
             // Arrange            
             var uploadedPackageOwner = new User();
             var uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
-            _typosquattingOwnersDoubleCheck
+
+            _typosquattingUserService
                 .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(false);
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
+           
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
@@ -116,9 +108,8 @@ namespace NuGetGallery
             var uploadedPackageOwner = new User();
             string uploadedPackageId = null;
 
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
-
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+            
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
                 () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner));
@@ -132,11 +123,10 @@ namespace NuGetGallery
         {
             // Arrange
             User uploadedPackageOwner = null;
-            string uploadedPackageId = "microsoft_netframework_v1";
+            var uploadedPackageId = "microsoft_netframework_v1";
 
-            var newService = new TyposquattingCheckService(_typosquattingOwnersDoubleCheck.Object);
-            TyposquattingCheckService.PackagesCheckList = _checkList;
-
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+  
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
                 () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner));
@@ -145,6 +135,44 @@ namespace NuGetGallery
             Assert.Equal(nameof(uploadedPackageOwner), exception.ParamName);
         }
 
+        [Fact]
+        public void CheckTyposquattingEmptyUploadedPackageId()
+        {
+            // Arrange
+            var uploadedPackageOwner = new User();
+            var uploadedPackageId = "";
+
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+        }
+
+        [Fact]
+        public void CheckTyposquattingEmptyChecklist()
+        {
+            // Arrange            
+            var uploadedPackageOwner = new User();
+            var uploadedPackageId = "microsoft_netframework_v1";
+
+            _typosquattingUserService
+                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(false);
+            _packageRegistrationRepository
+                .Setup(x => x.GetAll())
+                .Returns(new List<PackageRegistration>().AsQueryable());
+
+            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+        }
 
         [Theory]
         [InlineData("Microsoft_NetFramework_v1", "Microsoft.NetFramework.v1", 0)]
@@ -167,6 +195,7 @@ namespace NuGetGallery
             // Assert
             Assert.True(checkResult);
         }
+
         [Theory]
         [InlineData("Lappa.ORM", "JCTools.I18N", 0)]
         [InlineData("Cake.Intellisense.Core", "Cake.IntellisenseGenerator", 0)]
@@ -188,7 +217,7 @@ namespace NuGetGallery
         
         [Theory]
         [InlineData("Microsoft_NetFramework_v1", "microsoft_netframework_v1")]
-        [InlineData("Microsoft.NetFramework-v1", "microsoft_netframework_v1")]
+        [InlineData("Microsoft.netframework-v1", "microsoft_netframework_v1")]
         [InlineData("mícr0s0ft.nёtFrǎmȇwὀrk.v1", "microsoft_netframework_v1")]
         public void CheckNormalization(string str1, string str2)
         {
