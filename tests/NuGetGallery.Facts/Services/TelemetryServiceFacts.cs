@@ -179,6 +179,18 @@ namespace NuGetGallery
                     yield return new object[] { "AccountDeleteRequested",
                         (TrackAction)(s => s.TrackRequestForAccountDeletion(fakes.User))
                     };
+
+                    yield return new object[] { "TrackSymbolPackagePushEvent",
+                        (TrackAction)(s => s.TrackSymbolPackagePushEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "TrackSymbolPackagePushFailureEvent",
+                        (TrackAction)(s => s.TrackSymbolPackagePushFailureEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "TrackSymbolPackageFailedGalleryValidationEvent",
+                        (TrackAction)(s => s.TrackSymbolPackageFailedGalleryValidationEvent("id", "version"))
+                    };
                 }
             }
 
