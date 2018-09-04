@@ -45,7 +45,19 @@ namespace NuGetGallery.Security
                     allowedCopyrightNotices: new string[] 
                     {
                         "(c) Microsoft Corporation. All rights reserved.",
-                        "© Microsoft Corporation. All rights reserved."
+                        "© Microsoft Corporation. All rights reserved.",
+                        "© Microsoft Corporation. Tüm hakları saklıdır.",
+                        "© Microsoft Corporation. Todos os direitos reservados.",
+                        "© Microsoft Corporation. Alle Rechte vorbehalten.",
+                        "© Microsoft Corporation. 保留所有权利.",
+                        "© Microsoft Corporation. Všechna práva vyhrazena.",
+                        "© Microsoft Corporation. Reservados todos los derechos.",
+                        "© Microsoft Corporation. Wszelkie prawa zastrzeżone.",
+                        "© Microsoft Corporation. Tous droits réservés.",
+                        "© Microsoft Corporation. 著作權所有，並保留一切權利。",
+                        "© Microsoft Corporation. Tutti i diritti sono riservati.",
+                        "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.",
+                        "Copyright (C) 2002-2013 The ANGLE Project Authors. Portions Copyright (C) Microsoft Corporation."
                     },
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
