@@ -66,11 +66,21 @@ namespace StatusAggregator
                     return false;
                 }
 
-                var shouldDeactivate = !incidentsLinkedToEventQuery
-                        .Where(i => i.IsActive || i.MitigationTime > cursor - _eventEndDelay)
-                        .ToList()
-                        .Any();
+                // We are querying twice here because table storage ignores rows where a column specified by a query is null.
+                // MitigationTime is null when IsActive is true.
+                // If we do not query separately here, rows where IsActive is true will be ignored in query results.
 
+                var hasActiveIncidents = incidentsLinkedToEventQuery
+                    .Where(i => i.IsActive)
+                    .ToList()
+                    .Any();
+
+                var hasRecentIncidents = incidentsLinkedToEventQuery
+                    .Where(i => i.MitigationTime > cursor - _eventEndDelay)
+                    .ToList()
+                    .Any();
+
+                var shouldDeactivate = !(hasActiveIncidents || hasRecentIncidents);
                 if (shouldDeactivate)
                 {
                     _logger.LogInformation("Deactivating event because its incidents are inactive and too old.");

@@ -24,35 +24,35 @@ namespace StatusAggregator
 
         private readonly ILogger<Cursor> _logger;
 
-        public async Task<DateTime> Get()
+        public async Task<DateTime> Get(string name)
         {
-            using (_logger.Scope("Fetching cursor."))
+            using (_logger.Scope("Fetching cursor with name {CursorName}.", name))
             {
-                var cursor = await _table.Retrieve<CursorEntity>(
-                    CursorEntity.DefaultPartitionKey, CursorEntity.DefaultRowKey);
+                var cursor = await _table.RetrieveAsync<CursorEntity>(
+                    CursorEntity.DefaultPartitionKey, name);
 
                 DateTime value;
                 if (cursor == null)
                 {
                     // If we can't find a cursor, the job is likely uninitialized, so start at the beginning of time.
                     value = DateTime.MinValue;
-                    _logger.LogInformation("Could not fetch cursor, reinitializing cursor at {Cursor}.", value);
+                    _logger.LogInformation("Could not fetch cursor, reinitializing cursor at {CursorValue}.", value);
                 }
                 else
                 {
                     value = cursor.Value;
-                    _logger.LogInformation("Fetched cursor with value {Cursor}.", value);
+                    _logger.LogInformation("Fetched cursor with value {CursorValue}.", value);
                 }
 
                 return value;
             }
         }
 
-        public Task Set(DateTime value)
+        public Task Set(string name, DateTime value)
         {
-            using (_logger.Scope("Updating cursor to {Cursor}.", value))
+            using (_logger.Scope("Updating cursor with name {CursorName} to {CursorValue}.", name, value))
             {
-                var cursorEntity = new CursorEntity(value);
+                var cursorEntity = new CursorEntity(name, value);
                 return _table.InsertOrReplaceAsync(cursorEntity);
             }
         }

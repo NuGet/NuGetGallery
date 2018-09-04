@@ -14,5 +14,7 @@
 	
     <file src="Scripts\OnCallDailyNotification.cmd" />
     <file src="Scripts\WeeklySummaryNotification.cmd" />
+
+    <file src="Settings\*.json" target="bin" />
   </files>
 </package>

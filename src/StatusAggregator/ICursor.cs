@@ -11,7 +11,7 @@ namespace StatusAggregator
     /// </summary>
     public interface ICursor
     {
-        Task<DateTime> Get();
-        Task Set(DateTime value);
+        Task<DateTime> Get(string name);
+        Task Set(string name, DateTime value);
     }
 }

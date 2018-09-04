@@ -46,6 +46,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Manual\AddStatusEventManualChangeHandler.cs" />
+    <Compile Include="Manual\AddStatusMessageManualChangeHandler.cs" />
+    <Compile Include="Manual\DeleteStatusEventManualChangeHandler.cs" />
+    <Compile Include="Manual\DeleteStatusMessageManualChangeHandler.cs" />
+    <Compile Include="Manual\EditStatusEventManualChangeHandler.cs" />
+    <Compile Include="Manual\EditStatusMessageManualChangeHandler.cs" />
+    <Compile Include="Manual\IManualStatusChangeHandler.cs" />
+    <Compile Include="Manual\IManualStatusChangeUpdater.cs" />
+    <Compile Include="Manual\ManualStatusChangeHandler.cs" />
+    <Compile Include="Manual\ManualStatusChangeUpdater.cs" />
+    <Compile Include="Manual\ManualStatusChangeUtility.cs" />
     <Compile Include="NuGetServiceComponentFactory.cs" />
     <Compile Include="LogEvents.cs" />
     <Compile Include="Parse\TrafficManagerEndpointStatusIncidentParser.cs" />
@@ -65,6 +76,7 @@
     <Compile Include="IMessageUpdater.cs" />
     <Compile Include="StatusAggregator.cs" />
     <Compile Include="StatusContractResolver.cs" />
+    <Compile Include="StatusStorageConnectionBuilder.cs" />
     <Compile Include="StatusUpdater.cs" />
     <Compile Include="Parse\AggregateIncidentParser.cs" />
     <Compile Include="Parse\IAggregateIncidentParser.cs" />
@@ -82,6 +94,7 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Parse\ValidationDurationIncidentParser.cs" />
+    <Compile Include="Table\TableUtility.cs" />
     <Compile Include="Table\TableWrapper.cs" />
     <Compile Include="Table\TableWrapperExtensions.cs" />
   </ItemGroup>
@@ -95,17 +108,23 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Autofac">
+      <Version>4.6.2</Version>
+    </PackageReference>
+    <PackageReference Include="Autofac.Extensions.DependencyInjection">
+      <Version>4.2.0</Version>
+    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
       <Version>1.1.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Incidents">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-master-38796</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-master-38796</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status.Table">
-      <Version>2.28.0-sb-morestatus-35915</Version>
+      <Version>2.28.0-master-38796</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.2.0</Version>

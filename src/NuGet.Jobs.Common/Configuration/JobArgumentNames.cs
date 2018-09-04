@@ -120,6 +120,7 @@ namespace NuGet.Jobs
 
         // Arguments specific to StatusAggregator
         public const string StatusStorageAccount = "StatusStorageAccount";
+        public const string StatusStorageAccountSecondary = "StatusStorageAccountSecondary";
         public const string StatusContainerName = "StatusContainerName";
         public const string StatusTableName = "StatusTableName";
         public const string StatusEnvironment = "StatusEnvironment";

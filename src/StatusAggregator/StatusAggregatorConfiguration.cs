@@ -25,6 +25,11 @@ namespace StatusAggregator
         public string TableName { get; set; }
 
         /// <summary>
+        /// A connection string for the secondary storage account to use.
+        /// </summary>
+        public string StorageAccountSecondary { get; set; }
+
+        /// <summary>
         /// A list of environments to filter incidents by.
         /// See <see cref="EnvironmentFilter"/>.
         /// </summary>

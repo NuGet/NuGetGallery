@@ -12,6 +12,7 @@ start /w statusaggregator.exe ^
     -StatusIncidentApiTeamId "#{Jobs.statusaggregator.IncidentApiTeamId}" ^
     -StatusIncidentApiCertificate "#{Jobs.statusaggregator.IncidentApiCertificate}" ^
     -StatusStorageAccount "#{Jobs.statusaggregator.StorageAccount}" ^
+    -StatusStorageAccountSecondary "#{Jobs.statusaggregator.StorageAccountSecondary}" ^
     -StatusContainerName "#{Jobs.statusaggregator.ContainerName}" ^
     -StatusTableName "#{Jobs.statusaggregator.TableName}" ^
     -StatusEnvironment "#{Jobs.statusaggregator.Environment}" ^
