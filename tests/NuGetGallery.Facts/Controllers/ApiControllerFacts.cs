@@ -908,17 +908,18 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageUnlistedAsync(It.IsAny<Package>(), true), Times.Never());
             }
 
-            public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data => InvalidScopes_Data;
+            public static IEnumerable<object[]> WillNotUnlistThePackageIfScopesInvalid_Data => MemberDataHelper.Combine(
+                InvalidScopes_Data,
+                MemberDataHelper.AsDataSet("1.0.42", "invalidPackageVersion"));
 
             [Theory]
             [MemberData(nameof(WillNotUnlistThePackageIfScopesInvalid_Data))]
-            public async Task WillNotUnlistThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
+            public async Task WillNotUnlistThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description, string version)
             {
                 var fakes = Get<Fakes>();
                 var currentUser = fakes.User;
 
                 var id = "theId";
-                var version = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = id },
@@ -1241,17 +1242,18 @@ namespace NuGetGallery
                 controller.MockPackageService.Verify(x => x.MarkPackageListedAsync(It.IsAny<Package>(), It.IsAny<bool>()), Times.Never());
             }
 
-            public static IEnumerable<object[]> WillListThePackageIfScopesInvalid_Data => InvalidScopes_Data;
+            public static IEnumerable<object[]> WillNotListThePackageIfScopesInvalid_Data => MemberDataHelper.Combine(
+                InvalidScopes_Data,
+                MemberDataHelper.AsDataSet("1.0.42", "invalidPackageVersion"));
 
             [Theory]
-            [MemberData(nameof(WillListThePackageIfScopesInvalid_Data))]
-            public async Task WillListThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description)
+            [MemberData(nameof(WillNotListThePackageIfScopesInvalid_Data))]
+            public async Task WillNotListThePackageIfScopesInvalid(ApiScopeEvaluationResult evaluationResult, HttpStatusCode expectedStatusCode, string description, string version)
             {
                 var fakes = Get<Fakes>();
                 var currentUser = fakes.User;
 
                 var id = "theId";
-                var version = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = id },
@@ -1549,14 +1551,21 @@ namespace NuGetGallery
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_PackageVersion_Data => 
+                MemberDataHelper.AsDataSet("1.0.42", "invalidVersionString");
+
             public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Data => InvalidScopes_Data;
 
             public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_NotVerify_Data
             {
                 get
                 {
-                    var notVerifyData = CredentialTypesExceptVerifyV1.Select(t => new object[] { t, new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion } });
-                    return MemberDataHelper.Combine(notVerifyData, Returns403IfScopeDoesNotMatch_Data);
+                    var notVerifyData = CredentialTypesExceptVerifyV1.Select(
+                        t => MemberDataHelper.AsData(t, new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion }));
+                    return MemberDataHelper.Combine(
+                        notVerifyData, 
+                        Returns403IfScopeDoesNotMatch_Data, 
+                        Returns403IfScopeDoesNotMatch_PackageVersion_Data);
                 }
             }
 
@@ -1564,17 +1573,20 @@ namespace NuGetGallery
             {
                 get
                 {
-                    return MemberDataHelper.Combine(new[] { new object[] { CredentialTypes.ApiKey.VerifyV1, new[] { NuGetScopes.PackageVerify } } }, Returns403IfScopeDoesNotMatch_Data);
+                    return MemberDataHelper.Combine(
+                        new[] { new object[] { CredentialTypes.ApiKey.VerifyV1, new[] { NuGetScopes.PackageVerify } } }, 
+                        Returns403IfScopeDoesNotMatch_Data,
+                        Returns403IfScopeDoesNotMatch_PackageVersion_Data);
                 }
             }
 
             [Theory]
             [MemberData(nameof(Returns403IfScopeDoesNotMatch_NotVerify_Data))]
             [MemberData(nameof(Returns403IfScopeDoesNotMatch_Verify_Data))]
-            public async Task Returns403IfScopeDoesNotMatch(string credentialType, string[] expectedRequestedActions, ApiScopeEvaluationResult apiScopeEvaluationResult, HttpStatusCode expectedStatusCode, string description)
+            public async Task Returns403IfScopeDoesNotMatch(string credentialType, string[] expectedRequestedActions, ApiScopeEvaluationResult apiScopeEvaluationResult, HttpStatusCode expectedStatusCode, string description, string packageVersion)
             {
                 // Arrange
-                PackageVersion = "some version"; // We are using an invalid version string to guarantee it is not attempted to be parsed into a NuGetVersion.
+                PackageVersion = packageVersion;
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration() { Id = PackageId },
