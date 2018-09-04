@@ -72,7 +72,7 @@ namespace NuGet.Services.Validation
         private const string ScanOperationStatesScanStateCreatedIndex = "IX_ScanOperationStates_ScanState_Created";
 
         private const string PackageRevalidationPackageIdPackageVersionIndex = "IX_PackageRevalidations_PackageId_PackageNormalizedVersion";
-        private const string PackageRevalidationEnqueuedIndex = "IX_PackageRevalidations_Enqueued";
+        private const string PackageRevalidationEnqueuedCompletedIndex = "IX_PackageRevalidations_Enqueued_Completed";
         private const string PackageRevalidationValidationTrackingIdIndex = "IX_PackageRevalidations_ValidationTrackingId";
 
         static ValidationEntitiesContext()
@@ -647,8 +647,8 @@ namespace NuGet.Services.Validation
                     IndexAnnotation.AnnotationName,
                     new IndexAnnotation(new[]
                     {
-                        new IndexAttribute(PackageRevalidationEnqueuedIndex)
-                    })); ;
+                        new IndexAttribute(PackageRevalidationEnqueuedCompletedIndex, 1)
+                    }));
 
             modelBuilder.Entity<PackageRevalidation>()
                 .Property(r => r.ValidationTrackingId)
@@ -664,7 +664,13 @@ namespace NuGet.Services.Validation
 
             modelBuilder.Entity<PackageRevalidation>()
                 .Property(r => r.Completed)
-                .IsRequired();
+                .IsRequired()
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(PackageRevalidationEnqueuedCompletedIndex, 2)
+                    }));
 
             modelBuilder.Entity<PackageRevalidation>()
                 .Property(r => r.RowVersion)

@@ -140,6 +140,10 @@
     <Compile Include="Migrations\201808040003590_DropCreateDbOptionOnSymbolServerRequest.Designer.cs">
       <DependentUpon>201808040003590_DropCreateDbOptionOnSymbolServerRequest.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.cs" />
+    <Compile Include="Migrations\201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.Designer.cs">
+      <DependentUpon>201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -220,6 +224,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201808040003590_DropCreateDbOptionOnSymbolServerRequest.resx">
       <DependentUpon>201808040003590_DropCreateDbOptionOnSymbolServerRequest.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.resx">
+      <DependentUpon>201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
