@@ -191,6 +191,14 @@ namespace NuGetGallery
                     yield return new object[] { "SymbolPackageGalleryValidation",
                         (TrackAction)(s => s.TrackSymbolPackageFailedGalleryValidationEvent("id", "version"))
                     };
+
+                    yield return new object[] { "PackageFailedMetadataCompliance",
+                        (TrackAction)(s => s.TrackPackageFailedMetadataCompliance(fakes.Package.Id, package.NormalizedVersion))
+                    };
+
+                    yield return new object[] { "PackageOwnershipAutomaticallyAdded",
+                        (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key))
+                    };
                 }
             }
 

@@ -51,6 +51,8 @@ namespace NuGetGallery
             public const string SymbolPackagePush = "SymbolPackagePush";
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
+            public const string PackageFailedMetadataCompliance = "PackageFailedMetadataCompliance";
+            public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -311,6 +313,16 @@ namespace NuGetGallery
         public void TrackPackageRevalidate(Package package)
         {
             TrackMetricForPackage(Events.PackageRevalidate, package);
+        }
+
+        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion)
+        {
+            TrackMetricForPackage(Events.PackageFailedMetadataCompliance, packageId, packageVersion);
+        }
+
+        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int userKey)
+        {
+            TrackMetricForPackage(Events.PackageOwnershipAutomaticallyAdded, packageId, packageVersion, properties => properties.Add("RequiredCoOwnerUserKey", userKey.ToString()));
         }
 
         public void TrackCertificateAdded(string thumbprint)

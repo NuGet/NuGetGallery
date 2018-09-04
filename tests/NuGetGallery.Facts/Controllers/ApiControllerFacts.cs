@@ -1579,13 +1579,16 @@ namespace NuGetGallery
                     var configurationMock = new Mock<IAppConfiguration>(MockBehavior.Strict);
                     configurationMock.SetupGet(m => m.EnforceDefaultSecurityPolicies).Returns(false);
 
+                    var telemetryServiceMock = new Mock<ITelemetryService>();
+
                     return new SecurityPolicyService(
                         entitiesContext,
                         auditing,
                         diagnostics,
                         configurationMock.Object,
                         userServiceFactory,
-                        packageOwnershipManagementServiceFactory);
+                        packageOwnershipManagementServiceFactory,
+                        new Lazy<ITelemetryService>(() => telemetryServiceMock.Object));
                 }
 
                 private static Mock<TestPackageReader> CreatePackage(

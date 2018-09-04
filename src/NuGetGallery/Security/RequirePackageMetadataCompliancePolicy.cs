@@ -49,6 +49,9 @@ namespace NuGetGallery.Security
             // Evaluate package metadata validations
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
+                // Telemetry
+                context.TelemetryService.TrackPackageFailedMetadataCompliance(context.Package.Id, context.Package.NormalizedVersion);
+
                 // Package policy not met.
                 return SecurityPolicyResult.CreateErrorResult(
                     string.Format(
@@ -60,6 +63,9 @@ namespace NuGetGallery.Security
             // Automatically add the required co-owner when metadata is compliant.
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(state.RequiredCoOwnerUsername, StringComparer.OrdinalIgnoreCase))
             {
+                // Telemetry
+                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(context.Package.Id, context.Package.NormalizedVersion, requiredCoOwner.Key);
+
                 // This will also mark the package as verified if the prefix has been reserved by the co-owner.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
                 await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, requiredCoOwner, commitChanges: false);

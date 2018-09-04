@@ -67,10 +67,12 @@ namespace NuGetGallery.Security
                 .Returns(Fakes.RequiredCoOwner)
                 .Verifiable();
 
+            var telemetryService = new Mock<ITelemetryService>().Object;
 
             var context = new PackageSecurityPolicyEvaluationContext(
                 userService.Object, 
                 packageOwnershipManagementService.Object, 
+                telemetryService,
                 subscription.Policies, 
                 newMicrosoftCompliantPackage, 
                 It.IsAny<HttpContextBase>());
@@ -210,11 +212,14 @@ namespace NuGetGallery.Security
                     .Returns((User)null);
             }
 
+            var telemetryService = new Mock<ITelemetryService>().Object;
+
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict).Object;
 
             var context = new PackageSecurityPolicyEvaluationContext(
                 userService.Object,
                 packageOwnershipManagementService,
+                telemetryService,
                 policies,
                 package,
                 It.IsAny<HttpContextBase>());

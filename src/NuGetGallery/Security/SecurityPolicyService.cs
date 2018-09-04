@@ -32,6 +32,7 @@ namespace NuGetGallery.Security
 
         private readonly Lazy<IUserService> _userService;
         private readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementService;
+        private readonly Lazy<ITelemetryService> _telemetryService;
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -56,6 +57,7 @@ namespace NuGetGallery.Security
             IAppConfiguration configuration,
             Lazy<IUserService> userService,
             Lazy<IPackageOwnershipManagementService> packageOwnershipManagementService,
+            Lazy<ITelemetryService> telemetryService,
             MicrosoftTeamSubscription microsoftTeamSubscription = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -72,6 +74,7 @@ namespace NuGetGallery.Security
             MicrosoftTeamSubscription = microsoftTeamSubscription;
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         /// <summary>
@@ -204,6 +207,7 @@ namespace NuGetGallery.Security
                     var context = new PackageSecurityPolicyEvaluationContext(
                         _userService.Value,
                         _packageOwnershipManagementService.Value,
+                        _telemetryService.Value,
                         foundPolicies,
                         package,
                         sourceAccount,
