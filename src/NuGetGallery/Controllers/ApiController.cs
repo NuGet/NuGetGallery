@@ -480,8 +480,6 @@ namespace NuGetGallery
                                 Size = symbolPackageStream.Length
                             };
 
-                            TelemetryService.TrackSymbolPackagePushEvent(id, normalizedVersion);
-
                             PackageCommitResult commitResult = await SymbolPackageUploadService.CreateAndUploadSymbolsPackage(
                                 package,
                                 packageStreamMetadata,
@@ -498,6 +496,8 @@ namespace NuGetGallery
                                 default:
                                     throw new NotImplementedException($"The symbol package commit result {commitResult} is not supported.");
                             }
+
+                            TelemetryService.TrackSymbolPackagePushEvent(id, normalizedVersion);
 
                             return new HttpStatusCodeResult(HttpStatusCode.Created);
                         }
