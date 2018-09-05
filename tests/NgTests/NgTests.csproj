@@ -308,8 +308,10 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
+    <Compile Include="Validators\CatalogAggregateValidatorFacts.cs" />
     <Compile Include="Validators\DummyAggregateValidator.cs" />
     <Compile Include="Validators\DummyValidator.cs" />
+    <Compile Include="Validators\PackageHasSignatureValidatorFacts.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />

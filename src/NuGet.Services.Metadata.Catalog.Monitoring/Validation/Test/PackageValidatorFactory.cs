@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.Extensions.Logging;
-using NuGet.Protocol;
+using NuGet.Services.Metadata.Catalog.Monitoring.Validation.Test.Catalog;
 using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog.Monitoring
@@ -28,14 +28,18 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             StorageFactory auditingStorageFactory,
             IEnumerable<EndpointFactory.Input> endpointInputs,
             Func<HttpMessageHandler> messageHandlerFactory,
+            bool requireSignature = false,
             bool verbose = false)
         {
             var validatorFactory = new ValidatorFactoryFactory(_loggerFactory).Create(galleryUrl, indexUrl);
-
             var endpointFactory = new EndpointFactory(validatorFactory, messageHandlerFactory, _loggerFactory);
-            var endpoints = endpointInputs.Select(e => endpointFactory.Create(e));
 
-            return new PackageValidator(endpoints, auditingStorageFactory, _loggerFactory.CreateLogger<PackageValidator>());
+            var validators = new List<IAggregateValidator>();
+
+            validators.AddRange(endpointInputs.Select(e => endpointFactory.Create(e)));
+            validators.Add(new CatalogAggregateValidator(validatorFactory, requireSignature));
+
+            return new PackageValidator(validators, auditingStorageFactory, _loggerFactory.CreateLogger<PackageValidator>());
         }
     }
 }

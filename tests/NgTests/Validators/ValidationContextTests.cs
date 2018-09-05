@@ -47,8 +47,8 @@ namespace NgTests.Validators
                 cancellationToken);
 
             Assert.Same(package, context.Package);
-            Assert.Same(catalogIndexEntries, context.Entries);
-            Assert.Same(deletionAuditEntries, context.DeletionAuditEntries);
+            Assert.Equal(catalogIndexEntries.Count(), context.Entries.Count);
+            Assert.Equal(deletionAuditEntries.Count(), context.DeletionAuditEntries.Count);
             Assert.Same(client, context.Client);
             Assert.Equal(cancellationToken, context.CancellationToken);
         }

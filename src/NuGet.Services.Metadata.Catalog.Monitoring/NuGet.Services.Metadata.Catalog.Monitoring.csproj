@@ -162,12 +162,14 @@
     <Compile Include="Validation\Result\PackageValidationResult.cs" />
     <Compile Include="Validation\Result\TestResult.cs" />
     <Compile Include="Validation\Result\ValidationResult.cs" />
+    <Compile Include="Validation\Test\Catalog\CatalogAggregateValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\EndpointValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\EndpointFactory.cs" />
     <Compile Include="Validation\Test\AggregateValidator.cs" />
     <Compile Include="Validation\Test\Endpoint\FlatContainerEndpoint.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataFieldInconsistencyException.cs" />
     <Compile Include="Validation\Test\Exceptions\MetadataInconsistencyException.cs" />
+    <Compile Include="Validation\Test\Exceptions\MissingPackageSignatureFileException.cs" />
     <Compile Include="Validation\Test\Exceptions\TimestampComparisonException.cs" />
     <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
     <Compile Include="Validation\Test\IAggregateValidator.cs" />
@@ -177,6 +179,7 @@
     <Compile Include="Validation\Test\Endpoint\RegistrationEndpoint.cs" />
     <Compile Include="Validation\Test\PackageValidatorContext.cs" />
     <Compile Include="Validation\Test\PackageValidatorFactory.cs" />
+    <Compile Include="Validation\Test\Catalog\PackageHasSignatureValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationExistsValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationIndexValidator.cs" />
     <Compile Include="Validation\Test\Registration\RegistrationValidator.cs" />

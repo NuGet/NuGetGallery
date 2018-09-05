@@ -146,6 +146,11 @@ namespace Ng
         /// If the queue contains more messages than this, the job will not requeue any invalid packages.
         /// </summary>
         public const string MaxRequeueQueueSize = "maxRequeueQueueSize";
+
+        /// <summary>
+        /// If true, packages are expected to have at least a repository signature.
+        /// </summary>
+        public const string RequireSignature = "requireSignature";
         #endregion
 
         #region KeyVault

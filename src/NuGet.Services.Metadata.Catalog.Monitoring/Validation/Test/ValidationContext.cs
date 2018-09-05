@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging.Core;
@@ -28,12 +29,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// <summary>
         /// The <see cref="CatalogIndexEntry"/>s for the package that were collected.
         /// </summary>
-        public IEnumerable<CatalogIndexEntry> Entries { get; }
+        public IReadOnlyList<CatalogIndexEntry> Entries { get; }
 
         /// <summary>
         /// The <see cref="AuditRecordHelpers.DeletionAuditEntry"/>s, if any are associated with the <see cref="PackageIdentity"/>.
         /// </summary>
-        public IEnumerable<DeletionAuditEntry> DeletionAuditEntries { get; }
+        public IReadOnlyList<DeletionAuditEntry> DeletionAuditEntries { get; }
 
         /// <summary>
         /// The <see cref="CollectorHttpClient"/> to use when needed.
@@ -64,8 +65,8 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             : this()
         {
             Package = package;
-            Entries = entries;
-            DeletionAuditEntries = deletionAuditEntries;
+            Entries = entries?.ToList() ?? null;
+            DeletionAuditEntries = deletionAuditEntries?.ToList() ?? null;
             Client = client;
             CancellationToken = token;
         }
