@@ -26,19 +26,18 @@ namespace NuGetGallery.Security
             new Lazy<IUserService>(() => new Mock<IUserService>().Object);
         private static readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementServiceFactory = 
             new Lazy<IPackageOwnershipManagementService>(() => new Mock<IPackageOwnershipManagementService>().Object);
-        private static readonly Lazy<ITelemetryService> _telemetryServiceFactory =
-            new Lazy<ITelemetryService>(() => new Mock<ITelemetryService>().Object);
+        private static readonly ITelemetryService _telemetryService = new Mock<ITelemetryService>().Object;
 
         public static IEnumerable<object[]> CtorThrowNullReference_Data
         {
             get
             {
-                yield return new object[] { null, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory };
-                yield return new object[] { _entities, null, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory };
-                yield return new object[] { _entities, _auditing, null, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, null, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, null, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, null, _telemetryServiceFactory };
+                yield return new object[] { null, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, null, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, null, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, null, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, null, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, null, _telemetryService };
                 yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, null };
             }
         }
@@ -52,16 +51,16 @@ namespace NuGetGallery.Security
             IAppConfiguration configuration,
             Lazy<IUserService> userServiceFactory,
             Lazy<IPackageOwnershipManagementService> packageOwnershipManagementServiceFactory,
-            Lazy<ITelemetryService> telemetryServiceFactory)
+            ITelemetryService telemetryService)
         {
-            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration, userServiceFactory, packageOwnershipManagementServiceFactory, telemetryServiceFactory));
+            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration, userServiceFactory, packageOwnershipManagementServiceFactory, telemetryService));
         }
 
         [Fact]
         public void UserHandlers_ReturnsRegisteredUserSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService);
 
             // Act.
             var handlers = ((IEnumerable<UserSecurityPolicyHandler>)service.GetType()
@@ -82,7 +81,7 @@ namespace NuGetGallery.Security
         public void PackageHandlers_ReturnsRegisteredPackageSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryServiceFactory);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService);
 
             // Act.
             var handlers = ((IEnumerable<PackageSecurityPolicyHandler>)service.GetType()

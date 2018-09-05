@@ -1588,7 +1588,7 @@ namespace NuGetGallery
                         configurationMock.Object,
                         userServiceFactory,
                         packageOwnershipManagementServiceFactory,
-                        new Lazy<ITelemetryService>(() => telemetryServiceMock.Object));
+                        telemetryServiceMock.Object);
                 }
 
                 private static Mock<TestPackageReader> CreatePackage(

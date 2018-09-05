@@ -32,7 +32,7 @@ namespace NuGetGallery.Security
 
         private readonly Lazy<IUserService> _userService;
         private readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementService;
-        private readonly Lazy<ITelemetryService> _telemetryService;
+        private readonly ITelemetryService _telemetryService;
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -57,7 +57,7 @@ namespace NuGetGallery.Security
             IAppConfiguration configuration,
             Lazy<IUserService> userService,
             Lazy<IPackageOwnershipManagementService> packageOwnershipManagementService,
-            Lazy<ITelemetryService> telemetryService,
+            ITelemetryService telemetryService,
             MicrosoftTeamSubscription microsoftTeamSubscription = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -207,7 +207,7 @@ namespace NuGetGallery.Security
                     var context = new PackageSecurityPolicyEvaluationContext(
                         _userService.Value,
                         _packageOwnershipManagementService.Value,
-                        _telemetryService.Value,
+                        _telemetryService,
                         foundPolicies,
                         package,
                         sourceAccount,
