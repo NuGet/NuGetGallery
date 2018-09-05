@@ -125,16 +125,24 @@
                 <ul class="list-inline icon-details" role="presentation">
                     <li>
                         <i class="ms-Icon ms-Icon--Stopwatch" aria-hidden="true"></i>
-                        <!-- ko if: Expires -->
                         <!-- ko if: HasExpired -->
                         Expired
                         <!-- /ko -->
                         <!-- ko ifnot: HasExpired -->
+                        <!-- ko if: Expires -->
                         Expires <span data-bind="text: moment(Expires()).fromNow()"></span>
-                        <!-- /ko -->
                         <!-- /ko -->
                         <!-- ko ifnot: Expires -->
                         Never expires
+                        @if (Config.Current.ExpirationInDaysForApiKeyV1 > 0)
+                        {
+                            <text>
+                            (<a href="https://aka.ms/nugetlegacyapikeys">if used every
+                            @Config.Current.ExpirationInDaysForApiKeyV1
+                            day@(Config.Current.ExpirationInDaysForApiKeyV1 != 1 ? "s" : string.Empty)</a>)
+                            </text>
+                        }
+                        <!-- /ko -->
                         <!-- /ko -->
                     </li>
                     <li>
