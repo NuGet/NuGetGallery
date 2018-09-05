@@ -11,8 +11,8 @@ namespace NuGet.Services.KeyVault
         public string VaultName { get; }
         public string ClientId { get; }
         public X509Certificate2 Certificate { get; }
-        
-        public KeyVaultConfiguration(string vaultName, string clientId, X509Certificate2 certificate)
+        public bool SendX5c { get; }
+        public KeyVaultConfiguration(string vaultName, string clientId, X509Certificate2 certificate, bool sendX5c=false)
         {
             if (string.IsNullOrWhiteSpace(vaultName))
             {
@@ -27,6 +27,7 @@ namespace NuGet.Services.KeyVault
             VaultName = vaultName;
             ClientId = clientId;
             Certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+            SendX5c = sendX5c;
         }
     }
 }
