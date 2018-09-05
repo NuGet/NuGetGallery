@@ -11,26 +11,26 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckService : ITyposquattingCheckService
     {
-        // TODO: Length of checklist will be saved in the configuration file.
-        // https://github.com/NuGet/Engineering/issues/1645
-        private const int TyposquattingCheckListLength = 20000;
-
-        // TODO: Threshold parameters will be saved in the configuration file.
-        // https://github.com/NuGet/Engineering/issues/1645
         private static readonly IReadOnlyList<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
         {
             new ThresholdInfo (lowerBound: 0, upperBound: 30, threshold: 0),
             new ThresholdInfo (lowerBound: 30, upperBound: 50, threshold: 1),
-            new ThresholdInfo (lowerBound: 50, upperBound: 121, threshold: 2)
+            new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
+
+        private static int TyposquattingCheckListLength;
 
         private readonly ITyposquattingUserService _userTyposquattingService;
         private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
+        private readonly IContentObjectService _contentObjectService;
 
-        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService, IEntityRepository<PackageRegistration> packageRegistrationRepository)
+        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService, IEntityRepository<PackageRegistration> packageRegistrationRepository, IContentObjectService contentObjectService)
         {
             _userTyposquattingService = typosquattingUserService ?? throw new ArgumentNullException(nameof(typosquattingUserService));
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+
+            TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.ChecklistLength;
         }
               
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)
