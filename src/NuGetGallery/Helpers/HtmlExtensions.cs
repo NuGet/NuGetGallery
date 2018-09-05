@@ -80,7 +80,7 @@ namespace NuGetGallery.Helpers
 
             encodedText = RegexEx.TryReplaceWithTimeout(
                 encodedText,
-                @"((http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
+                @"((https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&amp;:/~\+#]*[\w\-\@?^=%&amp;/~\+#])?)",
                 anchorEvaluator,
                 RegexOptions.IgnoreCase);
 
