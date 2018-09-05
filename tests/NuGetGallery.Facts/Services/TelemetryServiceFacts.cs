@@ -193,7 +193,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "PackageFailedMetadataCompliance",
-                        (TrackAction)(s => s.TrackPackageFailedMetadataCompliance(fakes.Package.Id, package.NormalizedVersion))
+                        (TrackAction)(s => s.TrackPackageFailedMetadataCompliance(fakes.Package.Id, package.NormalizedVersion, new[] { "Failure reason" }))
                     };
 
                     yield return new object[] { "PackageOwnershipAutomaticallyAdded",

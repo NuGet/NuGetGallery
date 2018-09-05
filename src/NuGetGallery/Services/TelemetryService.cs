@@ -118,6 +118,12 @@ namespace NuGetGallery
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
+        // Package ownership automatically added properties
+        public const string RequiredCoOwnerUserKey = "RequiredCoOwnerUserKey";
+
+        // Package failed metadata compliance properties
+        public const string ComplianceFailures = "ComplianceFailures";
+
         public const string ValueUnknown = "Unknown";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
@@ -315,14 +321,22 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
-        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion)
+        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
         {
-            TrackMetricForPackage(Events.PackageFailedMetadataCompliance, packageId, packageVersion);
+            TrackMetricForPackage(
+                Events.PackageFailedMetadataCompliance, 
+                packageId, 
+                packageVersion, 
+                properties => properties.Add(ComplianceFailures, string.Join(Environment.NewLine, complianceFailures)));
         }
 
         public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int userKey)
         {
-            TrackMetricForPackage(Events.PackageOwnershipAutomaticallyAdded, packageId, packageVersion, properties => properties.Add("RequiredCoOwnerUserKey", userKey.ToString()));
+            TrackMetricForPackage(
+                Events.PackageOwnershipAutomaticallyAdded, 
+                packageId, 
+                packageVersion, 
+                properties => properties.Add(RequiredCoOwnerUserKey, userKey.ToString()));
         }
 
         public void TrackCertificateAdded(string thumbprint)

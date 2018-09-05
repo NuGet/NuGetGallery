@@ -51,7 +51,7 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
-        void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion);
+        void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, IEnumerable<string> complianceFailures);
 
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
