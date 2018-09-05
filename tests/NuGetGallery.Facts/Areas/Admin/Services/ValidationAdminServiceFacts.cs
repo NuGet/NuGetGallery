@@ -84,7 +84,7 @@ namespace NuGetGallery.Areas.Admin.Services
                     .Returns(() => Enumerable.Empty < SymbolPackage>().AsQueryable());
 
                 // Act
-                var status = _target.GetPackageDeletedStatus(_packageKey);
+                var status = _target.GetSymbolPackageDeletedStatus(_symbolPackageKey);
 
                 // Assert
                 Assert.Equal(PackageDeletedStatus.Unknown, status);
@@ -163,6 +163,9 @@ namespace NuGetGallery.Areas.Admin.Services
                 _packages
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _package }.AsQueryable());
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { _symbolPackage }.AsQueryable());
                 _validations
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _validation }.AsQueryable());
