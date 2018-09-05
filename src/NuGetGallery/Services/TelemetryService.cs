@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using System.Web;
+using Newtonsoft.Json;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
@@ -57,6 +58,12 @@ namespace NuGetGallery
 
         private IDiagnosticsSource _diagnosticsSource;
         private ITelemetryClient _telemetryClient;
+
+        private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.None
+        };
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -327,7 +334,7 @@ namespace NuGetGallery
                 Events.PackageFailedMetadataCompliance, 
                 packageId, 
                 packageVersion, 
-                properties => properties.Add(ComplianceFailures, string.Join(Environment.NewLine, complianceFailures)));
+                properties => properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings)));
         }
 
         public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int userKey)
