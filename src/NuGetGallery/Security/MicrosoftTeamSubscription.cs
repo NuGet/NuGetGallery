@@ -56,8 +56,7 @@ namespace NuGetGallery.Security
                         "© Microsoft Corporation. Tous droits réservés.",
                         "© Microsoft Corporation. 著作權所有，並保留一切權利。",
                         "© Microsoft Corporation. Tutti i diritti sono riservati.",
-                        "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены.",
-                        "Copyright (C) 2002-2013 The ANGLE Project Authors. Portions Copyright (C) Microsoft Corporation."
+                        "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены."
                     },
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
