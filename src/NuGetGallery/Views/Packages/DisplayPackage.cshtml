@@ -5,6 +5,7 @@
 @{
     ViewBag.Title = Model.Id + " " + Model.Version;
     ViewBag.Tab = "Packages";
+    ViewBag.BlockSearchEngineIndexing = !Model.Listed || !Model.Available;
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
@@ -73,12 +74,6 @@
     <meta property="og:description" content="@Model.Description" />
     <meta property="og:determiner" content="a" />
     <meta property="og:image" content="@(PackageHelper.ShouldRenderUrl(Model.IconUrl) ? Model.IconUrl : Url.Absolute("~/Content/gallery/img/default-package-icon-256x256.png"))" />
-}
-@section Meta {
-    @if (!Model.Listed || !Model.Available)
-    {
-        <meta name="robots" content="noindex">
-    }
 }
 
 @helper VersionListDivider(int rowCount, bool versionsExpanded)
