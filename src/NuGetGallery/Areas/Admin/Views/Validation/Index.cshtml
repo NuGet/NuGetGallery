@@ -59,12 +59,12 @@
                         break;
                 }
 
-                <b>Package Key:</b> @package.PackageKey<br />
-                @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted)
+                <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
+                @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted && package.ValidatingType == ValidatingType.Package )
                 {
                     <a href="@Url.RevalidatePackage(package.Id, package.NormalizedVersion)">Revalidate</a><br />
                 }
-                
+
                 @if (package.DeletedStatus != PackageDeletedStatus.Unknown)
                 {
                     <a href="@Url.Package(package.Id, package.NormalizedVersion)">Package Details</a>

@@ -16,15 +16,18 @@ namespace NuGetGallery.Areas.Admin.Services
         private readonly IEntityRepository<PackageValidationSet> _validationSets;
         private readonly IEntityRepository<PackageValidation> _validations;
         private readonly IEntityRepository<Package> _packages;
+        private readonly IEntityRepository<SymbolPackage> _symbolPackages;
 
         public ValidationAdminService(
             IEntityRepository<PackageValidationSet> validationSets,
             IEntityRepository<PackageValidation> validations,
-            IEntityRepository<Package> packages)
+            IEntityRepository<Package> packages,
+            IEntityRepository<SymbolPackage> symbolPackages)
         {
             _validationSets = validationSets ?? throw new ArgumentNullException(nameof(validationSets));
             _validations = validations ?? throw new ArgumentNullException(nameof(validations));
             _packages = packages ?? throw new ArgumentNullException(nameof(packages));
+            _symbolPackages = symbolPackages ?? throw new ArgumentNullException(nameof(symbolPackages));
         }
 
         /// <summary>
@@ -52,6 +55,19 @@ namespace NuGetGallery.Areas.Admin.Services
                 .ToList();
         }
 
+        public PackageDeletedStatus GetDeletedStatus(int key, ValidatingType validatingType)
+        {
+            switch (validatingType)
+            {
+                case ValidatingType.Package:
+                    return GetPackageDeletedStatus(key);
+                case ValidatingType.SymbolPackage:
+                    return GetSymbolPackageDeletedStatus(key);
+                default:
+                    return PackageDeletedStatus.Unknown;
+            }
+        }
+
         /// <summary>
         /// Determines if deleted status of the provided package key. This method is unable to differentiate between
         /// a hard deleted package and a package that never existed in the first place. Therefore,
@@ -69,6 +85,25 @@ namespace NuGetGallery.Areas.Admin.Services
                 return PackageDeletedStatus.Unknown;
             }
             else if (package.PackageStatusKey == PackageStatus.Deleted)
+            {
+                return PackageDeletedStatus.SoftDeleted;
+            }
+
+            return PackageDeletedStatus.NotDeleted;
+        }
+
+        public PackageDeletedStatus GetSymbolPackageDeletedStatus(int symbolPackageKey)
+        {
+            var symbolPackage = _symbolPackages
+                .GetAll()
+                .Where(x => x.Key == symbolPackageKey)
+                .FirstOrDefault();
+
+            if (symbolPackage == null)
+            {
+                return PackageDeletedStatus.Unknown;
+            }
+            else if (symbolPackage.StatusKey == PackageStatus.Deleted)
             {
                 return PackageDeletedStatus.SoftDeleted;
             }
