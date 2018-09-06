@@ -30,7 +30,7 @@ namespace NuGetGallery
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
 
-            TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.ChecklistLength;
+            TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
               
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)

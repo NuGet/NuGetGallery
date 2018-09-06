@@ -7,11 +7,12 @@ namespace NuGetGallery.Services
 {
     public sealed class TyposquattingConfiguration : ITyposquattingConfiguration
     {
-        public int ChecklistLength { get; }
+        private const int DefaultPackageIdCheckListLength = 20000;
+        public int PackageIdChecklistLength { get; }
         public bool IsCheckEnabled { get; }
         public bool IsBlockUsersEnabled { get; }
         public TyposquattingConfiguration()
-            : this(checklistLength: 20000,
+            : this(packageIdChecklistLength: DefaultPackageIdCheckListLength,
                   isCheckEnabled: false,
                   isBlockUsersEnabled: false)
         {
@@ -19,11 +20,11 @@ namespace NuGetGallery.Services
 
         [JsonConstructor]
         public TyposquattingConfiguration(
-            int checklistLength,
+            int packageIdChecklistLength,
             bool isCheckEnabled,
             bool isBlockUsersEnabled)
         {
-            ChecklistLength = checklistLength;
+            PackageIdChecklistLength = packageIdChecklistLength;
             IsCheckEnabled = isCheckEnabled;
             IsBlockUsersEnabled = isBlockUsersEnabled;
         }

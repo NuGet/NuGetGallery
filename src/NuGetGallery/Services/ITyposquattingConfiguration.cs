@@ -5,7 +5,7 @@ namespace NuGetGallery.Services
 {
     public interface ITyposquattingConfiguration
     {
-        int ChecklistLength { get; }
+        int PackageIdChecklistLength { get; }
         bool IsCheckEnabled { get; }
         bool IsBlockUsersEnabled { get; }
     }
