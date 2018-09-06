@@ -74,8 +74,10 @@ namespace NuGetGallery.Security
                 packageOwnershipManagementService.Object, 
                 telemetryService,
                 subscription.Policies, 
-                newMicrosoftCompliantPackage, 
-                It.IsAny<HttpContextBase>());
+                newMicrosoftCompliantPackage,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser, 
+                httpContext: It.IsAny<HttpContextBase>());
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -89,10 +91,17 @@ namespace NuGetGallery.Security
         public async Task Evaluate_SilentlySucceedsWhenRequiredCoOwnerDoesNotExist()
         {
             // Arrange
+            var nugetUser = new User("NuGet");
             var subscription = new MicrosoftTeamSubscription();
             var policyHandler = new RequirePackageMetadataCompliancePolicy();
             var fakes = new Fakes();
-            var context = CreateTestContext(false, subscription.Policies, fakes.NewPackageVersion, packageRegistrationAlreadyExists: false);
+            var context = CreateTestContext(
+                false, 
+                subscription.Policies, 
+                fakes.NewPackageVersion, 
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -120,7 +129,9 @@ namespace NuGetGallery.Security
                 subscription.Policies,
                 newMicrosoftCompliantPackage,
                 packageRegistrationAlreadyExists: false,
-                packageOwnershipManagementService: packageOwnershipManagementService.Object);
+                packageOwnershipManagementService: packageOwnershipManagementService.Object,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -154,7 +165,9 @@ namespace NuGetGallery.Security
                 subscription.Policies,
                 newMicrosoftCompliantPackage,
                 packageRegistrationAlreadyExists: false,
-                packageOwnershipManagementService: packageOwnershipManagementService.Object);
+                packageOwnershipManagementService: packageOwnershipManagementService.Object,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -179,7 +192,9 @@ namespace NuGetGallery.Security
                 true,
                 subscription.Policies,
                 nonCompliantPackage,
-                packageRegistrationAlreadyExists: false);
+                packageRegistrationAlreadyExists: false,
+                sourceAccount: nugetUser,
+                targetAccount: nugetUser);
 
             // Act
             var result = await policyHandler.EvaluateAsync(context);
@@ -195,6 +210,8 @@ namespace NuGetGallery.Security
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             bool packageRegistrationAlreadyExists,
+            User sourceAccount,
+            User targetAccount,
             IPackageOwnershipManagementService packageOwnershipManagementService = null,
             IReservedNamespaceService reservedNamespaceService = null)
         {
@@ -212,16 +229,18 @@ namespace NuGetGallery.Security
                     .Returns((User)null);
             }
 
-            var telemetryService = new Mock<ITelemetryService>().Object;
+            var telemetryServiceMock = new Mock<ITelemetryService>();
 
             packageOwnershipManagementService = packageOwnershipManagementService ?? new Mock<IPackageOwnershipManagementService>(MockBehavior.Strict).Object;
 
             var context = new PackageSecurityPolicyEvaluationContext(
                 userService.Object,
                 packageOwnershipManagementService,
-                telemetryService,
+                telemetryServiceMock.Object,
                 policies,
                 package,
+                sourceAccount,
+                targetAccount,
                 It.IsAny<HttpContextBase>());
 
             return context;
