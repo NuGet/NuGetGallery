@@ -45,6 +45,7 @@ namespace NuGetGallery.Security
                     allowedCopyrightNotices: new string[] 
                     {
                         "(c) Microsoft Corporation. All rights reserved.",
+                        "&#169; Microsoft Corporation. All rights reserved.",
                         "© Microsoft Corporation. All rights reserved.",
                         "© Microsoft Corporation. Tüm hakları saklıdır.",
                         "© Microsoft Corporation. Todos os direitos reservados.",
