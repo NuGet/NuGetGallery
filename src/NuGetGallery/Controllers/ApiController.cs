@@ -1039,14 +1039,9 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string versionString)
         {
-            return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
-        }
-
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
-        {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Forbidden);
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(evaluationResult, id, versionString, HttpStatusCode.Forbidden);
         }
 
         /// <remarks>
@@ -1055,10 +1050,10 @@ namespace NuGetGallery
         /// </remarks>
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Unauthorized);
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version.ToNormalizedString(), HttpStatusCode.Unauthorized);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, NuGetVersion version, HttpStatusCode statusCodeOnFailure)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, string versionString, HttpStatusCode statusCodeOnFailure)
         {
             if (result.IsSuccessful())
             {
@@ -1068,7 +1063,7 @@ namespace NuGetGallery
             if (result.PermissionsCheckResult == PermissionsCheckResult.ReservedNamespaceFailure)
             {
                 // We return a special error code for reserved namespace failures.
-                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
+                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, versionString, GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
 
