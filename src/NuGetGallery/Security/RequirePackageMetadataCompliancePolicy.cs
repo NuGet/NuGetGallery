@@ -50,7 +50,7 @@ namespace NuGetGallery.Security
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
                 // Telemetry
-                context.TelemetryService.TrackPackageFailedMetadataCompliance(
+                context.TelemetryService.TrackPackageMetadataComplianceError(
                     context.Package.Id, 
                     context.Package.NormalizedVersion,
                     context.SourceAccount.Key,

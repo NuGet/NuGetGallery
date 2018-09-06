@@ -51,7 +51,7 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
-        void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures);
+        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures);
 
         void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey);
 

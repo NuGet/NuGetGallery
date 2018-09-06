@@ -52,7 +52,7 @@ namespace NuGetGallery
             public const string SymbolPackagePush = "SymbolPackagePush";
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
-            public const string PackageFailedMetadataCompliance = "PackageFailedMetadataCompliance";
+            public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
             public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
         }
@@ -330,10 +330,10 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
-        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures)
+        public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures)
         {
             TrackMetricForPackage(
-                Events.PackageFailedMetadataCompliance, 
+                Events.PackageMetadataComplianceError, 
                 packageId, 
                 packageVersion,
                 properties => {
