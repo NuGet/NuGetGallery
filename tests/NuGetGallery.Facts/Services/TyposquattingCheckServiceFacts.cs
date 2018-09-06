@@ -41,7 +41,7 @@ namespace NuGetGallery
                 .Returns(_pacakgeRegistrationsList.AsQueryable());
 
             _contentObjectService
-                .Setup(x => x.TyposquattingConfiguration.ChecklistLength)
+                .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
                 .Returns(20000);
         }
 
