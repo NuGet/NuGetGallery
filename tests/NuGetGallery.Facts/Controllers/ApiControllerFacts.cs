@@ -408,6 +408,9 @@ namespace NuGetGallery
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
 
                 // Assert
+                controller.MockTelemetryService.Verify(
+                    x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()),
+                    Times.Once());
                 ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
             }
 
@@ -488,7 +491,52 @@ namespace NuGetGallery
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
 
                 // Assert
+                controller.MockTelemetryService.Verify(
+                   x => x.TrackSymbolPackagePushEvent(It.IsAny<string>(), It.IsAny<string>()),
+                   Times.Once());
                 ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillTraceFailureToPushEvent()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                controller.MockSymbolPackageUploadService
+                    .Setup(x => x.CreateAndUploadSymbolsPackage(
+                        package,
+                        It.IsAny<PackageStreamMetadata>(),
+                        It.IsAny<Stream>()))
+                    .ThrowsAsync(new SymbolsTestException("Test exception."));
+
+                // Act
+                var exception = await Assert.ThrowsAsync<SymbolsTestException>(() => controller.CreateSymbolPackagePutAsync());
+
+                // Assert
+                controller.MockTelemetryService.Verify(
+                   x => x.TrackSymbolPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<string>()),
+                   Times.Once());
             }
         }
 
@@ -2554,5 +2602,14 @@ namespace NuGetGallery
                 Assert.Equal("https://dist.nuget.org/win-x86-commandline/v2.8.6/nuget.exe", redirect.Url);
             }
         }
+
+        public class SymbolsTestException : Exception
+        {
+            public SymbolsTestException(string message) : base (message)
+            {
+
+            }
+        }
+
     }
 }

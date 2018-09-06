@@ -146,5 +146,26 @@ namespace NuGetGallery
         /// <param name="success">Whether sending the email was successful.</param>
         /// <param name="attemptNumber">The number of attempts the message has tried to be sent.</param>
         void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success, int attemptNumber);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package is pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails to be pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails Gallery validation.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
     }
 }

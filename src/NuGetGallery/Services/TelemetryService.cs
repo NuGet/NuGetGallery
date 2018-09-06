@@ -48,6 +48,9 @@ namespace NuGetGallery
             public const string PackageRegistrationRequiredSignerSet = "PackageRegistrationRequiredSignerSet";
             public const string AccountDeleteCompleted = "AccountDeleteCompleted";
             public const string AccountDeleteRequested = "AccountDeleteRequested";
+            public const string SymbolPackagePush = "SymbolPackagePush";
+            public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
+            public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -346,6 +349,21 @@ namespace NuGetGallery
             _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
         }
 
+        public void TrackSymbolPackagePushEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackagePush, packageId, packageVersion);
+        }
+
+        public void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackagePushFailure, packageId, packageVersion);
+        }
+
+        public void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackageGalleryValidation, packageId, packageVersion);
+        }
+
         private void TrackMetricForAccountActivity(string eventName, User user, Credential credential, bool wasMultiFactorAuthenticated = false)
         {
             if (user == null)
@@ -408,6 +426,22 @@ namespace NuGetGallery
         {
             var apiKey = user.GetCurrentApiKeyCredential(identity);
             return apiKey?.Created.ToString("O") ?? "N/A";
+        }
+
+        private void TrackMetricForSymbolPackage(
+            string metricName,
+            string packageId,
+            string packageVersion,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            TrackMetric(metricName, 1, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                addProperties?.Invoke(properties);
+            });
         }
 
         private void TrackMetricForPackage(
