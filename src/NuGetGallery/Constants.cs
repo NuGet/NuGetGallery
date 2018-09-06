@@ -104,6 +104,7 @@ namespace NuGetGallery
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
             public static readonly string CertificatesConfiguration = "Certificates-Configuration";
             public static readonly string SymbolsConfiguration = "Symbols-Configuration";
+            public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
         }
 
         public static class StatisticsDimensions
