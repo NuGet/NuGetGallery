@@ -52,7 +52,9 @@ namespace NuGetGallery.Security
                 // Telemetry
                 context.TelemetryService.TrackPackageFailedMetadataCompliance(
                     context.Package.Id, 
-                    context.Package.NormalizedVersion, 
+                    context.Package.NormalizedVersion,
+                    context.SourceAccount.Key,
+                    context.TargetAccount.Key, 
                     complianceFailures);
 
                 // Package policy not met.
@@ -82,6 +84,13 @@ namespace NuGetGallery.Security
             // the account pushing the package has not registered the prefix yet.
             if (!context.Package.PackageRegistration.IsVerified)
             {
+                // Telemetry
+                context.TelemetryService.TrackPackageMetadataComplianceWarning(
+                    context.Package.Id,
+                    context.Package.NormalizedVersion,
+                    context.SourceAccount.Key,
+                    context.TargetAccount.Key);
+
                 return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
             }
 

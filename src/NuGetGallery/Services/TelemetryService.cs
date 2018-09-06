@@ -53,6 +53,7 @@ namespace NuGetGallery
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
             public const string PackageFailedMetadataCompliance = "PackageFailedMetadataCompliance";
+            public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
         }
 
@@ -329,13 +330,29 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
-        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
+        public void TrackPackageFailedMetadataCompliance(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures)
         {
             TrackMetricForPackage(
                 Events.PackageFailedMetadataCompliance, 
                 packageId, 
-                packageVersion, 
-                properties => properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings)));
+                packageVersion,
+                properties => {
+                    properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings));
+                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
+                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
+                });
+        }
+
+        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey)
+        {
+            TrackMetricForPackage(
+                Events.PackageMetadataComplianceWarning,
+                packageId,
+                packageVersion,
+                properties => {
+                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
+                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
+                });
         }
 
         public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey)
