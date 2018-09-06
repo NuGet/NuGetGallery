@@ -71,8 +71,9 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageId">The package registration id.</param>
         /// <param name="packageVersion">The normalized package version.</param>
-        /// <param name="userKey">The owner user key.</param>
-        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int userKey);
+        /// <param name="sourceAccountKey">The source account key.</param>
+        /// <param name="targetAccountKey">The target account key.</param>
+        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is activated for an account.

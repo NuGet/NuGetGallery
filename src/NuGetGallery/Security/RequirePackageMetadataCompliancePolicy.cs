@@ -50,7 +50,10 @@ namespace NuGetGallery.Security
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
                 // Telemetry
-                context.TelemetryService.TrackPackageFailedMetadataCompliance(context.Package.Id, context.Package.NormalizedVersion, complianceFailures);
+                context.TelemetryService.TrackPackageFailedMetadataCompliance(
+                    context.Package.Id, 
+                    context.Package.NormalizedVersion, 
+                    complianceFailures);
 
                 // Package policy not met.
                 return SecurityPolicyResult.CreateErrorResult(
@@ -64,7 +67,11 @@ namespace NuGetGallery.Security
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(state.RequiredCoOwnerUsername, StringComparer.OrdinalIgnoreCase))
             {
                 // Telemetry
-                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(context.Package.Id, context.Package.NormalizedVersion, requiredCoOwner.Key);
+                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
+                    context.Package.Id, 
+                    context.Package.NormalizedVersion,
+                    context.SourceAccount.Key,
+                    context.TargetAccount.Key);
 
                 // This will also mark the package as verified if the prefix has been reserved by the co-owner.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).

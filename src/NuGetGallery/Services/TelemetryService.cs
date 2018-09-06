@@ -126,7 +126,8 @@ namespace NuGetGallery
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
         // Package ownership automatically added properties
-        public const string RequiredCoOwnerUserKey = "RequiredCoOwnerUserKey";
+        public const string SourceAccountKey = "SourceAccountKey";
+        public const string TargetAccountKey = "TargetAccountKey";
 
         // Package failed metadata compliance properties
         public const string ComplianceFailures = "ComplianceFailures";
@@ -337,13 +338,16 @@ namespace NuGetGallery
                 properties => properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings)));
         }
 
-        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int userKey)
+        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey)
         {
             TrackMetricForPackage(
                 Events.PackageOwnershipAutomaticallyAdded, 
                 packageId, 
                 packageVersion, 
-                properties => properties.Add(RequiredCoOwnerUserKey, userKey.ToString()));
+                properties => {
+                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
+                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
+                });
         }
 
         public void TrackCertificateAdded(string thumbprint)
