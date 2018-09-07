@@ -50,8 +50,8 @@ namespace NuGetGallery.Security
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
                 context.TelemetryService.TrackPackageMetadataComplianceError(
-                    context.Package.Id, 
-                    context.Package.NormalizedVersion, 
+                    context.Package.Id,
+                    context.Package.NormalizedVersion,
                     complianceFailures);
 
                 // Package policy not met.
@@ -65,13 +65,13 @@ namespace NuGetGallery.Security
             // Automatically add the required co-owner when metadata is compliant.
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(state.RequiredCoOwnerUsername, StringComparer.OrdinalIgnoreCase))
             {
-                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
-                    context.Package.Id, 
-                    context.Package.NormalizedVersion);
-
                 // This will also mark the package as verified if the prefix has been reserved by the co-owner.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
                 await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, requiredCoOwner, commitChanges: false);
+
+                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
+                    context.Package.Id,
+                    context.Package.NormalizedVersion);
             }
 
             // If the PackageRegistration is not marked as verified,
@@ -91,8 +91,8 @@ namespace NuGetGallery.Security
         }
 
         public static UserSecurityPolicy CreatePolicy(
-            string subscription, 
-            string requiredCoOwnerUsername, 
+            string subscription,
+            string requiredCoOwnerUsername,
             string[] allowedCopyrightNotices,
             bool isLicenseUrlRequired,
             bool isProjectUrlRequired,
@@ -167,7 +167,7 @@ namespace NuGetGallery.Security
 
             [JsonProperty("licUrlReq")]
             public bool IsLicenseUrlRequired { get; set; }
-            
+
             [JsonProperty("projUrlReq")]
             public bool IsProjectUrlRequired { get; set; }
 
