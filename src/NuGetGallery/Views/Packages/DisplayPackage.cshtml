@@ -220,20 +220,20 @@
             @if (Model.Deleted)
             {
                 @ViewHelpers.AlertDanger(
-                        @<text>
-                            <strong>This package has been deleted from the gallery.</strong> It is no longer available
-                            for install/restore.
-                        </text>
-                     )
+                    @<text>
+                        <strong>This package has been deleted from the gallery.</strong> It is no longer available
+                        for install/restore.
+                    </text>
+                )
             }
 
             @if (Model.Prerelease)
             {
                 @ViewHelpers.AlertInfo(
-                        @<text>
-                            This is a prerelease version of @(Model.Id).
-                        </text>
-                     )
+                    @<text>
+                        This is a prerelease version of @(Model.Id).
+                    </text>
+                )
             }
 
             @if (Model.HasNewerRelease)
