@@ -49,7 +49,6 @@ namespace NuGetGallery.Security
             // Evaluate package metadata validations
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
-                // Telemetry
                 context.TelemetryService.TrackPackageMetadataComplianceError(
                     context.Package.Id, 
                     context.Package.NormalizedVersion, 
@@ -66,7 +65,6 @@ namespace NuGetGallery.Security
             // Automatically add the required co-owner when metadata is compliant.
             if (!context.Package.PackageRegistration.Owners.Select(o => o.Username).Contains(state.RequiredCoOwnerUsername, StringComparer.OrdinalIgnoreCase))
             {
-                // Telemetry
                 context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
                     context.Package.Id, 
                     context.Package.NormalizedVersion);
@@ -80,7 +78,6 @@ namespace NuGetGallery.Security
             // the account pushing the package has not registered the prefix yet.
             if (!context.Package.PackageRegistration.IsVerified)
             {
-                // Telemetry
                 context.TelemetryService.TrackPackageMetadataComplianceWarning(
                     context.Package.Id,
                     context.Package.NormalizedVersion,
