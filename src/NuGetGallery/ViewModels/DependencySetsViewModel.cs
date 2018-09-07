@@ -63,7 +63,7 @@ namespace NuGetGallery
 
                 if (HttpContext.Current != null)
                 {
-                    PackageUrl = UrlExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), id);
+                    PackageUrl = UrlHelperExtensions.Package(new UrlHelper(HttpContext.Current.Request.RequestContext), id);
                 }
             }
 

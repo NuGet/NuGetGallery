@@ -65,17 +65,27 @@ namespace NuGetGallery.Helpers
             // Source: https://stackoverflow.com/a/4750468
             string anchorEvaluator(Match match)
             {
+                string trimmedEntityValue = string.Empty;
+                string trimmedAnchorValue = match.Value;
+
                 foreach (var trimmedEntity in _trimmedHtmlEntities)
                 {
                     if (match.Value.EndsWith(trimmedEntity))
                     {
                         // Remove trailing html entity from anchor URL
-                        var trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - trimmedEntity.Length);
-                        return $"<a href=\"{trimmedAnchorValue}\" rel=\"nofollow\">{trimmedAnchorValue}</a>" + trimmedEntity;
+                        trimmedAnchorValue = match.Value.Substring(0, match.Value.Length - trimmedEntity.Length);
+                        trimmedEntityValue = trimmedEntity;
+
+                        break;
                     }
                 }
 
-                return $"<a href=\"{match.Value}\" rel=\"nofollow\">{match.Value}</a>";
+                if (PackageHelper.TryPrepareUrlForRendering(trimmedAnchorValue, out string formattedUri))
+                {
+                    return $"<a href=\"{formattedUri}\" rel=\"nofollow\">{formattedUri}</a>" + trimmedEntityValue;
+                }
+
+                return match.Value;
             }
 
             encodedText = RegexEx.TryReplaceWithTimeout(

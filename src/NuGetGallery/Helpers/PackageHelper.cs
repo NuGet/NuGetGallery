@@ -24,7 +24,7 @@ namespace NuGetGallery
             {
                 if (secureOnly)
                 {
-                    return IsHttpsProtocol(uri);
+                    return uri.IsHttpsProtocol();
                 }
 
                 return uri.Scheme == Uri.UriSchemeHttps
@@ -34,19 +34,30 @@ namespace NuGetGallery
             return false;
         }
 
-        public static bool IsHttpsProtocol(this Uri uri)
+        public static bool TryPrepareUrlForRendering(string uriString, out string readyUriString)
         {
-            return uri.Scheme == Uri.UriSchemeHttps;
-        }
+            Uri returnUri = null;
+            readyUriString = null;
 
-        public static bool IsHttpProtocol(this Uri uri)
-        {
-            return uri.Scheme == Uri.UriSchemeHttp;
-        }
+            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
+            {
+                if (uri.IsHttpProtocol() && uri.IsDomainWithHttpsSupport())
+                {
+                    returnUri = uri.ToHttps();
+                }
+                else if (uri.IsHttpsProtocol() || uri.IsHttpProtocol())
+                {
+                    returnUri = uri;
+                }
+            }
 
-        public static bool IsGitProtocol(this Uri uri)
-        {
-            return uri.Scheme == Constants.GitRepository;
+            if (returnUri != null)
+            {
+                readyUriString = returnUri.ToString();
+                return true;
+            }
+
+            return false;
         }
 
         public static bool IsGitRepositoryType(string repositoryType)
