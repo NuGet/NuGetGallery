@@ -13,6 +13,23 @@ namespace NuGetGallery.Security
 
         internal const string MicrosoftUsername = "Microsoft";
         internal const string Name = "MicrosoftTeamSubscription";
+        internal static readonly string[] AllowedCopyrightNotices = new string[]
+        {
+            "(c) Microsoft Corporation. All rights reserved.",
+            "&#169; Microsoft Corporation. All rights reserved.",
+            "© Microsoft Corporation. All rights reserved.",
+            "© Microsoft Corporation. Tüm hakları saklıdır.",
+            "© Microsoft Corporation. Todos os direitos reservados.",
+            "© Microsoft Corporation. Alle Rechte vorbehalten.",
+            "© Microsoft Corporation. 保留所有权利.",
+            "© Microsoft Corporation. Všechna práva vyhrazena.",
+            "© Microsoft Corporation. Reservados todos los derechos.",
+            "© Microsoft Corporation. Wszelkie prawa zastrzeżone.",
+            "© Microsoft Corporation. Tous droits réservés.",
+            "© Microsoft Corporation. 著作權所有，並保留一切權利。",
+            "© Microsoft Corporation. Tutti i diritti sono riservati.",
+            "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены."
+        };
 
         public string SubscriptionName => Name;
 
@@ -40,25 +57,9 @@ namespace NuGetGallery.Security
             return new List<UserSecurityPolicy>()
             {
                 RequirePackageMetadataCompliancePolicy.CreatePolicy(
-                    Name, 
+                    Name,
                     MicrosoftUsername,
-                    allowedCopyrightNotices: new string[] 
-                    {
-                        "(c) Microsoft Corporation. All rights reserved.",
-                        "&#169; Microsoft Corporation. All rights reserved.",
-                        "© Microsoft Corporation. All rights reserved.",
-                        "© Microsoft Corporation. Tüm hakları saklıdır.",
-                        "© Microsoft Corporation. Todos os direitos reservados.",
-                        "© Microsoft Corporation. Alle Rechte vorbehalten.",
-                        "© Microsoft Corporation. 保留所有权利.",
-                        "© Microsoft Corporation. Všechna práva vyhrazena.",
-                        "© Microsoft Corporation. Reservados todos los derechos.",
-                        "© Microsoft Corporation. Wszelkie prawa zastrzeżone.",
-                        "© Microsoft Corporation. Tous droits réservés.",
-                        "© Microsoft Corporation. 著作權所有，並保留一切權利。",
-                        "© Microsoft Corporation. Tutti i diritti sono riservati.",
-                        "© Корпорация Майкрософт (Microsoft Corporation). Все права защищены."
-                    },
+                    allowedCopyrightNotices: AllowedCopyrightNotices,
                     isLicenseUrlRequired: true,
                     isProjectUrlRequired: true,
                     errorMessageFormat: Strings.SecurityPolicy_RequireMicrosoftPackageMetadataComplianceForPush)
