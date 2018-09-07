@@ -1,8 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 
@@ -15,17 +16,40 @@ namespace NuGetGallery
             public int ObfuscatedSegment
             { get; }
 
-            public string ObfuscateValue
+            public string ObfuscatedSegmentValue
             { get; }
 
-            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscateValue)
+            public string ObfuscatedQueryParameter
+            { get; }
+
+            public string ObfuscatedQueryParameterValue
+            { get; }
+
+            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue, string obfuscatedQueryParameter, string obfuscatedQueryParameterValue)
             {
                 ObfuscatedSegment = obfuscatedSegment;
-                ObfuscateValue = obfuscateValue;
+                ObfuscatedSegmentValue = obfuscatedSegmentValue;
+                ObfuscatedQueryParameter = obfuscatedQueryParameter;
+                ObfuscatedQueryParameterValue = obfuscatedQueryParameterValue;
+            }
+
+            public ObfuscatedMetadata(string obfuscatedQueryParameter, string obfuscatedQueryParameterValue) : 
+                this (-1, null, obfuscatedQueryParameter, obfuscatedQueryParameterValue)
+            {
+            }
+
+            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue) :
+                this(obfuscatedSegment, obfuscatedSegmentValue, null, null)
+            {
             }
         }
 
         internal static Dictionary<string, ObfuscatedMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata[]>();
+        internal static ObfuscatedMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedMetadata[] 
+        {
+            new ObfuscatedMetadata("returnUrl", Obfuscator.DefaultTelemetryReturnUrl),
+            new ObfuscatedMetadata("ReturnUrl", Obfuscator.DefaultTelemetryReturnUrl)
+        };
 
         public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, object constraints, ObfuscatedMetadata obfuscationMetadata)
         {
@@ -55,9 +79,45 @@ namespace NuGetGallery
             string[] segments = urlPath.Split('/');
             foreach (var metadata in metadatas)
             {
-                segments[metadata.ObfuscatedSegment] = metadata.ObfuscateValue;
+                if (metadata.ObfuscatedSegment > 0)
+                {
+                    segments[metadata.ObfuscatedSegment] = metadata.ObfuscatedSegmentValue;
+                }
             }
             return string.Join("/", segments);
+        }
+
+        public static Uri ObfuscateUrlQuery(Uri uri, ObfuscatedMetadata[] metadata)
+        {
+            if (uri == null)
+            {
+                throw new ArgumentNullException(nameof(uri));
+            }
+            if (metadata == null)
+            {
+                throw new ArgumentNullException(nameof(metadata));
+            }
+            var uriQuery = uri.Query;
+            if (string.IsNullOrEmpty(uriQuery))
+            {
+                return uri;
+            }
+           
+            var queryMetadatas = metadata.Where(m => m.ObfuscatedQueryParameter != null);
+            if (!queryMetadatas.Any())
+            {
+                return uri;
+            }
+            var parsedQuery = HttpUtility.ParseQueryString(uriQuery);
+            var obfuscatedQueryItems = parsedQuery.AllKeys.Select((key) =>
+            {
+                return queryMetadatas.Where(qm => qm.ObfuscatedQueryParameter == key).Any() ?
+                 $"{key}={queryMetadatas.Where(qm => qm.ObfuscatedQueryParameter == key).First().ObfuscatedQueryParameterValue}" :
+                 $"{key}={parsedQuery.Get(key)}";
+            });
+
+            var portSegment = uri.IsDefaultPort ? "" : $":{uri.Port}";
+            return new Uri($"{uri.Scheme}://{uri.Host}{portSegment}{uri.AbsolutePath}?{string.Join("&", obfuscatedQueryItems)}");
         }
     }
 }

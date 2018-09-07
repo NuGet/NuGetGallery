@@ -13,6 +13,8 @@ namespace NuGetGallery
         /// This value will be saved in AI instead of the real value.
         /// </summary>
         internal const string DefaultTelemetryUserName = "ObfuscatedUserName";
+        internal const string DefaultTelemetryReturnUrl = "ObfuscatedReturnUrl";
+        internal const string DefaultTelemetryToken = "ObfuscatedToken";
 
         internal static readonly HashSet<string> ObfuscatedActions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
