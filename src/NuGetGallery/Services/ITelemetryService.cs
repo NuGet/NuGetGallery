@@ -51,6 +51,10 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
+        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures);
+
+        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings);
+
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
         /// </summary>
@@ -63,6 +67,13 @@ namespace NuGetGallery
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
         void TrackCertificateAdded(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a package owner was automatically added to a package registration.
+        /// </summary>
+        /// <param name="packageId">The package registration id.</param>
+        /// <param name="packageVersion">The normalized package version.</param>
+        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is activated for an account.

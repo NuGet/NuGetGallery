@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using System.Web;
+using Newtonsoft.Json;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
@@ -51,10 +52,19 @@ namespace NuGetGallery
             public const string SymbolPackagePush = "SymbolPackagePush";
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
+            public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
+            public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
+            public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
         private ITelemetryClient _telemetryClient;
+
+        private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.None
+        };
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -115,6 +125,10 @@ namespace NuGetGallery
         public const string AccountDeletedIsOrganization = "AccountDeletedIsOrganization";
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
+
+        // Package metadata compliance properties
+        public const string ComplianceFailures = "ComplianceFailures";
+        public const string ComplianceWarnings = "ComplianceWarnings";
 
         public const string ValueUnknown = "Unknown";
 
@@ -311,6 +325,36 @@ namespace NuGetGallery
         public void TrackPackageRevalidate(Package package)
         {
             TrackMetricForPackage(Events.PackageRevalidate, package);
+        }
+
+        public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
+        {
+            TrackMetricForPackage(
+                Events.PackageMetadataComplianceError, 
+                packageId, 
+                packageVersion,
+                properties => {
+                    properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings));
+                });
+        }
+
+        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings)
+        {
+            TrackMetricForPackage(
+                Events.PackageMetadataComplianceWarning,
+                packageId,
+                packageVersion,
+                properties => {
+                    properties.Add(ComplianceWarnings, JsonConvert.SerializeObject(complianceWarnings, _defaultJsonSerializerSettings));
+                });
+        }
+
+        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion)
+        {
+            TrackMetricForPackage(
+                Events.PackageOwnershipAutomaticallyAdded, 
+                packageId, 
+                packageVersion);
         }
 
         public void TrackCertificateAdded(string thumbprint)

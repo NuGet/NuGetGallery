@@ -12,6 +12,7 @@ namespace NuGetGallery.Security
         public PackageSecurityPolicyEvaluationContext(
             IUserService userService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
+            ITelemetryService telemetryService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             HttpContextBase httpContext)
@@ -19,12 +20,14 @@ namespace NuGetGallery.Security
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
         public PackageSecurityPolicyEvaluationContext(
             IUserService userService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
+            ITelemetryService telemetryService,
             IEnumerable<UserSecurityPolicy> policies,
             Package package,
             User sourceAccount,
@@ -34,6 +37,7 @@ namespace NuGetGallery.Security
         {
             Package = package ?? throw new ArgumentNullException(nameof(package));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
+            TelemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
             PackageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
         }
 
@@ -43,6 +47,8 @@ namespace NuGetGallery.Security
         public Package Package { get; }
 
         public IUserService UserService { get; }
+
+        public ITelemetryService TelemetryService { get; }
 
         public IPackageOwnershipManagementService PackageOwnershipManagementService { get; }
     }

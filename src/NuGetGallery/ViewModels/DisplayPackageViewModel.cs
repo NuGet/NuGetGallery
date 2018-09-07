@@ -57,6 +57,7 @@ namespace NuGetGallery
             PushedBy = pushedBy;
 
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
+            InitializeProjectUrl(package.ProjectUrl);
         }
 
         public bool ValidatingTooLong { get; set; }
@@ -109,6 +110,7 @@ namespace NuGetGallery
         public bool IsCertificatesUIEnabled { get; set; }
         public string RepositoryUrl { get; private set; }
         public RepositoryKind RepositoryType { get; private set; }
+        public string ProjectUrl { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 
@@ -184,12 +186,52 @@ namespace NuGetGallery
             }
         }
 
-        private bool IsGitHubUri(Uri uri)
+        private void InitializeProjectUrl(string projectUrlString)
+        {
+            if (Uri.TryCreate(projectUrlString, UriKind.Absolute, out var projectUrl))
+            {
+                if (projectUrl.IsHttpProtocol() && IsDomainWithHttpsSupport(projectUrl))
+                {
+                    var uri = new UriBuilder(projectUrl);
+                    uri.Scheme = Uri.UriSchemeHttps;
+                    uri.Port = -1;
+
+                    ProjectUrl = uri.ToString();
+                }
+                else if (projectUrl.IsHttpsProtocol() || projectUrl.IsHttpProtocol())
+                {
+                    ProjectUrl = projectUrl.ToString();
+                }
+            }
+        }
+
+        private static bool IsDomainWithHttpsSupport(Uri uri)
+        {
+            return IsGitHubUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
+        }
+
+        private static bool IsGitHubUri(Uri uri)
         {
             return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "www.github.com:443", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "github.com:443", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsCodeplexUri(Uri uri)
+        {
+            return uri.Authority.EndsWith(".codeplex.com", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(uri.Authority, "codeplex.com", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsMicrosoftUri(Uri uri)
+        {
+            return uri.Authority.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "www.asp.net", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "asp.net", StringComparison.OrdinalIgnoreCase) ||
+                   uri.Authority.EndsWith(".msdn.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "msdn.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public enum RepositoryKind

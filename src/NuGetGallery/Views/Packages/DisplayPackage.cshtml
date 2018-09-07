@@ -577,7 +577,7 @@
                     <i class="ms-Icon ms-Icon--History" aria-hidden="true"></i>
                     last updated <span data-datetime="@Model.LastUpdated.ToString("O")">@Model.LastUpdated.ToNuGetShortDateString()</span>
                 </li>
-                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.ProjectUrl))
+                @if (!Model.Deleted && Model.ProjectUrl != null)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Globe" aria-hidden="true"></i>
