@@ -9,8 +9,8 @@
 
     var absolutePackageUrl = Url.Absolute(Url.Package(Model.Id));
 
-    var hasSymbolPackageAvailable = Model.LatestSymbolPackage != null && Model.LatestSymbolPackage.StatusKey == PackageStatus.Available;
-    var showSymbolsPackageStatus = Model.LatestSymbolPackage != null && Model.LatestSymbolPackage.StatusKey != PackageStatus.Available;
+    var hasSymbolsPackageAvailable = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey == PackageStatus.Available;
+    var showSymbolsPackageStatus = Model.LatestSymbolsPackage != null && Model.LatestSymbolsPackage.StatusKey != PackageStatus.Available;
 
     PackageManagerViewModel[] packageManagers;
 
@@ -272,7 +272,7 @@
 
             @if (showSymbolsPackageStatus)
             {
-                if (Model.LatestSymbolPackage.StatusKey == PackageStatus.Validating)
+                if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.Validating)
                 {
                     @ViewHelpers.AlertWarning(
                         @<text>
@@ -283,7 +283,7 @@
                         </text>
                      )
                 }
-                else if (Model.LatestSymbolPackage.StatusKey == PackageStatus.FailedValidation)
+                else if (Model.LatestSymbolsPackage.StatusKey == PackageStatus.FailedValidation)
                 {
                     @ViewHelpers.AlertDanger(
                     @<text>
@@ -664,12 +664,12 @@
                         <a href="@Url.PackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw nupkg file." rel="nofollow">Download Package</a>
                         &nbsp;(@Model.PackageFileSize.ToUserFriendlyBytesLabel())
                     </li>
-                    if (hasSymbolPackageAvailable)
+                    if (hasSymbolsPackageAvailable)
                     {
                         <li>
                             <i class="ms-Icon ms-Icon--CloudDownload" aria-hidden="true"></i>
                             <a href="@Url.SymbolPackageDownload(2, Model.Id, Model.Version)" data-track="outbound-manual-download" title="Download the raw snupkg file." rel="nofollow">Download Symbols</a>
-                            &nbsp;(@Model.LatestSymbolPackage.FileSize.ToUserFriendlyBytesLabel())
+                            &nbsp;(@Model.LatestSymbolsPackage.FileSize.ToUserFriendlyBytesLabel())
                         </li>
                     }
                     <li class="no-clickonce">

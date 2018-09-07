@@ -122,7 +122,7 @@ namespace NuGetGallery.ViewModels
 
             var viewModel = new DisplayPackageViewModel(package, null, packageHistory: Enumerable.Empty<Package>().OrderBy(x => 1));
 
-            Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolPackage);
+            Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
 
         [Fact]
