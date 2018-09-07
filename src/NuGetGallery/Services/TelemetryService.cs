@@ -126,12 +126,11 @@ namespace NuGetGallery
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
-        // Package ownership automatically added properties
+        // Package metadata compliance properties
         public const string SourceAccountKey = "SourceAccountKey";
         public const string TargetAccountKey = "TargetAccountKey";
-
-        // Package failed metadata compliance properties
         public const string ComplianceFailures = "ComplianceFailures";
+        public const string ComplianceWarnings = "ComplianceWarnings";
 
         public const string ValueUnknown = "Unknown";
 
@@ -343,13 +342,14 @@ namespace NuGetGallery
                 });
         }
 
-        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey)
+        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceWarnings)
         {
             TrackMetricForPackage(
                 Events.PackageMetadataComplianceWarning,
                 packageId,
                 packageVersion,
                 properties => {
+                    properties.Add(ComplianceWarnings, JsonConvert.SerializeObject(complianceWarnings, _defaultJsonSerializerSettings));
                     properties.Add(SourceAccountKey, sourceAccountKey.ToString());
                     properties.Add(TargetAccountKey, targetAccountKey.ToString());
                 });

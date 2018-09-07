@@ -53,7 +53,7 @@ namespace NuGetGallery
 
         void TrackPackageMetadataComplianceError(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures);
 
-        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey);
+        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceWarnings);
 
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.

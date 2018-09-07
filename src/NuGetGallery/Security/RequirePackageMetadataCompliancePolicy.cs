@@ -89,7 +89,8 @@ namespace NuGetGallery.Security
                     context.Package.Id,
                     context.Package.NormalizedVersion,
                     context.SourceAccount.Key,
-                    context.TargetAccount.Key);
+                    context.TargetAccount.Key,
+                    complianceWarnings: new[] { Strings.SecurityPolicy_RequirePackagePrefixReserved });
 
                 return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
             }

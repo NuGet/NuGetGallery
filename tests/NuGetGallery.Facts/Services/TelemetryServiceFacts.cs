@@ -197,7 +197,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "PackageMetadataComplianceWarning",
-                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key, fakes.User.Key))
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key, fakes.User.Key, new[] { "Warning message" }))
                     };
 
                     yield return new object[] { "PackageOwnershipAutomaticallyAdded",
