@@ -127,8 +127,6 @@ namespace NuGetGallery
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
 
         // Package metadata compliance properties
-        public const string SourceAccountKey = "SourceAccountKey";
-        public const string TargetAccountKey = "TargetAccountKey";
         public const string ComplianceFailures = "ComplianceFailures";
         public const string ComplianceWarnings = "ComplianceWarnings";
 
@@ -329,7 +327,7 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
-        public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures)
+        public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
         {
             TrackMetricForPackage(
                 Events.PackageMetadataComplianceError, 
@@ -337,12 +335,10 @@ namespace NuGetGallery
                 packageVersion,
                 properties => {
                     properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings));
-                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
-                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
                 });
         }
 
-        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceWarnings)
+        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings)
         {
             TrackMetricForPackage(
                 Events.PackageMetadataComplianceWarning,
@@ -350,21 +346,15 @@ namespace NuGetGallery
                 packageVersion,
                 properties => {
                     properties.Add(ComplianceWarnings, JsonConvert.SerializeObject(complianceWarnings, _defaultJsonSerializerSettings));
-                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
-                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
                 });
         }
 
-        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey)
+        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion)
         {
             TrackMetricForPackage(
                 Events.PackageOwnershipAutomaticallyAdded, 
                 packageId, 
-                packageVersion, 
-                properties => {
-                    properties.Add(SourceAccountKey, sourceAccountKey.ToString());
-                    properties.Add(TargetAccountKey, targetAccountKey.ToString());
-                });
+                packageVersion);
         }
 
         public void TrackCertificateAdded(string thumbprint)

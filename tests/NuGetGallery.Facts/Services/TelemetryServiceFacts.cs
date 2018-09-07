@@ -193,15 +193,15 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "PackageMetadataComplianceError",
-                        (TrackAction)(s => s.TrackPackageMetadataComplianceError(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key, fakes.User.Key, new[] { "Failure reason" }))
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceError(fakes.Package.Id, package.NormalizedVersion, new[] { "Failure reason" }))
                     };
 
                     yield return new object[] { "PackageMetadataComplianceWarning",
-                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key, fakes.User.Key, new[] { "Warning message" }))
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, new[] { "Warning message" }))
                     };
 
                     yield return new object[] { "PackageOwnershipAutomaticallyAdded",
-                        (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion, fakes.User.Key, fakes.User.Key))
+                        (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion))
                     };
                 }
             }

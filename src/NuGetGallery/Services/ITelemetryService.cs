@@ -51,9 +51,9 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
-        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceFailures);
+        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures);
 
-        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey, IEnumerable<string> complianceWarnings);
+        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings);
 
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
@@ -73,9 +73,7 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="packageId">The package registration id.</param>
         /// <param name="packageVersion">The normalized package version.</param>
-        /// <param name="sourceAccountKey">The source account key.</param>
-        /// <param name="targetAccountKey">The target account key.</param>
-        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion, int sourceAccountKey, int targetAccountKey);
+        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is activated for an account.

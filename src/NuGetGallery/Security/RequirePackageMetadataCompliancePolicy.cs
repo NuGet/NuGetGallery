@@ -52,9 +52,7 @@ namespace NuGetGallery.Security
                 // Telemetry
                 context.TelemetryService.TrackPackageMetadataComplianceError(
                     context.Package.Id, 
-                    context.Package.NormalizedVersion,
-                    context.SourceAccount.Key,
-                    context.TargetAccount.Key, 
+                    context.Package.NormalizedVersion, 
                     complianceFailures);
 
                 // Package policy not met.
@@ -71,9 +69,7 @@ namespace NuGetGallery.Security
                 // Telemetry
                 context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
                     context.Package.Id, 
-                    context.Package.NormalizedVersion,
-                    context.SourceAccount.Key,
-                    context.TargetAccount.Key);
+                    context.Package.NormalizedVersion);
 
                 // This will also mark the package as verified if the prefix has been reserved by the co-owner.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
@@ -88,8 +84,6 @@ namespace NuGetGallery.Security
                 context.TelemetryService.TrackPackageMetadataComplianceWarning(
                     context.Package.Id,
                     context.Package.NormalizedVersion,
-                    context.SourceAccount.Key,
-                    context.TargetAccount.Key,
                     complianceWarnings: new[] { Strings.SecurityPolicy_RequirePackagePrefixReserved });
 
                 return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
