@@ -1963,7 +1963,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AnglicanGeek.MarkdownMailer.StrongName">
+    <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>
     <PackageReference Include="Autofac">
@@ -1987,16 +1987,16 @@
     <PackageReference Include="d3">
       <Version>5.4.0</Version>
     </PackageReference>
-    <PackageReference Include="DynamicData.EFCodeFirstProvider.StrongName">
+    <PackageReference Include="NuGet.StrongName.DynamicData.EFCodeFirstProvider">
       <Version>0.3.0</Version>
     </PackageReference>
-    <PackageReference Include="elmah.corelibrary.strongname">
+    <PackageReference Include="NuGet.StrongName.elmah.corelibrary">
       <Version>1.2.2</Version>
     </PackageReference>
-    <PackageReference Include="elmah.sqlserver.strongname">
+    <PackageReference Include="NuGet.StrongName.elmah.sqlserver">
       <Version>1.2.2</Version>
     </PackageReference>
-    <PackageReference Include="elmah.strongname">
+    <PackageReference Include="NuGet.StrongName.elmah">
       <Version>1.2.2</Version>
     </PackageReference>
     <PackageReference Include="EntityFramework">
@@ -2202,7 +2202,7 @@
     <PackageReference Include="Owin">
       <Version>1.0.0</Version>
     </PackageReference>
-    <PackageReference Include="QueryInterceptor.StrongName">
+    <PackageReference Include="NuGet.StrongName.QueryInterceptor">
       <Version>0.1.4237.2400</Version>
     </PackageReference>
     <PackageReference Include="RouteMagic">
@@ -2223,16 +2223,16 @@
     <PackageReference Include="System.Net.Http">
       <Version>4.3.1</Version>
     </PackageReference>
-    <PackageReference Include="WebActivator.StrongName">
+    <PackageReference Include="NuGet.StrongName.WebActivator">
       <Version>1.4.4</Version>
     </PackageReference>
     <PackageReference Include="WebActivatorEx">
       <Version>2.0.6</Version>
     </PackageReference>
-    <PackageReference Include="WebBackgrounder.EntityFramework.StrongName">
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder.EntityFramework">
       <Version>0.1.0</Version>
     </PackageReference>
-    <PackageReference Include="WebBackgrounder.StrongName">
+    <PackageReference Include="NuGet.StrongName.WebBackgrounder">
       <Version>0.2.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Caching">
