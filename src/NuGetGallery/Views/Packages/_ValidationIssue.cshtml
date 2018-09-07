@@ -58,6 +58,16 @@
             </text>
             break;
         }
+    case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
+        <text>
+            The checksum does not match for the dll(s) and corresponding pdb(s).
+        </text>
+        break;
+    case ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound:
+        <text>
+            The uploaded symbols package contains pdb(s) for which a corresponding dll(s) not found in the nuget package.
+        </text>
+        break;
     default:
         <text>
             There was an unknown failure when validating your package.

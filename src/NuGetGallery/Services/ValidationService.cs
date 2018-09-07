@@ -75,18 +75,28 @@ namespace NuGetGallery
             return false;
         }
 
-        public IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package)
+        public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(Package package)
+        {
+            return GetValidationIssues(package.Key, package.PackageStatusKey, ValidatingType.Package);
+        }
+
+        public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage)
+        {
+            return GetValidationIssues(symbolPackage.Key, symbolPackage.StatusKey, ValidatingType.SymbolPackage);
+        }
+
+        private IReadOnlyList<ValidationIssue> GetValidationIssues(int entityKey, PackageStatus status, ValidatingType validatingType)
         {
             IReadOnlyList<ValidationIssue> issues = new ValidationIssue[0];
 
             // Only query the database for validation issues if the package has failed validation.
-            if (package.PackageStatusKey == PackageStatus.FailedValidation)
+            if (status == PackageStatus.FailedValidation)
             {
                 // Grab the most recently completed validation set for this package. Note that the orchestrator will stop
                 // processing a validation set if all validation succeed, OR, one or more validation fails.
-                var validationSet = _validationSets
+                var validationSet = _validationSets?
                     .GetAll()
-                    .Where(s => s.PackageKey == package.Key)
+                    .Where(s => s.PackageKey == entityKey && s.ValidatingType == validatingType)
                     .Where(s => s.PackageValidations.All(v => v.ValidationStatus == ValidationStatus.Succeeded) ||
                                 s.PackageValidations.Any(v => v.ValidationStatus == ValidationStatus.Failed))
                     .Include(s => s.PackageValidations.Select(v => v.PackageValidationIssues))
