@@ -66,13 +66,16 @@ namespace NuGetGallery.ViewModels
         [InlineData("http://www.github.com/nuget", "https://www.github.com/nuget")]
         [InlineData("http://www.github.com:443/nuget", "https://www.github.com/nuget")]
         [InlineData("http://aspnetwebstack.codeplex.com/license", "https://aspnetwebstack.codeplex.com/license")]
-        [InlineData("http://codeplex.com", "https://codeplex.com")]
+        [InlineData("http://codeplex.com", "https://codeplex.com/")]
+        [InlineData("http://www.codeplex.com", "https://www.codeplex.com/")]
         [InlineData("http://www.microsoft.com/web/webpi/eula/aspnetcomponent_enu.htm", "https://www.microsoft.com/web/webpi/eula/aspnetcomponent_enu.htm")]
         [InlineData("http://go.microsoft.com/?linkid=9809688", "https://go.microsoft.com/?linkid=9809688")]
         [InlineData("http://www.asp.net/web-pages", "https://www.asp.net/web-pages")]
         [InlineData("http://blogs.msdn.com/b/bclteam/p/asynctargetingpackkb.aspx", "https://blogs.msdn.com/b/bclteam/p/asynctargetingpackkb.aspx")]
+        [InlineData("http://msdn.com", "https://msdn.com/")]
         [InlineData("http://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx", "https://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx")]
         [InlineData("http://microsoft.com/iconurl/9594202", "https://microsoft.com/iconurl/9594202")]
+        [InlineData("http://microsoft.com:80/", "https://microsoft.com/")]
         public void ItInitializesProjectUrl(string projectUrl, string expected)
         {
             var package = new Package

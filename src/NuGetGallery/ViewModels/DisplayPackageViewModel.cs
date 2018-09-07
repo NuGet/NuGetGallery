@@ -219,15 +219,18 @@ namespace NuGetGallery
 
         private static bool IsCodeplexUri(Uri uri)
         {
-            return uri.Authority.EndsWith("codeplex.com", StringComparison.OrdinalIgnoreCase);
+            return uri.Authority.EndsWith(".codeplex.com", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(uri.Authority, "codeplex.com", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool IsMicrosoftUri(Uri uri)
         {
-            return uri.Authority.EndsWith("microsoft.com", StringComparison.OrdinalIgnoreCase) ||
+            return uri.Authority.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "www.asp.net", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "asp.net", StringComparison.OrdinalIgnoreCase) ||
-                   uri.Authority.EndsWith("msdn.com", StringComparison.OrdinalIgnoreCase);
+                   uri.Authority.EndsWith(".msdn.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Authority, "msdn.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public enum RepositoryKind
