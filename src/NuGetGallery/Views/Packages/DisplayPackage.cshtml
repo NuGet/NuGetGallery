@@ -239,30 +239,30 @@
             @if (Model.HasNewerRelease)
             {
                 @ViewHelpers.AlertInfo(
-                            @<text>
-                                There is a newer version of this package available.
-                                <br /> See the version list below for details.
-                            </text>
-                          )
+                    @<text>
+                        There is a newer version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
             }
             else if (Model.HasNewerPrerelease)
             {
                 @ViewHelpers.AlertInfo(
-                            @<text>
-                                There is a newer prerelease version of this package available.
-                                <br /> See the version list below for details.
-                            </text>
-                          )
+                    @<text>
+                        There is a newer prerelease version of this package available.
+                        <br /> See the version list below for details.
+                    </text>
+                )
             }
 
             @if (Model.Listed && Model.IsIndexed.HasValue && !Model.IsIndexed.Value && Model.Available)
             {
                 @ViewHelpers.AlertWarning(
-                        @<text>
-                            <strong>This package has not been indexed yet.</strong> It will appear in search results
-                            and will be available for install/restore after indexing is complete.
-                        </text>
-                     )
+                    @<text>
+                        <strong>This package has not been indexed yet.</strong> It will appear in search results
+                        and will be available for install/restore after indexing is complete.
+                    </text>
+                )
             }
 
             @if (Model.IsSemVer2)
@@ -320,21 +320,21 @@
                 if (Model.CanDisplayPrivateMetadata)
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                This package is unlisted and hidden from package listings.
-                                You can see the package because you are one of its owners. To list the package again,
-                                <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
-                            </text>
-                         )
+                        @<text>
+                            This package is unlisted and hidden from package listings.
+                            You can see the package because you are one of its owners. To list the package again,
+                            <a href="@Url.DeletePackage(Model)">change its listing setting</a>.
+                        </text>
+                    )
                 }
                 else
                 {
                     @ViewHelpers.AlertWarning(
-                            @<text>
-                                The owner has unlisted this package.
-                                This could mean that the package is deprecated or shouldn't be used anymore.
-                            </text>
-                         )
+                        @<text>
+                            The owner has unlisted this package.
+                            This could mean that the package is deprecated or shouldn't be used anymore.
+                        </text>
+                    )
                 }
             }
 
