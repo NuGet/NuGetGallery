@@ -82,6 +82,11 @@ namespace NuGetGallery
 
         public IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage)
         {
+            if (symbolPackage == null)
+            {
+                return new List<ValidationIssue>();
+            }
+
             return GetValidationIssues(symbolPackage.Key, symbolPackage.StatusKey, ValidatingType.SymbolPackage);
         }
 
