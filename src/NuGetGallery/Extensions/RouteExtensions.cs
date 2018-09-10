@@ -12,13 +12,13 @@ namespace NuGetGallery
 {
     public static class RouteExtensions
     {
-        public struct ObfuscatedMetadata
+        public struct ObfuscatedPathMetadata
         {
             public int ObfuscatedSegment { get; }
 
             public string ObfuscatedSegmentValue { get; }
 
-            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue)
+            public ObfuscatedPathMetadata(int obfuscatedSegment, string obfuscatedSegmentValue)
             {
                 ObfuscatedSegment = obfuscatedSegment >= 0 ? obfuscatedSegment : throw new ArgumentOutOfRangeException(nameof(obfuscatedSegment));
                 ObfuscatedSegmentValue = obfuscatedSegmentValue ?? throw new ArgumentNullException(nameof(obfuscatedSegmentValue));
@@ -38,25 +38,25 @@ namespace NuGetGallery
             }
         }
 
-        internal static Dictionary<string, ObfuscatedMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata[]>();
+        internal static Dictionary<string, ObfuscatedPathMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedPathMetadata[]>();
         internal static ObfuscatedQueryMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedQueryMetadata[] 
         {
             new ObfuscatedQueryMetadata("returnUrl", Obfuscator.DefaultTelemetryReturnUrl),
             new ObfuscatedQueryMetadata("ReturnUrl", Obfuscator.DefaultTelemetryReturnUrl)
         };
 
-        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, object constraints, ObfuscatedMetadata obfuscationMetadata)
+        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, object constraints, ObfuscatedPathMetadata obfuscationMetadata)
         {
             routes.MapRoute(name, url, defaults, constraints);
             if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, new[] { obfuscationMetadata }); }
         }
 
-        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedMetadata obfuscationMetadata)
+        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedPathMetadata obfuscationMetadata)
         {
             routes.MapRoute(name, url, defaults, new[] { obfuscationMetadata });
         }
 
-        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedMetadata[] obfuscationMetadatas)
+        public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, ObfuscatedPathMetadata[] obfuscationMetadatas)
         {
             routes.MapRoute(name, url, defaults);
             if (!ObfuscatedRouteMap.ContainsKey(url)) { ObfuscatedRouteMap.Add(url, obfuscationMetadatas); }

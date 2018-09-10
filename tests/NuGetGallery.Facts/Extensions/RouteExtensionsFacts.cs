@@ -24,7 +24,7 @@ namespace NuGetGallery.Extensions
                 "test",
                 _routeUrl,
                 defaults: null,
-                obfuscationMetadata: new RouteExtensions.ObfuscatedMetadata(_segment, _obfuscatedValue));
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(_segment, _obfuscatedValue));
 
             // Act + Assert
             Assert.True(RouteExtensions.ObfuscatedRouteMap.ContainsKey(_routeUrl));
@@ -42,7 +42,7 @@ namespace NuGetGallery.Extensions
                 _routeUrl,
                 defaults: null,
                 constraints: null,
-                obfuscationMetadata: new RouteExtensions.ObfuscatedMetadata(_segment, _obfuscatedValue));
+                obfuscationMetadata: new RouteExtensions.ObfuscatedPathMetadata(_segment, _obfuscatedValue));
 
             // Act + Assert
             Assert.True(RouteExtensions.ObfuscatedRouteMap.ContainsKey(_routeUrl));
@@ -69,7 +69,7 @@ namespace NuGetGallery.Extensions
         {
             //Arrange
             var routes = new RouteCollection();
-            routes.MapRoute("test", _routeUrl, null, new RouteExtensions.ObfuscatedMetadata(_segment, _obfuscatedValue));
+            routes.MapRoute("test", _routeUrl, null, new RouteExtensions.ObfuscatedPathMetadata(_segment, _obfuscatedValue));
             var route = new Route(url: _routeUrl, routeHandler: null);
 
             // Act
