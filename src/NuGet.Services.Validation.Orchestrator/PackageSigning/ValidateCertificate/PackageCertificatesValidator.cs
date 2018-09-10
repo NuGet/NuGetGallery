@@ -186,7 +186,7 @@ namespace NuGet.Services.Validation.PackageSigning.ValidateCertificate
 
             // If any of the author signature's certificates are known to be revoked, invalidate any the signatures.
             // A revoked certificate is assumed to remain revoked forever.
-            var isRevalidationRequest = await _validatorStateService.IsRevalidationRequestAsync(request);
+            var isRevalidationRequest = await _validatorStateService.IsRevalidationRequestAsync(request, ValidatingType.Package);
 
             if (ShouldInvalidateSignature(signature, isRevalidationRequest))
             {

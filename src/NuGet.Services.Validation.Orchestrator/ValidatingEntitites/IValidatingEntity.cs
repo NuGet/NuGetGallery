@@ -28,5 +28,10 @@ namespace NuGet.Services.Validation.Orchestrator
         /// The time when the entity was created in Gallery.
         /// </summary>
         DateTime Created { get; }
+
+        /// <summary>
+        /// The ValidatingType.
+        /// </summary>
+        ValidatingType ValidatingType { get; }
     }
 }

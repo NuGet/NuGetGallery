@@ -68,17 +68,18 @@ namespace NuGet.Jobs.Validation.Storage
                 .FirstOrDefaultAsync();
         }
 
-        public Task<bool> IsRevalidationRequestAsync(IValidationRequest request)
+        public Task<bool> IsRevalidationRequestAsync(IValidationRequest request, ValidatingType validatingType)
         {
-            return IsRevalidationRequestAsync(request.PackageKey, request.ValidationId);
+            return IsRevalidationRequestAsync(request.PackageKey, request.ValidationId, validatingType);
         }
 
-        public Task<bool> IsRevalidationRequestAsync(int packageKey, Guid validationId)
+        private Task<bool> IsRevalidationRequestAsync(int packageKey, Guid validationId, ValidatingType validatingType)
         {
             return _validationContext
                 .ValidatorStatuses
                 .Where(s => s.PackageKey == packageKey)
                 .Where(s => s.ValidatorName == _validatorName)
+                .Where(s => s.ValidatingType == validatingType)
                 .Where(s => s.ValidationId != validationId)
                 .AnyAsync();
         }

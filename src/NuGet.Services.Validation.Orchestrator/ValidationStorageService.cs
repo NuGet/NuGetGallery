@@ -211,14 +211,15 @@ namespace NuGet.Services.Validation.Orchestrator
                 .PackageValidationSets
                 .AnyAsync(pvs => pvs.PackageKey == validatingEntity.Key
                     && pvs.Created > cutoffTimestamp
-                    && pvs.ValidationTrackingId != currentValidationSetTrackingId);
+                    && pvs.ValidationTrackingId != currentValidationSetTrackingId
+                    && pvs.ValidatingType == validatingEntity.ValidatingType);
         }
 
         public async Task<int> GetValidationSetCountAsync<T>(IValidatingEntity<T> validatingEntity) where T : class, IEntity
         {
             return await _validationContext
                 .PackageValidationSets
-                .CountAsync(x => x.PackageKey == validatingEntity.Key);
+                .CountAsync(x => x.PackageKey == validatingEntity.Key && x.ValidatingType == validatingEntity.ValidatingType);
         }
 
         private void AddValidationIssues(PackageValidation packageValidation, IReadOnlyList<IValidationIssue> validationIssues)

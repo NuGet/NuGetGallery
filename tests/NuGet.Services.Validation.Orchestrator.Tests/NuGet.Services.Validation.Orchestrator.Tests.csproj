@@ -55,6 +55,7 @@
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureProcessorFacts.cs" />
     <Compile Include="PackageStatusProcessorFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Symbol\SymbolPackageValidatingEntityFacts.cs" />
     <Compile Include="Symbol\SymbolMessageEnqueuerFacts.cs" />
     <Compile Include="Symbol\SymbolEntityServiceFacts.cs" />
     <Compile Include="Symbol\SymbolScanValidatorFacts.cs" />
