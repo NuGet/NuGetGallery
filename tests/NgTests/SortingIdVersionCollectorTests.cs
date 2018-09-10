@@ -88,7 +88,7 @@ namespace NgTests
                     });
 
             // Act
-            var result = await collectorMock.Object.OnProcessBatch(items);
+            var result = await collectorMock.Object.OnProcessBatchAsync(items);
         }
 
         private static JToken CreatePackage(string id, string version)
@@ -110,9 +110,9 @@ namespace NgTests
             {
             }
 
-            public Task<bool> OnProcessBatch(IEnumerable<JToken> items)
+            public Task<bool> OnProcessBatchAsync(IEnumerable<JToken> items)
             {
-                return base.OnProcessBatch(null, items, null, DateTime.MinValue, false, CancellationToken.None);
+                return base.OnProcessBatchAsync(null, items, null, DateTime.MinValue, false, CancellationToken.None);
             }
 
             protected override Task ProcessSortedBatchAsync(

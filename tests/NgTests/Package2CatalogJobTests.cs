@@ -104,7 +104,7 @@ namespace NgTests
 
             internal Task RunOnceAsync(CancellationToken cancellationToken)
             {
-                return RunInternal(cancellationToken);
+                return RunInternalAsync(cancellationToken);
             }
         }
     }

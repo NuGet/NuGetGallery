@@ -44,7 +44,7 @@ namespace CatalogTests
             await _mockServer.AddStorageAsync(catalogStorage);
 
             // Act
-            var result = await _collector.Run(CancellationToken.None);
+            var result = await _collector.RunAsync(CancellationToken.None);
 
             // Assert
             foreach (var graphs in _collector.AllSortedGraphs)
@@ -68,7 +68,7 @@ namespace CatalogTests
             await _mockServer.AddStorageAsync(catalogStorage);
 
             // Act
-            var result = await _collector.Run(CancellationToken.None);
+            var result = await _collector.RunAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(

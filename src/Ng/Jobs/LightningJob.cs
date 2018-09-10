@@ -204,7 +204,7 @@ namespace Ng.Jobs
             _cursorFile = arguments.GetOrThrow<string>(Arguments.CursorFile);
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             switch (_command.ToLowerInvariant())
             {
@@ -486,8 +486,7 @@ namespace Ng.Jobs
                 RegistrationCollector.PartitionSize,
                 RegistrationCollector.PackageCountThreshold,
                 TelemetryService,
-                CancellationToken.None
-                );
+                CancellationToken.None);
 
             if (_storageFactories.SemVer2StorageFactory != null)
             {
@@ -499,8 +498,7 @@ namespace Ng.Jobs
                     RegistrationCollector.PartitionSize,
                     RegistrationCollector.PackageCountThreshold,
                     TelemetryService,
-                    CancellationToken.None
-                    );
+                    CancellationToken.None);
             }
         }
     }

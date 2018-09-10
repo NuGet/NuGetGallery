@@ -497,7 +497,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);
@@ -600,7 +600,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(6, catalogStorage.Content.Count);
@@ -696,7 +696,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);
@@ -798,7 +798,7 @@ namespace NgTests
                 top: 20,
                 verbose: true);
 
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             catalogStorage.Verify(x => x.ResolveUri(It.IsNotNull<string>()), Times.AtLeastOnce());
             catalogStorage.Verify(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
@@ -1039,7 +1039,7 @@ namespace NgTests
 
             PrepareFeed();
 
-            await _job.RunOnce(CancellationToken.None);
+            await _job.RunOnceAsync(CancellationToken.None);
 
             VerifyCatalog(expectedLastCreated, expectedLastDeleted, expectedLastEdited, skippedPackage);
         }

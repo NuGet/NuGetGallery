@@ -27,25 +27,20 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri index,
             StorageFactory legacyStorageFactory,
             StorageFactory semVer2StorageFactory,
+            Uri contentBaseAddress,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null)
             : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, telemetryService, handlerFunc)
         {
-            if (legacyStorageFactory == null)
-            {
-                throw new ArgumentNullException(nameof(legacyStorageFactory));
-            }
-
-            _legacyStorageFactory = legacyStorageFactory;
+            _legacyStorageFactory = legacyStorageFactory ?? throw new ArgumentNullException(nameof(legacyStorageFactory));
             _semVer2StorageFactory = semVer2StorageFactory;
             _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
-
-            ContentBaseAddress = new Uri("http://tempuri.org");
+            ContentBaseAddress = contentBaseAddress;
         }
 
-        public Uri ContentBaseAddress { get; set; }
+        public Uri ContentBaseAddress { get; }
 
-        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatches(IEnumerable<CatalogItem> catalogItems)
+        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
         {
             // Grouping batches by commit is slow if it contains
             // the same package registration id over and over again.
@@ -133,10 +128,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 return (k, u, g) => true;
             }
-            else
-            {
-                return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
-            }
+
+            return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
         }
     }
 }

@@ -109,7 +109,7 @@ namespace Ng.Jobs
             Timeout = TimeSpan.FromSeconds(300);
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             using (Logger.BeginScope($"Logging for {{{TelemetryConstants.Destination}}}", Destination.AbsoluteUri))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))

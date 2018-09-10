@@ -66,9 +66,9 @@ namespace NgTests
                         handlerFunc: () => mockServer);
 
                     // Act
-                    await Assert.ThrowsAsync<Exception>(() => target.Run(front, back, CancellationToken.None));
+                    await Assert.ThrowsAsync<Exception>(() => target.RunAsync(front, back, CancellationToken.None));
                     var cursorBeforeRetry = front.Value;
-                    await target.Run(front, back, CancellationToken.None);
+                    await target.RunAsync(front, back, CancellationToken.None);
                     var cursorAfterRetry = front.Value;
 
                     // Assert

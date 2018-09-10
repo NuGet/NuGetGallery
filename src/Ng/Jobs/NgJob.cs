@@ -50,12 +50,12 @@ namespace Ng.Jobs
 
         protected abstract void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken);
 
-        protected abstract Task RunInternal(CancellationToken cancellationToken);
-        
-        public virtual async Task Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        protected abstract Task RunInternalAsync(CancellationToken cancellationToken);
+
+        public virtual async Task RunAsync(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             Init(arguments, cancellationToken);
-            await RunInternal(cancellationToken);
+            await RunInternalAsync(cancellationToken);
         }
     }
 }

@@ -55,7 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             _maxDegreeOfParallelism = maxDegreeOfParallelism;
         }
 
-        protected override async Task<bool> OnProcessBatch(
+        protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
             IEnumerable<JToken> items,
             JToken context,

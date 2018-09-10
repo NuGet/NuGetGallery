@@ -40,7 +40,7 @@ namespace NuGet.Services.V3PerPackage
 
             var back = MemoryCursor.CreateMax();
 
-            await _collector.Run(front, back, CancellationToken.None);
+            await _collector.RunAsync(front, back, CancellationToken.None);
         }
     }
 }

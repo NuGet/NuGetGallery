@@ -16,12 +16,9 @@ namespace NuGet.Services.Metadata.Catalog
         public SortingCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, telemetryService, handlerFunc)
         {
-            Concurrent = true;
         }
 
-        public bool Concurrent { get; set; }
-
-        protected override async Task<bool> OnProcessBatch(
+        protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
             IEnumerable<JToken> items,
             JToken context,
@@ -52,11 +49,6 @@ namespace NuGet.Services.Metadata.Catalog
                 Task task = ProcessSortedBatchAsync(client, sortedBatch, context, cancellationToken);
 
                 tasks.Add(task);
-
-                if (!Concurrent)
-                {
-                    task.Wait();
-                }
             }
 
             await Task.WhenAll(tasks.ToArray());

@@ -48,7 +48,6 @@ namespace NgTests
             var loggerFactory = new LoggerFactory();
             _logger = loggerFactory.CreateLogger<DnxCatalogCollector>();
 
-            // Setup collector
             _target = new DnxCatalogCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _catalogToDnxStorageFactory,
@@ -210,7 +209,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenPackageDoesNotHaveNuspec_SkipsPackage()
+        public async Task RunAsync_WhenPackageDoesNotHaveNuspec_SkipsPackage()
         {
             var zipWithNoNuspec = CreateZipStreamWithEntry("readme.txt", "content");
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
@@ -225,7 +224,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(1, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -235,7 +234,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenPackageHasNuspecWithWrongName_ProcessesPackage()
+        public async Task RunAsync_WhenPackageHasNuspecWithWrongName_ProcessesPackage()
         {
             var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec", _nuspecData);
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/index.json");
@@ -252,7 +251,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(4, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -270,7 +269,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenSourceNupkgIsNotFound_SkipsPackage()
+        public async Task RunAsync_WhenSourceNupkgIsNotFound_SkipsPackage()
         {
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/unlistedpackage/1.0.0/unlistedpackage.1.0.0.nupkg");
@@ -286,7 +285,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(1, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -300,7 +299,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithValidPackage_CreatesFlatContainer()
+        public async Task RunAsync_WithValidPackage_CreatesFlatContainer()
         {
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/listedpackage/1.0.0/listedpackage.1.0.0.nupkg");
@@ -318,7 +317,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(4, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -338,7 +337,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithValidPackage_RespectsDeletion()
+        public async Task RunAsync_WithValidPackage_RespectsDeletion()
         {
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/otherpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg");
@@ -354,7 +353,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(1, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -368,7 +367,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithPackageCreatedThenDeleted_LeavesNoArtifacts()
+        public async Task RunAsync_WithPackageCreatedThenDeleted_LeavesNoArtifacts()
         {
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/otherpackage/index.json");
             var nupkgUri = _catalogToDnxStorage.ResolveUri("/otherpackage/1.0.0/otherpackage.1.0.0.nupkg");
@@ -384,7 +383,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(1, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -398,7 +397,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithNonIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
+        public async Task RunAsync_WithNonIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
         {
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
@@ -437,7 +436,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(2, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -453,7 +452,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
+        public async Task RunAsync_WithIAzureStorage_WhenPackageIsAlreadySynchronizedAndHasRequiredProperties_SkipsPackage()
         {
             _catalogToDnxStorage = new AzureSynchronizedMemoryStorageStub(new[]
             {
@@ -492,7 +491,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(2, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -508,7 +507,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WithFakeIAzureStorage_WhenPackageIsAlreadySynchronizedButDoesNotHaveRequiredProperties_ProcessesPackage()
+        public async Task RunAsync_WithFakeIAzureStorage_WhenPackageIsAlreadySynchronizedButDoesNotHaveRequiredProperties_ProcessesPackage()
         {
             _catalogToDnxStorage = new AzureSynchronizedMemoryStorageStub(new[]
             {
@@ -547,7 +546,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(4, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -563,7 +562,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenPackageIsAlreadySynchronizedButNotInIndex_ProcessesPackage()
+        public async Task RunAsync_WhenPackageIsAlreadySynchronizedButNotInIndex_ProcessesPackage()
         {
             _catalogToDnxStorage = new SynchronizedMemoryStorage(new[]
             {
@@ -598,7 +597,7 @@ namespace NgTests
             var front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             Assert.Equal(2, _catalogToDnxStorage.Content.Count);
             Assert.True(_catalogToDnxStorage.Content.ContainsKey(_cursorJsonUri));
@@ -620,7 +619,7 @@ namespace NgTests
         [InlineData(HttpStatusCode.NoContent)]
         [InlineData(HttpStatusCode.InternalServerError)]
         [InlineData(HttpStatusCode.ServiceUnavailable)]
-        public async Task Run_WhenDownloadingPackage_RejectsUnexpectedHttpStatusCode(HttpStatusCode statusCode)
+        public async Task RunAsync_WhenDownloadingPackage_RejectsUnexpectedHttpStatusCode(HttpStatusCode statusCode)
         {
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
 
@@ -636,7 +635,7 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _target.Run(front, back, CancellationToken.None));
+                () => _target.RunAsync(front, back, CancellationToken.None));
             Assert.Equal(
                 $"Expected status code OK for package download, actual: {statusCode}",
                 exception.Message);
@@ -644,7 +643,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenDownloadingPackage_OnlyDownloadsNupkgOncePerCatalogLeaf()
+        public async Task RunAsync_WhenDownloadingPackage_OnlyDownloadsNupkgOncePerCatalogLeaf()
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithThreePackagesAndDelete();
@@ -663,12 +662,11 @@ namespace NgTests
                 "/packages/otherpackage.1.0.0.nupkg",
                 request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK) { Content = new StreamContent(File.OpenRead("Packages\\OtherPackage.1.0.0.zip")) }));
 
-            // Setup collector
             ReadWriteCursor front = new DurableCursor(_cursorJsonUri, _catalogToDnxStorage, MemoryCursor.MinValue);
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             Assert.Equal(9, _catalogToDnxStorage.Content.Count);
@@ -694,7 +692,7 @@ namespace NgTests
         [InlineData("/packages/unlistedpackage.1.0.0.nupkg", null)]
         [InlineData("/packages/listedpackage.1.0.1.nupkg", "2015-10-12T10:08:54.1506742Z")]
         [InlineData("/packages/anotherpackage.1.0.0.nupkg", "2015-10-12T10:08:54.1506742Z")]
-        public async Task Run_WhenExceptionOccurs_DoesNotSkipPackage(string catalogUri, string expectedCursorBeforeRetry)
+        public async Task RunAsync_WhenExceptionOccurs_DoesNotSkipPackage(string catalogUri, string expectedCursorBeforeRetry)
         {
             // Arrange
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
@@ -723,9 +721,9 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await Assert.ThrowsAsync<HttpRequestException>(() => _target.Run(front, back, CancellationToken.None));
+            await Assert.ThrowsAsync<HttpRequestException>(() => _target.RunAsync(front, back, CancellationToken.None));
             var cursorBeforeRetry = front.Value;
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
             var cursorAfterRetry = front.Value;
 
             // Assert
@@ -749,7 +747,7 @@ namespace NgTests
         }
 
         [Fact]
-        public async Task Run_WhenMultipleEntriesWithSamePackageIdentityInSameBatch_Throws()
+        public async Task RunAsync_WhenMultipleEntriesWithSamePackageIdentityInSameBatch_Throws()
         {
             var zipWithWrongNameNuspec = CreateZipStreamWithEntry("Newtonsoft.Json.nuspec", _nuspecData);
             var indexJsonUri = _catalogToDnxStorage.ResolveUri("/listedpackage/index.json");
@@ -769,7 +767,7 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-                () => _target.Run(front, back, CancellationToken.None));
+                () => _target.RunAsync(front, back, CancellationToken.None));
 
             Assert.Equal("The catalog batch 10/13/2015 6:40:07 AM contains multiple entries for the same package identity.  Package(s):  listedpackage 1.0.0", exception.Message);
         }

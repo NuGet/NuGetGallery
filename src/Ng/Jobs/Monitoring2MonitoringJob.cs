@@ -44,7 +44,7 @@ namespace Ng.Jobs
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             var currentMessageCount = await _queue.GetMessageCount(cancellationToken);
             if (currentMessageCount > _maxRequeueQueueSize)

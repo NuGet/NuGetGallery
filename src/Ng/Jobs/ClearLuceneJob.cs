@@ -36,7 +36,7 @@ namespace Ng.Jobs
             _directory = CommandHelpers.GetLuceneDirectory(arguments);
         }
         
-        protected override Task RunInternal(CancellationToken cancellationToken)
+        protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             if (IndexReader.IndexExists(_directory))
             {

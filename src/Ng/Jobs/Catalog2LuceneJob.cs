@@ -87,7 +87,7 @@ namespace Ng.Jobs
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination;
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             using (Logger.BeginScope($"Logging for {{{TelemetryConstants.Destination}}}", _destination))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
@@ -110,7 +110,7 @@ namespace Ng.Jobs
                 bool run;
                 do
                 {
-                    run = await collector.Run(front, back, cancellationToken);
+                    run = await collector.RunAsync(front, back, cancellationToken);
 
                     collector.EnsureCommitted(); // commit after each catalog page
                 }

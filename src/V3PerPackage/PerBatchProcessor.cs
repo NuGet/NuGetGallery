@@ -236,7 +236,7 @@ namespace NuGet.Services.V3PerPackage
             var lowercasePackageIds = packageContexts.Select(x => x.PackageId.ToLowerInvariant());
             using (await _stringLocker.AcquireAsync(lowercasePackageIds, TimeSpan.FromMinutes(5)))
             {
-                await collector.Run(CancellationToken.None);
+                await collector.RunAsync(CancellationToken.None);
             }
         }
 
@@ -253,13 +253,11 @@ namespace NuGet.Services.V3PerPackage
                 catalogIndexUri,
                 registrationStorageFactories.LegacyStorageFactory,
                 registrationStorageFactories.SemVer2StorageFactory,
+                context.Global.ContentBaseAddress,
                 serviceProvider.GetRequiredService<ITelemetryService>(),
-                () => serviceProvider.GetRequiredService<HttpMessageHandler>())
-            {
-                ContentBaseAddress = context.Global.ContentBaseAddress,
-            };
+                () => serviceProvider.GetRequiredService<HttpMessageHandler>());
 
-            await collector.Run(CancellationToken.None);
+            await collector.RunAsync(CancellationToken.None);
         }
 
         private async Task ExecuteCatalog2LuceneAsync(PerBatchContext context, Uri catalogIndexUri)
@@ -284,7 +282,7 @@ namespace NuGet.Services.V3PerPackage
                     serviceProvider.GetRequiredService<ILogger>(),
                     () => serviceProvider.GetRequiredService<HttpMessageHandler>());
 
-                await collector.Run(CancellationToken.None);
+                await collector.RunAsync(CancellationToken.None);
             }
         }
 

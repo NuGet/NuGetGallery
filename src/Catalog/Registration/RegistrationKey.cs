@@ -11,7 +11,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
     {
         public RegistrationKey(string id)
         {
-            Id = id ?? throw new ArgumentNullException(nameof(id)); ;
+            Id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
         public string Id { get; }

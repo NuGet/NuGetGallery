@@ -41,7 +41,7 @@ namespace Ng.Jobs
             _catalogIndexUrl = new Uri(_source);
         }
         
-        protected override Task RunInternal(CancellationToken cancellationToken)
+        protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             Sql2Lucene.Export(_connectionString, _catalogIndexUrl, _path, LoggerFactory);
 

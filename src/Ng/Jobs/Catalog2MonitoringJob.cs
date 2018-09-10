@@ -65,12 +65,12 @@ namespace Ng.Jobs
             _back = context.Back;
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             bool run;
             do
             {
-                run = await _collector.Run(_front, _back, cancellationToken);
+                run = await _collector.RunAsync(_front, _back, cancellationToken);
             }
             while (run);
         }

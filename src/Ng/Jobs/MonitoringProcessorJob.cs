@@ -72,7 +72,7 @@ namespace Ng.Jobs
             _client = new CollectorHttpClient(messageHandlerFactory());
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             await ParallelAsync.Repeat(() => ProcessPackagesAsync(cancellationToken));
         }

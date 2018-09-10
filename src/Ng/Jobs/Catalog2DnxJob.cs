@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -99,7 +98,7 @@ namespace Ng.Jobs
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination.AbsoluteUri;
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             using (Logger.BeginScope($"Logging for {{{TelemetryConstants.Destination}}}", _destination.AbsoluteUri))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
@@ -107,7 +106,7 @@ namespace Ng.Jobs
                 bool run;
                 do
                 {
-                    run = await _collector.Run(_front, _back, cancellationToken);
+                    run = await _collector.RunAsync(_front, _back, cancellationToken);
                 }
                 while (run);
             }

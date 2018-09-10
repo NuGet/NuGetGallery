@@ -47,11 +47,6 @@ namespace NuGet.Services.Metadata.Catalog
                     var task = client.GetGraphAsync(new Uri(itemUri), readOnly: true, token: cancellationToken);
 
                     graphTasks.Add(itemUri, task);
-
-                    if (!Concurrent)
-                    {
-                        task.Wait(cancellationToken);
-                    }
                 }
             }
 

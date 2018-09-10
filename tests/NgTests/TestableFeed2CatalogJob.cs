@@ -47,9 +47,9 @@ namespace NgTests
             return new HttpClient(_handler);
         }
 
-        public async Task RunOnce(CancellationToken cancellationToken)
+        public async Task RunOnceAsync(CancellationToken cancellationToken)
         {
-            await RunInternal(cancellationToken);
+            await RunInternalAsync(cancellationToken);
         }
     }
 

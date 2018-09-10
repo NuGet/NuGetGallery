@@ -43,16 +43,13 @@ namespace NgTests
             _mockServer = new MockServerHttpClientHandler();
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
-            // Setup collector
             _target = new RegistrationCollector(
                 new Uri("http://tempuri.org/index.json"),
                 _legacyStorageFactory,
                 _semVer2StorageFactory,
+                new Uri("http://tempuri.org/packages"),
                 new Mock<ITelemetryService>().Object,
-                handlerFunc: () => _mockServer)
-            {
-                ContentBaseAddress = new Uri("http://tempuri.org/packages")
-            };
+                handlerFunc: () => _mockServer);
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
         }
@@ -82,9 +79,9 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await Assert.ThrowsAsync<Exception>(() => _target.Run(front, back, CancellationToken.None));
+            await Assert.ThrowsAsync<Exception>(() => _target.RunAsync(front, back, CancellationToken.None));
             var cursorBeforeRetry = front.Value;
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
             var cursorAfterRetry = front.Value;
 
             // Assert
@@ -137,7 +134,7 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             Assert.Equal(6, _legacyStorage.Content.Count);
@@ -201,7 +198,7 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             Assert.Equal(3, _legacyStorage.Content.Count);
@@ -258,7 +255,7 @@ namespace NgTests
             var back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             // Verify the contents of the legacy (non-SemVer 2.0.0) storage
@@ -305,7 +302,7 @@ namespace NgTests
             var back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             var legacyCursor = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
@@ -338,7 +335,7 @@ namespace NgTests
             var back = MemoryCursor.CreateMax();
 
             // Act
-            await _target.Run(front, back, CancellationToken.None);
+            await _target.RunAsync(front, back, CancellationToken.None);
 
             // Assert
             var legacyCursor = _legacyStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("cursor.json"));
@@ -362,7 +359,7 @@ namespace NgTests
             ReadWriteCursor front = new DurableCursor(_legacyStorage.ResolveUri("cursor.json"), _legacyStorage, MemoryCursor.MinValue);
 
             // Act
-            await _target.Run(
+            await _target.RunAsync(
                 front,
                 new MemoryCursor(DateTime.Parse("2015-10-12T10:08:54.1506742")),
                 CancellationToken.None);
@@ -371,7 +368,7 @@ namespace NgTests
                 .Select(pair => pair.Key.ToString())
                 .OrderBy(uri => uri)
                 .ToList();
-            await _target.Run(
+            await _target.RunAsync(
                 front,
                 MemoryCursor.CreateMax(),
                 CancellationToken.None);

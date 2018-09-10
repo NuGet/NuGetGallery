@@ -18,7 +18,7 @@ namespace Ng.Jobs
         {
         }
 
-        public override async Task Run(IDictionary<string, string> arguments, CancellationToken cancellationToken)
+        public override async Task RunAsync(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var intervalSec = arguments.GetOrDefault(Arguments.Interval, Arguments.DefaultInterval);
             Logger.LogInformation("Looping job at interval {Interval} seconds.", intervalSec);
@@ -41,7 +41,7 @@ namespace Ng.Jobs
                 Logger.LogInformation("Running job.");
                 try
                 {
-                    await RunInternal(cancellationToken);
+                    await RunInternalAsync(cancellationToken);
                     Logger.LogInformation("Job finished!");
                 }
                 catch (TransientException te)
