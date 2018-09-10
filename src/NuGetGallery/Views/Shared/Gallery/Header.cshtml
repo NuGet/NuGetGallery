@@ -1,7 +1,7 @@
 ﻿@{
     var ShowWarningIndicator = Config.Current.DeprecateNuGetPasswordLogins && (User.HasPasswordLogin() || (!User.HasMultiFactorAuthenticationEnabled() && User.WasMicrosoftAccountUsedForSignin()));
     var ShowPasswordDeprecationBanner = TempData.ContainsKey("ShowPasswordDeprecationWarning")
-        && Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])
+        && Convert.ToBoolean(TempData["ShowPasswordDeprecationWarning"].ToString())
         && Request.IsAuthenticated
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
