@@ -213,6 +213,16 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public void ReturnsEmptyListForNullSymbolsPackage()
+            {
+                // Arrange and act
+                var issues = _target.GetLatestPackageValidationIssues(symbolPackage: null);
+
+                Assert.NotNull(issues);
+                Assert.Empty(issues);
+            }
+
+            [Fact]
             public void DeduplicatesValidationIssuesByCodeAndData()
             {
                 // Arrange
