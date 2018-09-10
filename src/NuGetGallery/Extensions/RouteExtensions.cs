@@ -13,42 +13,35 @@ namespace NuGetGallery
     {
         public struct ObfuscatedMetadata
         {
-            public int ObfuscatedSegment
-            { get; }
+            public int ObfuscatedSegment { get; }
 
-            public string ObfuscatedSegmentValue
-            { get; }
+            public string ObfuscatedSegmentValue { get; }
 
-            public string ObfuscatedQueryParameter
-            { get; }
-
-            public string ObfuscatedQueryParameterValue
-            { get; }
-
-            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue, string obfuscatedQueryParameter, string obfuscatedQueryParameterValue)
+            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue)
             {
-                ObfuscatedSegment = obfuscatedSegment;
-                ObfuscatedSegmentValue = obfuscatedSegmentValue;
-                ObfuscatedQueryParameter = obfuscatedQueryParameter;
-                ObfuscatedQueryParameterValue = obfuscatedQueryParameterValue;
+                ObfuscatedSegment = obfuscatedSegment >= 0 ? obfuscatedSegment : throw new ArgumentOutOfRangeException(nameof(obfuscatedSegment));
+                ObfuscatedSegmentValue = obfuscatedSegmentValue ?? throw new ArgumentNullException(nameof(obfuscatedSegmentValue));
             }
+        }
 
-            public ObfuscatedMetadata(string obfuscatedQueryParameter, string obfuscatedQueryParameterValue) : 
-                this (-1, null, obfuscatedQueryParameter, obfuscatedQueryParameterValue)
-            {
-            }
+        public struct ObfuscatedQueryMetadata
+        {
+            public string ObfuscatedQueryParameter { get; }
 
-            public ObfuscatedMetadata(int obfuscatedSegment, string obfuscatedSegmentValue) :
-                this(obfuscatedSegment, obfuscatedSegmentValue, null, null)
+            public string ObfuscatedQueryParameterValue { get; }
+
+            public ObfuscatedQueryMetadata(string obfuscatedQueryParameter, string obfuscatedQueryParameterValue)
             {
+                ObfuscatedQueryParameter = obfuscatedQueryParameter ?? throw new ArgumentNullException(nameof(obfuscatedQueryParameter));
+                ObfuscatedQueryParameterValue = obfuscatedQueryParameterValue ?? throw new ArgumentNullException(nameof(obfuscatedQueryParameterValue));
             }
         }
 
         internal static Dictionary<string, ObfuscatedMetadata[]> ObfuscatedRouteMap = new Dictionary<string, ObfuscatedMetadata[]>();
-        internal static ObfuscatedMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedMetadata[] 
+        internal static ObfuscatedQueryMetadata[] ObfuscatedReturnUrlMetadata = new ObfuscatedQueryMetadata[] 
         {
-            new ObfuscatedMetadata("returnUrl", Obfuscator.DefaultTelemetryReturnUrl),
-            new ObfuscatedMetadata("ReturnUrl", Obfuscator.DefaultTelemetryReturnUrl)
+            new ObfuscatedQueryMetadata("returnUrl", Obfuscator.DefaultTelemetryReturnUrl),
+            new ObfuscatedQueryMetadata("ReturnUrl", Obfuscator.DefaultTelemetryReturnUrl)
         };
 
         public static void MapRoute(this RouteCollection routes, string name, string url, object defaults, object constraints, ObfuscatedMetadata obfuscationMetadata)
@@ -79,15 +72,12 @@ namespace NuGetGallery
             string[] segments = urlPath.Split('/');
             foreach (var metadata in metadatas)
             {
-                if (metadata.ObfuscatedSegment > 0)
-                {
-                    segments[metadata.ObfuscatedSegment] = metadata.ObfuscatedSegmentValue;
-                }
+                segments[metadata.ObfuscatedSegment] = metadata.ObfuscatedSegmentValue;
             }
             return string.Join("/", segments);
         }
 
-        public static Uri ObfuscateUrlQuery(Uri uri, ObfuscatedMetadata[] metadata)
+        public static Uri ObfuscateUrlQuery(Uri uri, ObfuscatedQueryMetadata[] metadata)
         {
             if (uri == null)
             {
@@ -102,17 +92,15 @@ namespace NuGetGallery
             {
                 return uri;
             }
-           
-            var queryMetadatas = metadata.Where(m => m.ObfuscatedQueryParameter != null);
-            if (!queryMetadatas.Any())
+            if (!metadata.Any())
             {
                 return uri;
             }
             var parsedQuery = HttpUtility.ParseQueryString(uriQuery);
             var obfuscatedQueryItems = parsedQuery.AllKeys.Select((key) =>
             {
-                return queryMetadatas.Where(qm => qm.ObfuscatedQueryParameter == key).Any() ?
-                 $"{key}={queryMetadatas.Where(qm => qm.ObfuscatedQueryParameter == key).First().ObfuscatedQueryParameterValue}" :
+                return metadata.Where(qm => qm.ObfuscatedQueryParameter == key).Any() ?
+                 $"{key}={metadata.Where(qm => qm.ObfuscatedQueryParameter == key).First().ObfuscatedQueryParameterValue}" :
                  $"{key}={parsedQuery.Get(key)}";
             });
 
