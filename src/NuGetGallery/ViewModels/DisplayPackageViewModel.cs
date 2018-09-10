@@ -26,7 +26,7 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            LatestSymbolPackage = package
+            LatestSymbolsPackage = package
                 .SymbolPackages
                 .OrderByDescending(sp => sp.Created)
                 .FirstOrDefault();
@@ -61,7 +61,8 @@ namespace NuGetGallery
         }
 
         public bool ValidatingTooLong { get; set; }
-        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
@@ -70,7 +71,7 @@ namespace NuGetGallery
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
-        public SymbolPackage LatestSymbolPackage { get; private set; }
+        public SymbolPackage LatestSymbolsPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }

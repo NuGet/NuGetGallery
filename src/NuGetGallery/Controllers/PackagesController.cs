@@ -467,7 +467,8 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
-            model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
+            model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
+            model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);

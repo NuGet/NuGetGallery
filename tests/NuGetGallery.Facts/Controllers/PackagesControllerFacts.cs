@@ -744,7 +744,7 @@ namespace NuGetGallery
                     new TestIssue("This should not be deduplicated by the controller layer"),
                 };
 
-                validationService.Setup(v => v.GetLatestValidationIssues(It.IsAny<Package>()))
+                validationService.Setup(v => v.GetLatestPackageValidationIssues(It.IsAny<Package>()))
                     .Returns(expectedIssues);
 
                 // Act
@@ -752,7 +752,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal(model.ValidationIssues, expectedIssues);
+                Assert.Equal(model.PackageValidationIssues, expectedIssues);
             }
 
             private class TestIssue : ValidationIssue
