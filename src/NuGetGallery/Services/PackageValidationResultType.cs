@@ -30,10 +30,5 @@ namespace NuGetGallery
         /// potentially remediate the situation.
         /// </summary>
         PackageShouldNotBeSignedButCanManageCertificates,
-        
-        /// <summary>
-        /// Typosquatting check for the uploaded package Id fails.
-        /// </summary>
-        TyposquattingCheckFails,
     }
 }

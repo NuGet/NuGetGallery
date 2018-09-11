@@ -24,7 +24,6 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly IAppConfiguration _config;
         private readonly ITyposquattingCheckService _typosquattingCheckService;
-        private readonly IContentObjectService _contentObjectService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -33,8 +32,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
             IAppConfiguration config,
-            ITyposquattingCheckService typosquattingCheckService,
-            IContentObjectService contentObjectService)
+            ITyposquattingCheckService typosquattingCheckService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -43,7 +41,6 @@ namespace NuGetGallery
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _typosquattingCheckService = typosquattingCheckService ?? throw new ArgumentNullException(nameof(typosquattingCheckService));
-            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -190,7 +187,7 @@ namespace NuGetGallery
             PackageArchiveReader nuGetPackage,
             User owner,
             User currentUser,
-            PackageRegistration packageRegistration)
+            PackageRegistration existingPackageRegistration)
         {
             var result = await ValidateSignatureFilePresenceAsync(
                 package.PackageRegistration,
@@ -202,17 +199,9 @@ namespace NuGetGallery
                 return result;
             }
 
-            if (_contentObjectService.TyposquattingConfiguration.IsCheckEnabled && packageRegistration == null)
+            if (existingPackageRegistration == null && _typosquattingCheckService.IsUploadedPackageIdTyposquatting(package.Id, owner, out string typosquattingCheckCollisionIds))
             {
-                if (_typosquattingCheckService.TryIsUploadedPackageIdTyposquatting(package.Id, owner, out string typosquattingCheckCollisionIds))
-                {
-                    // TODO: save in the log metric for typosquatting collision pairs (typosquattingCheckResult). 
-                    // https://github.com/NuGet/Engineering/issues/1537
-                    if (_contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled)
-                    {
-                        return PackageValidationResult.TyposquattingCheckFails(typosquattingCheckCollisionIds);
-                    }
-                }
+                return PackageValidationResult.Invalid(Strings.TyposquattingCheckFails + typosquattingCheckCollisionIds);
             }
 
             return PackageValidationResult.Accepted();

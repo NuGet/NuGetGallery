@@ -326,12 +326,12 @@ namespace NuGetGallery
             builder.RegisterType<TyposquattingCheckService>()
                 .AsSelf()
                 .As<ITyposquattingCheckService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             builder.RegisterType<TyposquattingUserService>()
                 .AsSelf()
                 .As<ITyposquattingUserService>()
-                .SingleInstance();
+                .InstancePerLifetimeScope();
 
             Func<MailSender> mailSenderFactory = () =>
                 {

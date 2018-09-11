@@ -14,6 +14,6 @@ namespace NuGetGallery
         /// <param name="uploadedPackageId"> The package ID of the uploaded package. We check the pacakge ID with the packages in the gallery for typo-squatting issue</param>
         /// <param name="uploadedPackageOwner"> The package owner of the uploaded package.</param>
         /// <param name="typosquattingCheckCollisionIds"> The return collision package Id if it exists</param>
-        bool TryIsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+        bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds);
     }
 }

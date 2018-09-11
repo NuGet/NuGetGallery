@@ -37,14 +37,14 @@ namespace NuGetGallery
         /// <param name="nuGetPackage">The package archive reader.</param>
         /// <param name="owner">The owner of the package.</param>
         /// <param name="currentUser">The current user.</param>
-        /// <param name="packageRegistration">The package registration info if it exists for uploaded package</param>
+        /// <param name="existingPackageRegistration">The package registration info if it exists for uploaded package</param>
         /// <returns>The package validation result.</returns>
         Task<PackageValidationResult> ValidateAfterGeneratePackageAsync(
             Package package,
             PackageArchiveReader nuGetPackage,
             User owner,
             User currentUser,
-            PackageRegistration packageRegistration);
+            PackageRegistration existingPackageRegistration);
 
         /// <summary>
         /// Commit the provided package metadata and stream to the package file storage and to the database. This

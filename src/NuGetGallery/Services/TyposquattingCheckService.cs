@@ -33,9 +33,14 @@ namespace NuGetGallery
             TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
               
-        public bool TryIsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds)
+        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds)
         {
             typosquattingCheckCollisionIds = null;
+            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled)
+            {
+                return false;
+            }
+
             if (uploadedPackageId == null)
             {
                 throw new ArgumentNullException(nameof(uploadedPackageId));
@@ -81,8 +86,13 @@ namespace NuGetGallery
 
             if (typosquattingUserDoubleCheckIds.Any())
             {
+                // TODO: save in the log metric for typosquatting collision Ids (typosquattingCheckCollisionIds). 
+                // https://github.com/NuGet/Engineering/issues/1537
                 typosquattingCheckCollisionIds = string.Join(",", typosquattingUserDoubleCheckIds.ToArray());
-                return true;
+                if (_contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled)
+                {
+                    return true;
+                }
             }
 
             return false;
