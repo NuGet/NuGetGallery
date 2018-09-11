@@ -38,15 +38,11 @@ namespace NgTests
         private const int _top = 1;
 
         private bool _isDisposed;
-        private DateTime _catalogLastDeleted;
-        private DateTime _catalogLastCreated;
-        private DateTime _catalogLastEdited;
         private DateTime _feedLastCreated;
         private DateTime _feedLastEdited;
         private DateTimeOffset _timestamp;
         private bool _hasFirstRunOnceAsyncBeenCalledBefore;
         private int _lastFeedEntriesCount;
-        private int _catalogBatchesProcessed;
         private readonly List<PackageOperation> _packageOperations;
         private readonly Random _random;
         private readonly MemoryStorage _auditingStorage;
@@ -58,10 +54,6 @@ namespace NgTests
 
         public Feed2CatalogTests()
         {
-            _catalogLastDeleted = Constants.DateTimeMinValueUtc;
-            _catalogLastCreated = Constants.DateTimeMinValueUtc;
-            _catalogLastEdited = Constants.DateTimeMinValueUtc;
-
             _server = new MockServerHttpClientHandler();
             _random = new Random();
             _packageOperations = new List<PackageOperation>();
@@ -93,43 +85,71 @@ namespace NgTests
         {
             InitializeTest(skipCreatedPackagesProcessing);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync();
         }
 
         [Fact]
         public async Task RunInternal_WithNoCatalogAndCreatedPackageInFeed_CreatesCatalog()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
-            AddCreatedPackageToFeed();
+            var package = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
-        public async Task RunInternal_WithNoCatalogAndCreatedPackageInFeedAndWithCreatedPackagesSkipped_DoesNotUpdateCatalog()
+        public async Task RunInternal_WithNoCatalogAndCreatedPackageInFeedAndWithCreatedPackagesSkipped_DoesNotCreateCatalog()
         {
             InitializeTest(skipCreatedPackagesProcessing: true);
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync();
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task RunInternal_WithCatalogAndNoActivity_DoesNotUpdateCatalog(bool skipCreatedPackagesProcessing)
+        [Fact]
+        public async Task RunInternal_WithCatalogAndNoActivity_DoesNotUpdateCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing);
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
-            AddCreatedPackageToFeed();
+            var package = AddCreatedPackageToFeed();
 
             // Create the catalog.
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             // Nothing new in the feed this time.
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
+        }
+
+        [Fact]
+        public async Task RunInternal_WithCatalogAndNoActivityAndWithCreatedPackagesSkipped_DoesNotUpdateCatalog()
+        {
+            InitializeTest(skipCreatedPackagesProcessing: true);
+
+            var package = CreatePackageCreationOrEdit();
+            var editedPackage = AddEditedPackageToFeed(package);
+
+            // Create the catalog.
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: editedPackage.ODataPackage.LastEdited,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited);
+
+            // Nothing new in the feed this time.
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: editedPackage.ODataPackage.LastEdited,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited);
         }
 
         [Fact]
@@ -137,7 +157,7 @@ namespace NgTests
         // https://github.com/NuGet/NuGetGallery/issues/2841
         public async Task RunInternal_WithPackagesWithSameCreatedTimeInFeedAndWhenProcessedInDifferentCatalogBatches_SkipsSecondEntry()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
@@ -145,7 +165,11 @@ namespace NgTests
             package2.ODataPackage.Created = package1.ODataPackage.Created;
 
             // Remove the "package2" argument if/when the bug is fixed.
-            await RunInternalAndVerifyAsync(CancellationToken.None, package2);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package1.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc,
+                skippedPackage: package2);
         }
 
         [Fact]
@@ -153,12 +177,15 @@ namespace NgTests
         // https://github.com/NuGet/NuGetGallery/issues/2841
         public async Task RunInternal_WithPackagesWithSameLastEditedTimeInFeedAndWhenProcessedInDifferentCatalogBatches_SkipsSecondEntry()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             package1 = AddEditedPackageToFeed(package1);
             package2 = AddEditedPackageToFeed(package2);
@@ -166,21 +193,31 @@ namespace NgTests
             package2.ODataPackage.LastEdited = package1.ODataPackage.LastEdited;
 
             // Remove the "package2" argument if/when the bug is fixed.
-            await RunInternalAndVerifyAsync(CancellationToken.None, package2);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: package1.ODataPackage.LastEdited,
+                skippedPackage: package2);
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackagesInFeedAtDifferentTimes_UpdatesCatalog()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
-            AddCreatedPackageToFeed();
+            var package1 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package1.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddCreatedPackageToFeed();
+            var package2 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
@@ -190,43 +227,91 @@ namespace NgTests
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync();
 
             AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync();
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtDifferentTimes_UpdatesCatalog(bool skipCreatedPackagesProcessing)
+        [Fact]
+        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtDifferentTimes_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing);
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddEditedPackageToFeed(package);
+            var editedPackage = AddEditedPackageToFeed(package);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: package.ODataPackage.Created,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
         }
 
-        [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtSameTime_UpdatesCatalog(bool skipCreatedPackagesProcessing)
+        [Fact]
+        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtDifferentTimesAndWithCreatedPackagesSkipped_UpdatesCatalog()
         {
-            InitializeTest(skipCreatedPackagesProcessing);
+            InitializeTest(skipCreatedPackagesProcessing: true);
 
             var package = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddEditedPackageToFeed(package);
+            var editedPackage = AddEditedPackageToFeed(package);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: editedPackage.ODataPackage.LastEdited.Value,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+        }
+
+        [Fact]
+        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtSameTime_UpdatesCatalog()
+        {
+            InitializeTest(skipCreatedPackagesProcessing: false);
+
+            var package = AddCreatedPackageToFeed();
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
+
+            var editedPackage = AddEditedPackageToFeed(package);
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: package.ODataPackage.Created,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
+        }
+
+        [Fact]
+        public async Task RunInternal_WithCreatedPackageAndEditedPackageInFeedAtSameTimeAndWithCreatedPackagesSkipped_UpdatesCatalog()
+        {
+            InitializeTest(skipCreatedPackagesProcessing: true);
+
+            var package = AddCreatedPackageToFeed();
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
+
+            var editedPackage = AddEditedPackageToFeed(package);
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: editedPackage.ODataPackage.LastEdited.Value,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: editedPackage.ODataPackage.LastEdited.Value);
         }
 
         [Fact]
@@ -235,96 +320,150 @@ namespace NgTests
             InitializeTest(skipCreatedPackagesProcessing: true);
 
             var package = CreatePackageCreationOrEdit();
+            var lastDeleted = Constants.DateTimeMinValueUtc;
 
-            package = AddEditedPackageToFeed(package);
+            for (var i = 0; i < 3; ++i)
+            {
+                package = AddEditedPackageToFeed(package);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+                await RunInternalAndVerifyAsync(
+                    expectedLastCreated: package.ODataPackage.LastEdited.Value,
+                    expectedLastDeleted: lastDeleted,
+                    expectedLastEdited: package.ODataPackage.LastEdited.Value);
 
-            package = AddEditedPackageToFeed(package);
-
-            await RunInternalAndVerifyAsync(CancellationToken.None);
-
-            AddEditedPackageToFeed(package);
-
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+                if (lastDeleted == Constants.DateTimeMinValueUtc)
+                {
+                    lastDeleted = package.ODataPackage.LastEdited.Value;
+                }
+            }
         }
 
         [Fact]
         public async Task RunInternal_WithCreatedPackageThenDeletedPackage_UpdatesCatalog()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddDeletedPackage(package);
+            var deletedPackage = AddDeletedPackage(package);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: deletedPackage.DeletionTime.UtcDateTime,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
         public async Task RunInternal_WithMultipleDeletedPackagesWithDifferentPackageIdentities_ProcessesAllDeletions()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddDeletedPackage(package1);
-            AddDeletedPackage(package2);
+            var deletedPackage1 = AddDeletedPackage(package1);
+            var deletedPackage2 = AddDeletedPackage(package2);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: deletedPackage2.DeletionTime.UtcDateTime,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
         public async Task RunInternal_WithMultipleDeletedPackagesWithSamePackageIdentity_PutsEachPackageInSeparateCommit()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
             var deletionTime = DateTimeOffset.UtcNow;
 
-            AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: true);
-            AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: false);
+            var deletedPackage1 = AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: true);
+            var deletedPackage2 = AddDeletedPackage(package, deletionTime.UtcDateTime, isSoftDelete: false);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: deletionTime.UtcDateTime,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
+        }
+
+        [Fact]
+        public async Task RunInternal_WithDeletedPackageOlderThan15MinutesAgo_SkipsDeletedPackage()
+        {
+            InitializeTest(skipCreatedPackagesProcessing: false);
+
+            var package = AddCreatedPackageToFeed();
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
+
+            var deletedPackage = AddDeletedPackage(package, deletionTime: DateTime.UtcNow.AddMinutes(-16));
+
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package.ODataPackage.Created,
+                expectedLastDeleted: Constants.DateTimeMinValueUtc,
+                expectedLastEdited: Constants.DateTimeMinValueUtc,
+                skippedPackage: deletedPackage);
         }
 
         [Fact]
         public async Task RunInternal_WithMultipleCreatedPackages_ProcessesAllCreations()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
-            AddCreatedPackageToFeed();
-            AddCreatedPackageToFeed();
+            var package1 = AddCreatedPackageToFeed();
+            var package2 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
         }
 
         [Fact]
         public async Task RunInternal_WithMultipleEditedPackages_ProcessesAllEdits()
         {
-            InitializeTest();
+            InitializeTest(skipCreatedPackagesProcessing: false);
 
             var package1 = AddCreatedPackageToFeed();
             var package2 = AddCreatedPackageToFeed();
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            // Create the catalog.
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: Constants.DateTimeMinValueUtc);
 
-            AddEditedPackageToFeed(package1);
-            AddEditedPackageToFeed(package2);
+            var editedPackage1 = AddEditedPackageToFeed(package1);
+            var editedPackage2 = AddEditedPackageToFeed(package2);
 
-            await RunInternalAndVerifyAsync(CancellationToken.None);
+            // Now test multiple edits.
+            await RunInternalAndVerifyAsync(
+                expectedLastCreated: package2.ODataPackage.Created,
+                expectedLastDeleted: package1.ODataPackage.Created,
+                expectedLastEdited: editedPackage2.ODataPackage.LastEdited.Value);
         }
 
         [Fact]
-        public async Task CreatesNewCatalogFromCreatedAndEditedPackages()
+        public async Task CreatesNewCatalogFromCreatedAndEditedAndDeletedPackages()
         {
             // Arrange
             var catalogStorage = new MemoryStorage();
@@ -358,16 +497,16 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
-            Assert.Equal(6, catalogStorage.Content.Count);
+            Assert.Equal(7, catalogStorage.Content.Count);
 
             // Ensure catalog has index.json
             var catalogIndex = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("index.json"));
             Assert.NotNull(catalogIndex.Key);
             Assert.Contains("\"nuget:lastCreated\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
-            Assert.Contains("\"nuget:lastDeleted\":\"0001-01-01T00:00:00Z", catalogIndex.Value.GetContentString());
+            Assert.Contains("\"nuget:lastDeleted\":\"2015-01-01T01:01:01.0748028Z\"", catalogIndex.Value.GetContentString());
             Assert.Contains("\"nuget:lastEdited\":\"2015-01-01T00:00:00Z\"", catalogIndex.Value.GetContentString());
 
             // Ensure catalog has page0.json
@@ -416,9 +555,11 @@ namespace NgTests
             Assert.Contains("\"id\": \"TestPackage.SemVer2\",", package4.Value.GetContentString());
             Assert.Contains("\"version\": \"1.0.0-alpha.1+githash\",", package4.Value.GetContentString());
 
-            // Ensure catalog does not have the deleted "OtherPackage" as a fresh catalog should not care about deletes
             var package5 = catalogStorage.Content.FirstOrDefault(pair => pair.Key.PathAndQuery.EndsWith("/otherpackage.1.0.0.json"));
-            Assert.Null(package5.Key);
+            Assert.NotNull(package5.Key);
+            Assert.Contains("\"PackageDelete\",", package5.Value.GetContentString());
+            Assert.Contains("\"id\": \"OtherPackage\",", package5.Value.GetContentString());
+            Assert.Contains("\"version\": \"1.0.0\",", package5.Value.GetContentString());
         }
 
         [Fact]
@@ -459,7 +600,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(6, catalogStorage.Content.Count);
@@ -555,7 +696,7 @@ namespace NgTests
                 timeout: TimeSpan.FromMinutes(5),
                 top: 20,
                 verbose: true);
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             // Assert
             Assert.Equal(7, catalogStorage.Content.Count);
@@ -639,7 +780,7 @@ namespace NgTests
 
             catalogStorage.Setup(x => x.ResolveUri(It.IsNotNull<string>()))
                 .Returns(new Uri(_feedBaseUri));
-            catalogStorage.Setup(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
+            catalogStorage.Setup(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(json);
 
             mockServer.SetAction("/", GetRootActionAsync);
@@ -657,10 +798,10 @@ namespace NgTests
                 top: 20,
                 verbose: true);
 
-            await feed2catalogTestJob.RunOnce(CancellationToken.None);
+            await feed2catalogTestJob.RunOnceAsync(CancellationToken.None);
 
             catalogStorage.Verify(x => x.ResolveUri(It.IsNotNull<string>()), Times.AtLeastOnce());
-            catalogStorage.Verify(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
+            catalogStorage.Verify(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
         private static Task<HttpResponseMessage> GetCreatedPackages(HttpRequestMessage request)
@@ -767,7 +908,7 @@ namespace NgTests
             });
         }
 
-        private void InitializeTest(bool skipCreatedPackagesProcessing = false)
+        private void InitializeTest(bool skipCreatedPackagesProcessing)
         {
             _skipCreatedPackagesProcessing = skipCreatedPackagesProcessing;
 
@@ -848,7 +989,7 @@ namespace NgTests
             return operation;
         }
 
-        private void AddDeletedPackage(
+        private PackageDeletion AddDeletedPackage(
             PackageCreationOrEdit operation,
             DateTime? deletionTime = null,
             bool isSoftDelete = false)
@@ -872,10 +1013,18 @@ namespace NgTests
 
             _auditingStorage.Content.TryAdd(uri, new JTokenStorageContent(auditRecord));
 
-            _packageOperations.Add(new PackageDeletion(uri, auditRecord, deletionTime.Value));
+            var deletion = new PackageDeletion(uri, auditRecord, deletionTime.Value);
+
+            _packageOperations.Add(deletion);
+
+            return deletion;
         }
 
-        private async Task RunInternalAndVerifyAsync(CancellationToken cancellationToken, PackageOperation skippedOperation = null)
+        private async Task RunInternalAndVerifyAsync(
+            DateTime? expectedLastCreated = null,
+            DateTime? expectedLastDeleted = null,
+            DateTime? expectedLastEdited = null,
+            PackageOperation skippedPackage = null)
         {
             if (_hasFirstRunOnceAsyncBeenCalledBefore)
             {
@@ -890,12 +1039,16 @@ namespace NgTests
 
             PrepareFeed();
 
-            await _job.RunOnce(cancellationToken);
+            await _job.RunOnceAsync(CancellationToken.None);
 
-            VerifyCatalog(skippedOperation);
+            VerifyCatalog(expectedLastCreated, expectedLastDeleted, expectedLastEdited, skippedPackage);
         }
 
-        private void VerifyCatalog(PackageOperation skippedOperation)
+        private void VerifyCatalog(
+            DateTime? expectedLastCreated,
+            DateTime? expectedLastDeleted,
+            DateTime? expectedLastEdited,
+            PackageOperation skippedOperation)
         {
             List<PackageOperation> verifiablePackageOperations;
 
@@ -925,8 +1078,6 @@ namespace NgTests
 
             if (!isEmptyCatalogBatch)
             {
-                ++_catalogBatchesProcessed;
-
                 _lastFeedEntriesCount = verifiablePackageOperations.Count;
             }
 
@@ -934,6 +1085,10 @@ namespace NgTests
                 + 1  // index.json
                 + 1; // page0.json
             Assert.Equal(expectedCatalogEntryCount, _catalogStorage.Content.Count);
+
+            Assert.True(expectedLastCreated.HasValue);
+            Assert.True(expectedLastDeleted.HasValue);
+            Assert.True(expectedLastEdited.HasValue);
 
             var indexUri = new Uri(_baseUri, "index.json");
             var pageUri = new Uri(_baseUri, "page0.json");
@@ -943,9 +1098,11 @@ namespace NgTests
 
             VerifyCatalogIndex(
                 verifiablePackageOperations,
-                isEmptyCatalogBatch,
                 indexUri,
                 pageUri,
+                expectedLastCreated.Value,
+                expectedLastDeleted.Value,
+                expectedLastEdited.Value,
                 out commitId,
                 out commitTimeStamp);
 
@@ -958,16 +1115,18 @@ namespace NgTests
                     out var commitTimeStampDateTime));
 
             VerifyCatalogPage(verifiablePackageOperations, indexUri, pageUri, commitId, commitTimeStamp);
-            VerifyCatalogPackageItems(verifiablePackageOperations, commitId, commitTimeStamp, commitTimeStampDateTime);
+            VerifyCatalogPackageItems(verifiablePackageOperations);
 
             Assert.True(verifiablePackageOperations.All(packageOperation => !string.IsNullOrEmpty(packageOperation.CommitId)));
         }
 
         private void VerifyCatalogIndex(
             List<PackageOperation> packageOperations,
-            bool isEmptyCatalogBatch,
             Uri indexUri,
             Uri pageUri,
+            DateTime expectedLastCreated,
+            DateTime expectedLastDeleted,
+            DateTime expectedLastEdited,
             out string commitId,
             out string commitTimeStamp)
         {
@@ -994,42 +1153,15 @@ namespace NgTests
 
             Assert.Equal(1, index[CatalogConstants.Count].Value<int>());
 
-            if (_catalogBatchesProcessed > 1 && _catalogLastDeleted == Constants.DateTimeMinValueUtc && !isEmptyCatalogBatch)
-            {
-                _catalogLastDeleted = _catalogLastCreated;
-            }
-
-            _catalogLastEdited = packageOperations.OfType<PackageCreationOrEdit>()
-                .Where(entry => entry.ODataPackage.LastEdited.HasValue)
-                .Select(entry => entry.ODataPackage.LastEdited.Value)
-                .DefaultIfEmpty(Constants.DateTimeMinValueUtc)
-                .Max();
-
-            if (_skipCreatedPackagesProcessing)
-            {
-                _catalogLastCreated = _catalogLastEdited;
-            }
-            else
-            {
-                _catalogLastCreated = packageOperations.OfType<PackageCreationOrEdit>()
-                    .Max(entry => entry.ODataPackage.Created);
-            }
-
-            _catalogLastDeleted = packageOperations.OfType<PackageDeletion>()
-                .Select(package => package.DeletionTime)
-                .DefaultIfEmpty(_catalogLastDeleted)
-                .Select(deletionTime => deletionTime.UtcDateTime)
-                .Max();
-
             Assert.Equal(
-                _catalogLastCreated.ToString(_catalogDateTimeFormat),
+                expectedLastCreated.ToString(_catalogDateTimeFormat),
                 index[CatalogConstants.NuGetLastCreated].Value<string>());
             Assert.Equal(
-                _catalogLastEdited.ToString(_catalogDateTimeFormat),
-                index[CatalogConstants.NuGetLastEdited].Value<string>());
-            Assert.Equal(
-                _catalogLastDeleted.ToString(_catalogDateTimeFormat),
+                expectedLastDeleted.ToString(_catalogDateTimeFormat),
                 index[CatalogConstants.NuGetLastDeleted].Value<string>());
+            Assert.Equal(
+                expectedLastEdited.ToString(_catalogDateTimeFormat),
+                index[CatalogConstants.NuGetLastEdited].Value<string>());
 
             var expectedItems = new JArray(
                 new JObject(
@@ -1119,6 +1251,8 @@ namespace NgTests
                     DateTimeFormatInfo.CurrentInfo,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
+                expectedItem.CommitTimeStampDateTime = expectedTimestamp;
+
                 var expectedUri = GetPackageDetailsUri(expectedTimestamp, expectedItem);
 
                 Assert.Equal(expectedUri.AbsoluteUri, actualItem[CatalogConstants.IdKeyword].Value<string>());
@@ -1137,37 +1271,42 @@ namespace NgTests
             VerifyContext(page);
         }
 
-        private void VerifyCatalogPackageItems(
-            List<PackageOperation> packageOperations,
-            string commitId,
-            string commitTimeStamp,
-            DateTime commitTimeStampDateTime)
+        private void VerifyCatalogPackageItems(List<PackageOperation> packageOperations)
         {
-            var lastEntry = packageOperations.Last();
-            var packageDetailsUri = GetPackageDetailsUri(commitTimeStampDateTime, lastEntry);
+            PackageOperation previousPackageOperation = null;
 
-            Assert.True(_catalogStorage.Content.TryGetValue(packageDetailsUri, out var storage));
-            Assert.IsType<StringStorageContent>(storage);
-
-            var packageDetails = JObject.Parse(((StringStorageContent)storage).Content);
-            Assert.NotNull(packageDetails);
-
-            packageDetails = ReadJsonWithoutDateTimeHandling(packageDetails);
-
-            if (lastEntry is PackageCreationOrEdit)
+            foreach (var packageOperation in packageOperations)
             {
-                VerifyCatalogPackageDetails(commitId, commitTimeStamp, (PackageCreationOrEdit)lastEntry, packageDetailsUri, packageDetails);
-            }
-            else
-            {
-                VerifyCatalogPackageDelete(commitId, commitTimeStamp, (PackageDeletion)lastEntry, packageDetailsUri, packageDetails);
+                if (previousPackageOperation != null)
+                {
+                    Assert.True(packageOperation.CommitTimeStampDateTime >= previousPackageOperation.CommitTimeStampDateTime);
+                }
+
+                Uri packageDetailsUri = GetPackageDetailsUri(packageOperation.CommitTimeStampDateTime, packageOperation);
+
+                Assert.True(_catalogStorage.Content.TryGetValue(packageDetailsUri, out var storage));
+                Assert.IsType<StringStorageContent>(storage);
+
+                var packageDetails = JObject.Parse(((StringStorageContent)storage).Content);
+                Assert.NotNull(packageDetails);
+
+                packageDetails = ReadJsonWithoutDateTimeHandling(packageDetails);
+
+                if (packageOperation is PackageCreationOrEdit)
+                {
+                    VerifyCatalogPackageDetails((PackageCreationOrEdit)packageOperation, packageDetailsUri, packageDetails);
+                }
+                else
+                {
+                    VerifyCatalogPackageDelete((PackageDeletion)packageOperation, packageDetailsUri, packageDetails);
+                }
+
+                previousPackageOperation = packageOperation;
             }
         }
 
         private void VerifyCatalogPackageDetails(
-            string commitId,
-            string commitTimeStamp,
-            PackageCreationOrEdit lastEntry,
+            PackageCreationOrEdit packageOperation,
             Uri packageDetailsUri,
             JObject packageDetails)
         {
@@ -1178,29 +1317,29 @@ namespace NgTests
             Assert.Equal(
                 new JArray(CatalogConstants.PackageDetails, CatalogConstants.CatalogPermalink),
                 packageDetails[CatalogConstants.TypeKeyword]);
-            Assert.Equal(lastEntry.Package.Author, packageDetails[CatalogConstants.Authors].Value<string>());
-            Assert.Equal(commitId, packageDetails[CatalogConstants.CatalogCommitId].Value<string>());
-            Assert.Equal(commitTimeStamp, packageDetails[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
+            Assert.Equal(packageOperation.Package.Author, packageDetails[CatalogConstants.Authors].Value<string>());
+            Assert.Equal(packageOperation.CommitId, packageDetails[CatalogConstants.CatalogCommitId].Value<string>());
+            Assert.Equal(packageOperation.CommitTimeStamp, packageDetails[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
             Assert.Equal(
-                lastEntry.ODataPackage.Created.ToString(_catalogDateTimeFormat),
+                packageOperation.ODataPackage.Created.ToString(_catalogDateTimeFormat),
                 packageDetails[CatalogConstants.Created].Value<string>());
-            Assert.Equal(lastEntry.ODataPackage.Description, packageDetails[CatalogConstants.Description].Value<string>());
-            Assert.Equal(lastEntry.ODataPackage.Id, packageDetails[CatalogConstants.Id].Value<string>());
+            Assert.Equal(packageOperation.ODataPackage.Description, packageDetails[CatalogConstants.Description].Value<string>());
+            Assert.Equal(packageOperation.ODataPackage.Id, packageDetails[CatalogConstants.Id].Value<string>());
             Assert.False(packageDetails[CatalogConstants.IsPrerelease].Value<bool>());
             Assert.Equal(
-                (lastEntry.ODataPackage.LastEdited ?? Constants.DateTimeMinValueUtc).ToString(_catalogDateTimeFormat),
+                (packageOperation.ODataPackage.LastEdited ?? Constants.DateTimeMinValueUtc).ToString(_catalogDateTimeFormat),
                 packageDetails[CatalogConstants.LastEdited].Value<string>());
-            Assert.Equal(lastEntry.ODataPackage.Listed, packageDetails[CatalogConstants.Listed].Value<bool>());
-            Assert.Equal(lastEntry.ODataPackage.Hash, packageDetails[CatalogConstants.PackageHash].Value<string>());
+            Assert.Equal(packageOperation.ODataPackage.Listed, packageDetails[CatalogConstants.Listed].Value<bool>());
+            Assert.Equal(packageOperation.ODataPackage.Hash, packageDetails[CatalogConstants.PackageHash].Value<string>());
             Assert.Equal(Constants.Sha512, packageDetails[CatalogConstants.PackageHashAlgorithm].Value<string>());
-            Assert.Equal(lastEntry.Package.Stream.Length, packageDetails[CatalogConstants.PackageSize].Value<int>());
+            Assert.Equal(packageOperation.Package.Stream.Length, packageDetails[CatalogConstants.PackageSize].Value<int>());
             Assert.Equal(
-                lastEntry.ODataPackage.Published.ToString(_catalogDateTimeFormat),
+                packageOperation.ODataPackage.Published.ToString(_catalogDateTimeFormat),
                 packageDetails[CatalogConstants.Published].Value<string>());
-            Assert.Equal(lastEntry.Package.Version.ToFullString(), packageDetails[CatalogConstants.VerbatimVersion].Value<string>());
-            Assert.Equal(lastEntry.Package.Version.ToNormalizedString(), packageDetails[CatalogConstants.Version].Value<string>());
+            Assert.Equal(packageOperation.Package.Version.ToFullString(), packageDetails[CatalogConstants.VerbatimVersion].Value<string>());
+            Assert.Equal(packageOperation.Package.Version.ToNormalizedString(), packageDetails[CatalogConstants.Version].Value<string>());
 
-            var expectedPackageEntries = GetPackageEntries(lastEntry.Package)
+            var expectedPackageEntries = GetPackageEntries(packageOperation.Package)
                 .OrderBy(entry => entry.FullName)
                 .Select(entry =>
                     new JObject(
@@ -1261,9 +1400,7 @@ namespace NgTests
         }
 
         private void VerifyCatalogPackageDelete(
-            string commitId,
-            string commitTimeStamp,
-            PackageDeletion lastEntry,
+            PackageDeletion packageOperation,
             Uri packageDeleteUri,
             JObject packageDelete)
         {
@@ -1274,12 +1411,12 @@ namespace NgTests
             Assert.Equal(
                 new JArray(CatalogConstants.PackageDelete, CatalogConstants.CatalogPermalink),
                 packageDelete[CatalogConstants.TypeKeyword]);
-            Assert.Equal(commitId, packageDelete[CatalogConstants.CatalogCommitId].Value<string>());
-            Assert.Equal(commitTimeStamp, packageDelete[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
-            Assert.Equal(lastEntry.PackageIdentity.Id, packageDelete[CatalogConstants.Id].Value<string>());
-            Assert.Equal(lastEntry.PackageIdentity.Id, packageDelete[CatalogConstants.OriginalId].Value<string>());
-            Assert.Equal(lastEntry.Published.ToString(_catalogDateTimeFormat), packageDelete[CatalogConstants.Published].Value<string>());
-            Assert.Equal(lastEntry.PackageIdentity.Version.ToNormalizedString(), packageDelete[CatalogConstants.Version].Value<string>());
+            Assert.Equal(packageOperation.CommitId, packageDelete[CatalogConstants.CatalogCommitId].Value<string>());
+            Assert.Equal(packageOperation.CommitTimeStamp, packageDelete[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
+            Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.Id].Value<string>());
+            Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.OriginalId].Value<string>());
+            Assert.Equal(packageOperation.Published.ToString(_catalogDateTimeFormat), packageDelete[CatalogConstants.Published].Value<string>());
+            Assert.Equal(packageOperation.PackageIdentity.Version.ToNormalizedString(), packageDelete[CatalogConstants.Version].Value<string>());
 
             var expectedContext = new JObject(
                 new JProperty(CatalogConstants.VocabKeyword, CatalogConstants.NuGetSchemaUri),
@@ -1508,6 +1645,7 @@ namespace NgTests
         {
             internal string CommitId { get; set; }
             internal string CommitTimeStamp { get; set; }
+            internal DateTime CommitTimeStampDateTime { get; set; }
             internal abstract PackageIdentity PackageIdentity { get; }
         }
 

@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -14,6 +13,7 @@ using Xunit;
 
 namespace NuGet.Services.BasicSearchTests
 {
+    [Collection(StartupTestCollection.Name)]
     public class V3SearchFunctionalTests
     {
         [Fact]
@@ -147,7 +147,7 @@ namespace NuGet.Services.BasicSearchTests
                 // Act
                 var withPrereleaseResponse = await app.Client.GetAsync(new V3SearchBuilder { Query = query, Prerelease = true }.RequestUri);
                 var withPrerelease = await withPrereleaseResponse.Content.ReadAsAsync<V3SearchResult>();
-                
+
                 // Assert
                 Assert.Equal("3.1.3.42154", withPrerelease.GetPackageVersion("Antlr"));           // the latest version is not prerelease
                 Assert.False(withPrerelease.ContainsPackageVersion("Antlr", "3.4.1.9004-pre"));   // the unlisted version is not in the result

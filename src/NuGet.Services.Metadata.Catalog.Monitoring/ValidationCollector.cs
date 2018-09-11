@@ -35,7 +35,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _logger = logger;
         }
 
-        protected override async Task ProcessSortedBatch(CollectorHttpClient client, KeyValuePair<FeedPackageIdentity, IList<JObject>> sortedBatch, JToken context, CancellationToken cancellationToken)
+        protected override async Task ProcessSortedBatchAsync(CollectorHttpClient client, KeyValuePair<FeedPackageIdentity, IList<JObject>> sortedBatch, JToken context, CancellationToken cancellationToken)
         {
             var packageId = sortedBatch.Key.Id;
             var packageVersion = sortedBatch.Key.Version;

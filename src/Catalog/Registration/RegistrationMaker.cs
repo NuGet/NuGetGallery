@@ -13,9 +13,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public static class RegistrationMaker
     {
-        public static async Task Process(
+        public static async Task ProcessAsync(
             RegistrationKey registrationKey,
-            IDictionary<string, IGraph> newItems,
+            IReadOnlyDictionary<string, IGraph> newItems,
             StorageFactory storageFactory,
             Uri contentBaseAddress,
             int partitionSize,
@@ -23,7 +23,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             ITelemetryService telemetryService,
             CancellationToken cancellationToken)
         {
-            await Process(
+            await ProcessAsync(
                 registrationKey,
                 newItems,
                 (k, u, g) => true,
@@ -35,9 +35,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 cancellationToken);
         }
 
-        public static async Task Process(
+        public static async Task ProcessAsync(
             RegistrationKey registrationKey,
-            IDictionary<string, IGraph> newItems,
+            IReadOnlyDictionary<string, IGraph> newItems,
             ShouldIncludeRegistrationPackage shouldInclude,
             StorageFactory storageFactory,
             Uri contentBaseAddress,
@@ -69,7 +69,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         }
 
         private static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> PromoteRegistrationKey(
-            IDictionary<string, IGraph> newItems,
+            IReadOnlyDictionary<string, IGraph> newItems,
             ShouldIncludeRegistrationPackage shouldInclude)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> promoted = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();

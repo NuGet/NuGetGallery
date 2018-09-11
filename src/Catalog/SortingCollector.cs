@@ -16,15 +16,12 @@ namespace NuGet.Services.Metadata.Catalog
         public SortingCollector(Uri index, ITelemetryService telemetryService, Func<HttpMessageHandler> handlerFunc = null)
             : base(index, telemetryService, handlerFunc)
         {
-            Concurrent = true;
         }
 
-        public bool Concurrent { get; set; }
-
-        protected override async Task<bool> OnProcessBatch(
-            CollectorHttpClient client, 
+        protected override async Task<bool> OnProcessBatchAsync(
+            CollectorHttpClient client,
             IEnumerable<JToken> items,
-            JToken context, 
+            JToken context,
             DateTime commitTimeStamp,
             bool isLastBatch,
             CancellationToken cancellationToken)
@@ -49,14 +46,9 @@ namespace NuGet.Services.Metadata.Catalog
 
             foreach (KeyValuePair<T, IList<JObject>> sortedBatch in sortedItems)
             {
-                Task task = ProcessSortedBatch(client, sortedBatch, context, cancellationToken);
+                Task task = ProcessSortedBatchAsync(client, sortedBatch, context, cancellationToken);
 
                 tasks.Add(task);
-
-                if (!Concurrent)
-                {
-                    task.Wait();
-                }
             }
 
             await Task.WhenAll(tasks.ToArray());
@@ -66,10 +58,10 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected abstract T GetKey(JObject item);
 
-        protected abstract Task ProcessSortedBatch(
-            CollectorHttpClient client, 
-            KeyValuePair<T, IList<JObject>> sortedBatch, 
-            JToken context, 
+        protected abstract Task ProcessSortedBatchAsync(
+            CollectorHttpClient client,
+            KeyValuePair<T, IList<JObject>> sortedBatch,
+            JToken context,
             CancellationToken cancellationToken);
     }
 }

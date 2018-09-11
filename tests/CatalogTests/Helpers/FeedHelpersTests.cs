@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -490,7 +489,7 @@ namespace CatalogTests.Helpers
 
                 var blobs = new List<CatalogBlob>();
 
-                test.Storage.Setup(x => x.Save(
+                test.Storage.Setup(x => x.SaveAsync(
                         It.IsNotNull<Uri>(),
                         It.IsNotNull<StorageContent>(),
                         It.IsAny<CancellationToken>()))
@@ -500,7 +499,7 @@ namespace CatalogTests.Helpers
                     })
                     .Returns(Task.FromResult(0));
 
-                test.Storage.Setup(x => x.LoadString(
+                test.Storage.Setup(x => x.LoadStringAsync(
                         It.Is<Uri>(uri => uri == test.CatalogIndexUri),
                         It.IsAny<CancellationToken>()))
                     .ReturnsAsync(CatalogTestData.GetBeforeIndex(test.CatalogIndexUri).ToString());
@@ -779,7 +778,7 @@ namespace CatalogTests.Helpers
             storage.Setup(x => x.ResolveUri(It.IsNotNull<string>()))
                 .Returns(new Uri("https://unit.test"))
                 .Verifiable();
-            storage.Setup(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
+            storage.Setup(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(json)
                 .Verifiable();
 

@@ -14,19 +14,25 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         private readonly Uri _differentBaseAddress = null;
         private readonly TimeSpan _maxExecutionTime;
         private readonly TimeSpan _serverTimeout;
+        private readonly bool _useServerSideCopy;
 
-        public AzureStorageFactory(CloudStorageAccount account,
-                                   string containerName,
-                                   TimeSpan maxExecutionTime,
-                                   TimeSpan serverTimeout,
-                                   string path = null,
-                                   Uri baseAddress = null)
+        public AzureStorageFactory(
+            CloudStorageAccount account,
+            string containerName,
+            TimeSpan maxExecutionTime,
+            TimeSpan serverTimeout,
+            string path,
+            Uri baseAddress,
+            bool useServerSideCopy,
+            bool compressContent,
+            bool verbose)
         {
             _account = account;
             _containerName = containerName;
             _path = null;
             _maxExecutionTime = maxExecutionTime;
             _serverTimeout = serverTimeout;
+            _useServerSideCopy = useServerSideCopy;
 
             if (path != null)
             {
@@ -62,9 +68,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             blobEndpointBuilder.Port = -1;
 
             DestinationAddress = new Uri(blobEndpointBuilder.Uri, containerName + "/" + _path ?? string.Empty);
+
+            CompressContent = compressContent;
+            Verbose = verbose;
         }
 
-        public bool CompressContent { get; set; }
+        public bool CompressContent { get; }
 
         public override Storage Create(string name = null)
         {
@@ -79,8 +88,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 newBase = new Uri(_differentBaseAddress, name + "/");
             }
 
-            return new AzureStorage(_account, _containerName, path, newBase, _maxExecutionTime, _serverTimeout)
-                                   { Verbose = Verbose, CompressContent = CompressContent };
+            return new AzureStorage(
+                _account,
+                _containerName,
+                path,
+                newBase,
+                _maxExecutionTime,
+                _serverTimeout,
+                _useServerSideCopy,
+                CompressContent,
+                Verbose);
         }
     }
 }

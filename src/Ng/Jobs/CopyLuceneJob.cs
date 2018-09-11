@@ -48,7 +48,7 @@ namespace Ng.Jobs
             _destDirectory = CommandHelpers.GetCopyDestLuceneDirectory(arguments);
         }
         
-        protected override Task RunInternal(CancellationToken cancellationToken)
+        protected override Task RunInternalAsync(CancellationToken cancellationToken)
         {
             Lucene.Net.Store.Directory.Copy(_srcDirectory, _destDirectory, true);
 

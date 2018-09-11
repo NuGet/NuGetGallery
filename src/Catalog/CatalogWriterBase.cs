@@ -96,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog
             return newItemEntries.Keys.Select(s => new Uri(s));
         }
 
-        async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp, CancellationToken cancellationToken)
+        private async Task<IDictionary<string, CatalogItemSummary>> SaveItems(Guid commitId, DateTime commitTimeStamp, CancellationToken cancellationToken)
         {
             ConcurrentDictionary<string, CatalogItemSummary> pageItems = new ConcurrentDictionary<string, CatalogItemSummary>();
 
@@ -156,7 +156,7 @@ namespace NuGet.Services.Metadata.Catalog
 
             if (content != null)
             {
-                operation.SaveTask = storage.Save(resourceUri, content, cancellationToken);
+                operation.SaveTask = storage.SaveAsync(resourceUri, content, cancellationToken);
             }
 
             return operation;
@@ -320,7 +320,7 @@ namespace NuGet.Services.Metadata.Catalog
             return entries;
         }
 
-        async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, CancellationToken cancellationToken)
+        private async Task SaveGraph(Uri resourceUri, IGraph graph, Uri typeUri, CancellationToken cancellationToken)
         {
             if (GraphPersistence != null)
             {
@@ -328,11 +328,11 @@ namespace NuGet.Services.Metadata.Catalog
             }
             else
             {
-                await Storage.Save(resourceUri, CreateIndexContent(graph, typeUri), cancellationToken);
+                await Storage.SaveAsync(resourceUri, CreateIndexContent(graph, typeUri), cancellationToken);
             }
         }
 
-        async Task<IGraph> LoadGraph(Uri resourceUri, CancellationToken cancellationToken)
+        private async Task<IGraph> LoadGraph(Uri resourceUri, CancellationToken cancellationToken)
         {
             if (GraphPersistence != null)
             {
@@ -340,7 +340,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
             else
             {
-                return Utils.CreateGraph(await Storage.LoadString(resourceUri, cancellationToken));
+                return Utils.CreateGraph(await Storage.LoadStringAsync(resourceUri, cancellationToken));
             }
         }
 
@@ -356,7 +356,7 @@ namespace NuGet.Services.Metadata.Catalog
             }
         }
 
-        void CheckScheme(Uri resourceUri, IGraph graph)
+        private void CheckScheme(Uri resourceUri, IGraph graph)
         {
             INode typePredicate = graph.CreateUriNode(Schema.Predicates.Type);
 

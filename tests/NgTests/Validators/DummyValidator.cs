@@ -20,7 +20,7 @@ namespace NgTests
             _exception = e;
         }
 
-        public Task<ValidationResult> ValidateAsync(ValidationContext data)
+        public Task<ValidationResult> ValidateAsync(ValidationContext context)
         {
             return Task.FromResult(Validate());
         }

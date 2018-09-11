@@ -12,23 +12,29 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationListedValidator : RegistrationLeafValidator
     {
         public RegistrationListedValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
-            ILogger<RegistrationListedValidator> logger) 
+            IDictionary<FeedType, SourceRepository> feedToSource,
+            ILogger<RegistrationListedValidator> logger)
             : base(feedToSource, logger)
         {
         }
 
-        public override Task<bool> ShouldRunLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task<bool> ShouldRunLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3)
         {
             return Task.FromResult(v2 != null && v3 != null);
         }
 
-        public override Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task CompareLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3)
         {
             if (v2.Listed != v3.Listed)
             {
                 throw new MetadataFieldInconsistencyException<PackageRegistrationLeafMetadata>(
-                    v2, v3, 
+                    v2, v3,
                     nameof(PackageRegistrationLeafMetadata.Listed),
                     m => m.Listed);
             }

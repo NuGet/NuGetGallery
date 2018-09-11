@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,10 +12,12 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 {
     public class FileStorage : Storage
     {
-        public FileStorage(string baseAddress, string path) 
-            : this(new Uri(baseAddress), path) { }
+        public FileStorage(string baseAddress, string path, bool verbose)
+            : this(new Uri(baseAddress), path, verbose)
+        {
+        }
 
-        public FileStorage(Uri baseAddress, string path)
+        public FileStorage(Uri baseAddress, string path, bool verbose)
             : base(baseAddress)
         {
             Path = path;
@@ -25,7 +28,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 directoryInfo.Create();
             }
 
-            ResetStatistics();
+            Verbose = verbose;
         }
 
         //File exists
@@ -34,28 +37,34 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return File.Exists(fileName);
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
             DirectoryInfo directoryInfo = new DirectoryInfo(Path);
             var files = directoryInfo.GetFiles("*", SearchOption.AllDirectories)
-                .Select(file => 
+                .Select(file =>
                     new StorageListItem(GetUri(file.FullName.Replace(Path, string.Empty)), file.LastWriteTimeUtc));
 
             return Task.FromResult(files.AsEnumerable());
         }
 
         public string Path
-        { 
+        {
             get;
             set;
         }
 
-        //  save
-
-        protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        protected override Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
         {
-            SaveCount++;
+            throw new NotImplementedException();
+        }
 
+        protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        {
             TraceMethod("SAVE", resourceUri);
 
             string name = GetName(resourceUri);
@@ -87,13 +96,11 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             using (FileStream stream = File.Create(path + name))
             {
-                await content.GetContentStream().CopyToAsync(stream,4096, cancellationToken);
+                await content.GetContentStream().CopyToAsync(stream, 4096, cancellationToken);
             }
         }
 
-        //  load
-
-        protected override async Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
+        protected override async Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -124,9 +131,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return null;
         }
 
-        //  delete
-
-        protected override async Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
+        protected override async Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             string name = GetName(resourceUri);
 
@@ -151,7 +156,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             FileInfo fileInfo = new FileInfo(filename);
             if (fileInfo.Exists)
             {
-                await Task.Run(() => { fileInfo.Delete(); },cancellationToken);
+                await Task.Run(() => { fileInfo.Delete(); }, cancellationToken);
             }
         }
     }

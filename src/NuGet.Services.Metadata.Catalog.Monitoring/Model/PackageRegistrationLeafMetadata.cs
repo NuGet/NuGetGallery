@@ -8,6 +8,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     /// <summary>
     /// The metadata for a particular package in its registration leaf.
+    /// See: https://docs.microsoft.com/en-us/nuget/api/registration-base-url-resource#registration-leaf
     /// </summary>
     public class PackageRegistrationLeafMetadata
     {

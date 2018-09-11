@@ -14,7 +14,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// Validates a package.
         /// </summary>
         /// <returns>A <see cref="ValidationResult"/> which contains the results of the validation.</returns>
-        Task<ValidationResult> ValidateAsync(ValidationContext data);
+        Task<ValidationResult> ValidateAsync(ValidationContext context);
     }
 
     /// <summary>

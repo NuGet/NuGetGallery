@@ -279,6 +279,7 @@
     <Compile Include="Infrastructure\MockServerHttpClientHandlerExtensions.cs" />
     <Compile Include="Infrastructure\MockTelemetryService.cs" />
     <Compile Include="Infrastructure\TelemetryCall.cs" />
+    <Compile Include="Infrastructure\TestUtility.cs" />
     <Compile Include="Infrastructure\TrackMetricCall.cs" />
     <Compile Include="JobNameTelemetryInitializerTests.cs" />
     <Compile Include="JobPropertiesTelemetryInitializerTests.cs" />
@@ -307,8 +308,10 @@
       <DependentUpon>TestCatalogEntries.resx</DependentUpon>
     </Compile>
     <Compile Include="Data\Catalogs.cs" />
+    <Compile Include="Validators\CatalogAggregateValidatorFacts.cs" />
     <Compile Include="Validators\DummyAggregateValidator.cs" />
     <Compile Include="Validators\DummyValidator.cs" />
+    <Compile Include="Validators\PackageHasSignatureValidatorFacts.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />
@@ -318,6 +321,7 @@
     <Compile Include="Validators\RegistrationLeafValidatorTests.cs" />
     <Compile Include="Validators\RegistrationIdValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationVersionValidatorTestData.cs" />
+    <Compile Include="Validators\ValidationContextTests.cs" />
     <Compile Include="Validators\ValidatorTests.cs" />
     <Compile Include="Validators\ValidatorTestUtility.cs" />
   </ItemGroup>

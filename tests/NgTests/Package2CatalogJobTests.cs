@@ -36,7 +36,7 @@ namespace NgTests
 
             catalogStorage.Setup(x => x.ResolveUri(It.IsNotNull<string>()))
                 .Returns(new Uri(_feedBaseUri));
-            catalogStorage.Setup(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
+            catalogStorage.Setup(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(json);
 
             messageHandler.SetAction("/", GetRootActionAsync);
@@ -53,7 +53,7 @@ namespace NgTests
             await job.RunOnceAsync(CancellationToken.None);
 
             catalogStorage.Verify(x => x.ResolveUri(It.IsNotNull<string>()), Times.AtLeastOnce());
-            catalogStorage.Verify(x => x.LoadString(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
+            catalogStorage.Verify(x => x.LoadStringAsync(It.IsNotNull<Uri>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
         private static string GetPath(string packageId, string packageVersion)
@@ -104,7 +104,7 @@ namespace NgTests
 
             internal Task RunOnceAsync(CancellationToken cancellationToken)
             {
-                return RunInternal(cancellationToken);
+                return RunInternalAsync(cancellationToken);
             }
         }
     }

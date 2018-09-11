@@ -10,13 +10,23 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     {
         private readonly AggregateStorage.WriteSecondaryStorageContentInterceptor _writeSecondaryStorageContentInterceptor;
 
-        public AggregateStorageFactory(StorageFactory primaryStorageFactory, StorageFactory[] secondaryStorageFactories)
-            : this(primaryStorageFactory, secondaryStorageFactories, null)
+        public AggregateStorageFactory(
+            StorageFactory primaryStorageFactory,
+            StorageFactory[] secondaryStorageFactories,
+            bool verbose)
+            : this(
+                  primaryStorageFactory,
+                  secondaryStorageFactories,
+                  writeSecondaryStorageContentInterceptor: null,
+                  verbose: verbose)
         {
         }
 
-        public AggregateStorageFactory(StorageFactory primaryStorageFactory, StorageFactory[] secondaryStorageFactories,
-            AggregateStorage.WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
+        public AggregateStorageFactory(
+            StorageFactory primaryStorageFactory,
+            StorageFactory[] secondaryStorageFactories,
+            AggregateStorage.WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor,
+            bool verbose)
         { 
             PrimaryStorageFactory = primaryStorageFactory;
             SecondaryStorageFactories = secondaryStorageFactories;
@@ -24,6 +34,7 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
 
             BaseAddress = PrimaryStorageFactory.BaseAddress;
             DestinationAddress = PrimaryStorageFactory.DestinationAddress;
+            Verbose = verbose;
         }
 
         public override Storage Create(string name = null)

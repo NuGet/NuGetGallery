@@ -51,6 +51,13 @@ namespace Ng
         public const string StorageServerTimeoutInSeconds = "storageServerTimeoutInSeconds";
         public const string HttpClientTimeoutInSeconds = "httpClientTimeoutInSeconds";
 
+        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
+        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
+        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
+
+        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
+
+        public const string StorageUseServerSideCopy = "storageUseServerSideCopy";
         #endregion
 
         #region Catalog2Lucene
@@ -71,7 +78,6 @@ namespace Ng
         public const string SemVer2StorageKeyValue = "semVer2StorageKeyValue";
         public const string SemVer2StoragePath = "semVer2StoragePath";
 
-        public const string UnlistShouldDelete = "unlistShouldDelete";
         public const string UseCompressedStorage = "useCompressedStorage";
         public const string UseSemVer2Storage = "useSemVer2Storage";
 
@@ -103,11 +109,7 @@ namespace Ng
         public const string StorageKeyValueAuditing = "storageKeyValueAuditing";
         public const string StoragePathAuditing = "storagePathAuditing";
         public const string StorageTypeAuditing = "storageTypeAuditing";
-        public const string StorageAccountNamePreferredPackageSourceStorage = "storageAccountNamePreferredPackageSourceStorage";
-        public const string StorageKeyValuePreferredPackageSourceStorage = "storageKeyValuePreferredPackageSourceStorage";
-        public const string StorageContainerPreferredPackageSourceStorage = "storageContainerPreferredPackageSourceStorage";
 
-        public const string PreferAlternatePackageSourceStorage = "preferAlternatePackageSourceStorage";
         public const string SkipCreatedPackagesProcessing = "skipCreatedPackagesProcessing";
         #endregion
 
@@ -144,6 +146,11 @@ namespace Ng
         /// If the queue contains more messages than this, the job will not requeue any invalid packages.
         /// </summary>
         public const string MaxRequeueQueueSize = "maxRequeueQueueSize";
+
+        /// <summary>
+        /// If true, packages are expected to have at least a repository signature.
+        /// </summary>
+        public const string RequireSignature = "requireSignature";
         #endregion
 
         #region KeyVault

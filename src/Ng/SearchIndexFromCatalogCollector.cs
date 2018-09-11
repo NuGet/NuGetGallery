@@ -46,7 +46,7 @@ namespace Ng
             _logger = logger;
         }
 
-        protected override async Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
+        protected override async Task<bool> OnProcessBatchAsync(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken)
         {
             JObject catalogIndex = null;
             if (_baseAddress != null)
@@ -56,7 +56,7 @@ namespace Ng
                 _telemetryService.TrackCatalogIndexReadDuration(stopwatch.Elapsed, Index);
             }
 
-            IEnumerable<JObject> catalogItems = await FetchCatalogItems(client, items, cancellationToken);
+            IEnumerable<JObject> catalogItems = await FetchCatalogItemsAsync(client, items, cancellationToken);
 
             var numDocs = _indexWriter.NumDocs();
             _logger.LogInformation(string.Format("Index contains {0} documents.", _indexWriter.NumDocs()));
@@ -110,7 +110,10 @@ namespace Ng
             _metadataForNextCommit = null;
         }
 
-        private static async Task<IEnumerable<JObject>> FetchCatalogItems(CollectorHttpClient client, IEnumerable<JToken> items, CancellationToken cancellationToken)
+        private static async Task<IEnumerable<JObject>> FetchCatalogItemsAsync(
+            CollectorHttpClient client,
+            IEnumerable<JToken> items,
+            CancellationToken cancellationToken)
         {
             IList<Task<JObject>> tasks = new List<Task<JObject>>();
 

@@ -54,7 +54,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         private async Task<IEnumerable<PackageMonitoringStatusListItem>> GetListItems(string state, CancellationToken token)
         {
             var storage = GetStorage(state);
-            var list = await storage.List(token);
+            var list = await storage.ListAsync(token);
             return list.Select(item =>
             {
                 try
@@ -106,7 +106,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             var storage = GetStorage(state);
 
             var statusTasks =
-                (await storage.List(token))
+                (await storage.ListAsync(token))
                 .Select(listItem => GetPackageAsync(storage, listItem.Uri, token))
                 .ToList();
 
@@ -141,7 +141,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 
             var packageUri = GetPackageUri(storage, status.Package);
 
-            await storage.Save(packageUri, storageContent, token);
+            await storage.SaveAsync(packageUri, storageContent, token);
         }
 
         private async Task DeleteAsync(FeedPackageIdentity package, PackageState state, CancellationToken token)
@@ -152,7 +152,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 return;
             }
 
-            await storage.Delete(GetPackageUri(storage, package), token);
+            await storage.DeleteAsync(GetPackageUri(storage, package), token);
         }
 
         private CatalogStorage GetStorage(PackageState state)
@@ -218,7 +218,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         {
             try
             {
-                var content = await storage.Load(packageUri, token);
+                var content = await storage.LoadAsync(packageUri, token);
                 string statusString = null;
                 using (var stream = content.GetContentStream())
                 {

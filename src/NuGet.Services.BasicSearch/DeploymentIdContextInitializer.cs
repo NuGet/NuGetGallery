@@ -12,9 +12,9 @@ namespace NuGet.Services.BasicSearch
 
         public void Initialize(ITelemetry telemetry)
         {
-            if (SafeRoleEnvironment.IsAvailable)
+            if (SafeRoleEnvironment.TryGetDeploymentId(out var id))
             {
-                telemetry.Context.Properties[DeploymentId] = SafeRoleEnvironment.GetDeploymentId();
+                telemetry.Context.Properties[DeploymentId] = id;
             }
         }
     }

@@ -74,7 +74,7 @@ namespace Ng.Jobs
             _storage = storageFactory.Create();
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             var timeout = TimeSpan.FromSeconds(300);
 

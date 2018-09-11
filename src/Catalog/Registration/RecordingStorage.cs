@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using NuGet.Services.Metadata.Catalog.Persistence;
+
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
@@ -23,28 +24,45 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         public HashSet<Uri> Loaded { get; private set; }
         public HashSet<Uri> Saved { get; private set; }
 
-        public Task Save(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        public Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(
+            Uri resourceUri,
+            CancellationToken cancellationToken)
         {
-            Task result = _innerStorage.Save(resourceUri, content, cancellationToken);
+            throw new NotImplementedException();
+        }
+
+        public Task CopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        {
+            Task result = _innerStorage.SaveAsync(resourceUri, content, cancellationToken);
             Saved.Add(resourceUri);
             return result;
         }
 
-        public Task<StorageContent> Load(Uri resourceUri, CancellationToken cancellationToken)
+        public Task<StorageContent> LoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            Task<StorageContent> result = _innerStorage.Load(resourceUri, cancellationToken);
+            Task<StorageContent> result = _innerStorage.LoadAsync(resourceUri, cancellationToken);
             Loaded.Add(resourceUri);
             return result;
         }
 
-        public Task Delete(Uri resourceUri, CancellationToken cancellationToken)
+        public Task DeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            return _innerStorage.Delete(resourceUri, cancellationToken);
+            return _innerStorage.DeleteAsync(resourceUri, cancellationToken);
         }
 
-        public Task<string> LoadString(Uri resourceUri, CancellationToken cancellationToken)
+        public Task<string> LoadStringAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            Task<string> result = _innerStorage.LoadString(resourceUri, cancellationToken);
+            Task<string> result = _innerStorage.LoadStringAsync(resourceUri, cancellationToken);
             Loaded.Add(resourceUri);
             return result;
         }
@@ -59,9 +77,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return _innerStorage.ResolveUri(relativeUri);
         }
 
-        public Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
-            return _innerStorage.List(cancellationToken);
+            return _innerStorage.ListAsync(cancellationToken);
         }
     }
 }

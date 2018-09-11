@@ -8,6 +8,6 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
 {
     public interface IPackageTimestampMetadataResource : INuGetResource
     {
-        Task<PackageTimestampMetadata> GetAsync(ValidationContext data);
+        Task<PackageTimestampMetadata> GetAsync(ValidationContext context);
     }
 }

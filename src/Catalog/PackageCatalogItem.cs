@@ -46,9 +46,9 @@ namespace NuGet.Services.Metadata.Catalog
             graph.Assert(resource.Subject, publishedPredicate, graph.CreateLiteralNode(published.ToString("O"), Schema.DataTypes.DateTime));
 
             //  listed
-            INode listedPredicated = graph.CreateUriNode(Schema.Predicates.Listed);
+            INode listedPredicate = graph.CreateUriNode(Schema.Predicates.Listed);
             Boolean listed = GetListed(published);
-            graph.Assert(resource.Subject, listedPredicated, graph.CreateLiteralNode(listed.ToString(), Schema.DataTypes.Boolean));
+            graph.Assert(resource.Subject, listedPredicate, graph.CreateLiteralNode(listed.ToString(), Schema.DataTypes.Boolean));
 
             //  created
             INode createdPredicate = graph.CreateUriNode(Schema.Predicates.Created);
@@ -161,11 +161,11 @@ namespace NuGet.Services.Metadata.Catalog
         public override IGraph CreatePageContent(CatalogContext context)
         {
             Uri resourceUri = new Uri(GetBaseAddress() + GetRelativeAddress());
-                        
+
             Graph graph = new Graph();
 
             INode subject = graph.CreateUriNode(resourceUri);
-                        
+
             INode idPredicate = graph.CreateUriNode(Schema.Predicates.Id);
             INode versionPredicate = graph.CreateUriNode(Schema.Predicates.Version);
 

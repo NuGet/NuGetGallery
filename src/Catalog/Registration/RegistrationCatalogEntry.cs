@@ -40,9 +40,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             bool isExistingItem)
         {
             INode subject = graph.CreateUriNode(new Uri(resourceUri));
-            string version = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Version)).First().Object.ToString();
+            var triples = graph.GetTriplesWithSubjectPredicate(subject, graph.CreateUriNode(Schema.Predicates.Version));
+            string version = triples.First().Object.ToString();
 
-            RegistrationEntryKey registrationEntryKey = new RegistrationEntryKey(RegistrationKey.Promote(resourceUri, graph), version);
+            var registrationEntryKey = new RegistrationEntryKey(RegistrationKey.Promote(resourceUri, graph), version);
 
             RegistrationCatalogEntry registrationCatalogEntry = null;
             if (!IsDelete(subject, graph) && shouldInclude(registrationEntryKey, resourceUri, graph))

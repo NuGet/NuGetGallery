@@ -21,9 +21,9 @@ namespace NgTests
                 {
                     yield return new object[]
                     {
-                            validator,
-                            pair.Item1,
-                            pair.Item2
+                        validator,
+                        pair.Item1,
+                        pair.Item2
                     };
                 }
             }
@@ -39,10 +39,10 @@ namespace NgTests
                 {
                     yield return new object[]
                     {
-                            validator,
-                            pair.Item1,
-                            pair.Item2,
-                            pair.Item3
+                        validator,
+                        pair.Item1,
+                        pair.Item2,
+                        pair.Item3
                     };
                 }
             }
@@ -63,7 +63,7 @@ namespace NgTests
                 PackageRegistrationIndexMetadata v2,
                 PackageRegistrationIndexMetadata v3)
             {
-                await validator.CompareIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
+                await validator.CompareIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3);
             }
 
             [Theory]
@@ -74,7 +74,7 @@ namespace NgTests
                 PackageRegistrationIndexMetadata v3)
             {
                 await Assert.ThrowsAnyAsync<MetadataInconsistencyException>(
-                    () => validator.CompareIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                    () => validator.CompareIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
             }
 
             [Theory]
@@ -85,7 +85,7 @@ namespace NgTests
                 PackageRegistrationIndexMetadata v3,
                 bool shouldPass)
             {
-                var compareTask = Task.Run(async () => await validator.CompareIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                var compareTask = Task.Run(async () => await validator.CompareIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
 
                 if (shouldPass)
                 {
@@ -99,7 +99,7 @@ namespace NgTests
             }
         }
 
-        public class TheShouldRunIndexMethod
+        public class TheShouldRunIndexAsyncMethod
         {
             public static IEnumerable<object[]> ValidatorRunIndexTestData => ValidatorTestData(t => ValidatorTestUtility.GetPairs(t.CreateIndexes));
 
@@ -112,7 +112,7 @@ namespace NgTests
                 PackageRegistrationIndexMetadata v2,
                 PackageRegistrationIndexMetadata v3)
             {
-                Assert.Equal(true, await validator.ShouldRunIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                Assert.True(await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
             }
 
             [Theory]
@@ -122,7 +122,7 @@ namespace NgTests
                 PackageRegistrationIndexMetadata v2,
                 PackageRegistrationIndexMetadata v3)
             {
-                Assert.Equal(false, await validator.ShouldRunIndex(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
+                Assert.False(await validator.ShouldRunIndexAsync(ValidatorTestUtility.GetFakeValidationContext(), v2, v3));
             }
         }
     }

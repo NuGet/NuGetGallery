@@ -145,13 +145,22 @@ namespace CatalogTests
         public class WhenStorageIsIAzureStorage
         {
             [Fact]
-            public async Task CreateAsync_WhenAzureStorageReturnsNullBlob_ReturnsInstanceFromHttpPackageSource()
+            public async Task CreateAsync_WhenAzureStorageReturnsNonexistantBlob_ReturnsInstanceFromHttpPackageSource()
             {
                 using (var test = new Test())
                 {
+                    test.Storage.Setup(x => x.ResolveUri(test.PackageFileName))
+                        .Returns(test.ContentUri);
+
                     test.Storage.Setup(x => x.GetCloudBlockBlobReferenceAsync(
-                            It.Is<string>(name => name == test.PackageFileName)))
-                        .ReturnsAsync((ICloudBlockBlob)null);
+                            It.Is<Uri>(uri => uri == test.ContentUri)))
+                        .ReturnsAsync(test.Blob.Object);
+
+                    test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(false);
+
+                    test.Blob.SetupGet(x => x.Uri)
+                        .Returns(test.ContentUri);
 
                     var item = await test.Creator.CreateAsync(
                         test.FeedPackageDetails,
@@ -167,9 +176,10 @@ namespace CatalogTests
 
                     Assert.Equal("NonExistentBlob", call.Name);
                     Assert.Equal(1UL, call.Metric);
-                    Assert.Equal(2, call.Properties.Count);
+                    Assert.Equal(3, call.Properties.Count);
                     Assert.Equal(test.PackageId.ToLowerInvariant(), call.Properties["Id"]);
                     Assert.Equal(test.PackageVersion.ToLowerInvariant(), call.Properties["Version"]);
+                    Assert.Equal(test.ContentUri.AbsoluteUri, call.Properties["Uri"]);
                 }
             }
 
@@ -178,9 +188,15 @@ namespace CatalogTests
             {
                 using (var test = new Test())
                 {
+                    test.Storage.Setup(x => x.ResolveUri(test.PackageFileName))
+                        .Returns(test.ContentUri);
+
                     test.Storage.Setup(x => x.GetCloudBlockBlobReferenceAsync(
-                            It.Is<string>(name => name == test.PackageFileName)))
+                            It.Is<Uri>(uri => uri == test.ContentUri)))
                         .ReturnsAsync(test.Blob.Object);
+
+                    test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(true);
 
                     test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
                         .Returns(Task.FromResult(0));
@@ -192,7 +208,7 @@ namespace CatalogTests
                         .ReturnsAsync(new Dictionary<string, string>());
 
                     test.Blob.SetupGet(x => x.Uri)
-                        .Returns(test.PackageUri);
+                        .Returns(test.ContentUri);
 
                     var item = await test.Creator.CreateAsync(
                         test.FeedPackageDetails,
@@ -211,7 +227,7 @@ namespace CatalogTests
                     Assert.Equal(3, call.Properties.Count);
                     Assert.Equal(test.PackageId.ToLowerInvariant(), call.Properties["Id"]);
                     Assert.Equal(test.PackageVersion.ToLowerInvariant(), call.Properties["Version"]);
-                    Assert.Equal(test.PackageUri.AbsoluteUri, call.Properties["Uri"]);
+                    Assert.Equal(test.ContentUri.AbsoluteUri, call.Properties["Uri"]);
                 }
             }
 
@@ -220,9 +236,15 @@ namespace CatalogTests
             {
                 using (var test = new Test())
                 {
+                    test.Storage.Setup(x => x.ResolveUri(test.PackageFileName))
+                        .Returns(test.ContentUri);
+
                     test.Storage.Setup(x => x.GetCloudBlockBlobReferenceAsync(
-                            It.Is<string>(name => name == test.PackageFileName)))
+                            It.Is<Uri>(uri => uri == test.ContentUri)))
                         .ReturnsAsync(test.Blob.Object);
+
+                    test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(true);
 
                     test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
                         .Returns(Task.FromResult(0));
@@ -261,9 +283,15 @@ namespace CatalogTests
             {
                 using (var test = new Test())
                 {
+                    test.Storage.Setup(x => x.ResolveUri(test.PackageFileName))
+                        .Returns(test.ContentUri);
+
                     test.Storage.Setup(x => x.GetCloudBlockBlobReferenceAsync(
-                            It.Is<string>(name => name == test.PackageFileName)))
+                            It.Is<Uri>(uri => uri == test.ContentUri)))
                         .ReturnsAsync(test.Blob.Object);
+
+                    test.Blob.Setup(x => x.ExistsAsync(It.IsAny<CancellationToken>()))
+                        .ReturnsAsync(true);
 
                     test.Blob.Setup(x => x.FetchAttributesAsync(It.IsAny<CancellationToken>()))
                         .Returns(Task.FromResult(0));
@@ -285,7 +313,7 @@ namespace CatalogTests
                         .Returns(Task.FromResult(0));
 
                     test.Blob.SetupGet(x => x.Uri)
-                        .Returns(test.PackageUri);
+                        .Returns(test.ContentUri);
 
                     var item = await test.Creator.CreateAsync(
                         test.FeedPackageDetails,
@@ -304,7 +332,7 @@ namespace CatalogTests
                     Assert.Equal(3, call.Properties.Count);
                     Assert.Equal(test.PackageId.ToLowerInvariant(), call.Properties["Id"]);
                     Assert.Equal(test.PackageVersion.ToLowerInvariant(), call.Properties["Version"]);
-                    Assert.Equal(test.PackageUri.AbsoluteUri, call.Properties["Uri"]);
+                    Assert.Equal(test.ContentUri.AbsoluteUri, call.Properties["Uri"]);
                 }
             }
         }

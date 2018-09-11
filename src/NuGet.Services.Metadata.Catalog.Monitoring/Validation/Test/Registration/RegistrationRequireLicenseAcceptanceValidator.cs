@@ -12,18 +12,13 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationRequireLicenseAcceptanceValidator : RegistrationIndexValidator
     {
         public RegistrationRequireLicenseAcceptanceValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
+            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationRequireLicenseAcceptanceValidator> logger)
             : base(feedToSource, logger)
         {
         }
 
-        public override Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
-        {
-            return Task.FromResult(v2 != null && v3 != null);
-        }
-
-        public override Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task CompareIndexAsync(ValidationContext context, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
         {
             var isEqual = v2.RequireLicenseAcceptance == v3.RequireLicenseAcceptance;
 

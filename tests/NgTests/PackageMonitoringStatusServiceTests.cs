@@ -28,7 +28,7 @@ namespace NgTests
         public PackageMonitoringStatusServiceTests()
         {
             Service = new PackageMonitoringStatusService(
-                new MemoryStorageFactory(), 
+                new MemoryStorageFactory(),
                 new Mock<ILogger<PackageMonitoringStatusService>>().Object);
         }
 
@@ -43,9 +43,9 @@ namespace NgTests
             // Arrange
             var feedPackageIdentity = new FeedPackageIdentity("howdy", "3.4.6");
             var packageValidationResult = new PackageValidationResult(
-                new PackageIdentity(feedPackageIdentity.Id, new NuGetVersion(feedPackageIdentity.Version)), 
-                null, 
-                null, 
+                new PackageIdentity(feedPackageIdentity.Id, new NuGetVersion(feedPackageIdentity.Version)),
+                null,
+                null,
                 Enumerable.Empty<AggregateValidationResult>());
 
             var status = new PackageMonitoringStatus(packageValidationResult);
@@ -89,7 +89,7 @@ namespace NgTests
             foreach (var state in Enum.GetNames(typeof(PackageState)))
             {
                 var storage = storageFactory.Create(state.ToLowerInvariant());
-                await storage.Save(storage.ResolveUri(packageFileName), new StringStorageContent("{}"), CancellationToken.None);
+                await storage.SaveAsync(storage.ResolveUri(packageFileName), new StringStorageContent("{}"), CancellationToken.None);
                 Assert.True(storage.Exists(packageFileName));
             }
 
@@ -139,7 +139,7 @@ namespace NgTests
         private static PackageMonitoringStatus CreateStatusWithPackageValidationResult(string packageId, string packageVersion, IEnumerable<ValidationResult> results)
         {
             var version = new NuGetVersion(packageVersion);
-            
+
             var aggregateValidationResult = new DummyAggregateValidator(results).Validate();
 
             var packageValidationResult = new PackageValidationResult(
@@ -155,7 +155,7 @@ namespace NgTests
                         CreateDeletionAuditEntry(packageId, packageVersion)
                     },
                 new AggregateValidationResult[] { aggregateValidationResult });
-            
+
             return new PackageMonitoringStatus(packageValidationResult);
         }
 
@@ -391,9 +391,9 @@ namespace NgTests
             var storageFactory = new MemoryStorageFactory();
             var storage = storageFactory.Create(PackageState.Valid.ToString().ToLowerInvariant());
 
-            await storage.Save(
-                storage.ResolveUri($"{desiredPackageId}/{desiredPackageId}.{desiredPackageVersion}.json"), 
-                new StringStorageContent("this isn't json"), 
+            await storage.SaveAsync(
+                storage.ResolveUri($"{desiredPackageId}/{desiredPackageId}.{desiredPackageVersion}.json"),
+                new StringStorageContent("this isn't json"),
                 CancellationToken.None);
 
             var statusService = new PackageMonitoringStatusService(

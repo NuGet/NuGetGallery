@@ -48,7 +48,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
         //  Load implementation
 
-        static async Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
+        private static async Task<IDictionary<RegistrationEntryKey, RegistrationCatalogEntry>> Load(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Load: resourceUri = {0}", resourceUri);
 
@@ -61,7 +61,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return resources;
         }
 
-        static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> GetResources(IGraph graph)
+        private static IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> GetResources(IGraph graph)
         {
             IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources = new Dictionary<RegistrationEntryKey, RegistrationCatalogEntry>();
 
@@ -78,7 +78,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return resources;
         }
 
-        static IList<Uri> ListExistingItems(TripleStore store)
+        private static IList<Uri> ListExistingItems(TripleStore store)
         {
             string sparql = Utils.GetResource("sparql.SelectInlinePackage.rq");
 
@@ -96,7 +96,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return results;
         }
 
-        static void AddExistingItem(IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources, TripleStore store, Uri catalogEntry)
+        private static void AddExistingItem(IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> resources, TripleStore store, Uri catalogEntry)
         {
             Trace.TraceInformation("RegistrationPersistence.AddExistingItem: catalogEntry = {0}", catalogEntry);
 
@@ -113,11 +113,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                 isExistingItem: true));
         }
 
-        static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
+        private static async Task<IGraph> LoadCatalog(IStorage storage, Uri resourceUri, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.LoadCatalog: resourceUri = {0}", resourceUri);
 
-            string json = await storage.LoadString(resourceUri, cancellationToken);
+            string json = await storage.LoadStringAsync(resourceUri, cancellationToken);
 
             IGraph graph = Utils.CreateGraph(json);
 
@@ -151,16 +151,16 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return graph;
         }
 
-        static async Task<IGraph> LoadCatalogPage(IStorage storage, Uri pageUri, CancellationToken cancellationToken)
+        private static async Task<IGraph> LoadCatalogPage(IStorage storage, Uri pageUri, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.LoadCatalogPage: pageUri = {0}", pageUri);
-            string json = await storage.LoadString(pageUri, cancellationToken);
+            string json = await storage.LoadStringAsync(pageUri, cancellationToken);
             IGraph graph = Utils.CreateGraph(json);
             return graph;
         }
 
         //  Save implementation
-        static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, int partitionSize, int packageCountThreshold, Uri contentBaseAddress, CancellationToken cancellationToken)
+        private static async Task Save(IStorage storage, Uri registrationBaseAddress, IDictionary<RegistrationEntryKey, RegistrationCatalogEntry> registration, int partitionSize, int packageCountThreshold, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Save");
 
@@ -181,7 +181,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        static async Task SaveSmallRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        private static async Task SaveSmallRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveSmallRegistration");
 
@@ -195,10 +195,10 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
             JObject frame = (new CatalogContext()).GetJsonLdContext("context.Registration.json", graphPersistence.TypeUri);
             StorageContent content = new JTokenStorageContent(Utils.CreateJson(graphPersistence.Graph, frame), "application/json", "no-store");
-            await storage.Save(graphPersistence.ResourceUri, content, cancellationToken);
+            await storage.SaveAsync(graphPersistence.ResourceUri, content, cancellationToken);
         }
 
-        static async Task SaveLargeRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        private static async Task SaveLargeRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveLargeRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
 
@@ -207,7 +207,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             await SaveRegistration(storage, registrationBaseAddress, items, cleanUpList, null, partitionSize, contentBaseAddress, cancellationToken);
         }
 
-        static async Task SaveRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
+        private static async Task SaveRegistration(IStorage storage, Uri registrationBaseAddress, IList<RegistrationCatalogEntry> items, IList<Uri> cleanUpList, SingleGraphPersistence graphPersistence, int partitionSize, Uri contentBaseAddress, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.SaveRegistration: registrationBaseAddress = {0} items: {1}", registrationBaseAddress, items.Count);
 
@@ -221,7 +221,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             }
         }
 
-        static async Task Cleanup(RecordingStorage storage, CancellationToken cancellationToken)
+        private static async Task Cleanup(RecordingStorage storage, CancellationToken cancellationToken)
         {
             Trace.TraceInformation("RegistrationPersistence.Cleanup");
 
@@ -230,7 +230,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 if (!storage.Saved.Contains(loaded))
                 {
-                    tasks.Add(storage.Delete(loaded, cancellationToken));
+                    tasks.Add(storage.DeleteAsync(loaded, cancellationToken));
                 }
             }
             if (tasks.Count > 0)

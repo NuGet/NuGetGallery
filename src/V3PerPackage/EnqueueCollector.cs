@@ -32,7 +32,7 @@ namespace NuGet.Services.V3PerPackage
             _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         }
 
-        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatches(IEnumerable<CatalogItem> catalogItems)
+        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
         {
             var catalogItemList = catalogItems.ToList();
 
@@ -41,7 +41,7 @@ namespace NuGet.Services.V3PerPackage
             return Task.FromResult(new[] { new CatalogItemBatch(maxCommitTimestamp, catalogItemList) }.AsEnumerable());
         }
 
-        protected override async Task<bool> OnProcessBatch(
+        protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
             IEnumerable<JToken> items,
             JToken context,

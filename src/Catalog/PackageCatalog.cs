@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Globalization;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog
@@ -21,8 +21,8 @@ namespace NuGet.Services.Metadata.Catalog
             if (commitMetadata.LastCreated != null)
             {
                 graph.Assert(
-                    graph.CreateUriNode(indexUri), 
-                    graph.CreateUriNode(Schema.Predicates.LastCreated), 
+                    graph.CreateUriNode(indexUri),
+                    graph.CreateUriNode(Schema.Predicates.LastCreated),
                     graph.CreateLiteralNode(commitMetadata.LastCreated.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
             if (commitMetadata.LastEdited != null)
@@ -35,8 +35,8 @@ namespace NuGet.Services.Metadata.Catalog
             if (commitMetadata.LastDeleted != null)
             {
                 graph.Assert(
-                    graph.CreateUriNode(indexUri), 
-                    graph.CreateUriNode(Schema.Predicates.LastDeleted), 
+                    graph.CreateUriNode(indexUri),
+                    graph.CreateUriNode(Schema.Predicates.LastDeleted),
                     graph.CreateLiteralNode(commitMetadata.LastDeleted.Value.ToString("O"), Schema.DataTypes.DateTime));
             }
 
@@ -47,7 +47,7 @@ namespace NuGet.Services.Metadata.Catalog
         {
             CommitMetadata commitMetadata = new CommitMetadata();
 
-            string json = await writer.Storage.LoadString(writer.RootUri, cancellationToken);
+            string json = await writer.Storage.LoadStringAsync(writer.RootUri, cancellationToken);
 
             if (json != null)
             {

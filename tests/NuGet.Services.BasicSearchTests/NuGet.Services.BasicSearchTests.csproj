@@ -231,6 +231,7 @@
     <Compile Include="TestSupport\AutocompleteBuilder.cs" />
     <Compile Include="TestSupport\Serialization.cs" />
     <Compile Include="TestSupport\InMemoryLoader.cs" />
+    <Compile Include="TestSupport\StartupTestCollection.cs" />
     <Compile Include="TestSupport\V2SearchBuilder.cs" />
     <Compile Include="TestSupport\V3SearchBuilder.cs" />
     <Compile Include="TestSupport\TestSettings.cs" />

@@ -1,21 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
-using Newtonsoft.Json.Linq;
-using NuGet.Services.Metadata.Catalog.Persistence;
-using NuGet.Versioning;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using NuGet.Services.Metadata.Catalog.Persistence;
+using NuGet.Versioning;
 using VDS.RDF;
 
 namespace NuGet.Services.Metadata.Catalog.Registration
 {
     public class RegistrationMakerCatalogWriter : CatalogWriterBase
     {
-        IList<Uri> _cleanUpList;
+        private readonly IList<Uri> _cleanUpList;
 
         public RegistrationMakerCatalogWriter(IStorage storage, int partitionSize = 100, IList<Uri> cleanUpList = null, ICatalogGraphPersistence graphPersistence = null, CatalogContext context = null)
             : base(storage, graphPersistence, context)
@@ -93,7 +94,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 if (!registrationMakerCatalogItem.IsExistingItem && content != null)
                 {
-                    saveOperation.SaveTask = storage.Save(resourceUri, content, cancellationToken);
+                    saveOperation.SaveTask = storage.SaveAsync(resourceUri, content, cancellationToken);
                 }
                 else
                 {
@@ -106,7 +107,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return base.CreateSaveOperationForItem(storage, context, item, cancellationToken);
         }
 
-        async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions, CancellationToken cancellationToken)
+        private async Task<IDictionary<string, CatalogItemSummary>> PartitionAndSavePages(Guid commitId, DateTime commitTimeStamp, SortedDictionary<NuGetVersion, KeyValuePair<string, CatalogItemSummary>> versions, CancellationToken cancellationToken)
         {
             IDictionary<string, CatalogItemSummary> newPageEntries = new Dictionary<string, CatalogItemSummary>();
 
@@ -133,7 +134,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return newPageEntries;
         }
 
-        static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)
+        private static IGraph CreateExtraGraph(Uri pageUri, string lower, string upper)
         {
             IGraph graph = new Graph();
             INode resourceNode = graph.CreateUriNode(pageUri);
@@ -142,7 +143,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return graph;
         }
 
-        static NuGetVersion GetPackageVersion(Uri packageUri, IGraph pageContent)
+        private static NuGetVersion GetPackageVersion(Uri packageUri, IGraph pageContent)
         {
             Triple t1 = pageContent.GetTriplesWithSubjectPredicate(
                 pageContent.CreateUriNode(packageUri),
@@ -156,7 +157,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return NuGetVersion.Parse(s);
         }
 
-        static IGraph CreatePageSummary(Uri newPageUri, string lower, string upper)
+        private static IGraph CreatePageSummary(Uri newPageUri, string lower, string upper)
         {
             IGraph graph = new Graph();
 

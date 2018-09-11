@@ -24,10 +24,10 @@ namespace NuGet.Services.BasicSearch.Configuration
             // Get value from Cloud Services (if it throws, just ignore)
             try
             {
-                if (SafeRoleEnvironment.IsAvailable)
+                var cloudKey = key.Replace(':', '-'); // no ':' supported in cloud services
+                if (SafeRoleEnvironment.TryGetConfigurationSettingValue(cloudKey, out var configValue))
                 {
-                    var cloudKey = key.Replace(':', '-'); // no ':' supported in cloud services
-                    return SafeRoleEnvironment.GetConfigurationSettingValue(cloudKey);
+                    return configValue;
                 }
             }
             catch

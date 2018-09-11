@@ -11,7 +11,7 @@ using Moq;
 using NuGet.Services.Metadata.Catalog.Persistence;
 using Xunit;
 
-namespace CatalogTests
+namespace CatalogTests.Persistence
 {
     public class AzureCloudBlockBlobTests
     {
@@ -30,6 +30,19 @@ namespace CatalogTests
             var exception = Assert.Throws<ArgumentNullException>(() => new AzureCloudBlockBlob(blob: null));
 
             Assert.Equal("blob", exception.ParamName);
+        }
+
+        [Fact]
+        public async Task ExistsAsync_CallsUnderlyingMethod()
+        {
+            _underlyingBlob.Setup(x => x.ExistsAsync())
+                .ReturnsAsync(true);
+
+            var blob = new AzureCloudBlockBlob(_underlyingBlob.Object);
+
+            Assert.True(await blob.ExistsAsync(CancellationToken.None));
+
+            _underlyingBlob.VerifyAll();
         }
 
         [Fact]

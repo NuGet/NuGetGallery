@@ -21,13 +21,17 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
     public class DnxCatalogCollector : CommitCollector
     {
         private readonly StorageFactory _storageFactory;
+        private readonly IAzureStorage _sourceStorage;
         private readonly DnxMaker _dnxMaker;
         private readonly ILogger _logger;
         private readonly int _maxDegreeOfParallelism;
+        private readonly Uri _contentBaseAddress;
 
         public DnxCatalogCollector(
             Uri index,
             StorageFactory storageFactory,
+            IAzureStorage preferredPackageSourceStorage,
+            Uri contentBaseAddress,
             ITelemetryService telemetryService,
             ILogger logger,
             int maxDegreeOfParallelism,
@@ -36,6 +40,8 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             : base(index, telemetryService, handlerFunc, httpClientTimeout)
         {
             _storageFactory = storageFactory ?? throw new ArgumentNullException(nameof(storageFactory));
+            _sourceStorage = preferredPackageSourceStorage;
+            _contentBaseAddress = contentBaseAddress;
             _dnxMaker = new DnxMaker(storageFactory);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
@@ -49,9 +55,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             _maxDegreeOfParallelism = maxDegreeOfParallelism;
         }
 
-        public Uri ContentBaseAddress { get; set; }
-
-        protected override async Task<bool> OnProcessBatch(
+        protected override async Task<bool> OnProcessBatchAsync(
             CollectorHttpClient client,
             IEnumerable<JToken> items,
             JToken context,
@@ -62,7 +66,7 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             var catalogEntries = items.Select(
                     item => new CatalogEntry(
                         item["nuget:id"].ToString().ToLowerInvariant(),
-                        NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString().ToLowerInvariant()),
+                        NuGetVersionUtility.NormalizeVersion(item["nuget:version"].ToString()).ToLowerInvariant(),
                         item["@type"].ToString().Replace("nuget:", Schema.Prefixes.NuGet),
                         item))
                 .ToList();
@@ -79,35 +83,56 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return true;
         }
 
-        private async Task<IEnumerable<CatalogEntry>> ProcessCatalogEntriesAsync(CollectorHttpClient client, IEnumerable<CatalogEntry> catalogEntries, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CatalogEntry>> ProcessCatalogEntriesAsync(
+            CollectorHttpClient client,
+            IEnumerable<CatalogEntry> catalogEntries,
+            CancellationToken cancellationToken)
         {
             var processedCatalogEntries = new ConcurrentBag<CatalogEntry>();
 
             await catalogEntries.ForEachAsync(_maxDegreeOfParallelism, async catalogEntry =>
             {
                 var packageId = catalogEntry.PackageId;
-                var packageVersion = catalogEntry.PackageVersion;
+                var normalizedPackageVersion = catalogEntry.NormalizedPackageVersion;
 
                 if (catalogEntry.EntryType == Schema.DataTypes.PackageDetails.ToString())
                 {
-                    var properties = GetTelemetryProperties(packageId, packageVersion);
+                    var properties = GetTelemetryProperties(catalogEntry);
 
                     using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDetailsSeconds, properties))
                     {
-                        var sourceUri = new Uri(ContentBaseAddress, $"{packageId}.{packageVersion}.nupkg");
+                        var packageFileName = PackageUtility.GetPackageFileName(
+                            packageId,
+                            normalizedPackageVersion);
+                        var sourceUri = new Uri(_contentBaseAddress, packageFileName);
                         var destinationStorage = _storageFactory.Create(packageId);
-                        var destinationUri = destinationStorage.GetUri(DnxMaker.GetRelativeAddressNupkg(packageId, packageVersion));
+                        var destinationRelativeUri = DnxMaker.GetRelativeAddressNupkg(
+                            packageId,
+                            normalizedPackageVersion);
+                        var destinationUri = destinationStorage.GetUri(destinationRelativeUri);
 
                         var isNupkgSynchronized = await destinationStorage.AreSynchronized(sourceUri, destinationUri);
-                        var isPackageInIndex = await _dnxMaker.HasPackageInIndexAsync(destinationStorage, packageId, packageVersion, cancellationToken);
+                        var isPackageInIndex = await _dnxMaker.HasPackageInIndexAsync(
+                            destinationStorage,
+                            packageId,
+                            normalizedPackageVersion,
+                            cancellationToken);
+                        var areRequiredPropertiesPresent = await AreRequiredPropertiesPresentAsync(destinationStorage, destinationUri);
 
-                        if (isNupkgSynchronized && isPackageInIndex)
+                        if (isNupkgSynchronized && isPackageInIndex && areRequiredPropertiesPresent)
                         {
-                            _logger.LogInformation("No changes detected: {Id}/{Version}", packageId, packageVersion);
+                            _logger.LogInformation("No changes detected: {Id}/{Version}", packageId, normalizedPackageVersion);
+
                             return;
                         }
 
-                        if (isNupkgSynchronized || await ProcessPackageDetailsAsync(client, packageId, packageVersion, sourceUri, cancellationToken))
+                        if ((isNupkgSynchronized && areRequiredPropertiesPresent)
+                            || await ProcessPackageDetailsAsync(
+                                client,
+                                packageId,
+                                normalizedPackageVersion,
+                                sourceUri,
+                                cancellationToken))
                         {
                             processedCatalogEntries.Add(catalogEntry);
                         }
@@ -115,11 +140,11 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                 }
                 else if (catalogEntry.EntryType == Schema.DataTypes.PackageDelete.ToString())
                 {
-                    var properties = GetTelemetryProperties(packageId, packageVersion);
+                    var properties = GetTelemetryProperties(catalogEntry);
 
                     using (_telemetryService.TrackDuration(TelemetryConstants.ProcessPackageDeleteSeconds, properties))
                     {
-                        await ProcessPackageDeleteAsync(packageId, packageVersion, cancellationToken);
+                        await ProcessPackageDeleteAsync(packageId, normalizedPackageVersion, cancellationToken);
 
                         processedCatalogEntries.Add(catalogEntry);
                     }
@@ -129,7 +154,24 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return processedCatalogEntries;
         }
 
-        private async Task UpdatePackageVersionIndexAsync(IEnumerable<CatalogEntry> catalogEntries, CancellationToken cancellationToken)
+        private async Task<bool> AreRequiredPropertiesPresentAsync(Storage destinationStorage, Uri destinationUri)
+        {
+            var azureStorage = destinationStorage as IAzureStorage;
+
+            if (azureStorage == null)
+            {
+                return true;
+            }
+
+            return await azureStorage.HasPropertiesAsync(
+                destinationUri,
+                DnxConstants.ApplicationOctetStreamContentType,
+                DnxConstants.DefaultCacheControl);
+        }
+
+        private async Task UpdatePackageVersionIndexAsync(
+            IEnumerable<CatalogEntry> catalogEntries,
+            CancellationToken cancellationToken)
         {
             var catalogEntryGroups = catalogEntries.GroupBy(catalogEntry => catalogEntry.PackageId);
 
@@ -150,11 +192,11 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
                         {
                             if (catalogEntry.EntryType == Schema.DataTypes.PackageDetails.ToString())
                             {
-                                versions.Add(NuGetVersion.Parse(catalogEntry.PackageVersion));
+                                versions.Add(NuGetVersion.Parse(catalogEntry.NormalizedPackageVersion));
                             }
                             else if (catalogEntry.EntryType == Schema.DataTypes.PackageDelete.ToString())
                             {
-                                versions.Remove(NuGetVersion.Parse(catalogEntry.PackageVersion));
+                                versions.Remove(NuGetVersion.Parse(catalogEntry.NormalizedPackageVersion));
                             }
                         }
                     }, cancellationToken);
@@ -162,12 +204,109 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
 
                 foreach (var catalogEntry in catalogEntryGroup)
                 {
-                    _logger.LogInformation("Commit: {Id}/{Version}", packageId, catalogEntry.PackageVersion);
+                    _logger.LogInformation("Commit: {Id}/{Version}", packageId, catalogEntry.NormalizedPackageVersion);
                 }
             });
         }
 
         private async Task<bool> ProcessPackageDetailsAsync(
+            HttpClient client,
+            string packageId,
+            string normalizedPackageVersion,
+            Uri sourceUri,
+            CancellationToken cancellationToken)
+        {
+            if (await ProcessPackageDetailsViaStorageAsync(
+                packageId,
+                normalizedPackageVersion,
+                cancellationToken))
+            {
+                return true;
+            }
+
+            _telemetryService.TrackMetric(
+                TelemetryConstants.UsePackageSourceFallback,
+                metric: 1,
+                properties: GetTelemetryProperties(packageId, normalizedPackageVersion));
+
+            return await ProcessPackageDetailsViaHttpAsync(
+                client,
+                packageId,
+                normalizedPackageVersion,
+                sourceUri,
+                cancellationToken);
+        }
+
+        private async Task<bool> ProcessPackageDetailsViaStorageAsync(
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
+        {
+            if (_sourceStorage == null)
+            {
+                return false;
+            }
+
+            var packageFileName = PackageUtility.GetPackageFileName(packageId, normalizedPackageVersion);
+            var sourceUri = _sourceStorage.ResolveUri(packageFileName);
+
+            var sourceBlob = await _sourceStorage.GetCloudBlockBlobReferenceAsync(sourceUri);
+
+            if (await sourceBlob.ExistsAsync(cancellationToken))
+            {
+                // It's possible (though unlikely) that the blob may change between reads.  Reading a blob with a
+                // single GET request returns the whole blob in a consistent state, but we're reading the blob many
+                // different times.  To detect the blob changing between reads, we check the ETag again later.
+                // If the ETag's differ, we'll fall back to using a single HTTP GET request.
+                var token1 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
+
+                var nuspec = await GetNuspecAsync(sourceBlob, packageId, cancellationToken);
+
+                if (string.IsNullOrEmpty(nuspec))
+                {
+                    _logger.LogWarning(
+                        "No .nuspec available for {Id}/{Version}.  Falling back to HTTP processing.",
+                        packageId,
+                        normalizedPackageVersion);
+                }
+                else
+                {
+                    await _dnxMaker.AddPackageAsync(
+                        _sourceStorage,
+                        nuspec,
+                        packageId,
+                        normalizedPackageVersion,
+                        cancellationToken);
+
+                    var token2 = await _sourceStorage.GetOptimisticConcurrencyControlTokenAsync(sourceUri, cancellationToken);
+
+                    if (token1 == token2)
+                    {
+                        _logger.LogInformation("Added .nupkg and .nuspec for package {Id}/{Version}", packageId, normalizedPackageVersion);
+
+                        return true;
+                    }
+                    else
+                    {
+                        _telemetryService.TrackMetric(
+                            TelemetryConstants.BlobModified,
+                            metric: 1,
+                            properties: GetTelemetryProperties(packageId, normalizedPackageVersion));
+                    }
+                }
+            }
+            else
+            {
+                _telemetryService.TrackMetric(
+                    TelemetryConstants.NonExistentBlob,
+                    metric: 1,
+                    properties: GetTelemetryProperties(packageId, normalizedPackageVersion));
+            }
+
+            return false;
+        }
+
+        private async Task<bool> ProcessPackageDetailsViaHttpAsync(
             HttpClient client,
             string id,
             string version,
@@ -210,34 +349,50 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return true;
         }
 
-        private async Task ProcessPackageDeleteAsync(string id, string version, CancellationToken cancellationToken)
+        private async Task ProcessPackageDeleteAsync(
+            string packageId,
+            string normalizedPackageVersion,
+            CancellationToken cancellationToken)
         {
             await _dnxMaker.UpdatePackageVersionIndexAsync(
-                id,
-                versions => versions.Remove(NuGetVersion.Parse(version)),
+                packageId,
+                versions => versions.Remove(NuGetVersion.Parse(normalizedPackageVersion)),
                 cancellationToken);
 
-            await _dnxMaker.DeletePackageAsync(id, version, cancellationToken);
+            await _dnxMaker.DeletePackageAsync(packageId, normalizedPackageVersion, cancellationToken);
 
-            _logger.LogInformation("Commit delete: {Id}/{Version}", id, version);
+            _logger.LogInformation("Commit delete: {Id}/{Version}", packageId, normalizedPackageVersion);
         }
 
-        private static void AssertNoMultipleEntriesForSamePackageIdentity(DateTime commitTimeStamp, IEnumerable<CatalogEntry> catalogEntries)
+        private static void AssertNoMultipleEntriesForSamePackageIdentity(
+            DateTime commitTimeStamp,
+            IEnumerable<CatalogEntry> catalogEntries)
         {
             var catalogEntriesForSamePackageIdentity = catalogEntries.GroupBy(
                 catalogEntry => new
                 {
                     catalogEntry.PackageId,
-                    catalogEntry.PackageVersion
+                    catalogEntry.NormalizedPackageVersion
                 })
                 .Where(group => group.Count() > 1)
-                .Select(group => $"{group.Key.PackageId} {group.Key.PackageVersion}");
+                .Select(group => $"{group.Key.PackageId} {group.Key.NormalizedPackageVersion}");
 
             if (catalogEntriesForSamePackageIdentity.Any())
             {
                 var packageIdentities = string.Join(", ", catalogEntriesForSamePackageIdentity);
 
                 throw new InvalidOperationException($"The catalog batch {commitTimeStamp} contains multiple entries for the same package identity.  Package(s):  {packageIdentities}");
+            }
+        }
+
+        private static async Task<string> GetNuspecAsync(
+            ICloudBlockBlob sourceBlob,
+            string packageId,
+            CancellationToken cancellationToken)
+        {
+            using (var stream = await sourceBlob.GetStreamAsync(cancellationToken))
+            {
+                return GetNuspec(stream, packageId);
             }
         }
 
@@ -274,26 +429,31 @@ namespace NuGet.Services.Metadata.Catalog.Dnx
             return null;
         }
 
-        private static Dictionary<string, string> GetTelemetryProperties(string packageId, string packageVersion)
+        private static Dictionary<string, string> GetTelemetryProperties(CatalogEntry catalogEntry)
+        {
+            return GetTelemetryProperties(catalogEntry.PackageId, catalogEntry.NormalizedPackageVersion);
+        }
+
+        private static Dictionary<string, string> GetTelemetryProperties(string packageId, string normalizedPackageVersion)
         {
             return new Dictionary<string, string>()
             {
                 { TelemetryConstants.Id, packageId },
-                { TelemetryConstants.Version, packageVersion }
+                { TelemetryConstants.Version, normalizedPackageVersion }
             };
         }
 
         private sealed class CatalogEntry
         {
             internal string PackageId { get; }
-            internal string PackageVersion { get; }
+            internal string NormalizedPackageVersion { get; }
             internal string EntryType { get; }
             internal JToken Entry { get; }
 
-            internal CatalogEntry(string packageId, string packageVersion, string entryType, JToken entry)
+            internal CatalogEntry(string packageId, string normalizedPackageVersion, string entryType, JToken entry)
             {
                 PackageId = packageId;
-                PackageVersion = packageVersion;
+                NormalizedPackageVersion = normalizedPackageVersion;
                 EntryType = entryType;
                 Entry = entry;
             }

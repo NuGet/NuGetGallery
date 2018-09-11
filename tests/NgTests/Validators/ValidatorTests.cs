@@ -19,10 +19,10 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var data = new ValidationContext();
+            var context = new ValidationContext();
 
             // Act
-            var result = await validator.ValidateAsync(data);
+            var result = await validator.ValidateAsync(context);
 
             // Assert
             Assert.Same(validator, result.Validator);
@@ -39,10 +39,10 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var data = new ValidationContext();
+            var context = new ValidationContext();
 
             // Act
-            var result = await validator.ValidateAsync(data);
+            var result = await validator.ValidateAsync(context);
 
             // Assert
             Assert.Same(validator, result.Validator);
@@ -61,10 +61,10 @@ namespace NgTests
 
             var validator = new TestableValidator(shouldRun, runInternal);
 
-            var data = new ValidationContext();
+            var context = new ValidationContext();
 
             // Act
-            var result = await validator.ValidateAsync(data);
+            var result = await validator.ValidateAsync(context);
 
             // Assert
             Assert.Same(validator, result.Validator);
@@ -81,12 +81,12 @@ namespace NgTests
             _runInternal = runInternal;
         }
 
-        protected override Task<bool> ShouldRun(ValidationContext data)
+        protected override Task<bool> ShouldRunAsync(ValidationContext context)
         {
             return Task.FromResult(_shouldRun());
         }
 
-        protected override Task RunInternal(ValidationContext data)
+        protected override Task RunInternalAsync(ValidationContext context)
         {
             _runInternal();
 

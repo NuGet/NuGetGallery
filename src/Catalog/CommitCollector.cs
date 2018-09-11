@@ -23,7 +23,11 @@ namespace NuGet.Services.Metadata.Catalog
         {
         }
 
-        protected override async Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
+        protected override async Task<bool> FetchAsync(
+            CollectorHttpClient client,
+            ReadWriteCursor front,
+            ReadCursor back,
+            CancellationToken cancellationToken)
         {
             JObject root;
 
@@ -48,7 +52,7 @@ namespace NuGet.Services.Metadata.Catalog
                 JToken context = null;
                 page.TryGetValue("@context", out context);
 
-                var batches = await CreateBatches(page["items"]
+                var batches = await CreateBatchesAsync(page["items"]
                     .Select(item => new CatalogItem(item))
                     .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value));
 
@@ -76,7 +80,7 @@ namespace NuGet.Services.Metadata.Catalog
                         { TelemetryConstants.BatchItemCount, batch.Items.Count.ToString() }
                     }))
                     {
-                        acceptNextBatch = await OnProcessBatch(
+                        acceptNextBatch = await OnProcessBatchAsync(
                             client,
                             batch.Items.Select(item => item.Value),
                             context,
@@ -112,7 +116,7 @@ namespace NuGet.Services.Metadata.Catalog
             return acceptNextBatch;
         }
 
-        protected virtual Task<IEnumerable<CatalogItemBatch>> CreateBatches(IEnumerable<CatalogItem> catalogItems)
+        protected virtual Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
         {
             var batches = catalogItems
                 .GroupBy(item => item.CommitTimeStamp)
@@ -122,7 +126,13 @@ namespace NuGet.Services.Metadata.Catalog
             return Task.FromResult(batches);
         }
 
-        protected abstract Task<bool> OnProcessBatch(CollectorHttpClient client, IEnumerable<JToken> items, JToken context, DateTime commitTimeStamp, bool isLastBatch, CancellationToken cancellationToken);
+        protected abstract Task<bool> OnProcessBatchAsync(
+            CollectorHttpClient client,
+            IEnumerable<JToken> items,
+            JToken context,
+            DateTime commitTimeStamp,
+            bool isLastBatch,
+            CancellationToken cancellationToken);
 
         protected class CatalogItemBatch : IComparable
         {
@@ -133,8 +143,8 @@ namespace NuGet.Services.Metadata.Catalog
                 Items.Sort();
             }
 
-            public DateTime CommitTimeStamp { get; private set; }
-            public List<CatalogItem> Items { get; private set; }
+            public DateTime CommitTimeStamp { get; }
+            public List<CatalogItem> Items { get; }
 
             public int CompareTo(object obj)
             {
@@ -151,9 +161,9 @@ namespace NuGet.Services.Metadata.Catalog
                 Value = jtoken;
             }
 
-            public DateTime CommitTimeStamp { get; private set; }
-            public Uri Uri { get; private set; }
-            public JToken Value { get; private set; }
+            public DateTime CommitTimeStamp { get; }
+            public Uri Uri { get; }
+            public JToken Value { get; }
 
             public int CompareTo(object obj)
             {

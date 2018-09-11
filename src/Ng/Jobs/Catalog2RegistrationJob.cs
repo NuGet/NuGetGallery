@@ -19,7 +19,8 @@ namespace Ng.Jobs
         private ReadCursor _back;
         private Uri _destination;
 
-        public Catalog2RegistrationJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory) : base(telemetryService, loggerFactory)
+        public Catalog2RegistrationJob(ITelemetryService telemetryService, ILoggerFactory loggerFactory)
+            : base(telemetryService, loggerFactory)
         {
         }
 
@@ -67,7 +68,6 @@ namespace Ng.Jobs
         protected override void Init(IDictionary<string, string> arguments, CancellationToken cancellationToken)
         {
             var source = arguments.GetOrThrow<string>(Arguments.Source);
-            var unlistShouldDelete = arguments.GetOrDefault(Arguments.UnlistShouldDelete, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
 
             var contentBaseAddress = arguments.GetOrDefault<string>(Arguments.ContentBaseAddress);
@@ -102,13 +102,9 @@ namespace Ng.Jobs
                 new Uri(source),
                 storageFactories.LegacyStorageFactory,
                 storageFactories.SemVer2StorageFactory,
+                contentBaseAddress == null ? null : new Uri(contentBaseAddress),
                 TelemetryService,
-                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose))
-            {
-                ContentBaseAddress = contentBaseAddress == null
-                    ? null
-                    : new Uri(contentBaseAddress)
-            };
+                CommandHelpers.GetHttpMessageHandlerFactory(TelemetryService, verbose));
 
             var cursorStorage = storageFactories.LegacyStorageFactory.Create();
             _front = new DurableCursor(cursorStorage.ResolveUri("cursor.json"), cursorStorage, MemoryCursor.MinValue);
@@ -118,7 +114,7 @@ namespace Ng.Jobs
             TelemetryService.GlobalDimensions[TelemetryConstants.Destination] = _destination?.AbsoluteUri;
         }
 
-        protected override async Task RunInternal(CancellationToken cancellationToken)
+        protected override async Task RunInternalAsync(CancellationToken cancellationToken)
         {
             using (Logger.BeginScope($"Logging for {{{TelemetryConstants.Destination}}}", _destination?.AbsoluteUri))
             using (TelemetryService.TrackDuration(TelemetryConstants.JobLoopSeconds))
@@ -126,7 +122,7 @@ namespace Ng.Jobs
                 bool run;
                 do
                 {
-                    run = await _collector.Run(_front, _back, cancellationToken);
+                    run = await _collector.RunAsync(_front, _back, cancellationToken);
                 }
                 while (run);
             }

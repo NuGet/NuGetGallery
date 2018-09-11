@@ -27,21 +27,19 @@ namespace NuGet.Services.Metadata.Catalog
             Index = index ?? throw new ArgumentNullException(nameof(index));
         }
 
-        public Uri Index { get; private set; }
+        public Uri Index { get; }
 
-        public int RequestCount { get; private set; }
-
-        public async Task<bool> Run(CancellationToken cancellationToken)
+        public async Task<bool> RunAsync(CancellationToken cancellationToken)
         {
-            return await Run(MemoryCursor.CreateMin(), MemoryCursor.CreateMax(), cancellationToken);
+            return await RunAsync(MemoryCursor.CreateMin(), MemoryCursor.CreateMax(), cancellationToken);
         }
 
-        public async Task<bool> Run(DateTime front, DateTime back, CancellationToken cancellationToken)
+        public async Task<bool> RunAsync(DateTime front, DateTime back, CancellationToken cancellationToken)
         {
-            return await Run(new MemoryCursor(front), new MemoryCursor(back), cancellationToken);
+            return await RunAsync(new MemoryCursor(front), new MemoryCursor(back), cancellationToken);
         }
 
-        public async Task<bool> Run(ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
+        public async Task<bool> RunAsync(ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
             await Task.WhenAll(front.Load(cancellationToken), back.Load(cancellationToken));
 
@@ -63,13 +61,16 @@ namespace NuGet.Services.Metadata.Catalog
                     client.Timeout = _httpClientTimeout.Value;
                 }
 
-                result = await Fetch(client, front, back, cancellationToken);
-                RequestCount = client.RequestCount;
+                result = await FetchAsync(client, front, back, cancellationToken);
             }
-            
+
             return result;
         }
 
-        protected abstract Task<bool> Fetch(CollectorHttpClient client, ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken);
+        protected abstract Task<bool> FetchAsync(
+            CollectorHttpClient client,
+            ReadWriteCursor front,
+            ReadCursor back,
+            CancellationToken cancellationToken);
     }
 }

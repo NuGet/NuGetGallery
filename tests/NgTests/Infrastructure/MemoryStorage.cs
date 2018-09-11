@@ -12,8 +12,7 @@ using NuGet.Services.Metadata.Catalog.Persistence;
 
 namespace NgTests.Infrastructure
 {
-    public class MemoryStorage
-        : Storage
+    public class MemoryStorage : Storage
     {
         public ConcurrentDictionary<Uri, StorageContent> Content { get; }
 
@@ -50,6 +49,11 @@ namespace NgTests.Infrastructure
             }
         }
 
+        public override Task<OptimisticConcurrencyControlToken> GetOptimisticConcurrencyControlTokenAsync(Uri resourceUri, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(OptimisticConcurrencyControlToken.Null);
+        }
+
         private static StorageListItem CreateStorageListItem(Uri uri)
         {
             return new StorageListItem(uri, DateTime.UtcNow);
@@ -60,7 +64,17 @@ namespace NgTests.Infrastructure
             return new MemoryStorage(new Uri(BaseAddress + name), Content, ContentBytes);
         }
 
-        protected override async Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+        protected override Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override async Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             Content[resourceUri] = content;
 
@@ -77,7 +91,7 @@ namespace NgTests.Infrastructure
             ListMock[resourceUri] = CreateStorageListItem(resourceUri);
         }
 
-        protected override Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             StorageContent content;
 
@@ -86,7 +100,7 @@ namespace NgTests.Infrastructure
             return Task.FromResult(content);
         }
 
-        protected override Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             Content.TryRemove(resourceUri, out var content);
             ContentBytes.TryRemove(resourceUri, out var contentBytes);
@@ -100,7 +114,7 @@ namespace NgTests.Infrastructure
             return Content.Keys.Any(k => k.PathAndQuery.EndsWith(fileName));
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
             return Task.FromResult(Content.Keys.AsEnumerable().Select(x =>
                 ListMock.ContainsKey(x) ? ListMock[x] : new StorageListItem(x, DateTime.UtcNow)));

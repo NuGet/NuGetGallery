@@ -12,18 +12,24 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationExistsValidator : RegistrationLeafValidator
     {
         public RegistrationExistsValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
+            IDictionary<FeedType, SourceRepository> feedToSource,
             ILogger<RegistrationExistsValidator> logger)
             : base(feedToSource, logger)
         {
         }
 
-        public override Task<bool> ShouldRunLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task<bool> ShouldRunLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3)
         {
             return Task.FromResult(true);
         }
 
-        public override Task CompareLeaf(ValidationContext data, PackageRegistrationLeafMetadata v2, PackageRegistrationLeafMetadata v3)
+        public override Task CompareLeafAsync(
+            ValidationContext context,
+            PackageRegistrationLeafMetadata v2,
+            PackageRegistrationLeafMetadata v3)
         {
             var v2Exists = v2 != null;
             var v3Exists = v3 != null;
@@ -36,7 +42,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
                 // See https://github.com/NuGet/NuGetGallery/issues/4475
                 if (v3Exists && !(v3 is PackageRegistrationIndexMetadata))
                 {
-                    Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in V2 but has a leaf node in V3!", data.Package.Id, data.Package.Version);
+                    Logger.LogInformation("{PackageId} {PackageVersion} doesn't exist in V2 but has a leaf node in V3!", context.Package.Id, context.Package.Version);
                     return completedTask;
                 }
 

@@ -27,25 +27,20 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             Uri index,
             StorageFactory legacyStorageFactory,
             StorageFactory semVer2StorageFactory,
+            Uri contentBaseAddress,
             ITelemetryService telemetryService,
             Func<HttpMessageHandler> handlerFunc = null)
             : base(index, new Uri[] { Schema.DataTypes.PackageDetails, Schema.DataTypes.PackageDelete }, telemetryService, handlerFunc)
         {
-            if (legacyStorageFactory == null)
-            {
-                throw new ArgumentNullException(nameof(legacyStorageFactory));
-            }
-
-            _legacyStorageFactory = legacyStorageFactory;
+            _legacyStorageFactory = legacyStorageFactory ?? throw new ArgumentNullException(nameof(legacyStorageFactory));
             _semVer2StorageFactory = semVer2StorageFactory;
             _shouldIncludeSemVer2 = GetShouldIncludeRegistrationPackage(_semVer2StorageFactory);
-
-            ContentBaseAddress = new Uri("http://tempuri.org");
+            ContentBaseAddress = contentBaseAddress;
         }
 
-        public Uri ContentBaseAddress { get; set; }
+        public Uri ContentBaseAddress { get; }
 
-        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatches(IEnumerable<CatalogItem> catalogItems)
+        protected override Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
         {
             // Grouping batches by commit is slow if it contains
             // the same package registration id over and over again.
@@ -82,8 +77,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             return item["nuget:id"].ToString();
         }
 
-        protected override async Task ProcessGraphs(
-            KeyValuePair<string, IDictionary<string, IGraph>> sortedGraphs,
+        protected override async Task ProcessGraphsAsync(
+            KeyValuePair<string, IReadOnlyDictionary<string, IGraph>> sortedGraphs,
             CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
@@ -94,7 +89,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
                     { TelemetryConstants.Id, sortedGraphs.Key.ToLowerInvariant() }
                 }))
             {
-                var legacyTask = RegistrationMaker.Process(
+                var legacyTask = RegistrationMaker.ProcessAsync(
                     registrationKey: new RegistrationKey(sortedGraphs.Key),
                     newItems: sortedGraphs.Value,
                     shouldInclude: _shouldIncludeSemVer2,
@@ -108,7 +103,7 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 if (_semVer2StorageFactory != null)
                 {
-                    var semVer2Task = RegistrationMaker.Process(
+                    var semVer2Task = RegistrationMaker.ProcessAsync(
                        registrationKey: new RegistrationKey(sortedGraphs.Key),
                        newItems: sortedGraphs.Value,
                        storageFactory: _semVer2StorageFactory,
@@ -133,10 +128,8 @@ namespace NuGet.Services.Metadata.Catalog.Registration
             {
                 return (k, u, g) => true;
             }
-            else
-            {
-                return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
-            }
+
+            return (k, u, g) => !NuGetVersionUtility.IsGraphSemVer2(k.Version, u, g);
         }
     }
 }

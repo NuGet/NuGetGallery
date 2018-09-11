@@ -12,23 +12,21 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
     public class RegistrationIdValidator : RegistrationIndexValidator
     {
         public RegistrationIdValidator(
-            IDictionary<FeedType, SourceRepository> feedToSource, 
-            ILogger<RegistrationIdValidator> logger) 
+            IDictionary<FeedType, SourceRepository> feedToSource,
+            ILogger<RegistrationIdValidator> logger)
             : base(feedToSource, logger)
         {
         }
 
-        public override Task<bool> ShouldRunIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
-        {
-            return Task.FromResult(v2 != null && v3 != null);
-        }
-
-        public override Task CompareIndex(ValidationContext data, PackageRegistrationIndexMetadata v2, PackageRegistrationIndexMetadata v3)
+        public override Task CompareIndexAsync(
+            ValidationContext context,
+            PackageRegistrationIndexMetadata v2,
+            PackageRegistrationIndexMetadata v3)
         {
             if (!v2.Id.Equals(v3.Id, System.StringComparison.OrdinalIgnoreCase))
             {
                 throw new MetadataFieldInconsistencyException<PackageRegistrationIndexMetadata>(
-                    v2, v3, 
+                    v2, v3,
                     nameof(PackageRegistrationIndexMetadata.Id),
                     m => m.Id);
             }

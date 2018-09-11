@@ -11,16 +11,16 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
     public class AggregateStorage : Storage
     {
         public delegate StorageContent WriteSecondaryStorageContentInterceptor(
-            Uri primaryStorageBaseUri, 
-            Uri primaryResourceUri, 
+            Uri primaryStorageBaseUri,
+            Uri primaryResourceUri,
             Uri secondaryStorageBaseUri,
-            Uri secondaryResourceUri, 
+            Uri secondaryResourceUri,
             StorageContent content);
 
         private readonly Storage _primaryStorage;
         private readonly Storage[] _secondaryStorage;
         private readonly WriteSecondaryStorageContentInterceptor _writeSecondaryStorageContentInterceptor;
-        
+
         public AggregateStorage(Uri baseAddress, Storage primaryStorage, Storage[] secondaryStorage,
             WriteSecondaryStorageContentInterceptor writeSecondaryStorageContentInterceptor)
             : base(baseAddress)
@@ -28,14 +28,24 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             _primaryStorage = primaryStorage;
             _secondaryStorage = secondaryStorage;
             _writeSecondaryStorageContentInterceptor = writeSecondaryStorageContentInterceptor;
-        
+
             BaseAddress = _primaryStorage.BaseAddress;
         }
-        
-        protected override Task OnSave(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
+
+        protected override Task OnCopyAsync(
+            Uri sourceUri,
+            IStorage destinationStorage,
+            Uri destinationUri,
+            IReadOnlyDictionary<string, string> destinationProperties,
+            CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected override Task OnSaveAsync(Uri resourceUri, StorageContent content, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.Save(resourceUri, content, cancellationToken));
+            tasks.Add(_primaryStorage.SaveAsync(resourceUri, content, cancellationToken));
 
             foreach (var storage in _secondaryStorage)
             {
@@ -46,34 +56,34 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
                 if (_writeSecondaryStorageContentInterceptor != null)
                 {
                     secondaryContent = _writeSecondaryStorageContentInterceptor(
-                        _primaryStorage.BaseAddress, 
-                        resourceUri, 
-                        storage.BaseAddress, 
+                        _primaryStorage.BaseAddress,
+                        resourceUri,
+                        storage.BaseAddress,
                         secondaryResourceUri, content);
                 }
 
-                tasks.Add(storage.Save(secondaryResourceUri, secondaryContent, cancellationToken));
+                tasks.Add(storage.SaveAsync(secondaryResourceUri, secondaryContent, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
         }
 
-        protected override Task<StorageContent> OnLoad(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task<StorageContent> OnLoadAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
-            return _primaryStorage.Load(resourceUri, cancellationToken);
+            return _primaryStorage.LoadAsync(resourceUri, cancellationToken);
         }
 
-        protected override Task OnDelete(Uri resourceUri, CancellationToken cancellationToken)
+        protected override Task OnDeleteAsync(Uri resourceUri, CancellationToken cancellationToken)
         {
             var tasks = new List<Task>();
-            tasks.Add(_primaryStorage.Delete(resourceUri, cancellationToken));
+            tasks.Add(_primaryStorage.DeleteAsync(resourceUri, cancellationToken));
 
             foreach (var storage in _secondaryStorage)
             {
                 var secondaryResourceUri = new Uri(resourceUri.ToString()
                     .Replace(_primaryStorage.BaseAddress.ToString(), storage.BaseAddress.ToString()));
 
-                tasks.Add(storage.Delete(secondaryResourceUri, cancellationToken));
+                tasks.Add(storage.DeleteAsync(secondaryResourceUri, cancellationToken));
             }
 
             return Task.WhenAll(tasks);
@@ -84,9 +94,9 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
             return _primaryStorage.Exists(fileName);
         }
 
-        public override Task<IEnumerable<StorageListItem>> List(CancellationToken cancellationToken)
+        public override Task<IEnumerable<StorageListItem>> ListAsync(CancellationToken cancellationToken)
         {
-            return _primaryStorage.List(cancellationToken);
+            return _primaryStorage.ListAsync(cancellationToken);
         }
 
         public override Uri GetUri(string name)

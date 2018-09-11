@@ -18,7 +18,7 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _source = source;
             _logger = logger;
         }
-        
+
         private readonly string _source;
         private readonly ILogger<PackageTimestampMetadataResourceV2> _logger;
 
@@ -26,20 +26,25 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// Parses the feed for the package specified by the <see cref="ValidationContext"/> and returns a <see cref="PackageTimestampMetadata"/>.
         /// If the package is missing from the feed, returns the package's deletion audit record timestamp.
         /// </summary>
-        public async Task<PackageTimestampMetadata> GetAsync(ValidationContext data)
+        public async Task<PackageTimestampMetadata> GetAsync(ValidationContext context)
         {
-            var feedPackageDetails = await FeedHelpers.GetPackage(data.Client, _source, data.Package.Id,
-                data.Package.Version.ToString());
+            var feedPackageDetails = await FeedHelpers.GetPackage(
+                context.Client,
+                _source,
+                context.Package.Id,
+                context.Package.Version.ToString());
 
             if (feedPackageDetails != null)
             {
-                return PackageTimestampMetadata.CreateForPackageExistingOnFeed(feedPackageDetails.CreatedDate, feedPackageDetails.LastEditedDate);
+                return PackageTimestampMetadata.CreateForPackageExistingOnFeed(
+                    feedPackageDetails.CreatedDate,
+                    feedPackageDetails.LastEditedDate);
             }
 
             DateTime? deleted = null;
-            if (data.DeletionAuditEntries.Any())
+            if (context.DeletionAuditEntries.Any())
             {
-                deleted = data.DeletionAuditEntries.Max(entry => entry.TimestampUtc);
+                deleted = context.DeletionAuditEntries.Max(entry => entry.TimestampUtc);
             }
 
             return PackageTimestampMetadata.CreateForPackageMissingFromFeed(deleted);

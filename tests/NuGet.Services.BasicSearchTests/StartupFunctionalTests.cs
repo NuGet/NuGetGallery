@@ -8,6 +8,7 @@ using Xunit;
 
 namespace NuGet.Services.BasicSearchTests
 {
+    [Collection(StartupTestCollection.Name)]
     public class StartupFunctionalTests
     {
         [Fact]

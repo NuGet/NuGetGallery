@@ -44,11 +44,11 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
         /// </summary>
         /// <param name="package">The <see cref="PackageIdentity"/> to validate.</param>
         /// <returns>A <see cref="AggregateValidationResult"/> which contains the results of the validation.</returns>
-        public async Task<AggregateValidationResult> ValidateAsync(ValidationContext data)
+        public async Task<AggregateValidationResult> ValidateAsync(ValidationContext context)
         {
             return new AggregateValidationResult(
                 this, 
-                await Task.WhenAll(_validators.Select(v => v.ValidateAsync(data))));
+                await Task.WhenAll(_validators.Select(v => v.ValidateAsync(context))));
         }
     }
 }

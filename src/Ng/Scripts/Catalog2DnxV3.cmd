@@ -15,6 +15,11 @@ start /w Ng.exe catalog2dnx ^
     -storageAccountName #{Jobs.ngcatalog2dnx.StorageAccount.Name} ^
     -storageKeyValue #{Jobs.ngcatalog2dnx.StorageAccount.Key} ^
     -storageContainer #{Jobs.ngcatalog2dnx.Container} ^
+    -preferAlternatePackageSourceStorage #{Jobs.ngcatalog2dnx.PreferAlternatePackageSourceStorage} ^
+    -storageAccountNamePreferredPackageSourceStorage #{Jobs.ngcatalog2dnx.PreferredPackageSourceStorageAccountName} ^
+    -storageKeyValuePreferredPackageSourceStorage #{Jobs.ngcatalog2dnx.PreferredPackageSourceStorageAccountKey} ^
+    -storageContainerPreferredPackageSourceStorage #{Jobs.ngcatalog2dnx.PreferredPackageSourceStorageContainerName} ^
+    -storageUseServerSideCopy #{Jobs.ngcatalog2dnx.StorageUseServerSideCopy} ^
     -instrumentationkey #{Jobs.common.v3.Logging.InstrumentationKey} ^
     -vaultName #{Deployment.Azure.KeyVault.VaultName} ^
     -clientId #{Deployment.Azure.KeyVault.ClientId} ^

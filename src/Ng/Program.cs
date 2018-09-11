@@ -77,7 +77,7 @@ namespace Ng
                 TelemetryConfiguration.Active.TelemetryInitializers.Add(new JobPropertiesTelemetryInitializer(telemetryService));
 
                 job = NgJobFactory.GetJob(jobName, telemetryService, loggerFactory);
-                await job.Run(arguments, cancellationTokenSource.Token);
+                await job.RunAsync(arguments, cancellationTokenSource.Token);
             }
             catch (ArgumentException ae)
             {

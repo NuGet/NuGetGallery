@@ -72,12 +72,12 @@ namespace NgTests
             collectorMock
                 .Setup(x => x.OverridableProcessSortedBatch(It.IsAny<KeyValuePair<FeedPackageIdentity, IList<JObject>>>()))
                 .Returns<KeyValuePair<FeedPackageIdentity, IList<JObject>>>(
-                    (pair) => 
+                    (pair) =>
                     {
                         // Assert
                         Assert.DoesNotContain(
-                            seenPackages, 
-                            (p) => 
+                            seenPackages,
+                            (p) =>
                             {
                                 return p.Id == pair.Key.Id && p.Version == pair.Key.Version;
                             });
@@ -88,7 +88,7 @@ namespace NgTests
                     });
 
             // Act
-            var result = await collectorMock.Object.OnProcessBatch(items);
+            var result = await collectorMock.Object.OnProcessBatchAsync(items);
         }
 
         private static JToken CreatePackage(string id, string version)
@@ -102,7 +102,7 @@ namespace NgTests
 
         public class TestableSortingIdVersionCollector : SortingIdVersionCollector
         {
-            public TestableSortingIdVersionCollector() 
+            public TestableSortingIdVersionCollector()
                 : base(
                       new Uri("https://www.microsoft.com"),
                     new Mock<ITelemetryService>().Object,
@@ -110,15 +110,15 @@ namespace NgTests
             {
             }
 
-            public Task<bool> OnProcessBatch(IEnumerable<JToken> items)
+            public Task<bool> OnProcessBatchAsync(IEnumerable<JToken> items)
             {
-                return base.OnProcessBatch(null, items, null, DateTime.MinValue, false, CancellationToken.None);
+                return base.OnProcessBatchAsync(null, items, null, DateTime.MinValue, false, CancellationToken.None);
             }
 
-            protected override Task ProcessSortedBatch(
-                CollectorHttpClient client, 
-                KeyValuePair<FeedPackageIdentity, IList<JObject>> sortedBatch, 
-                JToken context, 
+            protected override Task ProcessSortedBatchAsync(
+                CollectorHttpClient client,
+                KeyValuePair<FeedPackageIdentity, IList<JObject>> sortedBatch,
+                JToken context,
                 CancellationToken cancellationToken)
             {
                 return OverridableProcessSortedBatch(sortedBatch);
