@@ -39,8 +39,8 @@ namespace NuGetGallery.ViewModels
         [InlineData("ssh://github.com/NuGet/NuGetGallery", "new", RepositoryKind.GitHub, null)]
         [InlineData("https://github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://github.com:443/NuGet/NuGetGallery")]
         [InlineData("https://www.github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://www.github.com:443/NuGet/NuGetGallery")]
-        [InlineData("git://www.github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://www.github.com:443/NuGet/NuGetGallery")]
-        [InlineData("git://github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://github.com:443/NuGet/NuGetGallery")]
+        [InlineData("git://www.github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://www.github.com/NuGet/NuGetGallery")]
+        [InlineData("git://github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://github.com/NuGet/NuGetGallery")]
         public void ItDeterminesRepositoryKind(string repoUrl, string repoType, RepositoryKind expectedKind, string expectedUrl)
         {
             var package = new Package

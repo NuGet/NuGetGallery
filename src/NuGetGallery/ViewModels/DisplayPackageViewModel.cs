@@ -57,7 +57,11 @@ namespace NuGetGallery
             PushedBy = pushedBy;
 
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
-            InitializeProjectUrl(package.ProjectUrl);
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.ProjectUrl, out string projectUrl))
+            {
+                ProjectUrl = projectUrl;
+            }
         }
 
         public bool ValidatingTooLong { get; set; }
@@ -166,17 +170,14 @@ namespace NuGetGallery
                     RepositoryUrl = repositoryUrl;
                 }
 
-                if (IsGitHubUri(repoUri))
+                if (repoUri.IsGitHubUri())
                 {
                     RepositoryType = RepositoryKind.GitHub;
 
                     // Fix-up git:// to https:// for GitHub URLs (we should add this fix-up to other repos in the future)
                     if (repoUri.IsGitProtocol())
                     {
-                        var uri = new UriBuilder(repoUri);
-                        uri.Scheme = Uri.UriSchemeHttps;
-
-                        RepositoryUrl = uri.ToString();
+                        RepositoryUrl = repoUri.ToHttps().ToString();
                     }
                 }
                 else if (PackageHelper.IsGitRepositoryType(repositoryType))
@@ -184,54 +185,6 @@ namespace NuGetGallery
                     RepositoryType = RepositoryKind.Git;
                 }
             }
-        }
-
-        private void InitializeProjectUrl(string projectUrlString)
-        {
-            if (Uri.TryCreate(projectUrlString, UriKind.Absolute, out var projectUrl))
-            {
-                if (projectUrl.IsHttpProtocol() && IsDomainWithHttpsSupport(projectUrl))
-                {
-                    var uri = new UriBuilder(projectUrl);
-                    uri.Scheme = Uri.UriSchemeHttps;
-                    uri.Port = -1;
-
-                    ProjectUrl = uri.ToString();
-                }
-                else if (projectUrl.IsHttpsProtocol() || projectUrl.IsHttpProtocol())
-                {
-                    ProjectUrl = projectUrl.ToString();
-                }
-            }
-        }
-
-        private static bool IsDomainWithHttpsSupport(Uri uri)
-        {
-            return IsGitHubUri(uri) || IsCodeplexUri(uri) || IsMicrosoftUri(uri);
-        }
-
-        private static bool IsGitHubUri(Uri uri)
-        {
-            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "www.github.com:443", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com:443", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsCodeplexUri(Uri uri)
-        {
-            return uri.Authority.EndsWith(".codeplex.com", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(uri.Authority, "codeplex.com", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static bool IsMicrosoftUri(Uri uri)
-        {
-            return uri.Authority.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "www.asp.net", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "asp.net", StringComparison.OrdinalIgnoreCase) ||
-                   uri.Authority.EndsWith(".msdn.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "msdn.com", StringComparison.OrdinalIgnoreCase);
         }
 
         public enum RepositoryKind

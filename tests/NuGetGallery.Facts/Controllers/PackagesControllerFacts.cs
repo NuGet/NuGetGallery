@@ -1634,7 +1634,7 @@ namespace NuGetGallery
 
                 foreach (var pkg in _packageRegistration.Packages)
                 {
-                    var valueField = UrlExtensions.DeletePackage(controller.Url, model);
+                    var valueField = controller.Url.DeletePackage(model);
                     var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
 
                     var selectListItem = model.VersionSelectList
@@ -2081,7 +2081,7 @@ namespace NuGetGallery
 
                 foreach (var pkg in packageRegistration.Packages)
                 {
-                    var valueField = UrlExtensions.EditPackage(controller.Url, model.PackageId, pkg.NormalizedVersion);
+                    var valueField = controller.Url.EditPackage(model.PackageId, pkg.NormalizedVersion);
                     var textField = NuGetVersion.Parse(pkg.Version).ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
 
                     var selectListItem = model.VersionSelectList
