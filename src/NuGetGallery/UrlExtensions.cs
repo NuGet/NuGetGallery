@@ -1385,6 +1385,19 @@ namespace NuGetGallery
             return url.HandleTransformAccount("RejectTransform", accountToTransformUsername, confirmationToken, relativeUrl);
         }
 
+        public static string Referrer(this UrlHelper url, string fallbackUrl)
+        {
+            try
+            {
+                if (url.RequestContext.HttpContext.Request.Url.Host == url.RequestContext.HttpContext.Request.UrlReferrer.Host)
+                {
+                    return url.RequestContext.HttpContext.Request.UrlReferrer.AbsolutePath;
+                }
+            }
+            catch { }
+            return fallbackUrl;
+        }
+
         private static string HandleTransformAccount(this UrlHelper url, string routeName, string accountToTransformUsername, string confirmationToken, bool relativeUrl = true)
         {
             return GetActionLink(

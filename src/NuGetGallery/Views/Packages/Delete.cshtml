@@ -84,6 +84,7 @@
                         {
                             @Html.AntiForgeryToken()
                             @Html.Hidden("version", @Model.Version)
+                            @Html.Hidden("returnUrl", @Url.Referrer(Url.Package(Model.Id, Model.Version)))
                             <div class="form-group @Html.HasErrorFor(package => package.Listed)">
                                 @Html.ShowCheckboxFor(package => package.Listed)
                                 @Html.ShowLabelFor(package => package.Listed, "List " + Model.Id + " " + Model.Version + " in search results.")

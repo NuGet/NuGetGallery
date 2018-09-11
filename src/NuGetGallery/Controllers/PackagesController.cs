@@ -1169,10 +1169,10 @@ namespace NuGetGallery
         [HttpPost]
         [RequiresAccountConfirmation("unlist a package")]
         [ValidateAntiForgeryToken]
-        public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed)
+        public virtual async Task<ActionResult> UpdateListed(string id, string version, bool? listed, string returnUrl)
         {
             // Edit does exactly the same thing that Delete used to do... REUSE ALL THE CODE!
-            return await Edit(id, version, listed, Url.Package);
+            return await Edit(id, version, listed, (Package package, bool relativeUrl) => { if (returnUrl != null) { return returnUrl; } return Url.Package(package, relativeUrl); });
         }
 
         [HttpGet]
@@ -1619,7 +1619,7 @@ namespace NuGetGallery
 
                         return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
                     }
-                                       
+
                     var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
                                     SecurityPolicyAction.PackagePush,
                                     package,
