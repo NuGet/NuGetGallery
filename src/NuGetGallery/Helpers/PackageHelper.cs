@@ -34,6 +34,11 @@ namespace NuGetGallery
             return false;
         }
 
+        /// <summary>
+        /// If the input uri is http => check if it's a known domain and convert to https.
+        /// If the input uri is https => leave as is
+        /// If the input uri is not a valid uri or not http/https => return false
+        /// </summary>
         public static bool TryPrepareUrlForRendering(string uriString, out string readyUriString)
         {
             Uri returnUri = null;

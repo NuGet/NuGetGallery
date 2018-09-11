@@ -77,7 +77,7 @@ namespace NuGetGallery
 
             configuration.SecretInjector = secretInjector;
 
-             UrlHelperExtensions.SetConfigurationService(configuration);
+            UrlHelperExtensions.SetConfigurationService(configuration);
 
             builder.RegisterInstance(configuration)
                 .AsSelf()

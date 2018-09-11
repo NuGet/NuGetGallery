@@ -5,7 +5,7 @@ using System;
 
 namespace NuGetGallery
 {
-    public static class UriHelpers
+    public static class UriExtensions
     {
         public static bool IsHttpsProtocol(this Uri uri)
         {
@@ -29,19 +29,17 @@ namespace NuGetGallery
 
         public static bool IsGitHubUri(this Uri uri)
         {
-            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "www.github.com:443", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com:443", StringComparison.OrdinalIgnoreCase);
+            return string.Equals(uri.Host, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
+                   string.Equals(uri.Host, "github.com", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool IsCodeplexUri(this Uri uri)
+        private static bool IsCodeplexUri(this Uri uri)
         {
             return uri.Authority.EndsWith(".codeplex.com", StringComparison.OrdinalIgnoreCase) ||
                 string.Equals(uri.Authority, "codeplex.com", StringComparison.OrdinalIgnoreCase);
         }
 
-        public static bool IsMicrosoftUri(this Uri uri)
+        private static bool IsMicrosoftUri(this Uri uri)
         {
             return uri.Authority.EndsWith(".microsoft.com", StringComparison.OrdinalIgnoreCase) ||
                    string.Equals(uri.Authority, "microsoft.com", StringComparison.OrdinalIgnoreCase) ||
