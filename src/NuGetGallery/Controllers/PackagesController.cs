@@ -1600,7 +1600,6 @@ namespace NuGetGallery
                         return beforeValidationJsonResult;
                     }
 
-                    // update relevant database tables
                     try
                     {
                         package = await _packageUploadService.GeneratePackageAsync(
@@ -1636,7 +1635,9 @@ namespace NuGetGallery
                         package,
                         nugetPackage,
                         owner,
-                        currentUser);
+                        currentUser,
+                        existingPackageRegistration);
+
                     var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
                     if (afterValidationJsonResult != null)
                     {
@@ -1774,6 +1775,8 @@ namespace NuGetGallery
                 case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
                     return validationResult.Message + " " +
                            Strings.UploadPackage_PackageIsSignedButMissingCertificate_ManageCertificate;
+                case PackageValidationResultType.TyposquattingCheckFails:
+                    return Strings.TyposquattingCheckFails + validationResult.Message;
                 default:
                     throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }

@@ -723,7 +723,9 @@ namespace NuGetGallery
                                 package,
                                 packageToPush,
                                 owner,
-                                currentUser);
+                                currentUser,
+                                packageRegistration);
+
                             var afterValidationActionResult = GetActionResultOrNull(afterValidationResult);
                             if (afterValidationActionResult != null)
                             {
@@ -833,6 +835,8 @@ namespace NuGetGallery
                 case PackageValidationResultType.PackageShouldNotBeSigned:
                 case PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates:
                     return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, validationResult.Message);
+                case PackageValidationResultType.TyposquattingCheckFails:
+                    return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, Strings.TyposquattingCheckFails + validationResult.Message);
                 default:
                     throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
             }

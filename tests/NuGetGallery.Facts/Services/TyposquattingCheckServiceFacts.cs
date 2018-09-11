@@ -59,10 +59,11 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+            var typosquattingCheckResult = newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
+            Assert.Equal(null, typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -80,10 +81,11 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
             
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+            var typosquattingCheckResult = newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
+            Assert.Equal(null, typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -100,10 +102,11 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+            var typosquattingCheckResult = newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
 
             // Assert
             Assert.True(typosquattingCheckResult);
+            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -117,7 +120,7 @@ namespace NuGetGallery
             
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
-                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner));
+                () => newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds));
 
             // Assert
             Assert.Equal(nameof(uploadedPackageId), exception.ParamName);
@@ -134,7 +137,7 @@ namespace NuGetGallery
   
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
-                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner));
+                () => newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds));
 
             // Assert
             Assert.Equal(nameof(uploadedPackageOwner), exception.ParamName);
@@ -150,10 +153,11 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+            var typosquattingCheckResult = newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
+            Assert.Equal(null, typosquattingCheckCollisionIds);
         }
 
         [Fact]
@@ -173,10 +177,11 @@ namespace NuGetGallery
             var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner);
+            var typosquattingCheckResult = newService.TryIsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
+            Assert.Equal(null, typosquattingCheckCollisionIds);
         }
 
         [Theory]

@@ -63,5 +63,18 @@ namespace NuGetGallery
                 message,
                 warnings: null);
         }
+
+        public static PackageValidationResult TyposquattingCheckFails(string message)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            return new PackageValidationResult(
+                PackageValidationResultType.TyposquattingCheckFails,
+                message,
+                warnings: null);
+        }
     }
 }

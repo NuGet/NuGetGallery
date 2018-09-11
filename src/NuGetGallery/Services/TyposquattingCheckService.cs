@@ -33,8 +33,9 @@ namespace NuGetGallery
             TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
               
-        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner)
+        public bool TryIsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds)
         {
+            typosquattingCheckCollisionIds = null;
             if (uploadedPackageId == null)
             {
                 throw new ArgumentNullException(nameof(uploadedPackageId));
@@ -55,7 +56,7 @@ namespace NuGetGallery
             var threshold = GetThreshold(uploadedPackageId);
             uploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
 
-            var collisionPackageIds = new ConcurrentBag<string>();
+            var collisionIds = new ConcurrentBag<string>();
             Parallel.ForEach(packagesCheckList, (packageId, loopState) =>
             {
                 // TODO: handle the package which is owned by an organization. 
@@ -63,16 +64,25 @@ namespace NuGetGallery
                 string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
                 if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(uploadedPackageId, normalizedPackageId, threshold))
                 {
-                    collisionPackageIds.Add(packageId);
+                    collisionIds.Add(packageId);
                 }
             });
 
-            foreach (var packageId in collisionPackageIds)
+            List<string> typosquattingUserDoubleCheckIds = new List<string>();
+            foreach (var packageId in collisionIds)
             {
+                // TODO: refactor user check services into one query
+                // https://github.com/NuGet/Engineering/issues/1684
                 if (!_userTyposquattingService.CanUserTyposquat(packageId, uploadedPackageOwner.Username))
                 {
-                    return true;
+                    typosquattingUserDoubleCheckIds.Add(packageId);
                 }
+            }
+
+            if (typosquattingUserDoubleCheckIds.Any())
+            {
+                typosquattingCheckCollisionIds = string.Join(",", typosquattingUserDoubleCheckIds.ToArray());
+                return true;
             }
 
             return false;

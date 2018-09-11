@@ -146,7 +146,8 @@ namespace NuGetGallery
                     It.IsAny<Package>(),
                     It.IsAny<PackageArchiveReader>(),
                     It.IsAny<User>(),
-                    It.IsAny<User>()))
+                    It.IsAny<User>(),
+                    It.IsAny<PackageRegistration>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             var requestMock = new Mock<HttpRequestBase>();
@@ -973,7 +974,8 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<User>(),
-                        It.IsAny<User>()))
+                        It.IsAny<User>(),
+                        It.IsAny<PackageRegistration>()))
                     .ReturnsAsync(PackageValidationResult.AcceptedWithWarnings(new[] { messageB }));
 
                 // Act
@@ -1007,7 +1009,8 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<User>(),
-                        It.IsAny<User>()))
+                        It.IsAny<User>(),
+                        It.IsAny<PackageRegistration>()))
                     .ReturnsAsync(new PackageValidationResult(type, message));
 
                 // Act

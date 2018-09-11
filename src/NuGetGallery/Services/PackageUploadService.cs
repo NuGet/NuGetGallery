@@ -23,6 +23,8 @@ namespace NuGetGallery
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
         private readonly IAppConfiguration _config;
+        private readonly ITyposquattingCheckService _typosquattingCheckService;
+        private readonly IContentObjectService _contentObjectService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -30,7 +32,9 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            ITyposquattingCheckService typosquattingCheckService,
+            IContentObjectService contentObjectService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -38,6 +42,8 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _typosquattingCheckService = typosquattingCheckService ?? throw new ArgumentNullException(nameof(typosquattingCheckService));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -183,7 +189,8 @@ namespace NuGetGallery
             Package package,
             PackageArchiveReader nuGetPackage,
             User owner,
-            User currentUser)
+            User currentUser,
+            PackageRegistration packageRegistration)
         {
             var result = await ValidateSignatureFilePresenceAsync(
                 package.PackageRegistration,
@@ -193,6 +200,19 @@ namespace NuGetGallery
             if (result != null)
             {
                 return result;
+            }
+
+            if (_contentObjectService.TyposquattingConfiguration.IsCheckEnabled && packageRegistration == null)
+            {
+                if (_typosquattingCheckService.TryIsUploadedPackageIdTyposquatting(package.Id, owner, out string typosquattingCheckCollisionIds))
+                {
+                    // TODO: save in the log metric for typosquatting collision pairs (typosquattingCheckResult). 
+                    // https://github.com/NuGet/Engineering/issues/1537
+                    if (_contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled)
+                    {
+                        return PackageValidationResult.TyposquattingCheckFails(typosquattingCheckCollisionIds);
+                    }
+                }
             }
 
             return PackageValidationResult.Accepted();
