@@ -569,12 +569,12 @@ namespace NuGetGallery
             switch (folderName)
             {
                 case CoreConstants.PackagesFolderName:
+                case CoreConstants.SymbolPackagesFolderName:
                     return CoreConstants.DefaultCacheControl;
 
                 case CoreConstants.PackageBackupsFolderName:
                 case CoreConstants.UploadsFolderName:
                 case CoreConstants.ValidationFolderName:
-                case CoreConstants.SymbolPackagesFolderName:
                 case CoreConstants.SymbolPackageBackupsFolderName:
                 case CoreConstants.DownloadsFolderName:
                 case CoreConstants.PackageReadMesFolderName:

@@ -11,7 +11,7 @@ namespace NuGetGallery
         ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; }
         ICertificatesConfiguration CertificatesConfiguration { get; }
         ISymbolsConfiguration SymbolsConfiguration { get; }
-
+        ITyposquattingConfiguration TyposquattingConfiguration { get; }
         Task Refresh();
     }
 }

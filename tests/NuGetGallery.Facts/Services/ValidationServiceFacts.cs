@@ -206,10 +206,20 @@ namespace NuGetGallery
                 _package.PackageStatusKey = status;
 
                 // Act
-                var issues = _target.GetLatestValidationIssues(_package);
+                var issues = _target.GetLatestPackageValidationIssues(_package);
 
                 // Assert
                 _validationSets.Verify(x => x.GetAll(), Times.Never());
+            }
+
+            [Fact]
+            public void ReturnsEmptyListForNullSymbolsPackage()
+            {
+                // Arrange and act
+                var issues = _target.GetLatestPackageValidationIssues(symbolPackage: null);
+
+                Assert.NotNull(issues);
+                Assert.Empty(issues);
             }
 
             [Fact]
@@ -281,7 +291,7 @@ namespace NuGetGallery
                     .Returns(new[] { packageValidationSet }.AsQueryable());
 
                 // Act
-                var issues = _target.GetLatestValidationIssues(_package);
+                var issues = _target.GetLatestPackageValidationIssues(_package);
 
                 // Assert
                 _validationSets.Verify(x => x.GetAll(), Times.Once);
@@ -326,7 +336,7 @@ namespace NuGetGallery
                     .Returns(new[] { packageValidationSet }.AsQueryable());
 
                 // Act
-                var issues = _target.GetLatestValidationIssues(_package);
+                var issues = _target.GetLatestPackageValidationIssues(_package);
 
                 // Assert
                 _validationSets.Verify(x => x.GetAll(), Times.Once);
@@ -397,7 +407,7 @@ namespace NuGetGallery
                                .Returns(new[] { packageValidationSet1, packageValidationSet2, packageValidationSet3 }.AsQueryable());
 
                 // Act
-                var issues = _target.GetLatestValidationIssues(_package);
+                var issues = _target.GetLatestPackageValidationIssues(_package);
 
                 // Assert
                 _validationSets.Verify(x => x.GetAll(), Times.Once());

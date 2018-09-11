@@ -24,7 +24,7 @@ namespace NuGetGallery
             {
                 if (secureOnly)
                 {
-                    return uri.Scheme == Uri.UriSchemeHttps;
+                    return uri.IsHttpsProtocol();
                 }
 
                 return uri.Scheme == Uri.UriSchemeHttps
@@ -32,6 +32,42 @@ namespace NuGetGallery
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// If the input uri is http => check if it's a known domain and convert to https.
+        /// If the input uri is https => leave as is
+        /// If the input uri is not a valid uri or not http/https => return false
+        /// </summary>
+        public static bool TryPrepareUrlForRendering(string uriString, out string readyUriString)
+        {
+            Uri returnUri = null;
+            readyUriString = null;
+
+            if (Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
+            {
+                if (uri.IsHttpProtocol() && uri.IsDomainWithHttpsSupport())
+                {
+                    returnUri = uri.ToHttps();
+                }
+                else if (uri.IsHttpsProtocol() || uri.IsHttpProtocol())
+                {
+                    returnUri = uri;
+                }
+            }
+
+            if (returnUri != null)
+            {
+                readyUriString = returnUri.ToString();
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsGitRepositoryType(string repositoryType)
+        {
+            return Constants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
@@ -124,6 +160,11 @@ namespace NuGetGallery
             if (packageMetadata.RepositoryType != null && packageMetadata.RepositoryType.Length > 100)
             {
                 throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryType", "100");
+            }
+
+            if (packageMetadata.RepositoryUrl != null && packageMetadata.RepositoryUrl.AbsoluteUri.Length > 4000)
+            {
+                throw new EntityException(Strings.NuGetPackagePropertyTooLong, "RepositoryUrl", "4000");
             }
         }
     }

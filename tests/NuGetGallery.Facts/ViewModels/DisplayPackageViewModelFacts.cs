@@ -7,7 +7,7 @@ using System.Linq;
 using NuGet.Versioning;
 using NuGetGallery.Framework;
 using Xunit;
-using static NuGetGallery.PackageViewModel;
+using static NuGetGallery.DisplayPackageViewModel;
 
 namespace NuGetGallery.ViewModels
 {
@@ -22,20 +22,26 @@ namespace NuGetGallery.ViewModels
         }
 
         [Theory]
-        [InlineData("https://www.github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
-        [InlineData("https://github.com/NuGet/Home", "git", RepositoryKind.GitHub)]
-        [InlineData("https://github.com/NuGet", null, RepositoryKind.GitHub)]
-        [InlineData("https://bitbucket.org/NuGet/Home", "git", RepositoryKind.Git)]
-        [InlineData("https://bitbucket.org/NuGet/Home", null, RepositoryKind.Unknown)]
-        [InlineData("https://visualstudio.com", "tfs", RepositoryKind.Unknown)]
-        [InlineData(null, "tfs", RepositoryKind.Unknown)]
-        [InlineData(null, null, RepositoryKind.Unknown)]
-        [InlineData("git://github.com/Nuget/NuGetGallery.git", null, RepositoryKind.Unknown)]
-        [InlineData("git://github.com/Nuget/NuGetGallery.git", "git", RepositoryKind.Git)]
-        [InlineData("https://some-other-domain.github.com/NuGet/Home", "git", RepositoryKind.Git)]
-        [InlineData("https://some-other-domain.github.com/NuGet/Home", null, RepositoryKind.Unknown)]
-        [InlineData("invalid repo url", null, RepositoryKind.Unknown)]
-        public void ItDeterminesRepositoryKind(string repoUrl, string repoType, RepositoryKind expectedKind)
+        [InlineData("https://www.github.com/NuGet/Home", "git", RepositoryKind.GitHub, "https://www.github.com/NuGet/Home")]
+        [InlineData("https://github.com/NuGet/Home", "git", RepositoryKind.GitHub, "https://github.com/NuGet/Home")]
+        [InlineData("https://github.com/NuGet", null, RepositoryKind.GitHub, "https://github.com/NuGet")]
+        [InlineData("https://bitbucket.org/NuGet/Home", "git", RepositoryKind.Git, "https://bitbucket.org/NuGet/Home")]
+        [InlineData("https://bitbucket.org/NuGet/Home", null, RepositoryKind.Unknown, "https://bitbucket.org/NuGet/Home")]
+        [InlineData("https://visualstudio.com", "tfs", RepositoryKind.Unknown, "https://visualstudio.com")]
+        [InlineData(null, "tfs", RepositoryKind.Unknown, null)]
+        [InlineData(null, null, RepositoryKind.Unknown, null)]
+        [InlineData("git://github.com/Nuget/NuGetGallery.git", null, RepositoryKind.GitHub, "https://github.com/Nuget/NuGetGallery.git")]
+        [InlineData("git://github.com/Nuget/NuGetGallery.git", "git", RepositoryKind.GitHub, "https://github.com/Nuget/NuGetGallery.git")]
+        [InlineData("https://some-other-domain.github.com/NuGet/Home", "git", RepositoryKind.Git, "https://some-other-domain.github.com/NuGet/Home")]
+        [InlineData("https://some-other-domain.github.com/NuGet/Home", null, RepositoryKind.Unknown, "https://some-other-domain.github.com/NuGet/Home")]
+        [InlineData("invalid repo url", null, RepositoryKind.Unknown, null)]
+        [InlineData("http://github.com/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, null)]
+        [InlineData("ssh://github.com/NuGet/NuGetGallery", "new", RepositoryKind.GitHub, null)]
+        [InlineData("https://github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://github.com:443/NuGet/NuGetGallery")]
+        [InlineData("https://www.github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://www.github.com:443/NuGet/NuGetGallery")]
+        [InlineData("git://www.github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://www.github.com/NuGet/NuGetGallery")]
+        [InlineData("git://github.com:443/NuGet/NuGetGallery", "git", RepositoryKind.GitHub, "https://github.com/NuGet/NuGetGallery")]
+        public void ItDeterminesRepositoryKind(string repoUrl, string repoType, RepositoryKind expectedKind, string expectedUrl)
         {
             var package = new Package
             {
@@ -43,8 +49,43 @@ namespace NuGetGallery.ViewModels
                 RepositoryUrl = repoUrl,
                 RepositoryType = repoType,
             };
+
             var model = new DisplayPackageViewModel(package, null, "test");
             Assert.Equal(expectedKind, model.RepositoryType);
+            Assert.Equal(expectedUrl, model.RepositoryUrl);
+        }
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("", null)]
+        [InlineData("not a url", null)]
+        [InlineData("git://github.com/notavalidscheme", null)]
+        [InlineData("https://github.com/nuget", "https://github.com/nuget")]
+        [InlineData("https://anydomain.com:443/abc/q?stuff", "https://anydomain.com/abc/q?stuff")]
+        [InlineData("http://github.com/nuget", "https://github.com/nuget")]
+        [InlineData("http://www.github.com/nuget", "https://www.github.com/nuget")]
+        [InlineData("http://www.github.com:443/nuget", "https://www.github.com/nuget")]
+        [InlineData("http://aspnetwebstack.codeplex.com/license", "https://aspnetwebstack.codeplex.com/license")]
+        [InlineData("http://codeplex.com", "https://codeplex.com/")]
+        [InlineData("http://www.codeplex.com", "https://www.codeplex.com/")]
+        [InlineData("http://www.microsoft.com/web/webpi/eula/aspnetcomponent_enu.htm", "https://www.microsoft.com/web/webpi/eula/aspnetcomponent_enu.htm")]
+        [InlineData("http://go.microsoft.com/?linkid=9809688", "https://go.microsoft.com/?linkid=9809688")]
+        [InlineData("http://www.asp.net/web-pages", "https://www.asp.net/web-pages")]
+        [InlineData("http://blogs.msdn.com/b/bclteam/p/asynctargetingpackkb.aspx", "https://blogs.msdn.com/b/bclteam/p/asynctargetingpackkb.aspx")]
+        [InlineData("http://msdn.com", "https://msdn.com/")]
+        [InlineData("http://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx", "https://msdn.microsoft.com/en-us/library/vstudio/hh191443.aspx")]
+        [InlineData("http://microsoft.com/iconurl/9594202", "https://microsoft.com/iconurl/9594202")]
+        [InlineData("http://microsoft.com:80/", "https://microsoft.com/")]
+        public void ItInitializesProjectUrl(string projectUrl, string expected)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                ProjectUrl = projectUrl
+            };
+
+            var model = new DisplayPackageViewModel(package, null, "test");
+            Assert.Equal(expected, model.ProjectUrl);
         }
 
         [Fact]
@@ -114,7 +155,7 @@ namespace NuGetGallery.ViewModels
 
             var viewModel = new DisplayPackageViewModel(package, null, packageHistory: Enumerable.Empty<Package>().OrderBy(x => 1));
 
-            Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolPackage);
+            Assert.Equal(symbolPackageList[0], viewModel.LatestSymbolsPackage);
         }
 
         [Fact]

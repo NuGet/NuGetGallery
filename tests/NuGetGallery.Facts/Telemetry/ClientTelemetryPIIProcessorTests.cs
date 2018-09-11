@@ -143,16 +143,16 @@ namespace NuGetGallery.Telemetry
         {
             foreach (var user in GenerateUserNames())
             {
-                yield return new string[] { "packages/{id}/owners/{username}/confirm/{token}",  $"https://localhost/packages/pack1/owners/user1/confirm/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/sometoken" };
-                yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/user1/reject/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/sometoken" };
-                yield return new string[] { "packages/{id}/owners/{username}/cancel/{token}", $"https://localhost/packages/pack1/owners/user1/cancel/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/sometoken" };
+                yield return new string[] { "packages/{id}/owners/{username}/confirm/{token}",  $"https://localhost/packages/pack1/owners/user1/confirm/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/confirm/ObfuscatedToken" };
+                yield return new string[] { "packages/{id}/owners/{username}/reject/{token}", $"https://localhost/packages/pack1/owners/user1/reject/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/reject/ObfuscatedToken" };
+                yield return new string[] { "packages/{id}/owners/{username}/cancel/{token}", $"https://localhost/packages/pack1/owners/user1/cancel/sometoken", $"https://localhost/packages/pack1/owners/ObfuscatedUserName/cancel/ObfuscatedToken" };
 
-                yield return new string[] { "account/confirm/{accountName}/{token}", $"https://localhost/account/confirm/user1/sometoken", $"https://localhost/account/confirm/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "account/confirm/{accountName}/{token}", $"https://localhost/account/confirm/user1/sometoken", $"https://localhost/account/confirm/ObfuscatedUserName/ObfuscatedToken" };
                 yield return new string[] { "account/delete/{accountName}", "https://localhost/account/delete/user1", $"https://localhost/account/delete/ObfuscatedUserName" };
 
                 yield return new string[] { "profiles/{username}", $"https://localhost/profiles/user1", $"https://localhost/profiles/ObfuscatedUserName" };
-                yield return new string[] { "account/setpassword/{username}/{token}", $"https://localhost/account/setpassword/user1/sometoken", $"https://localhost/account/setpassword/ObfuscatedUserName/sometoken" };
-                yield return new string[] { "account/forgotpassword/{username}/{token}", $"https://localhost/account/forgotpassword/user1/sometoken", $"https://localhost/account/forgotpassword/ObfuscatedUserName/sometoken" };
+                yield return new string[] { "account/setpassword/{username}/{token}", $"https://localhost/account/setpassword/user1/sometoken", $"https://localhost/account/setpassword/ObfuscatedUserName/ObfuscatedToken" };
+                yield return new string[] { "account/forgotpassword/{username}/{token}", $"https://localhost/account/forgotpassword/user1/sometoken", $"https://localhost/account/forgotpassword/ObfuscatedUserName/ObfuscatedToken" };
             }
         }
 

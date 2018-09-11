@@ -9,21 +9,21 @@ using Xunit;
 
 namespace NuGetGallery
 {
-    public class UrlExtensionsFacts
+    public class UrlHelperExtensionsFacts
     {
         public class TheEnsureTrailingSlashHelperMethod
         {
             [Fact]
             public void Works()
             {
-                string fixedUrl = UrlExtensions.EnsureTrailingSlash("http://nuget.org/packages/FooPackage.CS");
+                string fixedUrl = UrlHelperExtensions.EnsureTrailingSlash("http://nuget.org/packages/FooPackage.CS");
                 Assert.EndsWith("/", fixedUrl);
             }
 
             [Fact]
             public void PropagatesNull()
             {
-                string fixedUrl = UrlExtensions.EnsureTrailingSlash(null);
+                string fixedUrl = UrlHelperExtensions.EnsureTrailingSlash(null);
                 Assert.Null(fixedUrl);
             }
         }
@@ -44,7 +44,7 @@ namespace NuGetGallery
                     Version = "1.0.0-alpha.1+metadata"
                 };
 
-                string fixedUrl = UrlExtensions.Package(TestUtility.MockUrlHelper(), package);
+                string fixedUrl = UrlHelperExtensions.Package(TestUtility.MockUrlHelper(), package);
 
                 Assert.DoesNotContain("metadata", fixedUrl);
                 Assert.EndsWith(package.NormalizedVersion, fixedUrl);
@@ -64,7 +64,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper(siteRoot);
 
                 // Act
-                var result = UrlExtensions.Package(urlHelper, "id", "1.0.0", relativeUrl);
+                var result = urlHelper.Package("id", "1.0.0", relativeUrl);
 
                 // Assert
                 Assert.Equal(expectedUrl, result);
@@ -215,7 +215,7 @@ namespace NuGetGallery
                 string hostName,
                 string expectedReturnUrl)
             {
-                var absoluteReturnUrl = UrlExtensions.GetAbsoluteReturnUrl(returnUrl, protocol, hostName);
+                var absoluteReturnUrl = UrlHelperExtensions.GetAbsoluteReturnUrl(returnUrl, protocol, hostName);
 
                 Assert.Equal(expectedReturnUrl, absoluteReturnUrl);
             }
@@ -283,7 +283,7 @@ namespace NuGetGallery
                 var urlHelper = TestUtility.MockUrlHelper(siteRoot);
 
                 // Act
-                var result = UrlExtensions.GetActionLink(urlHelper, actionName, controllerName, relativeUrl, routeValues);
+                var result = UrlHelperExtensions.GetActionLink(urlHelper, actionName, controllerName, relativeUrl, routeValues);
 
                 // Assert
                 Assert.Equal(expectedActionLink, result);

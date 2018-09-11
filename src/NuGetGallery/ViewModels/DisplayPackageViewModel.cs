@@ -26,7 +26,7 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            LatestSymbolPackage = package
+            LatestSymbolsPackage = package
                 .SymbolPackages
                 .OrderByDescending(sp => sp.Created)
                 .FirstOrDefault();
@@ -55,10 +55,18 @@ namespace NuGetGallery
             DownloadsPerDay = 0;
 
             PushedBy = pushedBy;
+
+            InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.ProjectUrl, out string projectUrl))
+            {
+                ProjectUrl = projectUrl;
+            }
         }
 
         public bool ValidatingTooLong { get; set; }
-        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
@@ -67,7 +75,7 @@ namespace NuGetGallery
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
-        public SymbolPackage LatestSymbolPackage { get; private set; }
+        public SymbolPackage LatestSymbolsPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
@@ -104,6 +112,9 @@ namespace NuGetGallery
         public string PushedBy { get; private set; }
 
         public bool IsCertificatesUIEnabled { get; set; }
+        public string RepositoryUrl { get; private set; }
+        public RepositoryKind RepositoryType { get; private set; }
+        public string ProjectUrl { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 
@@ -146,6 +157,41 @@ namespace NuGetGallery
             }
 
             return _pushedByCache[userPushedBy];
+        }
+
+        private void InitializeRepositoryMetadata(string repositoryUrl, string repositoryType)
+        {
+            RepositoryType = RepositoryKind.Unknown;
+
+            if (Uri.TryCreate(repositoryUrl, UriKind.Absolute, out var repoUri))
+            {
+                if (repoUri.IsHttpsProtocol())
+                {
+                    RepositoryUrl = repositoryUrl;
+                }
+
+                if (repoUri.IsGitHubUri())
+                {
+                    RepositoryType = RepositoryKind.GitHub;
+
+                    // Fix-up git:// to https:// for GitHub URLs (we should add this fix-up to other repos in the future)
+                    if (repoUri.IsGitProtocol())
+                    {
+                        RepositoryUrl = repoUri.ToHttps().ToString();
+                    }
+                }
+                else if (PackageHelper.IsGitRepositoryType(repositoryType))
+                {
+                    RepositoryType = RepositoryKind.Git;
+                }
+            }
+        }
+
+        public enum RepositoryKind
+        {
+            Unknown,
+            Git,
+            GitHub,
         }
     }
 }

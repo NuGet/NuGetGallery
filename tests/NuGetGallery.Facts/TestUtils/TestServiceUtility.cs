@@ -1,4 +1,13 @@
-﻿using Moq;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Linq.Expressions;
+using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
@@ -7,12 +16,6 @@ using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Security;
-using System;
-using System.Collections.Generic;
-using System.Data.Entity;
-using System.IO;
-using System.Linq;
-using System.Linq.Expressions;
 
 namespace NuGetGallery.TestUtils
 {
@@ -78,7 +81,8 @@ namespace NuGetGallery.TestUtils
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
-            bool isSigned = false)
+            bool isSigned = false,
+            int? desiredTotalEntryCount = null)
         {
             if (packageDependencyGroups == null)
             {
@@ -136,7 +140,7 @@ namespace NuGetGallery.TestUtils
                             writer.Write("Fake signature file.");
                         }
                     }
-                });
+                }, desiredTotalEntryCount: desiredTotalEntryCount);
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;

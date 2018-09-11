@@ -121,19 +121,6 @@
     )
 }
 
-@helper AlertPackageVerifyRecommendation()
-{
-    @AlertWarning(
-    @<text>
-        Please verify the package metadata below.<br/>
-        <em>
-            To make changes, we recommend you cancel the upload, make the edits in the nuspec, and upload a new package.
-            <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
-        </em>
-    </text>
-        )
-}
-
 @helper ErrorPage(UrlHelper url, System.Web.Mvc.HtmlHelper html, string errorNumber, string errorName, Func<MvcHtmlString, HelperResult> errorTextMain, Func<MvcHtmlString, HelperResult> errorTextSub = null)
 {
     <section role="main" class="container main-container">

@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-upload">
@@ -52,10 +51,6 @@
                     @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
                 </div>
             }
-
-            <div id="verify-warning-container" class="hidden">
-                @ViewHelpers.AlertPackageVerifyRecommendation()
-            </div>
 
             @Html.Partial("_VerifyForm")
         </div>

@@ -152,6 +152,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must add a member by username, not an email address..
+        /// </summary>
+        public static string AddMember_NameIsEmail {
+            get {
+                return ResourceManager.GetString("AddMember_NameIsEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You cannot accept this request because you no longer meet the requirements of this organization. {0} Please contact support for more details..
         /// </summary>
         public static string AddMember_PolicyFailure {
@@ -220,6 +229,15 @@ namespace NuGetGallery {
         public static string AddOwner_CurrentUserNotFound {
             get {
                 return ResourceManager.GetString("AddOwner_CurrentUserNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must add an owner by username, not an email address..
+        /// </summary>
+        public static string AddOwner_NameIsEmail {
+            get {
+                return ResourceManager.GetString("AddOwner_NameIsEmail", resourceCulture);
             }
         }
         
@@ -1986,6 +2004,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to You must choose an administrator by username, not an email address..
+        /// </summary>
+        public static string TransformAccount_AdminNameIsEmail {
+            get {
+                return ResourceManager.GetString("TransformAccount_AdminNameIsEmail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The transform request for your account has been successfully cancelled..
         /// </summary>
         public static string TransformAccount_Cancelled {
@@ -2189,6 +2216,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The package contains too many files and/or folders..
+        /// </summary>
+        public static string UploadPackage_PackageContainsTooManyEntries {
+            get {
+                return ResourceManager.GetString("UploadPackage_PackageContainsTooManyEntries", resourceCulture);
             }
         }
         
@@ -2505,6 +2541,24 @@ namespace NuGetGallery {
         public static string WarningApiKeyExpired {
             get {
                 return ResourceManager.GetString("WarningApiKeyExpired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos; or &apos;git&apos;. The provided URL will not be displayed..
+        /// </summary>
+        public static string WarningNotHttpsOrGitRepositoryUrlScheme {
+            get {
+                return ResourceManager.GetString("WarningNotHttpsOrGitRepositoryUrlScheme", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Repository URL scheme should be &apos;https&apos;. The provided URL will not be displayed..
+        /// </summary>
+        public static string WarningNotHttpsRepositoryUrlScheme {
+            get {
+                return ResourceManager.GetString("WarningNotHttpsRepositoryUrlScheme", resourceCulture);
             }
         }
         

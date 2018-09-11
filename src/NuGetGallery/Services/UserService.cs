@@ -7,6 +7,7 @@ using System.Data;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -85,6 +86,11 @@ namespace NuGetGallery
                 request.IsAdmin = isAdmin || request.IsAdmin;
                 await EntitiesContext.SaveChangesAsync();
                 return request;
+            }
+
+            if (Regex.IsMatch(memberName, Constants.EmailValidationRegex, RegexOptions.None, Constants.EmailValidationRegexTimeout))
+            {
+                throw new EntityException(Strings.AddMember_NameIsEmail);
             }
 
             var member = FindByUsername(memberName);

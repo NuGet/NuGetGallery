@@ -1,30 +1,27 @@
-﻿@using NuGetGallery
-@using NuGetGallery.Helpers
-@model NuGetGallery.DeletePackagesRequest
+﻿@model NuGetGallery.DeletePackagesRequest
 
 @{
     ViewBag.Title = "Delete packages";
 }
 
-<section>
-    <article id="stage">
-        <h2>Delete packages</h2>
+<section role="main" class="container main-container">
+    <h2>Delete packages</h2>
 
-        <p>
-            If you would like to reflow a hard-deleted package, go to <a href="@Url.Action(actionName: "Reflow", controllerName: "Delete")">this page</a> instead.
-        </p>
+    <p>
+        If you would like to reflow a hard-deleted package, go to <a href="@Url.Action(actionName: "Reflow", controllerName: "Delete")">this page</a> instead.
+    </p>
 
-        <form>
-            <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br/>
-            <input type="button" value="Search" data-bind="click: search"/>
-        </form>
+    <form>
+        <textarea placeholder="Search for packages to delete (e.g. jQuery 1.8.0)" autocomplete="off" autofocus style="width: 100%;" rows="5" data-bind="value: searchQuery"></textarea><br />
+        <input type="button" value="Search" data-bind="click: search" />
+    </form>
 
-        @using (Html.BeginForm("Delete", "Packages", new { area = "", id = Guid.NewGuid().ToString(), version = "99.99.99" }, FormMethod.Post, new {id = "delete-form"}))
-        {
-            <table id="searchResults" class="sexy-table" style="display: none" data-bind="visible: searchResults().length > 0">
-                <thead>
+    @using (Html.BeginForm("Delete", "Packages", new { area = "" }, FormMethod.Post, new { id = "delete-form" }))
+    {
+        <table class="table" id="searchResults" style="display: none" data-bind="visible: searchResults().length > 0">
+            <thead>
                 <tr>
-                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState"/></th>
+                    <th><input type="checkbox" data-bind="click: toggleSelectAll, checked: selectAllState" /></th>
                     <th>Package</th>
                     <th>Version</th>
                     <th>Downloads</th>
@@ -33,86 +30,33 @@
                     <th>Status</th>
                     <th>Owners</th>
                 </tr>
-                </thead>
-                <tbody data-bind="foreach: searchResults">
-                    <tr>
-                        <td><input type="checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)"/></td>
-                        <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
-                        <td><span data-bind="text: PackageVersionNormalized"></span></td>
-                        <td><span data-bind="text: DownloadCount"></span></td>
-                        <td><span data-bind="text: Created"></span></td>
-                        <td><span data-bind="text: Listed"></span></td>
-                        <td><span data-bind="text: PackageStatus"></span></td>
-                        <td data-bind="foreach: Owners">
-                            <a data-bind="text: Username, attr: { href: ProfileUrl }" />
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
-                <p>No packages found.</p>
-            </div>
+            </thead>
+            <tbody data-bind="foreach: searchResults">
+                <tr>
+                    <td><input type="checkbox" name="Packages[]" data-bind="checked: Selected, value: $parent.generateValue($data)" /></td>
+                    <td><a href="#" data-bind="text: PackageId, attr: { href: $parent.generatePackageUrl($data) }"></a></td>
+                    <td><span data-bind="text: PackageVersionNormalized"></span></td>
+                    <td><span data-bind="text: DownloadCount"></span></td>
+                    <td><span data-bind="text: Created"></span></td>
+                    <td><span data-bind="text: Listed"></span></td>
+                    <td><span data-bind="text: PackageStatus"></span></td>
+                    <td data-bind="foreach: Owners">
+                        <a data-bind="text: Username, attr: { href: ProfileUrl }" />
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="display: none" data-bind="visible: searchResults().length === 0 && doneSearching()">
+            <p>No packages found.</p>
+        </div>
 
-            <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
-                <h2>Danger zone</h2>
-
-                <p class="message error">
-                    <strong>Deleting these packages will make them unavailable for download and package restore.</strong><br/>
-                    If the packages should be removed from search results but still be available for restore, consider unlisting them instead.
-                </p>
-
-                @Html.AntiForgeryToken()
-
-                <fieldset id="unlist-form" class="form">
-                    <legend>Delete selected packages</legend>
-
-                    <div id="form-field-reason" class="form-field">
-                        @Html.LabelFor(m => m.Reason)
-                        @Html.EnumDropDownListFor(m => m.Reason, Model.ReasonChoices, "<Choose a Reason>")
-                        @Html.ValidationMessageFor(m => m.Reason, null, new { @class = "block-validation-error" })
-                    </div>
-
-                    <div class="form-field">
-                        @Html.LabelFor(m => m.Signature)
-                        @Html.EditorFor(m => m.Signature)
-                        @Html.ValidationMessageFor(m => m.Signature)
-                    </div>
-
-                    <div class="form-field">
-                        <br/>
-                        @Html.EditorFor(m => m.SoftDelete)
-                        <label for="SoftDelete" class="checkbox">
-                            <strong>Keep the package id and version reserved.</strong> This will prevent new packages with the same id and version from being pushed to the gallery. It also displays "Package was deleted" on the package details page, helping existing users of the package to identify it was deleted.
-                        </label>
-                    </div>
-
-                    @if (User.IsAdministrator())
-                    {
-                        <div class="form-field" id="DeleteEmptyPackageRegistrationContainer" style="display: none;">
-                            <br />
-                            @Html.EditorFor(m => m.DeleteEmptyPackageRegistration)
-                            <label for="DeleteEmptyPackageRegistration" class="checkbox">
-                                <strong>Remove the package registration when all packages are deleted.</strong> This will make the package id available again by removing the package registration. It's advised not to use this and leave the package registration intact, unless explicitly needed.
-                            </label>
-                        </div>
-                    }
-
-                    <hr/>
-                    <p>
-                        This action <strong>CANNOT</strong> be undone. This will permanently delete the selected packages and make them unavailable for download and package restore.
-                    </p>
-                    <hr/>
-
-                    <input type="submit" value="I understand the consequences, delete these packages" title="I understand the consequences, delete these packages"/>
-                    <a class="cancel" href="@Url.Action("Index", "Home")" title="Cancel changes">Cancel</a>
-                </fieldset>
-            </div>
-        }
-    </article>
+        <div class="danger-zone" style="display: none;" data-bind="visible: arePackagesSelected">
+            @Html.Partial("_DeletePackage")
+        </div>
+    }
 </section>
 
 @section BottomScripts {
-    <script src="@Url.Content("~/Scripts/knockout-2.2.1.js")"></script>
     <script>
         $(document).ready(function() {
             var viewModel = function () {

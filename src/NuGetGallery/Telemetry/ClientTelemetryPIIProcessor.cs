@@ -35,6 +35,7 @@ namespace NuGetGallery
                 {
                     return;
                 }
+                requestTelemetryItem.Url = RouteExtensions.ObfuscateUrlQuery(requestTelemetryItem.Url, RouteExtensions.ObfuscatedReturnUrlMetadata);
                 // Removes the first /
                 var requestPath = requestTelemetryItem.Url.AbsolutePath.TrimStart('/');
                 var obfuscatedPath = route.ObfuscateUrlPath(requestPath);

@@ -4,59 +4,63 @@
     TimeZoneInfo timeZoneInfo = TimeZoneInfo.FindSystemTimeZoneById("Pacific Standard Time");
 }
 
-<h2>Lucene Maintenance</h2>
+<section role="main" class="container main-container">
+    <h2>Lucene Maintenance</h2>
 
-@if (Model.LastUpdated == null)
-{
-    <p>Lucene Index has not been built yet.</p>
-}
-else
-{
-    <p>
-        Lucene Index was last rebuilt: <br />
-        @Model.LastUpdated.Value.ToString("F") GMT<br />
-        @TimeZoneInfo.ConvertTime(Model.LastUpdated.Value, TimeZoneInfo.Utc, timeZoneInfo).ToString("F") Pacific
-    </p>
-    <p>
-        There are @Model.DocumentCount documents in the index.<br />
-        The index consumes @Model.FormatIndexSize() of space.<br />
-        The index is located on @Model.Directory
-        @if(Model.IsLocal) {
-            @:(@Model.Location)
-        } 
-        else 
-        {
-            @:(External)
-        }
-    </p>
-}
-
-@if (Model.IsLocal)
-{
-    using (Html.BeginForm("Rebuild", "Lucene"))
+    @if (Model.LastUpdated == null)
     {
-        @Html.AntiForgeryToken()
-        <fieldset class="form">
-            <input type="submit" value="Rebuild Now" />
-            <p>NOTE: This will only affect the current instance!</p>
-        </fieldset>
+        <p>Lucene Index has not been built yet.</p>
     }
-}
-else 
-{
-    <p>The Lucene Index is located on an external service and cannot be rebuilt.</p>
-}
+    else
+    {
+        <p>
+            Lucene Index was last rebuilt: <br />
+            @Model.LastUpdated.Value.ToString("F") GMT<br />
+            @TimeZoneInfo.ConvertTime(Model.LastUpdated.Value, TimeZoneInfo.Utc, timeZoneInfo).ToString("F") Pacific
+        </p>
+        <p>
+            There are @Model.DocumentCount documents in the index.<br />
+            The index consumes @Model.FormatIndexSize() of space.<br />
+            The index is located on @Model.Directory
+            @if (Model.IsLocal)
+            {
+                @:(@Model.Location)
+            }
+            else
+            {
+                @:(External)
+            }
+        </p>
+    }
 
-<h3>Query Statistics</h3>
-@if (Model.QueryStats != null)
-{
-    <p>
-        Average Round Trip Time: @Model.QueryStats.Average.ToString("0.00")ms<br/>
-        Maximum Round Trip Time: @Model.QueryStats.Max.ToString("0.00")ms<br/>
-        Minimum Round Trip Time: @Model.QueryStats.Min.ToString("0.00")ms<br/>
-        Based on the most recent @Model.QueryStats.Samples samples<br/>
-    </p>
-}
-else {
-    <p>Query statistics are not available or no queries have been made since the last server restart</p>
-}
+    @if (Model.IsLocal)
+    {
+        using (Html.BeginForm("Rebuild", "Lucene"))
+        {
+            @Html.AntiForgeryToken()
+            <fieldset class="form">
+                <input type="submit" value="Rebuild Now" />
+                <p>NOTE: This will only affect the current instance!</p>
+            </fieldset>
+        }
+    }
+    else
+    {
+        <p>The Lucene Index is located on an external service and cannot be rebuilt.</p>
+    }
+
+    <h3>Query Statistics</h3>
+    @if (Model.QueryStats != null)
+    {
+        <p>
+            Average Round Trip Time: @Model.QueryStats.Average.ToString("0.00")ms<br />
+            Maximum Round Trip Time: @Model.QueryStats.Max.ToString("0.00")ms<br />
+            Minimum Round Trip Time: @Model.QueryStats.Min.ToString("0.00")ms<br />
+            Based on the most recent @Model.QueryStats.Samples samples<br />
+        </p>
+    }
+    else
+    {
+        <p>Query statistics are not available or no queries have been made since the last server restart</p>
+    }
+</section>

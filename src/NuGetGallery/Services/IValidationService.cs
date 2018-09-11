@@ -45,6 +45,13 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package whose validation issues should be fetched.</param>
         /// <returns>The validation issues encountered in the latest validation.</returns>
-        IReadOnlyList<ValidationIssue> GetLatestValidationIssues(Package package);
+        IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(Package package);
+
+        /// <summary>
+        /// Get the symbol package's validation issues from the latest validation.
+        /// </summary>
+        /// <param name="symbolPackage">The symbol package whose validation issues should be fetched.</param>
+        /// <returns>The validation issues encountered in the latest validation.</returns>
+        IReadOnlyList<ValidationIssue> GetLatestPackageValidationIssues(SymbolPackage symbolPackage);
     }
 }

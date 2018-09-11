@@ -7,89 +7,87 @@
 
 @section TopScripts{
     @Styles.Render("~/Content/themes/custom/jqueryui")
-    @Styles.Render("~/Content/supportrequests")
+    @Styles.Render("~/Content/page-support-requests")
 }
 
 @ViewHelpers.AjaxAntiForgeryToken(Html)
 
-<section>
-    <article id="supportrequests">
-        <div style="display: none;" id="addAdmin-dialog">
-            <form id="addAdmin-form">
-                <fieldset class="form">
-                    <legend>Add</legend>
-                    <div class="form-field">
-                        <label for="newGalleryUsername">Gallery username</label>
-                        <input id="newGalleryUsername"
-                               name="newGalleryUsername"
-                               maxlength="255"
-                               data-bind="value: newGalleryUsername" />
-                    </div>
-                </fieldset>
-            </form>
-        </div>
+<section role="main" class="container main-container">
+    <div style="display: none;" id="addAdmin-dialog">
+        <form id="addAdmin-form">
+            <fieldset class="form">
+                <legend>Add</legend>
+                <div class="form-field">
+                    <label for="newGalleryUsername">Gallery username</label>
+                    <input id="newGalleryUsername"
+                           name="newGalleryUsername"
+                           maxlength="255"
+                           data-bind="value: newGalleryUsername" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
 
-        <div style="display: none;" id="editAdmin-dialog">
-            <form id="editAdmin-form">
-                <fieldset class="form">
-                    <legend>Edit</legend>
-                    <div class="form-field">
-                        <label for="editGalleryUsername">Gallery username</label>
-                        <input id="editGalleryUsername"
-                               name="editGalleryUsername"
-                               maxlength="255"
-                               data-bind="value: editGalleryUsername" />
-                    </div>
-                </fieldset>
-            </form>
-        </div>
+    <div style="display: none;" id="editAdmin-dialog">
+        <form id="editAdmin-form">
+            <fieldset class="form">
+                <legend>Edit</legend>
+                <div class="form-field">
+                    <label for="editGalleryUsername">Gallery username</label>
+                    <input id="editGalleryUsername"
+                           name="editGalleryUsername"
+                           maxlength="255"
+                           data-bind="value: editGalleryUsername" />
+                </div>
+            </fieldset>
+        </form>
+    </div>
 
-        <div id="sr-nav-menu">
-            <a id="manageSupportRequestsButton" href="@Url.Action("Index")" title="Manage Support Requests">Manage Support Requests</a>
-        </div>
+    <div id="sr-nav-menu">
+        <a id="manageSupportRequestsButton" href="@Url.Action("Index")" title="Manage Support Requests">Manage Support Requests</a>
+    </div>
 
-        <div id="sr-admins-container">
-            <h2>Support Request Administrators</h2>
+    <div id="sr-admins-container">
+        <h2>Support Request Administrators</h2>
 
-            <table id="sr-admins-table" class="sexy-table">
-                <thead>
-                    <tr>
-                        <th>Admin Key</th>
-                        <th>Gallery username</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody data-bind="foreach: admins()">
-                    <tr>
-                        <td>
-                            <span data-bind="text: Key"></span>
-                        </td>
-                        <td>
-                            <span data-bind="text: GalleryUsername"></span>
-                        </td>
-                        <td>
-                            <a href="#" data-bind="text: $parent.getAdminStatus($data), click: $parent.toggleAdminAccess"></a>
-                        </td>
-                        <td>
-                            <a class="editButton" href="#" data-bind="click: $parent.editAdmin" title="Click to edit this admin.">Edit</a>
-                        </td>
-                    </tr>
-                </tbody>
-                <tfoot>
-                    <tr>
-                        <td colspan="5">
-                            <a class="addButton" href="#" data-bind="click: addAdmin" title="Click to add a new SR-Admin.">New SR-Admin...</a>
-                        </td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-    </article>
+        <table id="sr-admins-table" class="sexy-table">
+            <thead>
+                <tr>
+                    <th>Admin Key</th>
+                    <th>Gallery username</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody data-bind="foreach: admins()">
+                <tr>
+                    <td>
+                        <span data-bind="text: Key"></span>
+                    </td>
+                    <td>
+                        <span data-bind="text: GalleryUsername"></span>
+                    </td>
+                    <td>
+                        <a href="#" data-bind="text: $parent.getAdminStatus($data), click: $parent.toggleAdminAccess"></a>
+                    </td>
+                    <td>
+                        <a class="editButton" href="#" data-bind="click: $parent.editAdmin" title="Click to edit this admin.">Edit</a>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="5">
+                        <a class="addButton" href="#" data-bind="click: addAdmin" title="Click to add a new SR-Admin.">New SR-Admin...</a>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 </section>
 
 @section BottomScripts{
-    @Scripts.Render("~/Scripts/supportrequests")
+    @Scripts.Render("~/Scripts/page-support-requests")
 
     <script type="text/javascript">
         $(function () {
@@ -108,7 +106,7 @@
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        data: addAjaxAntiForgeryToken(model),
+                        data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -132,7 +130,7 @@
                         type: 'POST',
                         cache: false,
                         dataType: 'json',
-                        data: addAjaxAntiForgeryToken(model),
+                        data: window.nuget.addAjaxAntiForgeryToken(model),
                         success: success
                     })
                     .error(error);
@@ -192,7 +190,7 @@
                             type: 'POST',
                             cache: false,
                             dataType: 'json',
-                            data: addAjaxAntiForgeryToken(model),
+                            data: window.nuget.addAjaxAntiForgeryToken(model),
                             success: function () {
                                 $self.refresh();
                             }

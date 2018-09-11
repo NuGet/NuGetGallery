@@ -8,7 +8,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using NuGet.Services.Client;
 using NuGet.Services.Search.Models;
 
 namespace NuGet.Services.Search.Client
@@ -25,8 +24,8 @@ namespace NuGet.Services.Search.Client
         /// </summary>
         /// <param name="baseUri">The URL to the root of the service</param>
         /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
-        public SearchClient(Uri baseUri, params DelegatingHandler[] handlers)
-            : this(baseUri, "SearchGalleryQueryService/3.0.0-rc", null, new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger()), handlers)
+        public SearchClient(Uri baseUri, Action<Exception> onException, params DelegatingHandler[] handlers)
+            : this(baseUri, "SearchGalleryQueryService/3.0.0-rc", null, new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger()), onException, handlers)
         {
         }
 
@@ -38,7 +37,7 @@ namespace NuGet.Services.Search.Client
         /// <param name="credentials">The credentials to connect to the service with</param>
         /// <param name="healthIndicatorStore">Health indicator store</param>
         /// <param name="handlers">Handlers to apply to the request in order from first to last</param>
-        public SearchClient(Uri baseUri, string resourceType, ICredentials credentials, IEndpointHealthIndicatorStore healthIndicatorStore, params DelegatingHandler[] handlers)
+        public SearchClient(Uri baseUri, string resourceType, ICredentials credentials, IEndpointHealthIndicatorStore healthIndicatorStore, Action<Exception> onException, params DelegatingHandler[] handlers)
         {
             _resourceType = resourceType;
 
@@ -58,7 +57,7 @@ namespace NuGet.Services.Search.Client
 
             _httpClient = new HttpClient(handler, disposeHandler: true);
 
-            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(_httpClient, healthIndicatorStore);
+            _retryingHttpClientWrapper = new RetryingHttpClientWrapper(_httpClient, healthIndicatorStore, onException);
             _discoveryClient = new ServiceDiscoveryClient(_httpClient, baseUri);
         }
 

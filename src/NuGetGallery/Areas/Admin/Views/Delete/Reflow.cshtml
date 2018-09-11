@@ -3,21 +3,19 @@
     ViewBag.Title = "Reflow deleted packages";
 }
 
-<section>
-    <article id="stage">
-        <h2>Reflow</h2>
+<section role="main" class="container main-container">
+    <h2>Reflow</h2>
 
-        <p>
-            Use this page to reflow a hard-deleted package that is no longer in the gallery.
-        </p>
+    <p>
+        Use this page to reflow a hard-deleted package that is no longer in the gallery.
+    </p>
 
-        @if (Model == null)
-        {
-            @Html.Partial("_ReflowBulk")
-        }
-        else
-        {
-            @Html.Partial("_ReflowBulkConfirm")
-        }
-    </article>
+    @if (Model == null)
+    {
+        @Html.Partial("_ReflowBulk")
+    }
+    else
+    {
+        @Html.Partial("_ReflowBulkConfirm")
+    }
 </section>

@@ -4,14 +4,14 @@
     ViewBag.Tab = "Admin";
 }
 
-<section id="actions">
+<section role="main" class="container main-container">
     <h1>Site Administration</h1>
     <ul>
         <li>
             <h2>
-                <a class="action-menu-link" href="~/Admin/Database">
-                    <i class="icon-magic action-menu-icon"></i>
-                    <span class="action-menu-text">Database Administration</span>
+                <a href="~/Admin/Database">
+                    <i class="ms-Icon ms-Icon--Database"></i>
+                    <span>Database Administration</span>
                 </a>
             </h2>
             <p>
@@ -20,9 +20,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="~/Admin/Errors.axd">
-                    <i class="icon-reorder action-menu-icon"></i>
-                    <span class="action-menu-text">Error Logs</span>
+                <a href="~/Admin/Errors.axd">
+                    <i class="ms-Icon ms-Icon--Error"></i>
+                    <span>Error Logs</span>
                 </a>
             </h2>
             <p>
@@ -31,9 +31,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "LockPackage")">
-                    <i class="icon-lock action-menu-icon"></i>
-                    <span class="action-menu-text">Lock Packages</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "LockPackage")">
+                    <i class="ms-Icon ms-Icon--Lock"></i>
+                    <span>Lock Packages</span>
                 </a>
             </h2>
             <p>
@@ -42,9 +42,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Delete")">
-                    <i class="icon-trash action-menu-icon"></i>
-                    <span class="action-menu-text">Delete Packages</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "Delete")">
+                    <i class="ms-Icon ms-Icon--Delete"></i>
+                    <span>Delete Packages</span>
                 </a>
             </h2>
             <p>
@@ -53,9 +53,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Lucene")">
-                    <i class="icon-search action-menu-icon"></i>
-                    <span class="action-menu-text">Lucene Index Maintenance</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "Lucene")">
+                    <i class="ms-Icon ms-Icon--DocumentSearch"></i>
+                    <span>Lucene Index Maintenance</span>
                 </a>
             </h2>
             <p>
@@ -64,9 +64,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "SupportRequest")">
-                    <i class="icon-user action-menu-icon"></i>
-                    <span class="action-menu-text">Support Requests</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "SupportRequest")">
+                    <i class="ms-Icon ms-Icon--ActivityFeed"></i>
+                    <span>Support Requests</span>
                 </a>
             </h2>
             <p>
@@ -75,9 +75,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Config")">
-                    <i class="icon-gears action-menu-icon"></i>
-                    <span class="action-menu-text">Configuration</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "Config")">
+                    <i class="ms-Icon ms-Icon--Settings"></i>
+                    <span>Configuration</span>
                 </a>
             </h2>
             <p>
@@ -86,9 +86,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "ClearContentCache", controllerName: "Home")">
-                    <i class="icon-trash action-menu-icon"></i>
-                    <span class="action-menu-text">Clear Content Cache</span>
+                <a href="@Url.Action(actionName: "ClearContentCache", controllerName: "Home")">
+                    <i class="ms-Icon ms-Icon--Refresh"></i>
+                    <span>Clear Content Cache</span>
                 </a>
             </h2>
             <p>
@@ -97,9 +97,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "SecurityPolicy")">
-                    <i class="icon-user action-menu-icon"></i>
-                    <span class="action-menu-text">Security Policies</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "SecurityPolicy")">
+                    <i class="ms-Icon ms-Icon--SecurityGroup"></i>
+                    <span>Security Policies</span>
                 </a>
             </h2>
             <p>
@@ -108,9 +108,9 @@
         </li>
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "ReservedNamespace")">
-                    <i class="icon-user action-menu-icon"></i>
-                    <span class="action-menu-text">Reserve Namespace</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "ReservedNamespace")">
+                    <i class="ms-Icon ms-Icon--Shield"></i>
+                    <span>Reserve Namespace</span>
                 </a>
             </h2>
             <p>
@@ -121,9 +121,9 @@
         {
             <li>
                 <h2>
-                    <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Validation")">
-                        <i class="icon-check action-menu-icon"></i>
-                        <span class="action-menu-text">Validation</span>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "Validation")">
+                        <i class="ms-Icon ms-Icon--CheckboxComposite"></i>
+                        <span>Validation</span>
                     </a>
                 </h2>
                 <p>
@@ -132,9 +132,9 @@
             </li>
             <li>
                 <h2>
-                    <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "Revalidation")">
-                        <i class="icon-check action-menu-icon"></i>
-                        <span class="action-menu-text">Revalidation Job</span>
+                    <a href="@Url.Action(actionName: "Index", controllerName: "Revalidation")">
+                        <i class="ms-Icon ms-Icon--Redo"></i>
+                        <span>Revalidation Job</span>
                     </a>
                 </h2>
                 <p>
@@ -144,9 +144,9 @@
         }
         <li>
             <h2>
-                <a class="action-menu-link" href="@Url.Action(actionName: "Index", controllerName: "DeleteAccount")">
-                    <i class="icon-trash action-menu-icon"></i>
-                    <span class="action-menu-text">Delete Account</span>
+                <a href="@Url.Action(actionName: "Index", controllerName: "DeleteAccount")">
+                    <i class="ms-Icon ms-Icon--Delete"></i>
+                    <span >Delete Account</span>
                 </a>
             </h2>
             <p>

@@ -3,7 +3,6 @@
     ViewBag.Title = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "Packages" : "Packages matching " + Model.SearchTerm;
     ViewBag.SortText = String.IsNullOrWhiteSpace(Model.SearchTerm) ? "recent installs" : "relevance";
     ViewBag.Tab = "Packages";
-    Layout = "~/Views/Shared/Gallery/Layout.cshtml";
 }
 
 <section role="main" class="container main-container page-list-packages">

@@ -15,6 +15,7 @@ namespace NuGet.Services.Search.Client
     {
         private readonly HttpClient _httpClient;
         private readonly IEndpointHealthIndicatorStore _endpointHealthIndicatorStore;
+        private readonly Action<Exception> _onException;
 
         private static readonly int PeriodToDelayAlternateRequest = 3000;
         private static readonly IComparer<int> HealthComparer;
@@ -24,16 +25,16 @@ namespace NuGet.Services.Search.Client
             HealthComparer = new WeightedRandomComparer();
         }
 
-        public RetryingHttpClientWrapper(HttpClient httpClient)
-            : this (httpClient, new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger()))
+        public RetryingHttpClientWrapper(HttpClient httpClient, Action<Exception> onException)
+            : this (httpClient, new BaseUrlHealthIndicatorStore(new NullHealthIndicatorLogger()), onException)
         {
-            _httpClient = httpClient;
         }
 
-        public RetryingHttpClientWrapper(HttpClient httpClient, IEndpointHealthIndicatorStore endpointHealthIndicatorStore)
+        public RetryingHttpClientWrapper(HttpClient httpClient, IEndpointHealthIndicatorStore endpointHealthIndicatorStore, Action<Exception> onException)
         {
-            _httpClient = httpClient;
-            _endpointHealthIndicatorStore = endpointHealthIndicatorStore;
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _endpointHealthIndicatorStore = endpointHealthIndicatorStore ?? throw new ArgumentNullException(nameof(endpointHealthIndicatorStore));
+            _onException = onException ?? throw new ArgumentNullException(nameof(onException));
         }
 
         public async Task<string> GetStringAsync(IEnumerable<Uri> endpoints)
@@ -89,6 +90,11 @@ namespace NuGet.Services.Search.Client
             if (!cancellationTokenSource.IsCancellationRequested)
             {
                 cancellationTokenSource.Cancel(false);
+            }
+
+            foreach (var exception in exceptions)
+            {
+                _onException(exception);
             }
 
             if (completedTask.IsFaulted || completedTask.IsCanceled)

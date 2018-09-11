@@ -7,7 +7,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
-using Autofac;
 using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
@@ -27,17 +26,19 @@ namespace NuGetGallery.Security
             new Lazy<IUserService>(() => new Mock<IUserService>().Object);
         private static readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementServiceFactory = 
             new Lazy<IPackageOwnershipManagementService>(() => new Mock<IPackageOwnershipManagementService>().Object);
+        private static readonly ITelemetryService _telemetryService = new Mock<ITelemetryService>().Object;
 
         public static IEnumerable<object[]> CtorThrowNullReference_Data
         {
             get
             {
-                yield return new object[] { null, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory };
-                yield return new object[] { _entities, null, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory };
-                yield return new object[] { _entities, _auditing, null, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, null, _userServiceFactory, _packageOwnershipManagementServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, null, _packageOwnershipManagementServiceFactory };
-                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, null };
+                yield return new object[] { null, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, null, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, null, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, null, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, null, _packageOwnershipManagementServiceFactory, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, null, _telemetryService };
+                yield return new object[] { _entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, null };
             }
         }
 
@@ -49,16 +50,17 @@ namespace NuGetGallery.Security
             IDiagnosticsService diagnostics,
             IAppConfiguration configuration,
             Lazy<IUserService> userServiceFactory,
-            Lazy<IPackageOwnershipManagementService> packageOwnershipManagementServiceFactory)
+            Lazy<IPackageOwnershipManagementService> packageOwnershipManagementServiceFactory,
+            ITelemetryService telemetryService)
         {
-            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration, userServiceFactory, packageOwnershipManagementServiceFactory));
+            Assert.Throws<ArgumentNullException>(() => new SecurityPolicyService(entities, auditing, diagnostics, configuration, userServiceFactory, packageOwnershipManagementServiceFactory, telemetryService));
         }
 
         [Fact]
         public void UserHandlers_ReturnsRegisteredUserSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService);
 
             // Act.
             var handlers = ((IEnumerable<UserSecurityPolicyHandler>)service.GetType()
@@ -79,7 +81,7 @@ namespace NuGetGallery.Security
         public void PackageHandlers_ReturnsRegisteredPackageSecurityPolicyHandlers()
         {
             // Arrange.
-            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory);
+            var service = new SecurityPolicyService(_entities, _auditing, _diagnostics, _configuration, _userServiceFactory, _packageOwnershipManagementServiceFactory, _telemetryService);
 
             // Act.
             var handlers = ((IEnumerable<PackageSecurityPolicyHandler>)service.GetType()
@@ -318,7 +320,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies = subscription.Policies.ToList();
 
             // Act & Assert.
-            Assert.True(service.IsSubscribed(user, service.UserSubscriptions.Single()));
+            Assert.True(service.IsSubscribed(user, service.Subscriptions.Single()));
         }
 
         [Fact]
@@ -335,7 +337,7 @@ namespace NuGetGallery.Security
             }
 
             // Act & Assert.
-            Assert.True(service.IsSubscribed(user, service.UserSubscriptions.First()));
+            Assert.True(service.IsSubscribed(user, service.Subscriptions.First()));
         }
 
         [Fact]
@@ -348,7 +350,7 @@ namespace NuGetGallery.Security
             user.SecurityPolicies.Add(subscription.Policies.First());
 
             // Act & Assert.
-            Assert.False(service.IsSubscribed(user, service.UserSubscriptions.First()));
+            Assert.False(service.IsSubscribed(user, service.Subscriptions.First()));
         }
 
         [Fact]
@@ -382,7 +384,7 @@ namespace NuGetGallery.Security
             var user = new User("testUser");
 
             // Act.
-            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             Assert.True(subscribed);
@@ -407,7 +409,7 @@ namespace NuGetGallery.Security
             }
 
             // Act.
-            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             Assert.True(subscribed);
@@ -436,7 +438,7 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
 
             // Act.
-            var subscribed = await service.SubscribeAsync(user, service.UserSubscriptions.First());
+            var subscribed = await service.SubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             Assert.False(subscribed);
@@ -453,7 +455,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.UserSubscriptions.First();
+            var subscription = service.Subscriptions.First();
 
             // Act.
             await service.SubscribeAsync(user, subscription);
@@ -468,7 +470,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.UserSubscriptions.First();
+            var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
             service.MockAuditingService.ResetCalls();
 
@@ -516,7 +518,7 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
 
             // Act.
-            await service.UnsubscribeAsync(user, service.UserSubscriptions.First());
+            await service.UnsubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             Assert.Equal(0, user.SecurityPolicies.Count);
@@ -542,7 +544,7 @@ namespace NuGetGallery.Security
             Assert.Equal(4, user.SecurityPolicies.Count);
 
             // Act.
-            await service.UnsubscribeAsync(user, service.UserSubscriptions.First());
+            await service.UnsubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             var policies = user.SecurityPolicies.ToList();
@@ -570,7 +572,7 @@ namespace NuGetGallery.Security
             Assert.Equal(2, user.SecurityPolicies.Count);
 
             // Act.
-            await service.UnsubscribeAsync(user, service.UserSubscriptions.First());
+            await service.UnsubscribeAsync(user, service.Subscriptions.First());
 
             // Act & Assert.
             Assert.Equal(2, user.SecurityPolicies.Count);
@@ -586,7 +588,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.UserSubscriptions.First();
+            var subscription = service.Subscriptions.First();
             await service.SubscribeAsync(user, subscription);
             service.MockAuditingService.ResetCalls();
 
@@ -603,7 +605,7 @@ namespace NuGetGallery.Security
             // Arrange.
             var service = new TestSecurityPolicyService();
             var user = new User("testUser");
-            var subscription = service.UserSubscriptions.First();
+            var subscription = service.Subscriptions.First();
 
             // Act.
             await service.UnsubscribeAsync(user, subscription);
@@ -611,31 +613,6 @@ namespace NuGetGallery.Security
             // Act & Assert.
             service.MockAuditingService.Verify(s => s.SaveAuditRecordAsync(It.IsAny<AuditRecord>()), Times.Never);
         }
-
-        [Fact]
-        public async Task UnsubscribeAsync_RemovesAllOrganizationSubscriptionPolicies()
-        {
-            // Arrange.
-            var service = new TestSecurityPolicyService();
-            var organization = new Organization("testOrganization");
-            var subscription = service.Mocks.OrganizationPoliciesSubscription.Object;
-            foreach (var policy in subscription.Policies)
-            {
-                organization.SecurityPolicies.Add(new UserSecurityPolicy(policy));
-            }
-            Assert.Equal(2, organization.SecurityPolicies.Count);
-
-            // Act.
-            await service.UnsubscribeAsync(organization, service.OrganizationSubscriptions.First());
-
-            // Act & Assert.
-            Assert.Equal(0, organization.SecurityPolicies.Count);
-
-            service.Mocks.OrganizationPoliciesSubscription.Verify(s => s.OnUnsubscribeAsync(It.IsAny<UserSecurityPolicySubscriptionContext>()), Times.Once);
-            service.MockEntitiesContext.Verify(c => c.SaveChangesAsync(), Times.Once);
-            service.MockUserSecurityPolicies.Verify(p => p.Remove(It.IsAny<UserSecurityPolicy>()), Times.Exactly(2));
-        }
-
         private HttpContextBase CreateHttpContext(User user)
         {
             var httpContext = new Mock<HttpContextBase>();

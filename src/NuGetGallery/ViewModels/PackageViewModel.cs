@@ -18,12 +18,7 @@ namespace NuGetGallery
 
         public PackageViewModel(Package package)
         {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            _package = package;
+            _package = package ?? throw new ArgumentNullException(nameof(package));
 
             FullVersion = NuGetVersionFormatter.ToFullStringOrFallback(package.Version, fallback: package.Version);
             IsSemVer2 = package.SemVerLevelKey == SemVerLevelKey.SemVer2;
@@ -37,9 +32,6 @@ namespace NuGetGallery
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
-            ProjectUrl = package.ProjectUrl;
-            RepositoryUrl = package.RepositoryUrl;
-            RepositoryType = GetRepositoryKind(package.RepositoryUrl, package.RepositoryType);
             LicenseUrl = package.LicenseUrl;
             HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
@@ -63,9 +55,6 @@ namespace NuGetGallery
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
-        public string ProjectUrl { get; set; }
-        public string RepositoryUrl { get; set; }
-        public RepositoryKind RepositoryType { get; private set; }
         public string LicenseUrl { get; set; }
         public Boolean HideLicenseReport { get; set; }
         public IEnumerable<string> LicenseNames { get; set; }
@@ -134,37 +123,6 @@ namespace NuGetGallery
                         throw new ArgumentOutOfRangeException(nameof(PackageStatus));
                 }
             }
-        }
-
-        private RepositoryKind GetRepositoryKind(string repositoryUrl, string repositoryType)
-        {
-            if (string.IsNullOrEmpty(repositoryUrl))
-            {
-                return RepositoryKind.Unknown;
-            }
-
-            if (Uri.TryCreate(repositoryUrl, UriKind.Absolute, out var repoUri))
-            {
-                if ((string.Equals("http", repoUri.Scheme, StringComparison.Ordinal) || string.Equals("https", repoUri.Scheme, StringComparison.Ordinal))
-                    && (string.Equals(repoUri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) || string.Equals(repoUri.Authority, "github.com", StringComparison.OrdinalIgnoreCase)))
-                {
-                    return RepositoryKind.GitHub;
-                }
-
-                if (string.Equals(repositoryType, "git", StringComparison.OrdinalIgnoreCase))
-                {
-                    return RepositoryKind.Git;
-                }
-            }
-
-            return RepositoryKind.Unknown;
-        }
-
-        public enum RepositoryKind
-        {
-            Unknown,
-            Git,
-            GitHub,
         }
     }
 }

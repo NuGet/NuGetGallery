@@ -32,6 +32,7 @@ namespace NuGetGallery.Security
 
         private readonly Lazy<IUserService> _userService;
         private readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementService;
+        private readonly ITelemetryService _telemetryService;
 
         protected IEntitiesContext EntitiesContext { get; set; }
 
@@ -56,6 +57,7 @@ namespace NuGetGallery.Security
             IAppConfiguration configuration,
             Lazy<IUserService> userService,
             Lazy<IPackageOwnershipManagementService> packageOwnershipManagementService,
+            ITelemetryService telemetryService,
             MicrosoftTeamSubscription microsoftTeamSubscription = null)
         {
             EntitiesContext = entitiesContext ?? throw new ArgumentNullException(nameof(entitiesContext));
@@ -72,6 +74,7 @@ namespace NuGetGallery.Security
             MicrosoftTeamSubscription = microsoftTeamSubscription;
             _packageOwnershipManagementService = packageOwnershipManagementService ?? throw new ArgumentNullException(nameof(packageOwnershipManagementService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
         }
 
         /// <summary>
@@ -97,22 +100,9 @@ namespace NuGetGallery.Security
         }
 
         /// <summary>
-        /// Available user security policy subscriptions.
+        /// Available policy subscriptions.
         /// </summary>
-        public virtual IEnumerable<IUserSecurityPolicySubscription> UserSubscriptions
-        {
-            get
-            {
-                yield return _controlRequiredSignerPolicy;
-                yield return _automaticallyOverwriteRequiredSignerPolicy;
-                yield return MicrosoftTeamSubscription;
-            }
-        }
-
-        /// <summary>
-        /// Available organization security policy subscriptions.
-        /// </summary>
-        public virtual IEnumerable<IUserSecurityPolicySubscription> OrganizationSubscriptions
+        public virtual IEnumerable<IUserSecurityPolicySubscription> Subscriptions
         {
             get
             {
@@ -125,9 +115,7 @@ namespace NuGetGallery.Security
 
         private IUserSecurityPolicySubscription GetSubscription(User user, string subscriptionName)
         {
-            return (user is Organization)
-                ? OrganizationSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase))
-                : UserSubscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
+            return Subscriptions.FirstOrDefault(s => s.SubscriptionName.Equals(subscriptionName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -219,6 +207,7 @@ namespace NuGetGallery.Security
                     var context = new PackageSecurityPolicyEvaluationContext(
                         _userService.Value,
                         _packageOwnershipManagementService.Value,
+                        _telemetryService,
                         foundPolicies,
                         package,
                         sourceAccount,

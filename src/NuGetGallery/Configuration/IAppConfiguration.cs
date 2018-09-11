@@ -339,5 +339,15 @@ namespace NuGetGallery.Configuration
         /// by the owner.
         /// </summary>
         bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
+
+        /// <summary>
+        /// Whether or not to synchronously reject packages on push/upload that have too many package entries.
+        /// </summary>
+        bool RejectPackagesWithTooManyPackageEntries { get; set; }
+
+        /// <summary>
+        /// Whether or not to block search engines from indexing the web pages using the "noindex" meta tag.
+        /// </summary>
+        bool BlockSearchEngineIndexing { get; set; }
     }
 }

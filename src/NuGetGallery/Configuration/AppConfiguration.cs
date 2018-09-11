@@ -313,8 +313,10 @@ namespace NuGetGallery.Configuration
         /// Gets/sets a string that is brand string to display in the footer, this also
         /// accepts a single {0} string format token which is replaced by the UTC year
         /// </summary>
-        public string ExternalBrandingMessage {
-            get {
+        public string ExternalBrandingMessage
+        {
+            get
+            {
                 return _ExternalBrandingMessage;
             }
 
@@ -338,5 +340,9 @@ namespace NuGetGallery.Configuration
         public bool IsHosted { get; set; }
 
         public bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
+
+        public bool RejectPackagesWithTooManyPackageEntries { get; set; }
+
+        public bool BlockSearchEngineIndexing { get; set; }
     }
 }

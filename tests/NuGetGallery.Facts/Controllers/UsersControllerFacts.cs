@@ -2463,6 +2463,50 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WhenAdminUsernameIsEmail_ShowsError()
+            {
+                // Arrange
+                var accountToTransform = "account";
+                var controller = CreateController(accountToTransform);
+
+                // Act
+                var result = await controller.TransformToOrganization(new TransformAccountViewModel()
+                {
+                    AdminUsername = "notAUsername@email.com"
+                });
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Single(controller.ModelState[string.Empty].Errors);
+                Assert.Equal(
+                    Strings.TransformAccount_AdminNameIsEmail,
+                    controller.ModelState[string.Empty].Errors.First().ErrorMessage);
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformRequestAsync(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                        m.SendOrganizationTransformInitiatedNoticeAsync(
+                            It.IsAny<User>(),
+                            It.IsAny<User>(),
+                            It.IsAny<string>()),
+                        Times.Never());
+
+                GetMock<ITelemetryService>()
+                    .Verify(
+                        t => t.TrackOrganizationTransformInitiated(It.IsAny<User>()),
+                        Times.Never());
+            }
+
+            [Fact]
             public async Task WhenAdminIsNotFound_ShowsError()
             {
                 // Arrange

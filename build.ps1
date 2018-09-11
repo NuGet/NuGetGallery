@@ -10,8 +10,10 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '37ff6e758c38b3f513af39f881399ce85f4ff20b'
+    [string]$BuildBranch = 'cb604c2cd1b2f7f71fb574cdda4c83ddb1464cc7'
 )
+
+Set-StrictMode -Version 1.0
 
 # This script should fail the build if any issue occurs.
 trap {
@@ -91,11 +93,11 @@ Invoke-BuildStep 'Building solution' {
     -ev +BuildErrors
 
 Invoke-BuildStep 'Creating artifacts' {
-        $packageId = 'NuGetGallery.Core'+$PackageSuffix 
-		New-Package (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
-		-ev +BuildErrors
-	}
-	
+    $packageId = 'NuGetGallery.Core'+$PackageSuffix 
+    New-ProjectPackage (Join-Path $PSScriptRoot "src\NuGetGallery.Core\NuGetGallery.Core.csproj") -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -PackageId $packageId `
+    -ev +BuildErrors
+}
+
 Trace-Log ('-' * 60)
 
 ## Calculating Build time

@@ -1,7 +1,7 @@
 ﻿@{
     var ShowWarningIndicator = Config.Current.DeprecateNuGetPasswordLogins && (User.HasPasswordLogin() || (!User.HasMultiFactorAuthenticationEnabled() && User.WasMicrosoftAccountUsedForSignin()));
     var ShowPasswordDeprecationBanner = TempData.ContainsKey("ShowPasswordDeprecationWarning")
-        && Convert.ToBoolean((string)TempData["ShowPasswordDeprecationWarning"])
+        && Convert.ToBoolean(TempData["ShowPasswordDeprecationWarning"].ToString())
         && Request.IsAuthenticated
         && Config.Current.DeprecateNuGetPasswordLogins
         && User.HasPasswordLogin();
@@ -73,7 +73,7 @@
                              @ViewHelpers.ImageFallback(Url.Absolute("~/Content/gallery/img/logo-header-94x29.png")) />
                     </a>
                 </div>
-                <div id="navbar" class="navbar-collapse collapse" role="menubar">
+                <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav" role="tablist">
                         @DisplayNavigationItem("Packages", Url.PackageList())
                         @DisplayNavigationItem("Upload", Url.UploadPackage())

@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using NuGet.Versioning;
+using System;
 
 namespace NuGetGallery
 {
@@ -69,6 +70,7 @@ namespace NuGetGallery
         internal const string EmailValidationRegexFirstPart = @"[-A-Za-z0-9!#$%&'*+\/=?^_`{|}~\.]+";
         internal const string EmailValidationRegexSecondPart = @"[A-Za-z0-9]+[\w\.-]*[A-Za-z0-9]*\.[A-Za-z0-9][A-Za-z\.]*[A-Za-z]";
         public const string EmailValidationRegex = "^" + EmailValidationRegexFirstPart + "@" + EmailValidationRegexSecondPart + "$";
+        public static TimeSpan EmailValidationRegexTimeout = TimeSpan.FromSeconds(5);
 
         public const string EmailValidationErrorMessage = "This doesn't appear to be a valid email address.";
 
@@ -91,6 +93,8 @@ namespace NuGetGallery
 
         public const string DevelopmentEnvironment = "Development";
 
+        public const string GitRepository = "git";
+
         public static class ContentNames
         {
             public static readonly string ReadOnly = "ReadOnly";
@@ -100,6 +104,7 @@ namespace NuGetGallery
             public static readonly string LoginDiscontinuationConfiguration = "Login-Discontinuation-Configuration";
             public static readonly string CertificatesConfiguration = "Certificates-Configuration";
             public static readonly string SymbolsConfiguration = "Symbols-Configuration";
+            public static readonly string TyposquattingConfiguration = "Typosquatting-Configuration";
         }
 
         public static class StatisticsDimensions

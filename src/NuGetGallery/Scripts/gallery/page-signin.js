@@ -6,11 +6,6 @@ $(function () {
         });
     });
 
-    var addAjaxAntiForgeryToken = function (data) {
-        var $field = $("#AntiForgeryForm input[name=__RequestVerificationToken]");
-        data["__RequestVerificationToken"] = $field.val();
-    };
-
     var failHandler = function (jqXHR, textStatus, errorThrown) {
         viewModel.message(window.nuget.formatString(errorThrown));
     };
@@ -37,7 +32,7 @@ $(function () {
                 username: username
             };
 
-            addAjaxAntiForgeryToken(obj);
+            window.nuget.addAjaxAntiForgeryToken(obj);
 
             $.ajax({
                 url: signinAssistanceUrl,
@@ -72,7 +67,7 @@ $(function () {
                 providedEmailAddress: inputEmailAddress
             };
 
-            addAjaxAntiForgeryToken(obj);
+            window.nuget.addAjaxAntiForgeryToken(obj);
 
             $.ajax({
                 url: signinAssistanceUrl,

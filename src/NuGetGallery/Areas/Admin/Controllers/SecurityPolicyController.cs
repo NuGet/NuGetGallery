@@ -37,7 +37,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
         {
             var model = new SecurityPolicyViewModel()
             {
-                SubscriptionNames = PolicyService.UserSubscriptions.Select(s => s.SubscriptionName)
+                SubscriptionNames = PolicyService.Subscriptions.Select(s => s.SubscriptionName)
             };
 
             return View(model);
@@ -59,7 +59,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 Users = users.Select(u => new UserSecurityPolicySubscriptions()
                 {
                     Username = u.Username,
-                    Subscriptions = PolicyService.UserSubscriptions.ToDictionary(
+                    Subscriptions = PolicyService.Subscriptions.ToDictionary(
                         s => s.SubscriptionName,
                         s => PolicyService.IsSubscribed(u, s))
                 }),
