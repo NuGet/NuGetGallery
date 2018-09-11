@@ -2085,6 +2085,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Typosquatting check fails with: .
+        /// </summary>
+        public static string TyposquattingCheckFails {
+            get {
+                return ResourceManager.GetString("TyposquattingCheckFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
