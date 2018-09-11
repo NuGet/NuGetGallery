@@ -80,15 +80,15 @@ namespace NuGetGallery.Services
             var warningMessagesPlaceholder = string.Empty;
             if (hasWarnings)
             {
-                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published with warnings - {symbolPackage.Package.PackageRegistration.Id} {symbolPackage.Version}";
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published with warnings - {symbolPackage.Id} {symbolPackage.Version}";
                 warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
             }
             else
             {
-                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published - {symbolPackage.Package.PackageRegistration.Id} {symbolPackage.Version}";
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published - {symbolPackage.Id} {symbolPackage.Version}";
             }
 
-            string body = $@"The symbol package [{symbolPackage.Package.PackageRegistration.Id} {symbolPackage.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {symbolPackage.Package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+            string body = $@"The symbol package [{symbolPackage.Id} {symbolPackage.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {symbolPackage.Package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
 {warningMessagesPlaceholder}
 
 -----------------------------------------------
@@ -186,9 +186,9 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
         {
             var validationIssues = validationSet.GetValidationIssues();
 
-            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package validation failed - {symbolPackage.Package.PackageRegistration.Id} {symbolPackage.Version}";
+            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package validation failed - {symbolPackage.Id} {symbolPackage.Version}";
             var bodyBuilder = new StringBuilder();
-            bodyBuilder.Append($@"The symbol package [{symbolPackage.Package.PackageRegistration.Id} {symbolPackage.Version}]({packageUrl}) failed validation because of the following reason(s):
+            bodyBuilder.Append($@"The symbol package [{symbolPackage.Id} {symbolPackage.Version}]({packageUrl}) failed validation because of the following reason(s):
 ");
 
             foreach (var validationIssue in validationIssues)
@@ -210,7 +210,7 @@ Your symbol package was not published on {CoreConfiguration.GalleryOwner.Display
             else
             {
                 var issuePluralString = validationIssues.Count() > 1 ? "all the issues" : "the issue";
-                bodyBuilder.Append($"You can reupload your sybol package once you've fixed {issuePluralString} with it.");
+                bodyBuilder.Append($"You can reupload your symbol package once you've fixed {issuePluralString} with it.");
             }
 
             using (var mailMessage = new MailMessage())
@@ -302,7 +302,7 @@ Your symbol package was not published on {CoreConfiguration.GalleryOwner.Display
 
         public async Task SendValidationTakingTooLongNoticeAsync(SymbolPackage symbolPackage, string packageUrl)
         {
-            string subject = "[{0}] SymbolPackage validation taking longer than expected - {1} {2}";
+            string subject = "[{0}] Symbol package validation taking longer than expected - {1} {2}";
             string body = "It is taking longer than expected for your symbol package [{1} {2}]({3}) to get published.\n\n" +
                 "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.\n\n" +
                 "Thank you for your patience.";
@@ -311,16 +311,16 @@ Your symbol package was not published on {CoreConfiguration.GalleryOwner.Display
                 CultureInfo.CurrentCulture,
                 body,
                 CoreConfiguration.GalleryOwner.DisplayName,
-                symbolPackage.Package.PackageRegistration.Id,
-                symbolPackage.Package.Version,
+                symbolPackage.Id,
+                symbolPackage.Version,
                 packageUrl);
 
             subject = string.Format(
                 CultureInfo.CurrentCulture,
                 subject,
                 CoreConfiguration.GalleryOwner.DisplayName,
-                symbolPackage.Package.PackageRegistration.Id,
-                symbolPackage.Package.Version);
+                symbolPackage.Id,
+                symbolPackage.Version);
 
             using (var mailMessage = new MailMessage())
             {
