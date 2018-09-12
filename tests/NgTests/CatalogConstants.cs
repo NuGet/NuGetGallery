@@ -96,5 +96,9 @@ namespace NgTests
         public const string XmlSchemaUri = "http://www.w3.org/2001/XMLSchema#";
         public const string Xsd = "xsd";
         public const string XsdDateTime = "xsd:dateTime";
+
+        public const string CommitTimeStampFormat = "yyyy-MM-ddTHH:mm:ss.FFFFFFFZ";
+        public const string DateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFFZ";
+        public const string UrlTimeStampFormat = "yyyy.MM.dd.HH.mm.ss";
     }
 }

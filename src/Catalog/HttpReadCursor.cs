@@ -12,8 +12,8 @@ namespace NuGet.Services.Metadata.Catalog
 {
     public class HttpReadCursor : ReadCursor
     {
-        Uri _address;
-        Func<HttpMessageHandler> _handlerFunc;
+        private readonly Uri _address;
+        private readonly Func<HttpMessageHandler> _handlerFunc;
 
         public HttpReadCursor(Uri address, Func<HttpMessageHandler> handlerFunc = null)
         {
@@ -21,14 +21,13 @@ namespace NuGet.Services.Metadata.Catalog
             _handlerFunc = handlerFunc;
         }
 
-        public override async Task Load(CancellationToken cancellationToken)
+        public override async Task LoadAsync(CancellationToken cancellationToken)
         {
             HttpMessageHandler handler = (_handlerFunc != null) ? _handlerFunc() : new WebRequestHandler { AllowPipelining = true };
 
             using (HttpClient client = new HttpClient(handler))
+            using (HttpResponseMessage response = await client.GetAsync(_address, cancellationToken))
             {
-                HttpResponseMessage response = await client.GetAsync(_address, cancellationToken);
-
                 Trace.TraceInformation("HttpReadCursor.Load {0}", response.StatusCode);
 
                 response.EnsureSuccessStatusCode();

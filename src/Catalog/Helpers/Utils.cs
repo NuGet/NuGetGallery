@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -32,25 +33,36 @@ namespace NuGet.Services.Metadata.Catalog
         private static readonly Lazy<XslCompiledTransform> XslTransformNuSpecCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNuSpec));
         private static readonly Lazy<XslCompiledTransform> XslTransformNormalizeNuSpecNamespaceCache = new Lazy<XslCompiledTransform>(() => SafeLoadXslTransform(XslTransformNormalizeNuSpecNamespace));
 
-        private static readonly Dictionary<string, string> _resourceStringCache = new Dictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> _resourceStringCache = new ConcurrentDictionary<string, string>();
 
-        public static Stream GetResourceStream(string resName)
+        public static Stream GetResourceStream(string resourceName)
         {
-            string name = Assembly.GetExecutingAssembly().GetName().Name;
-            return Assembly.GetExecutingAssembly().GetManifestResourceStream(name + "." + resName);
-        }
-
-        public static string GetResource(string resName)
-        {
-            if (!_resourceStringCache.ContainsKey(resName))
+            if (string.IsNullOrEmpty(resourceName))
             {
-                using (var reader = new StreamReader(GetResourceStream(resName)))
-                {
-                    _resourceStringCache[resName] = reader.ReadToEnd();
-                }
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(resourceName));
             }
 
-            return _resourceStringCache[resName];
+            var assembly = Assembly.GetExecutingAssembly();
+
+            string name = assembly.GetName().Name;
+
+            return assembly.GetManifestResourceStream($"{name}.{resourceName}");
+        }
+
+        public static string GetResource(string resourceName)
+        {
+            if (string.IsNullOrEmpty(resourceName))
+            {
+                throw new ArgumentException(Strings.ArgumentMustNotBeNullOrEmpty, nameof(resourceName));
+            }
+
+            return _resourceStringCache.GetOrAdd(resourceName, _ =>
+            {
+                using (var reader = new StreamReader(GetResourceStream(resourceName)))
+                {
+                    return reader.ReadToEnd();
+                }
+            });
         }
 
         public static IGraph CreateNuspecGraph(XDocument nuspec, string baseAddress, bool normalizeXml = false)

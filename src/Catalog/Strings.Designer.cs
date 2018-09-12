@@ -77,5 +77,14 @@ namespace NuGet.Services.Metadata.Catalog {
                 return ResourceManager.GetString("ArgumentOutOfRange", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A failure occurred while processing a catalog batch..
+        /// </summary>
+        internal static string BatchProcessingFailure {
+            get {
+                return ResourceManager.GetString("BatchProcessingFailure", resourceCulture);
+            }
+        }
     }
 }

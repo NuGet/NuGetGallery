@@ -68,6 +68,43 @@ namespace CatalogTests.Helpers
             }
         }
 
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetResource_WhenResourceNameIsNullOrEmpty_Throws(string resourceName)
+        {
+            var exception = Assert.Throws<ArgumentException>(() => Utils.GetResource(resourceName));
+
+            Assert.Equal("resourceName", exception.ParamName);
+        }
+
+        [Fact]
+        public void GetResource_WhenResourceNameIsValid_ReturnsString()
+        {
+            var resource = Utils.GetResource("sparql.SelectInlinePackage.rq");
+
+            Assert.NotEmpty(resource);
+        }
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData("")]
+        public void GetResourceStream_WhenResourceNameIsNullOrEmpty_Throws(string resourceName)
+        {
+            var exception = Assert.Throws<ArgumentException>(() => Utils.GetResourceStream(resourceName));
+
+            Assert.Equal("resourceName", exception.ParamName);
+        }
+
+        [Fact]
+        public void GetResourceStream_WhenResourceNameIsValid_ReturnsStream()
+        {
+            using (var stream = Utils.GetResourceStream("sparql.SelectInlinePackage.rq"))
+            {
+                Assert.NotNull(stream);
+            }
+        }
+
         private static MemoryStream GetPackageStream()
         {
             return TestHelper.GetStream("Newtonsoft.Json.9.0.2-beta1.nupkg");

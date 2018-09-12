@@ -8,17 +8,46 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using CatalogTests.Helpers;
 using Moq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using NgTests;
 using NgTests.Data;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
+using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
 using Xunit;
 
-namespace NgTests
+namespace CatalogTests.Registration
 {
-    public class RegistrationCollectorTests
+    public class RegistrationCollectorTests : RegistrationTestBase
     {
+        private readonly static Uri _baseUri = new Uri("https://nuget.test");
+        private readonly static JObject _contextKeyword = new JObject(
+            new JProperty(CatalogConstants.VocabKeyword, CatalogConstants.NuGetSchemaUri),
+            new JProperty(CatalogConstants.NuGet, CatalogConstants.NuGetSchemaUri),
+            new JProperty(CatalogConstants.Items,
+                new JObject(
+                    new JProperty(CatalogConstants.IdKeyword, CatalogConstants.Item),
+                    new JProperty(CatalogConstants.ContainerKeyword, CatalogConstants.SetKeyword))),
+            new JProperty(CatalogConstants.Parent,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))),
+            new JProperty(CatalogConstants.CommitTimeStamp,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastCreated,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastEdited,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))),
+            new JProperty(CatalogConstants.NuGetLastDeleted,
+                new JObject(
+                    new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.XsdDateTime))));
+
         private MemoryStorage _legacyStorage;
         private TestStorageFactory _legacyStorageFactory;
         private MockServerHttpClientHandler _mockServer;
@@ -26,17 +55,17 @@ namespace NgTests
         private MemoryStorage _semVer2Storage;
         private TestStorageFactory _semVer2StorageFactory;
 
-        private void SharedInit(bool useLegacy, bool useSemVer2)
+        private void SharedInit(bool useLegacy, bool useSemVer2, Uri baseUri = null, Uri indexUri = null, Uri contentBaseUri = null)
         {
             if (useLegacy)
             {
-                _legacyStorage = new MemoryStorage();
+                _legacyStorage = new MemoryStorage(baseUri ?? new Uri("http://tempuri.org"));
                 _legacyStorageFactory = new TestStorageFactory(name => _legacyStorage.WithName(name));
             }
 
             if (useSemVer2)
             {
-                _semVer2Storage = new MemoryStorage();
+                _semVer2Storage = new MemoryStorage(baseUri ?? new Uri("http://tempuri.org"));
                 _semVer2StorageFactory = new TestStorageFactory(name => _semVer2Storage.WithName(name));
             }
 
@@ -44,14 +73,34 @@ namespace NgTests
             _mockServer.SetAction("/", request => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)));
 
             _target = new RegistrationCollector(
-                new Uri("http://tempuri.org/index.json"),
+                indexUri ?? new Uri("http://tempuri.org/index.json"),
                 _legacyStorageFactory,
                 _semVer2StorageFactory,
-                new Uri("http://tempuri.org/packages"),
+                contentBaseUri ?? new Uri("http://tempuri.org/packages"),
                 new Mock<ITelemetryService>().Object,
                 handlerFunc: () => _mockServer);
 
             RegistrationMakerCatalogItem.PackagePathProvider = new PackagesFolderPackagePathProvider();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        public void Constructor_WhenMaxConcurrentBatchesIsNotPositive_Throws(int maxConcurrentBatches)
+        {
+            var storageFactory = new TestStorageFactory();
+
+            var exception = Assert.Throws<ArgumentOutOfRangeException>(
+                () => new RegistrationCollector(
+                    _baseUri,
+                    storageFactory,
+                    storageFactory,
+                    _baseUri,
+                    new Mock<ITelemetryService>().Object,
+                    maxConcurrentBatches: maxConcurrentBatches));
+
+            Assert.Equal("maxConcurrentBatches", exception.ParamName);
+            Assert.Equal(maxConcurrentBatches, exception.ActualValue);
         }
 
         [Theory]
@@ -60,7 +109,7 @@ namespace NgTests
         [InlineData("/data/2015.10.12.10.08.55/anotherpackage.1.0.0.json", "2015-10-12T10:08:54.1506742Z")]
         public async Task DoesNotSkipPackagesWhenExceptionOccurs(string catalogUri, string expectedCursorBeforeRetry)
         {
-            // Arrange 
+            // Arrange
             SharedInit(useLegacy: true, useSemVer2: false);
 
             var catalogStorage = Catalogs.CreateTestCatalogWithCommitThenTwoPackageCommit();
@@ -79,7 +128,8 @@ namespace NgTests
             ReadCursor back = MemoryCursor.CreateMax();
 
             // Act
-            await Assert.ThrowsAsync<Exception>(() => _target.RunAsync(front, back, CancellationToken.None));
+            await Assert.ThrowsAsync<BatchProcessingException>(
+                () => _target.RunAsync(front, back, CancellationToken.None));
             var cursorBeforeRetry = front.Value;
             await _target.RunAsync(front, back, CancellationToken.None);
             var cursorAfterRetry = front.Value;
@@ -389,6 +439,152 @@ namespace NgTests
             Assert.Equal(2, finalUris.Count);
             Assert.Equal("http://tempuri.org/cursor.json", finalUris[0]);
             Assert.Equal("http://tempuri.org/otherpackage/1.0.0.json", finalUris[1]);
+        }
+
+        [Fact]
+        public async Task RunAsync_WhenPackageIdSpansCommitsAndVariesInCasing_BatchesAcrossCommitsByLowerCasePackageId()
+        {
+            var pageUri = new Uri(_baseUri, "v3-catalog0/page0.json");
+            var indexUri = new Uri(_baseUri, "v3-catalog0/index.json");
+            var contentBaseUri = new Uri(_baseUri, "packages");
+
+            SharedInit(useLegacy: true, useSemVer2: true, baseUri: _baseUri, indexUri: indexUri, contentBaseUri: contentBaseUri);
+
+            var commitId1 = Guid.NewGuid().ToString();
+            var commitId2 = Guid.NewGuid().ToString();
+            var commitTimeStamp1 = DateTimeOffset.UtcNow.AddMinutes(-1);
+            var commitTimeStamp2 = commitTimeStamp1.AddMinutes(1);
+            var independentPackageDetails1 = new CatalogIndependentPackageDetails(
+                id: "ABC",
+                version: "1.0.0",
+                baseUri: _baseUri.AbsoluteUri,
+                commitId: commitId1,
+                commitTimeStamp: commitTimeStamp1);
+            var independentPackageDetails2 = new CatalogIndependentPackageDetails(
+                id: "AbC",
+                version: "1.0.1",
+                baseUri: _baseUri.AbsoluteUri,
+                commitId: commitId1,
+                commitTimeStamp: commitTimeStamp1);
+            var independentPackageDetails3 = new CatalogIndependentPackageDetails(
+                id: "abc",
+                version: "1.0.2",
+                baseUri: _baseUri.AbsoluteUri,
+                commitId: commitId2,
+                commitTimeStamp: commitTimeStamp2);
+            var packageDetails = new[]
+            {
+                CatalogPackageDetails.Create(independentPackageDetails1),
+                CatalogPackageDetails.Create(independentPackageDetails2),
+                CatalogPackageDetails.Create(independentPackageDetails3)
+            };
+
+            var independentPage = new CatalogIndependentPage(
+                pageUri.AbsoluteUri,
+                CatalogConstants.CatalogPage,
+                commitId2,
+                commitTimeStamp2.ToString(CatalogConstants.CommitTimeStampFormat),
+                packageDetails.Length,
+                indexUri.AbsoluteUri,
+                packageDetails,
+                _contextKeyword);
+
+            var index = CatalogIndex.Create(independentPage, _contextKeyword);
+
+            var catalogStorage = new MemoryStorage(_baseUri);
+
+            catalogStorage.Content.TryAdd(indexUri, CreateStringStorageContent(index));
+            catalogStorage.Content.TryAdd(pageUri, CreateStringStorageContent(independentPage));
+            catalogStorage.Content.TryAdd(
+                new Uri(independentPackageDetails1.IdKeyword),
+                CreateStringStorageContent(independentPackageDetails1));
+            catalogStorage.Content.TryAdd(
+                new Uri(independentPackageDetails2.IdKeyword),
+                CreateStringStorageContent(independentPackageDetails2));
+            catalogStorage.Content.TryAdd(
+                new Uri(independentPackageDetails3.IdKeyword),
+                CreateStringStorageContent(independentPackageDetails3));
+
+            await _mockServer.AddStorageAsync(catalogStorage);
+
+            await _target.RunAsync(CancellationToken.None);
+
+            var expectedPage = new ExpectedPage(independentPackageDetails1, independentPackageDetails2, independentPackageDetails3);
+
+            Verify(_legacyStorage, expectedPage);
+            Verify(_semVer2Storage, expectedPage);
+        }
+
+        private void Verify(MemoryStorage storage, ExpectedPage expectedPage)
+        {
+            var firstPackageDetails = expectedPage.Details.First();
+            var registrationIndexUri = GetRegistrationPackageIndexUri(storage.BaseAddress, firstPackageDetails.Id.ToLowerInvariant());
+            var registrationIndex = GetStorageContent<RegistrationIndex>(storage, registrationIndexUri);
+
+            var commitId = registrationIndex.CommitId;
+            var commitTimeStamp = registrationIndex.CommitTimeStamp;
+
+            Assert.Equal(1, registrationIndex.Count);
+
+            var registrationPage = registrationIndex.Items.Single();
+
+            Assert.Equal(CatalogConstants.CatalogCatalogPage, registrationPage.TypeKeyword);
+            Assert.Equal(commitId, registrationPage.CommitId);
+            Assert.Equal(commitTimeStamp, registrationPage.CommitTimeStamp);
+            Assert.Equal(expectedPage.Details.Count, registrationPage.Count);
+            Assert.Equal(registrationIndexUri.AbsoluteUri, registrationPage.Parent);
+            Assert.Equal(expectedPage.LowerVersion, registrationPage.Lower);
+            Assert.Equal(expectedPage.UpperVersion, registrationPage.Upper);
+
+            Assert.Equal(expectedPage.Details.Count, registrationPage.Count);
+            Assert.Equal(registrationPage.Count, registrationPage.Items.Length);
+
+            for (var i = 0; i < registrationPage.Count; ++i)
+            {
+                var catalogPackageDetails = expectedPage.Details[i];
+                var packageId = catalogPackageDetails.Id.ToLowerInvariant();
+                var packageVersion = catalogPackageDetails.Version.ToLowerInvariant();
+                var registrationPackageVersionUri = GetRegistrationPackageVersionUri(storage.BaseAddress, packageId, packageVersion);
+                var packageContentUri = GetPackageContentUri(storage.BaseAddress, packageId, packageVersion);
+
+                var registrationPackage = registrationPage.Items[i];
+
+                Assert.Equal(registrationPackageVersionUri.AbsoluteUri, registrationPackage.IdKeyword);
+                Assert.Equal(CatalogConstants.Package, registrationPackage.TypeKeyword);
+                Assert.Equal(commitId, registrationPackage.CommitId);
+                Assert.Equal(commitTimeStamp, registrationPackage.CommitTimeStamp);
+                Assert.Equal(packageContentUri.AbsoluteUri, registrationPackage.PackageContent);
+                Assert.Equal(registrationIndexUri.AbsoluteUri, registrationPackage.Registration);
+
+                var registrationCatalogEntry = registrationPackage.CatalogEntry;
+
+                Assert.Equal(catalogPackageDetails.IdKeyword, registrationCatalogEntry.IdKeyword);
+                Assert.Equal(CatalogConstants.PackageDetails, registrationCatalogEntry.TypeKeyword);
+                Assert.Equal(catalogPackageDetails.Id, registrationCatalogEntry.Id);
+                Assert.Equal(catalogPackageDetails.Version, registrationCatalogEntry.Version);
+                Assert.Equal(catalogPackageDetails.Authors, registrationCatalogEntry.Authors);
+                Assert.Equal(catalogPackageDetails.Description, registrationCatalogEntry.Description);
+                Assert.Equal(catalogPackageDetails.Listed, registrationCatalogEntry.Listed);
+
+                Assert.Equal(packageContentUri.AbsoluteUri, registrationCatalogEntry.PackageContent);
+                Assert.Equal(GetRegistrationDateTime(catalogPackageDetails.Published), registrationCatalogEntry.Published);
+                Assert.Equal(catalogPackageDetails.RequireLicenseAcceptance, registrationCatalogEntry.RequireLicenseAcceptance);
+
+                var registrationPackageDetails = GetStorageContent<RegistrationIndependentPackage>(storage, new Uri(registrationPackage.IdKeyword));
+
+                Assert.Equal(registrationPackageVersionUri.AbsoluteUri, registrationPackageDetails.IdKeyword);
+                Assert.Equal(new[] { CatalogConstants.Package, CatalogConstants.NuGetCatalogSchemaPermalinkUri }, registrationPackageDetails.TypeKeyword);
+                Assert.Equal(catalogPackageDetails.IdKeyword, registrationPackageDetails.CatalogEntry);
+                Assert.Equal(catalogPackageDetails.Listed, registrationPackageDetails.Listed);
+                Assert.Equal(packageContentUri.AbsoluteUri, registrationPackageDetails.PackageContent);
+                Assert.Equal(GetRegistrationDateTime(catalogPackageDetails.Published), registrationPackageDetails.Published);
+                Assert.Equal(registrationIndexUri.AbsoluteUri, registrationPackageDetails.Registration);
+            }
+        }
+
+        private static StringStorageContent CreateStringStorageContent<T>(T value)
+        {
+            return new StringStorageContent(JsonConvert.SerializeObject(value, _jsonSettings));
         }
     }
 }

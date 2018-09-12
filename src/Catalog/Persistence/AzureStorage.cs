@@ -365,7 +365,14 @@ namespace NuGet.Services.Metadata.Catalog.Persistence
         /// <returns>The blob uri.</returns>
         public override Uri GetUri(string name)
         {
-            return new Uri(_directory.Uri, name);
+            var baseUri = _directory.Uri.AbsoluteUri;
+
+            if (baseUri.EndsWith("/"))
+            {
+                return new Uri($"{baseUri}{name}", UriKind.Absolute);
+            }
+
+            return new Uri($"{baseUri}/{name}", UriKind.Absolute);
         }
 
         public override async Task<bool> AreSynchronized(Uri firstResourceUri, Uri secondResourceUri)

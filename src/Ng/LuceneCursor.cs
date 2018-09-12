@@ -1,14 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Lucene.Net.Index;
-using NuGet.Services.Metadata.Catalog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
+using Lucene.Net.Index;
+using NuGet.Services.Metadata.Catalog;
 
 namespace Ng
 {
@@ -23,14 +23,14 @@ namespace Ng
             _defaultValue = defaultValue;
         }
 
-        public override Task Save(CancellationToken cancellationToken)
+        public override Task SaveAsync(CancellationToken cancellationToken)
         {
             //  no-op because we will do the Save in the Lucene.Commit
 
             return Task.FromResult(true);
         }
 
-        public override Task Load(CancellationToken cancellationToken)
+        public override Task LoadAsync(CancellationToken cancellationToken)
         {
             IDictionary<string, string> commitUserData;
             using (var reader = _indexWriter.GetReader())
