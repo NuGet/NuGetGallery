@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
 using System.Web;
+using Newtonsoft.Json;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;
@@ -48,10 +49,22 @@ namespace NuGetGallery
             public const string PackageRegistrationRequiredSignerSet = "PackageRegistrationRequiredSignerSet";
             public const string AccountDeleteCompleted = "AccountDeleteCompleted";
             public const string AccountDeleteRequested = "AccountDeleteRequested";
+            public const string SymbolPackagePush = "SymbolPackagePush";
+            public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
+            public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
+            public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
+            public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
+            public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
         private ITelemetryClient _telemetryClient;
+
+        private readonly JsonSerializerSettings _defaultJsonSerializerSettings = new JsonSerializerSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.None
+        };
 
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
@@ -112,6 +125,10 @@ namespace NuGetGallery
         public const string AccountDeletedIsOrganization = "AccountDeletedIsOrganization";
         public const string CreatedDateForAccountToBeDeleted = "CreatedDateForAccountToBeDeleted";
         public const string AccountDeleteSucceeded = "AccountDeleteSucceeded";
+
+        // Package metadata compliance properties
+        public const string ComplianceFailures = "ComplianceFailures";
+        public const string ComplianceWarnings = "ComplianceWarnings";
 
         public const string ValueUnknown = "Unknown";
 
@@ -310,6 +327,36 @@ namespace NuGetGallery
             TrackMetricForPackage(Events.PackageRevalidate, package);
         }
 
+        public void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures)
+        {
+            TrackMetricForPackage(
+                Events.PackageMetadataComplianceError, 
+                packageId, 
+                packageVersion,
+                properties => {
+                    properties.Add(ComplianceFailures, JsonConvert.SerializeObject(complianceFailures, _defaultJsonSerializerSettings));
+                });
+        }
+
+        public void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings)
+        {
+            TrackMetricForPackage(
+                Events.PackageMetadataComplianceWarning,
+                packageId,
+                packageVersion,
+                properties => {
+                    properties.Add(ComplianceWarnings, JsonConvert.SerializeObject(complianceWarnings, _defaultJsonSerializerSettings));
+                });
+        }
+
+        public void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion)
+        {
+            TrackMetricForPackage(
+                Events.PackageOwnershipAutomaticallyAdded, 
+                packageId, 
+                packageVersion);
+        }
+
         public void TrackCertificateAdded(string thumbprint)
         {
             TrackMetricForCertificateActivity(Events.CertificateAdded, thumbprint);
@@ -344,6 +391,21 @@ namespace NuGetGallery
             addProperties(telemetryProperties);
 
             _telemetryClient.TrackException(exception, telemetryProperties, metrics: null);
+        }
+
+        public void TrackSymbolPackagePushEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackagePush, packageId, packageVersion);
+        }
+
+        public void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackagePushFailure, packageId, packageVersion);
+        }
+
+        public void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackageGalleryValidation, packageId, packageVersion);
         }
 
         private void TrackMetricForAccountActivity(string eventName, User user, Credential credential, bool wasMultiFactorAuthenticated = false)
@@ -408,6 +470,22 @@ namespace NuGetGallery
         {
             var apiKey = user.GetCurrentApiKeyCredential(identity);
             return apiKey?.Created.ToString("O") ?? "N/A";
+        }
+
+        private void TrackMetricForSymbolPackage(
+            string metricName,
+            string packageId,
+            string packageVersion,
+            Action<Dictionary<string, string>> addProperties = null)
+        {
+            TrackMetric(metricName, 1, properties => {
+                properties.Add(ClientVersion, GetClientVersion());
+                properties.Add(ProtocolVersion, GetProtocolVersion());
+                properties.Add(ClientInformation, GetClientInformation());
+                properties.Add(PackageId, packageId);
+                properties.Add(PackageVersion, packageVersion);
+                addProperties?.Invoke(properties);
+            });
         }
 
         private void TrackMetricForPackage(

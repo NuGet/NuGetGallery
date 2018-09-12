@@ -295,6 +295,7 @@
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
+    <Compile Include="Helpers\UriExtensions.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
@@ -395,12 +396,14 @@
     <Compile Include="Services\BackgroundMessageService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
+    <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingCheckService.cs" />
     <Compile Include="Services\ITyposquattingUserService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
+    <Compile Include="Services\TyposquattingConfiguration.cs" />
     <Compile Include="Services\SymbolsConfiguration.cs" />
     <Compile Include="Services\CertificatesConfiguration.cs" />
     <Compile Include="Services\CertificateService.cs" />
@@ -637,6 +640,7 @@
     <Compile Include="Configuration\StorageType.cs" />
     <Compile Include="Telemetry\UserPackageDeleteEvent.cs" />
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
+    <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
@@ -1448,7 +1452,6 @@
     <Compile Include="Properties\AssemblyInfo.*.cs" />
     <Compile Include="RequestModels\SubmitPackageRequest.cs" />
     <Compile Include="RouteName.cs" />
-    <Compile Include="UrlExtensions.cs" />
     <Compile Include="App_Start\VersionRouteConstraint.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModel.cs" />
     <Compile Include="ViewModels\IPreviousNextPager.cs" />
@@ -1746,6 +1749,7 @@
     <EmbeddedResource Include="Infrastructure\Elmah.SqlServer.sql" />
     <EmbeddedResource Include="Infrastructure\AddPackageLicenseReport.sql" />
     <Content Include="Public\robots.txt" />
+    <Content Include="App_Data\Files\Content\Typosquatting-Configuration.json" />
     <None Include="Properties\PublishProfiles\nuget-staging-frontend.pubxml" />
     <Content Include="Scripts\gallery\**\*" />
     <Content Include="Web.config">

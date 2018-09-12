@@ -111,7 +111,7 @@ namespace NuGetGallery.Framework
                 .SingleInstance();
 
             var configurationService = CreateTestConfigurationService();
-            UrlExtensions.SetConfigurationService(configurationService);
+            UrlHelperExtensions.SetConfigurationService(configurationService);
 
             builder.Register(_ => configurationService)
                 .As<IGalleryConfigurationService>()

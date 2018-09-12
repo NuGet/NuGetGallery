@@ -342,5 +342,7 @@ namespace NuGetGallery.Configuration
         public bool RejectSignedPackagesWithNoRegisteredCertificate { get; set; }
 
         public bool RejectPackagesWithTooManyPackageEntries { get; set; }
+
+        public bool BlockSearchEngineIndexing { get; set; }
     }
 }

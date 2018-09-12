@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     public class ContentObjectService : IContentObjectService
     {
-        private const int RefreshIntervalMinutes = 5;
+        public static TimeSpan RefreshInterval = TimeSpan.FromMinutes(5);
 
         private readonly IContentService _contentService;
 
@@ -21,11 +21,13 @@ namespace NuGetGallery
             LoginDiscontinuationConfiguration = new LoginDiscontinuationConfiguration();
             CertificatesConfiguration = new CertificatesConfiguration();
             SymbolsConfiguration = new SymbolsConfiguration();
+            TyposquattingConfiguration = new TyposquattingConfiguration();
         }
 
         public ILoginDiscontinuationConfiguration LoginDiscontinuationConfiguration { get; set; }
         public ICertificatesConfiguration CertificatesConfiguration { get; set; }
         public ISymbolsConfiguration SymbolsConfiguration { get; set; }
+        public ITyposquattingConfiguration TyposquattingConfiguration { get; set; }
 
         public async Task Refresh()
         {
@@ -40,12 +42,16 @@ namespace NuGetGallery
             SymbolsConfiguration =
                 await Refresh<SymbolsConfiguration>(Constants.ContentNames.SymbolsConfiguration) ??
                 new SymbolsConfiguration();
+
+            TyposquattingConfiguration =
+               await Refresh<TyposquattingConfiguration>(Constants.ContentNames.TyposquattingConfiguration) ??
+               new TyposquattingConfiguration();
         }
 
         private async Task<T> Refresh<T>(string contentName) 
             where T : class
         {
-            var configString = (await _contentService.GetContentItemAsync(contentName, TimeSpan.FromMinutes(RefreshIntervalMinutes)))?.ToString();
+            var configString = (await _contentService.GetContentItemAsync(contentName, RefreshInterval))?.ToString();
             if (string.IsNullOrEmpty(configString))
             {
                 return null;

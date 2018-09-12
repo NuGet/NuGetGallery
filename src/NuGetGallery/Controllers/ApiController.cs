@@ -395,6 +395,9 @@ namespace NuGetGallery
         [ActionName("PushSymbolPackageApi")]
         public virtual async Task<ActionResult> CreateSymbolPackagePutAsync()
         {
+            string id = null;
+            string normalizedVersion = null;
+
             try
             {
                 // Get the user
@@ -422,8 +425,9 @@ namespace NuGetGallery
                         using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: false))
                         {
                             var nuspec = packageToPush.GetNuspecReader();
-                            var id = nuspec.GetId();
+                            id = nuspec.GetId();
                             var version = nuspec.GetVersion();
+                            normalizedVersion = version.ToNormalizedStringSafe();
 
                             // Ensure the corresponding package exists before pushing a snupkg.
                             var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
@@ -433,7 +437,7 @@ namespace NuGetGallery
                                     CultureInfo.CurrentCulture,
                                     Strings.SymbolsPackage_PackageIdAndVersionNotFound,
                                     id,
-                                    version.ToNormalizedStringSafe()));
+                                    normalizedVersion));
                             }
 
                             // Check if this user has the permissions to push the corresponding symbol package
@@ -463,7 +467,7 @@ namespace NuGetGallery
                                 {
                                     message = ex.Message;
                                 }
-
+                                TelemetryService.TrackSymbolPackageFailedGalleryValidationEvent(id, normalizedVersion);
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                             }
 
@@ -493,6 +497,8 @@ namespace NuGetGallery
                                     throw new NotImplementedException($"The symbol package commit result {commitResult} is not supported.");
                             }
 
+                            TelemetryService.TrackSymbolPackagePushEvent(id, normalizedVersion);
+
                             return new HttpStatusCodeResult(HttpStatusCode.Created);
                         }
                     }
@@ -515,7 +521,7 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 ex.Log();
-
+                TelemetryService.TrackSymbolPackagePushFailureEvent(id, normalizedVersion);
                 throw ex;
             }
         }
@@ -1033,14 +1039,9 @@ namespace NuGetGallery
             return new HttpStatusCodeResult(HttpStatusCode.NotFound);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string version)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult evaluationResult, string id, string versionString)
         {
-            return GetHttpResultFromFailedApiScopeEvaluation(evaluationResult, id, NuGetVersion.Parse(version));
-        }
-
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluation(ApiScopeEvaluationResult result, string id, NuGetVersion version)
-        {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Forbidden);
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(evaluationResult, id, versionString, HttpStatusCode.Forbidden);
         }
 
         /// <remarks>
@@ -1049,10 +1050,10 @@ namespace NuGetGallery
         /// </remarks>
         private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationForPush(ApiScopeEvaluationResult result, string id, NuGetVersion version)
         {
-            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version, HttpStatusCode.Unauthorized);
+            return GetHttpResultFromFailedApiScopeEvaluationHelper(result, id, version.ToNormalizedString(), HttpStatusCode.Unauthorized);
         }
 
-        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, NuGetVersion version, HttpStatusCode statusCodeOnFailure)
+        private HttpStatusCodeWithBodyResult GetHttpResultFromFailedApiScopeEvaluationHelper(ApiScopeEvaluationResult result, string id, string versionString, HttpStatusCode statusCodeOnFailure)
         {
             if (result.IsSuccessful())
             {
@@ -1062,7 +1063,7 @@ namespace NuGetGallery
             if (result.PermissionsCheckResult == PermissionsCheckResult.ReservedNamespaceFailure)
             {
                 // We return a special error code for reserved namespace failures.
-                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, version.ToNormalizedString(), GetCurrentUser(), User.Identity);
+                TelemetryService.TrackPackagePushNamespaceConflictEvent(id, versionString, GetCurrentUser(), User.Identity);
                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.Conflict, Strings.UploadPackage_IdNamespaceConflict);
             }
 

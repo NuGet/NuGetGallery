@@ -14,7 +14,7 @@ using NuGetGallery.Helpers;
 
 namespace NuGetGallery
 {
-    public static class UrlExtensions
+    public static class UrlHelperExtensions
     {
         private const string Area = "area";
         private static IGalleryConfigurationService _configuration;

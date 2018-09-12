@@ -51,6 +51,10 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
+        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures);
+
+        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings);
+
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
         /// </summary>
@@ -63,6 +67,13 @@ namespace NuGetGallery
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
         void TrackCertificateAdded(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a package owner was automatically added to a package registration.
+        /// </summary>
+        /// <param name="packageId">The package registration id.</param>
+        /// <param name="packageVersion">The normalized package version.</param>
+        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is activated for an account.
@@ -146,5 +157,26 @@ namespace NuGetGallery
         /// <param name="success">Whether sending the email was successful.</param>
         /// <param name="attemptNumber">The number of attempts the message has tried to be sent.</param>
         void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success, int attemptNumber);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package is pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails to be pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails Gallery validation.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
     }
 }

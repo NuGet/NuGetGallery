@@ -47,6 +47,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         private static string _callbackPath = "users/account/authenticate/return";
         private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
         private static HashSet<string> _alternateSiteRootList;
+        private const string SELECT_ACCOUNT = "select_account";
 
         /// <summary>
         /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
@@ -214,7 +215,8 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         }
 
         /// <summary>
-        /// Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication.
+        /// Before redirecting for authentication to the provider, append the properties for Multi-Factor Authentication
+        /// and configuration settings.
         /// </summary>
         /// <param name="notification">The properties used for authentication</param>
         /// <returns>awaitable Task</returns>
@@ -241,6 +243,9 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             {
                 notification.ProtocolMessage.RedirectUri = "https://" + notification.Request.Uri.Host + "/" + _callbackPath ;
             }
+
+            // We always want to show the options to select account when signing in and while changing account.
+            notification.ProtocolMessage.Prompt = SELECT_ACCOUNT;
 
             return Task.FromResult(0);
         }

@@ -179,6 +179,30 @@ namespace NuGetGallery
                     yield return new object[] { "AccountDeleteRequested",
                         (TrackAction)(s => s.TrackRequestForAccountDeletion(fakes.User))
                     };
+
+                    yield return new object[] { "SymbolPackagePush",
+                        (TrackAction)(s => s.TrackSymbolPackagePushEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "SymbolPackagePushFailure",
+                        (TrackAction)(s => s.TrackSymbolPackagePushFailureEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "SymbolPackageGalleryValidation",
+                        (TrackAction)(s => s.TrackSymbolPackageFailedGalleryValidationEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "PackageMetadataComplianceError",
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceError(fakes.Package.Id, package.NormalizedVersion, new[] { "Failure reason" }))
+                    };
+
+                    yield return new object[] { "PackageMetadataComplianceWarning",
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, new[] { "Warning message" }))
+                    };
+
+                    yield return new object[] { "PackageOwnershipAutomaticallyAdded",
+                        (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion))
+                    };
                 }
             }
 
