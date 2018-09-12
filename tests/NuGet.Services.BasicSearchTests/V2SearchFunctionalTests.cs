@@ -199,7 +199,7 @@ namespace NuGet.Services.BasicSearchTests
                 /// The results' "Published" and "LastUpdated" properties are set to the time that the package's
                 /// metadata was extracted by the test infrastructure's <see cref="NuGet.Indexing.NupkgPackageMetadataExtraction"/>.
                 /// We'll do a sanity check for these properties and set them to the expected response's dummy values.
-                foreach (var actualData in actual["data"])
+                foreach (JObject actualData in actual["data"])
                 {
                     var published = actualData["Published"].Value<DateTime>();
                     var lastUpdated = actualData["LastUpdated"].Value<DateTime>();
@@ -209,10 +209,46 @@ namespace NuGet.Services.BasicSearchTests
 
                     actualData["Published"] = expected["data"].First["Published"];
                     actualData["LastUpdated"] = expected["data"].First["LastUpdated"];
+
+                    VerifyPackageHashFormat(actualData["Hash"].Value<string>());
+                    VerifyPackageFileSize(actualData["PackageFileSize"].Value<int>());
+
+                    // Remove hash and size for comparison with baseline.
+                    // This test is more concerned with schema correctness than actual values
+                    // which may compromise test robustness.
+                    actualData.Remove("Hash");
+                    actualData.Remove("PackageFileSize");
                 }
 
                 // Validate the rest of the payload.
-                Assert.Equal(expected, actual);
+                Assert.True(JToken.DeepEquals(expected, actual), $"Actual result:  {actual.ToString()}");
+            }
+        }
+
+        private static void VerifyPackageHashFormat(string packageHash)
+        {
+            Assert.NotNull(packageHash);
+            Assert.NotEmpty(packageHash);
+
+            try
+            {
+                Convert.FromBase64String(packageHash);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidDataException($"The package hash format is invalid:  {packageHash}", ex);
+            }
+        }
+
+        private static void VerifyPackageFileSize(int packageFileSize)
+        {
+            try
+            {
+                Assert.InRange(packageFileSize, 1, int.MaxValue);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidDataException($"The package file size format is invalid:  {packageFileSize}", ex);
             }
         }
     }
