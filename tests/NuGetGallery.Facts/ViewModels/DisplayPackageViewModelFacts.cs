@@ -88,6 +88,42 @@ namespace NuGetGallery.ViewModels
             Assert.Equal(expected, model.ProjectUrl);
         }
 
+
+        [Theory]
+        [InlineData(null, null)]
+        [InlineData("not a url", null)]
+        [InlineData("git://github.com/notavalidscheme", null)]
+        [InlineData("http://www.microsoft.com/web/webpi/eula/webpages_2_eula_enu.htm", "https://www.microsoft.com/web/webpi/eula/webpages_2_eula_enu.htm")]
+        [InlineData("http://aspnetwebstack.codeplex.com/license", "https://aspnetwebstack.codeplex.com/license")]
+        [InlineData("http://go.microsoft.com/?linkid=9809688", "https://go.microsoft.com/?linkid=9809688")]
+        [InlineData("http://github.com/url", "https://github.com/url")]
+        public void ItInitializesLicenseUrl(string licenseUrl, string expected)
+        {
+            var package = new Package
+            {
+                Version = "1.0.0",
+                LicenseUrl = licenseUrl
+            };
+
+            var model = new DisplayPackageViewModel(package, null, "test");
+            Assert.Equal(expected, model.LicenseUrl);
+        }
+
+        [Fact]
+        public void LicenseNamesAreParsedByCommas()
+        {
+            var package = new Package
+            {
+                LicenseUrl = "https://mylicense.com",
+                Version = "1.0.0",
+                LicenseNames = "l1,l2, l3 ,l4  ,  l5 ",
+            };
+
+            var packageViewModel = new DisplayPackageViewModel(package, currentUser: null, pushedBy: "test");
+            Assert.Equal(new string[] { "l1", "l2", "l3", "l4", "l5" }, packageViewModel.LicenseNames);
+        }
+
+
         [Fact]
         public void TheCtorSortsPackageVersionsProperly()
         {
