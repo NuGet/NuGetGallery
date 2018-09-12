@@ -52,10 +52,10 @@
                 @switch (package.DeletedStatus)
                 {
                     case PackageDeletedStatus.Unknown:
-                        <i>This package was hard deleted.</i><br />
+                        <i>This @package.ValidatingType.ToString().ToLower() was hard deleted.</i><br />
                         break;
                     case PackageDeletedStatus.SoftDeleted:
-                        <i>This package was soft deleted.</i><br />
+                        <i>This @package.ValidatingType.ToString().ToLower() was soft deleted.</i><br />
                         break;
                 }
 
