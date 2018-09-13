@@ -122,7 +122,7 @@
                     {
                         foreach (var p in Model.DeletePackagesRequest.Packages)
                         {
-                            <input type="hidden" name="DeletePackagesRequest.Packages[]" value="@p" />
+                            <input type="hidden" name="Packages[]" value="@p" />
                         }
 
                         @Html.Partial("_DeletePackage", Model.DeletePackagesRequest)
