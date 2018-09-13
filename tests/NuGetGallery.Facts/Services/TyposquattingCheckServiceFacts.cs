@@ -11,6 +11,9 @@ namespace NuGetGallery
 {
     public class TyposquattingCheckServiceFacts
     {
+        private static Mock<IPackageService> _packageService = new Mock<IPackageService>();
+        private static Mock<IContentObjectService> _contentObjectService = new Mock<IContentObjectService>();
+
         private static List<string> _packageIds = new List<string>
         {
             "microsoft_netframework_v1",
@@ -22,23 +25,22 @@ namespace NuGetGallery
             "System.Spatial"
         };
 
-        private static List<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
+        private IQueryable<PackageRegistration> _pacakgeRegistrationsList = Enumerable.Range(0, _packageIds.Count()).Select(i =>
                 new PackageRegistration()
                 {
                     Id = _packageIds[i],
                     DownloadCount = new Random().Next(0, 10000),
                     IsVerified = true,
-                }).ToList();
+                    Owners = new List<User> { new User() { Username = string.Format("owner{0}", i + 1), Key = i + 1 } }
+                }).AsQueryable();
 
-        private static Mock<ITyposquattingUserService> _typosquattingUserService = new Mock<ITyposquattingUserService>();
-        private static Mock<IEntityRepository<PackageRegistration>> _packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
-        private static Mock<IContentObjectService> _contentObjectService = new Mock<IContentObjectService>();
+        private User _uploadedPackageOwner = new User() { Username = string.Format("owner{0}", _packageIds.Count() + 1), Key = _packageIds.Count() + 1 };
 
         public TyposquattingCheckServiceFacts()
         {
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
-                .Returns(_pacakgeRegistrationsList.AsQueryable());
+            _packageService
+                .Setup(x => x.GetAllPackageRegistrations())
+                .Returns(_pacakgeRegistrationsList);
 
             _contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.PackageIdChecklistLength)
@@ -57,78 +59,123 @@ namespace NuGetGallery
         public void CheckNotTyposquattingByDifferentOwnersTest()
         {
             // Arrange            
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = "new_package_for_testing";
-
-            _typosquattingUserService
-                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);            
-
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Fact]
         public void CheckNotTyposquattingBySameOwnersTest()
         {
             // Arrange            
-            var uploadedPackageOwner = new User();
-            uploadedPackageOwner.Username = "owner1";
+            _uploadedPackageOwner.Username = "owner1";
+            _uploadedPackageOwner.Key = 1;
             var uploadedPackageId = "microsoft_netframework.v1";
 
-            _typosquattingUserService
-                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(true);
-           
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
-            
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Fact]
-        public void CheckTyposquattingByDifferentOwnersTest()
+        public void CheckIsTyposquattingByDifferentOwnersTest()
         {
             // Arrange            
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
-
-            _typosquattingUserService
-                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);
-           
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.True(typosquattingCheckResult);
-            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds);
+            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
+            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds[0]);
+        }
+
+
+        [Fact]
+        public void CheckIsTyposquattingMultiCollisionsWithoutSameUser()
+        {
+            // Arrange
+            var uploadedPackageId = "microsoft_netframework.v1";
+            _pacakgeRegistrationsList = _pacakgeRegistrationsList.Concat(new PackageRegistration[]
+            {
+                new PackageRegistration {
+                    Id = "microsoft-netframework-v1",
+                    DownloadCount = new Random().Next(0, 10000),
+                    IsVerified = true,
+                    Owners = new List<User> { new User() { Username = string.Format("owner{0}", _packageIds.Count() + 2), Key = _packageIds.Count() + 2} }
+                }
+            });
+            _packageService
+               .Setup(x => x.GetAllPackageRegistrations())
+               .Returns(_pacakgeRegistrationsList);
+
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            Assert.True(typosquattingCheckResult);
+            Assert.Equal(2, typosquattingCheckCollisionIds.Count);
+        }
+
+        [Fact]
+        public void CheckNotTyposquattingMultiCollisionsWithSameUsers()
+        {
+            // Arrange            
+            var uploadedPackageId = "microsoft_netframework.v1";
+            _uploadedPackageOwner.Username = "owner1";
+            _uploadedPackageOwner.Key = 1;
+            _pacakgeRegistrationsList = _pacakgeRegistrationsList.Concat(new PackageRegistration[]
+            {
+                new PackageRegistration()
+                {
+                    Id = "microsoft-netframework-v1",
+                    DownloadCount = new Random().Next(0, 10000),
+                    IsVerified = true,
+                    Owners = new List<User> { new User() { Username = string.Format("owner{0}", _packageIds.Count() + 2), Key = _packageIds.Count() + 2 } }
+                }
+            });
+            _packageService
+               .Setup(x => x.GetAllPackageRegistrations())
+               .Returns(_pacakgeRegistrationsList);
+
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
+            Assert.Equal("microsoft-netframework-v1", typosquattingCheckCollisionIds[0]);
         }
 
         [Fact]
         public void CheckTyposquattingNullUploadedPackageId()
         {
-            // Arrange            
-            var uploadedPackageOwner = new User();
+            // Arrange
             string uploadedPackageId = null;
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
-            
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
-                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds));
+                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds));
 
             // Assert
             Assert.Equal(nameof(uploadedPackageId), exception.ParamName);
@@ -138,58 +185,52 @@ namespace NuGetGallery
         public void CheckTyposquattingNullUploadedPackageOwner()
         {
             // Arrange
-            User uploadedPackageOwner = null;
+            _uploadedPackageOwner = null;
             var uploadedPackageId = "microsoft_netframework_v1";
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
-  
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
-                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds));
+                () => newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds));
 
             // Assert
-            Assert.Equal(nameof(uploadedPackageOwner), exception.ParamName);
+            Assert.Equal("uploadedPackageOwner", exception.ParamName);
         }
 
         [Fact]
         public void CheckTyposquattingEmptyUploadedPackageId()
         {
             // Arrange
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = "";
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Fact]
         public void CheckTyposquattingEmptyChecklist()
         {
-            // Arrange            
-            var uploadedPackageOwner = new User();
+            // Arrange
             var uploadedPackageId = "microsoft_netframework_v1";
-
-            _typosquattingUserService
-                .Setup(x => x.CanUserTyposquat(It.IsAny<string>(), It.IsAny<string>()))
-                .Returns(false);
-            _packageRegistrationRepository
-                .Setup(x => x.GetAll())
+            _packageService
+                .Setup(x => x.GetAllPackageRegistrations())
                 .Returns(new List<PackageRegistration>().AsQueryable());
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Theory]
@@ -198,62 +239,61 @@ namespace NuGetGallery
         public void CheckTyposquattingNotEnabled(string packageId)
         {
             // Arrange
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = packageId;
             _contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
-            
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Fact]
         public void CheckNotTyposquattingBlockUserNotEnabled()
         {
             // Arrange
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = "new_package_for_testing";
             _contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal(null, typosquattingCheckCollisionIds);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
         }
 
         [Fact]
         public void CheckIsTyposquattingBlockUserNotEnabled()
         {
             // Arrange
-            var uploadedPackageOwner = new User();
             var uploadedPackageId = "Microsoft_NetFramework_v1";
             _contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_typosquattingUserService.Object, _packageRegistrationRepository.Object, _contentObjectService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
 
             // Act
-            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
 
             // Assert
             Assert.False(typosquattingCheckResult);
-            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds);
+            Assert.Equal(1, typosquattingCheckCollisionIds.Count);
+            Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds[0]);
         }
 
+        
         [Theory]
         [InlineData("Microsoft_NetFramework_v1", "Microsoft.NetFramework.v1", 0)]
         [InlineData("Microsoft_NetFramework_v1", "microsoft-netframework-v1", 0)]

@@ -990,6 +990,7 @@ Policy violations: {0}</value>
     <value>The package contains too many files and/or folders.</value>
   </data>
   <data name="TyposquattingCheckFails" xml:space="preserve">
-    <value>Typosquatting check fails with: </value>
+    <value>Typosquatting check fails with {0} </value>
+    <comment>{0} is the collision Ids compared with the uploaded package Id.</comment>
   </data>
 </root>

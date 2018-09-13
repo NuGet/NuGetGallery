@@ -20,22 +20,20 @@ namespace NuGetGallery
 
         private static int TyposquattingCheckListLength;
 
-        private readonly ITyposquattingUserService _userTyposquattingService;
-        private readonly IEntityRepository<PackageRegistration> _packageRegistrationRepository;
         private readonly IContentObjectService _contentObjectService;
+        private readonly IPackageService _packageService;
 
-        public TyposquattingCheckService(ITyposquattingUserService typosquattingUserService, IEntityRepository<PackageRegistration> packageRegistrationRepository, IContentObjectService contentObjectService)
+        public TyposquattingCheckService(IContentObjectService contentObjectService, IPackageService packageService)
         {
-            _userTyposquattingService = typosquattingUserService ?? throw new ArgumentNullException(nameof(typosquattingUserService));
-            _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
 
             TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
-              
-        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds)
+
+        public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
-            typosquattingCheckCollisionIds = null;
+            typosquattingCheckCollisionIds = new List<string>();
             if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled)
             {
                 return false;
@@ -51,7 +49,8 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageOwner));
             }
 
-            var packagesCheckList = _packageRegistrationRepository.GetAll()
+            var packageRegistrations = _packageService.GetAllPackageRegistrations();
+            var packagesCheckList = packageRegistrations
                 .OrderByDescending(pr => pr.IsVerified)
                 .ThenByDescending(pr => pr.DownloadCount)
                 .Select(pr => pr.Id)
@@ -64,8 +63,6 @@ namespace NuGetGallery
             var collisionIds = new ConcurrentBag<string>();
             Parallel.ForEach(packagesCheckList, (packageId, loopState) =>
             {
-                // TODO: handle the package which is owned by an organization. 
-                // https://github.com/NuGet/Engineering/issues/1656
                 string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
                 if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(uploadedPackageId, normalizedPackageId, threshold))
                 {
@@ -73,29 +70,25 @@ namespace NuGetGallery
                 }
             });
 
-            List<string> typosquattingUserDoubleCheckIds = new List<string>();
-            foreach (var packageId in collisionIds)
+            if (collisionIds.Count == 0)
             {
-                // TODO: refactor user check services into one query
-                // https://github.com/NuGet/Engineering/issues/1684
-                if (!_userTyposquattingService.CanUserTyposquat(packageId, uploadedPackageOwner.Username))
-                {
-                    typosquattingUserDoubleCheckIds.Add(packageId);
-                }
+                return false;
             }
 
-            if (typosquattingUserDoubleCheckIds.Any())
-            {
-                // TODO: save in the log metric for typosquatting collision Ids (typosquattingCheckCollisionIds). 
-                // https://github.com/NuGet/Engineering/issues/1537
-                typosquattingCheckCollisionIds = string.Join(",", typosquattingUserDoubleCheckIds.ToArray());
-                if (_contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled)
-                {
-                    return true;
-                }
-            }
+            var collisionPackagesIdAndOwners = packageRegistrations
+                .Where(pr => collisionIds.Contains(pr.Id))
+                .Select(pr => new { Id = pr.Id, Owners = pr.Owners.Select(x => x.Key).ToList() })
+                .ToList();
 
-            return false;
+            typosquattingCheckCollisionIds = collisionPackagesIdAndOwners
+                .Where(pio => !pio.Owners.Any(k => k == uploadedPackageOwner.Key))
+                .Select(pio => pio.Id)
+                .ToList();
+
+            var isUserAllowedTyposquatting = collisionPackagesIdAndOwners
+                .Any(pio => pio.Owners.Any(k => k == uploadedPackageOwner.Key));
+
+            return _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
         }
 
         private static int GetThreshold(string packageId)

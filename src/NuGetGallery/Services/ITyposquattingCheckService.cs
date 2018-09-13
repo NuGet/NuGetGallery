@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+
 namespace NuGetGallery
 {
     /// <summary>
@@ -14,6 +16,6 @@ namespace NuGetGallery
         /// <param name="uploadedPackageId"> The package ID of the uploaded package. We check the pacakge ID with the packages in the gallery for typo-squatting issue</param>
         /// <param name="uploadedPackageOwner"> The package owner of the uploaded package.</param>
         /// <param name="typosquattingCheckCollisionIds"> The return collision package Id if it exists</param>
-        bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out string typosquattingCheckCollisionIds);
+        bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
     }
 }

@@ -35,6 +35,8 @@ namespace NuGetGallery
 
         IQueryable<PackageRegistration> FindPackageRegistrationsByOwner(User user);
 
+        IQueryable<PackageRegistration> GetAllPackageRegistrations();
+
         IEnumerable<Package> FindDependentPackages(Package package);
 
         /// <summary>

@@ -2085,7 +2085,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Typosquatting check fails with: .
+        ///   Looks up a localized string similar to Typosquatting check fails with {0} .
         /// </summary>
         public static string TyposquattingCheckFails {
             get {

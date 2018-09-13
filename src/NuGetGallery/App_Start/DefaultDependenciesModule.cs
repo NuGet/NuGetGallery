@@ -328,11 +328,6 @@ namespace NuGetGallery
                 .As<ITyposquattingCheckService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<TyposquattingUserService>()
-                .AsSelf()
-                .As<ITyposquattingUserService>()
-                .InstancePerLifetimeScope();
-
             Func<MailSender> mailSenderFactory = () =>
                 {
                     var settings = configuration;

@@ -187,7 +187,7 @@ namespace NuGetGallery
             PackageArchiveReader nuGetPackage,
             User owner,
             User currentUser,
-            PackageRegistration existingPackageRegistration)
+            bool isNewPackageRegistration)
         {
             var result = await ValidateSignatureFilePresenceAsync(
                 package.PackageRegistration,
@@ -199,9 +199,9 @@ namespace NuGetGallery
                 return result;
             }
 
-            if (existingPackageRegistration == null && _typosquattingCheckService.IsUploadedPackageIdTyposquatting(package.Id, owner, out string typosquattingCheckCollisionIds))
+            if (isNewPackageRegistration && _typosquattingCheckService.IsUploadedPackageIdTyposquatting(package.Id, owner, out List<string> typosquattingCheckCollisionIds))
             {
-                return PackageValidationResult.Invalid(Strings.TyposquattingCheckFails + typosquattingCheckCollisionIds);
+                return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
             }
 
             return PackageValidationResult.Accepted();

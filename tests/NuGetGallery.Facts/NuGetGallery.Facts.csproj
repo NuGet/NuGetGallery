@@ -170,7 +170,6 @@
     <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\TestableActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\TestablePermissionsEntity.cs" />
-    <Compile Include="Services\TyposquattingUserServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />

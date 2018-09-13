@@ -1636,7 +1636,7 @@ namespace NuGetGallery
                         nugetPackage,
                         owner,
                         currentUser,
-                        existingPackageRegistration);
+                        existingPackageRegistration == null);
 
                     var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
                     if (afterValidationJsonResult != null)
