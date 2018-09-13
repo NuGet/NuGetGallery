@@ -73,10 +73,56 @@ namespace NuGetGallery.Areas.Admin.Services
             }
         }
 
+        public class TheGetSymbolsPackageDeletedStatusMethod : FactsBase
+        {
+            [Fact]
+            public void ReturnsUnknownForMissingPackage()
+            {
+                // Arrange
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => Enumerable.Empty < SymbolPackage>().AsQueryable());
+
+                // Act
+                var status = _target.GetSymbolPackageDeletedStatus(_symbolPackageKey);
+
+                // Assert
+                Assert.Equal(PackageDeletedStatus.Unknown, status);
+            }
+
+            [Fact]
+            public void ReturnsNotDeletedForNonDeletedPackage()
+            {
+                // Arrange
+                _symbolPackage.StatusKey = PackageStatus.Available;
+
+                // Act
+                var status = _target.GetSymbolPackageDeletedStatus(_symbolPackageKey);
+
+                // Assert
+                Assert.Equal(PackageDeletedStatus.NotDeleted, status);
+            }
+
+            [Fact]
+            public void ReturnsSoftDeletedForDeletedPackage()
+            {
+                // Arrange
+                _symbolPackage.StatusKey = PackageStatus.Deleted;
+
+                // Act
+                var status = _target.GetSymbolPackageDeletedStatus(_symbolPackageKey);
+
+                // Assert
+                Assert.Equal(PackageDeletedStatus.SoftDeleted, status);
+            }
+        }
+
         public abstract class FactsBase
         {
             protected readonly int _packageKey;
             protected readonly Package _package;
+            protected readonly int _symbolPackageKey;
+            protected readonly SymbolPackage _symbolPackage;
             protected readonly Guid _validationKey;
             protected readonly PackageValidation _validation;
             protected readonly int _validationSetKey;
@@ -85,12 +131,15 @@ namespace NuGetGallery.Areas.Admin.Services
             protected readonly Mock<IEntityRepository<PackageValidationSet>> _validationSets;
             protected readonly Mock<IEntityRepository<PackageValidation>> _validations;
             protected readonly Mock<IEntityRepository<Package>> _packages;
+            protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolPackages;
             protected readonly ValidationAdminService _target;
 
             public FactsBase()
             {
                 _packageKey = 42;
+                _symbolPackageKey = 420;
                 _package = new Package { Key = _packageKey };
+                _symbolPackage = new SymbolPackage() { Key = _symbolPackageKey };
                 _validationKey = new Guid("ae05c5f9-eb2a-415b-ae42-92829bf201a7");
                 _validation = new PackageValidation
                 {
@@ -109,10 +158,14 @@ namespace NuGetGallery.Areas.Admin.Services
                 _validationSets = new Mock<IEntityRepository<PackageValidationSet>>();
                 _validations = new Mock<IEntityRepository<PackageValidation>>();
                 _packages = new Mock<IEntityRepository<Package>>();
+                _symbolPackages = new Mock<IEntityRepository<SymbolPackage>>();
 
                 _packages
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _package }.AsQueryable());
+                _symbolPackages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { _symbolPackage }.AsQueryable());
                 _validations
                     .Setup(x => x.GetAll())
                     .Returns(() => new[] { _validation }.AsQueryable());
@@ -123,7 +176,8 @@ namespace NuGetGallery.Areas.Admin.Services
                 _target = new ValidationAdminService(
                     _validationSets.Object,
                     _validations.Object,
-                    _packages.Object);
+                    _packages.Object,
+                    _symbolPackages.Object);
             }
         }
     }
