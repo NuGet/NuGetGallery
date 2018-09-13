@@ -65,7 +65,7 @@ namespace NgTests
             var aggregateCursor = new AggregateCursor(cursors);
 
             // Act
-            await aggregateCursor.Load(CancellationToken.None);
+            await aggregateCursor.LoadAsync(CancellationToken.None);
             var value = aggregateCursor.Value;
 
             // Assert
@@ -77,7 +77,7 @@ namespace NgTests
             var cursor = new Mock<ReadCursor>();
             cursor.Setup(x => x.Value).Returns(() =>
             {
-                cursor.Verify(x => x.Load(It.IsAny<CancellationToken>()));
+                cursor.Verify(x => x.LoadAsync(It.IsAny<CancellationToken>()));
                 return date;
             });
 

@@ -22,14 +22,14 @@ namespace NuGet.Services.Metadata.Catalog
             _defaultValue = defaultValue;
         }
 
-        public override async Task Save(CancellationToken cancellationToken)
+        public override async Task SaveAsync(CancellationToken cancellationToken)
         {
             JObject obj = new JObject { { "value", Value.ToString("O") } };
             StorageContent content = new StringStorageContent(obj.ToString(), "application/json", "no-store");
             await _storage.SaveAsync(_address, content, cancellationToken);
         }
 
-        public override async Task Load(CancellationToken cancellationToken)
+        public override async Task LoadAsync(CancellationToken cancellationToken)
         {
             string json = await _storage.LoadStringAsync(_address, cancellationToken);
 

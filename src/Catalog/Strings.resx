@@ -123,4 +123,7 @@
   <data name="ArgumentOutOfRange" xml:space="preserve">
     <value>The argument must be within the range from {0} (inclusive) to {1} (inclusive).</value>
   </data>
+  <data name="BatchProcessingFailure" xml:space="preserve">
+    <value>A failure occurred while processing a catalog batch.</value>
+  </data>
 </root>

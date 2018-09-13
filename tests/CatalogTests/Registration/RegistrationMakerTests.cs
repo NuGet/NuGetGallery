@@ -5,8 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CatalogTests.Helpers;
@@ -16,26 +14,17 @@ using Newtonsoft.Json.Linq;
 using NgTests;
 using NgTests.Infrastructure;
 using NuGet.Services.Metadata.Catalog;
-using NuGet.Services.Metadata.Catalog.Persistence;
 using NuGet.Services.Metadata.Catalog.Registration;
-using NuGet.Versioning;
 using VDS.RDF;
 using Xunit;
 
 namespace CatalogTests.Registration
 {
-    public class RegistrationMakerTests
+    public class RegistrationMakerTests : RegistrationTestBase
     {
-        private const string _cacheControl = "no-store";
-        private const string _contentType = "application/json";
         private const int _defaultPackageCountThreshold = 128;
 
         private static readonly Uri _contentBaseAddress = new Uri("https://nuget.test/");
-        private static readonly JsonSerializerSettings _jsonSettings = new JsonSerializerSettings()
-        {
-            DateParseHandling = DateParseHandling.None,
-            NullValueHandling = NullValueHandling.Ignore
-        };
 
         private readonly MemoryStorageFactory _storageFactory = new MemoryStorageFactory(new Uri("https://nuget.test/v3-registration3/"));
         private readonly Mock<ITelemetryService> _telemetryService = new Mock<ITelemetryService>();
@@ -68,7 +57,7 @@ namespace CatalogTests.Registration
 
             for (var i = 0; i < packageVersionCount; ++i)
             {
-                var packageDetails = new CatalogPackageDetails(id: "A", version: $"1.0.{i}");
+                var packageDetails = new CatalogIndependentPackageDetails(id: "A", version: $"1.0.{i}");
                 var newItem = CreateNewItem(packageDetails);
                 var storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
 
@@ -86,14 +75,14 @@ namespace CatalogTests.Registration
             var partitionSize = 2;
             var packageVersionCount = partitionSize * 2;
             var pages = new List<ExpectedPage>();
-            CatalogPackageDetails packageDetails;
+            CatalogIndependentPackageDetails packageDetails;
             IReadOnlyDictionary<string, IGraph> newItem;
             MemoryStorage storage;
             IReadOnlyList<ExpectedPage> expectedPages;
 
             for (var i = 0; i < packageVersionCount; ++i)
             {
-                packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{i}");
+                packageDetails = new CatalogIndependentPackageDetails(id: "a", version: $"1.0.{i}");
                 newItem = CreateNewItem(packageDetails);
                 storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
 
@@ -107,7 +96,7 @@ namespace CatalogTests.Registration
             partitionSize = 3;
             ++packageVersionCount;
 
-            packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{packageVersionCount}");
+            packageDetails = new CatalogIndependentPackageDetails(id: "a", version: $"1.0.{packageVersionCount}");
             newItem = CreateNewItem(packageDetails);
             storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
 
@@ -123,14 +112,14 @@ namespace CatalogTests.Registration
         {
             const int partitionSize = 2;
             var pages = new List<ExpectedPage>();
-            CatalogPackageDetails packageDetails;
+            CatalogIndependentPackageDetails packageDetails;
             IReadOnlyDictionary<string, IGraph> newItem;
             MemoryStorage storage;
             IReadOnlyList<ExpectedPage> expectedPages;
 
             for (var i = 0; i < 2; ++i)
             {
-                packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{i * 2}");
+                packageDetails = new CatalogIndependentPackageDetails(id: "a", version: $"1.0.{i * 2}");
                 newItem = CreateNewItem(packageDetails);
                 storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
 
@@ -141,7 +130,7 @@ namespace CatalogTests.Registration
                 Verify(storage, expectedPages, partitionSize);
             }
 
-            packageDetails = new CatalogPackageDetails(id: "a", version: "1.0.1");
+            packageDetails = new CatalogIndependentPackageDetails(id: "a", version: "1.0.1");
             newItem = CreateNewItem(packageDetails);
             storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize);
 
@@ -158,14 +147,14 @@ namespace CatalogTests.Registration
             const int partitionSize = 2;
             const int packageCountThreshold = 2;
             var pages = new List<ExpectedPage>();
-            CatalogPackageDetails packageDetails;
+            CatalogIndependentPackageDetails packageDetails;
             IReadOnlyDictionary<string, IGraph> newItem;
             MemoryStorage storage;
             IReadOnlyList<ExpectedPage> expectedPages;
 
             for (var i = 0; i < 2; ++i)
             {
-                packageDetails = new CatalogPackageDetails(id: "a", version: $"1.0.{i}");
+                packageDetails = new CatalogIndependentPackageDetails(id: "a", version: $"1.0.{i}");
                 newItem = CreateNewItem(packageDetails);
                 storage = await ProcessAsync(newItem, packageDetails.Id, partitionSize, packageCountThreshold);
 
@@ -177,7 +166,7 @@ namespace CatalogTests.Registration
             }
         }
 
-        private static IReadOnlyDictionary<string, IGraph> CreateNewItem(CatalogPackageDetails packageDetails)
+        private static IReadOnlyDictionary<string, IGraph> CreateNewItem(CatalogIndependentPackageDetails packageDetails)
         {
             var json = JsonConvert.SerializeObject(packageDetails, _jsonSettings);
 
@@ -232,7 +221,7 @@ namespace CatalogTests.Registration
 
             var firstPage = expectedPages.First();
             var packageId = firstPage.Details.First().Id.ToLowerInvariant();
-            var indexUri = GetRegistrationPackageIndexUri(packageId);
+            var indexUri = GetRegistrationPackageIndexUri(_storageFactory.BaseAddress, packageId);
             var index = GetStorageContent<RegistrationIndex>(registrationStorage, indexUri);
 
             VerifyRegistrationIndex(
@@ -364,7 +353,7 @@ namespace CatalogTests.Registration
             string commitId,
             string commitTimeStamp)
         {
-            var packageIndexUri = GetRegistrationPackageIndexUri(packageId);
+            var packageIndexUri = GetRegistrationPackageIndexUri(registrationStorage.BaseAddress);
 
             Assert.Equal(pageUri.AbsoluteUri, page.IdKeyword);
             Assert.Equal(CatalogConstants.CatalogCatalogPage, page.TypeKeyword);
@@ -423,14 +412,14 @@ namespace CatalogTests.Registration
         private void VerifyRegistrationPackage(
             MemoryStorage registrationStorage,
             RegistrationPackage package,
-            CatalogPackageDetails packageDetails,
+            CatalogIndependentPackageDetails packageDetails,
             string commitId,
             string commitTimeStamp)
         {
             var packageId = packageDetails.Id.ToLowerInvariant();
             var packageVersion = packageDetails.Version.ToLowerInvariant();
             var packageVersionUri = GetRegistrationPackageVersionUri(packageId, packageVersion);
-            var packageContentUri = GetPackageContentUri(packageId, packageVersion);
+            var packageContentUri = GetPackageContentUri(_contentBaseAddress, packageId, packageVersion);
 
             Assert.Equal(packageVersionUri.AbsoluteUri, package.IdKeyword);
             Assert.Equal(CatalogConstants.Package, package.TypeKeyword);
@@ -461,6 +450,7 @@ namespace CatalogTests.Registration
                 independentPackageUri);
 
             VerifyRegistrationIndependentPackage(
+                registrationStorage,
                 independentPackage,
                 independentPackageUri,
                 packageDetails,
@@ -469,14 +459,15 @@ namespace CatalogTests.Registration
         }
 
         private void VerifyRegistrationIndependentPackage(
+            MemoryStorage registrationStorage,
             RegistrationIndependentPackage package,
             Uri packageUri,
-            CatalogPackageDetails packageDetails,
+            CatalogIndependentPackageDetails packageDetails,
             string packageId,
             string packageVersion)
         {
-            var packageContentUri = GetPackageContentUri(packageId, packageVersion);
-            var packageIndexUri = GetRegistrationPackageIndexUri(packageId);
+            var packageContentUri = GetPackageContentUri(_contentBaseAddress, packageId, packageVersion);
+            var packageIndexUri = GetRegistrationPackageIndexUri(registrationStorage.BaseAddress);
 
             Assert.Equal(packageUri.AbsoluteUri, package.IdKeyword);
             Assert.Equal(
@@ -557,44 +548,9 @@ namespace CatalogTests.Registration
                         new JProperty(CatalogConstants.TypeKeyword, CatalogConstants.IdKeyword))));
         }
 
-        private static string GetRegistrationDateTime(string catalogDateTime)
-        {
-            return DateTimeOffset.Parse(catalogDateTime)
-                .ToLocalTime()
-                .ToString("yyyy-MM-ddTHH:mm:ss.FFFzzz");
-        }
-
-        private static T GetStorageContent<T>(MemoryStorage registrationStorage, Uri contentUri)
-        {
-            Assert.True(registrationStorage.Content.TryGetValue(contentUri, out var content));
-
-            var jTokenStorageContent = content as JTokenStorageContent;
-
-            Assert.NotNull(jTokenStorageContent);
-            Assert.Equal(_cacheControl, jTokenStorageContent.CacheControl);
-            Assert.Equal(_contentType, jTokenStorageContent.ContentType);
-
-            var properties = typeof(T).GetProperties(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            // Verify that no new properties were added unexpectedly.
-            Assert.Equal(properties.Length, ((JObject)jTokenStorageContent.Content).Count);
-
-            var json = jTokenStorageContent.Content.ToString();
-
-            using (var stringReader = new StringReader(json))
-            {
-                return JsonConvert.DeserializeObject<T>(json, _jsonSettings);
-            }
-        }
-
-        private static Uri GetPackageContentUri(string packageId, string packageVersion)
-        {
-            return new Uri($"{_contentBaseAddress.AbsoluteUri}packages/{packageId}.{packageVersion}.nupkg");
-        }
-
         private Uri GetRegistrationPageUri(string packageId, ExpectedPage expectedPage)
         {
-            return new Uri(GetRegistrationPackageIndexUri(packageId),
+            return new Uri(GetRegistrationPackageIndexUri(_storageFactory.BaseAddress, packageId),
                 $"#page/{expectedPage.LowerVersion}/{expectedPage.UpperVersion}");
         }
 
@@ -602,11 +558,6 @@ namespace CatalogTests.Registration
         {
             return new Uri($"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/page"
                 + $"/{expectedPage.LowerVersion}/{expectedPage.UpperVersion}.json");
-        }
-
-        private Uri GetRegistrationPackageIndexUri(string packageId)
-        {
-            return new Uri($"{_storageFactory.BaseAddress.AbsoluteUri}{packageId}/index.json");
         }
 
         private Uri GetRegistrationPackageVersionUri(string packageId, string packageVersion)
@@ -622,23 +573,6 @@ namespace CatalogTests.Registration
                 .GroupBy(x => x.Index / partitionSize)
                 .Select(group => new ExpectedPage(group.SelectMany(x => x.Page.Details).ToArray()))
                 .ToList();
-        }
-
-        private sealed class ExpectedPage
-        {
-            internal IReadOnlyList<CatalogPackageDetails> Details { get; }
-            internal string LowerVersion { get; }
-            internal string UpperVersion { get; }
-
-            internal ExpectedPage(params CatalogPackageDetails[] packageDetails)
-            {
-                Details = packageDetails;
-
-                var versions = packageDetails.Select(details => new NuGetVersion(details.Version)).ToArray();
-
-                LowerVersion = versions.Min().ToNormalizedString().ToLowerInvariant();
-                UpperVersion = versions.Max().ToNormalizedString().ToLowerInvariant();
-            }
         }
     }
 }

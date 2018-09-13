@@ -28,9 +28,6 @@ namespace NgTests
     public class Feed2CatalogTests
     {
         private const string _auditRecordDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFFZ";
-        private const string _catalogCommitTimestampDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFFFFFFZ";
-        private const string _catalogDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.FFFZ";
-        private const string _catalogUrlDateTimeFormat = "yyyy.MM.dd.HH.mm.ss";
         private const string _feedBaseUri = "http://unit.test";
         private const string _feedUrlSuffix = "&$top=20&$select=Id,NormalizedVersion,Created,LastEdited,Published,LicenseNames,LicenseReportUrl&semVerLevel=2.0.0";
         private const string _feedUrlDateTimeFormat = "yyyy-MM-ddTHH:mm:ss.fff0000Z";
@@ -1109,7 +1106,7 @@ namespace NgTests
             Assert.True(
                 DateTime.TryParseExact(
                     commitTimeStamp,
-                    _catalogCommitTimestampDateTimeFormat,
+                    CatalogConstants.CommitTimeStampFormat,
                     DateTimeFormatInfo.CurrentInfo,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
                     out var commitTimeStampDateTime));
@@ -1154,13 +1151,13 @@ namespace NgTests
             Assert.Equal(1, index[CatalogConstants.Count].Value<int>());
 
             Assert.Equal(
-                expectedLastCreated.ToString(_catalogDateTimeFormat),
+                expectedLastCreated.ToString(CatalogConstants.DateTimeFormat),
                 index[CatalogConstants.NuGetLastCreated].Value<string>());
             Assert.Equal(
-                expectedLastDeleted.ToString(_catalogDateTimeFormat),
+                expectedLastDeleted.ToString(CatalogConstants.DateTimeFormat),
                 index[CatalogConstants.NuGetLastDeleted].Value<string>());
             Assert.Equal(
-                expectedLastEdited.ToString(_catalogDateTimeFormat),
+                expectedLastEdited.ToString(CatalogConstants.DateTimeFormat),
                 index[CatalogConstants.NuGetLastEdited].Value<string>());
 
             var expectedItems = new JArray(
@@ -1247,7 +1244,7 @@ namespace NgTests
 
                 var expectedTimestamp = DateTime.ParseExact(
                     expectedItem.CommitTimeStamp,
-                    _catalogCommitTimestampDateTimeFormat,
+                    CatalogConstants.CommitTimeStampFormat,
                     DateTimeFormatInfo.CurrentInfo,
                     DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
 
@@ -1321,20 +1318,20 @@ namespace NgTests
             Assert.Equal(packageOperation.CommitId, packageDetails[CatalogConstants.CatalogCommitId].Value<string>());
             Assert.Equal(packageOperation.CommitTimeStamp, packageDetails[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
             Assert.Equal(
-                packageOperation.ODataPackage.Created.ToString(_catalogDateTimeFormat),
+                packageOperation.ODataPackage.Created.ToString(CatalogConstants.DateTimeFormat),
                 packageDetails[CatalogConstants.Created].Value<string>());
             Assert.Equal(packageOperation.ODataPackage.Description, packageDetails[CatalogConstants.Description].Value<string>());
             Assert.Equal(packageOperation.ODataPackage.Id, packageDetails[CatalogConstants.Id].Value<string>());
             Assert.False(packageDetails[CatalogConstants.IsPrerelease].Value<bool>());
             Assert.Equal(
-                (packageOperation.ODataPackage.LastEdited ?? Constants.DateTimeMinValueUtc).ToString(_catalogDateTimeFormat),
+                (packageOperation.ODataPackage.LastEdited ?? Constants.DateTimeMinValueUtc).ToString(CatalogConstants.DateTimeFormat),
                 packageDetails[CatalogConstants.LastEdited].Value<string>());
             Assert.Equal(packageOperation.ODataPackage.Listed, packageDetails[CatalogConstants.Listed].Value<bool>());
             Assert.Equal(packageOperation.ODataPackage.Hash, packageDetails[CatalogConstants.PackageHash].Value<string>());
             Assert.Equal(Constants.Sha512, packageDetails[CatalogConstants.PackageHashAlgorithm].Value<string>());
             Assert.Equal(packageOperation.Package.Stream.Length, packageDetails[CatalogConstants.PackageSize].Value<int>());
             Assert.Equal(
-                packageOperation.ODataPackage.Published.ToString(_catalogDateTimeFormat),
+                packageOperation.ODataPackage.Published.ToString(CatalogConstants.DateTimeFormat),
                 packageDetails[CatalogConstants.Published].Value<string>());
             Assert.Equal(packageOperation.Package.Version.ToFullString(), packageDetails[CatalogConstants.VerbatimVersion].Value<string>());
             Assert.Equal(packageOperation.Package.Version.ToNormalizedString(), packageDetails[CatalogConstants.Version].Value<string>());
@@ -1415,7 +1412,7 @@ namespace NgTests
             Assert.Equal(packageOperation.CommitTimeStamp, packageDelete[CatalogConstants.CatalogCommitTimeStamp].Value<string>());
             Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.Id].Value<string>());
             Assert.Equal(packageOperation.PackageIdentity.Id, packageDelete[CatalogConstants.OriginalId].Value<string>());
-            Assert.Equal(packageOperation.Published.ToString(_catalogDateTimeFormat), packageDelete[CatalogConstants.Published].Value<string>());
+            Assert.Equal(packageOperation.Published.ToString(CatalogConstants.DateTimeFormat), packageDelete[CatalogConstants.Published].Value<string>());
             Assert.Equal(packageOperation.PackageIdentity.Version.ToNormalizedString(), packageDelete[CatalogConstants.Version].Value<string>());
 
             var expectedContext = new JObject(
@@ -1453,7 +1450,7 @@ namespace NgTests
             var packageId = packageOperation.PackageIdentity.Id.ToLowerInvariant();
             var packageVersion = packageOperation.PackageIdentity.Version.ToNormalizedString().ToLowerInvariant();
 
-            return new Uri($"{_baseUri.AbsoluteUri}data/{catalogTimeStamp.ToString(_catalogUrlDateTimeFormat)}/{packageId}.{packageVersion}.json");
+            return new Uri($"{_baseUri.AbsoluteUri}data/{catalogTimeStamp.ToString(CatalogConstants.UrlTimeStampFormat)}/{packageId}.{packageVersion}.json");
         }
 
         private DateTime GetUniqueDateTime()

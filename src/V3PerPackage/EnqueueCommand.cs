@@ -33,9 +33,9 @@ namespace NuGet.Services.V3PerPackage
 
             if (restart)
             {
-                await front.Load(CancellationToken.None);
+                await front.LoadAsync(CancellationToken.None);
                 front.Value = DateTime.MinValue;
-                await front.Save(CancellationToken.None);
+                await front.SaveAsync(CancellationToken.None);
             }
 
             var back = MemoryCursor.CreateMax();

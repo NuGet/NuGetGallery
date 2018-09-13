@@ -286,7 +286,7 @@ namespace Ng.Jobs
             var storage = _storageFactories.LegacyStorageFactory.Create();
             var cursor = new DurableCursor(storage.ResolveUri("cursor.json"), storage, latestCommit);
             cursor.Value = latestCommit;
-            await cursor.Save(CancellationToken.None);
+            await cursor.SaveAsync(CancellationToken.None);
             _log.WriteLine("Finished writing new cursor.");
 
             // Write command files

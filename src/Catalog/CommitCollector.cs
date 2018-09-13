@@ -29,31 +29,19 @@ namespace NuGet.Services.Metadata.Catalog
             ReadCursor back,
             CancellationToken cancellationToken)
         {
-            JObject root;
-
-            using (_telemetryService.TrackDuration(
-                TelemetryConstants.CatalogIndexReadDurationSeconds,
-                new Dictionary<string, string>() { { TelemetryConstants.Uri, Index.AbsoluteUri } }))
-            {
-                root = await client.GetJObjectAsync(Index, cancellationToken);
-            }
-
-            IEnumerable<CatalogItem> rootItems = root["items"]
-                .Select(item => new CatalogItem(item))
-                .Where(item => item.CommitTimeStamp > front.Value)
-                .OrderBy(item => item.CommitTimeStamp);
+            IEnumerable<CatalogItem> catalogItems = await FetchCatalogItemsAsync(client, front, cancellationToken);
 
             bool acceptNextBatch = false;
 
-            foreach (CatalogItem rootItem in rootItems)
+            foreach (CatalogItem catalogItem in catalogItems)
             {
-                JObject page = await client.GetJObjectAsync(rootItem.Uri, cancellationToken);
+                JObject page = await client.GetJObjectAsync(catalogItem.Uri, cancellationToken);
 
                 JToken context = null;
                 page.TryGetValue("@context", out context);
 
                 var batches = await CreateBatchesAsync(page["items"]
-                    .Select(item => new CatalogItem(item))
+                    .Select(item => new CatalogItem((JObject)item))
                     .Where(item => item.CommitTimeStamp > front.Value && item.CommitTimeStamp <= back.Value));
 
                 var orderedBatches = batches
@@ -71,7 +59,7 @@ namespace NuGet.Services.Metadata.Catalog
                     if (previousCommitTimeStamp.HasValue && previousCommitTimeStamp != batch.CommitTimeStamp)
                     {
                         front.Value = previousCommitTimeStamp.Value;
-                        await front.Save(cancellationToken);
+                        await front.SaveAsync(cancellationToken);
                         Trace.TraceInformation("CommitCatalog.Fetch front.Value saved since timestamp changed from previous: {0}", front);
                     }
 
@@ -93,7 +81,7 @@ namespace NuGet.Services.Metadata.Catalog
                     if (ReferenceEquals(batch, lastBatch))
                     {
                         front.Value = batch.CommitTimeStamp;
-                        await front.Save(cancellationToken);
+                        await front.SaveAsync(cancellationToken);
                         Trace.TraceInformation("CommitCatalog.Fetch front.Value saved due to last batch: {0}", front);
                     }
 
@@ -114,6 +102,28 @@ namespace NuGet.Services.Metadata.Catalog
             }
 
             return acceptNextBatch;
+        }
+
+        protected async Task<IEnumerable<CatalogItem>> FetchCatalogItemsAsync(
+            CollectorHttpClient client,
+            ReadWriteCursor front,
+            CancellationToken cancellationToken)
+        {
+            JObject root;
+
+            using (_telemetryService.TrackDuration(
+                TelemetryConstants.CatalogIndexReadDurationSeconds,
+                new Dictionary<string, string>() { { TelemetryConstants.Uri, Index.AbsoluteUri } }))
+            {
+                root = await client.GetJObjectAsync(Index, cancellationToken);
+            }
+
+            IEnumerable<CatalogItem> rootItems = root["items"]
+                .Select(item => new CatalogItem((JObject)item))
+                .Where(item => item.CommitTimeStamp > front.Value)
+                .OrderBy(item => item.CommitTimeStamp);
+
+            return rootItems;
         }
 
         protected virtual Task<IEnumerable<CatalogItemBatch>> CreateBatchesAsync(IEnumerable<CatalogItem> catalogItems)
@@ -154,16 +164,16 @@ namespace NuGet.Services.Metadata.Catalog
 
         protected class CatalogItem : IComparable
         {
-            public CatalogItem(JToken jtoken)
+            public CatalogItem(JObject value)
             {
-                CommitTimeStamp = jtoken["commitTimeStamp"].ToObject<DateTime>();
-                Uri = jtoken["@id"].ToObject<Uri>();
-                Value = jtoken;
+                CommitTimeStamp = value["commitTimeStamp"].ToObject<DateTime>();
+                Uri = value["@id"].ToObject<Uri>();
+                Value = value;
             }
 
             public DateTime CommitTimeStamp { get; }
             public Uri Uri { get; }
-            public JToken Value { get; }
+            public JObject Value { get; }
 
             public int CompareTo(object obj)
             {

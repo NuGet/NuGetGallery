@@ -297,7 +297,6 @@
     <Compile Include="UriUtilsTests.cs" />
     <Compile Include="PackageTimestampMetadataTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="RegistrationCollectorTests.cs" />
     <Compile Include="SearchIndexFromCatalogCollectorTests.cs" />
     <Compile Include="SortingIdVersionCollectorTests.cs" />
     <Compile Include="StorageFactoryTests.cs" />

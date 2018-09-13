@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace NuGet.Services.Metadata.Catalog
 {
     /// <summary>
-    /// A <see cref="ReadCursor"/> that returns the least value for <see cref="Load(CancellationToken)"/> from a set of <see cref="ReadCursor"/>s.
+    /// A <see cref="ReadCursor"/> that returns the least value for <see cref="LoadAsync(CancellationToken)"/> from a set of <see cref="ReadCursor"/>s.
     /// </summary>
     public class AggregateCursor : ReadCursor
     {
@@ -26,9 +26,9 @@ namespace NuGet.Services.Metadata.Catalog
 
         public IEnumerable<ReadCursor> InnerCursors { get; private set; }
 
-        public override async Task Load(CancellationToken cancellationToken)
+        public override async Task LoadAsync(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(InnerCursors.Select(c => c.Load(cancellationToken)));
+            await Task.WhenAll(InnerCursors.Select(c => c.LoadAsync(cancellationToken)));
             Value = InnerCursors.Min(c => c.Value);
         }
     }

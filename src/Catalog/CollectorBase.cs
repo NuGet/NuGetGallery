@@ -41,7 +41,7 @@ namespace NuGet.Services.Metadata.Catalog
 
         public async Task<bool> RunAsync(ReadWriteCursor front, ReadCursor back, CancellationToken cancellationToken)
         {
-            await Task.WhenAll(front.Load(cancellationToken), back.Load(cancellationToken));
+            await Task.WhenAll(front.LoadAsync(cancellationToken), back.LoadAsync(cancellationToken));
 
             Trace.TraceInformation("Run ( {0} , {1} )", front, back);
 
