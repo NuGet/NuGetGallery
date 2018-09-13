@@ -28,6 +28,9 @@ namespace NuGet.Services.Metadata.Catalog.Registration
         private readonly ShouldIncludeRegistrationPackage _shouldIncludeSemVer2;
         private readonly int _maxConcurrentBatches;
 
+        // Doesn't exist until .NET 4.6
+        private static readonly Task CompletedTask = Task.FromResult(0);
+
         public RegistrationCollector(
             Uri index,
             StorageFactory legacyStorageFactory,
@@ -152,7 +155,11 @@ namespace NuGet.Services.Metadata.Catalog.Registration
 
                 while (processingBatches.Any())
                 {
-                    await Task.WhenAny(processingBatches.Select(batch => batch.Task));
+                    var activeTasks = processingBatches.Where(batch => !batch.Task.IsCompleted)
+                        .Select(batch => batch.Task)
+                        .DefaultIfEmpty(CompletedTask);
+
+                    await Task.WhenAny(activeTasks);
 
                     while (!hasAnyBatchFailed && commitBatchTasksMap.Any())
                     {
