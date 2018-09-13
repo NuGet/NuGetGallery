@@ -9,7 +9,7 @@ param (
     [string]$SemanticVersion = '1.0.0-zlocal',
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = '306fec22edac68336d7e32124d51248734c3a395'
+    [string]$BuildBranch = 'cb604c2cd1b2f7f71fb574cdda4c83ddb1464cc7'
 )
 
 # For TeamCity - If any issue occurs, this script fails the build. - By default, TeamCity returns an exit code of 0 for all powershell scripts, even if they fail
@@ -94,15 +94,21 @@ Invoke-BuildStep 'Building solution' {
     -ev +BuildErrors
     
 Invoke-BuildStep 'Creating artifacts' {
-        $projects = `
+        $csprojPackages = `
             "src\NuGet.Indexing\NuGet.Indexing.csproj", `
             "src\Catalog\NuGet.Services.Metadata.Catalog.csproj", `
             "src\NuGet.ApplicationInsights.Owin\NuGet.ApplicationInsights.Owin.csproj", `
-            "src\Ng\Ng.csproj", `
             "src\NuGet.Services.Metadata.Catalog.Monitoring\NuGet.Services.Metadata.Catalog.Monitoring.csproj"
-            
-        $projects | ForEach-Object {
-            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch -IncludeReferencedProjects -MSBuildVersion "15"
+
+        $csprojPackages | ForEach-Object {
+            New-ProjectPackage (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
+        }
+
+        $nuspecPackages = `
+            "src\Ng\Ng.nuspec"
+
+        $nuspecPackages | ForEach-Object {
+            New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -BuildNumber $BuildNumber -Version $SemanticVersion -Branch $Branch
         }
     } `
     -ev +BuildErrors
