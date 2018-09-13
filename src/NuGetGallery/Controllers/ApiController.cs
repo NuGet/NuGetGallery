@@ -431,7 +431,7 @@ namespace NuGetGallery
 
                             // Ensure the corresponding package exists before pushing a snupkg.
                             var package = PackageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
-                            if (package == null)
+                            if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
                             {
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.NotFound, string.Format(
                                     CultureInfo.CurrentCulture,

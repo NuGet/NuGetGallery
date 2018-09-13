@@ -32,6 +32,8 @@ namespace NuGetGallery
             Mock<IStatisticsService> statisticsService = null,
             Mock<ITelemetryService> telemetryService = null,
             Mock<ISymbolPackageFileService> symbolPackageFileService = null,
+            Mock<ISymbolPackageService> symbolPackageService = null,
+            Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -56,6 +58,9 @@ namespace NuGetGallery
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
             symbolPackageFileService = symbolPackageFileService ?? new Mock<ISymbolPackageFileService>();
+            symbolPackageService = symbolPackageService ?? new Mock<ISymbolPackageService>();
+            symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
+
             if (useRealConstructor)
             {
                 return new PackageDeleteService(
@@ -70,7 +75,9 @@ namespace NuGetGallery
                     config.Object,
                     statisticsService.Object,
                     telemetryService.Object,
-                    symbolPackageFileService.Object);
+                    symbolPackageFileService.Object,
+                    symbolPackageService.Object,
+                    symbolPackageRepository.Object);
             }
             else
             {
@@ -86,7 +93,9 @@ namespace NuGetGallery
                     config.Object,
                     statisticsService.Object,
                     telemetryService.Object,
-                    symbolPackageFileService.Object);
+                    symbolPackageFileService.Object,
+                    symbolPackageService.Object,
+                    symbolPackageRepository.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -116,7 +125,9 @@ namespace NuGetGallery
                 IPackageDeleteConfiguration config,
                 IStatisticsService statisticsService,
                 ITelemetryService telemetryService,
-                ISymbolPackageFileService symbolPackageFileService) : base(
+                ISymbolPackageFileService symbolPackageFileService,
+                ISymbolPackageService symbolPackageService,
+                IEntityRepository<SymbolPackage> symbolPackageRepository) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -128,7 +139,9 @@ namespace NuGetGallery
                     config,
                     statisticsService,
                     telemetryService,
-                    symbolPackageFileService)
+                    symbolPackageFileService,
+                    symbolPackageService,
+                    symbolPackageRepository)
             {
             }
 
@@ -545,11 +558,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateThePackageRepository()
+            public async Task WillUpdateAllRepositories()
             {
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
-                var service = CreateService(packageRepository: packageRepository, packageDeletesRepository: packageDeleteRepository);
+                var symbolPackageRepository = new Mock<IEntityRepository<SymbolPackage>>();
+                var service = CreateService(packageRepository: packageRepository, packageDeletesRepository: packageDeleteRepository, symbolPackageRepository: symbolPackageRepository);
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
                 packageRegistration.Packages.Add(package);
@@ -558,6 +572,7 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
                 
                 packageRepository.Verify(x => x.CommitChangesAsync());
+                symbolPackageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
                 packageDeleteRepository.Verify(x => x.CommitChangesAsync());
             }
@@ -575,6 +590,27 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
                 packageService.Verify(x => x.UpdatePackageStatusAsync(package, PackageStatus.Deleted, false));
+            }
+
+            [Fact]
+            public async Task WillUpdateSymbolPackageStatusToDeleted()
+            {
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                var service = CreateService(symbolPackageService: symbolPackageService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                var symbolPackage = new SymbolPackage()
+                {
+                    Package = package,
+                    StatusKey = PackageStatus.Available
+                };
+                package.SymbolPackages.Add(symbolPackage);
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                symbolPackageService.Verify(x => x.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, false));
             }
 
             [Fact]
