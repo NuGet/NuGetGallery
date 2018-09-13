@@ -43,6 +43,9 @@ namespace NuGetGallery
         private readonly IPackageDeleteConfiguration _config;
         private readonly IStatisticsService _statisticsService;
         private readonly ITelemetryService _telemetryService;
+        private readonly ISymbolPackageFileService _symbolPackageFileService;
+        private readonly ISymbolPackageService _symbolPackageService;
+        private readonly IEntityRepository<SymbolPackage> _symbolPackageRepository;
 
         public PackageDeleteService(
             IEntityRepository<Package> packageRepository,
@@ -55,7 +58,10 @@ namespace NuGetGallery
             IAuditingService auditingService,
             IPackageDeleteConfiguration config,
             IStatisticsService statisticsService,
-            ITelemetryService telemetryService)
+            ITelemetryService telemetryService,
+            ISymbolPackageFileService symbolPackageFileService,
+            ISymbolPackageService symbolPackageService,
+            IEntityRepository<SymbolPackage> symbolPackageRepository)
         {
             _packageRepository = packageRepository ?? throw new ArgumentNullException(nameof(packageRepository));
             _packageRegistrationRepository = packageRegistrationRepository ?? throw new ArgumentNullException(nameof(packageRegistrationRepository));
@@ -68,6 +74,9 @@ namespace NuGetGallery
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _statisticsService = statisticsService ?? throw new ArgumentNullException(nameof(statisticsService));
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
+            _symbolPackageFileService = symbolPackageFileService ?? throw new ArgumentNullException(nameof(symbolPackageFileService));
+            _symbolPackageService = symbolPackageService ?? throw new ArgumentNullException(nameof(symbolPackageService));
+            _symbolPackageRepository = symbolPackageRepository ?? throw new ArgumentNullException(nameof(symbolPackageRepository));
 
             if (config.HourLimitWithMaximumDownloads.HasValue
                 && config.StatisticsUpdateFrequencyInHours.HasValue
@@ -267,6 +276,15 @@ namespace NuGetGallery
                         PackageStatus.Deleted,
                         commitChanges: false);
 
+                    // Mark all associated symbol packages for deletion.
+                    foreach (var symbolPackage in package.SymbolPackages)
+                    {
+                        await _symbolPackageService.UpdateStatusAsync(
+                            symbolPackage,
+                            PackageStatus.Deleted,
+                            commitChanges: false);
+                    }
+
                     packageDelete.Packages.Add(package);
 
                     await _auditingService.SaveAuditRecordAsync(CreateAuditRecord(package, package.PackageRegistration, AuditedPackageAction.SoftDelete, reason));
@@ -278,6 +296,7 @@ namespace NuGetGallery
 
                 // Commit changes
                 await _packageRepository.CommitChangesAsync();
+                await _symbolPackageRepository.CommitChangesAsync();
                 await _packageDeletesRepository.CommitChangesAsync();
                 transaction.Commit();
             }
@@ -427,23 +446,13 @@ namespace NuGetGallery
             // Backup the package binaries and remove from main storage
             foreach (var package in packages)
             {
-                // Backup the package from the "validating" container.
-                using (var packageStream = await _packageFileService.DownloadValidationPackageFileAsync(package))
-                {
-                    if (packageStream != null)
-                    {
-                        await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
-                    }
-                }
+                // Backup the package and symbols package from the "validating" container.
+                await BackupFromValidationsContainerAsync(_packageFileService, package);
+                await BackupFromValidationsContainerAsync(_symbolPackageFileService, package);
 
-                // Backup the package from the "packages" container.
-                using (var packageStream = await _packageFileService.DownloadPackageFileAsync(package))
-                {
-                    if (packageStream != null)
-                    {
-                        await _packageFileService.StorePackageFileInBackupLocationAsync(package, packageStream);
-                    }
-                }
+                // Backup the package and symbols package from the "packages"/"symbol-packages" containers, respectively.
+                await BackupFromPackagesContainerAsync(_packageFileService, package);
+                await BackupFromPackagesContainerAsync(_symbolPackageFileService, package);
 
                 var id = package.PackageRegistration.Id;
                 var version = string.IsNullOrEmpty(package.NormalizedVersion)
@@ -451,10 +460,35 @@ namespace NuGetGallery
                             : package.NormalizedVersion;
 
                 await _packageFileService.DeletePackageFileAsync(id, version);
+                await _symbolPackageFileService.DeletePackageFileAsync(id, version);
+
                 await _packageFileService.DeleteValidationPackageFileAsync(id, version);
+                await _symbolPackageFileService.DeleteValidationPackageFileAsync(id, version);
 
                 // Delete readme file for this package.
                 await TryDeleteReadMeMdFile(package);
+            }
+        }
+
+        private async Task BackupFromValidationsContainerAsync(ICorePackageFileService fileService, Package package)
+        {
+            using (var packageStream = await fileService.DownloadValidationPackageFileAsync(package))
+            {
+                if (packageStream != null)
+                {
+                    await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                }
+            }
+        }
+
+        private async Task BackupFromPackagesContainerAsync(ICorePackageFileService fileService, Package package)
+        {
+            using (var packageStream = await fileService.DownloadPackageFileAsync(package))
+            {
+                if (packageStream != null)
+                {
+                    await fileService.StorePackageFileInBackupLocationAsync(package, packageStream);
+                }
             }
         }
 

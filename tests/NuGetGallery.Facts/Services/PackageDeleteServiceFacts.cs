@@ -31,6 +31,9 @@ namespace NuGetGallery
             Mock<IPackageDeleteConfiguration> config = null,
             Mock<IStatisticsService> statisticsService = null,
             Mock<ITelemetryService> telemetryService = null,
+            Mock<ISymbolPackageFileService> symbolPackageFileService = null,
+            Mock<ISymbolPackageService> symbolPackageService = null,
+            Mock<IEntityRepository<SymbolPackage>> symbolPackageRepository = null,
             Action<Mock<TestPackageDeleteService>> setup = null,
             bool useRealConstructor = false)
         {
@@ -54,6 +57,10 @@ namespace NuGetGallery
 
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
 
+            symbolPackageFileService = symbolPackageFileService ?? new Mock<ISymbolPackageFileService>();
+            symbolPackageService = symbolPackageService ?? new Mock<ISymbolPackageService>();
+            symbolPackageRepository = symbolPackageRepository ?? new Mock<IEntityRepository<SymbolPackage>>();
+
             if (useRealConstructor)
             {
                 return new PackageDeleteService(
@@ -67,7 +74,10 @@ namespace NuGetGallery
                     auditingService.Object,
                     config.Object,
                     statisticsService.Object,
-                    telemetryService.Object);
+                    telemetryService.Object,
+                    symbolPackageFileService.Object,
+                    symbolPackageService.Object,
+                    symbolPackageRepository.Object);
             }
             else
             {
@@ -82,7 +92,10 @@ namespace NuGetGallery
                     auditingService.Object,
                     config.Object,
                     statisticsService.Object,
-                    telemetryService.Object);
+                    telemetryService.Object,
+                    symbolPackageFileService.Object,
+                    symbolPackageService.Object,
+                    symbolPackageRepository.Object);
 
                 packageDeleteService.CallBase = true;
 
@@ -111,7 +124,10 @@ namespace NuGetGallery
                 IAuditingService auditingService,
                 IPackageDeleteConfiguration config,
                 IStatisticsService statisticsService,
-                ITelemetryService telemetryService) : base(
+                ITelemetryService telemetryService,
+                ISymbolPackageFileService symbolPackageFileService,
+                ISymbolPackageService symbolPackageService,
+                IEntityRepository<SymbolPackage> symbolPackageRepository) : base(
                     packageRepository,
                     packageRegistrationRepository,
                     packageDeletesRepository,
@@ -122,7 +138,10 @@ namespace NuGetGallery
                     auditingService,
                     config,
                     statisticsService,
-                    telemetryService)
+                    telemetryService,
+                    symbolPackageFileService,
+                    symbolPackageService,
+                    symbolPackageRepository)
             {
             }
 
@@ -539,11 +558,12 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillUpdateThePackageRepository()
+            public async Task WillUpdateAllRepositories()
             {
                 var packageRepository = new Mock<IEntityRepository<Package>>();
                 var packageDeleteRepository = new Mock<IEntityRepository<PackageDelete>>();
-                var service = CreateService(packageRepository: packageRepository, packageDeletesRepository: packageDeleteRepository);
+                var symbolPackageRepository = new Mock<IEntityRepository<SymbolPackage>>();
+                var service = CreateService(packageRepository: packageRepository, packageDeletesRepository: packageDeleteRepository, symbolPackageRepository: symbolPackageRepository);
                 var packageRegistration = new PackageRegistration();
                 var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
                 packageRegistration.Packages.Add(package);
@@ -552,6 +572,7 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
                 
                 packageRepository.Verify(x => x.CommitChangesAsync());
+                symbolPackageRepository.Verify(x => x.CommitChangesAsync());
                 packageDeleteRepository.Verify(x => x.InsertOnCommit(It.IsAny<PackageDelete>()));
                 packageDeleteRepository.Verify(x => x.CommitChangesAsync());
             }
@@ -569,6 +590,27 @@ namespace NuGetGallery
                 await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
 
                 packageService.Verify(x => x.UpdatePackageStatusAsync(package, PackageStatus.Deleted, false));
+            }
+
+            [Fact]
+            public async Task WillUpdateSymbolPackageStatusToDeleted()
+            {
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                var service = CreateService(symbolPackageService: symbolPackageService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                var symbolPackage = new SymbolPackage()
+                {
+                    Package = package,
+                    StatusKey = PackageStatus.Available
+                };
+                package.SymbolPackages.Add(symbolPackage);
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                symbolPackageService.Verify(x => x.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, false));
             }
 
             [Fact]
@@ -610,6 +652,29 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillBackupAndDeleteJustThePublicSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task WillBackupAndDeleteJustTheValidationPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
@@ -631,6 +696,32 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
                 packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteJustTheValidationSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                symbolPackageFileService.Verify(
                     x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
             }
@@ -659,6 +750,34 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
                 packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteBothThePublicAndValidationSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+                symbolPackageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.SoftDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Exactly(2));
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                symbolPackageFileService.Verify(
                     x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
             }
@@ -882,6 +1001,32 @@ namespace NuGetGallery
             }
 
             [Fact]
+            public async Task WillBackupAndDeleteJustThePublicSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                symbolPackageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
             public async Task WillBackupAndDeleteJustTheValidationPackageFile()
             {
                 var packageFileService = new Mock<IPackageFileService>();
@@ -903,6 +1048,32 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
                 packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteJustTheValidationSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Once);
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                symbolPackageFileService.Verify(
                     x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
             }
@@ -931,6 +1102,34 @@ namespace NuGetGallery
                     x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
                 packageFileService.Verify(
+                    x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task WillBackupAndDeleteBothThePublicAndValidationSymbolPackageFile()
+            {
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService.Setup(x => x.DownloadPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+                symbolPackageFileService.Setup(x => x.DownloadValidationPackageFileAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(Stream.Null);
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var packageRegistration = new PackageRegistration();
+                var package = new Package { Key = 123, PackageRegistration = packageRegistration, Version = "1.0.0", Hash = _packageHashForTests };
+                packageRegistration.Packages.Add(package);
+                var user = new User("test");
+
+                await service.HardDeletePackagesAsync(new[] { package }, user, string.Empty, string.Empty, false);
+
+                symbolPackageFileService.Verify(
+                    x => x.StorePackageFileInBackupLocationAsync(package, It.IsAny<Stream>()),
+                    Times.Exactly(2));
+                symbolPackageFileService.Verify(
+                    x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version),
+                    Times.Once);
+                symbolPackageFileService.Verify(
                     x => x.DeleteValidationPackageFileAsync(package.PackageRegistration.Id, package.Version),
                     Times.Once);
             }

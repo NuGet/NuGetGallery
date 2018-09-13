@@ -265,7 +265,7 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task CreateSymbolPackage_WillReturn404IfCorrespondingPackageDoesnNotExist()
+            public async Task CreateSymbolPackage_WillReturn404IfCorrespondingPackageDoesNotExist()
             {
                 // Arrange
                 var user = new User() { EmailAddress = "confirmed@email.com" };
@@ -279,6 +279,31 @@ namespace NuGetGallery
                 controller.MockPackageService
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns<Package>(null);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturn404IfCorrespondingPackageIsDeleted()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                controller.SetupPackageFromInputStream(nuGetPackage);
+
+                controller.MockPackageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(new Package() {
+                        PackageStatusKey = PackageStatus.Deleted
+                    });
 
                 // Act
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
