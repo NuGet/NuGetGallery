@@ -22,11 +22,13 @@ namespace NuGetGallery
 
         private readonly IContentObjectService _contentObjectService;
         private readonly IPackageService _packageService;
+        private readonly IReservedNamespaceService _reservedNamespaceService;
 
-        public TyposquattingCheckService(IContentObjectService contentObjectService, IPackageService packageService)
+        public TyposquattingCheckService(IContentObjectService contentObjectService, IPackageService packageService, IReservedNamespaceService reservedNamespaceService)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
+            _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
 
             TyposquattingCheckListLength = _contentObjectService.TyposquattingConfiguration.PackageIdChecklistLength;
         }
@@ -34,7 +36,7 @@ namespace NuGetGallery
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
             typosquattingCheckCollisionIds = new List<string>();
-            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled)
+            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Count != 0)
             {
                 return false;
             }

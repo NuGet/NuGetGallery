@@ -13,6 +13,7 @@ namespace NuGetGallery
     {
         private static Mock<IPackageService> _packageService = new Mock<IPackageService>();
         private static Mock<IContentObjectService> _contentObjectService = new Mock<IContentObjectService>();
+        private static Mock<IReservedNamespaceService> _reservedNamespaceService = new Mock<IReservedNamespaceService>();
 
         private static List<string> _packageIds = new List<string>
         {
@@ -53,6 +54,10 @@ namespace NuGetGallery
             _contentObjectService
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
                 .Returns(true);
+
+            _reservedNamespaceService
+                .Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
+                .Returns(new List<ReservedNamespace>());
         }
 
         [Fact]
@@ -60,7 +65,7 @@ namespace NuGetGallery
         {
             // Arrange            
             var uploadedPackageId = "new_package_for_testing";
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -78,7 +83,7 @@ namespace NuGetGallery
             _uploadedPackageOwner.Key = 1;
             var uploadedPackageId = "microsoft_netframework.v1";
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -93,7 +98,7 @@ namespace NuGetGallery
         {
             // Arrange            
             var uploadedPackageId = "Mícrosoft.NetFramew0rk.v1";
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -123,7 +128,7 @@ namespace NuGetGallery
                .Setup(x => x.GetAllPackageRegistrations())
                .Returns(_pacakgeRegistrationsList);
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -154,7 +159,7 @@ namespace NuGetGallery
                .Setup(x => x.GetAllPackageRegistrations())
                .Returns(_pacakgeRegistrationsList);
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -166,12 +171,31 @@ namespace NuGetGallery
         }
 
         [Fact]
+        public void CheckNotTyposquattingWithinReservedNameSpace()
+        {
+            // Arrange
+            var uploadedPackageId = "microsoft_netframework.v1";
+            _reservedNamespaceService
+                .Setup(x => x.GetReservedNamespacesForId(It.IsAny<string>()))
+                .Returns(new List<ReservedNamespace> { new ReservedNamespace()});
+
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            Assert.False(typosquattingCheckResult);
+            Assert.Equal(0, typosquattingCheckCollisionIds.Count);
+        }
+
+        [Fact]
         public void CheckTyposquattingNullUploadedPackageId()
         {
             // Arrange
             string uploadedPackageId = null;
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
@@ -188,7 +212,7 @@ namespace NuGetGallery
             _uploadedPackageOwner = null;
             var uploadedPackageId = "microsoft_netframework_v1";
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var exception = Assert.Throws<ArgumentNullException>(
@@ -204,7 +228,7 @@ namespace NuGetGallery
             // Arrange
             var uploadedPackageId = "";
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -223,7 +247,7 @@ namespace NuGetGallery
                 .Setup(x => x.GetAllPackageRegistrations())
                 .Returns(new List<PackageRegistration>().AsQueryable());
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -244,7 +268,7 @@ namespace NuGetGallery
                 .Setup(x => x.TyposquattingConfiguration.IsCheckEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -263,7 +287,7 @@ namespace NuGetGallery
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
@@ -282,7 +306,7 @@ namespace NuGetGallery
                 .Setup(x => x.TyposquattingConfiguration.IsBlockUsersEnabled)
                 .Returns(false);
 
-            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object);
+            var newService = new TyposquattingCheckService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object);
 
             // Act
             var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
