@@ -129,7 +129,7 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
-    <Compile Include="Services\TyposquattingCheckServiceFacts.cs" />
+    <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
     <Compile Include="Services\CertificateServiceFacts.cs" />
     <Compile Include="Services\CertificateValidatorFacts.cs" />

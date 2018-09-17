@@ -23,7 +23,7 @@ namespace NuGetGallery
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
         private readonly IAppConfiguration _config;
-        private readonly ITyposquattingCheckService _typosquattingCheckService;
+        private readonly ITyposquattingService _typosquattingService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -32,7 +32,7 @@ namespace NuGetGallery
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
             IAppConfiguration config,
-            ITyposquattingCheckService typosquattingCheckService)
+            ITyposquattingService typosquattingService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -40,7 +40,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _typosquattingCheckService = typosquattingCheckService ?? throw new ArgumentNullException(nameof(typosquattingCheckService));
+            _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -199,7 +199,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            if (isNewPackageRegistration && _typosquattingCheckService.IsUploadedPackageIdTyposquatting(package.Id, owner, out List<string> typosquattingCheckCollisionIds))
+            if (isNewPackageRegistration && _typosquattingService.IsUploadedPackageIdTyposquatting(package.Id, owner, out List<string> typosquattingCheckCollisionIds))
             {
                 return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
             }

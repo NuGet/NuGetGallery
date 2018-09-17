@@ -323,9 +323,9 @@ namespace NuGetGallery
                 .As<ICertificateService>()
                 .InstancePerLifetimeScope();
 
-            builder.RegisterType<TyposquattingCheckService>()
+            builder.RegisterType<TyposquattingService>()
                 .AsSelf()
-                .As<ITyposquattingCheckService>()
+                .As<ITyposquattingService>()
                 .InstancePerLifetimeScope();
 
             Func<MailSender> mailSenderFactory = () =>

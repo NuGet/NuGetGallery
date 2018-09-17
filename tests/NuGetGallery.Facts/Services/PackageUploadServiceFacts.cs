@@ -69,7 +69,7 @@ namespace NuGetGallery
                 reservedNamespaceService.Object,
                 validationService.Object,
                 config.Object,
-                new Mock<ITyposquattingCheckService>().Object);
+                new Mock<ITyposquattingService>().Object);
 
             return packageUploadService.Object;
         }
@@ -470,7 +470,7 @@ namespace NuGetGallery
                     .Returns(true);
 
                 _isNewPackageRegistration = false;
-                _typosquattingCheckService
+                _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(false);
             }
@@ -701,7 +701,7 @@ namespace NuGetGallery
             public async Task AcceptNotTyposquattingNewVersion()
             {
                 _isNewPackageRegistration = true;
-                _typosquattingCheckService
+                _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(false);
                 var result = await _target.ValidateAfterGeneratePackageAsync(
@@ -719,7 +719,7 @@ namespace NuGetGallery
             [Fact]
             public async Task AcceptIsTyposquattingCheckNotNewVersion()
             {
-                _typosquattingCheckService
+                _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(true);
                 var result = await _target.ValidateAfterGeneratePackageAsync(
@@ -737,7 +737,7 @@ namespace NuGetGallery
             [Fact]
             public async Task AcceptNotTyposquattingNotNewVersion()
             {
-                _typosquattingCheckService
+                _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(false);
                 var result = await _target.ValidateAfterGeneratePackageAsync(
@@ -757,7 +757,7 @@ namespace NuGetGallery
             {
                 _isNewPackageRegistration = true;
                 _typosquattingCheckCollisionIds = new List<string>{ "typosquatting_package_Id" };
-                _typosquattingCheckService
+                _typosquattingService
                     .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
                     .Returns(true);
 
@@ -1054,7 +1054,7 @@ namespace NuGetGallery
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
             protected readonly Mock<IValidationService> _validationService;
             protected readonly Mock<IAppConfiguration> _config;
-            protected readonly Mock<ITyposquattingCheckService> _typosquattingCheckService;
+            protected readonly Mock<ITyposquattingService> _typosquattingService;
 
             protected Package _package;
             protected Stream _packageFile;
@@ -1070,7 +1070,7 @@ namespace NuGetGallery
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
                 _config = new Mock<IAppConfiguration>();
-                _typosquattingCheckService = new Mock<ITyposquattingCheckService>();
+                _typosquattingService = new Mock<ITyposquattingService>();
 
                 _package = new Package
                 {
@@ -1092,7 +1092,7 @@ namespace NuGetGallery
                     _reservedNamespaceService.Object,
                     _validationService.Object,
                     _config.Object,
-                    _typosquattingCheckService.Object);
+                    _typosquattingService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

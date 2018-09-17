@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace NuGetGallery
 {
-    public class TyposquattingCheckService : ITyposquattingCheckService
+    public class TyposquattingService : ITyposquattingService
     {
         private static readonly IReadOnlyList<ThresholdInfo> ThresholdsList = new List<ThresholdInfo>
         {
@@ -24,7 +24,7 @@ namespace NuGetGallery
         private readonly IPackageService _packageService;
         private readonly IReservedNamespaceService _reservedNamespaceService;
 
-        public TyposquattingCheckService(IContentObjectService contentObjectService, IPackageService packageService, IReservedNamespaceService reservedNamespaceService)
+        public TyposquattingService(IContentObjectService contentObjectService, IPackageService packageService, IReservedNamespaceService reservedNamespaceService)
         {
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
@@ -36,7 +36,7 @@ namespace NuGetGallery
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
             typosquattingCheckCollisionIds = new List<string>();
-            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Count != 0)
+            if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Any())
             {
                 return false;
             }
@@ -90,7 +90,7 @@ namespace NuGetGallery
             /// <summary>
             /// The following statement is used to double check whether the collision Id belongs to the same user who is uploading the package.
             /// The current policy is that if the user has the ownership of any of the collision packages, we will pass the package.
-            /// The reason is that maybe this user is trying to update an existing package who is owned by himself.
+            /// The reason is that maybe this user is trying to update an existing package who is owned by themselves.
             /// Example:
             /// User "a" is uploading a package named "xyz", while "xyz" collides with existing packages "xyzz" (owned by "a", "b", "c"), "xyyz" (owned by "b"), "xxyz" (owned by "b", "c").
             /// We will pass this package because "a" has the ownership of package "xyzz" even though this package Id collides with "xyyz" and "xxyz".
