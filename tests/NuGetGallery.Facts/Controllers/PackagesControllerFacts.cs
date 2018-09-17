@@ -127,7 +127,8 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<User>(),
-                        It.IsAny<User>()))
+                        It.IsAny<User>(),
+                        It.IsAny<bool>()))
                     .ReturnsAsync(PackageValidationResult.Accepted());
             }
 
@@ -212,7 +213,8 @@ namespace NuGetGallery
                     It.IsAny<Package>(),
                     It.IsAny<PackageArchiveReader>(),
                     It.IsAny<User>(),
-                    It.IsAny<User>()))
+                    It.IsAny<User>(),
+                    It.IsAny<bool>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             return fakePackageUploadService;
@@ -4414,7 +4416,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
                         Times.Once);
                 }
             }
@@ -4644,7 +4647,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(PackageValidationResult.Accepted);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
@@ -4702,7 +4706,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(new PackageValidationResult(type, expectedMessage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
@@ -5217,7 +5222,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(PackageValidationResult.Accepted());
                     var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { TestUtility.FakeUser } }, Version = PackageVersion };
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);

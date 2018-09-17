@@ -68,7 +68,8 @@ namespace NuGetGallery
                 new Mock<IEntitiesContext>().Object,
                 reservedNamespaceService.Object,
                 validationService.Object,
-                config.Object);
+                config.Object,
+                new Mock<ITyposquattingService>().Object);
 
             return packageUploadService.Object;
         }
@@ -451,6 +452,8 @@ namespace NuGetGallery
             private readonly User _currentUser;
             private User _owner;
             private Mock<TestPackageReader> _nuGetPackage;
+            private bool _isNewPackageRegistration;
+            private List<string> _typosquattingCheckCollisionIds;
 
             public TheValidateAfterGeneratePackageMethod()
             {
@@ -465,6 +468,11 @@ namespace NuGetGallery
                 _config
                     .Setup(x => x.RejectSignedPackagesWithNoRegisteredCertificate)
                     .Returns(true);
+
+                _isNewPackageRegistration = false;
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
+                    .Returns(false);
             }
 
             [Fact]
@@ -476,7 +484,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
@@ -493,7 +502,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
@@ -510,7 +520,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSignedButCanManageCertificates, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsSignedButMissingCertificate_CurrentUserCanManageCertificates, result.Message);
@@ -532,7 +543,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
                 Assert.Equal(
@@ -562,7 +574,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
                 Assert.Equal(
@@ -593,7 +606,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.PackageShouldNotBeSigned, result.Type);
                 Assert.Equal(
@@ -614,7 +628,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -628,7 +643,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
@@ -649,7 +665,8 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(Strings.UploadPackage_PackageIsNotSigned, result.Message);
@@ -672,10 +689,87 @@ namespace NuGetGallery
                     _package,
                     _nuGetPackage.Object,
                     _owner,
-                    _currentUser);
+                    _currentUser,
+                    _isNewPackageRegistration);
 
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptNotTyposquattingNewVersion()
+            {
+                _isNewPackageRegistration = true;
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
+                    .Returns(false);
+                var result = await _target.ValidateAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptIsTyposquattingCheckNotNewVersion()
+            {
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
+                    .Returns(true);
+                var result = await _target.ValidateAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task AcceptNotTyposquattingNotNewVersion()
+            {
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
+                    .Returns(false);
+                var result = await _target.ValidateAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+
+                Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                Assert.Null(result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectIsTyposquattingNewVersion()
+            {
+                _isNewPackageRegistration = true;
+                _typosquattingCheckCollisionIds = new List<string>{ "typosquatting_package_Id" };
+                _typosquattingService
+                    .Setup(x => x.IsUploadedPackageIdTyposquatting(It.IsAny<string>(), It.IsAny<User>(), out _typosquattingCheckCollisionIds))
+                    .Returns(true);
+
+                var result = await _target.ValidateAfterGeneratePackageAsync(
+                    _package,
+                    _nuGetPackage.Object,
+                    _owner,
+                    _currentUser,
+                    _isNewPackageRegistration);
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message);
                 Assert.Empty(result.Warnings);
             }
         }
@@ -960,13 +1054,14 @@ namespace NuGetGallery
             protected readonly Mock<IReservedNamespaceService> _reservedNamespaceService;
             protected readonly Mock<IValidationService> _validationService;
             protected readonly Mock<IAppConfiguration> _config;
+            protected readonly Mock<ITyposquattingService> _typosquattingService;
+
             protected Package _package;
             protected Stream _packageFile;
             protected ArgumentException _unexpectedException;
             protected FileAlreadyExistsException _conflictException;
             protected readonly CancellationToken _token;
             protected readonly PackageUploadService _target;
-
             public FactsBase()
             {
                 _packageService = new Mock<IPackageService>();
@@ -975,6 +1070,7 @@ namespace NuGetGallery
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
                 _config = new Mock<IAppConfiguration>();
+                _typosquattingService = new Mock<ITyposquattingService>();
 
                 _package = new Package
                 {
@@ -995,7 +1091,8 @@ namespace NuGetGallery
                     _entitiesContext.Object,
                     _reservedNamespaceService.Object,
                     _validationService.Object,
-                    _config.Object);
+                    _config.Object,
+                    _typosquattingService.Object);
             }
 
             protected static Mock<TestPackageReader> GeneratePackage(

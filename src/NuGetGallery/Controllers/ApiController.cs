@@ -723,7 +723,9 @@ namespace NuGetGallery
                                 package,
                                 packageToPush,
                                 owner,
-                                currentUser);
+                                currentUser,
+                                isNewPackageRegistration: packageRegistration == null);
+
                             var afterValidationActionResult = GetActionResultOrNull(afterValidationResult);
                             if (afterValidationActionResult != null)
                             {

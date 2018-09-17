@@ -1601,7 +1601,6 @@ namespace NuGetGallery
                         return beforeValidationJsonResult;
                     }
 
-                    // update relevant database tables
                     try
                     {
                         package = await _packageUploadService.GeneratePackageAsync(
@@ -1637,7 +1636,9 @@ namespace NuGetGallery
                         package,
                         nugetPackage,
                         owner,
-                        currentUser);
+                        currentUser,
+                        isNewPackageRegistration: existingPackageRegistration == null);
+
                     var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
                     if (afterValidationJsonResult != null)
                     {
