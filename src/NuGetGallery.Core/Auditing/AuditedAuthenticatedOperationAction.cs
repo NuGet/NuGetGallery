@@ -28,6 +28,6 @@ namespace NuGetGallery.Auditing
         /// <summary>
         /// Symbol package push was attempted by a non-owner of the package
         /// </summary>
-        SymbolPackagePushAttemptByNonOwner
+        SymbolsPackagePushAttemptByNonOwner
     }
 }
