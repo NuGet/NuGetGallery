@@ -111,6 +111,11 @@ namespace NuGetGallery
             return package;
         }
 
+        public IQueryable<PackageRegistration> GetAllPackageRegistrations()
+        {
+            return _packageRegistrationRepository.GetAll();
+        }
+
         public override PackageRegistration FindPackageRegistrationById(string packageId)
         {
             if (packageId == null)
