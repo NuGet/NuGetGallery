@@ -321,8 +321,9 @@ namespace NuGetGallery
 
                 var controller = new TestableApiController(GetConfigurationService());
                 controller.SetCurrentUser(user);
-
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
+                var packageId = "theId";
+                var version = "1.0.42";
+                var nuGetPackage = TestPackage.CreateTestPackageStream(packageId, version);
                 controller.SetupPackageFromInputStream(nuGetPackage);
 
                 var package = new Package()
@@ -357,6 +358,16 @@ namespace NuGetGallery
 
                 // Assert
                 ResultAssert.IsStatusCode(result, HttpStatusCode.Unauthorized);
+
+                controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(
+                    (record) =>
+                    {
+                        return
+                            record.UsernameOrEmail == user.Username &&
+                            record.Action == AuditedAuthenticatedOperationAction.SymbolsPackagePushAttemptByNonOwner &&
+                            record.AttemptedPackage.Id == packageId &&
+                            record.AttemptedPackage.Version == version;
+                    });
             }
 
             [Fact]
@@ -520,7 +531,13 @@ namespace NuGetGallery
                 controller.MockTelemetryService.Verify(
                    x => x.TrackSymbolPackagePushEvent(It.IsAny<string>(), It.IsAny<string>()),
                    Times.Once());
+
                 ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+
+                Assert.True(controller.AuditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.SymbolsCreate
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
             }
 
             [Fact]

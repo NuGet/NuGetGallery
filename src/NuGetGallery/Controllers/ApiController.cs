@@ -444,6 +444,13 @@ namespace NuGetGallery
                             var apiScopeEvaluationResult = EvaluateApiScope(ActionsRequiringPermissions.UploadSymbolPackage, package.PackageRegistration, NuGetScopes.PackagePushVersion, NuGetScopes.PackagePush);
                             if (!apiScopeEvaluationResult.IsSuccessful())
                             {
+                                await AuditingService.SaveAuditRecordAsync(
+                                    new FailedAuthenticatedOperationAuditRecord(
+                                        currentUser.Username,
+                                        AuditedAuthenticatedOperationAction.SymbolsPackagePushAttemptByNonOwner,
+                                        attemptedPackage: new AuditedPackageIdentifier(
+                                            id, version.ToNormalizedStringSafe())));
+
                                 // User cannot push a symbol package as the current user's scopes does not allow it to push for the corresponding package.
                                 return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, version);
                             }
@@ -467,6 +474,7 @@ namespace NuGetGallery
                                 {
                                     message = ex.Message;
                                 }
+
                                 TelemetryService.TrackSymbolPackageFailedGalleryValidationEvent(id, normalizedVersion);
                                 return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, message);
                             }
@@ -496,6 +504,9 @@ namespace NuGetGallery
                                 default:
                                     throw new NotImplementedException($"The symbol package commit result {commitResult} is not supported.");
                             }
+
+                            await AuditingService.SaveAuditRecordAsync(
+                                new PackageAuditRecord(package, AuditedPackageAction.SymbolsCreate, PackageCreatedVia.Api));
 
                             TelemetryService.TrackSymbolPackagePushEvent(id, normalizedVersion);
 
