@@ -23,6 +23,11 @@ namespace NuGetGallery.Auditing
         /// <summary>
         /// Login failed, user is an organization and should not have credentials.
         /// </summary>
-        FailedLoginUserIsOrganization
+        FailedLoginUserIsOrganization,
+
+        /// <summary>
+        /// Symbol package push was attempted by a non-owner of the package
+        /// </summary>
+        SymbolsPackagePushAttemptByNonOwner
     }
 }
