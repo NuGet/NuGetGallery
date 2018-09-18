@@ -55,6 +55,7 @@ namespace NuGetGallery
             public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
             public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
+            public const string TyposquattingCheck = "TyposquattingCheck";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -131,6 +132,12 @@ namespace NuGetGallery
         public const string ComplianceWarnings = "ComplianceWarnings";
 
         public const string ValueUnknown = "Unknown";
+        
+        // Typosquatting check properties
+        public const string ChecklistRetrievalTime = "ChecklistRetrievalTime";
+        public const string ProcessingTime = "ProcessingTime";
+        public const string IsTyposquattingPackgeId = "IsTyposquattingPackgeId";
+        public const string CollisionPackageIds = "CollisionPackageIds";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -679,6 +686,17 @@ namespace NuGetGallery
                 { "attempt", attemptNumber.ToString() }
             };
             _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
+        }
+
+        public void TrackMetricForTyposquattingCheck(string packageId, TimeSpan checklistRetrievalTime, TimeSpan processingTime, bool isTyposquattingPackgeId, string collisionPackageIds)
+        {
+            TrackMetric(Events.TyposquattingCheck, 1, properties => {
+                properties.Add(PackageId, packageId);
+                properties.Add(ChecklistRetrievalTime, checklistRetrievalTime.ToString());
+                properties.Add(ProcessingTime, processingTime.ToString());
+                properties.Add(IsTyposquattingPackgeId, isTyposquattingPackgeId.ToString());
+                properties.Add(CollisionPackageIds, collisionPackageIds);
+            });
         }
 
         /// <summary>

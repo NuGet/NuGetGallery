@@ -203,6 +203,10 @@ namespace NuGetGallery
                     yield return new object[] { "PackageOwnershipAutomaticallyAdded",
                         (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion))
                     };
+
+                    yield return new object[] { "TyposquattingCheck",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(0.5), TimeSpan.FromMilliseconds(0.7), true, "collision Ids"))
+                    };
                 }
             }
 

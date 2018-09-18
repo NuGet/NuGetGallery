@@ -178,5 +178,15 @@ namespace NuGetGallery
         /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
         /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
         void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// The typosquatting check result for the uploaded package.
+        /// </summary>
+        /// <param name="packageId">The id of the uploaded package.</param>
+        /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
+        /// <param name="processingTime">The time used to finish the typosquatting check logic.</param>
+        /// <param name="checkResult">Whether the uploaded package passes the typosquatting check.</param>
+        /// <param name="collisionPackageIds">The already existing collision package Ids for this uploaded package.</param>
+        void TrackMetricForTyposquattingCheck(string packageId, TimeSpan checklistRetrievalTime, TimeSpan processingTime, bool checkResult, string collisionPackageIds);
     }
 }
