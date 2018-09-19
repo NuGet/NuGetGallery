@@ -138,8 +138,23 @@ namespace NuGetGallery
         public virtual JsonResult UploadPackageProgress()
         {
             string username = User.Identity.Name;
+            string uploadTracingKey;
+            try
+            {
+                uploadTracingKey = Request.Headers[CoreConstants.UploadTracingKeyHeaderName];
+                Guid.Parse(uploadTracingKey);
+            }
+            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
+            {
+                // An upload tracing key was not found
+                // Simultaneous UI uploads might have strange behaviour.
+                // Note that we might have this case if an old client sends to new Server.
+                uploadTracingKey = Guid.Empty.ToString();
+            }
 
-            AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
+            var uploadKey = username + uploadTracingKey;
+
+            AsyncFileUploadProgress progress = _cacheService.GetProgress(uploadKey);
             if (progress == null)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
@@ -226,6 +241,17 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
+            string uploadTracingKey;
+            try
+            {
+                uploadTracingKey = Request.Headers[CoreConstants.UploadTracingKeyHeaderName];
+                Guid.Parse(uploadTracingKey);
+            }
+            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
+            {
+                uploadTracingKey = Guid.Empty.ToString();
+            }
+
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (existingUploadFile != null)
@@ -288,7 +314,9 @@ namespace NuGetGallery
                 }
                 finally
                 {
-                    _cacheService.RemoveProgress(currentUser.Username);
+                    var username = currentUser.Username;
+                    var uploadKey = username + uploadTracingKey;
+                    _cacheService.RemoveProgress(uploadKey);
                 }
 
                 NuspecReader nuspec;

@@ -39,5 +39,7 @@ namespace NuGetGallery
         public const string SymbolPackagesFolderName = "symbol-packages";
         public const string NuGetSymbolPackageFileExtension = ".snupkg";
         public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
+
+        public const string UploadTracingKeyHeaderName = "upload-id";
     }
 }

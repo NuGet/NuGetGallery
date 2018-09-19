@@ -14,8 +14,10 @@
         var _pingUrl;
         var _isUploadInProgress;
         var _uploadStartTime;
+        var _uploadId;
 
         this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
+            _uploadId = generateUUID();
             _pingUrl = pingUrl;
             _uploadFormId = formId;
             _actionUrl = actionUrl;
@@ -81,6 +83,18 @@
             }
         };
 
+        function generateUUID() { // Public Domain/MIT
+            var d = new Date().getTime();
+            if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
+                d += performance.now();
+            }
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                var r = (d + Math.random() * 16) % 16 | 0;
+                d = Math.floor(d / 16);
+                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+            });
+        } // End Public Domain/MIT
+
         function resetFileSelectFeedback() {
             $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package...');
         }
@@ -103,6 +117,10 @@
                 type: 'POST',
 
                 data: _uploadFormData,
+
+                headers: {
+                    "upload-id": _uploadId
+                },
 
                 cache: false,
                 contentType: false,
@@ -127,6 +145,10 @@
 
                 data: new FormData($('#verify-metadata-form')[0]),
 
+                headers: {
+                    "upload-id": _uploadId
+                },
+
                 cache: false,
                 contentType: false,
                 processData: false,
@@ -149,6 +171,10 @@
                 type: 'POST',
 
                 data: new FormData($('#cancel-form')[0]),
+
+                headers: {
+                    "upload-id": _uploadId
+                },
 
                 cache: false,
                 contentType: false,
@@ -305,6 +331,9 @@
                 type: 'GET',
                 dataType: 'json',
                 url: _pingUrl,
+                headers: {
+                    "upload-id": _uploadId
+                },
                 success: onGetProgressSuccess,
                 error: onGetProgressError
             });
