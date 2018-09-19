@@ -10,6 +10,7 @@ using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -127,12 +128,20 @@ namespace NuGetGallery
                 var request = await UserService.AddMembershipRequestAsync(account, memberName, isAdmin);
                 var currentUser = GetCurrentUser();
 
-                var profileUrl = Url.User(account, relativeUrl: false);
-                var confirmUrl = Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false);
-                var rejectUrl = Url.RejectOrganizationMembershipRequest(request, relativeUrl: false);
                 var cancelUrl = Url.CancelOrganizationMembershipRequest(memberName, relativeUrl: false);
 
-                await MessageService.SendOrganizationMembershipRequestAsync(account, request.NewMember, currentUser, request.IsAdmin, profileUrl, confirmUrl, rejectUrl);
+                var organizationMembershipRequest = new OrganizationMembershipRequest
+                {
+                    Organization = account,
+                    NewUser = request.NewMember,
+                    AdminUser = currentUser,
+                    IsAdmin = request.IsAdmin,
+                    ProfileUrl = Url.User(account, relativeUrl: false),
+                    RawConfirmationUrl = Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false),
+                    RawRejectionUrl = Url.RejectOrganizationMembershipRequest(request, relativeUrl: false)
+                };
+
+                await MessageService.SendOrganizationMembershipRequestAsync(organizationMembershipRequest);
                 await MessageService.SendOrganizationMembershipRequestInitiatedNoticeAsync(account, currentUser, request.NewMember, request.IsAdmin, cancelUrl);
 
                 return Json(new OrganizationMemberViewModel(request));
@@ -186,7 +195,7 @@ namespace NuGetGallery
             {
                 var member = GetCurrentUser();
                 await UserService.RejectMembershipRequestAsync(account, member.Username, confirmationToken);
-                await MessageService.SendOrganizationMembershipRequestRejectedNoticeAsync(account, member);
+                await MessageService.SendOrganizationMembershipRequestDeclinedNoticeAsync(account, member);
 
                 return HandleOrganizationMembershipRequestView(new HandleOrganizationMembershipRequestModel(false, account));
             }
@@ -219,7 +228,7 @@ namespace NuGetGallery
             try
             {
                 var removedUser = await UserService.CancelMembershipRequestAsync(account, memberName);
-                await MessageService.SendOrganizationMembershipRequestCancelledNoticeAsync(account, removedUser);
+                await MessageService.SendOrganizationMembershipRequestCanceledNoticeAsync(account, removedUser);
                 return Json(Strings.CancelMemberRequest_Success);
             }
             catch (EntityException e)

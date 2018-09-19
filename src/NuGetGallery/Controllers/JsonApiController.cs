@@ -11,6 +11,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -152,12 +153,23 @@ namespace NuGetGallery
                         model.User.Username,
                         relativeUrl: false);
 
-                    await _messageService.SendPackageOwnerRequestAsync(model.CurrentUser, model.User, model.Package, packageUrl,
-                        confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
+                    var packageOwnershipRequest = new PackageOwnershipRequest
+                    {
+                        FromUser = model.CurrentUser,
+                        ToUser = model.User,
+                        PackageRegistration = model.Package,
+                        PackageUrl = packageUrl,
+                        ConfirmationUrl = confirmationUrl,
+                        RejectionUrl = rejectionUrl,
+                        HtmlEncodedMessage = encodedMessage,
+                        PolicyMessage = string.Empty
+                    };
+
+                    await _messageService.SendPackageOwnershipRequestAsync(packageOwnershipRequest);
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        await _messageService.SendPackageOwnerRequestInitiatedNoticeAsync(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                        await _messageService.SendPackageOwnershipRequestInitiatedNoticeAsync(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
                     }
                 }
 
@@ -200,7 +212,7 @@ namespace NuGetGallery
                 else
                 {
                     await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(model.Package, model.User);
-                    await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(model.CurrentUser, model.User, model.Package);
+                    await _messageService.SendPackageOwnershipRequestCanceledNoticeAsync(model.CurrentUser, model.User, model.Package);
                 }
 
                 return Json(new { success = true });

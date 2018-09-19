@@ -25,6 +25,7 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -847,9 +848,11 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url,
                 CopySender = reportForm.CopySender,
-                Signature = reportForm.Signature
+                Signature = reportForm.Signature,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
             var subject = $"Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
@@ -995,8 +998,10 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url,
-                CopySender = reportForm.CopySender
+                CopySender = reportForm.CopySender,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
             await _messageService.ReportMyPackageAsync(request);
@@ -1080,9 +1085,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact package owners")]
         public virtual async Task<ActionResult> ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
-            // Html Encode the message
-            contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
-
             if (!ModelState.IsValid)
             {
                 return ContactOwners(id, version);
@@ -1095,14 +1097,20 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            await _messageService.SendContactOwnersMessageAsync(
-                fromAddress,
-                package,
-                Url.Package(package, false),
-                contactForm.Message,
-                Url.AccountSettings(relativeUrl: false),
-                contactForm.CopySender);
+
+            var contactOwnersRequest = new ContactOwnersRequest
+            {
+                FromAddress = new MailAddress(user.EmailAddress, user.Username),
+                Package = package,
+                PackageUrl = Url.Package(package, false),
+                EmailSettingsUrl = Url.AccountSettings(relativeUrl: false),
+                CopySender = contactForm.CopySender,
+
+                // Html Encode the message
+                HtmlEncodedMessage = HttpUtility.HtmlEncode(contactForm.Message)
+            };
+
+            await _messageService.SendContactOwnersMessageAsync(contactOwnersRequest);
 
             string message = string.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
@@ -1567,7 +1575,7 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
-                await _messageService.SendPackageOwnerRequestRejectionNoticeAsync(requestingUser, user, package);
+                await _messageService.SendPackageOwnershipRequestDeclinedNoticeAsync(requestingUser, user, package);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -1609,7 +1617,7 @@ namespace NuGetGallery
 
             await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
-            await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(requestingUser, pendingUser, package);
+            await _messageService.SendPackageOwnershipRequestCanceledNoticeAsync(requestingUser, pendingUser, package);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }

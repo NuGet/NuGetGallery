@@ -4,23 +4,23 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery
 {
     public interface IMessageService
     {
-        Task SendContactOwnersMessageAsync(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
-        Task ReportAbuseAsync(ReportPackageRequest report);
-        Task ReportMyPackageAsync(ReportPackageRequest report);
+        Task SendContactOwnersMessageAsync(ContactOwnersRequest request);
+        Task ReportAbuseAsync(ReportPackageRequest request);
+        Task ReportMyPackageAsync(ReportPackageRequest request);
         Task SendNewAccountEmailAsync(User newUser, string confirmationUrl);
         Task SendEmailChangeConfirmationNoticeAsync(User user, string confirmationUrl);
         Task SendPasswordResetInstructionsAsync(User user, string resetPasswordUrl, bool forgotPassword);
         Task SendEmailChangeNoticeToPreviousEmailAddressAsync(User user, string oldEmailAddress);
-        Task SendPackageOwnerRequestAsync(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage);
-        Task SendPackageOwnerRequestInitiatedNoticeAsync(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
-        Task SendPackageOwnerRequestRejectionNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
-        Task SendPackageOwnerRequestCancellationNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
+        Task SendPackageOwnershipRequestAsync(PackageOwnershipRequest request);
+        Task SendPackageOwnershipRequestInitiatedNoticeAsync(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
+        Task SendPackageOwnershipRequestDeclinedNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
+        Task SendPackageOwnershipRequestCanceledNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
         Task SendPackageOwnerAddedNoticeAsync(User toUser, User newOwner, PackageRegistration package, string packageUrl);
         Task SendPackageOwnerRemovedNoticeAsync(User fromUser, User toUser, PackageRegistration package);
         Task SendCredentialRemovedNoticeAsync(User user, CredentialViewModel removedCredentialViewModel);
@@ -34,12 +34,12 @@ namespace NuGetGallery
         Task SendOrganizationTransformRequestAsync(User accountToTransform, User adminUser, string profileUrl, string confirmationUrl, string rejectionUrl);
         Task SendOrganizationTransformInitiatedNoticeAsync(User accountToTransform, User adminUser, string cancellationUrl);
         Task SendOrganizationTransformRequestAcceptedNoticeAsync(User accountToTransform, User adminUser);
-        Task SendOrganizationTransformRequestRejectedNoticeAsync(User accountToTransform, User adminUser);
+        Task SendOrganizationTransformRequestDeclinedNoticeAsync(User accountToTransform, User adminUser);
         Task SendOrganizationTransformRequestCancelledNoticeAsync(User accountToTransform, User adminUser);
-        Task SendOrganizationMembershipRequestAsync(Organization organization, User newUser, User adminUser, bool isAdmin, string profileUrl, string confirmationUrl, string rejectionUrl);
+        Task SendOrganizationMembershipRequestAsync(OrganizationMembershipRequest request);
         Task SendOrganizationMembershipRequestInitiatedNoticeAsync(Organization organization, User requestingUser, User pendingUser, bool isAdmin, string cancellationUrl);
-        Task SendOrganizationMembershipRequestRejectedNoticeAsync(Organization organization, User pendingUser);
-        Task SendOrganizationMembershipRequestCancelledNoticeAsync(Organization organization, User pendingUser);
+        Task SendOrganizationMembershipRequestDeclinedNoticeAsync(Organization organization, User pendingUser);
+        Task SendOrganizationMembershipRequestCanceledNoticeAsync(Organization organization, User pendingUser);
         Task SendOrganizationMemberUpdatedNoticeAsync(Organization organization, Membership membership);
         Task SendOrganizationMemberRemovedNoticeAsync(Organization organization, User removedUser);
     }

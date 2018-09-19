@@ -6,7 +6,7 @@ using System.Web;
 using Moq;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Framework;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.ViewModels;
 using Xunit;
 

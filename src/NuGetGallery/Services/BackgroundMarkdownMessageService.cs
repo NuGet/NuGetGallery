@@ -11,10 +11,15 @@ using NuGetGallery.Configuration;
 
 namespace NuGetGallery.Services
 {
-    public class BackgroundMessageService : MessageService
+    public class BackgroundMarkdownMessageService : MarkdownMessageService
     {
-        public BackgroundMessageService(IMailSender mailSender, IAppConfiguration config, ITelemetryService telemetryService, ErrorLog errorLog, Func<BackgroundMessageService> messageServiceFactory)
-            :base(mailSender, config, telemetryService)
+        public BackgroundMarkdownMessageService(
+            IMailSender mailSender, 
+            IAppConfiguration config, 
+            ITelemetryService telemetryService, 
+            ErrorLog errorLog, 
+            Func<BackgroundMarkdownMessageService> messageServiceFactory)
+            : base(mailSender, config, telemetryService)
         {
             _errorLog = errorLog ?? throw new ArgumentNullException(nameof(errorLog));
             _messageServiceFactory = messageServiceFactory ?? throw new ArgumentNullException(nameof(messageServiceFactory));
@@ -22,7 +27,7 @@ namespace NuGetGallery.Services
         }
 
         private ErrorLog _errorLog;
-        private Func<BackgroundMessageService> _messageServiceFactory;
+        private Func<BackgroundMarkdownMessageService> _messageServiceFactory;
         private bool _sentMessage;
 
         protected override Task SendMessageAsync(MailMessage mailMessage)

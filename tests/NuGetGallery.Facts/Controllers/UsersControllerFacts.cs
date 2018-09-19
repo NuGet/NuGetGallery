@@ -2762,7 +2762,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestDeclinedNoticeAsync(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2789,7 +2789,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestDeclinedNoticeAsync(
                             It.IsAny<User>(),
                             It.IsAny<User>()),
                         Times.Never());
@@ -2818,7 +2818,7 @@ namespace NuGetGallery
 
                 GetMock<IMessageService>()
                     .Verify(m =>
-                        m.SendOrganizationTransformRequestRejectedNoticeAsync(
+                        m.SendOrganizationTransformRequestDeclinedNoticeAsync(
                             It.IsAny<User>(),
                             It.IsAny<User>()));
 

@@ -240,7 +240,7 @@ namespace NuGetGallery
             {
                 if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
                 {
-                    await MessageService.SendOrganizationTransformRequestRejectedNoticeAsync(accountToTransform, adminUser);
+                    await MessageService.SendOrganizationTransformRequestDeclinedNoticeAsync(accountToTransform, adminUser);
 
                     TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
 

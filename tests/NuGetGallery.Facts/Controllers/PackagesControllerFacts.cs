@@ -28,6 +28,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;
@@ -1005,7 +1007,7 @@ namespace NuGetGallery
 
             private static Expression<Action<IMessageService>> MessageServiceForRejectOwnershipRequestExpression(PackageOwnerRequest request)
             {
-                return messageService => messageService.SendPackageOwnerRequestRejectionNoticeAsync(request.RequestingOwner, request.NewOwner, request.PackageRegistration);
+                return messageService => messageService.SendPackageOwnershipRequestDeclinedNoticeAsync(request.RequestingOwner, request.NewOwner, request.PackageRegistration);
             }
 
             public static IEnumerable<object[]> ReturnsSuccessIfTokenIsValid_Data
@@ -1271,7 +1273,7 @@ namespace NuGetGallery
                     Assert.Equal(packageId, model.PackageId);
                     packageService.Verify();
                     packageOwnershipManagementRequestService.Verify();
-                    messageService.Verify(m => m.SendPackageOwnerRequestCancellationNoticeAsync(userA, userB, package));
+                    messageService.Verify(m => m.SendPackageOwnershipRequestCanceledNoticeAsync(userA, userB, package));
                 }
             }
         }
@@ -1483,17 +1485,11 @@ namespace NuGetGallery
                 var messageService = new Mock<IMessageService>();
                 string sentMessage = null;
                 messageService.Setup(
-                    s => s.SendContactOwnersMessageAsync(
-                        It.IsAny<MailAddress>(),
-                        It.IsAny<Package>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        false))
-                    .Callback<MailAddress, Package, string, string, string, bool>((_, __, packageUrl, msg, ____, _____) =>
+                    s => s.SendContactOwnersMessageAsync(It.IsAny<ContactOwnersRequest>()))
+                    .Callback<ContactOwnersRequest>((request) =>
                     {
-                        sentPackageUrl = packageUrl;
-                        sentMessage = msg;
+                        sentPackageUrl = request.PackageUrl;
+                        sentMessage = request.HtmlEncodedMessage;
                     })
                     .Returns(Task.CompletedTask);
                 var package = new Package
@@ -1531,14 +1527,9 @@ namespace NuGetGallery
                 var message = "I like the cut of your jib";
 
                 var messageService = new Mock<IMessageService>();
-                messageService.Setup(
-                    s => s.SendContactOwnersMessageAsync(
-                        It.IsAny<MailAddress>(),
-                        It.IsAny<Package>(),
-                        It.IsAny<string>(),
-                        message,
-                        It.IsAny<string>(), false))
-                        .Returns(Task.CompletedTask);
+                messageService
+                    .Setup(s => s.SendContactOwnersMessageAsync(It.IsAny< ContactOwnersRequest>()))
+                    .Returns(Task.CompletedTask);
                 var package = new Package
                 {
                     PackageRegistration = new PackageRegistration { Id = packageId },

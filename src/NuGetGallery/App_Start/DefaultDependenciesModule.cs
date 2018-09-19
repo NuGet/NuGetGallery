@@ -328,52 +328,7 @@ namespace NuGetGallery
                 .As<ITyposquattingService>()
                 .InstancePerLifetimeScope();
 
-            Func<MailSender> mailSenderFactory = () =>
-                {
-                    var settings = configuration;
-                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
-                    {
-                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
-
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.Network,
-                            Host = smtpUri.Host,
-                            Port = smtpUri.Port,
-                            EnableSsl = smtpUri.Secure
-                        };
-
-                        if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
-                        {
-                            mailSenderConfiguration.UseDefaultCredentials = false;
-                            mailSenderConfiguration.Credentials = new NetworkCredential(
-                                smtpUri.UserName,
-                                smtpUri.Password);
-                        }
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                    else
-                    {
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                            PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                        };
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                };
-
-            builder.Register(c => mailSenderFactory())
-                .AsSelf()
-                .As<IMailSender>()
-                .InstancePerDependency();
-
-            builder.RegisterType<BackgroundMessageService>()
-                .AsSelf()
-                .As<IMessageService>()
-                .InstancePerDependency();
+            RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
                 .AsSelf()
@@ -419,6 +374,56 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+        }
+
+        private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            MailSender mailSenderFactory()
+            {
+                var settings = configuration;
+                if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
+                {
+                    var smtpUri = new SmtpUri(settings.Current.SmtpUri);
+
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        Host = smtpUri.Host,
+                        Port = smtpUri.Port,
+                        EnableSsl = smtpUri.Secure
+                    };
+
+                    if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
+                    {
+                        mailSenderConfiguration.UseDefaultCredentials = false;
+                        mailSenderConfiguration.Credentials = new NetworkCredential(
+                            smtpUri.UserName,
+                            smtpUri.Password);
+                    }
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+                else
+                {
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                        PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                    };
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+            }
+
+            builder.Register(c => mailSenderFactory())
+                .AsSelf()
+                .As<IMailSender>()
+                .InstancePerDependency();
+
+            builder.RegisterType<BackgroundMarkdownMessageService>()
+                .AsSelf()
+                .As<IMessageService>()
+                .InstancePerDependency();
         }
 
         private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
