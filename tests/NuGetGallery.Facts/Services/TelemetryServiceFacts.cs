@@ -204,8 +204,20 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion))
                     };
 
-                    yield return new object[] { "TyposquattingCheck",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }))
+                    yield return new object[] { "TyposquattingCheckResultAndTotalTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 20000))
+                    };
+
+                    yield return new object[] { "TyposquattingChecklistRetrievalTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 20000))
+                    };
+
+                    yield return new object[] { "TyposquattingCheckAlgorithmProcessingTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 20000))
+                    };
+
+                    yield return new object[] { "TyposquattingOwnersCheckTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 20000))
                     };
                 }
             }

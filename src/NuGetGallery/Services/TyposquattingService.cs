@@ -39,10 +39,10 @@ namespace NuGetGallery
         public bool IsUploadedPackageIdTyposquatting(string uploadedPackageId, User uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds)
         {
             typosquattingCheckCollisionIds = new List<string>();
-            var isTyposquattingPackgeId = false;
+            var WasUploadBlocked = false;
             if (!_contentObjectService.TyposquattingConfiguration.IsCheckEnabled || _reservedNamespaceService.GetReservedNamespacesForId(uploadedPackageId).Any())
             {
-                return false;
+                return WasUploadBlocked;
             }
 
             if (uploadedPackageId == null)
@@ -79,10 +79,18 @@ namespace NuGetGallery
                 }
             });
 
+            algorithmProcessingTimeStopwatch.Stop();
+
             if (collisionIds.Count == 0)
             {
-                algorithmProcessingTimeStopwatch.Stop();
-                _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, algorithmProcessingTimeStopwatch.Elapsed, TimeSpan.Zero, isTyposquattingPackgeId, typosquattingCheckCollisionIds);
+                _telemetryService.TrackMetricForTyposquattingCheck(
+                    uploadedPackageId,
+                    checklistRetrievalStopwatch.Elapsed,
+                    algorithmProcessingTimeStopwatch.Elapsed,
+                    TimeSpan.Zero,
+                    WasUploadBlocked,
+                    typosquattingCheckCollisionIds,
+                    TyposquattingCheckListLength);
                 return false;
             }
 
@@ -109,12 +117,19 @@ namespace NuGetGallery
             var isUserAllowedTyposquatting = collisionPackagesIdAndOwners
                 .Any(pio => pio.Owners.Any(k => k == uploadedPackageOwner.Key));
 
-            isTyposquattingPackgeId = _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
+            WasUploadBlocked = _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
 
             ownersCheckStopwatch.Stop();
-            _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, algorithmProcessingTimeStopwatch.Elapsed, ownersCheckStopwatch.Elapsed, isTyposquattingPackgeId, typosquattingCheckCollisionIds);
+            _telemetryService.TrackMetricForTyposquattingCheck(
+                uploadedPackageId,
+                checklistRetrievalStopwatch.Elapsed,
+                algorithmProcessingTimeStopwatch.Elapsed,
+                ownersCheckStopwatch.Elapsed,
+                WasUploadBlocked,
+                typosquattingCheckCollisionIds,
+                TyposquattingCheckListLength);
 
-            return isTyposquattingPackgeId;
+            return WasUploadBlocked;
         }
 
         private static int GetThreshold(string packageId)

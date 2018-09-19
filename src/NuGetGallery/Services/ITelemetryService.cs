@@ -186,8 +186,16 @@ namespace NuGetGallery
         /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
         /// <param name="algorithmProcessingTime">The time used to finish the typosquatting check algorithm.</param>
         /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
-        /// <param name="isTyposquattingPackageId">Whether the uploaded package Id is a typo-squatting package Id.</param>
+        /// <param name="wasUploadBlocked">Whether the uploaded package is blocked because of typosquatting check.</param>
         /// <param name="collisionPackageIds">The list of already existing collision package Ids for this uploaded package.</param>
-        void TrackMetricForTyposquattingCheck(string packageId, TimeSpan checklistRetrievalTime, TimeSpan algorithmProcessingTime, TimeSpan ownersCheckTime, bool isTyposquattingPackageId, List<string> collisionPackageIds);
+        /// <param name="checklistLength">The length of checklist for typosquatting check</param>
+        void TrackMetricForTyposquattingCheck(
+            string packageId,
+            TimeSpan checklistRetrievalTime,
+            TimeSpan algorithmProcessingTime,
+            TimeSpan ownersCheckTime,
+            bool wasUploadBlocked,
+            List<string> collisionPackageIds,
+            int checklistLength);
     }
 }
