@@ -3,7 +3,7 @@
 
 using System.Net.Mail;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery.Infrastructure.Mail
 {
     public interface ICoreMessageServiceConfiguration
     {

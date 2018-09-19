@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGetGallery.Configuration
 {
@@ -360,5 +360,9 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+        
+        /// Gets or sets a flag indicating whether asynchronous email service is enabled.
+        /// </summary>
+        bool AsynchronousEmailServiceEnabled { get; set; }
     }
 }

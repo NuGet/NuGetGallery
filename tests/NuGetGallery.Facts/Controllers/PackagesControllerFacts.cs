@@ -27,6 +27,7 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using Xunit;

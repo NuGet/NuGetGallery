@@ -4,20 +4,20 @@
 using System.Collections.Generic;
 using System.Net.Mail;
 using System.Threading.Tasks;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGetGallery
 {
     public interface IMessageService
     {
-        Task SendContactOwnersMessageAsync(MailAddress fromAddress, Package package, string packageUrl, string message, string emailSettingsUrl, bool copyFromAddress);
-        Task ReportAbuseAsync(ReportPackageRequest report);
-        Task ReportMyPackageAsync(ReportPackageRequest report);
+        Task SendContactOwnersMessageAsync(MailAddress fromAddress, Package package, string packageUrl, string htmlEncodedMessage, string emailSettingsUrl, bool copyFromAddress);
+        Task ReportAbuseAsync(ReportPackageRequest request);
+        Task ReportMyPackageAsync(ReportPackageRequest request);
         Task SendNewAccountEmailAsync(User newUser, string confirmationUrl);
         Task SendEmailChangeConfirmationNoticeAsync(User user, string confirmationUrl);
         Task SendPasswordResetInstructionsAsync(User user, string resetPasswordUrl, bool forgotPassword);
         Task SendEmailChangeNoticeToPreviousEmailAddressAsync(User user, string oldEmailAddress);
-        Task SendPackageOwnerRequestAsync(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string message, string policyMessage);
+        Task SendPackageOwnerRequestAsync(User fromUser, User toUser, PackageRegistration package, string packageUrl, string confirmationUrl, string rejectionUrl, string htmlEncodedMessage, string policyMessage);
         Task SendPackageOwnerRequestInitiatedNoticeAsync(User requestingOwner, User receivingOwner, User newOwner, PackageRegistration package, string cancellationUrl);
         Task SendPackageOwnerRequestRejectionNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);
         Task SendPackageOwnerRequestCancellationNoticeAsync(User requestingOwner, User newOwner, PackageRegistration package);

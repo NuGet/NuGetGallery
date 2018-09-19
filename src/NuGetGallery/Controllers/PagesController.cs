@@ -10,7 +10,7 @@ using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery

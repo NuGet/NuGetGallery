@@ -18,8 +18,11 @@ using AnglicanGeek.MarkdownMailer;
 using Autofac;
 using Autofac.Core;
 using Elmah;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.ServiceRuntime;
 using NuGet.Services.KeyVault;
+using NuGet.Services.Logging;
+using NuGet.Services.Messaging;
 using NuGet.Services.ServiceBus;
 using NuGet.Services.Sql;
 using NuGet.Services.Validation;
@@ -46,6 +49,7 @@ namespace NuGetGallery
         {
             public const string PackageValidationTopic = "PackageValidationBindingKey";
             public const string SymbolsPackageValidationTopic = "SymbolsPackageValidationBindingKey";
+            public const string EmailPublisherTopic = "EmailPublisherBindingKey";
             public const string PackageValidationEnqueuer = "PackageValidationEnqueuerBindingKey";
             public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
         }
@@ -328,52 +332,7 @@ namespace NuGetGallery
                 .As<ITyposquattingService>()
                 .InstancePerLifetimeScope();
 
-            Func<MailSender> mailSenderFactory = () =>
-                {
-                    var settings = configuration;
-                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
-                    {
-                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
-
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.Network,
-                            Host = smtpUri.Host,
-                            Port = smtpUri.Port,
-                            EnableSsl = smtpUri.Secure
-                        };
-
-                        if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
-                        {
-                            mailSenderConfiguration.UseDefaultCredentials = false;
-                            mailSenderConfiguration.Credentials = new NetworkCredential(
-                                smtpUri.UserName,
-                                smtpUri.Password);
-                        }
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                    else
-                    {
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                            PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                        };
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                };
-
-            builder.Register(c => mailSenderFactory())
-                .AsSelf()
-                .As<IMailSender>()
-                .InstancePerDependency();
-
-            builder.RegisterType<BackgroundMessageService>()
-                .AsSelf()
-                .As<IMessageService>()
-                .InstancePerDependency();
+            RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
                 .AsSelf()
@@ -421,6 +380,106 @@ namespace NuGetGallery
             ConfigureAutocomplete(builder, configuration);
         }
 
+        private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            if (configuration.Current.AsynchronousEmailServiceEnabled)
+            {
+                // Register NuGet.Services.Messaging infrastructure
+                RegisterAsynchronousEmailMessagingService(builder, configuration);
+            }
+            else
+            {
+                // Register legacy SMTP messaging infrastructure
+                RegisterSmtpEmailMessagingService(builder, configuration);
+            }
+        }
+
+        private static void RegisterSmtpEmailMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            MailSender mailSenderFactory()
+            {
+                var settings = configuration;
+                if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
+                {
+                    var smtpUri = new SmtpUri(settings.Current.SmtpUri);
+
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        Host = smtpUri.Host,
+                        Port = smtpUri.Port,
+                        EnableSsl = smtpUri.Secure
+                    };
+
+                    if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
+                    {
+                        mailSenderConfiguration.UseDefaultCredentials = false;
+                        mailSenderConfiguration.Credentials = new NetworkCredential(
+                            smtpUri.UserName,
+                            smtpUri.Password);
+                    }
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+                else
+                {
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                        PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                    };
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+            }
+
+            builder.Register(c => mailSenderFactory())
+                .AsSelf()
+                .As<IMailSender>()
+                .InstancePerDependency();
+
+            builder.RegisterType<BackgroundMarkdownMessageService>()
+                .AsSelf()
+                .As<IMessageService>()
+                .InstancePerDependency();
+        }
+
+        private static void RegisterAsynchronousEmailMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            builder
+                .RegisterType<NuGet.Services.Messaging.ServiceBusMessageSerializer>()
+                .As<NuGet.Services.Messaging.IServiceBusMessageSerializer>();
+            
+            var emailPublisherConnectionString = configuration.ServiceBus.EmailPublisher_ConnectionString;
+            var emailPublisherTopicName = configuration.ServiceBus.EmailPublisher_TopicName;
+
+            builder
+                .Register(c => new TopicClientWrapper(emailPublisherConnectionString, emailPublisherTopicName))
+                .As<ITopicClient>()
+                .SingleInstance()
+                .Keyed<ITopicClient>(BindingKeys.EmailPublisherTopic)
+                .OnRelease(x => x.Close());
+
+            // Create an ILoggerFactory
+            var loggerConfiguration = LoggingSetup.CreateDefaultLoggerConfiguration(withConsoleLogger: false);
+            var loggerFactory = LoggingSetup.CreateLoggerFactory(loggerConfiguration);
+
+            builder
+                .RegisterType<EmailMessageEnqueuer>()
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ITopicClient),
+                    (pi, ctx) => ctx.ResolveKeyed<ITopicClient>(BindingKeys.EmailPublisherTopic)))
+                .WithParameter(new ResolvedParameter(
+                    (pi, ctx) => pi.ParameterType == typeof(ILogger<EmailMessageEnqueuer>),
+                    (pi, ctx) => loggerFactory.CreateLogger<EmailMessageEnqueuer>()))
+                .As<IEmailMessageEnqueuer>();
+
+            builder.RegisterType<AsynchronousEmailMessageService>()
+                .AsSelf()
+                .As<IMessageService>()
+                .InstancePerDependency();
+        }
+
         private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
             string connectionString, ISecretInjector secretInjector)
         {
@@ -463,8 +522,8 @@ namespace NuGetGallery
             ConfigurationService configuration, ISecretInjector secretInjector)
         {
             builder
-                .RegisterType<ServiceBusMessageSerializer>()
-                .As<IServiceBusMessageSerializer>();
+                .RegisterType<NuGet.Services.Validation.ServiceBusMessageSerializer>()
+                .As<NuGet.Services.Validation.IServiceBusMessageSerializer>();
 
             // We need to setup two enqueuers for Package validation and symbol validation each publishes 
             // to a different topic for validation.

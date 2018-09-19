@@ -168,6 +168,14 @@
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />
+    <Compile Include="Infrastructure\Mail\ContactSupportRequest.cs" />
+    <Compile Include="Infrastructure\Mail\EmailSubjectBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\HtmlEmailBodyBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\IEmailBodyBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownEmailBodyBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\PlainTextEmailBodyBuilder.cs" />
+    <Compile Include="Infrastructure\Mail\ReportPackageRequest.cs" />
+    <Compile Include="Infrastructure\Mail\ValidationIssueExtensions.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
     <Compile Include="PackageMetadataExtensions.cs" />
@@ -191,7 +199,8 @@
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
-    <Compile Include="Services\CoreMessageService.cs" />
+    <Compile Include="Services\CoreAsynchronousEmailMessageService.cs" />
+    <Compile Include="Services\CoreMarkdownMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CoreSymbolPackageService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
@@ -202,7 +211,7 @@
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
     <Compile Include="Services\ICoreMessageService.cs" />
-    <Compile Include="Services\ICoreMessageServiceConfiguration.cs" />
+    <Compile Include="Infrastructure\Mail\ICoreMessageServiceConfiguration.cs" />
     <Compile Include="Services\ICorePackageFileService.cs" />
     <Compile Include="Services\ICoreSymbolPackageService.cs" />
     <Compile Include="Services\ICorePackageService.cs" />
@@ -270,6 +279,9 @@
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
       <Version>4.8.0-preview4.5287</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.28.0-master-40850</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.28.0-master-37018</Version>

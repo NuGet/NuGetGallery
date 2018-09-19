@@ -106,15 +106,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Account Deletion Request.
-        /// </summary>
-        public static string AccountDelete_SupportRequestTitle {
-            get {
-                return ResourceManager.GetString("AccountDelete_SupportRequestTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The account with the email {0} is linked to another Microsoft account.
         ///If you would like to update the linked Microsoft account you can do so from the account settings page..
         /// </summary>
@@ -836,62 +827,6 @@ namespace NuGetGallery {
         public static string Emails_CredentialRemoved_Subject {
             get {
                 return ResourceManager.GetString("Emails_CredentialRemoved_Subject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
-        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
-        ///
-        ///Click the following link within the next hour to reset your password:
-        ///
-        ///[{0}]({0})
-        ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-        ///
-        ///Thanks,
-        ///The {1} Team.
-        /// </summary>
-        public static string Emails_ForgotPassword_Body {
-            get {
-                return ResourceManager.GetString("Emails_ForgotPassword_Body", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [{0}] Please reset your password..
-        /// </summary>
-        public static string Emails_ForgotPassword_Subject {
-            get {
-                return ResourceManager.GetString("Emails_ForgotPassword_Subject", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
-        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
-        ///
-        ///Click the following link within the next hour to set your password:
-        ///
-        ///[{0}]({0})
-        ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-        ///
-        ///Thanks,
-        ///The {1} Team.
-        /// </summary>
-        public static string Emails_SetPassword_Body {
-            get {
-                return ResourceManager.GetString("Emails_SetPassword_Body", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to [{0}] Please set your password..
-        /// </summary>
-        public static string Emails_SetPassword_Subject {
-            get {
-                return ResourceManager.GetString("Emails_SetPassword_Subject", resourceCulture);
             }
         }
         

@@ -394,14 +394,16 @@
     <Compile Include="Services\ActionRequiringPackagePermissions.cs" />
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
+    <Compile Include="Services\AsynchronousEmailMessageService.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
-    <Compile Include="Services\BackgroundMessageService.cs" />
+    <Compile Include="Services\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
+    <Compile Include="Services\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
@@ -1347,7 +1349,6 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
-    <Compile Include="Services\ContactSupportRequest.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
@@ -1377,7 +1378,6 @@
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />
-    <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\StatisticsReportName.cs" />
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
@@ -1410,7 +1410,6 @@
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Services\SearchExtensionMethods.cs" />
     <Compile Include="Services\IMessageService.cs" />
-    <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
@@ -2182,6 +2181,9 @@
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
       <Version>2.2.3</Version>
+    </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.28.0-master-40850</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Owin">
       <Version>2.2.3</Version>

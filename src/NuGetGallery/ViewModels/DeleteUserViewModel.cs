@@ -23,7 +23,7 @@ namespace NuGetGallery
             HasPendingRequests = supportRequestService.GetIssues()
                 .Where(issue => 
                     (issue.UserKey.HasValue && issue.UserKey.Value == userToDelete.Key) &&
-                    string.Equals(issue.IssueTitle, Strings.AccountDelete_SupportRequestTitle) &&
+                    string.Equals(issue.IssueTitle, CoreStrings.AccountDelete_SupportRequestTitle) &&
                     issue.Key != IssueStatusKeys.Resolved).Any();
         }
 
