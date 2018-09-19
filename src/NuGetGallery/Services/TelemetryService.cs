@@ -57,7 +57,7 @@ namespace NuGetGallery
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
             public const string TyposquattingCheckResultAndTotalTimeInMs = "TyposquattingCheckResultAndTotalTimeInMs";
             public const string TyposquattingChecklistRetrievalTimeInMs = "TyposquattingChecklistRetrievalTimeInMs";
-            public const string TyposquattingCheckAlgorithmProcessingTimeInMs = "TyposquattingCheckAlgorithmProcessingTimeInMs";
+            public const string TyposquattingAlgorithmProcessingTimeInMs = "TyposquattingAlgorithmProcessingTimeInMs";
             public const string TyposquattingOwnersCheckTimeInMs = "TyposquattingOwnersCheckTimeInMs";
         }
 
@@ -691,19 +691,14 @@ namespace NuGetGallery
             _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
         }
 
-        public void TrackMetricForTyposquattingCheck(
+        public void TrackMetricForTyposquattingCheckResultAndTotalTime(
             string packageId,
-            TimeSpan checklistRetrievalTimeInMs,
-            TimeSpan algorithmProcessingTimeInMs,
-            TimeSpan ownersCheckTimeInMs,
+            TimeSpan totalTimeInMs,
             bool wasUploadBlocked,
             List<string> collisionPackageIds,
             int checklistLength)
         {
             int telemetryServiceMaxCollisionIdsPropertyValue = 10;
-            TimeSpan totalTimeInMs = checklistRetrievalTimeInMs;
-            totalTimeInMs = totalTimeInMs.Add(algorithmProcessingTimeInMs);
-            totalTimeInMs = totalTimeInMs.Add(ownersCheckTimeInMs);
 
             TrackMetric(Events.TyposquattingCheckResultAndTotalTimeInMs, totalTimeInMs.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
@@ -712,14 +707,24 @@ namespace NuGetGallery
                 properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
                 properties.Add(CheckListLength, checklistLength.ToString());
             });
+        }
 
+        public void TrackMetricForTyposquattingChecklistRetrievalTime(string packageId, TimeSpan checklistRetrievalTimeInMs)
+        {
             TrackMetric(Events.TyposquattingChecklistRetrievalTimeInMs, checklistRetrievalTimeInMs.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
             });
-            TrackMetric(Events.TyposquattingCheckAlgorithmProcessingTimeInMs, algorithmProcessingTimeInMs.TotalMilliseconds, properties => {
+        }
+
+        public void TrackMetricForTyposquattingAlgorithmProcessingTime(string packageId, TimeSpan algorithmProcessingTimeInMs)
+        {
+            TrackMetric(Events.TyposquattingAlgorithmProcessingTimeInMs, algorithmProcessingTimeInMs.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
             });
+        }
 
+        public void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTimeInMs)
+        {
             TrackMetric(Events.TyposquattingOwnersCheckTimeInMs, ownersCheckTimeInMs.TotalMilliseconds, properties => {
                 properties.Add(PackageId, packageId);
             });

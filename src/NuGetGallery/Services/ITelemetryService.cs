@@ -180,22 +180,39 @@ namespace NuGetGallery
         void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
 
         /// <summary>
-        /// The typosquatting check result for the uploaded package.
+        /// The typosquatting check result and total time for the uploaded package.
         /// </summary>
-        /// <param name="packageId">The id of the uploaded package.</param>
-        /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
-        /// <param name="algorithmProcessingTime">The time used to finish the typosquatting check algorithm.</param>
-        /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="totalTimeInMs">The total time for the typosquatting check logic</param>
         /// <param name="wasUploadBlocked">Whether the uploaded package is blocked because of typosquatting check.</param>
-        /// <param name="collisionPackageIds">The list of already existing collision package Ids for this uploaded package.</param>
-        /// <param name="checklistLength">The length of checklist for typosquatting check</param>
-        void TrackMetricForTyposquattingCheck(
+        /// <param name="collisionPackageIds">The list of collision package Ids for this uploaded package.</param>
+        /// <param name="checklistLength">The length of the checklist for typosquatting check</param>
+        void TrackMetricForTyposquattingCheckResultAndTotalTime(
             string packageId,
-            TimeSpan checklistRetrievalTime,
-            TimeSpan algorithmProcessingTime,
-            TimeSpan ownersCheckTime,
+            TimeSpan totalTimeInMs,
             bool wasUploadBlocked,
             List<string> collisionPackageIds,
             int checklistLength);
+
+        /// <summary>
+        /// The retrieval time to get the checklist for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
+        void TrackMetricForTyposquattingChecklistRetrievalTime(string packageId, TimeSpan checklistRetrievalTimeInMs);
+
+        /// <summary>
+        /// The algorithm processing time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="algorithmProcessingTime">The time used to finish the algorithm of typosquatting check.</param>
+        void TrackMetricForTyposquattingAlgorithmProcessingTime(string packageId, TimeSpan algorithmProcessingTimeInMs);
+
+        /// <summary>
+        /// The owners double check time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
+        void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTimeInMs);
     }
 }
