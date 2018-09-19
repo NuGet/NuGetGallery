@@ -2148,7 +2148,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file must be a .nupkg file..
+        ///   Looks up a localized string similar to The file must be a .nupkg or .snupkg file..
         /// </summary>
         public static string UploadFileMustBeNuGetPackage {
             get {

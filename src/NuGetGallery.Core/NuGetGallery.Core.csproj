@@ -168,6 +168,7 @@
     <Compile Include="Infrastructure\ElmahException.cs" />
     <Compile Include="Infrastructure\TableErrorLog.cs" />
     <Compile Include="Authentication\NuGetClaims.cs" />
+    <Compile Include="PackageMetadataExtensions.cs" />
     <Compile Include="PackageReaderCoreExtensions.cs" />
     <Compile Include="PackageStatus.cs" />
     <Compile Include="Packaging\InvalidPackageException.cs" />
