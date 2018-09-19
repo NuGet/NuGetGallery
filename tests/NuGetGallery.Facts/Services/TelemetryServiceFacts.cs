@@ -205,7 +205,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "TyposquattingCheck",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(0.5), TimeSpan.FromMilliseconds(0.7), true, "collision Ids"))
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(0.5), TimeSpan.FromMilliseconds(0.7), TimeSpan.FromMilliseconds(0), false, new List<string>()))
                     };
                 }
             }

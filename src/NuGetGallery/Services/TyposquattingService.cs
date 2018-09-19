@@ -18,7 +18,6 @@ namespace NuGetGallery
             new ThresholdInfo (lowerBound: 30, upperBound: 50, threshold: 1),
             new ThresholdInfo (lowerBound: 50, upperBound: 129, threshold: 2)
         };
-        private static readonly int telemetryServiceCollisionIdsNumber = 10;
 
         private static int TyposquattingCheckListLength;
 
@@ -56,7 +55,6 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(uploadedPackageOwner));
             }
 
-            var processingTimeStopwatch = Stopwatch.StartNew();
             var checklistRetrievalStopwatch = Stopwatch.StartNew();
             var packageRegistrations = _packageService.GetAllPackageRegistrations();
             var packagesCheckList = packageRegistrations
@@ -67,6 +65,7 @@ namespace NuGetGallery
                 .ToList();
             checklistRetrievalStopwatch.Stop();
 
+            var algorithmProcessingTimeStopwatch = Stopwatch.StartNew();
             var threshold = GetThreshold(uploadedPackageId);
             uploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
 
@@ -82,11 +81,12 @@ namespace NuGetGallery
 
             if (collisionIds.Count == 0)
             {
-                processingTimeStopwatch.Stop();
-                _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, processingTimeStopwatch.Elapsed, isTyposquattingPackgeId, string.Join(",", typosquattingCheckCollisionIds));
+                algorithmProcessingTimeStopwatch.Stop();
+                _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, algorithmProcessingTimeStopwatch.Elapsed, TimeSpan.Zero, isTyposquattingPackgeId, typosquattingCheckCollisionIds);
                 return false;
             }
 
+            var ownersCheckStopwatch = Stopwatch.StartNew();
             var collisionPackagesIdAndOwners = packageRegistrations
                 .Where(pr => collisionIds.Contains(pr.Id))
                 .Select(pr => new { Id = pr.Id, Owners = pr.Owners.Select(x => x.Key).ToList() })
@@ -111,8 +111,8 @@ namespace NuGetGallery
 
             isTyposquattingPackgeId = _contentObjectService.TyposquattingConfiguration.IsBlockUsersEnabled && !isUserAllowedTyposquatting;
 
-            processingTimeStopwatch.Stop();
-            _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, processingTimeStopwatch.Elapsed, isTyposquattingPackgeId, string.Join(",", typosquattingCheckCollisionIds.Take(telemetryServiceCollisionIdsNumber)));
+            ownersCheckStopwatch.Stop();
+            _telemetryService.TrackMetricForTyposquattingCheck(uploadedPackageId, checklistRetrievalStopwatch.Elapsed, algorithmProcessingTimeStopwatch.Elapsed, ownersCheckStopwatch.Elapsed, isTyposquattingPackgeId, typosquattingCheckCollisionIds);
 
             return isTyposquattingPackgeId;
         }

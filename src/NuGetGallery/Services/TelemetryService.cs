@@ -134,10 +134,12 @@ namespace NuGetGallery
         public const string ValueUnknown = "Unknown";
         
         // Typosquatting check properties
-        public const string ChecklistRetrievalTime = "ChecklistRetrievalTime";
-        public const string ProcessingTime = "ProcessingTime";
-        public const string IsTyposquattingPackgeId = "IsTyposquattingPackgeId";
+        public const string ChecklistRetrievalTimeInMilliseconds = "ChecklistRetrievalTimeInMilliseconds";
+        public const string AlgorithmProcessingTimeInMilliseconds = "AlgorithmProcessingTimeInMilliseconds";
+        public const string OwnersCheckTimeInMilliseconds = "OwnersCheckTimeInMilliseconds";
+        public const string IsTyposquattingPackageId = "IsTyposquattingPackageId";
         public const string CollisionPackageIds = "CollisionPackageIds";
+        public const string CollisionPackageIdsCount = "CollisionPackageIdsCount";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -688,14 +690,19 @@ namespace NuGetGallery
             _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
         }
 
-        public void TrackMetricForTyposquattingCheck(string packageId, TimeSpan checklistRetrievalTime, TimeSpan processingTime, bool isTyposquattingPackgeId, string collisionPackageIds)
+        public void TrackMetricForTyposquattingCheck(string packageId, TimeSpan checklistRetrievalTime, TimeSpan algorithmProcessingTime, TimeSpan ownersCheckTime, bool isTyposquattingPackageId, List<string> collisionPackageIds)
         {
+
+            int telemetryServiceMaxCollisionIdsPropertyValue = 10;
+
             TrackMetric(Events.TyposquattingCheck, 1, properties => {
                 properties.Add(PackageId, packageId);
-                properties.Add(ChecklistRetrievalTime, checklistRetrievalTime.ToString());
-                properties.Add(ProcessingTime, processingTime.ToString());
-                properties.Add(IsTyposquattingPackgeId, isTyposquattingPackgeId.ToString());
-                properties.Add(CollisionPackageIds, collisionPackageIds);
+                properties.Add(ChecklistRetrievalTimeInMilliseconds, checklistRetrievalTime.Milliseconds.ToString());
+                properties.Add(AlgorithmProcessingTimeInMilliseconds, algorithmProcessingTime.Milliseconds.ToString());
+                properties.Add(OwnersCheckTimeInMilliseconds, ownersCheckTime.Milliseconds.ToString());
+                properties.Add(IsTyposquattingPackageId, isTyposquattingPackageId.ToString());
+                properties.Add(CollisionPackageIds, string.Join(",", collisionPackageIds.Take(telemetryServiceMaxCollisionIdsPropertyValue)));
+                properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
             });
         }
 
