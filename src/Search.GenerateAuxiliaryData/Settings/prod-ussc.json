@@ -1,0 +1,22 @@
+{
+  "Initialization": {
+    "AzureCdnCloudStorageAccount": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$",
+    "AzureCdnCloudStorageContainerName": "nuget-cdnstats",
+    "PrimaryDestination": "DefaultEndpointsProtocol=https;AccountName=nugetprodussc;AccountKey=$$Prod-NuGetProdUsscStorage-Key$$"
+  },
+
+  "GalleryDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;User ID=$$Prod-GalleryDBReadOnly-UserName$$;Password=$$Prod-GalleryDBReadOnly-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "StatisticsDb": {
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.StatisticsDatabaseAddress};Initial Catalog=nuget-prod-statistics;User ID=$$Prod-StatisticsDBReadOnly-UserName$$;Password=$$Prod-StatisticsDBReadOnly-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+  },
+
+  "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
+  "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
+  "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
+  "KeyVault_ValidateCertificate": true,
+  "KeyVault_StoreName": "My",
+  "KeyVault_StoreLocation": "LocalMachine"
+}

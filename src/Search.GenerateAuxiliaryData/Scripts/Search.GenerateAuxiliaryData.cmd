@@ -3,12 +3,12 @@
 cd bin
 
 :Top
-	echo "Starting job - #{Jobs.search.generateauxiliarydata.Title}"
+    echo "Starting job - #{Jobs.search.generateauxiliarydata.Title}"
 
-	title #{Jobs.search.generateauxiliarydata.Title}
+    title #{Jobs.search.generateauxiliarydata.Title}
 
     start /w search.generateauxiliarydata.exe -Configuration "#{Jobs.search.generateauxiliarydata.Configuration}" -verbose true -Sleep #{Jobs.search.generateauxiliarydata.Sleep} -InstrumentationKey "#{Jobs.search.generateauxiliarydata.ApplicationInsightsInstrumentationKey}"
-	
-	echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
 
-	goto Top
+    echo "Finished #{Jobs.search.generateauxiliarydata.Title}"
+
+    goto Top
