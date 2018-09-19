@@ -205,7 +205,7 @@ namespace NuGetGallery
                     };
 
                     yield return new object[] { "TyposquattingCheck",
-                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(0.5), TimeSpan.FromMilliseconds(0.7), TimeSpan.FromMilliseconds(0), false, new List<string>()))
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheck(fakes.Package.Id, TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }))
                     };
                 }
             }
