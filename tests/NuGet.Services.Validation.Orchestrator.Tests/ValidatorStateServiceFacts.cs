@@ -177,7 +177,7 @@ namespace NuGet.Services.Validation
                 _validationContext.Mock();
 
                 // Act & Assert
-                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
 
             [Fact]
@@ -198,7 +198,7 @@ namespace NuGet.Services.Validation
                     });
 
                 // Act & Assert
-                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
 
             [Fact]
@@ -219,7 +219,7 @@ namespace NuGet.Services.Validation
                     });
 
                 // Act & Assert
-                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
 
             [Fact]
@@ -247,7 +247,7 @@ namespace NuGet.Services.Validation
                     });
 
                 // Act & Assert
-                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
 
             [Fact]
@@ -276,7 +276,7 @@ namespace NuGet.Services.Validation
                     });
 
                 // Act & Assert
-                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.False(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
 
             [Fact]
@@ -312,7 +312,7 @@ namespace NuGet.Services.Validation
                     });
 
                 // Act & Assert
-                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object));
+                Assert.True(await _target.IsRevalidationRequestAsync(_validationRequest.Object, ValidatingType.Package));
             }
         }
 

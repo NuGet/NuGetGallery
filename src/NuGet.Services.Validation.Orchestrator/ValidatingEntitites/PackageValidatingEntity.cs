@@ -20,5 +20,7 @@ namespace NuGet.Services.Validation.Orchestrator
         public PackageStatus Status => EntityRecord.PackageStatusKey;
 
         public DateTime Created => EntityRecord.Created;
+
+        public ValidatingType ValidatingType => ValidatingType.Package;
     }
 }

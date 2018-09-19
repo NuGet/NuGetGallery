@@ -82,7 +82,8 @@ namespace Validation.PackageSigning.ValidateCertificate.Tests
                             .WithRevocationTime(new DateTime(2000, 1, 2))
                             .Build());
 
-            Assert.StartsWith($"End certificate revoked at 1/2/2000 12:00:00 AM but status is {status}", exception.Message);
+            Assert.StartsWith("End certificate revoked at 1/2/2000", exception.Message);
+            Assert.Contains($"status is {status}", exception.Message);
         }
 
         [Fact]
