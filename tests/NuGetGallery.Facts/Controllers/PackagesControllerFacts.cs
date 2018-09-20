@@ -5474,7 +5474,7 @@ namespace NuGetGallery
 
         public class TheUploadProgressAction : TestContainer
         {
-            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName;
+            private static readonly string FakeUploadName = "upload-" + TestUtility.FakeUserName + Guid.Empty.ToString();
 
             [Fact]
             public void WillReturnHttpNotFoundForUnknownUser()

@@ -11,6 +11,11 @@ namespace NuGetGallery.Helpers
     {
         public static string GetUploadTracingKey(NameValueCollection headers)
         {
+            if (headers == null)
+            {
+                return Guid.Empty.ToString();
+            }
+
             string uploadTracingKey;
             try
             {
