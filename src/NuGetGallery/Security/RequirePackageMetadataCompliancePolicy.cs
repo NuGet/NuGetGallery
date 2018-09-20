@@ -117,6 +117,7 @@ namespace NuGetGallery.Security
             // Author validation
             if (!package.FlattenedAuthors
                 .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
                 .Contains(state.RequiredCoOwnerUsername, StringComparer.InvariantCultureIgnoreCase))
             {
                 complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
