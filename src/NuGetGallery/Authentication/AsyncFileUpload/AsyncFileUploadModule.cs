@@ -7,6 +7,7 @@ using System.IO;
 using System.Web;
 using Autofac;
 using Autofac.Integration.Mvc;
+using NuGetGallery.Helpers;
 
 namespace NuGetGallery.AsyncFileUpload
 {
@@ -52,16 +53,7 @@ namespace NuGetGallery.AsyncFileUpload
             var requestParser = new AsyncFileUploadRequestParser(boundary, request.ContentEncoding);
 
             var headers = request.Headers;
-            string uploadTracingKey;
-            try
-            {
-                uploadTracingKey = headers[CoreConstants.UploadTracingKeyHeaderName];
-                Guid.Parse(uploadTracingKey);
-            }
-            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
-            {
-                uploadTracingKey = Guid.Empty.ToString();
-            }
+            string uploadTracingKey = UploadHelper.GetUploadTracingKey(headers);
 
             var progress = new AsyncFileUploadProgress(request.ContentLength);
             var uploadKey = username + uploadTracingKey;

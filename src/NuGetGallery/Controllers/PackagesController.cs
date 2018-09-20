@@ -138,19 +138,7 @@ namespace NuGetGallery
         public virtual JsonResult UploadPackageProgress()
         {
             string username = User.Identity.Name;
-            string uploadTracingKey;
-            try
-            {
-                uploadTracingKey = Request.Headers[CoreConstants.UploadTracingKeyHeaderName];
-                Guid.Parse(uploadTracingKey);
-            }
-            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
-            {
-                // An upload tracing key was not found
-                // Simultaneous UI uploads might have strange behaviour.
-                // Note that we might have this case if an old client sends to new Server.
-                uploadTracingKey = Guid.Empty.ToString();
-            }
+            string uploadTracingKey = UploadHelper.GetUploadTracingKey(Request.Headers);
 
             var uploadKey = username + uploadTracingKey;
 
@@ -241,16 +229,7 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
-            string uploadTracingKey;
-            try
-            {
-                uploadTracingKey = Request.Headers[CoreConstants.UploadTracingKeyHeaderName];
-                Guid.Parse(uploadTracingKey);
-            }
-            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
-            {
-                uploadTracingKey = Guid.Empty.ToString();
-            }
+            string uploadTracingKey = UploadHelper.GetUploadTracingKey(Request.Headers);
 
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {

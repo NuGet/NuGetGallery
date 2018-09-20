@@ -16,8 +16,8 @@
         var _uploadStartTime;
         var _uploadId;
 
-        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
-            _uploadId = generateUUID();
+        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl, uploadTracingKey) {
+            _uploadId = uploadTracingKey;
             _pingUrl = pingUrl;
             _uploadFormId = formId;
             _actionUrl = actionUrl;
@@ -82,18 +82,6 @@
                 bindData(InProgressPackage);
             }
         };
-
-        function generateUUID() { // Public Domain/MIT
-            var d = new Date().getTime();
-            if (typeof performance !== 'undefined' && typeof performance.now === 'function') {
-                d += performance.now();
-            }
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-                var r = (d + Math.random() * 16) % 16 | 0;
-                d = Math.floor(d / 16);
-                return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-            });
-        } // End Public Domain/MIT
 
         function resetFileSelectFeedback() {
             $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package...');
