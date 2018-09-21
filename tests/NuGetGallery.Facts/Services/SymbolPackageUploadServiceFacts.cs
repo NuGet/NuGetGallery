@@ -119,7 +119,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(PackageUploadResult.Conflict, result.ResultCode);
+                Assert.Equal(PackageCommitResult.Conflict, result);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
             }
 
@@ -197,7 +197,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Deleted, existingDeletedSymbolPackage.StatusKey);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), true), Times.Once);
                 Assert.NotNull(result);
-                Assert.Equal(PackageUploadResult.Created, result.ResultCode);
+                Assert.Equal(PackageCommitResult.Success, result);
             }
         }
     }

@@ -48,28 +48,25 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="symbolPackageStream"><see cref="Stream"/> object for the symbols package.</param>
         /// <param name="currentUser">The user performing the uploads.</param>
-        /// <returns>Awaitable task for <see cref="PackageUploadOperationResult"/></returns>
-        public async Task<PackageUploadOperationResult> ValidateUploadedSymbolsPackage(Stream symbolPackageStream, User currentUser)
+        /// <returns>Awaitable task for <see cref="SymbolPackageValidationResult"/></returns>
+        public async Task<SymbolPackageValidationResult> ValidateUploadedSymbolsPackage(Stream symbolPackageStream, User currentUser)
         {
             Package package = null;
 
             // Check if symbol package upload is allowed for this user.
             if (!_contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser))
             {
-                return new PackageUploadOperationResult(PackageUploadResult.Unauthorized,
-                    Strings.SymbolsPackage_UploadNotAllowed,
-                    success: false);
+                return SymbolPackageValidationResult.UserNotAllowedToUpload(Strings.SymbolsPackage_UploadNotAllowed);
             }
 
             try
             {
                 if (symbolPackageStream.FoundEntryInFuture(out ZipArchiveEntry entryInTheFuture))
                 {
-                    return new PackageUploadOperationResult(PackageUploadResult.BadRequest, string.Format(
+                    return SymbolPackageValidationResult.Invalid(string.Format(
                         CultureInfo.CurrentCulture,
                         Strings.PackageEntryFromTheFuture,
-                        entryInTheFuture.Name),
-                        success: false);
+                        entryInTheFuture.Name));
                 }
 
                 using (var packageToPush = new PackageArchiveReader(symbolPackageStream, leaveStreamOpen: true))
@@ -83,20 +80,17 @@ namespace NuGetGallery
                     package = _packageService.FindPackageByIdAndVersionStrict(id, version.ToStringSafe());
                     if (package == null || package.PackageStatusKey == PackageStatus.Deleted)
                     {
-                        return new PackageUploadOperationResult(PackageUploadResult.NotFound, string.Format(
+                        return SymbolPackageValidationResult.MissingPackage(string.Format(
                             CultureInfo.CurrentCulture,
                             Strings.SymbolsPackage_PackageIdAndVersionNotFound,
                             id,
-                            normalizedVersion),
-                            success: false);
+                            normalizedVersion));
                     }
 
                     // Do not allow to upload a snupkg to a package which has symbols package pending validations.
                     if (package.SymbolPackages.Any(sp => sp.StatusKey == PackageStatus.Validating))
                     {
-                        return new PackageUploadOperationResult(PackageUploadResult.Conflict,
-                            Strings.SymbolsPackage_ConflictValidating,
-                            success: false);
+                        return SymbolPackageValidationResult.SymbolsPackageExists(Strings.SymbolsPackage_ConflictValidating);
                     }
 
                     try
@@ -114,23 +108,19 @@ namespace NuGetGallery
                         }
 
                         _telemetryService.TrackSymbolPackageFailedGalleryValidationEvent(id, normalizedVersion);
-                        return new PackageUploadOperationResult(PackageUploadResult.BadRequest,
-                            message,
-                            success: false);
+                        return SymbolPackageValidationResult.Invalid(message);
                     }
                 }
 
-                return new PackageUploadOperationResult(package: package, success: true);
+                return SymbolPackageValidationResult.AcceptedForPackage(package);
             }
             catch (Exception ex) when (ex is InvalidPackageException
                 || ex is InvalidDataException
                 || ex is EntityException
                 || ex is FrameworkException)
             {
-                return new PackageUploadOperationResult(
-                    PackageUploadResult.BadRequest,
-                    string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_InvalidPackage, ex.Message),
-                    success: false);
+                return SymbolPackageValidationResult.Invalid(
+                    string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_InvalidPackage, ex.Message));
             }
         }
 
@@ -141,8 +131,8 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="package">The package for which symbols package is to be uplloaded</param>
         /// <param name="symbolPackageStream">The symbols package stream metadata for the uploaded symbols package file.</param>
-        /// <returns>The <see cref="PackageUploadOperationResult"/> for the create and upload symbol package flow.</returns>
-        public async Task<PackageUploadOperationResult> CreateAndUploadSymbolsPackage(Package package, Stream symbolPackageStream)
+        /// <returns>The <see cref="PackageCommitResult"/> for the create and upload symbol package flow.</returns>
+        public async Task<PackageCommitResult> CreateAndUploadSymbolsPackage(Package package, Stream symbolPackageStream)
         {
             var packageStreamMetadata = new PackageStreamMetadata
             {
@@ -233,15 +223,12 @@ namespace NuGetGallery
             catch (FileAlreadyExistsException ex)
             {
                 ex.Log();
-                return new PackageUploadOperationResult(
-                    PackageUploadResult.Conflict,
-                    Strings.SymbolsPackage_ConflictValidating, 
-                    success: false);
+                return PackageCommitResult.Conflict;
             }
 
             _telemetryService.TrackSymbolPackagePushEvent(package.Id, package.NormalizedVersion);
 
-            return new PackageUploadOperationResult(PackageUploadResult.Created, success: true);
+            return PackageCommitResult.Success;
         }
     }
 }

@@ -270,14 +270,7 @@ namespace NuGetGallery
                     }
 
                     // The uploadStream should be disposed by the caller below after saving the upload file.
-                    if (packageMetadata.IsSymbolPackage())
-                    {
-                        return await UploadSymbolsPackageInternal(packageArchiveReader, uploadStream);
-                    }
-                    else
-                    {
-                        return await UploadPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
-                    }
+                    return await UploadPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
                 }
                 catch (Exception ex)
                 {

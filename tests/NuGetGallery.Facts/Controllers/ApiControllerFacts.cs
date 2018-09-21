@@ -148,7 +148,7 @@ namespace NuGetGallery
 
             MockSymbolPackageUploadService
                 .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
-                .ReturnsAsync(new PackageUploadOperationResult(PackageUploadResult.Success, success: true));
+                .ReturnsAsync(SymbolPackageValidationResult.Accepted());
 
             var requestMock = new Mock<HttpRequestBase>();
             requestMock.Setup(m => m.IsSecureConnection).Returns(true);
@@ -218,29 +218,6 @@ namespace NuGetGallery
 
         public class TheCreateSymbolPackageAction : TestContainer
         {
-            [Theory]
-            [InlineData(PackageUploadResult.Conflict, HttpStatusCode.Conflict)]
-            [InlineData(PackageUploadResult.Unauthorized, HttpStatusCode.Unauthorized)]
-            [InlineData(PackageUploadResult.BadRequest, HttpStatusCode.BadRequest)]
-            [InlineData(PackageUploadResult.NotFound, HttpStatusCode.NotFound)]
-            public async Task CreateSymbolPackage_ReturnsAppropriateHttpStatusCodeForFailedValidation(PackageUploadResult uploadResult, HttpStatusCode expectedStatusCode)
-            {
-                // Arrange
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.MockSymbolPackageUploadService
-                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
-                    .ReturnsAsync(new PackageUploadOperationResult(uploadResult, success: false));
-
-                var user = new User("test");
-                controller.SetCurrentUser(user);
-
-                // Act
-                var result = await controller.CreateSymbolPackagePutAsync();
-
-                // Assert
-                Assert.NotNull(result);
-                ResultAssert.IsStatusCode(result, expectedStatusCode);
-            }
         }
 
         public class TheCreatePackageAction

@@ -398,15 +398,14 @@ namespace NuGetGallery
                     {
                         // Get the user
                         var currentUser = GetCurrentUser();
-                        var packageUploadOperationResult = await SymbolPackageUploadService.ValidateUploadedSymbolsPackage(symbolPackageStream, currentUser);
-                        if (!packageUploadOperationResult.OperationSucceeded)
+                        var symbolsPackageValidationResult = await SymbolPackageUploadService.ValidateUploadedSymbolsPackage(symbolPackageStream, currentUser);
+                        var validationResult = GetActionOrNull(symbolsPackageValidationResult);
+                        if (validationResult != null)
                         {
-                            return new HttpStatusCodeWithBodyResult(
-                                packageUploadOperationResult.GetHttpStatusCode(),
-                                packageUploadOperationResult.Message);
+                            return validationResult;
                         }
 
-                        var package = packageUploadOperationResult.Package;
+                        var package = symbolsPackageValidationResult.Package;
                         id = package.PackageRegistration.Id;
                         normalizedVersion = package.NormalizedVersion;
 
@@ -428,19 +427,19 @@ namespace NuGetGallery
                             return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, package.NormalizedVersion);
                         }
 
-                        PackageUploadOperationResult uploadResult = await SymbolPackageUploadService
+                        PackageCommitResult commitResult = await SymbolPackageUploadService
                             .CreateAndUploadSymbolsPackage(package, symbolPackageStream);
 
-                        switch (uploadResult.ResultCode)
+                        switch (commitResult)
                         {
-                            case PackageUploadResult.Created:
+                            case PackageCommitResult.Success:
                                 break;
-                            case PackageUploadResult.Conflict:
+                            case PackageCommitResult.Conflict:
                                 return new HttpStatusCodeWithBodyResult(
-                                    uploadResult.GetHttpStatusCode(),
-                                    uploadResult.Message);
+                                    HttpStatusCode.Conflict,
+                                    Strings.SymbolsPackage_ConflictValidating);
                             default:
-                                throw new NotImplementedException($"The symbols package upload operation result {uploadResult.ResultCode} is not supported.");
+                                throw new NotImplementedException($"The symbols package commit result {commitResult} is not supported.");
                         }
 
                         await AuditingService.SaveAuditRecordAsync(
@@ -1018,6 +1017,32 @@ namespace NuGetGallery
                 action,
                 context,
                 requestedActions);
+        }
+
+        private static ActionResult GetActionOrNull(SymbolPackageValidationResult validationResult)
+        {
+            HttpStatusCode httpStatusCode;
+            switch (validationResult.Type)
+            {
+                case SymbolPackageValidationResultType.Accepted:
+                    return null;
+                case SymbolPackageValidationResultType.Invalid:
+                    httpStatusCode = HttpStatusCode.BadRequest;
+                    break;
+                case SymbolPackageValidationResultType.MissingPackage:
+                    httpStatusCode = HttpStatusCode.NotFound;
+                    break;
+                case SymbolPackageValidationResultType.SymbolsPackageExists:
+                    httpStatusCode = HttpStatusCode.Conflict;
+                    break;
+                case SymbolPackageValidationResultType.UserNotAllowedToUpload:
+                    httpStatusCode = HttpStatusCode.Unauthorized;
+                    break;
+                default:
+                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+            }
+
+            return new HttpStatusCodeWithBodyResult(httpStatusCode, validationResult.Message);
         }
     }
 }
