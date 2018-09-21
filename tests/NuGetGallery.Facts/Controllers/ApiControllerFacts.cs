@@ -52,7 +52,6 @@ namespace NuGetGallery
         public Mock<IPackageUploadService> MockPackageUploadService { get; private set; }
         public Mock<IPackageDeleteService> MockPackageDeleteService { get; set; }
         public Mock<ISymbolPackageFileService> MockSymbolPackageFileService { get; set; }
-        public Mock<ISymbolPackageService> MockSymbolPackageService { get; set; }
         public Mock<IContentObjectService> MockContentObjectService { get; set; }
         public Mock<ISymbolPackageUploadService> MockSymbolPackageUploadService { get; set; }
 
@@ -79,9 +78,7 @@ namespace NuGetGallery
             SymbolPackageFileService = (MockSymbolPackageFileService = new Mock<ISymbolPackageFileService>()).Object;
             PackageUploadService = (MockPackageUploadService = new Mock<IPackageUploadService>()).Object;
             PackageDeleteService = (MockPackageDeleteService = new Mock<IPackageDeleteService>()).Object;
-            SymbolPackageService = (MockSymbolPackageService = new Mock<ISymbolPackageService>()).Object;
             SymbolPackageUploadService = (MockSymbolPackageUploadService = new Mock<ISymbolPackageUploadService>()).Object;
-            ContentObjectService = (MockContentObjectService = new Mock<IContentObjectService>()).Object;
 
             SetupApiScopeEvaluatorOnAllInputs();
 
@@ -162,10 +159,6 @@ namespace NuGetGallery
             MockContentObjectService
                 .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
                 .Returns(true);
-
-            MockSymbolPackageService
-                .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
-                .Completes();
         }
 
         private void SetupApiScopeEvaluatorOnAllInputs()
@@ -437,10 +430,6 @@ namespace NuGetGallery
                     .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
                     .Returns(package);
 
-                controller.MockSymbolPackageService
-                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
-                    .ThrowsAsync(new InvalidPackageException());
-
                 // Act
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
 
@@ -480,9 +469,8 @@ namespace NuGetGallery
                 controller.MockSymbolPackageUploadService
                     .Setup(x => x.CreateAndUploadSymbolsPackage(
                         package,
-                        It.IsAny<PackageStreamMetadata>(),
                         It.IsAny<Stream>()))
-                    .ReturnsAsync(PackageCommitResult.Conflict);
+                    .ReturnsAsync(new PackageUploadOperationResult(PackageUploadResult.Conflict, false));
 
                 // Act
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
@@ -520,9 +508,8 @@ namespace NuGetGallery
                 controller.MockSymbolPackageUploadService
                     .Setup(x => x.CreateAndUploadSymbolsPackage(
                         package,
-                        It.IsAny<PackageStreamMetadata>(),
                         It.IsAny<Stream>()))
-                    .ReturnsAsync(PackageCommitResult.Success);
+                    .ReturnsAsync(new PackageUploadOperationResult(PackageUploadResult.Created, true));
 
                 // Act
                 ActionResult result = await controller.CreateSymbolPackagePutAsync();
@@ -569,7 +556,6 @@ namespace NuGetGallery
                 controller.MockSymbolPackageUploadService
                     .Setup(x => x.CreateAndUploadSymbolsPackage(
                         package,
-                        It.IsAny<PackageStreamMetadata>(),
                         It.IsAny<Stream>()))
                     .ThrowsAsync(new SymbolsTestException("Test exception."));
 

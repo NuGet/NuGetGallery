@@ -89,7 +89,7 @@ namespace NuGetGallery
                 var service = CreateService(validationService: validationService);
 
                 var package = new Package();
-                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.CreateAndUploadSymbolsPackage(package, new PackageStreamMetadata(), new MemoryStream()));
+                await Assert.ThrowsAsync<InvalidOperationException>(async () => await service.CreateAndUploadSymbolsPackage(package, new MemoryStream()));
             }
 
             [Fact]
@@ -106,11 +106,11 @@ namespace NuGetGallery
                 var package = new Package();
 
                 // Act
-                var result = await service.CreateAndUploadSymbolsPackage(package, new PackageStreamMetadata(), new MemoryStream());
+                var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(PackageCommitResult.Conflict, result);
+                Assert.Equal(PackageUploadResult.Conflict, result.ResultCode);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
             }
 
@@ -142,7 +142,7 @@ namespace NuGetGallery
                 };
 
                 // Act and Assert
-                await Assert.ThrowsAsync<EntityException>(async () => await service.CreateAndUploadSymbolsPackage(package, new PackageStreamMetadata(), new MemoryStream()));
+                await Assert.ThrowsAsync<EntityException>(async () => await service.CreateAndUploadSymbolsPackage(package, new MemoryStream()));
 
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), It.IsAny<bool>()), Times.Once);
                 symbolPackageFileService.Verify(x => x.DeletePackageFileAsync(package.PackageRegistration.Id, package.Version), Times.Once);
@@ -181,14 +181,14 @@ namespace NuGetGallery
                 package.SymbolPackages.Add(existingDeletedSymbolPackage);
 
                 // Act
-                var result = await service.CreateAndUploadSymbolsPackage(package, new PackageStreamMetadata(), new MemoryStream());
+                var result = await service.CreateAndUploadSymbolsPackage(package, new MemoryStream());
 
                 // Assert
                 Assert.Equal(PackageStatus.Deleted, existingAvailableSymbolPackage.StatusKey);
                 Assert.Equal(PackageStatus.Deleted, existingDeletedSymbolPackage.StatusKey);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), true), Times.Once);
                 Assert.NotNull(result);
-                Assert.Equal(PackageCommitResult.Success, result);
+                Assert.Equal(PackageUploadResult.Success, result.ResultCode);
             }
         }
     }
