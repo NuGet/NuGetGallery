@@ -48,7 +48,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
             _serviceProvider = GetServiceProvider(GetConfigurationRoot(configurationFilename));
 
             _configuration = _serviceProvider.GetService<PackageLagMonitorConfiguration>();
-            _azureManagementApiWrapper = _serviceProvider.GetService<AzureManagementAPIWrapper>();
+            _azureManagementApiWrapper = _serviceProvider.GetService<IAzureManagementAPIWrapper>();
             _catalogClient = _serviceProvider.GetService<CatalogClient>();
             _httpClient = _serviceProvider.GetService<HttpClient>();
             _searchServiceClient = _serviceProvider.GetService<ISearchServiceClient>();
@@ -97,6 +97,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
         private void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<PackageLagMonitorConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
+            services.Configure<SearchServiceConfiguration>(configurationRoot.GetSection(MonitorConfigurationSectionName));
             services.Configure<AzureManagementAPIWrapperConfiguration>(configurationRoot.GetSection(AzureManagementSectionName));
 
             services.AddSingleton(p =>
@@ -122,7 +123,7 @@ namespace NuGet.Jobs.Montoring.PackageLag
             services.AddTransient<IAzureManagementAPIWrapperConfiguration>(p => p.GetService<IOptionsSnapshot<AzureManagementAPIWrapperConfiguration>>().Value);
             services.AddTransient<PackageLagMonitorConfiguration>(p => p.GetService<IOptionsSnapshot<PackageLagMonitorConfiguration>>().Value);
             services.AddSingleton<CatalogClient>();
-            services.AddSingleton<AzureManagementAPIWrapper>();
+            services.AddSingleton<IAzureManagementAPIWrapper, AzureManagementAPIWrapper>();
             services.AddTransient<ISearchServiceClient, SearchServiceClient>();
         }
 
