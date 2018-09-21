@@ -146,7 +146,7 @@ namespace NuGetGallery
                 }
             }
 
-            throw new ArgumentException("There is no predefined typo-squatting threshold for this package Id: " + packageId);
+            throw new ArgumentException(String.Format("There is no predefined typo-squatting threshold for this package Id: {0}", packageId));
         }
     }
 
