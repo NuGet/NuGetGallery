@@ -178,5 +178,41 @@ namespace NuGetGallery
         /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
         /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
         void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// The typosquatting check result and total time for the uploaded package.
+        /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="totalTime">The total time for the typosquatting check logic</param>
+        /// <param name="wasUploadBlocked">Whether the uploaded package is blocked because of typosquatting check.</param>
+        /// <param name="collisionPackageIds">The list of collision package Ids for this uploaded package.</param>
+        /// <param name="checklistLength">The length of the checklist for typosquatting check</param>
+        void TrackMetricForTyposquattingCheckResultAndTotalTime(
+            string packageId,
+            TimeSpan totalTime,
+            bool wasUploadBlocked,
+            List<string> collisionPackageIds,
+            int checklistLength);
+
+        /// <summary>
+        /// The retrieval time to get the checklist for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
+        void TrackMetricForTyposquattingChecklistRetrievalTime(string packageId, TimeSpan checklistRetrievalTime);
+
+        /// <summary>
+        /// The algorithm processing time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="algorithmProcessingTime">The time used to finish the algorithm of typosquatting check.</param>
+        void TrackMetricForTyposquattingAlgorithmProcessingTime(string packageId, TimeSpan algorithmProcessingTime);
+
+        /// <summary>
+        /// The owners double check time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
+        void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTime);
     }
 }
