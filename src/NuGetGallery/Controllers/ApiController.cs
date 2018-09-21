@@ -398,12 +398,11 @@ namespace NuGetGallery
                     {
                         // Get the user
                         var currentUser = GetCurrentUser();
-                        var packageUploadOperationResult = await SymbolPackageUploadService.ValidateUploadedSymbolPackage(symbolPackageStream, currentUser);
-
+                        var packageUploadOperationResult = await SymbolPackageUploadService.ValidateUploadedSymbolsPackage(symbolPackageStream, currentUser);
                         if (!packageUploadOperationResult.OperationSucceeded)
                         {
                             return new HttpStatusCodeWithBodyResult(
-                                PackageUploadOperationResult.GetHttpStatusCode(packageUploadOperationResult.ResultCode),
+                                packageUploadOperationResult.GetHttpStatusCode(),
                                 packageUploadOperationResult.Message);
                         }
 
@@ -429,19 +428,19 @@ namespace NuGetGallery
                             return GetHttpResultFromFailedApiScopeEvaluationForPush(apiScopeEvaluationResult, id, package.NormalizedVersion);
                         }
 
-                        PackageUploadOperationResult commitResult = await SymbolPackageUploadService
+                        PackageUploadOperationResult uploadResult = await SymbolPackageUploadService
                             .CreateAndUploadSymbolsPackage(package, symbolPackageStream);
 
-                        switch (commitResult.ResultCode)
+                        switch (uploadResult.ResultCode)
                         {
                             case PackageUploadResult.Created:
                                 break;
                             case PackageUploadResult.Conflict:
                                 return new HttpStatusCodeWithBodyResult(
-                                    PackageUploadOperationResult.GetHttpStatusCode(commitResult.ResultCode),
-                                    commitResult.Message);
+                                    uploadResult.GetHttpStatusCode(),
+                                    uploadResult.Message);
                             default:
-                                throw new NotImplementedException($"The package upload operation result {commitResult.ResultCode} is not supported.");
+                                throw new NotImplementedException($"The symbols package upload operation result {uploadResult.ResultCode} is not supported.");
                         }
 
                         await AuditingService.SaveAuditRecordAsync(

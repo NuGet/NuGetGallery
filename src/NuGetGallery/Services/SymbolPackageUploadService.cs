@@ -19,9 +19,9 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly ISymbolPackageService _symbolPackageService;
         private readonly ISymbolPackageFileService _symbolPackageFileService;
-        private readonly IContentObjectService _contentObjectService;
         private readonly IPackageService _packageService;
         private readonly ITelemetryService _telemetryService;
+        private readonly IContentObjectService _contentObjectService;
 
         public SymbolPackageUploadService(
             ISymbolPackageService symbolPackageService,
@@ -41,7 +41,15 @@ namespace NuGetGallery
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
         }
 
-        public async Task<PackageUploadOperationResult> ValidateUploadedSymbolPackage(Stream symbolPackageStream, User currentUser)
+        /// <summary>
+        /// This method does not perform the ownership validations for the symbols package. It is the responsibility
+        /// of the caller to do it. Also, this method does not dispose the <see cref="Stream"/> object, the caller 
+        /// should take care of it.
+        /// </summary>
+        /// <param name="symbolPackageStream"><see cref="Stream"/> object for the symbols package.</param>
+        /// <param name="currentUser">The user performing the uploads.</param>
+        /// <returns>Awaitable task for <see cref="PackageUploadOperationResult"/></returns>
+        public async Task<PackageUploadOperationResult> ValidateUploadedSymbolsPackage(Stream symbolPackageStream, User currentUser)
         {
             Package package = null;
 
@@ -132,8 +140,7 @@ namespace NuGetGallery
         /// based on the result. It will then update the references in the database for persistence with appropriate status.
         /// </summary>
         /// <param name="package">The package for which symbols package is to be uplloaded</param>
-        /// <param name="packageStreamMetadata">The package stream metadata for the uploaded symbols package file.</param>
-        /// <param name="symbolPackageFile">The symbol package file stream.</param>
+        /// <param name="symbolPackageStream">The symbols package stream metadata for the uploaded symbols package file.</param>
         /// <returns>The <see cref="PackageUploadOperationResult"/> for the create and upload symbol package flow.</returns>
         public async Task<PackageUploadOperationResult> CreateAndUploadSymbolsPackage(Package package, Stream symbolPackageStream)
         {

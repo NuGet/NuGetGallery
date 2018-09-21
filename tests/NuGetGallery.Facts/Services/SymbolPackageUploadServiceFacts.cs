@@ -16,7 +16,10 @@ namespace NuGetGallery
             Mock<ISymbolPackageService> symbolPackageService = null,
             Mock<ISymbolPackageFileService> symbolPackageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
-            Mock<IValidationService> validationService = null)
+            Mock<IValidationService> validationService = null,
+            Mock<IPackageService> packageService = null,
+            Mock<ITelemetryService> telemetryService = null,
+            Mock<IContentObjectService> contentObjectService = null)
         {
             if (symbolPackageService == null)
             {
@@ -60,12 +63,18 @@ namespace NuGetGallery
             }
 
             validationService = validationService ?? new Mock<IValidationService>();
+            packageService = packageService ?? new Mock<IPackageService>();
+            telemetryService = telemetryService ?? new Mock<ITelemetryService>();
+            contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
 
             var symbolPackageUploadService = new Mock<SymbolPackageUploadService>(
                 symbolPackageService.Object,
                 symbolPackageFileService.Object,
                 entitiesContext.Object,
-                validationService.Object);
+                validationService.Object,
+                packageService.Object,
+                telemetryService.Object,
+                contentObjectService.Object);
 
             return symbolPackageUploadService.Object;
         }
@@ -188,7 +197,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Deleted, existingDeletedSymbolPackage.StatusKey);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), true), Times.Once);
                 Assert.NotNull(result);
-                Assert.Equal(PackageUploadResult.Success, result.ResultCode);
+                Assert.Equal(PackageUploadResult.Created, result.ResultCode);
             }
         }
     }

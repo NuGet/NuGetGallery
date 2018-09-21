@@ -58,9 +58,9 @@ namespace NuGetGallery
             OperationSucceeded = success;
         }
 
-        public static HttpStatusCode GetHttpStatusCode(PackageUploadResult resultCode)
+        public HttpStatusCode GetHttpStatusCode()
         {
-            switch(resultCode)
+            switch(ResultCode)
             {
                 case PackageUploadResult.Created:
                     return HttpStatusCode.Created;
@@ -73,7 +73,7 @@ namespace NuGetGallery
                 case PackageUploadResult.Conflict:
                     return HttpStatusCode.Conflict;
                 default:
-                    throw new InvalidDataException($"The Package upload operation result code {resultCode} is not supported.");
+                    throw new InvalidDataException($"The Package upload operation result code {ResultCode} is not supported.");
             }
         }
     }
