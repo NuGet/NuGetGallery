@@ -14,8 +14,10 @@
         var _pingUrl;
         var _isUploadInProgress;
         var _uploadStartTime;
+        var _uploadId;
 
-        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl) {
+        this.init = function (pingUrl, formId, jQueryUrl, actionUrl, cancelUrl, submitVerifyUrl, uploadTracingKey) {
+            _uploadId = uploadTracingKey;
             _pingUrl = pingUrl;
             _uploadFormId = formId;
             _actionUrl = actionUrl;
@@ -104,6 +106,10 @@
 
                 data: _uploadFormData,
 
+                headers: {
+                    "upload-id": _uploadId
+                },
+
                 cache: false,
                 contentType: false,
                 processData: false,
@@ -127,6 +133,10 @@
 
                 data: new FormData($('#verify-metadata-form')[0]),
 
+                headers: {
+                    "upload-id": _uploadId
+                },
+
                 cache: false,
                 contentType: false,
                 processData: false,
@@ -149,6 +159,10 @@
                 type: 'POST',
 
                 data: new FormData($('#cancel-form')[0]),
+
+                headers: {
+                    "upload-id": _uploadId
+                },
 
                 cache: false,
                 contentType: false,
@@ -305,6 +319,9 @@
                 type: 'GET',
                 dataType: 'json',
                 url: _pingUrl,
+                headers: {
+                    "upload-id": _uploadId
+                },
                 success: onGetProgressSuccess,
                 error: onGetProgressError
             });
