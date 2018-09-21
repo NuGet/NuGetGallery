@@ -17,8 +17,9 @@ namespace NuGet.Services.Messaging
             IReadOnlyList<string> to,
             IReadOnlyList<string> cc,
             IReadOnlyList<string> bcc,
+            IReadOnlyList<string> replyTo,
             Guid messageTrackingId)
-            : this(subject, plainTextBody, htmlBody, sender, to, cc, bcc, messageTrackingId, deliveryCount: 0)
+            : this(subject, plainTextBody, htmlBody, sender, to, cc, bcc, replyTo, messageTrackingId, deliveryCount: 0)
         {
         }
 
@@ -30,6 +31,7 @@ namespace NuGet.Services.Messaging
             IReadOnlyList<string> to,
             IReadOnlyList<string> cc,
             IReadOnlyList<string> bcc,
+            IReadOnlyList<string> replyTo,
             Guid messageTrackingId,
             int deliveryCount)
         {
@@ -53,6 +55,7 @@ namespace NuGet.Services.Messaging
 
             CC = cc ?? new List<string>();
             Bcc = bcc ?? new List<string>();
+            ReplyTo = replyTo ?? new List<string>();
         }
 
         /// <summary>
@@ -83,5 +86,6 @@ namespace NuGet.Services.Messaging
         public IReadOnlyList<string> To { get; }
         public IReadOnlyList<string> CC { get; }
         public IReadOnlyList<string> Bcc { get; }
+        public IReadOnlyList<string> ReplyTo { get; }
     }
 }

@@ -25,6 +25,7 @@ namespace NuGet.Services.Messaging
                 data.To,
                 data.CC,
                 data.Bcc,
+                data.ReplyTo,
                 data.MessageTrackingId,
                 message.DeliveryCount);
         }
@@ -40,6 +41,7 @@ namespace NuGet.Services.Messaging
                 To = message.To,
                 CC = message.CC,
                 Bcc = message.Bcc,
+                ReplyTo = message.ReplyTo,
                 MessageTrackingId = message.MessageTrackingId
             });
         }
@@ -55,6 +57,7 @@ namespace NuGet.Services.Messaging
             public IReadOnlyList<string> To { get; set; }
             public IReadOnlyList<string> CC { get; set; }
             public IReadOnlyList<string> Bcc { get; set; }
+            public IReadOnlyList<string> ReplyTo { get; set; }
         }
     }
 }

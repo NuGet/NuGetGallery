@@ -20,6 +20,7 @@ namespace NuGet.Services.Messaging.Tests
         private static readonly IReadOnlyList<string> To = new[] { "to@domain.tld" };
         private static readonly IReadOnlyList<string> CC = new[] { "cc@domain.tld" };
         private static readonly IReadOnlyList<string> BCC = new[] { "bcc@domain.tld" };
+        private static readonly IReadOnlyList<string> ReplyTo = new[] { "replyTo@domain.tld" };
         private static readonly Guid MessageTrackingId = new Guid("331FE761-0409-46F4-9EE3-35990E4EBEBB");
 
         private const string EmailMessageDataType = "EmailMessageData";
@@ -39,7 +40,8 @@ namespace NuGet.Services.Messaging.Tests
                     Sender,
                     To,
                     CC,
-                    BCC, 
+                    BCC,
+                    ReplyTo,
                     MessageTrackingId);
 
                 // Act

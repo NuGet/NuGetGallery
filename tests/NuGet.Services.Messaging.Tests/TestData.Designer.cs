@@ -61,7 +61,7 @@ namespace NuGet.Services.Messaging.Tests {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to {&quot;Subject&quot;:&quot;Email subject&quot;,&quot;PlainTextBody&quot;:&quot;Email plain-text body&quot;,&quot;HtmlBody&quot;:&quot;&lt;html&gt;&lt;h1&gt;HTML Body&lt;/h1&gt;&lt;/html&gt;&quot;,&quot;Sender&quot;:&quot;sender@domain.tld&quot;,&quot;MessageTrackingId&quot;:&quot;331fe761-0409-46f4-9ee3-35990e4ebebb&quot;,&quot;To&quot;:[&quot;to@domain.tld&quot;],&quot;CC&quot;:[&quot;cc@domain.tld&quot;],&quot;Bcc&quot;:[&quot;bcc@domain.tld&quot;]}.
+        ///   Looks up a localized string similar to {&quot;Subject&quot;:&quot;Email subject&quot;,&quot;PlainTextBody&quot;:&quot;Email plain-text body&quot;,&quot;HtmlBody&quot;:&quot;&lt;html&gt;&lt;h1&gt;HTML Body&lt;/h1&gt;&lt;/html&gt;&quot;,&quot;Sender&quot;:&quot;sender@domain.tld&quot;,&quot;MessageTrackingId&quot;:&quot;331fe761-0409-46f4-9ee3-35990e4ebebb&quot;,&quot;To&quot;:[&quot;to@domain.tld&quot;],&quot;CC&quot;:[&quot;cc@domain.tld&quot;],&quot;Bcc&quot;:[&quot;bcc@domain.tld&quot;],&quot;ReplyTo&quot;:[&quot;replyTo@domain.tld&quot;]}.
         /// </summary>
         internal static string SerializedEmailMessageData1 {
             get {

@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="SerializedEmailMessageData1" xml:space="preserve">
-    <value>{"Subject":"Email subject","PlainTextBody":"Email plain-text body","HtmlBody":"&lt;html&gt;&lt;h1&gt;HTML Body&lt;/h1&gt;&lt;/html&gt;","Sender":"sender@domain.tld","MessageTrackingId":"331fe761-0409-46f4-9ee3-35990e4ebebb","To":["to@domain.tld"],"CC":["cc@domain.tld"],"Bcc":["bcc@domain.tld"]}</value>
+    <value>{"Subject":"Email subject","PlainTextBody":"Email plain-text body","HtmlBody":"&lt;html&gt;&lt;h1&gt;HTML Body&lt;/h1&gt;&lt;/html&gt;","Sender":"sender@domain.tld","MessageTrackingId":"331fe761-0409-46f4-9ee3-35990e4ebebb","To":["to@domain.tld"],"CC":["cc@domain.tld"],"Bcc":["bcc@domain.tld"],"ReplyTo":["replyTo@domain.tld"]}</value>
   </data>
 </root>
