@@ -23,6 +23,7 @@ namespace NuGetGallery
         private readonly IReservedNamespaceService _reservedNamespaceService;
         private readonly IValidationService _validationService;
         private readonly IAppConfiguration _config;
+        private readonly ITyposquattingService _typosquattingService;
 
         public PackageUploadService(
             IPackageService packageService,
@@ -30,7 +31,8 @@ namespace NuGetGallery
             IEntitiesContext entitiesContext,
             IReservedNamespaceService reservedNamespaceService,
             IValidationService validationService,
-            IAppConfiguration config)
+            IAppConfiguration config,
+            ITyposquattingService typosquattingService)
         {
             _packageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             _packageFileService = packageFileService ?? throw new ArgumentNullException(nameof(packageFileService));
@@ -38,6 +40,7 @@ namespace NuGetGallery
             _reservedNamespaceService = reservedNamespaceService ?? throw new ArgumentNullException(nameof(reservedNamespaceService));
             _validationService = validationService ?? throw new ArgumentNullException(nameof(validationService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _typosquattingService = typosquattingService ?? throw new ArgumentNullException(nameof(typosquattingService));
         }
 
         public async Task<PackageValidationResult> ValidateBeforeGeneratePackageAsync(PackageArchiveReader nuGetPackage, PackageMetadata packageMetadata)
@@ -183,7 +186,8 @@ namespace NuGetGallery
             Package package,
             PackageArchiveReader nuGetPackage,
             User owner,
-            User currentUser)
+            User currentUser,
+            bool isNewPackageRegistration)
         {
             var result = await ValidateSignatureFilePresenceAsync(
                 package.PackageRegistration,
@@ -193,6 +197,11 @@ namespace NuGetGallery
             if (result != null)
             {
                 return result;
+            }
+
+            if (isNewPackageRegistration && _typosquattingService.IsUploadedPackageIdTyposquatting(package.Id, owner, out List<string> typosquattingCheckCollisionIds))
+            {
+                return PackageValidationResult.Invalid(string.Format(Strings.TyposquattingCheckFails, string.Join(",", typosquattingCheckCollisionIds)));
             }
 
             return PackageValidationResult.Accepted();

@@ -49,6 +49,11 @@ namespace NuGetGallery.Security
             // Evaluate package metadata validations
             if (!IsPackageMetadataCompliant(context.Package, state, out var complianceFailures))
             {
+                context.TelemetryService.TrackPackageMetadataComplianceError(
+                    context.Package.Id,
+                    context.Package.NormalizedVersion,
+                    complianceFailures);
+
                 // Package policy not met.
                 return SecurityPolicyResult.CreateErrorResult(
                     string.Format(
@@ -63,12 +68,21 @@ namespace NuGetGallery.Security
                 // This will also mark the package as verified if the prefix has been reserved by the co-owner.
                 // The entities context is committed later as a single atomic transaction (see PackageUploadService).
                 await context.PackageOwnershipManagementService.AddPackageOwnerAsync(context.Package.PackageRegistration, requiredCoOwner, commitChanges: false);
+
+                context.TelemetryService.TrackPackageOwnershipAutomaticallyAdded(
+                    context.Package.Id,
+                    context.Package.NormalizedVersion);
             }
 
             // If the PackageRegistration is not marked as verified,
             // the account pushing the package has not registered the prefix yet.
             if (!context.Package.PackageRegistration.IsVerified)
             {
+                context.TelemetryService.TrackPackageMetadataComplianceWarning(
+                    context.Package.Id,
+                    context.Package.NormalizedVersion,
+                    complianceWarnings: new[] { Strings.SecurityPolicy_RequirePackagePrefixReserved });
+
                 return SecurityPolicyResult.CreateWarningResult(Strings.SecurityPolicy_RequirePackagePrefixReserved);
             }
 
@@ -77,8 +91,8 @@ namespace NuGetGallery.Security
         }
 
         public static UserSecurityPolicy CreatePolicy(
-            string subscription, 
-            string requiredCoOwnerUsername, 
+            string subscription,
+            string requiredCoOwnerUsername,
             string[] allowedCopyrightNotices,
             bool isLicenseUrlRequired,
             bool isProjectUrlRequired,
@@ -102,7 +116,8 @@ namespace NuGetGallery.Security
 
             // Author validation
             if (!package.FlattenedAuthors
-                .Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(s => s.Trim())
                 .Contains(state.RequiredCoOwnerUsername, StringComparer.InvariantCultureIgnoreCase))
             {
                 complianceFailures.Add(string.Format(CultureInfo.CurrentCulture, Strings.SecurityPolicy_RequiredAuthorMissing, state.RequiredCoOwnerUsername));
@@ -153,7 +168,7 @@ namespace NuGetGallery.Security
 
             [JsonProperty("licUrlReq")]
             public bool IsLicenseUrlRequired { get; set; }
-            
+
             [JsonProperty("projUrlReq")]
             public bool IsProjectUrlRequired { get; set; }
 

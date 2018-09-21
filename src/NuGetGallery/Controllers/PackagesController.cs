@@ -474,7 +474,8 @@ namespace NuGetGallery
             var model = new DisplayPackageViewModel(package, currentUser, packageHistory);
 
             model.ValidatingTooLong = _validationService.IsValidatingTooLong(package);
-            model.ValidationIssues = _validationService.GetLatestValidationIssues(package);
+            model.PackageValidationIssues = _validationService.GetLatestPackageValidationIssues(package);
+            model.SymbolsPackageValidationIssues = _validationService.GetLatestPackageValidationIssues(model.LatestSymbolsPackage);
             model.IsCertificatesUIEnabled = _contentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
 
             model.ReadMeHtml = await _readMeService.GetReadMeHtmlAsync(package);
@@ -1217,8 +1218,8 @@ namespace NuGetGallery
                 model.VersionSelectList = new SelectList(model.PackageVersions.Select(e => new
                 {
                     text = NuGetVersion.Parse(e.Version).ToFullString() + (e.IsLatestSemVer2 ? " (Latest)" : string.Empty),
-                    url = UrlExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
-                }), "url", "text", UrlExtensions.EditPackage(Url, model.PackageId, model.Version));
+                    url = UrlHelperExtensions.EditPackage(Url, model.PackageId, e.NormalizedVersion)
+                }), "url", "text", UrlHelperExtensions.EditPackage(Url, model.PackageId, model.Version));
 
                 model.Edit = new EditPackageVersionReadMeRequest();
 
@@ -1607,7 +1608,6 @@ namespace NuGetGallery
                         return beforeValidationJsonResult;
                     }
 
-                    // update relevant database tables
                     try
                     {
                         package = await _packageUploadService.GeneratePackageAsync(
@@ -1643,7 +1643,9 @@ namespace NuGetGallery
                         package,
                         nugetPackage,
                         owner,
-                        currentUser);
+                        currentUser,
+                        isNewPackageRegistration: existingPackageRegistration == null);
+
                     var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
                     if (afterValidationJsonResult != null)
                     {

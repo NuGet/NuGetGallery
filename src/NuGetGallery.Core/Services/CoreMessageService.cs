@@ -72,6 +72,46 @@ namespace NuGetGallery.Services
             }
         }
 
+        public async Task SendSymbolPackageAddedNoticeAsync(SymbolPackage symbolPackage, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null)
+        {
+            bool hasWarnings = warningMessages != null && warningMessages.Any();
+
+            string subject;
+            var warningMessagesPlaceholder = string.Empty;
+            if (hasWarnings)
+            {
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published with warnings - {symbolPackage.Id} {symbolPackage.Version}";
+                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, warningMessages);
+            }
+            else
+            {
+                subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package published - {symbolPackage.Id} {symbolPackage.Version}";
+            }
+
+            string body = $@"The symbol package [{symbolPackage.Id} {symbolPackage.Version}]({packageUrl}) was recently published on {CoreConfiguration.GalleryOwner.DisplayName} by {symbolPackage.Package.User.Username}. If this was not intended, please [contact support]({packageSupportUrl}).
+{warningMessagesPlaceholder}
+
+-----------------------------------------------
+<em style=""font-size: 0.8em;"">
+    To stop receiving emails as an owner of this package, sign in to the {CoreConfiguration.GalleryOwner.DisplayName} and
+    [change your email notification settings]({emailSettingsUrl}).
+</em>";
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddOwnersSubscribedToPackagePushedNotification(symbolPackage.Package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    await SendMessageAsync(mailMessage);
+                }
+            }
+        }
+
         public async Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages)
         {
             var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Package pushed with warnings - {package.PackageRegistration.Id} {package.Version}";
@@ -142,6 +182,52 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
+        public async Task SendSymbolPackageValidationFailedNoticeAsync(SymbolPackage symbolPackage, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl)
+        {
+            var validationIssues = validationSet.GetValidationIssues();
+
+            var subject = $"[{CoreConfiguration.GalleryOwner.DisplayName}] Symbol package validation failed - {symbolPackage.Id} {symbolPackage.Version}";
+            var bodyBuilder = new StringBuilder();
+            bodyBuilder.Append($@"The symbol package [{symbolPackage.Id} {symbolPackage.Version}]({packageUrl}) failed validation because of the following reason(s):
+");
+
+            foreach (var validationIssue in validationIssues)
+            {
+                bodyBuilder.Append($@"
+- {ParseValidationIssue(validationIssue, announcementsUrl, twitterUrl)}");
+            }
+
+            bodyBuilder.Append($@"
+
+Your symbol package was not published on {CoreConfiguration.GalleryOwner.DisplayName} and is not available for consumption.
+
+");
+
+            if (validationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
+            {
+                bodyBuilder.Append($"Please [contact support]({packageSupportUrl}) to help.");
+            }
+            else
+            {
+                var issuePluralString = validationIssues.Count() > 1 ? "all the issues" : "the issue";
+                bodyBuilder.Append($"You can reupload your symbol package once you've fixed {issuePluralString} with it.");
+            }
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = bodyBuilder.ToString();
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddAllOwnersToMailMessage(symbolPackage.Package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    await SendMessageAsync(mailMessage);
+                }
+            }
+        }
+
         private static string ParseValidationIssue(ValidationIssue validationIssue, string announcementsUrl, string twitterUrl)
         {
             switch (validationIssue.IssueCode)
@@ -168,6 +254,10 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
                 case ValidationIssueCode.PackageIsSignedWithUnauthorizedCertificate:
                     var certIssue = (UnauthorizedCertificateFailure)validationIssue;
                     return $"The package was signed, but the signing certificate {(certIssue != null ? $"(SHA-1 thumbprint {certIssue.Sha1Thumbprint})" : "")} is not associated with your account. You must register this certificate to publish signed packages. [Read more...](https://aka.ms/nuget-signed-ref)";
+                case ValidationIssueCode.SymbolErrorCode_ChecksumDoesNotMatch:
+                    return "The checksum does not match for the dll(s) and corresponding pdb(s).";
+                case ValidationIssueCode.SymbolErrorCode_MatchingPortablePDBNotFound:
+                    return "The uploaded symbols package contains pdb(s) for a corresponding dll(s) not found in the nuget package.";
                 default:
                     return "There was an unknown failure when validating your package.";
             }
@@ -210,6 +300,42 @@ Your package was not published on {CoreConfiguration.GalleryOwner.DisplayName} a
             }
         }
 
+        public async Task SendValidationTakingTooLongNoticeAsync(SymbolPackage symbolPackage, string packageUrl)
+        {
+            string subject = "[{0}] Symbol package validation taking longer than expected - {1} {2}";
+            string body = "It is taking longer than expected for your symbol package [{1} {2}]({3}) to get published.\n\n" +
+                "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.\n\n" +
+                "Thank you for your patience.";
+
+            body = string.Format(
+                CultureInfo.CurrentCulture,
+                body,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                symbolPackage.Id,
+                symbolPackage.Version,
+                packageUrl);
+
+            subject = string.Format(
+                CultureInfo.CurrentCulture,
+                subject,
+                CoreConfiguration.GalleryOwner.DisplayName,
+                symbolPackage.Id,
+                symbolPackage.Version);
+
+            using (var mailMessage = new MailMessage())
+            {
+                mailMessage.Subject = subject;
+                mailMessage.Body = body;
+                mailMessage.From = CoreConfiguration.GalleryNoReplyAddress;
+
+                AddOwnersSubscribedToPackagePushedNotification(symbolPackage.Package.PackageRegistration, mailMessage);
+
+                if (mailMessage.To.Any())
+                {
+                    await SendMessageAsync(mailMessage);
+                }
+            }
+        }
 
         protected static void AddAllOwnersToMailMessage(PackageRegistration packageRegistration, MailMessage mailMessage)
         {

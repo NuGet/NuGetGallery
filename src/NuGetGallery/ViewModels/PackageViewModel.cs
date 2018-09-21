@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using NuGet.Versioning;
 
 namespace NuGetGallery
@@ -32,9 +30,6 @@ namespace NuGetGallery
             Description = package.Description;
             ReleaseNotes = package.ReleaseNotes;
             IconUrl = package.IconUrl;
-            ProjectUrl = package.ProjectUrl;
-            LicenseUrl = package.LicenseUrl;
-            HideLicenseReport = package.HideLicenseReport;
             LatestVersion = package.IsLatest;
             LatestVersionSemVer2 = package.IsLatestSemVer2;
             LatestStableVersion = package.IsLatestStable;
@@ -44,23 +39,11 @@ namespace NuGetGallery
             _packageStatus = package.PackageStatusKey;
             DownloadCount = package.DownloadCount;
             Prerelease = package.IsPrerelease;
-            LicenseReportUrl = package.LicenseReportUrl;
-
-            var licenseNames = package.LicenseNames;
-            if (!string.IsNullOrEmpty(licenseNames))
-            {
-                LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
-            }
         }
 
         public string Description { get; set; }
         public string ReleaseNotes { get; set; }
         public string IconUrl { get; set; }
-        public string ProjectUrl { get; set; }
-        public string LicenseUrl { get; set; }
-        public Boolean HideLicenseReport { get; set; }
-        public IEnumerable<string> LicenseNames { get; set; }
-        public string LicenseReportUrl { get; set; }
         public DateTime LastUpdated { get; set; }
         public bool LatestVersion { get; set; }
         public bool LatestStableVersion { get; set; }

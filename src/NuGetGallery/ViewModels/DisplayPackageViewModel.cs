@@ -26,7 +26,7 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            LatestSymbolPackage = package
+            LatestSymbolsPackage = package
                 .SymbolPackages
                 .OrderByDescending(sp => sp.Created)
                 .FirstOrDefault();
@@ -57,10 +57,27 @@ namespace NuGetGallery
             PushedBy = pushedBy;
 
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.ProjectUrl, out string projectUrl))
+            {
+                ProjectUrl = projectUrl;
+            }
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            {
+                LicenseUrl = licenseUrl;
+
+                var licenseNames = package.LicenseNames;
+                if (!string.IsNullOrEmpty(licenseNames))
+                {
+                    LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                }
+            }
         }
 
         public bool ValidatingTooLong { get; set; }
-        public IReadOnlyList<ValidationIssue> ValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> PackageValidationIssues { get; set; }
+        public IReadOnlyList<ValidationIssue> SymbolsPackageValidationIssues { get; set; }
         public DependencySetsViewModel Dependencies { get; set; }
         public IEnumerable<DisplayPackageViewModel> PackageVersions { get; set; }
         public string Copyright { get; set; }
@@ -69,7 +86,7 @@ namespace NuGetGallery
         public int DownloadsPerDay { get; private set; }
         public int TotalDaysSinceCreated { get; private set; }
         public long PackageFileSize { get; private set; }
-        public SymbolPackage LatestSymbolPackage { get; private set; }
+        public SymbolPackage LatestSymbolsPackage { get; private set; }
 
         public bool HasSemVer2Version { get; }
         public bool HasSemVer2Dependency { get; }
@@ -108,6 +125,9 @@ namespace NuGetGallery
         public bool IsCertificatesUIEnabled { get; set; }
         public string RepositoryUrl { get; private set; }
         public RepositoryKind RepositoryType { get; private set; }
+        public string ProjectUrl { get; set; }
+        public string LicenseUrl { get; set; }
+        public IEnumerable<string> LicenseNames { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 
@@ -163,17 +183,14 @@ namespace NuGetGallery
                     RepositoryUrl = repositoryUrl;
                 }
 
-                if (IsGitHubUri(repoUri))
+                if (repoUri.IsGitHubUri())
                 {
                     RepositoryType = RepositoryKind.GitHub;
 
                     // Fix-up git:// to https:// for GitHub URLs (we should add this fix-up to other repos in the future)
                     if (repoUri.IsGitProtocol())
                     {
-                        var uri = new UriBuilder(repoUri);
-                        uri.Scheme = Uri.UriSchemeHttps;
-
-                        RepositoryUrl = uri.ToString();
+                        RepositoryUrl = repoUri.ToHttps().ToString();
                     }
                 }
                 else if (PackageHelper.IsGitRepositoryType(repositoryType))
@@ -181,14 +198,6 @@ namespace NuGetGallery
                     RepositoryType = RepositoryKind.Git;
                 }
             }
-        }
-
-        private bool IsGitHubUri(Uri uri)
-        {
-            return string.Equals(uri.Authority, "www.github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "www.github.com:443", StringComparison.OrdinalIgnoreCase) ||
-                   string.Equals(uri.Authority, "github.com:443", StringComparison.OrdinalIgnoreCase);
         }
 
         public enum RepositoryKind

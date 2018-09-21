@@ -51,6 +51,10 @@ namespace NuGetGallery
         /// </summary>
         void TrackUserPackageDeleteChecked(UserPackageDeleteEvent details, UserPackageDeleteOutcome outcome);
 
+        void TrackPackageMetadataComplianceError(string packageId, string packageVersion, IEnumerable<string> complianceFailures);
+
+        void TrackPackageMetadataComplianceWarning(string packageId, string packageVersion, IEnumerable<string> complianceWarnings);
+
         /// <summary>
         /// A telemetry event emitted when a user package delete is executed.
         /// </summary>
@@ -63,6 +67,13 @@ namespace NuGetGallery
         /// <exception cref="ArgumentException">Thrown if <paramref name="thumbprint" /> is <c>null</c>
         /// or empty.</exception>
         void TrackCertificateAdded(string thumbprint);
+
+        /// <summary>
+        /// A telemetry event emitted when a package owner was automatically added to a package registration.
+        /// </summary>
+        /// <param name="packageId">The package registration id.</param>
+        /// <param name="packageVersion">The normalized package version.</param>
+        void TrackPackageOwnershipAutomaticallyAdded(string packageId, string packageVersion);
 
         /// <summary>
         /// A telemetry event emitted when a certificate is activated for an account.
@@ -146,5 +157,62 @@ namespace NuGetGallery
         /// <param name="success">Whether sending the email was successful.</param>
         /// <param name="attemptNumber">The number of attempts the message has tried to be sent.</param>
         void TrackSendEmail(string smtpUri, DateTimeOffset startTime, TimeSpan duration, bool success, int attemptNumber);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package is pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails to be pushed.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// A telemetry event emitted when a symbol package fails Gallery validation.
+        /// </summary>
+        /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
+        /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
+        void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// The typosquatting check result and total time for the uploaded package.
+        /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="totalTime">The total time for the typosquatting check logic</param>
+        /// <param name="wasUploadBlocked">Whether the uploaded package is blocked because of typosquatting check.</param>
+        /// <param name="collisionPackageIds">The list of collision package Ids for this uploaded package.</param>
+        /// <param name="checklistLength">The length of the checklist for typosquatting check</param>
+        void TrackMetricForTyposquattingCheckResultAndTotalTime(
+            string packageId,
+            TimeSpan totalTime,
+            bool wasUploadBlocked,
+            List<string> collisionPackageIds,
+            int checklistLength);
+
+        /// <summary>
+        /// The retrieval time to get the checklist for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="checklistRetrievalTime">The time used to retrieval the checklist from the database.</param>
+        void TrackMetricForTyposquattingChecklistRetrievalTime(string packageId, TimeSpan checklistRetrievalTime);
+
+        /// <summary>
+        /// The algorithm processing time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name="algorithmProcessingTime">The time used to finish the algorithm of typosquatting check.</param>
+        void TrackMetricForTyposquattingAlgorithmProcessingTime(string packageId, TimeSpan algorithmProcessingTime);
+
+        /// <summary>
+        /// The owners double check time for typosquatting check.
+        /// /// </summary>
+        /// <param name="packageId">The Id of the uploaded package.</param>
+        /// <param name ="ownersCheckTime">The time used to double check the owners of collision Ids</param>
+        void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTime);
     }
 }

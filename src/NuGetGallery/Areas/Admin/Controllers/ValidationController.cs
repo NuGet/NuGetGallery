@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using NuGet.Services.Validation;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin.Services;
 using NuGetGallery.Areas.Admin.ViewModels;
@@ -30,9 +31,17 @@ namespace NuGetGallery.Areas.Admin.Controllers
         public virtual ActionResult Search(string q)
         {
             var packageValidationSets = _validationAdminService.Search(q ?? string.Empty);
+            var validatedPackages = new List<ValidatedPackageViewModel>();
+            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.Package);
+            AppendValidatedPackages(validatedPackages, packageValidationSets, ValidatingType.SymbolPackage);
 
-            // Sort by lexigraphically package ID then put newer stuff on top.
-            var groups = packageValidationSets
+            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
+        }
+
+        private void AppendValidatedPackages(List<ValidatedPackageViewModel> validatedPackages, IEnumerable<PackageValidationSet> validationSets, ValidatingType validatingType)
+        {
+            var groups = validationSets
+                .Where(x => x.ValidatingType == validatingType)
                 .OrderBy(x => x.PackageId)
                 .ThenByDescending(x => NuGetVersion.Parse(x.PackageNormalizedVersion))
                 .ThenByDescending(x => x.PackageKey)
@@ -40,7 +49,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 .ThenByDescending(x => x.Key)
                 .GroupBy(x => x.PackageKey);
 
-            var validatedPackages = new List<ValidatedPackageViewModel>();
             foreach (var group in groups)
             {
                 foreach (var set in group)
@@ -51,13 +59,10 @@ namespace NuGetGallery.Areas.Admin.Controllers
                         .ThenByDescending(x => x.ValidationStatusTimestamp)
                         .ToList();
                 }
-
-                var deletedStatus = _validationAdminService.GetPackageDeletedStatus(group.Key);
-                var validatedPackage = new ValidatedPackageViewModel(group.ToList(), deletedStatus);
+                var deletedStatus = _validationAdminService.GetDeletedStatus(group.Key, validatingType);
+                var validatedPackage = new ValidatedPackageViewModel(group.ToList(), deletedStatus, validatingType);
                 validatedPackages.Add(validatedPackage);
             }
-
-            return View(nameof(Index), new ValidationPageViewModel(q, validatedPackages));
         }
     }
 }

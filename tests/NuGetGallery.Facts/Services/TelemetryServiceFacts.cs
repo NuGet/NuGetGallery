@@ -179,6 +179,46 @@ namespace NuGetGallery
                     yield return new object[] { "AccountDeleteRequested",
                         (TrackAction)(s => s.TrackRequestForAccountDeletion(fakes.User))
                     };
+
+                    yield return new object[] { "SymbolPackagePush",
+                        (TrackAction)(s => s.TrackSymbolPackagePushEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "SymbolPackagePushFailure",
+                        (TrackAction)(s => s.TrackSymbolPackagePushFailureEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "SymbolPackageGalleryValidation",
+                        (TrackAction)(s => s.TrackSymbolPackageFailedGalleryValidationEvent("id", "version"))
+                    };
+
+                    yield return new object[] { "PackageMetadataComplianceError",
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceError(fakes.Package.Id, package.NormalizedVersion, new[] { "Failure reason" }))
+                    };
+
+                    yield return new object[] { "PackageMetadataComplianceWarning",
+                        (TrackAction)(s => s.TrackPackageMetadataComplianceWarning(fakes.Package.Id, package.NormalizedVersion, new[] { "Warning message" }))
+                    };
+
+                    yield return new object[] { "PackageOwnershipAutomaticallyAdded",
+                        (TrackAction)(s => s.TrackPackageOwnershipAutomaticallyAdded(fakes.Package.Id, package.NormalizedVersion))
+                    };
+
+                    yield return new object[] { "TyposquattingCheckResultAndTotalTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingCheckResultAndTotalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100), true, new List<string>{"newtonsoft-json" }, 10000))
+                    };
+
+                    yield return new object[] { "TyposquattingChecklistRetrievalTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingChecklistRetrievalTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100)))
+                    };
+
+                    yield return new object[] { "TyposquattingAlgorithmProcessingTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingAlgorithmProcessingTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100)))
+                    };
+
+                    yield return new object[] { "TyposquattingOwnersCheckTimeInMs",
+                        (TrackAction)(s => s.TrackMetricForTyposquattingOwnersCheckTime(fakes.Package.Id, TimeSpan.FromMilliseconds(100)))
+                    };
                 }
             }
 

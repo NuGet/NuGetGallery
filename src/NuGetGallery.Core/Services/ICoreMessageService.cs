@@ -13,5 +13,8 @@ namespace NuGetGallery.Services
         Task SendPackageAddedWithWarningsNoticeAsync(Package package, string packageUrl, string packageSupportUrl, IEnumerable<string> warningMessages);
         Task SendPackageValidationFailedNoticeAsync(Package package, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl);
         Task SendValidationTakingTooLongNoticeAsync(Package package, string packageUrl);
+        Task SendValidationTakingTooLongNoticeAsync(SymbolPackage symbolPackage, string packageUrl);
+        Task SendSymbolPackageAddedNoticeAsync(SymbolPackage symbolPackage, string packageUrl, string packageSupportUrl, string emailSettingsUrl, IEnumerable<string> warningMessages = null);
+        Task SendSymbolPackageValidationFailedNoticeAsync(SymbolPackage symbolPackage, PackageValidationSet validationSet, string packageUrl, string packageSupportUrl, string announcementsUrl, string twitterUrl);
     }
 }

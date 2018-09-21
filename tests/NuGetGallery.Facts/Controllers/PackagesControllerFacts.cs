@@ -127,7 +127,8 @@ namespace NuGetGallery
                         It.IsAny<Package>(),
                         It.IsAny<PackageArchiveReader>(),
                         It.IsAny<User>(),
-                        It.IsAny<User>()))
+                        It.IsAny<User>(),
+                        It.IsAny<bool>()))
                     .ReturnsAsync(PackageValidationResult.Accepted());
             }
 
@@ -212,7 +213,8 @@ namespace NuGetGallery
                     It.IsAny<Package>(),
                     It.IsAny<PackageArchiveReader>(),
                     It.IsAny<User>(),
-                    It.IsAny<User>()))
+                    It.IsAny<User>(),
+                    It.IsAny<bool>()))
                 .ReturnsAsync(PackageValidationResult.Accepted());
 
             return fakePackageUploadService;
@@ -744,7 +746,7 @@ namespace NuGetGallery
                     new TestIssue("This should not be deduplicated by the controller layer"),
                 };
 
-                validationService.Setup(v => v.GetLatestValidationIssues(It.IsAny<Package>()))
+                validationService.Setup(v => v.GetLatestPackageValidationIssues(It.IsAny<Package>()))
                     .Returns(expectedIssues);
 
                 // Act
@@ -752,7 +754,7 @@ namespace NuGetGallery
 
                 // Assert
                 var model = ResultAssert.IsView<DisplayPackageViewModel>(result);
-                Assert.Equal(model.ValidationIssues, expectedIssues);
+                Assert.Equal(model.PackageValidationIssues, expectedIssues);
             }
 
             private class TestIssue : ValidationIssue
@@ -1634,7 +1636,7 @@ namespace NuGetGallery
 
                 foreach (var pkg in _packageRegistration.Packages)
                 {
-                    var valueField = UrlExtensions.DeletePackage(controller.Url, model);
+                    var valueField = controller.Url.DeletePackage(model);
                     var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
 
                     var selectListItem = model.VersionSelectList
@@ -2081,7 +2083,7 @@ namespace NuGetGallery
 
                 foreach (var pkg in packageRegistration.Packages)
                 {
-                    var valueField = UrlExtensions.EditPackage(controller.Url, model.PackageId, pkg.NormalizedVersion);
+                    var valueField = controller.Url.EditPackage(model.PackageId, pkg.NormalizedVersion);
                     var textField = NuGetVersion.Parse(pkg.Version).ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
 
                     var selectListItem = model.VersionSelectList
@@ -4414,7 +4416,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()),
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()),
                         Times.Once);
                 }
             }
@@ -4644,7 +4647,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(PackageValidationResult.Accepted);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
@@ -4702,7 +4706,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(new PackageValidationResult(type, expectedMessage));
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
@@ -5217,7 +5222,8 @@ namespace NuGetGallery
                             It.IsAny<Package>(),
                             It.IsAny<PackageArchiveReader>(),
                             It.IsAny<User>(),
-                            It.IsAny<User>()))
+                            It.IsAny<User>(),
+                            It.IsAny<bool>()))
                         .ReturnsAsync(PackageValidationResult.Accepted());
                     var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { TestUtility.FakeUser } }, Version = PackageVersion };
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);

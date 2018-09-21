@@ -129,7 +129,7 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
-    <Compile Include="Services\TyposquattingCheckServiceFacts.cs" />
+    <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
     <Compile Include="Services\CertificateServiceFacts.cs" />
     <Compile Include="Services\CertificateValidatorFacts.cs" />
@@ -170,7 +170,6 @@
     <Compile Include="Services\TelemetryServiceFacts.cs" />
     <Compile Include="Services\TestableActionRequiringEntityPermissions.cs" />
     <Compile Include="Services\TestablePermissionsEntity.cs" />
-    <Compile Include="Services\TyposquattingUserServiceFacts.cs" />
     <Compile Include="Services\ValidationServiceFacts.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricherTests.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessorTests.cs" />
@@ -239,7 +238,7 @@
     <Compile Include="TestUtils\TestServiceUtility.cs" />
     <Compile Include="TestUtils\TestDataUtility.cs" />
     <Compile Include="TestUtils\TestUtility.cs" />
-    <Compile Include="UrlExtensionsFacts.cs" />
+    <Compile Include="UrlHelperExtensionsFacts.cs" />
     <Compile Include="ViewModels\DependencySetsViewModelFacts.cs" />
     <Compile Include="ViewModels\DisplayPackageViewModelFacts.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModelFacts.cs" />
