@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Moq;
+using NuGet.Packaging;
 using NuGetGallery.Packaging;
 using Xunit;
 
@@ -65,7 +66,13 @@ namespace NuGetGallery
             validationService = validationService ?? new Mock<IValidationService>();
             packageService = packageService ?? new Mock<IPackageService>();
             telemetryService = telemetryService ?? new Mock<ITelemetryService>();
-            contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
+            if (contentObjectService == null)
+            {
+                contentObjectService = new Mock<IContentObjectService>();
+                contentObjectService
+                    .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
+                    .Returns(true);
+            }
 
             var symbolPackageUploadService = new Mock<SymbolPackageUploadService>(
                 symbolPackageService.Object,
@@ -77,6 +84,137 @@ namespace NuGetGallery
                 contentObjectService.Object);
 
             return symbolPackageUploadService.Object;
+        }
+
+        public class TheValidateUploadedSymbolsPackage
+        {
+            [Fact]
+            public async Task WillReturnNotAllowedForAnyUser()
+            {
+                // Arrange
+                var contentObjectService = new Mock<IContentObjectService>();
+                contentObjectService
+                    .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
+                    .Returns(false);
+
+                // Act
+                var service = CreateService(contentObjectService: contentObjectService);
+                var result = await service.ValidateUploadedSymbolsPackage(new MemoryStream(), new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.UserNotAllowedToUpload, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnInvalidResultForInvalidPackage()
+            {
+                // Arrange and act
+                var service = CreateService();
+                byte[] data = new byte[100];
+                var result = await service.ValidateUploadedSymbolsPackage(new MemoryStream(data), new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.Invalid, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnMissingPackageForDeletedPackage()
+            {
+                // Arrange 
+                var packageService = new Mock<IPackageService>();
+                Package package = new Package() { PackageStatusKey = PackageStatus.Deleted };
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var service = CreateService(packageService: packageService);
+                var symbolPackage = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackage, new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.MissingPackage, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnSymbolPackageExistsForPendingValidation()
+            {
+                // Arrange 
+                var packageService = new Mock<IPackageService>();
+                Package package = new Package() { PackageStatusKey = PackageStatus.Available };
+                var symbolPackage = new SymbolPackage() { Package = package, Key = 10, StatusKey = PackageStatus.Validating };
+                package.SymbolPackages.Add(symbolPackage);
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var service = CreateService(packageService: packageService);
+                var symbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.SymbolsPackageExists, result.Type);
+            }
+
+            [Fact]
+            public async Task WillReturnInvalidWhenSynchronousSymbolValidationsFailAndTrackTelemetry()
+            {
+                // Arrange 
+                Package package = new Package() { PackageStatusKey = PackageStatus.Available };
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                    .ThrowsAsync(new InvalidPackageException("invalid package"));
+                var telemetryService = new Mock<ITelemetryService>();
+
+                var service = CreateService(packageService: packageService, symbolPackageService: symbolPackageService, telemetryService: telemetryService);
+                var symbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.Equal(SymbolPackageValidationResultType.Invalid, result.Type);
+                telemetryService
+                    .Verify(x => x.TrackSymbolPackageFailedGalleryValidationEvent(It.IsAny<string>(), It.IsAny<string>()), 
+                        times: Times.Once);
+            }
+
+            [Fact]
+            public async Task WillReturnAcceptedForValidPackage()
+            {
+                // Arrange 
+                Package package = new Package() { PackageStatusKey = PackageStatus.Available };
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(x => x.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.EnsureValidAsync(It.IsAny<PackageArchiveReader>()))
+                    .Completes();
+
+                var service = CreateService(packageService: packageService, symbolPackageService: symbolPackageService);
+                var symbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42");
+
+                // Act
+                var result = await service.ValidateUploadedSymbolsPackage(symbolPackageStream, new User());
+
+                // Assert
+                Assert.NotNull(result);
+                Assert.NotNull(result.Package);
+                Assert.Equal(SymbolPackageValidationResultType.Accepted, result.Type);
+            }
         }
 
         public class TheCreateAndUploadSymbolsPackageMethod
@@ -163,12 +301,13 @@ namespace NuGetGallery
             {
                 // Arrange
                 var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                var telemetryService = new Mock<ITelemetryService>();
                 symbolPackageFileService
                     .Setup(x => x.SavePackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>(), It.IsAny<bool>()))
                     .Completes()
                     .Verifiable();
 
-                var service = CreateService(symbolPackageFileService: symbolPackageFileService);
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService, telemetryService: telemetryService);
                 var package = new Package()
                 {
                     PackageRegistration = new PackageRegistration() { Id = "TheId" },
@@ -196,6 +335,7 @@ namespace NuGetGallery
                 Assert.Equal(PackageStatus.Deleted, existingAvailableSymbolPackage.StatusKey);
                 Assert.Equal(PackageStatus.Deleted, existingDeletedSymbolPackage.StatusKey);
                 symbolPackageFileService.Verify(x => x.SavePackageFileAsync(package, It.IsAny<Stream>(), true), Times.Once);
+                telemetryService.Verify(x => x.TrackSymbolPackagePushEvent(package.PackageRegistration.Id, package.NormalizedVersion), Times.Once);
                 Assert.NotNull(result);
                 Assert.Equal(PackageCommitResult.Success, result);
             }

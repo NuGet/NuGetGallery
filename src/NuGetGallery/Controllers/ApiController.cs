@@ -493,7 +493,7 @@ namespace NuGetGallery
                 {
                     try
                     {
-                        if (packageStream.FoundEntryInFuture(out ZipArchiveEntry entryInTheFuture))
+                        if (ZipArchiveHelpers.FoundEntryInFuture(packageStream, out ZipArchiveEntry entryInTheFuture))
                         {
                             return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest, string.Format(
                                 CultureInfo.CurrentCulture,

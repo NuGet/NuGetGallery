@@ -61,7 +61,7 @@ namespace NuGetGallery
 
             try
             {
-                if (symbolPackageStream.FoundEntryInFuture(out ZipArchiveEntry entryInTheFuture))
+                if (ZipArchiveHelpers.FoundEntryInFuture(symbolPackageStream, out ZipArchiveEntry entryInTheFuture))
                 {
                     return SymbolPackageValidationResult.Invalid(string.Format(
                         CultureInfo.CurrentCulture,
