@@ -218,6 +218,216 @@ namespace NuGetGallery
 
         public class TheCreateSymbolPackageAction : TestContainer
         {
+            [Fact]
+            public async Task CreateSymbolPackage_ReturnsFailedActionWhenValidationFails()
+            {
+                // Arrange
+                var controller = new TestableApiController(GetConfigurationService());
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.Invalid("Invalid symbol package"));
+
+                var user = new User("test") { Key = 1 };
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                Assert.NotNull(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_UnauthorizedUserWillGet403()
+            {
+                // Arrange	
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                var packageId = "theId";
+                var version = "1.0.42";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId
+                    },
+                    Version = version
+                };
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+                var owner = new User("owner") { Key = 2, EmailAddress = "org@confirmed.com" };
+                Expression<Func<IApiScopeEvaluator, ApiScopeEvaluationResult>> evaluateApiScope =
+                    x => x.Evaluate(
+                        user,
+                        It.IsAny<IEnumerable<Scope>>(),
+                        ActionsRequiringPermissions.UploadSymbolPackage,
+                        It.IsAny<PackageRegistration>(),
+                        NuGetScopes.PackagePushVersion,
+                        NuGetScopes.PackagePush);
+                controller.MockApiScopeEvaluator
+                   .Setup(evaluateApiScope)
+                   .Returns(new ApiScopeEvaluationResult(owner, PermissionsCheckResult.AccountFailure, scopesAreValid: false));
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Unauthorized);
+                controller.AuditingService.WroteRecord<FailedAuthenticatedOperationAuditRecord>(
+                   (record) =>
+                   {
+                       return
+                           record.UsernameOrEmail == user.Username &&
+                           record.Action == AuditedAuthenticatedOperationAction.SymbolsPackagePushAttemptByNonOwner &&
+                           record.AttemptedPackage.Id == packageId &&
+                           record.AttemptedPackage.Version == version;
+                   });
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_ReturnsConflictWhenUploadingDuplicateSymbolsPackage()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                var packageId = "theId";
+                var version = "1.0.42";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId
+                    },
+                    Version = version
+                };
+
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.CreateAndUploadSymbolsPackage(package, It.IsAny<Stream>()))
+                    .ReturnsAsync(PackageCommitResult.Conflict);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Conflict);
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_CreatesSymbolPackageAndWritesAudit()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+                var packageId = "theId";
+                var version = "1.0.42";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId
+                    },
+                    Version = version
+                };
+
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+                controller
+                    .MockSymbolPackageUploadService
+                    .Setup(x => x.CreateAndUploadSymbolsPackage(package, It.IsAny<Stream>()))
+                    .ReturnsAsync(PackageCommitResult.Success);
+
+                // Act
+                ActionResult result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Created);
+                controller.AuditingService.WroteRecord<PackageAuditRecord>(
+                   (record) =>
+                   {
+                       return
+                           record.Action == AuditedPackageAction.SymbolsCreate &&
+                           record.RegistrationRecord.Id == packageId &&
+                           record.PackageRecord.Version == version;
+                   });
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillTraceFailureToPushEvent()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockSymbolPackageUploadService
+                   .Setup(x => x.ValidateUploadedSymbolsPackage(
+                       It.IsAny<Stream>(), It.IsAny<User>()))
+                   .ThrowsAsync(new SymbolsTestException("Test exception."));
+
+                // Act
+                var exception = await Assert.ThrowsAsync<SymbolsTestException>(() => controller.CreateSymbolPackagePutAsync());
+
+                // Assert
+                controller.MockTelemetryService.Verify(
+                   x => x.TrackSymbolPackagePushFailureEvent(It.IsAny<string>(), It.IsAny<string>()),
+                   Times.Once());
+            }
+
+            [Fact]
+            public async Task CreateSymbolPackage_WillReturnBadRequestForInvalidPackage()
+            {
+                // Arrange
+                var user = new User() { EmailAddress = "confirmed@email.com" };
+                var controller = new TestableApiController(GetConfigurationService());
+                controller.SetCurrentUser(user);
+
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = "TheId"
+                    },
+                    Version = "1.0.42",
+                    SymbolPackages = new HashSet<SymbolPackage>()
+                };
+
+                controller.MockSymbolPackageUploadService
+                   .Setup(x => x.ValidateUploadedSymbolsPackage(
+                       It.IsAny<Stream>(), It.IsAny<User>()))
+                   .ThrowsAsync(new InvalidPackageException("Test exception."));
+
+                // Act
+                var result = await controller.CreateSymbolPackagePutAsync();
+
+                // Assert
+                Assert.NotNull(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
         }
 
         public class TheCreatePackageAction
