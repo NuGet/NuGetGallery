@@ -144,8 +144,11 @@ namespace NuGetGallery
         public virtual JsonResult UploadPackageProgress()
         {
             string username = User.Identity.Name;
+            string uploadTracingKey = UploadHelper.GetUploadTracingKey(Request.Headers);
 
-            AsyncFileUploadProgress progress = _cacheService.GetProgress(username);
+            var uploadKey = username + uploadTracingKey;
+
+            AsyncFileUploadProgress progress = _cacheService.GetProgress(uploadKey);
             if (progress == null)
             {
                 return Json(HttpStatusCode.NotFound, null, JsonRequestBehavior.AllowGet);
@@ -232,6 +235,8 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
 
+            string uploadTracingKey = UploadHelper.GetUploadTracingKey(Request.Headers);
+
             using (var existingUploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (existingUploadFile != null)
@@ -278,7 +283,9 @@ namespace NuGetGallery
                 }
                 finally
                 {
-                    _cacheService.RemoveProgress(currentUser.Username);
+                    var username = currentUser.Username;
+                    var uploadKey = username + uploadTracingKey;
+                    _cacheService.RemoveProgress(uploadKey);
                 }
             }
         }
