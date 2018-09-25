@@ -318,6 +318,38 @@ namespace NuGetGallery
             Assert.Equal("microsoft_netframework_v1", typosquattingCheckCollisionIds[0]);
         }
 
+        [Fact]
+        public void CheckTelemetryServiceLogOriginalUploadedPackageId()
+        {
+            // Arrange
+            var uploadedPackageId = "microsoft_netframework.v1";
+            var newService = new TyposquattingService(_contentObjectService.Object, _packageService.Object, _reservedNamespaceService.Object, _telemetryService.Object);
+
+            // Act
+            var typosquattingCheckResult = newService.IsUploadedPackageIdTyposquatting(uploadedPackageId, _uploadedPackageOwner, out List<string> typosquattingCheckCollisionIds);
+
+            // Assert
+            _telemetryService.Verify(
+                x => x.TrackMetricForTyposquattingChecklistRetrievalTime(uploadedPackageId, It.IsAny<TimeSpan>()),
+                Times.Once);
+
+            _telemetryService.Verify(
+                x => x.TrackMetricForTyposquattingAlgorithmProcessingTime(uploadedPackageId, It.IsAny<TimeSpan>()),
+                Times.Once);
+
+            _telemetryService.Verify(
+                x => x.TrackMetricForTyposquattingCheckResultAndTotalTime(
+                    uploadedPackageId,
+                    It.IsAny<TimeSpan>(),
+                    It.IsAny<bool>(),
+                    It.IsAny<List<string>>(),
+                    It.IsAny<int>()),
+                Times.Once);
+
+            _telemetryService.Verify(
+                x => x.TrackMetricForTyposquattingOwnersCheckTime(uploadedPackageId, It.IsAny<TimeSpan>()),
+                Times.Once);
+        }
         
         [Theory]
         [InlineData("Microsoft_NetFramework_v1", "Microsoft.NetFramework.v1", 0)]
