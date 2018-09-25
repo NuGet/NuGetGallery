@@ -6,7 +6,7 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;User ID=$$Prod-GalleryDBReadOnly-UserName$$;Password=$$Prod-GalleryDBReadOnly-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=ArchivePackages;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.GalleryDbReader.ClientId};AadCertificate=$$prod-gallerydb-reader$$"
   },
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",

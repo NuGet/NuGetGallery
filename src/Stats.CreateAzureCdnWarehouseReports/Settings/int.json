@@ -9,11 +9,11 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;User ID=$$Int-GalleryDBReadOnly-UserName$$;Password=$$Int-GalleryDBReadOnly-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Stats.CreateAzureCdnWarehouseReports;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.GalleryDbReader.ClientId};AadCertificate=$$int-gallerydb-reader$$"
   },
 
   "StatisticsDb": {
-    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.StatisticsDatabaseAddress};Initial Catalog=nuget-int-statistics;User ID=$$Int-StatisticsDBWriter-UserName$$;Password=$$Int-StatisticsDBWriter-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.StatisticsDatabaseAddress};Initial Catalog=nuget-int-statistics;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Stats.CreateAzureCdnWarehouseReports;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.StatisticsDbWriter.ClientId};AadCertificate=$$int-statisticsdb-writer$$"
   },
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
