@@ -43,7 +43,6 @@ namespace NuGetGallery
         public IContentService ContentService { get; set; }
         public ISearchService SearchService { get; set; }
         public IIndexingService IndexingService { get; set; }
-        public IAutomaticallyCuratePackageCommand AutoCuratePackage { get; set; }
         public IStatusService StatusService { get; set; }
         public IMessageService MessageService { get; set; }
         public IAuditingService AuditingService { get; set; }
@@ -72,7 +71,6 @@ namespace NuGetGallery
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IMessageService messageService,
             IAuditingService auditingService,
@@ -95,7 +93,6 @@ namespace NuGetGallery
             ContentService = contentService;
             IndexingService = indexingService;
             SearchService = searchService;
-            AutoCuratePackage = autoCuratePackage;
             StatusService = statusService;
             MessageService = messageService;
             AuditingService = auditingService;
@@ -120,7 +117,6 @@ namespace NuGetGallery
             IContentService contentService,
             IIndexingService indexingService,
             ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratePackage,
             IStatusService statusService,
             IStatisticsService statisticsService,
             IMessageService messageService,
@@ -136,7 +132,7 @@ namespace NuGetGallery
             ISymbolPackageFileService symbolPackageFileService,
             ISymbolPackageUploadService symbolPackageUploadServivce)
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
-                  indexingService, searchService, autoCuratePackage, statusService, messageService, auditingService,
+                  indexingService, searchService, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
                   reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService, 
                   symbolPackageUploadServivce)
@@ -655,8 +651,6 @@ namespace NuGetGallery
                             {
                                 return afterValidationActionResult;
                             }
-
-                            await AutoCuratePackage.ExecuteAsync(package, packageToPush, commitChanges: false);
 
                             PackageCommitResult commitResult;
                             using (Stream uploadStream = packageStream)

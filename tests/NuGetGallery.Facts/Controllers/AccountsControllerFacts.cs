@@ -54,42 +54,6 @@ namespace NuGetGallery
 
         public abstract class TheAccountBaseAction : AccountsControllerTestContainer
         {
-
-            [Theory]
-            [MemberData(AllowedCurrentUsersDataName)]
-            public void WillGetCuratedFeedsManagedByTheCurrentUser(Func<Fakes, User> getCurrentUser)
-            {
-                // Arrange
-                var controller = GetController<TAccountsController>();
-                var account = GetAccount(controller);
-
-                // Act
-                InvokeAccountInternal(controller, getCurrentUser);
-
-                // Assert
-                GetMock<ICuratedFeedService>()
-                    .Verify(query => query.GetFeedsForManager(account.Key));
-            }
-
-            [Theory]
-            [MemberData(AllowedCurrentUsersDataName)]
-            public void WillReturnTheAccountViewModelWithTheCuratedFeeds(Func<Fakes, User> getCurrentUser)
-            {
-                // Arrange
-                var controller = GetController<TAccountsController>();
-                var account = GetAccount(controller);
-                GetMock<ICuratedFeedService>()
-                    .Setup(stub => stub.GetFeedsForManager(account.Key))
-                    .Returns(new[] { new CuratedFeed { Name = "theCuratedFeed" } });
-
-                // Act
-                var result = InvokeAccountInternal(controller, getCurrentUser);
-
-                // Assert
-                var model = ResultAssert.IsView<TAccountViewModel>(result, viewName: controller.AccountAction);
-                Assert.Equal("theCuratedFeed", model.CuratedFeeds.First());
-            }
-
             protected abstract ActionResult InvokeAccount(TAccountsController controller);
 
             private ActionResult InvokeAccountInternal(TAccountsController controller, Func<Fakes, User> getCurrentUser)

@@ -1,11 +1,9 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace NuGetGallery
 {
@@ -19,94 +17,9 @@ namespace NuGetGallery
         }
 
         public CuratedFeedService(
-            IEntityRepository<CuratedFeed> curatedFeedRepository,
-            IEntityRepository<CuratedPackage> curatedPackageRepository)
+            IEntityRepository<CuratedFeed> curatedFeedRepository)
         {
             CuratedFeedRepository = curatedFeedRepository;
-            CuratedPackageRepository = curatedPackageRepository;
-        }
-
-        public async Task<CuratedPackage> CreatedCuratedPackageAsync(
-            CuratedFeed curatedFeed,
-            PackageRegistration packageRegistration,
-            bool included = false,
-            bool automaticallyCurated = false,
-            string notes = null,
-            bool commitChanges = true)
-        {
-            if (curatedFeed == null)
-            {
-                throw new ArgumentNullException(nameof(curatedFeed));
-            }
-
-            if (packageRegistration == null)
-            {
-                throw new ArgumentNullException(nameof(packageRegistration));
-            }
-
-            var curatedPackage = curatedFeed.Packages
-                .SingleOrDefault(cp => cp.PackageRegistrationKey == packageRegistration.Key);
-
-            if (curatedPackage == null)
-            {
-                curatedPackage = new CuratedPackage
-                {
-                    PackageRegistration = packageRegistration,
-                    Included = included,
-                    AutomaticallyCurated = automaticallyCurated,
-                    Notes = notes,
-                };
-
-                curatedFeed.Packages.Add(curatedPackage);
-            }
-
-            if (commitChanges)
-            {
-                await CuratedFeedRepository.CommitChangesAsync();
-            }
-
-            return curatedPackage;
-        }
-
-        public async Task DeleteCuratedPackageAsync(
-            int curatedFeedKey,
-            int curatedPackageKey)
-        {
-            var curatedFeed = GetFeedByKey(curatedFeedKey, includePackages: true);
-            if (curatedFeed == null)
-            {
-                throw new InvalidOperationException("The curated feed does not exist.");
-            }
-
-            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.Key == curatedPackageKey);
-            if (curatedPackage == null)
-            {
-                throw new InvalidOperationException("The curated package does not exist.");
-            }
-
-            CuratedPackageRepository.DeleteOnCommit(curatedPackage);
-            await CuratedPackageRepository.CommitChangesAsync();
-        }
-
-        public async Task ModifyCuratedPackageAsync(
-            int curatedFeedKey,
-            int curatedPackageKey,
-            bool included)
-        {
-            var curatedFeed = GetFeedByKey(curatedFeedKey, includePackages: true);
-            if (curatedFeed == null)
-            {
-                throw new InvalidOperationException("The curated feed does not exist.");
-            }
-
-            var curatedPackage = curatedFeed.Packages.SingleOrDefault(cp => cp.Key == curatedPackageKey);
-            if (curatedPackage == null)
-            {
-                throw new InvalidOperationException("The curated package does not exist.");
-            }
-
-            curatedPackage.Included = included;
-            await CuratedFeedRepository.CommitChangesAsync();
         }
 
         public CuratedFeed GetFeedByName(string name, bool includePackages)
@@ -137,12 +50,6 @@ namespace NuGetGallery
 
             return query
                 .SingleOrDefault(cf => cf.Key == key);
-        }
-
-        public IEnumerable<CuratedFeed> GetFeedsForManager(int managerKey)
-        {
-            return CuratedFeedRepository.GetAll()
-                .Where(cf => cf.Managers.Any(u => u.Key == managerKey));
         }
 
         public IQueryable<Package> GetPackages(string curatedFeedName)

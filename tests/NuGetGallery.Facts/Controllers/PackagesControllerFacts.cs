@@ -46,7 +46,6 @@ namespace NuGetGallery
             Stream fakeNuGetPackage = null,
             Mock<ISearchService> searchService = null,
             Exception readPackageException = null,
-            Mock<IAutomaticallyCuratePackageCommand> autoCuratePackageCmd = null,
             Mock<IPackageFileService> packageFileService = null,
             Mock<IEntitiesContext> entitiesContext = null,
             Mock<IIndexingService> indexingService = null,
@@ -74,7 +73,6 @@ namespace NuGetGallery
             userService = userService ?? new Mock<IUserService>();
             messageService = messageService ?? new Mock<IMessageService>();
             searchService = searchService ?? new Mock<ISearchService>();
-            autoCuratePackageCmd = autoCuratePackageCmd ?? new Mock<IAutomaticallyCuratePackageCommand>();
 
             if (packageFileService == null)
             {
@@ -148,7 +146,6 @@ namespace NuGetGallery
                 userService.Object,
                 messageService.Object,
                 searchService.Object,
-                autoCuratePackageCmd.Object,
                 packageFileService.Object,
                 entitiesContext.Object,
                 configurationService.Current,
@@ -5165,45 +5162,6 @@ namespace NuGetGallery
                     Assert.Equal(
                         "{ location = /?id=" + PackageId + " }",
                         result.Data.ToString());
-                }
-            }
-
-            [Fact]
-            public async Task WillCurateThePackage()
-            {
-                var fakeUploadFileService = new Mock<IUploadFileService>();
-                using (var fakeFileStream = new MemoryStream())
-                {
-                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                    fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
-                    var fakePackage = new Package { PackageRegistration = new PackageRegistration { Id = PackageId, Owners = new[] { TestUtility.FakeUser } }, Version = PackageVersion };
-                    fakePackageUploadService
-                        .Setup(x => x.GeneratePackageAsync(
-                            It.IsAny<string>(),
-                            It.IsAny<PackageArchiveReader>(),
-                            It.IsAny<PackageStreamMetadata>(),
-                            It.IsAny<User>(),
-                            It.IsAny<User>()))
-                        .Returns(Task.FromResult(fakePackage));
-                    var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
-
-                    var fakeUserService = new Mock<IUserService>();
-                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
-
-                    var fakeAutoCuratePackageCmd = new Mock<IAutomaticallyCuratePackageCommand>();
-                    var controller = CreateController(
-                        GetConfigurationService(),
-                        packageUploadService: fakePackageUploadService,
-                        uploadFileService: fakeUploadFileService,
-                        fakeNuGetPackage: fakeNuGetPackage,
-                        autoCuratePackageCmd: fakeAutoCuratePackageCmd,
-                        userService: fakeUserService);
-                    controller.SetCurrentUser(TestUtility.FakeUser);
-
-                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = false, Owner = TestUtility.FakeUser.Username });
-
-                    fakeAutoCuratePackageCmd.Verify(fake => fake.ExecuteAsync(fakePackage, It.IsAny<PackageArchiveReader>(), false));
                 }
             }
 

@@ -66,7 +66,6 @@ namespace NuGetGallery
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
 
-        private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
@@ -95,7 +94,6 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
@@ -118,7 +116,6 @@ namespace NuGetGallery
             _userService = userService;
             _messageService = messageService;
             _searchService = searchService;
-            _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
             _config = config;
@@ -1684,8 +1681,6 @@ namespace NuGetGallery
                     {
                         await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
                     }
-
-                    await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
 
                     // Commit the package to storage and to the database.
                     uploadFile.Position = 0;

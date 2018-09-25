@@ -30,7 +30,6 @@ namespace NuGetGallery
         private readonly ISupportRequestService _supportRequestService;
 
         public UsersController(
-            ICuratedFeedService feedsQuery,
             IUserService userService,
             IPackageService packageService,
             IPackageOwnerRequestService packageOwnerRequestService,
@@ -46,7 +45,6 @@ namespace NuGetGallery
             IContentObjectService contentObjectService)
             : base(
                   authService,
-                  feedsQuery,
                   packageService,
                   messageService,
                   userService,
