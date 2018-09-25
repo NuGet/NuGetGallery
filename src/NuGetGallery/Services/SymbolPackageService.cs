@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGetGallery.Packaging;
-using ClientPackageType = NuGet.Packaging.Core.PackageType;
 
 namespace NuGetGallery
 {
@@ -26,8 +25,6 @@ namespace NuGetGallery
             ".rels",
             ".p7s"
         };
-        private const string SymbolPackageTypeName = "SymbolsPackage";
-        private static readonly ClientPackageType SymbolPackageType = new ClientPackageType(SymbolPackageTypeName, ClientPackageType.EmptyVersion);
 
         public SymbolPackageService(
             IEntityRepository<SymbolPackage> symbolPackageRepository,
@@ -62,7 +59,7 @@ namespace NuGetGallery
                     symbolPackageArchiveReader.GetNuspecReader(),
                     strict: true);
 
-                if (!IsSymbolPackage(packageMetadata))
+                if (!packageMetadata.IsSymbolPackage())
                 {
                     throw new InvalidPackageException(Strings.SymbolsPackage_NotSymbolPackage);
                 }
@@ -171,14 +168,6 @@ namespace NuGetGallery
             }
 
             return true;
-        }
-
-        private static bool IsSymbolPackage(PackageMetadata metadata)
-        {
-            var packageTypes = metadata.GetPackageTypes();
-            return packageTypes.Any()
-                && packageTypes.Count() == 1
-                && packageTypes.First() == SymbolPackageType;
         }
 
         private static bool IsPortable(string pdbFile)

@@ -292,6 +292,7 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
@@ -400,6 +401,7 @@
     <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingService.cs" />
+    <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
