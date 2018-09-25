@@ -290,25 +290,6 @@ namespace NuGetGallery
             }
         }
 
-        private JsonResult FailedToReadFile(Exception ex)
-        {
-            ex.Log();
-
-            var message = Strings.FailedToReadUploadFile;
-            if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
-            {
-                message = ex.Message;
-            }
-
-            return Json(HttpStatusCode.BadRequest, new[] { message });
-        }
-
-        private async Task<JsonResult> UploadSymbolsPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream)
-        {
-            // Setup protocol with SymbolPackageUploadService to process symbol package.
-            return await Task.FromResult(new JsonResult());
-        }
-
         private async Task<JsonResult> UploadPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
         {
             var currentUser = GetCurrentUser();
@@ -340,10 +321,6 @@ namespace NuGetGallery
             catch (Exception ex)
             {
                 return FailedToReadFile(ex);
-            }
-            finally
-            {
-                _cacheService.RemoveProgress(currentUser.Username);
             }
 
             // Check min client version
@@ -1967,6 +1944,19 @@ namespace NuGetGallery
             await _packageService.SetRequiredSignerAsync(packageRegistration, signer);
 
             return Json(HttpStatusCode.OK);
+        }
+
+        private JsonResult FailedToReadFile(Exception ex)
+        {
+            ex.Log();
+
+            var message = Strings.FailedToReadUploadFile;
+            if (ex is InvalidPackageException || ex is InvalidDataException || ex is EntityException)
+            {
+                message = ex.Message;
+            }
+
+            return Json(HttpStatusCode.BadRequest, new[] { message });
         }
 
         // this method exists to make unit testing easier

@@ -1039,7 +1039,7 @@ namespace NuGetGallery
                     httpStatusCode = HttpStatusCode.Unauthorized;
                     break;
                 default:
-                    throw new NotImplementedException($"The package validation result type {validationResult.Type} is not supported.");
+                    throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");
             }
 
             return new HttpStatusCodeWithBodyResult(httpStatusCode, validationResult.Message);
