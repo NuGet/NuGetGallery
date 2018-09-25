@@ -7,7 +7,7 @@
   },
 
   "SupportRequestDb": {
-    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.SupportRequestDatabaseAddress};Initial Catalog=nuget-dev-supportrequest;User ID=$$Dev-SupportRequestDBWriter-UserName$$;Password=$$Dev-SupportRequestDBWriter-Password$$;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+    "ConnectionString": "Data Source=tcp:#{Deployment.Azure.Sql.SupportRequestDatabaseAddress};Initial Catalog=nuget-dev-supportrequest;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=SupportRequests.Notifications;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.SupportDbReader.ClientId};AadCertificate=$$dev-supportdb-reader$$"
   },
 
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
