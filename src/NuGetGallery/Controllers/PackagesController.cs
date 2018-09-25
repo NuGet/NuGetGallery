@@ -59,8 +59,7 @@ namespace NuGetGallery
 
         private static readonly IReadOnlyCollection<string> AllowedPackageExtentions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            CoreConstants.NuGetPackageFileExtension,
-            CoreConstants.NuGetSymbolPackageFileExtension
+            CoreConstants.NuGetPackageFileExtension
         };
 
         // TODO: add support for URL-based package submission
