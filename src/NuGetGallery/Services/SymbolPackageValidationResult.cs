@@ -36,7 +36,7 @@ namespace NuGetGallery
         /// <summary>
         /// There is a symbols package already present, pending validations.
         /// </summary>
-        SymbolsPackageExists
+        SymbolsPackagePendingValidation
     }
 
     public class SymbolPackageValidationResult
@@ -101,7 +101,7 @@ namespace NuGetGallery
         public static SymbolPackageValidationResult SymbolsPackageExists(string message)
         {
             return new SymbolPackageValidationResult(
-                SymbolPackageValidationResultType.SymbolsPackageExists,
+                SymbolPackageValidationResultType.SymbolsPackagePendingValidation,
                 message: message);
         }
     }

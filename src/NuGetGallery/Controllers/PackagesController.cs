@@ -274,7 +274,6 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, errorStrings.ToArray());
                     }
 
-                    // The uploadStream should be disposed by the caller below after saving the upload file.
                     return await UploadPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
                 }
                 catch (Exception ex)
@@ -299,19 +298,11 @@ namespace NuGetGallery
             // If the current user doesn't have the rights to upload the package, the package upload will be rejected by submitting the form.
             // Related: https://github.com/NuGet/NuGetGallery/issues/5043
             IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
-
-            using (var archive = new ZipArchive(uploadStream, ZipArchiveMode.Read, leaveOpen: true))
+            var foundEntryInFuture = ZipArchiveHelpers.FoundEntryInFuture(uploadStream, out var entryInTheFuture);
+            if (foundEntryInFuture)
             {
-                var reference = DateTime.UtcNow.AddDays(1); // allow "some" clock skew
-
-                var entryInTheFuture = archive.Entries.FirstOrDefault(
-                    e => e.LastWriteTime.UtcDateTime > reference);
-
-                if (entryInTheFuture != null)
-                {
-                    return Json(HttpStatusCode.BadRequest, new[] {
-                            string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name) });
-                }
+                return Json(HttpStatusCode.BadRequest, new[] {
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageEntryFromTheFuture, entryInTheFuture.Name) });
             }
 
             try
@@ -403,7 +394,6 @@ namespace NuGetGallery
             }
 
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
-            uploadStream.Dispose();
 
             IReadOnlyList<string> warnings;
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))

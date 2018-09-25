@@ -1032,7 +1032,7 @@ namespace NuGetGallery
                 case SymbolPackageValidationResultType.MissingPackage:
                     httpStatusCode = HttpStatusCode.NotFound;
                     break;
-                case SymbolPackageValidationResultType.SymbolsPackageExists:
+                case SymbolPackageValidationResultType.SymbolsPackagePendingValidation:
                     httpStatusCode = HttpStatusCode.Conflict;
                     break;
                 case SymbolPackageValidationResultType.UserNotAllowedToUpload:

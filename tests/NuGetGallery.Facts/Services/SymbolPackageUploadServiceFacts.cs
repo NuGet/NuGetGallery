@@ -158,7 +158,7 @@ namespace NuGetGallery
 
                 // Assert
                 Assert.NotNull(result);
-                Assert.Equal(SymbolPackageValidationResultType.SymbolsPackageExists, result.Type);
+                Assert.Equal(SymbolPackageValidationResultType.SymbolsPackagePendingValidation, result.Type);
             }
 
             [Fact]

@@ -10,6 +10,14 @@ namespace NuGetGallery
 {
     public static class ZipArchiveHelpers
     {
+        /// <summary>
+        /// This method checks all the <see cref="ZipArchiveEntry"/> in a given 
+        /// <see cref="Stream"/> if it has the entry in the future. It will return
+        /// the first entry found in the future.
+        /// </summary>
+        /// <param name="stream"><see cref="Stream"/> object to verify</param>
+        /// <param name="entry"><see cref="ZipArchiveEntry"/> found with future entry.</param>
+        /// <returns>True if <see cref="Stream"/> contains an entry in future, false otherwise.</returns>
         public static bool FoundEntryInFuture(Stream stream, out ZipArchiveEntry entry)
         {
             entry = null;
