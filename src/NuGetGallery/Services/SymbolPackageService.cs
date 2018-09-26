@@ -59,7 +59,7 @@ namespace NuGetGallery
                     symbolPackageArchiveReader.GetNuspecReader(),
                     strict: true);
 
-                if (!packageMetadata.IsSymbolPackage())
+                if (!packageMetadata.IsSymbolsPackage())
                 {
                     throw new InvalidPackageException(Strings.SymbolsPackage_NotSymbolPackage);
                 }
