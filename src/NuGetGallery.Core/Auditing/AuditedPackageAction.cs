@@ -15,6 +15,8 @@ namespace NuGetGallery.Auditing
         Edit,
         [Obsolete("Undo package edit functionality is being retired.")]
         UndoEdit,
-        Verify
+        Verify,
+        SymbolsCreate,
+        SymbolsDelete
     }
 }

@@ -618,7 +618,7 @@
                         </a>
                     </li>
                 }
-                @if (!Model.Deleted && PackageHelper.ShouldRenderUrl(Model.LicenseUrl))
+                @if (!Model.Deleted && Model.LicenseUrl != null)
                 {
                     <li>
                         <i class="ms-Icon ms-Icon--Certificate" aria-hidden="true"></i>

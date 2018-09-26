@@ -19,7 +19,9 @@ namespace NuGetGallery.Auditing
                 "SoftDelete",
                 "Unlist",
                 "UndoEdit",
-                "Verify"
+                "Verify",
+                "SymbolsCreate",
+                "SymbolsDelete"
             };
 
             Verify(typeof(AuditedPackageAction), expectedNames);

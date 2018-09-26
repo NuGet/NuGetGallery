@@ -10,7 +10,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
 {
     public class ValidatedPackageViewModel
     {
-        public ValidatedPackageViewModel(IReadOnlyList<PackageValidationSet> validationSets, PackageDeletedStatus deletedStatus)
+        public ValidatedPackageViewModel(IReadOnlyList<PackageValidationSet> validationSets, PackageDeletedStatus deletedStatus, ValidatingType validatingType)
         {
             var first = validationSets.First();
             PackageKey = first.PackageKey;
@@ -18,6 +18,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
             NormalizedVersion = first.PackageNormalizedVersion;
             DeletedStatus = deletedStatus;
             ValidationSets = validationSets;
+            ValidatingType = validatingType;
         }
 
         public int PackageKey { get; }
@@ -25,5 +26,7 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public string NormalizedVersion { get; }
         public PackageDeletedStatus DeletedStatus { get; }
         public IReadOnlyList<PackageValidationSet> ValidationSets { get; }
+
+        public ValidatingType ValidatingType { get; }
     }
 }

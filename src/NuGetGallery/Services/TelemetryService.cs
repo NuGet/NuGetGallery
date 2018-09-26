@@ -55,6 +55,10 @@ namespace NuGetGallery
             public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
             public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
+            public const string TyposquattingCheckResultAndTotalTimeInMs = "TyposquattingCheckResultAndTotalTimeInMs";
+            public const string TyposquattingChecklistRetrievalTimeInMs = "TyposquattingChecklistRetrievalTimeInMs";
+            public const string TyposquattingAlgorithmProcessingTimeInMs = "TyposquattingAlgorithmProcessingTimeInMs";
+            public const string TyposquattingOwnersCheckTimeInMs = "TyposquattingOwnersCheckTimeInMs";
         }
 
         private IDiagnosticsSource _diagnosticsSource;
@@ -65,7 +69,7 @@ namespace NuGetGallery
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.None
         };
-
+        
         // ODataQueryFilter properties
         public const string CallContext = "CallContext";
         public const string IsEnabled = "IsEnabled";
@@ -131,6 +135,14 @@ namespace NuGetGallery
         public const string ComplianceWarnings = "ComplianceWarnings";
 
         public const string ValueUnknown = "Unknown";
+
+        // Typosquatting check properties
+        private const int TyposquattingCollisionIdsMaxPropertyValue = 10;
+        public const string WasUploadBlocked = "WasUploadBlocked";
+        public const string CollisionPackageIds = "CollisionPackageIds";
+        public const string CollisionPackageIdsCount = "CollisionPackageIdsCount";
+        public const string CheckListLength = "CheckListLength";
+        public const string HasExtraCollisionPackageIds = "HasExtraCollisionPackageIds";
 
         public TelemetryService(IDiagnosticsService diagnosticsService, ITelemetryClient telemetryClient = null)
         {
@@ -679,6 +691,44 @@ namespace NuGetGallery
                 { "attempt", attemptNumber.ToString() }
             };
             _telemetryClient.TrackDependency("SMTP", smtpUri, "SendMessage", null, startTime, duration, null, success, properties);
+        }
+
+        public void TrackMetricForTyposquattingCheckResultAndTotalTime(
+            string packageId,
+            TimeSpan totalTime,
+            bool wasUploadBlocked,
+            List<string> collisionPackageIds,
+            int checklistLength)
+        {
+            TrackMetric(Events.TyposquattingCheckResultAndTotalTimeInMs, totalTime.TotalMilliseconds, properties => {
+                properties.Add(PackageId, packageId);
+                properties.Add(WasUploadBlocked, wasUploadBlocked.ToString());
+                properties.Add(CollisionPackageIds, string.Join(",", collisionPackageIds.Take(TyposquattingCollisionIdsMaxPropertyValue)));
+                properties.Add(CollisionPackageIdsCount, collisionPackageIds.Count.ToString());
+                properties.Add(CheckListLength, checklistLength.ToString());
+                properties.Add(HasExtraCollisionPackageIds, (collisionPackageIds.Count > TyposquattingCollisionIdsMaxPropertyValue).ToString());
+            });
+        }
+
+        public void TrackMetricForTyposquattingChecklistRetrievalTime(string packageId, TimeSpan checklistRetrievalTime)
+        {
+            TrackMetric(Events.TyposquattingChecklistRetrievalTimeInMs, checklistRetrievalTime.TotalMilliseconds, properties => {
+                properties.Add(PackageId, packageId);
+            });
+        }
+
+        public void TrackMetricForTyposquattingAlgorithmProcessingTime(string packageId, TimeSpan algorithmProcessingTime)
+        {
+            TrackMetric(Events.TyposquattingAlgorithmProcessingTimeInMs, algorithmProcessingTime.TotalMilliseconds, properties => {
+                properties.Add(PackageId, packageId);
+            });
+        }
+
+        public void TrackMetricForTyposquattingOwnersCheckTime(string packageId, TimeSpan ownersCheckTime)
+        {
+            TrackMetric(Events.TyposquattingOwnersCheckTimeInMs, ownersCheckTime.TotalMilliseconds, properties => {
+                properties.Add(PackageId, packageId);
+            });
         }
 
         /// <summary>

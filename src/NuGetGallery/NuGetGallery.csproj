@@ -192,7 +192,7 @@
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowBulkRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\HardDeleteReflowRequest.cs" />
     <Compile Include="Areas\Admin\ViewModels\LockPackageViewModel.cs" />
-    <Compile Include="Areas\Admin\ViewModels\PackageValidationViewModel.cs" />
+    <Compile Include="Areas\Admin\ViewModels\ValidatedPackageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\RevalidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\ViewModels\ValidationPageViewModel.cs" />
     <Compile Include="Areas\Admin\Services\ISupportRequestService.cs" />
@@ -292,9 +292,11 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
+    <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
     <Compile Include="Helpers\RegexEx.cs" />
     <Compile Include="Helpers\RouteUrlTemplate.cs" />
+    <Compile Include="Helpers\UploadHelper.cs" />
     <Compile Include="Helpers\UriExtensions.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
@@ -398,8 +400,8 @@
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
-    <Compile Include="Services\ITyposquattingCheckService.cs" />
-    <Compile Include="Services\ITyposquattingUserService.cs" />
+    <Compile Include="Services\ITyposquattingService.cs" />
+    <Compile Include="Services\SymbolPackageValidationResult.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
@@ -509,10 +511,9 @@
     <Compile Include="Services\ReservedNamespaceService.cs" />
     <Compile Include="Services\ReadMeService.cs" />
     <Compile Include="Services\TelemetryClientWrapper.cs" />
-    <Compile Include="Services\TyposquattingCheckService.cs" />
+    <Compile Include="Services\TyposquattingService.cs" />
     <Compile Include="Services\TyposquattingDistanceCalculation.cs" />
     <Compile Include="Services\TyposquattingStringNormalization.cs" />
-    <Compile Include="Services\TyposquattingUserService.cs" />
     <Compile Include="Services\ValidationService.cs" />
     <Compile Include="Telemetry\ClientInformationTelemetryEnricher.cs" />
     <Compile Include="Telemetry\ClientTelemetryPIIProcessor.cs" />

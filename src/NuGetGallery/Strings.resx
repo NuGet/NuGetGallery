@@ -157,7 +157,7 @@
     <value>A package file is required.</value>
   </data>
   <data name="UploadFileMustBeNuGetPackage" xml:space="preserve">
-    <value>The file must be a .nupkg file.</value>
+    <value>The file must be a .nupkg or .snupkg file.</value>
   </data>
   <data name="SuccessfullyUploadedPackage" xml:space="preserve">
     <value>You successfully uploaded {0} {1}.</value>
@@ -988,5 +988,9 @@ Policy violations: {0}</value>
   </data>
   <data name="UploadPackage_PackageContainsTooManyEntries" xml:space="preserve">
     <value>The package contains too many files and/or folders.</value>
+  </data>
+  <data name="TyposquattingCheckFails" xml:space="preserve">
+    <value>The uploaded package's id is too similar to the already existing packages: {0} </value>
+    <comment>{0} is the existing collision Ids compared with the uploaded package Id.</comment>
   </data>
 </root>

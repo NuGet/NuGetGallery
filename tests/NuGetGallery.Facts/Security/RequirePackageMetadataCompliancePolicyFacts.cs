@@ -335,7 +335,7 @@ namespace NuGetGallery.Security
 
                 // Ensure authors is non-compliant.
                 var nonCompliantPackage4 = CreateCompliantPackage(version, newPackageRegistration);
-                nonCompliantPackage4.FlattenedAuthors = "NuGet";
+                nonCompliantPackage4.FlattenedAuthors = "Microsoft Communications Platform";
                 nonCompliantPackages.Add(nonCompliantPackage4);
 
                 return nonCompliantPackages;

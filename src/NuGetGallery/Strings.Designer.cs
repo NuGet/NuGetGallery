@@ -2085,6 +2085,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The uploaded package&apos;s id is too similar to the already existing packages: {0} .
+        /// </summary>
+        public static string TyposquattingCheckFails {
+            get {
+                return ResourceManager.GetString("TyposquattingCheckFails", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User is not authorized.
         /// </summary>
         public static string Unauthorized {
@@ -2139,7 +2148,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The file must be a .nupkg file..
+        ///   Looks up a localized string similar to The file must be a .nupkg or .snupkg file..
         /// </summary>
         public static string UploadFileMustBeNuGetPackage {
             get {

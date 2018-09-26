@@ -62,6 +62,17 @@ namespace NuGetGallery
             {
                 ProjectUrl = projectUrl;
             }
+
+            if (PackageHelper.TryPrepareUrlForRendering(package.LicenseUrl, out string licenseUrl))
+            {
+                LicenseUrl = licenseUrl;
+
+                var licenseNames = package.LicenseNames;
+                if (!string.IsNullOrEmpty(licenseNames))
+                {
+                    LicenseNames = licenseNames.Split(',').Select(l => l.Trim());
+                }
+            }
         }
 
         public bool ValidatingTooLong { get; set; }
@@ -115,6 +126,8 @@ namespace NuGetGallery
         public string RepositoryUrl { get; private set; }
         public RepositoryKind RepositoryType { get; private set; }
         public string ProjectUrl { get; set; }
+        public string LicenseUrl { get; set; }
+        public IEnumerable<string> LicenseNames { get; set; }
 
         private IDictionary<User, string> _pushedByCache = new Dictionary<User, string>();
 
