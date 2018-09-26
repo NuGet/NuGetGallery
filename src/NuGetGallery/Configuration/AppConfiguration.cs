@@ -344,5 +344,9 @@ namespace NuGetGallery.Configuration
         public bool RejectPackagesWithTooManyPackageEntries { get; set; }
 
         public bool BlockSearchEngineIndexing { get; set; }
+
+        [DefaultValue(null)]
+        [TypeConverter(typeof(StringArrayConverter))]
+        public string[] DisabledCuratedFeeds { get; set; }
     }
 }

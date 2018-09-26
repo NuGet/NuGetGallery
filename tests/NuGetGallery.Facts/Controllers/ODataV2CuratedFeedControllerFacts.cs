@@ -330,14 +330,9 @@ namespace NuGetGallery.Controllers
 
             var curatedFeedServiceMock = new Mock<ICuratedFeedService>(MockBehavior.Strict);
             curatedFeedServiceMock.Setup(m => m.GetPackages(_curatedFeedName)).Returns(AllPackages);
-            curatedFeedServiceMock.Setup(m => m.GetFeedByName(_curatedFeedName, false)).Returns(curatedFeed);
-
-            var entitiesContextMock = new Mock<IEntitiesContext>(MockBehavior.Strict);
-            var curatedFeedDbSet = GetQueryableMockDbSet(curatedFeed);
-            entitiesContextMock.SetupGet(m => m.CuratedFeeds).Returns(curatedFeedDbSet);
+            curatedFeedServiceMock.Setup(m => m.GetFeedByName(_curatedFeedName)).Returns(curatedFeed);
 
             return new ODataV2CuratedFeedController(
-                entitiesContextMock.Object,
                 configurationService,
                 searchService,
                 curatedFeedServiceMock.Object);

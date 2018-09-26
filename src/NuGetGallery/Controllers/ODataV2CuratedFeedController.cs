@@ -22,19 +22,16 @@ namespace NuGetGallery.Controllers
     {
         private const int MaxPageSize = 40;
 
-        private readonly IEntitiesContext _entities;
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
         private readonly ICuratedFeedService _curatedFeedService;
 
         public ODataV2CuratedFeedController(
-            IEntitiesContext entities,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
             ICuratedFeedService curatedFeedService)
             : base(configurationService)
         {
-            _entities = entities;
             _configurationService = configurationService;
             _searchService = searchService;
             _curatedFeedService = curatedFeedService;
@@ -49,7 +46,7 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromUri] string semVerLevel = null)
         {
-            if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
+            if (_curatedFeedService.GetFeedByName(curatedFeedName) == null)
             {
                 return NotFound();
             }
@@ -133,7 +130,7 @@ namespace NuGetGallery.Controllers
             bool return404NotFoundWhenNoResults,
             string semVerLevel)
         {
-            var curatedFeed = _entities.CuratedFeeds.FirstOrDefault(cf => cf.Name == curatedFeedName);
+            var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName);
             if (curatedFeed == null)
             {
                 return NotFound();
@@ -231,7 +228,7 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromUri]string semVerLevel = null)
         {
-            if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
+            if (_curatedFeedService.GetFeedByName(curatedFeedName) == null)
             {
                 return NotFound();
             }
@@ -254,7 +251,7 @@ namespace NuGetGallery.Controllers
             }
 
             // Perform actual search
-            var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
+            var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName);
             var packages = _curatedFeedService.GetPackages(curatedFeedName)
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))

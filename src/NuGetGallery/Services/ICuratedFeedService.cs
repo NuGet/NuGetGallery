@@ -7,10 +7,7 @@ namespace NuGetGallery
 {
     public interface ICuratedFeedService
     {
-        CuratedFeed GetFeedByName(string name, bool includePackages);
-        CuratedFeed GetFeedByKey(int key, bool includePackages);
+        CuratedFeed GetFeedByName(string name);
         IQueryable<Package> GetPackages(string curatedFeedName);
-        IQueryable<PackageRegistration> GetPackageRegistrations(string curatedFeedName);
-        int? GetKey(string curatedFeedName);
     }
 }
