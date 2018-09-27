@@ -171,8 +171,8 @@ namespace NuGetGallery
             {
                 if (uploadedFile != null)
                 {
-                    var package = await SafeCreatePackage(currentUser, uploadedFile);
-                    if (package == null)
+                    var packageArchiveReader = await SafeCreatePackage(currentUser, uploadedFile);
+                    if (packageArchiveReader == null)
                     {
                         return View(model);
                     }
@@ -180,7 +180,7 @@ namespace NuGetGallery
                     try
                     {
                         packageMetadata = PackageMetadata.FromNuspecReader(
-                            package.GetNuspecReader(),
+                            packageArchiveReader.GetNuspecReader(),
                             strict: true);
                     }
                     catch (Exception ex)
@@ -191,41 +191,91 @@ namespace NuGetGallery
                         return View(model);
                     }
 
-                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package, packageMetadata);
-                    var validationErrorMessage = GetErrorMessageOrNull(validationResult);
-                    if (validationErrorMessage != null)
+                    if (packageMetadata.IsSymbolsPackage())
                     {
-                        TempData["Message"] = validationErrorMessage;
-                        return View(model);
-                    }
-
-                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
-                    bool isAllowed;
-                    IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
-                    if (existingPackageRegistration == null)
-                    {
-                        isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                        return await UploadSymbolsPackageInternal(model, uploadedFile, packageArchiveReader, packageMetadata, currentUser);
                     }
                     else
                     {
-                        isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                        return await UploadPackageInternal(model, packageArchiveReader, packageMetadata, currentUser);
                     }
-
-                    if (!isAllowed)
-                    {
-                        // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
-                        // The package upload will be rejected by submitting the form.
-                        // Related: https://github.com/NuGet/NuGetGallery/issues/5043
-                        accountsAllowedOnBehalfOf = new[] { currentUser };
-                    }
-
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
-                    verifyRequest.Warnings.AddRange(validationResult.Warnings);
-
-                    model.InProgressUpload = verifyRequest;
                 }
             }
 
+            return View(model);
+        }
+
+        private async Task<ActionResult> UploadSymbolsPackageInternal(SubmitPackageRequest model,
+            Stream uploadStream,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser)
+        {
+            var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadStream, currentUser);
+            var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
+            if (uploadResult != null)
+            {
+                TempData["Message"] = symbolsPackageValidationResult.Message;
+                return View(model);
+            }
+
+            var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
+            var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
+            var id = existingPackageRegistration.Id;
+            var version = packageForUploadingSymbols.NormalizedVersion;
+
+            IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
+            bool isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            if (!isAllowed)
+            {
+                accountsAllowedOnBehalfOf = new[] { currentUser };
+            }
+
+            var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            verifyRequest.IsSymbolsPackage = true;
+            model.InProgressUpload = verifyRequest;
+
+            return View(model);
+        }
+
+        private async Task<ActionResult> UploadPackageInternal(SubmitPackageRequest model, 
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser)
+        {
+            var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+            var validationErrorMessage = GetErrorMessageOrNull(validationResult);
+            if (validationErrorMessage != null)
+            {
+                TempData["Message"] = validationErrorMessage;
+                return View(model);
+            }
+
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+            bool isAllowed;
+            IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
+            if (existingPackageRegistration == null)
+            {
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            }
+            else
+            {
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            }
+
+            if (!isAllowed)
+            {
+                // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+                // The package upload will be rejected by submitting the form.
+                // Related: https://github.com/NuGet/NuGetGallery/issues/5043
+                accountsAllowedOnBehalfOf = new[] { currentUser };
+            }
+
+            var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            verifyRequest.Warnings.AddRange(validationResult.Warnings);
+            verifyRequest.IsSymbolsPackage = false;
+
+            model.InProgressUpload = verifyRequest;
             return View(model);
         }
 
@@ -1630,7 +1680,7 @@ namespace NuGetGallery
             string packageId = null;
             string packageVersion = null;
             try
-            {
+           {
                 // Perform initial validations again, the state could have been changed between the time 
                 // when the symbols package file was uploaded and before submitting for publish.
                 var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadFile, currentUser);
@@ -2012,7 +2062,7 @@ namespace NuGetGallery
                     throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");
             }
 
-            return Json(httpStatusCode, validationResult.Message);
+            return Json(httpStatusCode, new[] { validationResult.Message });
         }
 
         private static string GetErrorMessageOrNull(PackageValidationResult validationResult)

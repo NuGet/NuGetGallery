@@ -1,8 +1,4 @@
-﻿@model SubmitPackageRequest
-@{
-    var isSymbolsPackage = Model.IsUploadInProgress && Model.InProgressUpload.IsSymbolsPackage;
-}
-<form aria-label="Verify your package" id="verify-metadata-form">
+﻿<form aria-label="Verify your package" id="verify-metadata-form">
     @Html.AntiForgeryToken()
 
     <div id="verify-collapser-container" class="hidden">
@@ -30,12 +26,9 @@
         </h2>
     </div>
 
-    @if (!isSymbolsPackage)
-    {
-        <div id="import-readme-container">
-        </div>
-        @Html.Partial("_ImportReadMe")
-    }
+    <div id="import-readme-container">
+    </div>
+    @Html.Partial("_ImportReadMe")
 
     <div id="submit-collapser-container" class="hidden">
         <h2>
