@@ -28,7 +28,7 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the default (non-curated) v2 feed. Confirms expected packages are returned.")]
+        [Description("Performs a querystring-based search of the v2 feed. Confirms expected packages are returned.")]
         [Priority(0)]
         [Category("P0Tests")]
         public async Task SearchV2Feed()

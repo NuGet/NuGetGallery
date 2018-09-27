@@ -40,35 +40,6 @@ namespace NuGetGallery.FunctionalTests
         }
 
         /// <summary>
-        /// Creates a windows 8 curated package given the package name and version.
-        /// </summary>
-        /// <param name="packageName"></param>
-        /// <param name="version"></param>
-        /// <returns></returns>
-        public async Task<string> CreateWindows8CuratedPackage(string packageName, string version = "1.0.0")
-        {
-            var nuspecHelper = new NuspecHelper(TestOutputHelper);
-            string nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, version);
-            NuspecHelper.AddWindows8Tag(nuspecFileFullPath);
-            return await CreatePackageInternal(nuspecFileFullPath);
-        }
-
-        /// <summary>
-        /// Creates a windows 8 curated package given the package name and version.
-        /// </summary>
-        /// <param name="packageName"></param>
-        /// <param name="version"></param>
-        /// <returns></returns>
-        public async Task<string> CreateWebMatrixCuratedPackage(string packageName, string version = "1.0.0")
-        {
-            var nuspecHelper = new NuspecHelper(TestOutputHelper);
-            string nuspecFileFullPath = await nuspecHelper.CreateDefaultNuspecFile(packageName, version);
-            NuspecHelper.AddWebMatrixTag(nuspecFileFullPath);
-            return await CreatePackageInternal(nuspecFileFullPath);
-        }
-
-
-        /// <summary>
         /// Creates a package with the specified minclient version.
         /// </summary>
         /// <param name="packageName"></param>

@@ -22,8 +22,6 @@ namespace NuGetGallery.FunctionalTests.Security
             new object[] { UrlHelper.AggregateStatsPageUrl },
             new object[] { UrlHelper.UploadPageUrl },
             new object[] { UrlHelper.VerifyUploadPageUrl },
-            new object[] { UrlHelper.Windows8CuratedFeedUrl },
-            new object[] { UrlHelper.WebMatrixCuratedFeedUrl },
         };
 
         public static IEnumerable<object[]> UrlsExcludedFromRedirect => new[]
