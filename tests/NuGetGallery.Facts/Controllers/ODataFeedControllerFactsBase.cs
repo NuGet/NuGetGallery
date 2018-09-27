@@ -24,7 +24,7 @@ namespace NuGetGallery.Controllers
     public abstract class ODataFeedControllerFactsBase<TController>
         where TController : NuGetODataController
     {
-        private const string _siteRoot = "https://nuget.localtest.me";
+        protected const string _siteRoot = "https://nuget.localtest.me";
         protected const string TestPackageId = "Some.Awesome.Package";
 
         protected readonly IReadOnlyCollection<Package> AvailablePackages;
@@ -60,7 +60,14 @@ namespace NuGetGallery.Controllers
             configurationService.Current.SiteRoot = _siteRoot;
 
             var controller = CreateController(PackagesRepository, configurationService, searchService);
-            
+
+            AddRequestToController(request, controller);
+
+            return controller;
+        }
+
+        protected static void AddRequestToController(HttpRequestMessage request, TController controller)
+        {
             var httpRequest = new HttpRequest(string.Empty, request.RequestUri.AbsoluteUri, request.RequestUri.Query);
             var httpResponse = new HttpResponse(new StringWriter());
             var httpContext = new HttpContext(httpRequest, httpResponse);
@@ -72,8 +79,6 @@ namespace NuGetGallery.Controllers
 
             controller.ControllerContext.Controller = controller;
             controller.ControllerContext.Configuration = new HttpConfiguration();
-
-            return controller;
         }
 
         protected async Task<IReadOnlyCollection<TFeedPackage>> GetCollection<TFeedPackage>(
@@ -208,7 +213,7 @@ namespace NuGetGallery.Controllers
             return list.AsQueryable();
         }
 
-        private static ODataQueryContext CreateODataQueryContext<TFeedPackage>()
+        protected static ODataQueryContext CreateODataQueryContext<TFeedPackage>()
             where TFeedPackage : class
         {
             var oDataModelBuilder = new ODataConventionModelBuilder();
