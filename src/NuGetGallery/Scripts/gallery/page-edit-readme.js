@@ -131,7 +131,7 @@
 
         function bindData(model) {
 
-            if (model == null) {
+            if (model === null) {
                 return;
             }
 
@@ -155,7 +155,9 @@
                 submitAsync(navigateToPage);
             });
 
-            bindReadMeData(model);
+            if (model === null || !model.IsSymbolsPackage) {
+                bindReadMeData(model);
+            }
         }
     };
 }());

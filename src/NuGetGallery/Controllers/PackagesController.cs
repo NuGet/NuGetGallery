@@ -491,6 +491,7 @@ namespace NuGetGallery
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.Warnings.AddRange(warnings);
 
             return Json(model);
@@ -1588,12 +1589,27 @@ namespace NuGetGallery
                         }
                     }
 
-                    return await VerifyPackageInternal(formData,
-                        uploadFile,
-                        packageArchiveReader,
-                        packageMetadata,
-                        currentUser,
-                        owner);
+                    // Dispose the uploadFile stream in the below callers, before deleting the uploaded symbols package file;
+                    // otherwise the delete operation will fail.
+                    // Note: Do not use the disposed stream after the calls below here(stating the obvious).
+                    if (packageMetadata.IsSymbolsPackage())
+                    {
+                        return await VerifySymbolsPackageInternal(formData,
+                            uploadFile,
+                            packageArchiveReader,
+                            packageMetadata,
+                            currentUser,
+                            owner);
+                    }
+                    else
+                    {
+                        return await VerifyPackageInternal(formData,
+                            uploadFile,
+                            packageArchiveReader,
+                            packageMetadata,
+                            currentUser,
+                            owner);
+                    }
                 }
             }
             catch(Exception ex)
@@ -1601,6 +1617,116 @@ namespace NuGetGallery
                 _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
                 throw ex;
             }
+        }
+
+        public virtual async Task<JsonResult> VerifySymbolsPackageInternal(
+            VerifyPackageRequest formData,
+            Stream uploadFile,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser,
+            User owner)
+        {
+            string packageId = null;
+            string packageVersion = null;
+            try
+            {
+                // Perform initial validations again, the state could have been changed between the time 
+                // when the symbols package file was uploaded and before submitting for publish.
+                var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadFile, currentUser);
+                var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
+                if (uploadResult != null)
+                {
+                    return uploadResult;
+                }
+
+                var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
+                var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
+                packageId = existingPackageRegistration.Id;
+                packageVersion = packageForUploadingSymbols.NormalizedVersion;
+
+                if (existingPackageRegistration.IsLocked)
+                {
+                    return Json(HttpStatusCode.Forbidden, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, existingPackageRegistration.Id) });
+                }
+
+                // Evaluate the permissions for the owner, the permissions for uploading a symbols should be same as that of
+                // uploading a new version of a given package.
+                var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+                {
+                    if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
+                    {
+                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                        var message = string.Format(CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                            currentUser.Username, owner.Username);
+                        return Json(HttpStatusCode.BadRequest, new[] { message });
+                    }
+
+                    if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
+                    {
+                        // The owner specified in the form is not allowed to upload a new version of the package
+                        var message = string.Format(CultureInfo.CurrentCulture,
+                            Strings.VerifyPackage_OwnerInvalid,
+                            owner.Username, existingPackageRegistration.Id);
+                        return Json(HttpStatusCode.BadRequest, new[] { message });
+                    }
+
+                    // An unknown error occurred.
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                }
+
+                try
+                {
+                    var commitResult = await _symbolPackageUploadService.CreateAndUploadSymbolsPackage(
+                        packageForUploadingSymbols,
+                        uploadFile.AsSeekableStream());
+
+                    switch (commitResult)
+                    {
+                        case PackageCommitResult.Success:
+                            break;
+                        case PackageCommitResult.Conflict:
+                            TempData["Message"] = Strings.SymbolsPackage_ConflictValidating;
+                            return Json(HttpStatusCode.Conflict, new[] { Strings.SymbolsPackage_ConflictValidating });
+                        default:
+                            throw new NotImplementedException($"The symbols package commit result {commitResult} is not supported.");
+                    }
+
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(packageForUploadingSymbols, AuditedPackageAction.SymbolsCreate, PackageCreatedVia.Web));
+
+                    if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                    {
+                        // notify user unless async validation in blocking mode is used
+                    }
+
+                    _telemetryService.TrackSymbolPackagePushEvent(packageId, packageVersion);
+
+                    TempData["Message"] = string.Format(
+                        CultureInfo.CurrentCulture, Strings.SymbolsPackage_UploadSuccessful, packageId, packageVersion);
+                }
+                catch (Exception ex)
+                {
+                    ex.Log();
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                }
+
+                // Delete the uploaded file
+                await DeleteUploadedFileForUser(currentUser, uploadFile);
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+                _telemetryService.TrackSymbolPackagePushFailureEvent(packageId, packageVersion);
+            }
+
+            // Redirect to the package details page
+            return Json(new
+            {
+                location = Url.Package(packageId, packageVersion)
+            });
         }
 
         public virtual async Task<JsonResult> VerifyPackageInternal(
@@ -1712,11 +1838,11 @@ namespace NuGetGallery
                 }
 
                 var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
-                                SecurityPolicyAction.PackagePush,
-                                package,
-                                currentUser,
-                                owner,
-                                HttpContext);
+                    SecurityPolicyAction.PackagePush,
+                    package,
+                    currentUser,
+                    owner,
+                    HttpContext);
 
                 if (!packagePolicyResult.Success)
                 {
@@ -1817,20 +1943,7 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
-                try
-                {
-                    // delete the uploaded binary in the Uploads container
-                    await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
-                }
-                catch (Exception e)
-                {
-                    // Log the exception here and swallow it for now.
-                    // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
-                    // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
-                    //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
-                    // An issue to clear in progress if it already exists has been logged at https://github.com/NuGet/NuGetGallery/issues/6192
-                    e.Log();
-                }
+                await DeleteUploadedFileForUser(currentUser, uploadFile);
 
                 return Json(new
                 {
@@ -1841,6 +1954,27 @@ namespace NuGetGallery
             {
                 _telemetryService.TrackPackagePushFailureEvent(packageId, packageVersion);
                 throw;
+            }
+        }
+
+        private async Task DeleteUploadedFileForUser(User currentUser, Stream uploadedFileStream)
+        {
+            try
+            {
+                // We should dispose the stream before we can delete the file from the disk.
+                uploadedFileStream.Dispose();
+
+                // delete the uploaded binary in the Uploads container
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+            }
+            catch (Exception e)
+            {
+                // Log the exception here and swallow it for now.
+                // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
+                // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
+                //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
+                // An issue to clear in progress if it already exists has been logged at https://github.com/NuGet/NuGetGallery/issues/6192
+                e.Log();
             }
         }
 

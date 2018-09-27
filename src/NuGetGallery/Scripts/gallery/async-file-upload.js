@@ -290,7 +290,9 @@
                 window.nuget.configureExpanderHeading("submit-package-form");
             }
 
-            bindReadMeData(model);
+            if (model === null || !model.IsSymbolsPackage) {
+                bindReadMeData(model);
+            }
 
             document.getElementById("validation-failure-container").scrollIntoView();
         }

@@ -993,4 +993,7 @@ Policy violations: {0}</value>
     <value>The uploaded package's id is too similar to the already existing packages: {0} </value>
     <comment>{0} is the existing collision Ids compared with the uploaded package Id.</comment>
   </data>
+  <data name="SymbolsPackage_UploadSuccessful" xml:space="preserve">
+    <value>Successfully uploaded the symbols package for package with ID {0} and version {1}.</value>
+  </data>
 </root>
