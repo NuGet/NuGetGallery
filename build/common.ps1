@@ -280,7 +280,7 @@ Function Invoke-FxCop {
     }
     
     # Write FxCop logs to specific output directory
-    if (Test-Path $FxCopOutputDirectory) {
+    if ($FxCopOutputDirectory) {
         $env:FXCOP_OUTPUT_DIRECTORY = Resolve-Path $FxCopOutputDirectory
         
         Trace-Log "Using FXCOP_OUTPUT_DIRECTORY=$FxCopOutputDirectory"
