@@ -222,6 +222,80 @@ Function Build-Solution {
     }
 }
 
+Function Invoke-FxCop {
+    [CmdletBinding()]
+    param(
+        [string]$Configuration = $DefaultConfiguration,
+        [int]$BuildNumber = (Get-BuildNumber),
+        [string]$MSBuildVersion = $DefaultMSBuildVersion,
+        [string]$SolutionPath,
+        [switch]$SkipRestore,
+        [string]$FxCopDirectory,
+        [string]$FxCopProject,
+        [string]$FxCopRuleSet,
+        [string]$FxCopOutputDirectory
+    )
+    
+    # Ensure cleanup from previous runs
+    Get-ChildItem -Recurse "*.CodeAnalysisLog.xml" | Remove-Item
+    
+    $env:FXCOP_DIRECTORY = ''
+    $env:FXCOP_PROJECT = ''
+    $env:FXCOP_RULESET = ''
+    $env:FXCOP_RULESET_DIRECTORY = ''
+    $env:FXCOP_OUTPUT_DIRECTORY = ''
+    
+    # Configure FxCop defaults
+    $codeAnalysisProps = Resolve-Path $(Join-Path 'build' 'nuget.codeanalysis.props')
+    
+    # Configure FxCop overrides
+    if ($FxCopDirectory) {
+        $env:FXCOP_DIRECTORY = $FxCopDirectory
+        Trace-Log "Using FXCOP_DIRECTORY=$env:FXCOP_DIRECTORY"
+                
+        if ($FxCopProject) {
+            $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopProject) -Recurse
+            
+            if ($items.Count -gt 0) {
+                $env:FXCOP_PROJECT = $items[0]                
+                Trace-Log "Discovered FXCOP_PROJECT=$env:FXCOP_PROJECT"
+            }
+            else {
+                throw "Failed to find $FxCopProject under $FxCopDirectory"
+            }
+        }
+        
+        if ($FxCopRuleSet) {
+            $items = Get-ChildItem $(Join-Path $FxCopDirectory $FxCopRuleSet) -Recurse
+            
+            if ($items.Count -gt 0) {
+                $env:FXCOP_RULESET = $items[0]
+                $env:FXCOP_RULESET_DIRECTORY = $($items[0]).Directory
+                Trace-Log "Discovered FXCOP_RULESET=$FxCopRuleSetFullPath"
+            }
+            else {
+                throw "Failed to find $FxCopRuleSet under $FxCopDirectory"
+            }
+        }
+    }
+    
+    # Write FxCop logs to specific output directory
+    if (Test-Path $FxCopOutputDirectory) {
+        $env:FXCOP_OUTPUT_DIRECTORY = Resolve-Path $FxCopOutputDirectory
+        
+        Trace-Log "Using FXCOP_OUTPUT_DIRECTORY=$FxCopOutputDirectory"
+    }
+    
+    # Invoke using the msbuild RunCodeAnalysis target
+    $msBuildProps = "/p:CustomBeforeMicrosoftCSharpTargets=$codeAnalysisProps"
+    
+    if ($VerbosePreference) {
+        $msBuildProps += ";CodeAnalysisVerbose=true"
+    }
+    
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Build;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore
+}
+
 Function Invoke-Git {
     [CmdletBinding()]
     Param(
