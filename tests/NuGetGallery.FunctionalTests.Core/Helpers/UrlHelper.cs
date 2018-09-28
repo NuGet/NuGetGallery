@@ -24,8 +24,6 @@ namespace NuGetGallery.FunctionalTests
         private const string _uploadPageUrlSuffix = "packages/manage/Upload";
         private const string _cancelUploadPageUrlSuffix = "packages/manage/cancel-upload";
         private const string _verifyUploadPageUrlSuffix = "/packages/manage/verify-upload";
-        private const string _windows8CuratedFeedUrlSuffix = "curated-feeds/windows8-packages/";
-        private const string _webMatrixCuratedFeedUrlSuffix = "curated-feeds/webmatrix/";
         private const string _dotnetCuratedFeedUrlSuffix = "curated-feeds/microsoftdotnet/";
         private const string _accountPageUrlSuffix = "/account";
         private const string _accountUnscribeUrlSuffix = "account/subscription/change";
@@ -144,16 +142,6 @@ namespace NuGetGallery.FunctionalTests
         public static string LogonPageUrlOnPackageUpload
         {
             get { return BaseUrl + _logonPageUrlOnPackageUploadSuffix; }
-        }
-
-        public static string Windows8CuratedFeedUrl
-        {
-            get { return V2FeedRootUrl + _windows8CuratedFeedUrlSuffix; }
-        }
-
-        public static string WebMatrixCuratedFeedUrl
-        {
-            get { return V2FeedRootUrl + _webMatrixCuratedFeedUrlSuffix; }
         }
 
         public static string DotnetCuratedFeedUrl

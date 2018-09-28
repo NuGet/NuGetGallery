@@ -5,7 +5,6 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -48,48 +47,12 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
         }
 
         [Fact]
-        [Description("Performs a querystring-based search of the Windows 8 curated feed. Confirms expected packages are returned.")]
-        [Priority(0)]
-        [Category("P0Tests")]
-        public async Task SearchWindows8CuratedFeed()
-        {
-            string packageName = "NuGetGallery.FunctionalTests.SearchWindows8CuratedFeed";
-            string ticks = DateTime.Now.Ticks.ToString();
-            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-
-            int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.Windows8CuratedFeed);
-            Assert.True((exitCode == 0), Constants.UploadFailureMessage);
-
-            bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.Windows8CuratedFeed);
-            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.Windows8CuratedFeedUrl);
-            Assert.True(applied, userMessage);
-        }
-
-        [Fact]
-        [Description("Performs a querystring-based search of the WebMatrix curated feed.  Confirms expected packages are returned.")]
-        [Priority(0)]
-        [Category("P0Tests")]
-        public async Task SearchWebMatrixCuratedFeed()
-        {
-            string packageName = "NuGetGallery.FunctionalTests.SearchWebMatrixCuratedFeed";
-            string ticks = DateTime.Now.Ticks.ToString();
-            string version = new Version(ticks.Substring(0, 6) + "." + ticks.Substring(6, 6) + "." + ticks.Substring(12, 6)).ToString();
-
-            int exitCode = await UploadPackageToCuratedFeed(packageName, version, FeedType.WebMatrixCuratedFeed);
-            Assert.True((exitCode == 0), Constants.UploadFailureMessage);
-
-            bool applied = CheckPackageExistInCuratedFeed(packageName, FeedType.WebMatrixCuratedFeed);
-            var userMessage = string.Format(Constants.PackageNotFoundAfterUpload, packageName, UrlHelper.WebMatrixCuratedFeedUrl);
-            Assert.True(applied, userMessage);
-        }
-
-        [Fact]
         [Description("Validates the microsoftdotnet feed, including the next page link")]
         [Priority(1)]
         [Category("P1Tests")]
         public async Task ValidateMicrosoftDotNetCuratedFeed()
         {
-            var request = WebRequest.Create(GetCuratedFeedUrl(FeedType.DotnetCuratedFeed) + "Packages");
+            var request = WebRequest.Create(UrlHelper.DotnetCuratedFeedUrl + "Packages");
             var response = await request.GetResponseAsync();
 
             string responseText;
@@ -120,69 +83,6 @@ namespace NuGetGallery.FunctionalTests.ODataFeeds
                     throw new Exception("Next page link is broken.  Expected 200, got " + ((HttpWebResponse)e.Response).StatusCode, e);
                 }
             }
-        }
-
-        private async Task<int> UploadPackageToCuratedFeed(string packageName, string version, FeedType feedType)
-        {
-            string packageFullPath = string.Empty;
-            switch (feedType)
-            {
-                case FeedType.Windows8CuratedFeed:
-                    packageFullPath = await _packageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
-                    break;
-                case FeedType.WebMatrixCuratedFeed:
-                    packageFullPath = await _packageCreationHelper.CreateWindows8CuratedPackage(packageName, version);
-                    break;
-            }
-            var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
-            return processResult.ExitCode;
-        }
-
-        private string GetCuratedFeedUrl(FeedType type)
-        {
-            string url = string.Empty;
-            switch (type)
-            {
-                case FeedType.Windows8CuratedFeed:
-                    url = UrlHelper.Windows8CuratedFeedUrl;
-                    break;
-                case FeedType.WebMatrixCuratedFeed:
-                    url = UrlHelper.WebMatrixCuratedFeedUrl;
-                    break;
-                case FeedType.DotnetCuratedFeed:
-                    url = UrlHelper.DotnetCuratedFeedUrl;
-                    break;
-            }
-            return url;
-        }
-
-        private bool CheckPackageExistInCuratedFeed(string packageName, FeedType feedType)
-        {
-            string curatedFeedUrl = GetCuratedFeedUrl(feedType);
-            var maxAttempts = 10;
-            var interval = 30;
-            bool applied = false;
-
-            TestOutputHelper.WriteLine("Starting package verification checks ({0} attempts, interval {1} seconds).", maxAttempts, interval);
-
-            for (int i = 0; i < maxAttempts && applied == false; i++)
-            {
-                TestOutputHelper.WriteLine("[verification attempt {0}]: Waiting {1} seconds before next check...", i, interval);
-                if (i != 0)
-                {
-                    Thread.Sleep(interval * 1000);
-                }
-                else
-                {
-                    Thread.Sleep(5000);
-                }
-
-                if (_clientSdkHelper.CheckIfPackageExistsInSource(packageName, curatedFeedUrl))
-                {
-                    applied = true;
-                }
-            }
-            return applied;
         }
     }
 }
