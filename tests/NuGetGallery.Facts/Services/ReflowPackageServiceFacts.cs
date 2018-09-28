@@ -2,19 +2,16 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
-using Xunit;
-using NuGetGallery.TestUtils;
 using NuGetGallery.Security;
+using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -27,9 +24,10 @@ namespace NuGetGallery
             Mock<ITelemetryService> telemetryService = null,
             Action<Mock<ReflowPackageService>> setup = null)
         {
-            var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+            var database = new Mock<IDatabase>();
+            database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(database.Object);
 
             packageService = packageService ?? new Mock<PackageService>();
             packageFileService = packageFileService ?? new Mock<IPackageFileService>();

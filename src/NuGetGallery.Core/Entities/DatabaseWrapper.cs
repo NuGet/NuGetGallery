@@ -23,9 +23,9 @@ namespace NuGetGallery
             return _database.ExecuteSqlCommandAsync(sql, parameters);
         }
 
-        public DbContextTransaction BeginTransaction()
+        public IDbContextTransaction BeginTransaction()
         {
-            return _database.BeginTransaction();
+            return new DbContextTransactionWrapper(_database.BeginTransaction());
         }
 
         /// <summary>

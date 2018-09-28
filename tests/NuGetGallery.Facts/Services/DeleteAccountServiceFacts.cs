@@ -3,16 +3,15 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
+using Moq;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Security;
 using Xunit;
-using Moq;
 
 namespace NuGetGallery.Services
 {
@@ -466,8 +465,9 @@ namespace NuGetGallery.Services
             private Mock<IEntitiesContext> SetupEntitiesContext()
             {
                 var mockContext = new Mock<IEntitiesContext>();
-                var dbContext = new Mock<DbContext>();
-                mockContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+                var database = new Mock<IDatabase>();
+                database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+                mockContext.Setup(m => m.GetDatabase()).Returns(database.Object);
                 return mockContext;
             }
 

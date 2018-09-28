@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -290,9 +289,13 @@ namespace NuGetGallery.TestUtils
         private Mock<IEntitiesContext> SetupEntitiesContext()
         {
             var mockContext = new Mock<IEntitiesContext>();
-            var dbContext = new Mock<DbContext>();
-            mockContext.Setup(m => m.GetDatabase())
-                .Returns(new DatabaseWrapper(dbContext.Object.Database));
+            var database = new Mock<IDatabase>();
+            database
+                .Setup(x => x.BeginTransaction())
+                .Returns(() => new Mock<IDbContextTransaction>().Object);
+            mockContext
+                .Setup(m => m.GetDatabase())
+                .Returns(database.Object);
 
             return mockContext;
         }
