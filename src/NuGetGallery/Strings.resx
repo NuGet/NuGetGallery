@@ -165,9 +165,6 @@
   <data name="PackageWithIdDoesNotExist" xml:space="preserve">
     <value>No package with this ID exists.</value>
   </data>
-  <data name="PackageIsAlreadyCurated" xml:space="preserve">
-    <value>The package is already curated.</value>
-  </data>
   <data name="InvalidApiKey" xml:space="preserve">
     <value>The API key '{0}' is invalid.</value>
   </data>

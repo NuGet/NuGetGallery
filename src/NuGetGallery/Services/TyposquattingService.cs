@@ -67,13 +67,13 @@ namespace NuGetGallery
 
             var algorithmProcessingStopwatch = Stopwatch.StartNew();
             var threshold = GetThreshold(uploadedPackageId);
-            uploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
+            var normalizedUploadedPackageId = TyposquattingStringNormalization.NormalizeString(uploadedPackageId);
 
             var collisionIds = new ConcurrentBag<string>();
             Parallel.ForEach(packagesCheckList, (packageId, loopState) =>
             {
                 string normalizedPackageId = TyposquattingStringNormalization.NormalizeString(packageId);
-                if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(uploadedPackageId, normalizedPackageId, threshold))
+                if (TyposquattingDistanceCalculation.IsDistanceLessThanThreshold(normalizedUploadedPackageId, normalizedPackageId, threshold))
                 {
                     collisionIds.Add(packageId);
                 }

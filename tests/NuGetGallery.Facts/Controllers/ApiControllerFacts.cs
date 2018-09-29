@@ -43,7 +43,6 @@ namespace NuGetGallery
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
-        public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
@@ -70,7 +69,6 @@ namespace NuGetGallery
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
-            AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = securityPolicyService ?? (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
@@ -1189,36 +1187,6 @@ namespace NuGetGallery
                 var actionResult = await controller.CreatePackagePut();
 
                 Assert.IsType<HttpStatusCodeWithServerWarningResult>(actionResult);
-            }
-
-            [Fact]
-            public async Task WillCurateThePackage()
-            {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                await controller.CreatePackagePut();
-
-                controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
-            }
-
-            [Fact]
-            public async Task WillCurateThePackageViaApi()
-            {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                await controller.CreatePackagePost();
-
-                controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
             }
 
             [Fact]

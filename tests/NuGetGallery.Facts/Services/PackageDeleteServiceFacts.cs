@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
@@ -41,9 +40,10 @@ namespace NuGetGallery
             packageRegistrationRepository = packageRegistrationRepository ?? new Mock<IEntityRepository<PackageRegistration>>();
             packageDeletesRepository = packageDeletesRepository ?? new Mock<IEntityRepository<PackageDelete>>();
 
-            var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+            var database = new Mock<IDatabase>();
+            database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(database.Object);
 
             packageService = packageService ?? new Mock<IPackageService>();
             indexingService = indexingService ?? new Mock<IIndexingService>();

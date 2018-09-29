@@ -1283,15 +1283,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The package is already curated..
-        /// </summary>
-        public static string PackageIsAlreadyCurated {
-            get {
-                return ResourceManager.GetString("PackageIsAlreadyCurated", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Package &apos;{0}&apos; has been locked. This means you cannot publish a new version or change the listing status of a published package version. Please contact support@nuget.org..
         /// </summary>
         public static string PackageIsLocked {

@@ -879,10 +879,6 @@
     <Compile Include="Areas\Admin\DynamicData\Site.master.designer.cs">
       <DependentUpon>Site.master</DependentUpon>
     </Compile>
-    <Compile Include="Commands\AppCommand.cs" />
-    <Compile Include="Commands\AutomaticallyCuratePackageCommand.cs" />
-    <Compile Include="Controllers\CuratedFeedsController.cs" />
-    <Compile Include="Controllers\CuratedPackagesController.cs" />
     <Compile Include="Controllers\StatisticsController.cs" />
     <Compile Include="OData\QueryInterceptors\CountInterceptor.cs">
       <SubType>Code</SubType>
@@ -1185,11 +1181,6 @@
     <Compile Include="OData\Routing\CountPathSegment.cs" />
     <Compile Include="OData\Serializers\NuGetEntityTypeSerializer.cs" />
     <Compile Include="OData\Serializers\CustomSerializerProvider.cs" />
-    <Compile Include="PackageCurators\IAutomaticPackageCurator.cs" />
-    <Compile Include="PackageCurators\AutomaticPackageCurator.cs" />
-    <Compile Include="PackageCurators\TagBasedPackageCurator.cs" />
-    <Compile Include="PackageCurators\WebMatrixPackageCurator.cs" />
-    <Compile Include="PackageCurators\Windows8PackageCurator.cs" />
     <Compile Include="Infrastructure\Lucene\NuGetQueryParser.cs" />
     <Compile Include="Queries\AutoCompleteDatabaseQuery.cs" />
     <Compile Include="Queries\AutoCompleteServiceQuery.cs" />
@@ -1202,8 +1193,6 @@
     <Compile Include="RequestModels\EditPackageRequest.cs" />
     <Compile Include="RequestModels\DeletePackagesRequest.cs" />
     <Compile Include="RequestModels\EditPackageVersionRequest.cs" />
-    <Compile Include="RequestModels\ModifyCuratedPackageRequest.cs" />
-    <Compile Include="RequestModels\CreateCuratedPackageRequest.cs" />
     <Compile Include="RequestModels\VerifyPackageRequest.cs" />
     <Compile Include="Infrastructure\Authentication\LegacyHasher.cs" />
     <Compile Include="Infrastructure\Authentication\V3Hasher.cs" />
@@ -1406,7 +1395,6 @@
     <Compile Include="ViewModels\StatisticsPivot.cs" />
     <Compile Include="ViewModels\StatisticsDimension.cs" />
     <Compile Include="ViewModels\StatisticsPackagesReport.cs" />
-    <Compile Include="ViewModels\CuratedFeedViewModel.cs" />
     <Compile Include="ViewModels\DependencySetsViewModel.cs" />
     <Compile Include="ViewModels\AccountViewModel.cs" />
     <Compile Include="ViewModels\ConfirmationViewModel.cs" />
@@ -1639,7 +1627,6 @@
     <Content Include="Views\Packages\_ValidationIssue.cshtml" />
     <Content Include="Views\Organizations\ManageOrganization.cshtml" />
     <Content Include="Views\Shared\_ConfirmationResendForm.cshtml" />
-    <Content Include="Views\Shared\_AccountCuratedFeeds.cshtml" />
     <Content Include="Views\Shared\_AccountProfilePicture.cshtml" />
     <Content Include="Views\Shared\_AccountChangeEmail.cshtml" />
     <Content Include="Views\Shared\_AccountChangeNotifications.cshtml" />
@@ -1790,7 +1777,6 @@
     <Content Include="Views\Packages\ManagePackageOwners.cshtml" />
     <Content Include="api\Web.config" />
     <Compile Include="Infrastructure\Lucene\LuceneSearchService.cs" />
-    <Content Include="Views\CuratedPackages\CreateCuratedPackageForm.cshtml" />
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
@@ -1947,7 +1933,6 @@
     <Content Include="Views\Statistics\Packages.cshtml" />
     <Content Include="Views\Statistics\PackageVersions.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsByVersion.cshtml" />
-    <Content Include="Views\CuratedFeeds\CuratedFeed.cshtml" />
     <Content Include="Views\Packages\ReportMyPackage.cshtml" />
     <Content Include="Views\Statistics\PackageDownloadsDetail.cshtml" />
     <Content Include="Views\Statistics\_PivotTable.cshtml" />

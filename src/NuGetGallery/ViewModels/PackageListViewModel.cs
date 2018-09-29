@@ -20,21 +20,6 @@ namespace NuGetGallery
             int pageSize,
             UrlHelper url,
             bool includePrerelease)
-            : this(packages, currentUser, indexTimestampUtc, searchTerm, totalCount, pageIndex, pageSize, url, curatedFeed: null, includePrerelease: includePrerelease)
-        {
-        }
-
-        public PackageListViewModel(
-            IQueryable<Package> packages,
-            User currentUser,
-            DateTime? indexTimestampUtc,
-            string searchTerm,
-            int totalCount,
-            int pageIndex,
-            int pageSize,
-            UrlHelper url,
-            string curatedFeed,
-            bool includePrerelease)
         {
             // TODO: Implement actual sorting
             IEnumerable<ListPackageItemViewModel> items = packages.ToList().Select(pv => new ListPackageItemViewModel(pv, currentUser));
@@ -49,10 +34,7 @@ namespace NuGetGallery
                 items,
                 PageIndex,
                 pageCount,
-                page => curatedFeed == null ?
-                    url.PackageList(page, searchTerm, includePrerelease) :
-                    url.CuratedPackageList(page, searchTerm, curatedFeed)
-                );
+                page => url.PackageList(page, searchTerm, includePrerelease));
             Items = pager.Items;
             FirstResultIndex = 1 + (PageIndex * PageSize);
             LastResultIndex = FirstResultIndex + Items.Count() - 1;

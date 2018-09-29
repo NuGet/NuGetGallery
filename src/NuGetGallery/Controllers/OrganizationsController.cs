@@ -21,7 +21,6 @@ namespace NuGetGallery
 
         public OrganizationsController(
             AuthenticationService authService,
-            ICuratedFeedService curatedFeedService,
             IMessageService messageService,
             IUserService userService,
             ITelemetryService telemetryService,
@@ -32,7 +31,6 @@ namespace NuGetGallery
             IContentObjectService contentObjectService)
             : base(
                   authService,
-                  curatedFeedService,
                   packageService,
                   messageService,
                   userService,

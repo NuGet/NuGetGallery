@@ -8,7 +8,7 @@ namespace NuGetGallery
 {
     public interface IDatabase
     {
-        DbContextTransaction BeginTransaction();
+        IDbContextTransaction BeginTransaction();
 
         Task<int> ExecuteSqlCommandAsync(string sql, params object[] parameters);
 

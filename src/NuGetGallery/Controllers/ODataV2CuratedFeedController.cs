@@ -22,22 +22,22 @@ namespace NuGetGallery.Controllers
     {
         private const int MaxPageSize = 40;
 
-        private readonly IEntitiesContext _entities;
         private readonly IGalleryConfigurationService _configurationService;
         private readonly ISearchService _searchService;
         private readonly ICuratedFeedService _curatedFeedService;
+        private readonly IEntityRepository<Package> _packagesRepository;
 
         public ODataV2CuratedFeedController(
-            IEntitiesContext entities,
             IGalleryConfigurationService configurationService,
             ISearchService searchService,
-            ICuratedFeedService curatedFeedService)
+            ICuratedFeedService curatedFeedService,
+            IEntityRepository<Package> packagesRepository)
             : base(configurationService)
         {
-            _entities = entities;
             _configurationService = configurationService;
             _searchService = searchService;
             _curatedFeedService = curatedFeedService;
+            _packagesRepository = packagesRepository;
         }
 
         // /api/v2/curated-feed/curatedFeedName/Packages?semVerLevel=
@@ -49,15 +49,16 @@ namespace NuGetGallery.Controllers
             string curatedFeedName,
             [FromUri] string semVerLevel = null)
         {
-            if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
+            var result = GetCuratedFeedResult(curatedFeedName);
+            if (result.ActionResult != null)
             {
-                return NotFound();
+                return result.ActionResult;
             }
 
             var semVerLevelKey = SemVerLevelKey.ForSemVerLevel(semVerLevel);
 
-            var queryable = _curatedFeedService
-                .GetPackages(curatedFeedName)
+            var queryable = result
+                .Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .ToV2FeedPackageQuery(
@@ -133,14 +134,14 @@ namespace NuGetGallery.Controllers
             bool return404NotFoundWhenNoResults,
             string semVerLevel)
         {
-            var curatedFeed = _entities.CuratedFeeds.FirstOrDefault(cf => cf.Name == curatedFeedName);
-            if (curatedFeed == null)
+            var result = GetCuratedFeedResult(curatedFeedName);
+            if (result.ActionResult != null)
             {
-                return NotFound();
+                return result.ActionResult;
             }
 
-            var packages = _curatedFeedService
-                .GetPackages(curatedFeedName)
+            var packages = result
+                .Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .Where(p => p.PackageRegistration.Id.Equals(id, StringComparison.OrdinalIgnoreCase));
@@ -161,7 +162,7 @@ namespace NuGetGallery.Controllers
                     packages,
                     id,
                     normalizedVersion,
-                    curatedFeed: curatedFeed,
+                    curatedFeed: result.CuratedFeed,
                     semVerLevel: semVerLevel);
 
                 // If intercepted, create a paged queryresult
@@ -231,9 +232,10 @@ namespace NuGetGallery.Controllers
             [FromODataUri]bool includePrerelease = false,
             [FromUri]string semVerLevel = null)
         {
-            if (!_entities.CuratedFeeds.Any(cf => cf.Name == curatedFeedName))
+            var result = GetCuratedFeedResult(curatedFeedName);
+            if (result.ActionResult != null)
             {
-                return NotFound();
+                return result.ActionResult;
             }
 
             // Handle OData-style |-separated list of frameworks.
@@ -254,8 +256,8 @@ namespace NuGetGallery.Controllers
             }
 
             // Perform actual search
-            var curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName, includePackages: false);
-            var packages = _curatedFeedService.GetPackages(curatedFeedName)
+            var packages = result
+                .Packages
                 .Where(p => p.PackageStatusKey == PackageStatus.Available)
                 .Where(SemVerLevelKey.IsPackageCompliantWithSemVerLevelPredicate(semVerLevel))
                 .OrderBy(p => p.PackageRegistration.Id).ThenBy(p => p.Version);
@@ -268,7 +270,7 @@ namespace NuGetGallery.Controllers
                 searchTerm,
                 targetFramework,
                 includePrerelease,
-                curatedFeed: curatedFeed,
+                curatedFeed: result.CuratedFeed,
                 semVerLevel: semVerLevel);
 
             // Packages provided by search service (even when not hijacked)
@@ -328,6 +330,60 @@ namespace NuGetGallery.Controllers
         {
             var searchResults = await Search(options, curatedFeedName, searchTerm, targetFramework, includePrerelease, semVerLevel);
             return searchResults.FormattedAsCountResult<V2FeedPackage>();
+        }
+
+        private bool IsCuratedFeedRedirected(string name)
+        {
+            if (_configurationService.Current.RedirectedCuratedFeeds == null)
+            {
+                return false;
+            }
+
+            return _configurationService
+                .Current
+                .RedirectedCuratedFeeds
+                .Contains(name, StringComparer.OrdinalIgnoreCase);
+        }
+
+        private CuratedFeedResult GetCuratedFeedResult(string curatedFeedName)
+        {
+            IQueryable<Package> packages;
+            CuratedFeed curatedFeed;
+            if (IsCuratedFeedRedirected(curatedFeedName))
+            {
+                curatedFeed = null;
+                packages = _packagesRepository.GetAll();
+            }
+            else
+            {
+                curatedFeed = _curatedFeedService.GetFeedByName(curatedFeedName);
+                if (curatedFeed == null)
+                {
+                    return new CuratedFeedResult(NotFound());
+                }
+
+                packages = _curatedFeedService.GetPackages(curatedFeedName);
+            }
+
+            return new CuratedFeedResult(packages, curatedFeed);
+        }
+
+        private class CuratedFeedResult
+        {
+            public CuratedFeedResult(IHttpActionResult actionResult)
+            {
+                ActionResult = actionResult ?? throw new ArgumentNullException(nameof(actionResult));
+            }
+
+            public CuratedFeedResult(IQueryable<Package> packages, CuratedFeed curatedFeed)
+            {
+                Packages = packages ?? throw new ArgumentNullException(nameof(packages));
+                CuratedFeed = curatedFeed;
+            }
+
+            public IQueryable<Package> Packages { get; }
+            public CuratedFeed CuratedFeed { get; }
+            public IHttpActionResult ActionResult { get; }
         }
     }
 }

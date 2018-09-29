@@ -29,8 +29,6 @@ namespace NuGetGallery
 
         public AuthenticationService AuthenticationService { get; }
 
-        public ICuratedFeedService CuratedFeedService { get; }
-
         public IPackageService PackageService { get; }
 
         public IMessageService MessageService { get; }
@@ -47,7 +45,6 @@ namespace NuGetGallery
 
         public AccountsController(
             AuthenticationService authenticationService,
-            ICuratedFeedService curatedFeedService,
             IPackageService packageService,
             IMessageService messageService,
             IUserService userService,
@@ -57,7 +54,6 @@ namespace NuGetGallery
             IContentObjectService contentObjectService)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
-            CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -343,11 +339,6 @@ namespace NuGetGallery
 
             model.IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
-
-            model.CuratedFeeds = CuratedFeedService
-                .GetFeedsForManager(account.Key)
-                .Select(f => f.Name)
-                .ToList();
 
             model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;

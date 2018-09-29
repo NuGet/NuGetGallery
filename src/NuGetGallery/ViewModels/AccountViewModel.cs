@@ -26,8 +26,6 @@ namespace NuGetGallery
 
         public bool WasMultiFactorAuthenticated { get; set; }
 
-        public IList<string> CuratedFeeds { get; set; }
-
         public ChangeEmailViewModel ChangeEmail { get; set; }
 
         public ChangeNotificationsViewModel ChangeNotifications { get; set; }

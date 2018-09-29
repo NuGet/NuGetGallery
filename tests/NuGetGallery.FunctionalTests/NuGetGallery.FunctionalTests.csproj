@@ -84,7 +84,6 @@
     <Compile Include="Commandline\NuGetCommandLineTests.cs" />
     <Compile Include="Commandline\NuGetCoreTests.cs" />
     <Compile Include="ODataFeeds\CuratedFeedTest.cs" />
-    <Compile Include="ODataFeeds\FeedType.cs" />
     <Compile Include="ODataFeeds\SearchTest.cs" />
     <Compile Include="ODataFeeds\V2FeedExtendedTests.cs" />
     <Compile Include="PackageCreation\ApiPushTests.cs" />

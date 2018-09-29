@@ -161,55 +161,6 @@ namespace NuGetGallery
                 routeValues);
         }
 
-        public static string CuratedPackage(
-            this UrlHelper url,
-            string curatedFeedName,
-            string id,
-            bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.CuratedPackage,
-                relativeUrl,
-                new RouteValueDictionary
-                {
-                    { "curatedFeedName", curatedFeedName },
-                    { "curatedPackageId", id }
-                });
-        }
-
-        public static string CuratedPackageList(
-            this UrlHelper url,
-            int page,
-            string q,
-            string curatedFeedName,
-            bool relativeUrl = true)
-        {
-            return GetActionLink(
-                url,
-                "ListPackages",
-                "CuratedFeeds",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "q", q },
-                    { "page", page },
-                    { "curatedFeedName", curatedFeedName }
-                });
-        }
-
-        public static string CuratedFeed(this UrlHelper url, string curatedFeedName, bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.CuratedFeed,
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "name", curatedFeedName }
-                });
-        }
-
         public static string PackageList(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);

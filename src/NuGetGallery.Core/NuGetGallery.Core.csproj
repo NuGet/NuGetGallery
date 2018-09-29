@@ -118,7 +118,9 @@
     <Compile Include="Entities\CuratedFeed.cs" />
     <Compile Include="Entities\CuratedPackage.cs" />
     <Compile Include="Entities\DatabaseWrapper.cs" />
+    <Compile Include="Entities\DbContextTransactionWrapper.cs" />
     <Compile Include="Entities\IDatabase.cs" />
+    <Compile Include="Entities\IDbContextTransaction.cs" />
     <Compile Include="Entities\Membership.cs" />
     <Compile Include="Entities\Organization.cs" />
     <Compile Include="Entities\AccountDelete.cs" />

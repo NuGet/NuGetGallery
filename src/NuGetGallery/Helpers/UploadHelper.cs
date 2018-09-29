@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 
 namespace NuGetGallery.Helpers
@@ -20,9 +19,9 @@ namespace NuGetGallery.Helpers
             try
             {
                 uploadTracingKey = headers[CoreConstants.UploadTracingKeyHeaderName];
-                Guid.Parse(uploadTracingKey);
+                uploadTracingKey = Guid.Parse(uploadTracingKey).ToString();
             }
-            catch (Exception ex) when (ex is FormatException || ex is KeyNotFoundException)
+            catch (Exception ex) when (ex is FormatException || ex is ArgumentNullException)
             {
                 // An upload tracing key was not found
                 // Simultaneous UI uploads might have strange behaviour.

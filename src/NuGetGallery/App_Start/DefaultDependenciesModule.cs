@@ -405,23 +405,6 @@ namespace NuGetGallery
                 .AsSelf()
                 .InstancePerLifetimeScope();
 
-            // todo: bind all package curators by convention
-            builder.RegisterType<WebMatrixPackageCurator>()
-                .AsSelf()
-                .As<IAutomaticPackageCurator>()
-                .InstancePerLifetimeScope();
-
-            builder.RegisterType<Windows8PackageCurator>()
-                .AsSelf()
-                .As<IAutomaticPackageCurator>()
-                .InstancePerLifetimeScope();
-
-            // todo: bind all commands by convention
-            builder.RegisterType<AutomaticallyCuratePackageCommand>()
-                .AsSelf()
-                .As<IAutomaticallyCuratePackageCommand>()
-                .InstancePerLifetimeScope();
-
             if (configuration.Current.Environment == Constants.DevelopmentEnvironment)
             {
                 builder.RegisterType<AllowLocalHttpRedirectPolicy>()

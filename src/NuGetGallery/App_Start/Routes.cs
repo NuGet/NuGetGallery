@@ -534,31 +534,6 @@ namespace NuGetGallery
                 new RouteExtensions.ObfuscatedPathMetadata(1, Obfuscator.DefaultTelemetryUserName));
 
             routes.MapRoute(
-                RouteName.CuratedFeed,
-                "curated-feeds/{name}",
-                new { controller = "CuratedFeeds", action = "CuratedFeed" });
-
-            routes.MapRoute(
-                RouteName.CuratedFeedListPackages,
-                "curated-feeds/{curatedFeedName}/packages",
-                new { controller = "CuratedFeeds", action = "ListPackages" });
-
-            routes.MapRoute(
-                RouteName.CreateCuratedPackageForm,
-                "forms/add-package-to-curated-feed",
-                new { controller = "CuratedPackages", action = "CreateCuratedPackageForm" });
-
-            routes.MapRoute(
-                RouteName.CuratedPackage,
-                "curated-feeds/{curatedFeedName}/curated-packages/{curatedPackageId}",
-                new { controller = "CuratedPackages", action = "CuratedPackage" });
-
-            routes.MapRoute(
-                RouteName.CuratedPackages,
-                "curated-feeds/{curatedFeedName}/curated-packages",
-                new { controller = "CuratedPackages", action = "CuratedPackages" });
-
-            routes.MapRoute(
                 RouteName.Downloads,
                 "downloads",
                 new { controller = "Pages", action = "Downloads" });
