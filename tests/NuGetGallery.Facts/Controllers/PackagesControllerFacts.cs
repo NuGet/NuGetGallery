@@ -143,7 +143,17 @@ namespace NuGetGallery
 
             contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
 
-            symbolPackageUploadService = symbolPackageUploadService ?? new Mock<ISymbolPackageUploadService>();
+            if (symbolPackageUploadService == null)
+            {
+                symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(new Package() {
+                        PackageRegistration = new PackageRegistration() { Id = "thePackageId" },
+                        Version = "1.0.42",
+                        NormalizedVersion = "1.0.42"
+                    }));
+            }
 
             var controller = new Mock<PackagesController>(
                 packageService.Object,
@@ -193,7 +203,40 @@ namespace NuGetGallery
             return controller.Object;
         }
 
-        private static Mock<IPackageUploadService> GetValidPackageUploadService(string packageId, string packageVersion)
+        private static Mock<ISymbolPackageUploadService> GetValidSymbolPackageUploadService(string packageId, 
+            string packageVersion,
+            User owner, 
+            PackageValidationResultType type = PackageValidationResultType.Accepted,
+            PackageCommitResult commit = PackageCommitResult.Success)
+        {
+            var package = new Package()
+            {
+                PackageRegistration = new PackageRegistration()
+                {
+                    Id = packageId,
+                    Owners = new List<User>() { owner }
+                },
+                Version = packageVersion,
+                NormalizedVersion = packageVersion
+            };
+
+            var fakeSymbolsPackageUploadService = new Mock<ISymbolPackageUploadService>();
+            fakeSymbolsPackageUploadService
+                .Setup(x => x.ValidateUploadedSymbolsPackage(
+                    It.IsAny<Stream>(),
+                    It.IsAny<User>()))
+                .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+            fakeSymbolsPackageUploadService
+                .Setup(x => x.CreateAndUploadSymbolsPackage(
+                    It.IsAny<Package>(),
+                    It.IsAny<Stream>()))
+                .ReturnsAsync(commit);
+
+            return fakeSymbolsPackageUploadService;
+        }
+
+        private static Mock<IPackageUploadService> GetValidPackageUploadService(string packageId, string packageVersion, PackageValidationResultType type = PackageValidationResultType.Accepted)
         {
             var fakePackageUploadService = new Mock<IPackageUploadService>();
 
@@ -219,7 +262,8 @@ namespace NuGetGallery
                     It.IsAny<User>(),
                     It.IsAny<User>(),
                     It.IsAny<bool>()))
-                .ReturnsAsync(PackageValidationResult.Accepted());
+                .ReturnsAsync(new PackageValidationResult(
+                    type, message: "Something", warnings: null));
 
             return fakePackageUploadService;
         }
@@ -3349,16 +3393,18 @@ namespace NuGetGallery
             {
                 get
                 {
-                    yield return MemberDataHelper.AsData(TestUtility.FakeUser, new[] { TestUtility.FakeUser });
-                    yield return MemberDataHelper.AsData(TestUtility.FakeAdminUser, new[] { TestUtility.FakeAdminUser });
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationAdmin, new[] { TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization });
-                    yield return MemberDataHelper.AsData(TestUtility.FakeOrganizationCollaborator, new[] { TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization });
+                    yield return MemberDataHelper.AsData(true, TestUtility.FakeUser, new[] { TestUtility.FakeUser });
+                    yield return MemberDataHelper.AsData(true, TestUtility.FakeAdminUser, new[] { TestUtility.FakeAdminUser });
+                    yield return MemberDataHelper.AsData(false, TestUtility.FakeUser, new[] { TestUtility.FakeUser });
+                    yield return MemberDataHelper.AsData(false, TestUtility.FakeAdminUser, new[] { TestUtility.FakeAdminUser });
+                    yield return MemberDataHelper.AsData(false, TestUtility.FakeOrganizationAdmin, new[] { TestUtility.FakeOrganizationAdmin, TestUtility.FakeOrganization });
+                    yield return MemberDataHelper.AsData(false, TestUtility.FakeOrganizationCollaborator, new[] { TestUtility.FakeOrganizationCollaborator, TestUtility.FakeOrganization });
                 }
             }
 
             [Theory]
             [MemberData(nameof(WillRedirectToVerifyPackageActionWhenThereIsAlreadyAnUploadInProgressForANewId_Data))]
-            public async Task WillRedirectToVerifyPackageActionWhenThereIsAlreadyAnUploadInProgressForANewId(User currentUser, IEnumerable<User> expectedPossibleOwners)
+            public async Task WillRedirectToVerifyPackageActionWhenThereIsAlreadyAnUploadInProgressForANewId(bool isSymbolsPackage, User currentUser, IEnumerable<User> expectedPossibleOwners)
             {
                 using (var fakeFileStream = new MemoryStream())
                 {
@@ -3369,10 +3415,12 @@ namespace NuGetGallery
 
                     var fakeUserService = new Mock<IUserService>();
                     fakeUserService.Setup(x => x.FindByUsername(currentUser.Username, false)).Returns(currentUser);
+                    var fakeNuGetPackage = isSymbolsPackage ? TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42") : null;
 
                     var controller = CreateController(
                         GetConfigurationService(),
                         uploadFileService:fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
                         userService: fakeUserService);
                     controller.SetCurrentUser(currentUser);
 
@@ -3381,6 +3429,7 @@ namespace NuGetGallery
                     Assert.NotNull(result);
                     Assert.True(result.IsUploadInProgress);
                     Assert.NotNull(result.InProgressUpload);
+                    Assert.Equal(result.InProgressUpload.IsSymbolsPackage, isSymbolsPackage);
                     AssertIdenticalPossibleOwners(result.InProgressUpload.PossibleOwners, expectedPossibleOwners);
                 }
             }
@@ -3576,6 +3625,42 @@ namespace NuGetGallery
                 Assert.Equal(expectedMessage, actualMessage);
             }
 
+            [Fact]
+            public async Task WillSetErrorMessageFromValidationForSymbolsPackage()
+            {
+                var expectedMessage = "Tricky package!";
+                var currentUser = TestUtility.FakeUser;
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("CrestedGecko", "1.4.2");
+
+                var fakeUserService = new Mock<IUserService>();
+                fakeUserService
+                    .Setup(x => x.FindByUsername(currentUser.Username, false))
+                    .Returns(currentUser);
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(It.IsAny<int>())).Returns(Task.FromResult(fakeFileStream));
+
+                var fakeSymbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                fakeSymbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.Invalid(expectedMessage));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    userService: fakeUserService,
+                    fakeNuGetPackage: fakeFileStream,
+                    uploadFileService: fakeUploadFileService,
+                    symbolPackageUploadService: fakeSymbolPackageUploadService);
+                controller.SetCurrentUser(currentUser);
+
+                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
+
+                Assert.NotNull(result);
+                Assert.Null(result.InProgressUpload);
+                Assert.True(controller.TempData.ContainsKey("Message"));
+                Assert.Equal(expectedMessage, controller.TempData["Message"]);
+            }
+
             private void AssertIdenticalPossibleOwners(IEnumerable<string> possibleOwners, IEnumerable<User> expectedPossibleOwners)
             {
                 Assert.True(possibleOwners.SequenceEqual(expectedPossibleOwners.Select(u => u.Username)));
@@ -3588,22 +3673,25 @@ namespace NuGetGallery
             private const string PackageId = "theId";
             private const string PackageVersion = "1.0.0";
 
-            [Fact]
-            public async Task WillReturn409WhenThereIsAlreadyAnUploadInProgress()
+            [Theory]
+            [InlineData(false)]
+            [InlineData(true)]
+            public async Task WillReturn409WhenThereIsAlreadyAnUploadInProgress(bool isSymbolsPackage)
             {
-                using (var fakeFileStream = new MemoryStream())
-                {
-                    var fakeUploadFileService = new Mock<IUploadFileService>();
-                    fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
-                    var controller = CreateController(
-                        GetConfigurationService(),
-                        uploadFileService: fakeUploadFileService);
-                    controller.SetCurrentUser(TestUtility.FakeUser);
+                var fakeFileStream = isSymbolsPackage
+                    ? TestPackage.CreateTestSymbolPackageStream()
+                    : TestPackage.CreateTestPackageStream();
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    uploadFileService: fakeUploadFileService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
 
-                    var result = await controller.UploadPackage(null) as JsonResult;
+                var result = await controller.UploadPackage(null) as JsonResult;
 
-                    Assert.NotNull(result);
-                }
+                Assert.NotNull(result);
             }
 
             [Fact]
@@ -4207,6 +4295,226 @@ namespace NuGetGallery
                 var actualMessage = Assert.Single(data.Warnings);
                 Assert.Equal(expectedMessage, actualMessage);
             }
+
+            [Fact]
+            public async Task WillShowViewWithErrorsIfSymbolsPackageValidationThrowsException()
+            {
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ThrowsAsync(new Exception());
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal(Strings.FailedToReadUploadFile, (result.Data as string[])[0]);
+            }
+
+            [Fact]
+            public async Task WillReturnConflictWhenUserDoesNotHaveOwnPackage()
+            {
+                var packageId = "theId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { new User() { Key = 12232 } }
+                    }
+                };
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Conflict, controller.Response.StatusCode);
+                Assert.Equal(string.Format(Strings.PackageIdNotAvailable, packageId), (result.Data as string[])[0]);
+            }
+
+            [Fact]
+            public async Task WillPreventSymbolsUploadIfOriginalPackageIsLocked()
+            {
+                var packageId = "theId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { TestUtility.FakeUser },
+                        IsLocked = true
+                    }
+                };
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.Equal((int)HttpStatusCode.Forbidden, controller.Response.StatusCode);
+                Assert.Equal(string.Format(Strings.PackageIsLocked, packageId), (result.Data as string[])[0]);
+            }
+
+            public static IEnumerable<object[]> SymbolValidationResultTypes => Enum
+                .GetValues(typeof(SymbolPackageValidationResultType))
+                .Cast<SymbolPackageValidationResultType>()
+                .Select(r => new object[] { r });
+
+            [Theory]
+            [MemberData(nameof(SymbolValidationResultTypes))]
+            public async Task WillNotThrowForAnySymbolPackageValidationResultType(SymbolPackageValidationResultType type)
+            {
+                var packageId = "theId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { new User() { Key = 12232 } }
+                    }
+                };
+
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(new SymbolPackageValidationResult(type, "something"));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    fakeNuGetPackage: fakeFileStream,
+                    symbolPackageUploadService: symbolPackageUploadService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+            }
+
+            [Fact]
+            public async Task WillSaveTheSymbolsPackageUploadFile()
+            {
+                var packageId = "thePackageId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { TestUtility.FakeUser }
+                    }
+                }; var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream(packageId, "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
+                fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(null));
+                fakeUploadFileService.Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>())).Returns(Task.FromResult(0));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService,
+                    symbolPackageUploadService: symbolPackageUploadService,
+                    fakeNuGetPackage: fakeFileStream);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                await controller.UploadPackage(fakeUploadedFile.Object);
+
+                fakeUploadFileService.Verify(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, fakeFileStream));
+                fakeFileStream.Dispose();
+            }
+
+            [Fact]
+            public async Task WillRedirectToVerifyPackageActionAfterSavingForSymbolsPackage()
+            {
+                var packageId = "thePackageId";
+                var package = new Package()
+                {
+                    PackageRegistration = new PackageRegistration()
+                    {
+                        Id = packageId,
+                        Owners = new List<User>() { TestUtility.FakeUser }
+                    }
+                };
+                var fakeUploadedFile = new Mock<HttpPostedFileBase>();
+                fakeUploadedFile.Setup(x => x.FileName).Returns("theFile.snupkg");
+                var fakeFileStream = TestPackage.CreateTestSymbolPackageStream(packageId, "1.0.0");
+                fakeUploadedFile.Setup(x => x.InputStream).Returns(fakeFileStream);
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                fakeUploadFileService
+                    .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult(0));
+                fakeUploadFileService
+                    .SetupSequence(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                    .Returns(Task.FromResult<Stream>(null))
+                    .Returns(Task.FromResult(fakeFileStream));
+                fakeUploadFileService
+                    .Setup(x => x.SaveUploadFileAsync(TestUtility.FakeUser.Key, It.IsAny<Stream>()))
+                    .Returns(Task.FromResult(0));
+                var symbolPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                symbolPackageUploadService
+                    .Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                    .ReturnsAsync(SymbolPackageValidationResult.AcceptedForPackage(package));
+
+                var fakeUserService = new Mock<IUserService>();
+                fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    uploadFileService: fakeUploadFileService,
+                    symbolPackageUploadService: symbolPackageUploadService,
+                    userService: fakeUserService);
+                controller.SetCurrentUser(TestUtility.FakeUser);
+
+                var result = await controller.UploadPackage(fakeUploadedFile.Object) as JsonResult;
+
+                Assert.NotNull(result);
+                Assert.True(result.Data is VerifyPackageRequest);
+            }
         }
 
         public class TheVerifyPackageActionForPostRequests
@@ -4399,7 +4707,7 @@ namespace NuGetGallery
                 {
                     fakeUploadFileService.Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult<Stream>(fakeFileStream));
                     fakeUploadFileService.Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key)).Returns(Task.FromResult(0));
-                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion);
+                    var fakePackageUploadService = GetValidPackageUploadService(PackageId, PackageVersion, type);
                     var fakeNuGetPackage = TestPackage.CreateTestPackageStream(PackageId, PackageVersion);
 
                     var fakeUserService = new Mock<IUserService>();
@@ -5478,6 +5786,206 @@ namespace NuGetGallery
 
                     var hasReadMe = !string.IsNullOrEmpty(edit.ReadMe?.SourceType);
                     fakePackageFileService.Verify(x => x.SaveReadMeMdFileAsync(fakePackage, "markdown"), Times.Exactly(hasReadMe ? 1 : 0));
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(CommitResults))]
+            public async Task DoesNotThrowForAnyPackageCommitResultForSymbolsPackage(PackageCommitResult commitResult)
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult(0));
+                    var fakeSymbolsPackageUploadService = GetValidSymbolPackageUploadService(PackageId, PackageVersion, TestUtility.FakeUser, commit: commitResult);
+                    var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        symbolPackageUploadService: fakeSymbolsPackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = TestUtility.FakeUser.Username });
+
+                    fakeSymbolsPackageUploadService.Verify(x => x.CreateAndUploadSymbolsPackage(
+                        It.IsAny<Package>(),
+                        It.IsAny<Stream>()), Times.Once);
+                }
+            }
+
+            public static IEnumerable<object[]> SymbolValidationResultTypes => Enum
+                .GetValues(typeof(SymbolPackageValidationResultType))
+                .Cast<SymbolPackageValidationResultType>()
+                .Select(r => new object[] { r });
+
+            [Theory]
+            [MemberData(nameof(SymbolValidationResultTypes))]
+            public async Task DoesNotThrowForAnySymbolPackageValidationResultType(PackageCommitResult commitResult)
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult(0));
+                    var fakeSymbolsPackageUploadService = GetValidSymbolPackageUploadService(PackageId, PackageVersion, TestUtility.FakeUser, commit: commitResult);
+                    var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        symbolPackageUploadService: fakeSymbolsPackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    await controller.VerifyPackage(new VerifyPackageRequest() { Listed = true, Owner = TestUtility.FakeUser.Username });
+
+                    fakeSymbolsPackageUploadService.Verify(x => x.ValidateUploadedSymbolsPackage(
+                        It.IsAny<Stream>(),
+                        It.IsAny<User>()), Times.Once);
+                    fakeSymbolsPackageUploadService.Verify(x => x.CreateAndUploadSymbolsPackage(
+                        It.IsAny<Package>(),
+                        It.IsAny<Stream>()), Times.Once);
+                }
+            }
+
+            [Fact]
+            public async Task WillShowErrorMessageWhenFailedValidations()
+            {
+                var message = "funky symbols";
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult(0));
+                    var fakeSymbolsPackageUploadService = new Mock<ISymbolPackageUploadService>();
+                    fakeSymbolsPackageUploadService.Setup(x => x.ValidateUploadedSymbolsPackage(It.IsAny<Stream>(), It.IsAny<User>()))
+                        .ReturnsAsync(SymbolPackageValidationResult.Invalid(message));
+                    var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
+
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        symbolPackageUploadService: fakeSymbolsPackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Owner = TestUtility.FakeUser.Username });
+
+                    Assert.NotNull(result);
+                    Assert.Equal(message, (result.Data as string[])[0]);
+                }
+            }
+
+            [Fact]
+            public async Task WillReturnUnexpectedErrorWhenSymbolsCreationFails()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult(0));
+                    var fakeSymbolsPackageUploadService = GetValidSymbolPackageUploadService(PackageId, PackageVersion, TestUtility.FakeUser);
+                    fakeSymbolsPackageUploadService
+                        .Setup(x => x.CreateAndUploadSymbolsPackage(It.IsAny<Package>(), It.IsAny<Stream>()))
+                        .ThrowsAsync(new Exception());
+                    var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    var telemetryService = new Mock<ITelemetryService>();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        symbolPackageUploadService: fakeSymbolsPackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService,
+                        telemetryService: telemetryService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Owner = TestUtility.FakeUser.Username });
+
+                    Assert.NotNull(result);
+                    Assert.Equal(Strings.VerifyPackage_UnexpectedError, (result.Data as string[])[0]);
+                    telemetryService
+                        .Verify(x => x.TrackSymbolPackagePushFailureEvent(PackageId, PackageVersion), Times.Once);
+                }
+            }
+
+            [Fact]
+            public async Task WillRedirectToPackageDetailsPageAfterSuccessfullyCreatingSymbolsPackage()
+            {
+                var fakeUploadFileService = new Mock<IUploadFileService>();
+                using (var fakeFileStream = new MemoryStream())
+                {
+                    fakeUploadFileService
+                        .Setup(x => x.GetUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult<Stream>(fakeFileStream));
+                    fakeUploadFileService
+                        .Setup(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key))
+                        .Returns(Task.FromResult(0));
+                    var fakeSymbolsPackageUploadService = GetValidSymbolPackageUploadService(PackageId, PackageVersion, TestUtility.FakeUser);
+                    var fakeNuGetPackage = TestPackage.CreateTestSymbolPackageStream(PackageId, PackageVersion);
+                    var fakeUserService = new Mock<IUserService>();
+                    fakeUserService.Setup(x => x.FindByUsername(TestUtility.FakeUser.Username, false)).Returns(TestUtility.FakeUser);
+                    var telemetryService = new Mock<ITelemetryService>();
+                    var auditingService = new TestAuditingService();
+
+                    var controller = CreateController(
+                        GetConfigurationService(),
+                        symbolPackageUploadService: fakeSymbolsPackageUploadService,
+                        uploadFileService: fakeUploadFileService,
+                        fakeNuGetPackage: fakeNuGetPackage,
+                        userService: fakeUserService,
+                        telemetryService: telemetryService,
+                        auditingService: auditingService);
+                    controller.SetCurrentUser(TestUtility.FakeUser);
+
+                    var result = await controller.VerifyPackage(new VerifyPackageRequest() { Owner = TestUtility.FakeUser.Username });
+
+                    // Assert
+                    Assert.NotNull(result);
+                    telemetryService
+                        .Verify(x => x.TrackSymbolPackagePushEvent(PackageId, PackageVersion), Times.Once);
+
+                    Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
+                        ar.Action == AuditedPackageAction.SymbolsCreate
+                        && ar.Id == PackageId
+                        && ar.Version == PackageVersion
+                        && ar.Reason == PackageCreatedVia.Web));
+
+                    fakeUploadFileService
+                        .Verify(x => x.DeleteUploadFileAsync(TestUtility.FakeUser.Key), Times.Once);
                 }
             }
         }

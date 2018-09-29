@@ -238,7 +238,7 @@ namespace NuGetGallery
             return View(model);
         }
 
-        private async Task<ActionResult> UploadPackageInternal(SubmitPackageRequest model, 
+        private async Task<ActionResult> UploadPackageInternal(SubmitPackageRequest model,
             PackageArchiveReader packageArchiveReader,
             PackageMetadata packageMetadata,
             User currentUser)
@@ -1662,7 +1662,7 @@ namespace NuGetGallery
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
                 throw ex;
@@ -1680,7 +1680,7 @@ namespace NuGetGallery
             string packageId = null;
             string packageVersion = null;
             try
-           {
+            {
                 // Perform initial validations again, the state could have been changed between the time 
                 // when the symbols package file was uploaded and before submitting for publish.
                 var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadFile, currentUser);
@@ -1727,56 +1727,44 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
 
-                try
+                var commitResult = await _symbolPackageUploadService.CreateAndUploadSymbolsPackage(
+                    packageForUploadingSymbols,
+                    uploadFile.AsSeekableStream());
+
+                switch (commitResult)
                 {
-                    var commitResult = await _symbolPackageUploadService.CreateAndUploadSymbolsPackage(
-                        packageForUploadingSymbols,
-                        uploadFile.AsSeekableStream());
-
-                    switch (commitResult)
-                    {
-                        case PackageCommitResult.Success:
-                            break;
-                        case PackageCommitResult.Conflict:
-                            TempData["Message"] = Strings.SymbolsPackage_ConflictValidating;
-                            return Json(HttpStatusCode.Conflict, new[] { Strings.SymbolsPackage_ConflictValidating });
-                        default:
-                            throw new NotImplementedException($"The symbols package commit result {commitResult} is not supported.");
-                    }
-
-                    await _auditingService.SaveAuditRecordAsync(
-                        new PackageAuditRecord(packageForUploadingSymbols, AuditedPackageAction.SymbolsCreate, PackageCreatedVia.Web));
-
-                    if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
-                    {
-                        // notify user unless async validation in blocking mode is used
-                    }
-
-                    _telemetryService.TrackSymbolPackagePushEvent(packageId, packageVersion);
-
-                    TempData["Message"] = string.Format(
-                        CultureInfo.CurrentCulture, Strings.SymbolsPackage_UploadSuccessful, packageId, packageVersion);
+                    case PackageCommitResult.Success:
+                        break;
+                    case PackageCommitResult.Conflict:
+                        TempData["Message"] = Strings.SymbolsPackage_ConflictValidating;
+                        return Json(HttpStatusCode.Conflict, new[] { Strings.SymbolsPackage_ConflictValidating });
+                    default:
+                        throw new NotImplementedException($"The symbols package commit result {commitResult} is not supported.");
                 }
-                catch (Exception ex)
-                {
-                    ex.Log();
-                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
-                }
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(packageForUploadingSymbols, AuditedPackageAction.SymbolsCreate, PackageCreatedVia.Web));
+
+                _telemetryService.TrackSymbolPackagePushEvent(packageId, packageVersion);
+
+                TempData["Message"] = string.Format(
+                    CultureInfo.CurrentCulture, Strings.SymbolsPackage_UploadSuccessful, packageId, packageVersion);
 
                 // Delete the uploaded file
                 await DeleteUploadedFileForUser(currentUser, uploadFile);
+
+                // Redirect to the package details page
+                return Json(new
+                {
+                    location = Url.Package(packageId, packageVersion)
+                });
             }
             catch (Exception ex)
             {
                 ex.Log();
                 _telemetryService.TrackSymbolPackagePushFailureEvent(packageId, packageVersion);
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
             }
-
-            // Redirect to the package details page
-            return Json(new
-            {
-                location = Url.Package(packageId, packageVersion)
-            });
         }
 
         public virtual async Task<JsonResult> VerifyPackageInternal(
