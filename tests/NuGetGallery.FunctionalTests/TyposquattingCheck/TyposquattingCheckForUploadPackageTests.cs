@@ -20,18 +20,6 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
         }
 
         [TyposquattingTestFact]
-        public async Task UploadNotTyposquattingPackage()
-        {
-            string packageId = DateTime.Now.Ticks + "PackageWithDotCsNames.Cs";
-            string version = "1.0.0";
-            string packageFullPath = await _packageCreationHelper.CreatePackageWithMinClientVersion(packageId, version, "2.3");
-
-            var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
-
-            Assert.True(processResult.ExitCode == 0, Constants.UploadFailureMessage);
-        }
-
-        [TyposquattingTestFact]
         public async Task UploadTyposquattingPackageAndBlockUser()
         {
             var packageId = "newtonsoft-json";
@@ -40,6 +28,7 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
 
             var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
+            Assert.Contains("similar", processResult.StandardError);
             Assert.True(processResult.ExitCode == 1, Constants.UploadFailureMessage);
         }
     }
