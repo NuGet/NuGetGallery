@@ -72,7 +72,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 if (validatingEntity.Status == PackageStatus.Validating)
                 {
                     await _packageStateProcessor.SetStatusAsync(validatingEntity, validationSet, PackageStatus.FailedValidation);
-                    _messageService.SendValidationFailedMessage(validatingEntity.EntityRecord, validationSet);
+                    await _messageService.SendValidationFailedMessageAsync(validatingEntity.EntityRecord, validationSet);
                 }
                 else
                 {
@@ -109,7 +109,7 @@ namespace NuGet.Services.Validation.Orchestrator
                 // Only send the email when first transitioning into the Available state.
                 if (fromStatus != PackageStatus.Available)
                 {
-                    _messageService.SendPublishedMessage(validatingEntity.EntityRecord);
+                    await _messageService.SendPublishedMessageAsync(validatingEntity.EntityRecord);
                 }
 
                 if (currentCallStats.AnyRequiredValidationSucceeded)
@@ -231,7 +231,7 @@ namespace NuGet.Services.Validation.Orchestrator
                     validationSet.PackageId,
                     validationSet.PackageNormalizedVersion);
 
-                _messageService.SendValidationTakingTooLongMessage(validatingEntity.EntityRecord);
+                await _messageService.SendValidationTakingTooLongMessageAsync(validatingEntity.EntityRecord);
                 _telemetryService.TrackSentValidationTakingTooLongMessage(validationSet.PackageId, validationSet.PackageNormalizedVersion, validationSet.ValidationTrackingId);
             }
 

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -107,20 +108,20 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
-            var ex = Record.Exception(() => service.SendPublishedMessage(Package));
+            var ex = Record.Exception(() => service.SendPublishedMessageAsync(Package).Wait());
             Assert.Null(ex);
 
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageAddedNotice(Package, expectedPackageUrl, expectedSupportUrl, ValidSettingsUrl), Times.Once());
+                .Verify(cms => cms.SendPackageAddedNoticeAsync(Package, expectedPackageUrl, expectedSupportUrl, ValidSettingsUrl, It.IsAny<IEnumerable<string>>()), Times.Once());
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageAddedNotice(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+                .Verify(cms => cms.SendPackageAddedNoticeAsync(It.IsAny<Package>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()), Times.Once());
         }
 
         [Fact]
-        public void SendPackagePublishedEmailThrowsWhenPackageIsNull()
+        public async Task SendPackagePublishedEmailThrowsWhenPackageIsNull()
         {
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendPublishedMessage(null));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SendPublishedMessageAsync(null));
             Assert.Equal("package", ex.ParamName);
         }
 
@@ -132,28 +133,28 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
 
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
 
-            var ex = Record.Exception(() => service.SendValidationFailedMessage(Package, ValidationSet));
+            var ex = Record.Exception(() => service.SendValidationFailedMessageAsync(Package, ValidationSet).Wait());
             Assert.Null(ex);
 
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNotice(Package, ValidationSet, expectedPackageUrl, expectedSupportUrl, EmailConfiguration.AnnouncementsUrl, EmailConfiguration.TwitterUrl), Times.Once());
+                .Verify(cms => cms.SendPackageValidationFailedNoticeAsync(Package, ValidationSet, expectedPackageUrl, expectedSupportUrl, EmailConfiguration.AnnouncementsUrl, EmailConfiguration.TwitterUrl), Times.Once());
             CoreMessageServiceMock
-                .Verify(cms => cms.SendPackageValidationFailedNotice(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
+                .Verify(cms => cms.SendPackageValidationFailedNoticeAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Once());
         }
 
         [Fact]
-        public void SendPackageValidationFailedMessageThrowsWhenPackageIsNull()
+        public async Task SendPackageValidationFailedMessageThrowsWhenPackageIsNull()
         {
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(null, new PackageValidationSet()));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SendValidationFailedMessageAsync(null, new PackageValidationSet()));
             Assert.Equal("package", ex.ParamName);
         }
 
         [Fact]
-        public void SendPackageValidationFailedMessageThrowsWhenValidationSetIsNull()
+        public async Task SendPackageValidationFailedMessageThrowsWhenValidationSetIsNull()
         {
             var service = new PackageMessageService(CoreMessageServiceMock.Object, EmailConfigurationAccessorMock.Object, LoggerMock.Object);
-            var ex = Assert.Throws<ArgumentNullException>(() => service.SendValidationFailedMessage(new Package(), null));
+            var ex = await Assert.ThrowsAsync<ArgumentNullException>(() => service.SendValidationFailedMessageAsync(new Package(), null));
             Assert.Equal("validationSet", ex.ParamName);
         }
 

@@ -45,7 +45,8 @@
     <Compile Include="Configuration\ConfigurationValidatorFacts.cs" />
     <Compile Include="Configuration\CoreMessageServiceConfigurationFacts.cs" />
     <Compile Include="Configuration\TopologicalSortFacts.cs" />
-    <Compile Include="MessageServiceFacts.cs" />
+    <Compile Include="Services\SymbolsMessageServiceFacts.cs" />
+    <Compile Include="Services\MessageServiceFacts.cs" />
     <Compile Include="OrchestrationRunnerFacts.cs" />
     <Compile Include="PackageValidatingEntityFacts.cs" />
     <Compile Include="PackageSigning\ProcessSignature\PackageSignatureValidatorFacts.cs" />
@@ -57,7 +58,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Symbol\SymbolPackageValidatingEntityFacts.cs" />
     <Compile Include="Symbol\SymbolMessageEnqueuerFacts.cs" />
-    <Compile Include="Symbol\SymbolEntityServiceFacts.cs" />
+    <Compile Include="Services\SymbolEntityServiceFacts.cs" />
     <Compile Include="Symbol\SymbolScanValidatorFacts.cs" />
     <Compile Include="Symbol\SymbolsIngesterFacts.cs" />
     <Compile Include="Symbol\SymbolValidatorFacts.cs" />
@@ -70,7 +71,7 @@
     <Compile Include="ValidationSetProcessorFacts.cs" />
     <Compile Include="ValidationSetProviderFacts.cs" />
     <Compile Include="ValidationStorageServiceFacts.cs" />
-    <Compile Include="PackageEntityServiceFacts.cs" />
+    <Compile Include="Services\PackageEntityServiceFacts.cs" />
     <Compile Include="ValidatorStateServiceFacts.cs" />
     <Compile Include="Vcs\PackageCriteriaEvaluatorFacts.cs" />
     <Compile Include="Vcs\VcsValidatorFacts.cs" />

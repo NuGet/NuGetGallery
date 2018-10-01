@@ -51,13 +51,14 @@
     <Compile Include="DiskMailSender.cs" />
     <Compile Include="Configuration\EmailConfiguration.cs" />
     <Compile Include="Error.cs" />
-    <Compile Include="SymbolMessageService.cs" />
+    <Compile Include="Services\MessageServiceConfiguration.cs" />
+    <Compile Include="Services\SymbolsMessageService.cs" />
     <Compile Include="Symbols\SymbolScanOnlyConfiguration.cs" />
     <Compile Include="Symbols\SymbolCriteriaEvaluator.cs" />
     <Compile Include="Symbols\SymbolScanValidator.cs" />
     <Compile Include="PackageSigning\Scan\ScanValidator.cs" />
     <Compile Include="Services\IEntityService.cs" />
-    <Compile Include="IMessageService.cs" />
+    <Compile Include="Services\IMessageService.cs" />
     <Compile Include="IPackageStatusProcessor.cs" />
     <Compile Include="Services\SymbolEntityService.cs" />
     <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
@@ -74,7 +75,7 @@
     <Compile Include="IValidationSetProvider.cs" />
     <Compile Include="IValidationStorageService.cs" />
     <Compile Include="Job.cs" />
-    <Compile Include="MessageService.cs" />
+    <Compile Include="Services\PackageMessageService.cs" />
     <Compile Include="OrchestrationRunner.cs" />
     <Compile Include="Configuration\OrchestrationRunnerConfiguration.cs" />
     <Compile Include="Services\PackageEntityService.cs" />
@@ -136,9 +137,6 @@
   <ItemGroup>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
-    </PackageReference>
-    <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.27.0-master-35351</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

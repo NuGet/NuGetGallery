@@ -53,9 +53,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
 
             MessageServiceMock
-                .Verify(ms => ms.SendValidationFailedMessage(Package, ValidationSet), Times.Once());
+                .Verify(ms => ms.SendValidationFailedMessageAsync(Package, ValidationSet), Times.Once());
             MessageServiceMock
-                .Verify(ms => ms.SendValidationFailedMessage(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()), Times.Once());
+                .Verify(ms => ms.SendValidationFailedMessageAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()), Times.Once());
         }
 
         [Fact]
@@ -154,7 +154,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock
                     .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Once);
                 MessageServiceMock
-                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Once);
+                    .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Once);
                 ValidationEnqueuerMock
                     .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
                 PackageFileServiceMock
@@ -165,7 +165,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 TelemetryServiceMock
                     .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Never);
                 MessageServiceMock
-                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Never);
+                    .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
                 ValidationEnqueuerMock
                     .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
                 PackageFileServiceMock
@@ -182,7 +182,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             TelemetryServiceMock
                 .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Never);
             MessageServiceMock
-                .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Never);
+                .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
@@ -219,7 +219,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             TelemetryServiceMock
                 .Verify(t => t.TrackSentValidationTakingTooLongMessage(Package.PackageRegistration.Id, Package.NormalizedVersion, ValidationSet.ValidationTrackingId), Times.Never);
             MessageServiceMock
-                .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Never);
+                .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never);
             ValidationEnqueuerMock
                 .Verify(ve => ve.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()), Times.Once);
             PackageFileServiceMock
@@ -279,7 +279,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             await processor.ProcessValidationOutcomeAsync(ValidationSet, PackageValidatingEntity, ProcessorStats);
            
             MessageServiceMock.Verify(
-                x => x.SendPublishedMessage(It.IsAny<Package>()),
+                x => x.SendPublishedMessageAsync(It.IsAny<Package>()),
                 Times.Never);
         }
 
@@ -301,9 +301,9 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 Times.Once);
 
             MessageServiceMock
-                .Verify(ms => ms.SendPublishedMessage(Package), Times.Once());
+                .Verify(ms => ms.SendPublishedMessageAsync(Package), Times.Once());
             MessageServiceMock
-                .Verify(ms => ms.SendPublishedMessage(It.IsAny<Package>()), Times.Once());
+                .Verify(ms => ms.SendPublishedMessageAsync(It.IsAny<Package>()), Times.Once());
         }
 
         [Theory]
@@ -462,12 +462,12 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             if (expectedNotification)
             {
                 MessageServiceMock
-                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Once());
+                    .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Once());
             }
             else
             {
                 MessageServiceMock
-                    .Verify(m => m.SendValidationTakingTooLongMessage(Package), Times.Never());
+                    .Verify(m => m.SendValidationTakingTooLongMessageAsync(Package), Times.Never());
             }
         }
 
@@ -487,10 +487,10 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
                 x => x.SetStatusAsync(It.IsAny<PackageValidatingEntity>(), It.IsAny<PackageValidationSet>(), It.IsAny<PackageStatus>()),
                 Times.Never);
             MessageServiceMock.Verify(
-                x => x.SendValidationFailedMessage(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()),
+                x => x.SendValidationFailedMessageAsync(It.IsAny<Package>(), It.IsAny<PackageValidationSet>()),
                 Times.Never);
             MessageServiceMock.Verify(
-                x => x.SendPublishedMessage(It.IsAny<Package>()),
+                x => x.SendPublishedMessageAsync(It.IsAny<Package>()),
                 Times.Never);
         }
 
@@ -556,7 +556,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests
             var exception = new Exception("Something baaad happened");
 
             MessageServiceMock
-                .Setup(ms => ms.SendPublishedMessage(It.IsAny<Package>()))
+                .Setup(ms => ms.SendPublishedMessageAsync(It.IsAny<Package>()))
                 .Throws(exception);
 
             Package.PackageStatusKey = PackageStatus.Validating;
