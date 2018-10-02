@@ -131,7 +131,7 @@
 
         function bindData(model) {
 
-            if (model === null) {
+            if (model == null) {
                 return;
             }
 
