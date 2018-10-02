@@ -25,7 +25,6 @@ namespace NuGet.Monitoring.RebootSearchInstance
 
         private static readonly IEnumerable<string> TimeStampProperties = new string[]
         {
-            "Created",
             "LastEdited",
         };
 
