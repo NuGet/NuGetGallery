@@ -11,7 +11,7 @@ namespace NuGetGallery.FunctionalTests.XunitExtensions
         {
             if (!GalleryConfiguration.Instance.TyposquattingCheckAndBlockUsers)
             {
-                Skip = string.Format("Typosquatting checking or user blocking are disabled");
+                Skip = "Typosquatting checking or user blocking are disabled";
             }
         }
     }
