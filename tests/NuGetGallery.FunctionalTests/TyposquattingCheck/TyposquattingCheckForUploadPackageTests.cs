@@ -28,8 +28,8 @@ namespace NuGetGallery.FunctionalTests.TyposquattingCheck
 
             var processResult = await _commandlineHelper.UploadPackageAsync(packageFullPath, UrlHelper.V2FeedPushSourceUrl);
 
-            Assert.Contains("similar", processResult.StandardError);
             Assert.True(processResult.ExitCode == 1, Constants.UploadFailureMessage);
+            Assert.Contains("similar", processResult.StandardError);
         }
     }
 }
