@@ -770,6 +770,7 @@ namespace NuGetGallery
 
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal(string.Format(Strings.TyposquattingCheckFails, string.Join(",", _typosquattingCheckCollisionIds)), result.Message);
+                Assert.Contains("similar", result.Message);
                 Assert.Empty(result.Warnings);
             }
         }

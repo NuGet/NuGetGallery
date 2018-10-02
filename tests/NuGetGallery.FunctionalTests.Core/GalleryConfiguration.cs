@@ -38,6 +38,8 @@ namespace NuGetGallery.FunctionalTests
         public OrganizationConfiguration CollaboratorOrganization { get; private set; }
         [JsonProperty]
         public BrandingConfiguration Branding { get; private set; }
+        [JsonProperty]
+        public bool TyposquattingCheckAndBlockUsers { get; private set; }
 
         static GalleryConfiguration()
         {
