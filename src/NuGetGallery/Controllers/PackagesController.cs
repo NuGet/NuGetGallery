@@ -218,8 +218,6 @@ namespace NuGetGallery
 
             var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
             var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
-            var id = existingPackageRegistration.Id;
-            var version = packageForUploadingSymbols.NormalizedVersion;
 
             IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
             bool isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
@@ -253,11 +251,13 @@ namespace NuGetGallery
             IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
             if (existingPackageRegistration == null)
             {
-                isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
             }
             else
             {
-                isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
             }
 
             if (!isAllowed)
@@ -360,8 +360,6 @@ namespace NuGetGallery
 
             var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
             var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
-            var id = existingPackageRegistration.Id;
-            var version = packageForUploadingSymbols.NormalizedVersion;
 
             // Evaluate the permissions for user on behalf of any account possible, since the user 
             // could change the ownership before submitting the package.
