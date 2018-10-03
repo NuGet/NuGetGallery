@@ -87,7 +87,7 @@ namespace Stats.AggregateCdnDownloadsInGallery
                         _storedProcedureName,
                         transaction: transaction,
                         commandType: CommandType.StoredProcedure,
-                        commandTimeout: TimeSpan.FromMinutes(15),
+                        commandTimeout: TimeSpan.FromMinutes(30),
                         maxRetries: 3))
                     .ToList();
             }
