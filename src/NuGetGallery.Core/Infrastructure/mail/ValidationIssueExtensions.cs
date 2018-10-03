@@ -18,7 +18,7 @@ namespace NuGetGallery.Infrastructure.Mail
                     var clientIssue = (ClientSigningVerificationFailure)validationIssue;
                     return clientIssue != null
                         ? $"{clientIssue.ClientCode}: {clientIssue.ClientMessage}"
-                        : "This package's signature was unable to be verified.";
+                        : "This package's signature was unable to get verified.";
                 case ValidationIssueCode.PackageIsZip64:
                     return "Zip64 packages are not supported.";
                 case ValidationIssueCode.OnlyAuthorSignaturesSupported:
@@ -53,7 +53,7 @@ namespace NuGetGallery.Infrastructure.Mail
                     var clientIssue = (ClientSigningVerificationFailure)validationIssue;
                     return clientIssue != null
                         ? $"**{clientIssue.ClientCode}**: {clientIssue.ClientMessage}"
-                        : "This package's signature was unable to be verified.";
+                        : "This package's signature was unable to get verified.";
                 case ValidationIssueCode.PackageIsZip64:
                     return "Zip64 packages are not supported.";
                 case ValidationIssueCode.OnlyAuthorSignaturesSupported:
