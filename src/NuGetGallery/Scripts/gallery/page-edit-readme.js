@@ -155,7 +155,9 @@
                 submitAsync(navigateToPage);
             });
 
-            bindReadMeData(model);
+            if (model === null || !model.IsSymbolsPackage) {
+                bindReadMeData(model);
+            }
         }
     };
 }());

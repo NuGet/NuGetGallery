@@ -151,8 +151,8 @@ namespace NuGetGallery
         }
 
         public static Stream CreateTestPackageStream(
-            string id,
-            string version,
+            string id = "theId",
+            string version = "1.0.42",
             string title = "Package Id",
             string summary = "Package Summary",
             string authors = "Package author",
@@ -191,7 +191,7 @@ namespace NuGetGallery
             }, desiredTotalEntryCount);
         }
 
-        public static Stream CreateTestSymbolPackageStream(string id, string version, Action<ZipArchive> populatePackage = null)
+        public static Stream CreateTestSymbolPackageStream(string id = "theId", string version = "1.0.42", Action<ZipArchive> populatePackage = null)
         {
             var packageTypes = new List<ClientPackageType>();
             packageTypes.Add(new ClientPackageType(name: "SymbolsPackage", version: ClientPackageType.EmptyVersion));

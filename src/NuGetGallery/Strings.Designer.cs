@@ -1914,6 +1914,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Successfully uploaded the symbols package for package with ID {0} and version {1}..
+        /// </summary>
+        public static string SymbolsPackage_UploadSuccessful {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_UploadSuccessful", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The title of your package, &apos;{0}&apos;, is similar to the ID of an existing package, which can cause confusion with our users. Please modify the title of your package and try uploading again..
         /// </summary>
         public static string TitleMatchesExistingRegistration {

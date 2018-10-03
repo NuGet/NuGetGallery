@@ -84,7 +84,7 @@
         };
 
         function resetFileSelectFeedback() {
-            $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package...');
+            $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package or symbols package...');
         }
 
         function prepareUploadFormData() {
@@ -290,7 +290,9 @@
                 window.nuget.configureExpanderHeading("submit-package-form");
             }
 
-            bindReadMeData(model);
+            if (model === null || !model.IsSymbolsPackage) {
+                bindReadMeData(model);
+            }
 
             document.getElementById("validation-failure-container").scrollIntoView();
         }
