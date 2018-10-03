@@ -1,6 +1,6 @@
 ﻿{
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-int-validation;Integrated Security=False;User ID=$$Int-ValidationDBWriter-UserName$$;Password=$$Int-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-int-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Validation.Symbols;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.ValidationDbWriter.ClientId};AadCertificate=$$int-validationdb-writer$$"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetint.servicebus.windows.net/;SharedAccessKeyName=validator;SharedAccessKey=$$Int-ServiceBus-SharedAccessKey-SymbolValidator-ValidatorListener$$",

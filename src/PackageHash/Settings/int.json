@@ -1,6 +1,6 @@
 ﻿{
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;Integrated Security=False;User ID=$$Int-GalleryDBReadonly-UserName$$;Password=$$Int-GalleryDBReadonly-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=nuget-int-0-v2gallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=PackageHash;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.GalleryDbReader.ClientId};AadCertificate=$$int-gallerydb-reader$$"
   },
   "PackageHash": {
     "BatchSize": 1000,
