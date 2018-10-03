@@ -3,20 +3,17 @@
 
 using System;
 using System.Net.Mail;
-using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
     public abstract class ConfirmationEmailBuilder : EmailBuilder
     {
-        protected readonly ICoreMessageServiceConfiguration Configuration;
-        protected readonly User User;
-        protected readonly string ConfirmationUrl;
+        protected readonly IMessageServiceConfiguration Configuration;
         protected readonly string RawConfirmationUrl;
         protected readonly bool IsOrganization;
 
         protected ConfirmationEmailBuilder(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user,
             string confirmationUrl)
         {
@@ -24,9 +21,12 @@ namespace NuGetGallery.Infrastructure.Mail
             User = user ?? throw new ArgumentNullException(nameof(user));
             IsOrganization = user is Organization;
             RawConfirmationUrl = confirmationUrl ?? throw new ArgumentNullException(nameof(confirmationUrl));
-            ConfirmationUrl = HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_");
+            ConfirmationUrl = EscapeLinkForMarkdown(confirmationUrl);
         }
 
         public override MailAddress Sender => Configuration.GalleryNoReplyAddress;
+
+        public User User { get; }
+        public string ConfirmationUrl { get; }
     }
 }

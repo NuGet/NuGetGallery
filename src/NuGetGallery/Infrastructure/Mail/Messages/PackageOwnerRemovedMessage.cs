@@ -8,35 +8,38 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageOwnerRemovedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _fromUser;
-        private readonly User _toUser;
-        private readonly PackageRegistration _packageRegistration;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public PackageOwnerRemovedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User fromUser,
             User toUser,
             PackageRegistration packageRegistration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _fromUser = fromUser ?? throw new ArgumentNullException(nameof(fromUser));
-            _toUser = toUser ?? throw new ArgumentNullException(nameof(toUser));
-            _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
+            FromUser = fromUser ?? throw new ArgumentNullException(nameof(fromUser));
+            ToUser = toUser ?? throw new ArgumentNullException(nameof(toUser));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User FromUser { get; }
+
+        public User ToUser { get; }
+
+        public PackageRegistration PackageRegistration { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _toUser,
+                ToUser,
                 ActionsRequiringPermissions.HandlePackageOwnershipRequest,
-                replyTo: new[] { _fromUser.ToMailAddress() });
+                replyTo: new[] { FromUser.ToMailAddress() });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership removal for '{_packageRegistration.Id}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership removal for '{PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
@@ -45,7 +48,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetPlainTextBody()
         {
-            return $@"The user '{_fromUser.Username}' removed {(_toUser is Organization ? "your organization" : "you")} as an owner of the package '{_packageRegistration.Id}'.
+            return $@"The user '{FromUser.Username}' removed {(ToUser is Organization ? "your organization" : "you")} as an owner of the package '{PackageRegistration.Id}'.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team";

@@ -4,45 +4,47 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
+using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class CredentialRemovedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _user;
-        private readonly string _credentialType;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public CredentialRemovedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user,
-            string description,
-            string credentialType)
+            CredentialTypeInfo credentialType)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _user = user ?? throw new ArgumentNullException(nameof(user));
-            _credentialType = credentialType ?? throw new ArgumentNullException(nameof(credentialType));
+            User = user ?? throw new ArgumentNullException(nameof(user));
+            CredentialType = credentialType ?? throw new ArgumentNullException(nameof(credentialType));
         }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
-        public override IEmailRecipients GetRecipients() 
-            => new EmailRecipients(
-                to: new[] { _user.ToMailAddress() });
+        public CredentialTypeInfo CredentialType { get; }
 
-        public override string GetSubject() 
+        public User User { get; }
+
+        public override IEmailRecipients GetRecipients()
+            => new EmailRecipients(
+                to: new[] { User.ToMailAddress() });
+
+        public override string GetSubject()
             => string.Format(
                 CultureInfo.CurrentCulture,
                 Strings.Emails_CredentialRemoved_Subject,
                 _configuration.GalleryOwner.DisplayName,
-                _credentialType);
+                CredentialType.IsApiKey ? Strings.CredentialType_ApiKey : CredentialType.Description);
 
         protected override string GetMarkdownBody() => GetPlainTextBody();
 
-        protected override string GetPlainTextBody() 
+        protected override string GetPlainTextBody()
             => string.Format(
                 CultureInfo.CurrentCulture,
-                Strings.Emails_CredentialRemoved_Body,
-                _credentialType);
+                CredentialType.IsApiKey ? Strings.Emails_ApiKeyRemoved_Body : Strings.Emails_CredentialRemoved_Body,
+                CredentialType.Description);
     }
 }

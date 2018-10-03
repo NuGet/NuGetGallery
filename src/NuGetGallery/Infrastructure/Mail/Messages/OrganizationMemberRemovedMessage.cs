@@ -9,29 +9,38 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationMemberRemovedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Organization _organization;
-        private readonly User _removedUser;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public OrganizationMemberRemovedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Organization organization,
             User removedUser)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _organization = organization ?? throw new ArgumentNullException(nameof(organization));
-            _removedUser = removedUser ?? throw new ArgumentNullException(nameof(removedUser));
+            Organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            RemovedUser = removedUser ?? throw new ArgumentNullException(nameof(removedUser));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Organization Organization { get; }
+
+        public User RemovedUser { get; }
+
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
-                to: new[] { _organization.ToMailAddress() },
-                replyTo: new[] { _removedUser.ToMailAddress() });
+        {
+            if (!Organization.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
+                to: new[] { Organization.ToMailAddress() },
+                replyTo: new[] { RemovedUser.ToMailAddress() });
+        }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership update for organization '{_organization.Username}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership update for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
         {
@@ -42,7 +51,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_removedUser.Username}' is no longer a member of organization '{_organization.Username}'.
+                $@"The user '{RemovedUser.Username}' is no longer a member of organization '{Organization.Username}'.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

@@ -3,6 +3,7 @@
 
 using System;
 using System.Net.Mail;
+using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
@@ -23,11 +24,27 @@ namespace NuGetGallery.Infrastructure.Mail
             }
         }
 
-        protected abstract string GetPlainTextBody();
-        protected abstract string GetMarkdownBody();
-
         public abstract IEmailRecipients GetRecipients();
 
         public abstract string GetSubject();
+
+        protected abstract string GetPlainTextBody();
+        protected abstract string GetMarkdownBody();
+
+        /// <summary>
+        /// Markdown sees the underscore as italics indicator, so underscores are stripped in the message.
+        /// This prevents cut and pasting of the address or the use of text only email readers.
+        /// </summary>
+        /// <param name="encodedUrl">The encoded Url</param>
+        /// <returns>Returns a Markdown-friendly url by escaping underscore characters.</returns>
+        protected string EscapeLinkForMarkdown(string encodedUrl)
+        {
+            if (encodedUrl == null)
+            {
+                throw new ArgumentNullException(nameof(encodedUrl));
+            }
+
+            return HttpUtility.UrlDecode(encodedUrl).Replace("_", "\\_");
+        }
     }
 }

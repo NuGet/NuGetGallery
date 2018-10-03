@@ -9,35 +9,38 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageOwnershipRequestCanceledMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _requestingOwner;
-        private readonly User _newOwner;
-        private readonly PackageRegistration _packageRegistration;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public PackageOwnershipRequestCanceledMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User requestingOwner,
             User newOwner,
             PackageRegistration packageRegistration)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _requestingOwner = requestingOwner ?? throw new ArgumentNullException(nameof(requestingOwner));
-            _newOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
-            _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
+            RequestingOwner = requestingOwner ?? throw new ArgumentNullException(nameof(requestingOwner));
+            NewOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User RequestingOwner { get; }
+
+        public User NewOwner { get; }
+
+        public PackageRegistration PackageRegistration { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _newOwner,
+                NewOwner,
                 ActionsRequiringPermissions.HandlePackageOwnershipRequest,
-                replyTo: new[] { _requestingOwner.ToMailAddress() });
+                replyTo: new[] { RequestingOwner.ToMailAddress() });
         }
 
         public override string GetSubject() 
-            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{_packageRegistration.Id}' cancelled";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{PackageRegistration.Id}' cancelled";
 
         protected override string GetMarkdownBody()
         {
@@ -48,7 +51,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_requestingOwner.Username}' has cancelled their request for {(_newOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{_packageRegistration.Id}'.
+                $@"The user '{RequestingOwner.Username}' has cancelled their request for {(NewOwner is Organization ? "your organization" : "you")} to be added as an owner of the package '{PackageRegistration.Id}'.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

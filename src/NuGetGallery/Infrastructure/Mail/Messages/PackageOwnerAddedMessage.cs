@@ -8,42 +8,47 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageOwnerAddedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _toUser;
-        private readonly User _newOwner;
-        private readonly PackageRegistration _packageRegistration;
-        private readonly string _packageUrl;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public PackageOwnerAddedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User toUser,
             User newOwner,
             PackageRegistration packageRegistration,
             string packageUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _toUser = toUser ?? throw new ArgumentNullException(nameof(toUser));
-            _newOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
-            _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
-            _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+
+            PackageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+            ToUser = toUser ?? throw new ArgumentNullException(nameof(toUser));
+            NewOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User ToUser { get; }
+
+        public User NewOwner { get; }
+
+        public PackageRegistration PackageRegistration { get; }
+
+        public string PackageUrl { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _toUser,
+                ToUser,
                 ActionsRequiringPermissions.HandlePackageOwnershipRequest,
                 replyTo: new[] { _configuration.GalleryNoReplyAddress });
         }
 
-        public override string GetSubject() 
-            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership update for '{_packageRegistration.Id}'";
+        public override string GetSubject()
+            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership update for '{PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
-            return $@"User '{_newOwner.Username}' is now an owner of the package ['{_packageRegistration.Id}']({_packageUrl}).
+            return $@"User '{NewOwner.Username}' is now an owner of the package ['{PackageRegistration.Id}']({PackageUrl}).
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team";
@@ -51,7 +56,7 @@ The {_configuration.GalleryOwner.DisplayName} Team";
 
         protected override string GetPlainTextBody()
         {
-            return $@"User '{_newOwner.Username}' is now an owner of the package '{_packageRegistration.Id}' ({_packageUrl}).
+            return $@"User '{NewOwner.Username}' is now an owner of the package '{PackageRegistration.Id}' ({PackageUrl}).
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team";

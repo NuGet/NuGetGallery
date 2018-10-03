@@ -30,5 +30,19 @@ namespace NuGetGallery
                 return CredentialTypes.IsApiKey(Type) && !Scopes.AnySafe();
             }
         }
+
+        public CredentialTypeInfo GetCredentialTypeInfo()
+        {
+            if (CredentialTypes.IsApiKey(Type))
+            {
+                return new CredentialTypeInfo(Type, true, Description);
+            }
+            else
+            {
+                return AuthUI == null
+                    ? new CredentialTypeInfo(Type, false, TypeCaption)
+                    : new CredentialTypeInfo(Type, false, AuthUI.AccountNoun);
+            }
+        }
     }
 }

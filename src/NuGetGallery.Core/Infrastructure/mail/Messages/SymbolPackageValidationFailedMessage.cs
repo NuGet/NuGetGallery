@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
 using System.Text;
@@ -12,7 +11,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class SymbolPackageValidationFailedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly SymbolPackage _symbolPackage;
         private readonly PackageValidationSet _validationSet;
         private readonly string _packageUrl;
@@ -21,7 +20,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private readonly string _twitterUrl;
 
         public SymbolPackageValidationFailedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             SymbolPackage symbolPackage,
             PackageValidationSet validationSet,
             string packageUrl,
@@ -42,18 +41,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddAllOwnersToRecipients();
+            var to = EmailRecipients.GetAllOwners(_symbolPackage.Package.PackageRegistration, requireEmailAllowed: false);
             return new EmailRecipients(to);
-        }
-
-        private IReadOnlyList<MailAddress> AddAllOwnersToRecipients()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _symbolPackage.Package.PackageRegistration.Owners)
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
 
         public override string GetSubject()

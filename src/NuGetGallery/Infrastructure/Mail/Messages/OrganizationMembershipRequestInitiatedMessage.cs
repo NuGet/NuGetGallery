@@ -9,15 +9,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationMembershipRequestInitiatedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Organization _organization;
-        private readonly User _requestingUser;
-        private readonly User _pendingUser;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly string _cancellationUrl;
-        private readonly bool _isAdmin;
 
         public OrganizationMembershipRequestInitiatedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Organization organization,
             User requestingUser,
             User pendingUser,
@@ -25,25 +21,34 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             string cancellationUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _organization = organization ?? throw new ArgumentNullException(nameof(organization));
-            _requestingUser = requestingUser ?? throw new ArgumentNullException(nameof(requestingUser));
-            _pendingUser = pendingUser ?? throw new ArgumentNullException(nameof(pendingUser));
             _cancellationUrl = cancellationUrl ?? throw new ArgumentNullException(nameof(cancellationUrl));
-            _isAdmin = isAdmin;
+
+            Organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            RequestingUser = requestingUser ?? throw new ArgumentNullException(nameof(requestingUser));
+            PendingUser = pendingUser ?? throw new ArgumentNullException(nameof(pendingUser));
+            IsAdmin = isAdmin;
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Organization Organization { get; }
+
+        public User RequestingUser { get; }
+
+        public User PendingUser { get; }
+
+        public bool IsAdmin { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _organization,
+                Organization,
                 ActionsRequiringPermissions.ManageAccount,
-                replyTo: new[] { _requestingUser.ToMailAddress() });
+                replyTo: new[] { RequestingUser.ToMailAddress() });
         }
 
-        public override string GetSubject() 
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{_organization.Username}'";
+        public override string GetSubject()
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
         {
@@ -52,10 +57,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetPlainTextBody()
         {
-            var membershipLevel = _isAdmin ? "an administrator" : "a collaborator";
+            var membershipLevel = IsAdmin ? "an administrator" : "a collaborator";
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_requestingUser.Username}' has requested that user '{_pendingUser.Username}' be added as {membershipLevel} of organization '{_organization.Username}'. A confirmation mail has been sent to user '{_pendingUser.Username}' to accept the membership request. This mail is to inform you of the membership changes to organization '{_organization.Username}' and there is no action required from you.
+                $@"The user '{RequestingUser.Username}' has requested that user '{PendingUser.Username}' be added as {membershipLevel} of organization '{Organization.Username}'. A confirmation mail has been sent to user '{PendingUser.Username}' to accept the membership request. This mail is to inform you of the membership changes to organization '{Organization.Username}' and there is no action required from you.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

@@ -9,21 +9,22 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class AccountDeleteNoticeMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _user;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public AccountDeleteNoticeMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _user = user ?? throw new ArgumentNullException(nameof(user));
+            User = user ?? throw new ArgumentNullException(nameof(user));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User User { get; }
+
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(to: new[] { _user.ToMailAddress() });
+            => new EmailRecipients(to: new[] { User.ToMailAddress() });
 
         public override string GetSubject() => Strings.AccountDelete_SupportRequestTitle;
 
@@ -45,7 +46,7 @@ Thanks,
             return string.Format(
                 CultureInfo.CurrentCulture,
                 body,
-                _user.Username,
+                User.Username,
                 _configuration.GalleryOwner.DisplayName,
                 Environment.NewLine);
         }

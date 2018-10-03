@@ -3,21 +3,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageAddedWithWarningsMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly Package _package;
         private readonly string _packageUrl;
         private readonly string _packageSupportUrl;
         private readonly IEnumerable<string> _warningMessages;
 
         public PackageAddedWithWarningsMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Package package,
             string packageUrl,
             string packageSupportUrl,
@@ -34,7 +33,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddOwnersSubscribedToPackagePushedNotification();
+            var to = EmailRecipients.GetOwnersSubscribedToPackagePushedNotification(_package.PackageRegistration);
             return new EmailRecipients(to);
         }
 
@@ -57,16 +56,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return $@"The package {_package.PackageRegistration.Id} {_package.Version} ({_packageUrl}) was recently pushed to {_configuration.GalleryOwner.DisplayName} by {_package.User.Username}. If this was not intended, please contact support: {_packageSupportUrl}.
 {warningMessagesPlaceholder}
 ";
-        }
-
-        private IReadOnlyList<MailAddress> AddOwnersSubscribedToPackagePushedNotification()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _package.PackageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
     }
 }

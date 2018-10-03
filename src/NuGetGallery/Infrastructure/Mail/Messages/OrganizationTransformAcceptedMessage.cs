@@ -9,12 +9,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationTransformAcceptedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly User _accountToTransform;
         private readonly User _adminUser;
 
         public OrganizationTransformAcceptedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User accountToTransform,
             User adminUser)
         {
@@ -26,9 +26,16 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public override MailAddress Sender => _configuration.GalleryOwner;
 
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
+        {
+            if (!_accountToTransform.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
                 to: new[] { _accountToTransform.ToMailAddress() },
                 replyTo: new[] { _adminUser.ToMailAddress() });
+        }
 
         public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] Account '{_accountToTransform.Username}' has been transformed into an organization";

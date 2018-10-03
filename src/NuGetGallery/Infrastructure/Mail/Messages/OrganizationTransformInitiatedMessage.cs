@@ -4,20 +4,19 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationTransformInitiatedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly User _accountToTransform;
         private readonly User _adminUser;
         private readonly string _rawCancellationUrl;
         private readonly string _cancellationUrl;
 
         public OrganizationTransformInitiatedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User accountToTransform,
             User adminUser,
             string cancellationUrl)
@@ -27,15 +26,22 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             _adminUser = adminUser ?? throw new ArgumentNullException(nameof(adminUser));
 
             _rawCancellationUrl = cancellationUrl ?? throw new ArgumentNullException(nameof(cancellationUrl));
-            _cancellationUrl = HttpUtility.UrlDecode(cancellationUrl).Replace("_", "\\_");
+            _cancellationUrl = EscapeLinkForMarkdown(cancellationUrl);
         }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
+        {
+            if (!_accountToTransform.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
                 to: new[] { _accountToTransform.ToMailAddress() },
                 replyTo: new[] { _adminUser.ToMailAddress() });
+        }
 
         public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] Organization transformation for account '{_accountToTransform.Username}'";

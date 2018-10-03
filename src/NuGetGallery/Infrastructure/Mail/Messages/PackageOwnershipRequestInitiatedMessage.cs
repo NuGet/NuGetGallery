@@ -4,22 +4,17 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageOwnershipRequestInitiatedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _requestingOwner;
-        private readonly User _receivingOwner;
-        private readonly User _newOwner;
-        private readonly PackageRegistration _packageRegistration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly string _rawCancellationUrl;
         private readonly string _cancellationUrl;
 
         public PackageOwnershipRequestInitiatedMessage(
-            ICoreMessageServiceConfiguration configuration, 
+            IMessageServiceConfiguration configuration,
             User requestingOwner,
             User receivingOwner,
             User newOwner,
@@ -27,33 +22,42 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             string cancellationUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _requestingOwner = requestingOwner ?? throw new ArgumentNullException(nameof(requestingOwner));
-            _receivingOwner = receivingOwner ?? throw new ArgumentNullException(nameof(receivingOwner));
-            _newOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
-            _packageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
 
             _rawCancellationUrl = cancellationUrl ?? throw new ArgumentNullException(nameof(cancellationUrl));
-            _cancellationUrl = HttpUtility.UrlDecode(cancellationUrl).Replace("_", "\\_");
+            _cancellationUrl = EscapeLinkForMarkdown(cancellationUrl);
+
+            RequestingOwner = requestingOwner ?? throw new ArgumentNullException(nameof(requestingOwner));
+            ReceivingOwner = receivingOwner ?? throw new ArgumentNullException(nameof(receivingOwner));
+            NewOwner = newOwner ?? throw new ArgumentNullException(nameof(newOwner));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User RequestingOwner { get; }
+
+        public User ReceivingOwner { get; }
+
+        public User NewOwner { get; }
+
+        public PackageRegistration PackageRegistration { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _receivingOwner,
+                ReceivingOwner,
                 ActionsRequiringPermissions.HandlePackageOwnershipRequest,
-                replyTo: new[] { _newOwner.ToMailAddress() });
+                replyTo: new[] { NewOwner.ToMailAddress() });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{_packageRegistration.Id}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_requestingOwner.Username}' has requested that user '{_newOwner.Username}' be added as an owner of the package '{_packageRegistration.Id}'.
+                $@"The user '{RequestingOwner.Username}' has requested that user '{NewOwner.Username}' be added as an owner of the package '{PackageRegistration.Id}'.
 
 To cancel this request:
 
@@ -67,7 +71,7 @@ The {_configuration.GalleryOwner.DisplayName} Team");
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_requestingOwner.Username}' has requested that user '{_newOwner.Username}' be added as an owner of the package '{_packageRegistration.Id}'.
+                $@"The user '{RequestingOwner.Username}' has requested that user '{NewOwner.Username}' be added as an owner of the package '{PackageRegistration.Id}'.
 
 To cancel this request:
 {_rawCancellationUrl}

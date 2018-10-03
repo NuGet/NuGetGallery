@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net.Mail;
 
@@ -10,28 +9,31 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageDeletedNoticeMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Package _package;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly string _packageUrl;
         private readonly string _packageSupportUrl;
 
         public PackageDeletedNoticeMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Package package,
             string packageUrl,
             string packageSupportUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _package = package ?? throw new ArgumentNullException(nameof(package));
             _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
             _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
+            Package = package ?? throw new ArgumentNullException(nameof(package));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Package Package { get; }
+
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddAllOwnersToRecipients(_package.PackageRegistration);
+            var to = EmailRecipients.GetAllOwners(
+                Package.PackageRegistration,
+                requireEmailAllowed: false);
             return new EmailRecipients(to);
         }
 
@@ -40,8 +42,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 CultureInfo.CurrentCulture,
                 "[{0}] Package deleted - {1} {2}",
                 _configuration.GalleryOwner.DisplayName,
-                _package.PackageRegistration.Id,
-                _package.Version);
+                Package.PackageRegistration.Id,
+                Package.Version);
 
         protected override string GetMarkdownBody()
         {
@@ -54,8 +56,8 @@ The {0} Team";
                 CultureInfo.CurrentCulture,
                 body,
                 _configuration.GalleryOwner.DisplayName,
-                _package.PackageRegistration.Id,
-                _package.Version,
+                Package.PackageRegistration.Id,
+                Package.Version,
                 _packageUrl,
                 _packageSupportUrl);
         }
@@ -71,20 +73,10 @@ The {0} Team";
                 CultureInfo.CurrentCulture,
                 body,
                 _configuration.GalleryOwner.DisplayName,
-                _package.PackageRegistration.Id,
-                _package.Version,
+                Package.PackageRegistration.Id,
+                Package.Version,
                 _packageUrl,
                 _packageSupportUrl);
-        }
-
-        private static IReadOnlyList<MailAddress> AddAllOwnersToRecipients(PackageRegistration packageRegistration)
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in packageRegistration.Owners)
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
     }
 }

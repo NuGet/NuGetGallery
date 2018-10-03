@@ -10,8 +10,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageAddedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Package _package;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly string _packageUrl;
         private readonly string _packageSupportUrl;
         private readonly string _emailSettingsUrl;
@@ -19,7 +18,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private readonly bool _hasWarnings;
 
         public PackageAddedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Package package,
             string packageUrl,
             string packageSupportUrl,
@@ -27,7 +26,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             IEnumerable<string> warningMessages)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _package = package ?? throw new ArgumentNullException(nameof(package));
+            Package = package ?? throw new ArgumentNullException(nameof(package));
             _packageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
             _packageSupportUrl = packageSupportUrl ?? throw new ArgumentNullException(nameof(packageSupportUrl));
             _emailSettingsUrl = emailSettingsUrl ?? throw new ArgumentNullException(nameof(emailSettingsUrl));
@@ -37,9 +36,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Package Package { get; }
+
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddOwnersSubscribedToPackagePushedNotification();
+            var to = EmailRecipients.GetOwnersSubscribedToPackagePushedNotification(Package.PackageRegistration);
             return new EmailRecipients(to);
         }
 
@@ -47,11 +48,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             if (_hasWarnings)
             {
-                return $"[{_configuration.GalleryOwner.DisplayName}] Package published with warnings - {_package.PackageRegistration.Id} {_package.Version}";
+                return $"[{_configuration.GalleryOwner.DisplayName}] Package published with warnings - {Package.PackageRegistration.Id} {Package.Version}";
             }
             else
             {
-                return $"[{_configuration.GalleryOwner.DisplayName}] Package published - {_package.PackageRegistration.Id} {_package.Version}";
+                return $"[{_configuration.GalleryOwner.DisplayName}] Package published - {Package.PackageRegistration.Id} {Package.Version}";
             }
         }
 
@@ -63,7 +64,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
             }
 
-            return $@"The package [{_package.PackageRegistration.Id} {_package.Version}]({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {_package.User.Username}. If this was not intended, please [contact support]({_packageSupportUrl}).
+            return $@"The package [{Package.PackageRegistration.Id} {Package.Version}]({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {Package.User.Username}. If this was not intended, please [contact support]({_packageSupportUrl}).
 {warningMessagesPlaceholder}
 
 -----------------------------------------------
@@ -81,22 +82,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
             }
 
-            return $@"The package {_package.PackageRegistration.Id} {_package.Version} ({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {_package.User.Username}. If this was not intended, please contact support: {_packageSupportUrl}.
+            return $@"The package {Package.PackageRegistration.Id} {Package.Version} ({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {Package.User.Username}. If this was not intended, please contact support: {_packageSupportUrl}.
 {warningMessagesPlaceholder}
 
 -----------------------------------------------
     To stop receiving emails as an owner of this package, sign in to the {_configuration.GalleryOwner.DisplayName} and
     change your email notification settings: {_emailSettingsUrl}";
-        }
-
-        private IReadOnlyList<MailAddress> AddOwnersSubscribedToPackagePushedNotification()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _package.PackageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
     }
 }

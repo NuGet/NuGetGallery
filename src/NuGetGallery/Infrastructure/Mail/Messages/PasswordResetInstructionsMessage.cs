@@ -9,36 +9,39 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PasswordResetInstructionsMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly User _user;
-        private readonly string _resetPasswordUrl;
-        private readonly bool _forgotPassword;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public PasswordResetInstructionsMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user,
             string resetPasswordUrl,
             bool forgotPassword)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _user = user ?? throw new ArgumentNullException(nameof(user));
-            _resetPasswordUrl = resetPasswordUrl ?? throw new ArgumentNullException(nameof(resetPasswordUrl));
-            _forgotPassword = forgotPassword;
+            User = user ?? throw new ArgumentNullException(nameof(user));
+            ResetPasswordUrl = resetPasswordUrl ?? throw new ArgumentNullException(nameof(resetPasswordUrl));
+            ForgotPassword = forgotPassword;
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public User User { get; }
+
+        public string ResetPasswordUrl { get; }
+
+        public bool ForgotPassword { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipients(
-                to: new[] { _user.ToMailAddress() });
+                to: new[] { User.ToMailAddress() });
         }
 
         public override string GetSubject()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                _forgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject,
+                ForgotPassword ? Strings.Emails_ForgotPassword_Subject : Strings.Emails_SetPassword_Subject,
                 _configuration.GalleryOwner.DisplayName);
         }
 
@@ -46,8 +49,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                _forgotPassword ? Strings.Emails_ForgotPassword_MarkdownBody : Strings.Emails_SetPassword_MarkdownBody,
-                _resetPasswordUrl,
+                ForgotPassword ? Strings.Emails_ForgotPassword_MarkdownBody : Strings.Emails_SetPassword_MarkdownBody,
+                ResetPasswordUrl,
                 _configuration.GalleryOwner.DisplayName);
         }
 
@@ -55,8 +58,8 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                _forgotPassword ? Strings.Emails_ForgotPassword_PlainTextBody : Strings.Emails_SetPassword_PlainTextBody,
-                _resetPasswordUrl,
+                ForgotPassword ? Strings.Emails_ForgotPassword_PlainTextBody : Strings.Emails_SetPassword_PlainTextBody,
+                ResetPasswordUrl,
                 _configuration.GalleryOwner.DisplayName);
         }
     }

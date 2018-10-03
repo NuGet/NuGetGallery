@@ -9,32 +9,34 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationMembershipRequestDeclinedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Organization _organization;
-        private readonly User _pendingUser;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public OrganizationMembershipRequestDeclinedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Organization organization,
             User pendingUser)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _organization = organization ?? throw new ArgumentNullException(nameof(organization));
-            _pendingUser = pendingUser ?? throw new ArgumentNullException(nameof(pendingUser));
+            Organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            PendingUser = pendingUser ?? throw new ArgumentNullException(nameof(pendingUser));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Organization Organization { get; }
+
+        public User PendingUser { get; }
+
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                _organization,
+                Organization,
                 ActionsRequiringPermissions.ManageAccount,
-                replyTo: new[] { _pendingUser.ToMailAddress() });
+                replyTo: new[] { PendingUser.ToMailAddress() });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{_organization.Username}' declined";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Organization.Username}' declined";
 
         protected override string GetMarkdownBody()
         {
@@ -45,7 +47,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_pendingUser.Username}' has declined your request to become a member of your organization.
+                $@"The user '{PendingUser.Username}' has declined your request to become a member of your organization.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

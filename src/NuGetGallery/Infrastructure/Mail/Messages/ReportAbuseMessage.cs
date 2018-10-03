@@ -11,73 +11,74 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class ReportAbuseMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly ReportPackageRequest _request;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
         public ReportAbuseMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             ReportPackageRequest request)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _request = request ?? throw new ArgumentNullException(nameof(request));
+            Request = request ?? throw new ArgumentNullException(nameof(request));
         }
+
+        public ReportPackageRequest Request { get; }
 
         public override IEmailRecipients GetRecipients()
         {
             var cc = new List<MailAddress>();
-            if (_request.CopySender)
+            if (Request.CopySender)
             {
                 // Normally we use a second email to copy the sender to avoid disclosing the receiver's address
                 // but here, the receiver is the gallery operators who already disclose their address
                 // CCing helps to create a thread of email that can be augmented by the sending user
-                cc.Add(_request.FromAddress);
+                cc.Add(Request.FromAddress);
             }
 
             return new EmailRecipients(
                 to: new[] { Sender },
                 cc: cc,
-                replyTo: new[] { _request.FromAddress });
+                replyTo: new[] { Request.FromAddress });
         }
 
         public override string GetSubject() 
-            => $"[{_configuration.GalleryOwner.DisplayName}] Support Request for '{_request.Package.PackageRegistration.Id}' version {_request.Package.Version} (Reason: {_request.Reason})";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Support Request for '{Request.Package.PackageRegistration.Id}' version {Request.Package.Version} (Reason: {Request.Reason})";
 
         protected override string GetPlainTextBody()
         {
-            var alreadyContactedOwnersString = _request.AlreadyContactedOwners ? "Yes" : "No";
+            var alreadyContactedOwnersString = Request.AlreadyContactedOwners ? "Yes" : "No";
             var userString = string.Empty;
-            if (_request.RequestingUser != null && _request.RequestingUserUrl != null)
+            if (Request.RequestingUser != null && Request.RequestingUserUrl != null)
             {
                 userString = string.Format(
                     CultureInfo.CurrentCulture,
                     "{2}User: {0} ({1}){2}{3}",
-                    _request.RequestingUser.Username,
-                    _request.RequestingUser.EmailAddress,
+                    Request.RequestingUser.Username,
+                    Request.RequestingUser.EmailAddress,
                     Environment.NewLine,
-                    _request.RequestingUserUrl);
+                    Request.RequestingUserUrl);
             }
 
-            return $@"Email: {_request.FromAddress.DisplayName} ({_request.FromAddress.Address})
+            return $@"Email: {Request.FromAddress.DisplayName} ({Request.FromAddress.Address})
 
-Signature: {_request.Signature}
+Signature: {Request.Signature}
 
-Package: {_request.Package.PackageRegistration.Id}
-{_request.PackageUrl}
+Package: {Request.Package.PackageRegistration.Id}
+{Request.PackageUrl}
 
-Version: {_request.Package.Version}
-{_request.PackageVersionUrl}
+Version: {Request.Package.Version}
+{Request.PackageVersionUrl}
 {userString}
 
 Reason:
-{_request.Reason}
+{Request.Reason}
 
 Has the package owner been contacted?
 {alreadyContactedOwnersString}
 
 Message:
-{_request.Message}
+{Request.Message}
 
 
 Message sent from {_configuration.GalleryOwner.DisplayName}";
@@ -85,38 +86,38 @@ Message sent from {_configuration.GalleryOwner.DisplayName}";
 
         protected override string GetMarkdownBody()
         {
-            var alreadyContactedOwnersString = _request.AlreadyContactedOwners ? "Yes" : "No";
+            var alreadyContactedOwnersString = Request.AlreadyContactedOwners ? "Yes" : "No";
             var userString = string.Empty;
-            if (_request.RequestingUser != null && _request.RequestingUserUrl != null)
+            if (Request.RequestingUser != null && Request.RequestingUserUrl != null)
             {
                 userString = string.Format(
                     CultureInfo.CurrentCulture,
                     "{2}**User:** {0} ({1}){2}{3}",
-                    _request.RequestingUser.Username,
-                    _request.RequestingUser.EmailAddress,
+                    Request.RequestingUser.Username,
+                    Request.RequestingUser.EmailAddress,
                     Environment.NewLine,
-                    _request.RequestingUserUrl);
+                    Request.RequestingUserUrl);
             }
 
-            return $@"**Email**: {_request.FromAddress.DisplayName} ({_request.FromAddress.Address})
+            return $@"**Email**: {Request.FromAddress.DisplayName} ({Request.FromAddress.Address})
 
-**Signature**: {_request.Signature}
+**Signature**: {Request.Signature}
 
-**Package**: {_request.Package.PackageRegistration.Id}
-{_request.PackageUrl}
+**Package**: {Request.Package.PackageRegistration.Id}
+{Request.PackageUrl}
 
-**Version**: {_request.Package.Version}
-{_request.PackageVersionUrl}
+**Version**: {Request.Package.Version}
+{Request.PackageVersionUrl}
 {userString}
 
 **Reason**:
-{_request.Reason}
+{Request.Reason}
 
 **Has the package owner been contacted?**
 {alreadyContactedOwnersString}
 
 **Message:**
-{_request.Message}
+{Request.Message}
 
 
 Message sent from {_configuration.GalleryOwner.DisplayName}";

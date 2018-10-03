@@ -6,7 +6,7 @@ using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGetGallery.Configuration
 {
-    public interface IAppConfiguration : ICoreMessageServiceConfiguration
+    public interface IAppConfiguration : IMessageServiceConfiguration
     {
         /// <summary>
         /// Gets the location in which the Lucene Index is stored

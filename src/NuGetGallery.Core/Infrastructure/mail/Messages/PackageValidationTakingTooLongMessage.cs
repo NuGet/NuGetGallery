@@ -2,21 +2,19 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class PackageValidationTakingTooLongMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly Package _package;
         private readonly string _packageUrl;
 
         public PackageValidationTakingTooLongMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Package package,
             string packageUrl)
         {
@@ -29,7 +27,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddOwnersSubscribedToPackagePushedNotification();
+            var to = EmailRecipients.GetOwnersSubscribedToPackagePushedNotification(_package.PackageRegistration);
             return new EmailRecipients(to);
         }
 
@@ -69,16 +67,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 _package.PackageRegistration.Id,
                 _package.Version,
                 _packageUrl);
-        }
-
-        private IReadOnlyList<MailAddress> AddOwnersSubscribedToPackagePushedNotification()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _package.PackageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
     }
 }

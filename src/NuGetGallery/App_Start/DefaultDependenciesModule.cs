@@ -34,8 +34,8 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Security;
-using NuGetGallery.Services;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
@@ -494,7 +494,8 @@ namespace NuGetGallery
                 ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
 
                 builder
-                    .Register(c => {
+                    .Register(c =>
+                    {
                         return new AsynchronousPackageValidationInitiator<Package>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
@@ -502,7 +503,8 @@ namespace NuGetGallery
                     }).As<IPackageValidationInitiator<Package>>();
 
                 builder
-                    .Register(c => {
+                    .Register(c =>
+                    {
                         return new AsynchronousPackageValidationInitiator<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),

@@ -16,6 +16,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -42,7 +44,8 @@ namespace NuGetGallery
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IMessageServiceConfiguration messageServiceConfiguration)
             : base(
                   authService,
                   packageService,
@@ -51,7 +54,8 @@ namespace NuGetGallery
                   telemetryService,
                   securityPolicyService,
                   certificateService,
-                  contentObjectService)
+                  contentObjectService,
+                  messageServiceConfiguration)
         {
             _packageOwnerRequestService = packageOwnerRequestService ?? throw new ArgumentNullException(nameof(packageOwnerRequestService));
             _config = config ?? throw new ArgumentNullException(nameof(config));
@@ -71,15 +75,22 @@ namespace NuGetGallery
 
         protected override Task SendNewAccountEmailAsync(User account)
         {
-            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            var message = new NewAccountMessage(
+                MessageServiceConfiguration,
+                account,
+                Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
 
-            return MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
+            return MessageService.SendMessageAsync(message);
         }
 
         protected override Task SendEmailChangedConfirmationNoticeAsync(User account)
         {
-            var confirmationUrl = Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            return MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
+            var message = new EmailChangeConfirmationMessage(
+                MessageServiceConfiguration,
+                account,
+                Url.ConfirmEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+
+            return MessageService.SendMessageAsync(message);
         }
 
         protected override User GetAccount(string accountName)
@@ -164,16 +175,25 @@ namespace NuGetGallery
 
             if (existingTransformRequestUser != null)
             {
-                await MessageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, existingTransformRequestUser);
+                var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, existingTransformRequestUser, isCanceledByAdmin: false);
+                await MessageService.SendMessageAsync(emailMessage);
             }
 
-            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
-            var confirmUrl = Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false);
-            var rejectUrl = Url.RejectTransformAccount(accountToTransform, relativeUrl: false);
-            await MessageService.SendOrganizationTransformRequestAsync(accountToTransform, adminUser, Url.User(accountToTransform, relativeUrl: false), confirmUrl, rejectUrl);
+            var organizationTransformRequestMessage = new OrganizationTransformRequestMessage(
+                _config,
+                accountToTransform,
+                adminUser,
+                profileUrl: Url.User(accountToTransform, relativeUrl: false),
+                confirmationUrl: Url.ConfirmTransformAccount(accountToTransform, relativeUrl: false),
+                rejectionUrl: Url.RejectTransformAccount(accountToTransform, relativeUrl: false));
+            await MessageService.SendMessageAsync(organizationTransformRequestMessage);
 
-            var cancelUrl = Url.CancelTransformAccount(accountToTransform, relativeUrl: false);
-            await MessageService.SendOrganizationTransformInitiatedNoticeAsync(accountToTransform, adminUser, cancelUrl);
+            var organizationTransformInitiatedMessage = new OrganizationTransformInitiatedMessage(
+                _config,
+                accountToTransform,
+                adminUser,
+                cancellationUrl: Url.CancelTransformAccount(accountToTransform, relativeUrl: false));
+            await MessageService.SendMessageAsync(organizationTransformInitiatedMessage);
 
             TelemetryService.TrackOrganizationTransformInitiated(accountToTransform);
 
@@ -182,6 +202,9 @@ namespace NuGetGallery
 
             TempData[Constants.ReturnUrlMessageViewDataKey] = String.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_SignInToConfirm, adminUser.Username, accountToTransform.Username);
+
+            var returnUrl = Url.ConfirmTransformAccount(accountToTransform);
+
             return Redirect(Url.LogOn(returnUrl));
         }
 
@@ -212,11 +235,12 @@ namespace NuGetGallery
                 return TransformToOrganizationFailed(errorReason);
             }
 
-            await MessageService.SendOrganizationTransformRequestAcceptedNoticeAsync(accountToTransform, adminUser);
+            var emailMessage = new OrganizationTransformAcceptedMessage(_config, accountToTransform, adminUser);
+            await MessageService.SendMessageAsync(emailMessage);
 
             TelemetryService.TrackOrganizationTransformCompleted(accountToTransform);
 
-            TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
+            TempData["Message"] = string.Format(CultureInfo.CurrentCulture,
                 Strings.TransformAccount_Success, accountNameToTransform);
 
             return Redirect(Url.ManageMyOrganization(accountNameToTransform));
@@ -240,11 +264,12 @@ namespace NuGetGallery
             {
                 if (await UserService.RejectTransformUserToOrganizationRequest(accountToTransform, adminUser, token))
                 {
-                    await MessageService.SendOrganizationTransformRequestDeclinedNoticeAsync(accountToTransform, adminUser);
+                    var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: true);
+                    await MessageService.SendMessageAsync(emailMessage);
 
                     TelemetryService.TrackOrganizationTransformDeclined(accountToTransform);
 
-                    message = String.Format(CultureInfo.CurrentCulture,
+                    message = string.Format(CultureInfo.CurrentCulture,
                         Strings.TransformAccount_Rejected, accountNameToTransform);
                 }
                 else
@@ -268,7 +293,8 @@ namespace NuGetGallery
 
             if (await UserService.CancelTransformUserToOrganizationRequest(accountToTransform, token))
             {
-                await MessageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, adminUser);
+                var emailMessage = new OrganizationTransformRejectedMessage(_config, accountToTransform, adminUser, isCanceledByAdmin: false);
+                await MessageService.SendMessageAsync(emailMessage);
 
                 TelemetryService.TrackOrganizationTransformCancelled(accountToTransform);
 
@@ -320,7 +346,8 @@ namespace NuGetGallery
             var isSupportRequestCreated = await _supportRequestService.TryAddDeleteSupportRequestAsync(user);
             if (isSupportRequestCreated)
             {
-                await MessageService.SendAccountDeleteNoticeAsync(user);
+                var emailMessage = new AccountDeleteNoticeMessage(MessageServiceConfiguration, user);
+                await MessageService.SendMessageAsync(emailMessage);
             }
             else
             {
@@ -339,7 +366,7 @@ namespace NuGetGallery
             {
                 return HttpNotFound();
             }
-            
+
             return View("DeleteUserAccount", GetDeleteAccountViewModel(user));
         }
 
@@ -603,7 +630,11 @@ namespace NuGetGallery
             if (credential != null && !forgot)
             {
                 // Setting a password, so notify the user
-                await MessageService.SendCredentialAddedNoticeAsync(credential.User, AuthenticationService.DescribeCredential(credential));
+                var emailMessage = new CredentialAddedMessage(
+                    _config,
+                    credential.User,
+                    AuthenticationService.DescribeCredential(credential).GetCredentialTypeInfo());
+                await MessageService.SendMessageAsync(emailMessage);
             }
 
             return RedirectToAction("PasswordChanged");
@@ -837,7 +868,11 @@ namespace NuGetGallery
 
             var newCredentialViewModel = await GenerateApiKeyInternal(description, resolvedScopes, expiration);
 
-            await MessageService.SendCredentialAddedNoticeAsync(GetCurrentUser(), newCredentialViewModel);
+            var emailMessage = new CredentialAddedMessage(
+                    _config,
+                    GetCurrentUser(),
+                    newCredentialViewModel.GetCredentialTypeInfo());
+            await MessageService.SendMessageAsync(emailMessage);
 
             return Json(new ApiKeyViewModel(newCredentialViewModel));
         }
@@ -993,7 +1028,11 @@ namespace NuGetGallery
             await AuthenticationService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            await MessageService.SendCredentialRemovedNoticeAsync(user, AuthenticationService.DescribeCredential(cred));
+            var emailMessage = new CredentialRemovedMessage(
+                _config,
+                user,
+                AuthenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+            await MessageService.SendMessageAsync(emailMessage);
 
             return Json(Strings.CredentialRemoved);
         }
@@ -1023,7 +1062,11 @@ namespace NuGetGallery
                 }
 
                 // Notify the user of the change
-                await MessageService.SendCredentialRemovedNoticeAsync(user, AuthenticationService.DescribeCredential(cred));
+                var emailMessage = new CredentialRemovedMessage(
+                    _config,
+                    user,
+                    AuthenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+                await MessageService.SendMessageAsync(emailMessage);
 
                 TempData["Message"] = message;
             }
@@ -1071,7 +1114,14 @@ namespace NuGetGallery
                 user.PasswordResetToken,
                 forgotPassword,
                 relativeUrl: false);
-            await MessageService.SendPasswordResetInstructionsAsync(user, resetPasswordUrl, forgotPassword);
+
+            var message = new PasswordResetInstructionsMessage(
+                MessageServiceConfiguration,
+                user,
+                resetPasswordUrl,
+                forgotPassword);
+
+            await MessageService.SendMessageAsync(message);
 
             return RedirectToAction(actionName: "PasswordSent", controllerName: "Users");
         }

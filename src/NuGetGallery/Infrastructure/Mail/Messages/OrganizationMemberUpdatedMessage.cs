@@ -9,29 +9,38 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationMemberUpdatedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly Organization _organization;
-        private readonly Membership _membership;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public OrganizationMemberUpdatedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             Organization organization,
             Membership membership)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _organization = organization ?? throw new ArgumentNullException(nameof(organization));
-            _membership = membership ?? throw new ArgumentNullException(nameof(membership));
+            Organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            Membership = membership ?? throw new ArgumentNullException(nameof(membership));
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public Organization Organization { get; }
+
+        public Membership Membership { get; }
+
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
-                to: new[] { _organization.ToMailAddress() },
-                replyTo: new[] { _membership.Member.ToMailAddress() });
+        {
+            if (!Organization.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
+                to: new[] { Organization.ToMailAddress() },
+                replyTo: new[] { Membership.Member.ToMailAddress() });
+        }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership update for organization '{_organization.Username}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership update for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
         {
@@ -40,12 +49,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetPlainTextBody()
         {
-            var membershipLevel = _membership.IsAdmin ? "an administrator" : "a collaborator";
-            var member = _membership.Member;
+            var membershipLevel = Membership.IsAdmin ? "an administrator" : "a collaborator";
+            var member = Membership.Member;
 
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{member.Username}' is now {membershipLevel} of organization '{_organization.Username}'.
+                $@"The user '{member.Username}' is now {membershipLevel} of organization '{Organization.Username}'.
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

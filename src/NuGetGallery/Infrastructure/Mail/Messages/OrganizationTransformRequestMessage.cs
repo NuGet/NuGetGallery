@@ -4,13 +4,12 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationTransformRequestMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly User _accountToTransform;
         private readonly User _adminUser;
         private readonly string _profileUrl;
@@ -20,7 +19,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private readonly string _rejectionUrl;
 
         public OrganizationTransformRequestMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User accountToTransform,
             User adminUser,
             string profileUrl,
@@ -33,18 +32,25 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             _profileUrl = profileUrl ?? throw new ArgumentNullException(nameof(profileUrl));
 
             _rawConfirmationUrl = confirmationUrl ?? throw new ArgumentNullException(nameof(confirmationUrl));
-            _confirmationUrl = HttpUtility.UrlDecode(confirmationUrl).Replace("_", "\\_");
+            _confirmationUrl = EscapeLinkForMarkdown(confirmationUrl);
 
             _rawRejectionUrl = rejectionUrl ?? throw new ArgumentNullException(nameof(rejectionUrl));
-            _rejectionUrl = HttpUtility.UrlDecode(rejectionUrl).Replace("_", "\\_");
+            _rejectionUrl = EscapeLinkForMarkdown(rejectionUrl);
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
+        {
+            if (!_adminUser.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
                 to: new[] { _adminUser.ToMailAddress() },
                 replyTo: new[] { _accountToTransform.ToMailAddress() });
+        }
 
         public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] Organization transformation for account '{_accountToTransform.Username}'";

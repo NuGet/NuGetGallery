@@ -12,40 +12,33 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class ContactOwnersMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly ContactOwnersRequest _request;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public ContactOwnersMessage(
-            ICoreMessageServiceConfiguration configuration, 
+            IMessageServiceConfiguration configuration, 
             ContactOwnersRequest request)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _request = request ?? throw new ArgumentNullException(nameof(request));
+            Request = request ?? throw new ArgumentNullException(nameof(request));
         }
 
-        public override MailAddress Sender => _configuration.GalleryOwner;
+        public ContactOwnersRequest Request { get; }
 
+        public override MailAddress Sender => _configuration.GalleryOwner;
+        
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddOwnersToRecipients();
+            var to = EmailRecipients.GetAllOwners(
+                Request.Package.PackageRegistration, 
+                requireEmailAllowed: true);
 
             return new EmailRecipients(
                 to,
-                replyTo: new[] { _request.FromAddress });
-        }
-
-        private IReadOnlyList<MailAddress> AddOwnersToRecipients()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _request.Package.PackageRegistration.Owners.Where(o => o.EmailAllowed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
+                replyTo: new[] { Request.FromAddress });
         }
 
         public override string GetSubject() 
-            => $"[{_configuration.GalleryOwner.DisplayName}] Message for owners of the package '{_request.Package.PackageRegistration.Id}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Message for owners of the package '{Request.Package.PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
@@ -62,14 +55,14 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return string.Format(
                 CultureInfo.CurrentCulture,
                 bodyTemplate,
-                _request.FromAddress.DisplayName,
-                _request.FromAddress.Address,
-                _request.Package.PackageRegistration.Id,
-                _request.Package.Version,
-                _request.PackageUrl,
-                _request.HtmlEncodedMessage,
+                Request.FromAddress.DisplayName,
+                Request.FromAddress.Address,
+                Request.Package.PackageRegistration.Id,
+                Request.Package.Version,
+                Request.PackageUrl,
+                Request.HtmlEncodedMessage,
                 _configuration.GalleryOwner.DisplayName,
-                _request.EmailSettingsUrl);
+                Request.EmailSettingsUrl);
         }
 
         protected override string GetPlainTextBody()
@@ -85,14 +78,14 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return string.Format(
                 CultureInfo.CurrentCulture,
                 bodyTemplate,
-                _request.FromAddress.DisplayName,
-                _request.FromAddress.Address,
-                _request.Package.PackageRegistration.Id,
-                _request.Package.Version,
-                _request.PackageUrl,
-                _request.HtmlEncodedMessage,
+                Request.FromAddress.DisplayName,
+                Request.FromAddress.Address,
+                Request.Package.PackageRegistration.Id,
+                Request.Package.Version,
+                Request.PackageUrl,
+                Request.HtmlEncodedMessage,
                 _configuration.GalleryOwner.DisplayName,
-                _request.EmailSettingsUrl);
+                Request.EmailSettingsUrl);
         }
     }
 }

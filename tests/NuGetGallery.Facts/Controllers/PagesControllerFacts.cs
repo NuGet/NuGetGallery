@@ -6,7 +6,8 @@ using System.Web;
 using Moq;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Mail.Requests;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.ViewModels;
 using Xunit;
 
@@ -43,10 +44,13 @@ namespace NuGetGallery
 
                 // assert: the HTML encoded message was passed to the service
                 GetMock<IMessageService>()
-                    .Verify(m => m.SendContactSupportEmailAsync(
-                        It.Is<ContactSupportRequest>(c =>
-                            c.Message == expectedMessage
-                            && c.SubjectLine == expectedSubjectLine)));
+                    .Verify(svc => svc.SendMessageAsync(
+                        It.Is<ContactSupportMessage>(
+                            msg =>
+                            msg.Request.Message == expectedMessage
+                            && msg.Request.SubjectLine == expectedSubjectLine),
+                        false,
+                        false));
             }
 
             [Fact]

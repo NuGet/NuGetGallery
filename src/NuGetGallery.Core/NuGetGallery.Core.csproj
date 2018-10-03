@@ -174,6 +174,7 @@
     <Compile Include="Infrastructure\Mail\IEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\IEmailRecipients.cs" />
     <Compile Include="Infrastructure\Mail\EmailRecipients.cs" />
+    <Compile Include="Infrastructure\Mail\IMessageServiceConfiguration.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
@@ -207,7 +208,7 @@
     <Compile Include="Services\CloudBlobCoreFileStorageService.cs" />
     <Compile Include="Services\CloudBlobWrapper.cs" />
     <Compile Include="Services\CloudFileReference.cs" />
-    <Compile Include="Services\CoreMarkdownMessageService.cs" />
+    <Compile Include="Infrastructure\Mail\CoreMarkdownMessageService.cs" />
     <Compile Include="Services\CorePackageFileService.cs" />
     <Compile Include="Services\CoreSymbolPackageService.cs" />
     <Compile Include="Services\CorePackageService.cs" />
@@ -217,14 +218,13 @@
     <Compile Include="Services\IAccessCondition.cs" />
     <Compile Include="Services\ICloudBlobClient.cs" />
     <Compile Include="Services\ICloudBlobContainer.cs" />
-    <Compile Include="Services\ICoreMessageService.cs" />
-    <Compile Include="Infrastructure\Mail\ICoreMessageServiceConfiguration.cs" />
     <Compile Include="Services\ICorePackageFileService.cs" />
     <Compile Include="Services\ICoreSymbolPackageService.cs" />
     <Compile Include="Services\ICorePackageService.cs" />
     <Compile Include="Services\IFileReference.cs" />
     <Compile Include="Services\ICoreFileStorageService.cs" />
     <Compile Include="Services\IFileMetadataService.cs" />
+    <Compile Include="Infrastructure\Mail\IMessageService.cs" />
     <Compile Include="Services\IRevalidationStateService.cs" />
     <Compile Include="Services\ISimpleCloudBlob.cs" />
     <Compile Include="Services\SymbolPackageFileServiceMetadata.cs" />

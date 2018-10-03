@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail
@@ -21,6 +22,8 @@ namespace NuGetGallery.Infrastructure.Mail
             ReplyTo = replyTo ?? new List<MailAddress>();
         }
 
+        public static IEmailRecipients None = new EmailRecipients(to: Array.Empty<MailAddress>());
+
         public IReadOnlyList<MailAddress> To { get; }
 
         public IReadOnlyList<MailAddress> CC { get; }
@@ -28,5 +31,41 @@ namespace NuGetGallery.Infrastructure.Mail
         public IReadOnlyList<MailAddress> Bcc { get; }
 
         public IReadOnlyList<MailAddress> ReplyTo { get; }
+
+        public static IReadOnlyList<MailAddress> GetAllOwners(PackageRegistration packageRegistration, bool requireEmailAllowed)
+        {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            var recipients = new List<MailAddress>();
+            var owners = requireEmailAllowed 
+                ? packageRegistration.Owners.Where(o => o.EmailAllowed) 
+                : packageRegistration.Owners;
+
+            foreach (var owner in owners)
+            {
+                recipients.Add(owner.ToMailAddress());
+            }
+
+            return recipients;
+        }
+
+        public static IReadOnlyList<MailAddress> GetOwnersSubscribedToPackagePushedNotification(PackageRegistration packageRegistration)
+        {
+            if (packageRegistration == null)
+            {
+                throw new ArgumentNullException(nameof(packageRegistration));
+            }
+
+            var recipients = new List<MailAddress>();
+            foreach (var owner in packageRegistration.Owners.Where(o => o.NotifyPackagePushed))
+            {
+                recipients.Add(owner.ToMailAddress());
+            }
+
+            return recipients;
+        }
     }
 }

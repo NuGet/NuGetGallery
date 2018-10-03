@@ -10,26 +10,27 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class ContactSupportMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly ContactSupportRequest _request;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public ContactSupportMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             ContactSupportRequest request)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _request = request ?? throw new ArgumentNullException(nameof(request));
+            Request = request ?? throw new ArgumentNullException(nameof(request));
         }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
+        public ContactSupportRequest Request { get; }
+
         public override IEmailRecipients GetRecipients() 
             => new EmailRecipients(
                 to: new[] { _configuration.GalleryOwner },
-                cc: _request.CopySender ? new[] { _request.FromAddress } : null,
-                replyTo: new[] { _request.FromAddress });
+                cc: Request.CopySender ? new[] { Request.FromAddress } : null,
+                replyTo: new[] { Request.FromAddress });
 
-        public override string GetSubject() => $"Support Request (Reason: {_request.SubjectLine})";
+        public override string GetSubject() => $"Support Request (Reason: {Request.SubjectLine})";
 
         protected override string GetMarkdownBody()
         {
@@ -42,10 +43,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 **Message:**
 {3}",
-                _request.RequestingUser.Username,
-                _request.RequestingUser.EmailAddress,
-                _request.SubjectLine,
-                _request.Message);
+                Request.RequestingUser.Username,
+                Request.RequestingUser.EmailAddress,
+                Request.SubjectLine,
+                Request.Message);
         }
 
         protected override string GetPlainTextBody()
@@ -59,10 +60,10 @@ Reason:
 
 Message:
 {3}",
-                _request.RequestingUser.Username,
-                _request.RequestingUser.EmailAddress,
-                _request.SubjectLine,
-                _request.Message);
+                Request.RequestingUser.Username,
+                Request.RequestingUser.EmailAddress,
+                Request.SubjectLine,
+                Request.Message);
         }
     }
 }

@@ -10,7 +10,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class SymbolPackageAddedMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly SymbolPackage _symbolPackage;
         private readonly string _packageUrl;
         private readonly string _packageSupportUrl;
@@ -19,7 +19,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private readonly bool _hasWarnings;
 
         public SymbolPackageAddedMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             SymbolPackage package,
             string packageUrl,
             string packageSupportUrl,
@@ -39,7 +39,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            var to = AddOwnersSubscribedToPackagePushedNotification();
+            var to = EmailRecipients.GetOwnersSubscribedToPackagePushedNotification(_symbolPackage.Package.PackageRegistration);
             return new EmailRecipients(to);
         }
 
@@ -89,16 +89,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     To stop receiving emails as an owner of this package, sign in to the {_configuration.GalleryOwner.DisplayName} and
     change your email notification settings: {_emailSettingsUrl}.
 </em>";
-        }
-
-        private IReadOnlyList<MailAddress> AddOwnersSubscribedToPackagePushedNotification()
-        {
-            var recipients = new List<MailAddress>();
-            foreach (var owner in _symbolPackage.Package.PackageRegistration.Owners.Where(o => o.NotifyPackagePushed))
-            {
-                recipients.Add(owner.ToMailAddress());
-            }
-            return recipients;
         }
     }
 }

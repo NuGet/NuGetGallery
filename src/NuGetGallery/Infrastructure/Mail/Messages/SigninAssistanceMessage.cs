@@ -11,12 +11,12 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class SigninAssistanceMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly MailAddress _toAddress;
         private readonly IEnumerable<Credential> _credentials;
 
         public SigninAssistanceMessage(
-            ICoreMessageServiceConfiguration configuration, 
+            IMessageServiceConfiguration configuration, 
             MailAddress toAddress,
             IEnumerable<Credential> credentials)
         {
@@ -29,8 +29,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override IEmailRecipients GetRecipients()
         {
-            return new EmailRecipients(
-                to: new[] { _toAddress });
+            return new EmailRecipients(to: new[] { _toAddress });
         }
 
         public override string GetSubject() => $"[{_configuration.GalleryOwner.DisplayName}] Sign-In Assistance.";

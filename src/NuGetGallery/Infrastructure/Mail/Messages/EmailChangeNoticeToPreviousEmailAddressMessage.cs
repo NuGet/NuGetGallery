@@ -9,13 +9,13 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class EmailChangeNoticeToPreviousEmailAddressMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
+        private readonly IMessageServiceConfiguration _configuration;
         private readonly User _user;
         private readonly string _previousEmailAddress;
         private readonly bool _isOrganization;
 
         public EmailChangeNoticeToPreviousEmailAddressMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user,
             string previousEmailAddress)
         {

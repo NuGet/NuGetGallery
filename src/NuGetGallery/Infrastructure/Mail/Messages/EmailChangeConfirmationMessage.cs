@@ -9,7 +9,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     public class EmailChangeConfirmationMessage : ConfirmationEmailBuilder
     {
         public EmailChangeConfirmationMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User newUser,
             string confirmationUrl)
             : base(configuration, newUser, confirmationUrl)

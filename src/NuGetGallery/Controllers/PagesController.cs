@@ -11,6 +11,7 @@ using System.Web.Mvc;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.ViewModels;
 
@@ -23,18 +24,21 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly IMessageService _messageService;
         private readonly ISupportRequestService _supportRequestService;
+        private readonly IMessageServiceConfiguration _messageServiceConfiguration;
 
         protected PagesController() { }
         public PagesController(
             IContentService contentService,
             IContentObjectService contentObjectService,
             IMessageService messageService,
-            ISupportRequestService supportRequestService)
+            ISupportRequestService supportRequestService,
+            IMessageServiceConfiguration messageServiceConfiguration)
         {
-            _contentService = contentService;
-            _contentObjectService = contentObjectService;
-            _messageService = messageService;
-            _supportRequestService = supportRequestService;
+            _contentService = contentService ?? throw new ArgumentNullException(nameof(contentService));
+            _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
+            _supportRequestService = supportRequestService ?? throw new ArgumentNullException(nameof(supportRequestService));
+            _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
         }
 
         // This will let you add 'static' cshtml pages to the site under View/Pages or Branding/Views/Pages
@@ -95,7 +99,8 @@ namespace NuGetGallery
             var subject = $"Support Request for user '{user.Username}'";
             await _supportRequestService.AddNewSupportRequestAsync(subject, contactForm.Message, user.EmailAddress, "Other", user);
 
-            await _messageService.SendContactSupportEmailAsync(request);
+            var emailMessage = new ContactSupportMessage(_messageServiceConfiguration, request);
+            await _messageService.SendMessageAsync(emailMessage);
 
             ModelState.Clear();
 

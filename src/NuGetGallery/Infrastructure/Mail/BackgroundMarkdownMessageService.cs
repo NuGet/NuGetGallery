@@ -9,15 +9,15 @@ using AnglicanGeek.MarkdownMailer;
 using Elmah;
 using NuGetGallery.Configuration;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery.Infrastructure.Mail
 {
     public class BackgroundMarkdownMessageService : MarkdownMessageService
     {
         public BackgroundMarkdownMessageService(
-            IMailSender mailSender, 
-            IAppConfiguration config, 
-            ITelemetryService telemetryService, 
-            ErrorLog errorLog, 
+            IMailSender mailSender,
+            IAppConfiguration config,
+            ITelemetryService telemetryService,
+            ErrorLog errorLog,
             Func<BackgroundMarkdownMessageService> messageServiceFactory)
             : base(mailSender, config, telemetryService)
         {
@@ -26,11 +26,11 @@ namespace NuGetGallery.Services
             _sentMessage = false;
         }
 
-        private ErrorLog _errorLog;
+        private readonly ErrorLog _errorLog;
         private Func<BackgroundMarkdownMessageService> _messageServiceFactory;
         private bool _sentMessage;
 
-        protected override Task SendMessageAsync(MailMessage mailMessage)
+        protected override Task SendMessageInternalAsync(MailMessage mailMessage, bool copySender = false, bool discloseSenderAddress = false)
         {
             // Some MVC controller actions send more than one message. Since this method sends
             // the message async, we need a new IMessageService per email, to avoid calling
@@ -39,7 +39,7 @@ namespace NuGetGallery.Services
             if (_sentMessage)
             {
                 var newMessageService = _messageServiceFactory.Invoke();
-                return newMessageService.SendMessageAsync(mailMessage);
+                return newMessageService.SendMessageInternalAsync(mailMessage, copySender, discloseSenderAddress);
             }
             else
             {
@@ -55,7 +55,7 @@ namespace NuGetGallery.Services
                     {
                         try
                         {
-                            await base.SendMessageAsync(messageCopy);
+                            await base.SendMessageInternalAsync(messageCopy, copySender, discloseSenderAddress);
                         }
                         catch (Exception ex)
                         {
@@ -89,11 +89,11 @@ namespace NuGetGallery.Services
             }
             copy.SubjectEncoding = mailMessage.SubjectEncoding;
             copy.DeliveryNotificationOptions = mailMessage.DeliveryNotificationOptions;
-            foreach (var cc  in mailMessage.CC)
+            foreach (var cc in mailMessage.CC)
             {
                 copy.CC.Add(cc);
             }
-            foreach(var attachment in mailMessage.Attachments)
+            foreach (var attachment in mailMessage.Attachments)
             {
                 copy.Attachments.Add(attachment);
             }

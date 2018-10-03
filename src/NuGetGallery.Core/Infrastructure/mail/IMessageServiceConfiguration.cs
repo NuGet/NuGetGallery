@@ -5,7 +5,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
-    public interface ICoreMessageServiceConfiguration
+    public interface IMessageServiceConfiguration
     {
         /// <summary>
         /// Gets the gallery owner name and email address

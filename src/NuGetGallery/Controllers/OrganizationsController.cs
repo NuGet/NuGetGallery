@@ -10,6 +10,8 @@ using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Security;
 
@@ -29,7 +31,8 @@ namespace NuGetGallery
             ICertificateService certificateService,
             IPackageService packageService,
             IDeleteAccountService deleteAccountService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IMessageServiceConfiguration messageServiceConfiguration)
             : base(
                   authService,
                   packageService,
@@ -38,7 +41,8 @@ namespace NuGetGallery
                   telemetryService,
                   securityPolicyService,
                   certificateService,
-                  contentObjectService)
+                  contentObjectService,
+                  messageServiceConfiguration)
         {
             DeleteAccountService = deleteAccountService;
         }
@@ -54,15 +58,22 @@ namespace NuGetGallery
 
         protected override Task SendNewAccountEmailAsync(User account)
         {
-            var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
+            var message = new NewAccountMessage(
+                MessageServiceConfiguration,
+                account,
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
 
-            return MessageService.SendNewAccountEmailAsync(account, confirmationUrl);
+            return MessageService.SendMessageAsync(message);
         }
 
         protected override Task SendEmailChangedConfirmationNoticeAsync(User account)
         {
-            var confirmationUrl = Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false);
-            return MessageService.SendEmailChangeConfirmationNoticeAsync(account, confirmationUrl);
+            var message = new EmailChangeConfirmationMessage(
+                MessageServiceConfiguration,
+                account,
+                Url.ConfirmOrganizationEmail(account.Username, account.EmailConfirmationToken, relativeUrl: false));
+
+            return MessageService.SendMessageAsync(message);
         }
 
         [HttpGet]
@@ -141,8 +152,19 @@ namespace NuGetGallery
                     RawRejectionUrl = Url.RejectOrganizationMembershipRequest(request, relativeUrl: false)
                 };
 
-                await MessageService.SendOrganizationMembershipRequestAsync(organizationMembershipRequest);
-                await MessageService.SendOrganizationMembershipRequestInitiatedNoticeAsync(account, currentUser, request.NewMember, request.IsAdmin, cancelUrl);
+                var organizationMembershipRequestMessage = new OrganizationMembershipRequestMessage(
+                    MessageServiceConfiguration,
+                    organizationMembershipRequest);
+                await MessageService.SendMessageAsync(organizationMembershipRequestMessage);
+
+                var organizationMembershipRequestInitiatedMessage = new OrganizationMembershipRequestInitiatedMessage(
+                    MessageServiceConfiguration,
+                    account,
+                    currentUser,
+                    request.NewMember,
+                    request.IsAdmin,
+                    cancelUrl);
+                await MessageService.SendMessageAsync(organizationMembershipRequestInitiatedMessage);
 
                 return Json(new OrganizationMemberViewModel(request));
             }
@@ -166,7 +188,8 @@ namespace NuGetGallery
             try
             {
                 var member = await UserService.AddMemberAsync(account, GetCurrentUser().Username, confirmationToken);
-                await MessageService.SendOrganizationMemberUpdatedNoticeAsync(account, member);
+                var emailMessage = new OrganizationMemberUpdatedMessage(MessageServiceConfiguration, account, member);
+                await MessageService.SendMessageAsync(emailMessage);
 
                 TempData["Message"] = String.Format(CultureInfo.CurrentCulture,
                     Strings.AddMember_Success, account.Username);
@@ -195,7 +218,9 @@ namespace NuGetGallery
             {
                 var member = GetCurrentUser();
                 await UserService.RejectMembershipRequestAsync(account, member.Username, confirmationToken);
-                await MessageService.SendOrganizationMembershipRequestDeclinedNoticeAsync(account, member);
+
+                var emailMessage = new OrganizationMembershipRequestDeclinedMessage(MessageServiceConfiguration, account, member);
+                await MessageService.SendMessageAsync(emailMessage);
 
                 return HandleOrganizationMembershipRequestView(new HandleOrganizationMembershipRequestModel(false, account));
             }
@@ -228,7 +253,8 @@ namespace NuGetGallery
             try
             {
                 var removedUser = await UserService.CancelMembershipRequestAsync(account, memberName);
-                await MessageService.SendOrganizationMembershipRequestCanceledNoticeAsync(account, removedUser);
+                var emailMessage = new OrganizationMembershipRequestCanceledMessage(MessageServiceConfiguration, account, removedUser);
+                await MessageService.SendMessageAsync(emailMessage);
                 return Json(Strings.CancelMemberRequest_Success);
             }
             catch (EntityException e)
@@ -259,7 +285,8 @@ namespace NuGetGallery
             try
             {
                 var membership = await UserService.UpdateMemberAsync(account, memberName, isAdmin);
-                await  MessageService.SendOrganizationMemberUpdatedNoticeAsync(account, membership);
+                var emailMessage = new OrganizationMemberUpdatedMessage(MessageServiceConfiguration, account, membership);
+                await MessageService.SendMessageAsync(emailMessage);
 
                 return Json(new OrganizationMemberViewModel(membership));
             }
@@ -294,7 +321,10 @@ namespace NuGetGallery
             try
             {
                 var removedMember = await UserService.DeleteMemberAsync(account, memberName);
-                await MessageService.SendOrganizationMemberRemovedNoticeAsync(account, removedMember);
+                var emailMessage = new OrganizationMemberRemovedMessage(MessageServiceConfiguration, account, removedMember);
+
+                await MessageService.SendMessageAsync(emailMessage);
+
                 return Json(Strings.DeleteMember_Success);
             }
             catch (EntityException e)

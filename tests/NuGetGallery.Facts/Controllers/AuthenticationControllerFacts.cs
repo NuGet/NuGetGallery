@@ -2,22 +2,22 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Net.Mail;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Microsoft.Owin;
 using Moq;
-using NuGetGallery.Framework;
 using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectory;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
+using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using Xunit;
 
@@ -197,7 +197,7 @@ namespace NuGetGallery.Controllers
                     .Returns(existingUser);
                 var messageServiceMock = GetMock<IMessageService>();
                 messageServiceMock
-                .Setup(m => m.SendSigninAssistanceEmailAsync(It.IsAny<MailAddress>(), It.IsAny<IEnumerable<Credential>>()))
+                .Setup(m => m.SendMessageAsync(It.IsAny<SigninAssistanceMessage>(), false, false))
                 .Returns(Task.CompletedTask)
                 .Verifiable();
 
@@ -397,7 +397,7 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.RemoveCredential(user, passwordCredential));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNoticeAsync(It.IsAny<User>(), It.IsAny<CredentialViewModel>()));
+                    .Verify(x => x.SendMessageAsync(It.IsAny<CredentialAddedMessage>(), false, false));
             }
 
             public async Task WhenAttemptingToLinkExternalToAccountWithExistingExternals_RejectsLinking()
@@ -476,6 +476,18 @@ namespace NuGetGallery.Controllers
 
                 var controller = GetController<AuthenticationController>();
 
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<CredentialAddedMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.CredentialType == credentialViewModel.GetCredentialTypeInfo()),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
                 // Act
                 var result = await controller.SignIn(
                     new LogOnViewModel(
@@ -491,8 +503,11 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Verify(x => x.CreateSessionAsync(controller.OwinContext, authUser, false));
 
-                GetMock<IMessageService>()
-                    .Verify(x => x.SendCredentialAddedNoticeAsync(authUser.User, credentialViewModel));
+                messageService
+                    .Verify(svc => svc.SendMessageAsync(
+                        It.IsAny<CredentialAddedMessage>(),
+                        false,
+                        false));
             }
 
             [Fact]
@@ -548,9 +563,16 @@ namespace NuGetGallery.Controllers
                     .Setup(x => x.AddCredential(authUser.User, externalCred))
                     .Completes()
                     .Verifiable();
-                GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.MicrosoftAccount)))
+
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<CredentialAddedMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.CredentialType.Type == CredentialTypes.External.MicrosoftAccount),
+                        false,
+                        false))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -618,9 +640,15 @@ namespace NuGetGallery.Controllers
                     .Completes()
                     .Verifiable();
 
-                GetMock<IMessageService>()
-                    .Setup(x => x.SendCredentialAddedNoticeAsync(authUser.User,
-                                                            It.Is<CredentialViewModel>(c => c.Type == CredentialTypes.External.Prefix + providerUsedForLogin)))
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<CredentialAddedMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.CredentialType.Type == CredentialTypes.External.Prefix + providerUsedForLogin),
+                        false,
+                        false))
                     .Returns(Task.CompletedTask)
                     .Verifiable();
 
@@ -752,9 +780,14 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>().VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        authUser.User,
-                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
+                    .Verify(x => x.SendMessageAsync(
+                        It.Is<NewAccountMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.ConfirmationUrl == TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
+                        false,
+                        false));
+
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
 
@@ -798,9 +831,9 @@ namespace NuGetGallery.Controllers
 
                 // Assert
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        It.IsAny<User>(),
-                        It.IsAny<string>()), Times.Never());
+                    .Verify(x => x.SendMessageAsync(
+                        It.IsAny<NewAccountMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                        Times.Never());
             }
 
             [Fact]
@@ -888,9 +921,13 @@ namespace NuGetGallery.Controllers
                 authenticationServiceMock.VerifyAll();
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        authUser.User,
-                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
+                    .Verify(x => x.SendMessageAsync(
+                        It.Is<NewAccountMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.ConfirmationUrl == TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken),
+                        false,
+                        false));
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }

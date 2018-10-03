@@ -10,50 +10,60 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class OrganizationMembershipRequestMessage : EmailBuilder
     {
-        private readonly ICoreMessageServiceConfiguration _configuration;
-        private readonly OrganizationMembershipRequest _request;
+        private readonly IMessageServiceConfiguration _configuration;
 
         public OrganizationMembershipRequestMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             OrganizationMembershipRequest request)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            _request = request ?? throw new ArgumentNullException(nameof(request));
+            Request = request ?? throw new ArgumentNullException(nameof(request));
+
+            ConfirmationUrl = EscapeLinkForMarkdown(request.RawConfirmationUrl);
+            RejectionUrl = EscapeLinkForMarkdown(request.RawRejectionUrl);
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
+        public OrganizationMembershipRequest Request { get; }
+        public string ConfirmationUrl { get; }
+        public string RejectionUrl { get; }
+
         public override IEmailRecipients GetRecipients()
-            => new EmailRecipients(
-                to: new[]
-                {
-                    _request.NewUser.ToMailAddress()
-                },
+        {
+            if (!Request.NewUser.EmailAllowed)
+            {
+                return EmailRecipients.None;
+            }
+
+            return new EmailRecipients(
+                to: new[] { Request.NewUser.ToMailAddress() },
                 replyTo: new[]
                 {
-                    _request.Organization.ToMailAddress(),
-                    _request.AdminUser.ToMailAddress()
+                    Request.Organization.ToMailAddress(),
+                    Request.AdminUser.ToMailAddress()
                 });
+        }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{_request.Organization.Username}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Request.Organization.Username}'";
 
         protected override string GetMarkdownBody()
         {
-            var membershipLevel = _request.IsAdmin ? "an administrator" : "a collaborator";
+            var membershipLevel = Request.IsAdmin ? "an administrator" : "a collaborator";
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, ['{_request.Organization.Username}']({_request.ProfileUrl}).
+                $@"The user '{Request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, ['{Request.Organization.Username}']({Request.ProfileUrl}).
 
 To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
 
-To accept the request and become {membershipLevel} of '{_request.Organization.Username}':
+To accept the request and become {membershipLevel} of '{Request.Organization.Username}':
 
-[{_request.ConfirmationUrl}]({_request.RawConfirmationUrl})
+[{ConfirmationUrl}]({Request.RawConfirmationUrl})
 
 To decline the request:
 
-[{_request.RejectionUrl}]({_request.RawRejectionUrl})
+[{RejectionUrl}]({Request.RawRejectionUrl})
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");
@@ -61,20 +71,20 @@ The {_configuration.GalleryOwner.DisplayName} Team");
 
         protected override string GetPlainTextBody()
         {
-            var membershipLevel = _request.IsAdmin ? "an administrator" : "a collaborator";
+            var membershipLevel = Request.IsAdmin ? "an administrator" : "a collaborator";
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{_request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, '{_request.Organization.Username}' ({_request.ProfileUrl}).
+                $@"The user '{Request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, '{Request.Organization.Username}' ({Request.ProfileUrl}).
 
 To learn more about organization roles, refer to the documentation (https://go.microsoft.com/fwlink/?linkid=870439).
 
-To accept the request and become {membershipLevel} of '{_request.Organization.Username}':
+To accept the request and become {membershipLevel} of '{Request.Organization.Username}':
 
-{_request.RawConfirmationUrl}
+{Request.RawConfirmationUrl}
 
 To decline the request:
 
-{_request.RawRejectionUrl}
+{Request.RawRejectionUrl}
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

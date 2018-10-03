@@ -7,7 +7,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     public class NewAccountMessage : ConfirmationEmailBuilder
     {
         public NewAccountMessage(
-            ICoreMessageServiceConfiguration configuration,
+            IMessageServiceConfiguration configuration,
             User user,
             string confirmationUrl)
             : base(configuration, user, confirmationUrl)

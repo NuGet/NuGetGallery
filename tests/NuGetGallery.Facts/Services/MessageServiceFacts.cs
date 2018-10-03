@@ -16,6 +16,8 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using Xunit;
 
@@ -41,23 +43,26 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var request = new ReportPackageRequest
+                {
+                    AlreadyContactedOwners = true,
+                    FromAddress = from,
+                    Message = "Abuse!",
+                    Package = package,
+                    Reason = "Reason!",
+                    RequestingUser = null,
+                    Signature = "Joe Schmoe",
+                    PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                    PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                    RequestingUserUrl = null
+                };
+
+                var reportAbuseMessage = new ReportAbuseMessage(configurationService.Current, request);
 
                 // Act
-                await messageService.ReportAbuseAsync(
-                    new ReportPackageRequest
-                    {
-                        AlreadyContactedOwners = true,
-                        FromAddress = from,
-                        Message = "Abuse!",
-                        Package = package,
-                        Reason = "Reason!",
-                        RequestingUser = null,
-                        Signature = "Joe Schmoe",
-                        PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
-                        PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
-                        RequestingUserUrl = null
-                    });
+                await messageService.SendMessageAsync(reportAbuseMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 // Assert
@@ -84,14 +89,15 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var messageService = TestableMessageService.Create(GetConfigurationService());
 
                 var requestingUser = new User
                 {
                     Username = "Joe Schmoe",
                     EmailAddress = "joe@example.com"
                 };
-                var reportPackageRequest = new ReportPackageRequest
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var request = new ReportPackageRequest
                 {
                     AlreadyContactedOwners = true,
                     FromAddress = from,
@@ -105,13 +111,16 @@ namespace NuGetGallery
                     RequestingUserUrl = urlHelper.User(requestingUser, 1, false),
                     CopySender = true,
                 };
-                await messageService.ReportAbuseAsync(reportPackageRequest);
+
+                var reportAbuseMessage = new ReportAbuseMessage(configurationService.Current, request);
+
+                await messageService.SendMessageAsync(reportAbuseMessage);
 
                 var message = messageService.MockMailSender.Sent.Single();
                 Assert.Equal(TestGalleryOwner, message.To.Single());
                 Assert.Equal(TestGalleryOwner, message.From);
-                Assert.Equal(reportPackageRequest.FromAddress, message.ReplyToList.Single());
-                Assert.Equal(reportPackageRequest.FromAddress, message.CC.Single());
+                Assert.Equal(request.FromAddress, message.ReplyToList.Single());
+                Assert.Equal(request.FromAddress, message.CC.Single());
                 Assert.DoesNotContain("Owners", message.Body);
             }
         }
@@ -139,21 +148,23 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var request = new ReportPackageRequest
+                {
+                    FromAddress = from,
+                    Message = "Abuse!",
+                    Package = package,
+                    Reason = "Reason!",
+                    RequestingUser = owner,
+                    Signature = "Joe Schmoe",
+                    PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                    PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                    RequestingUserUrl = urlHelper.User(owner, 1, false),
+                };
 
-                await messageService.ReportMyPackageAsync(
-                    new ReportPackageRequest
-                    {
-                        FromAddress = from,
-                        Message = "Abuse!",
-                        Package = package,
-                        Reason = "Reason!",
-                        RequestingUser = owner,
-                        Signature = "Joe Schmoe",
-                        PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
-                        PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
-                        RequestingUserUrl = urlHelper.User(owner, 1, false),
-                    });
+                var reportMyPackageMessage = new ReportMyPackageMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(reportMyPackageMessage);
 
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -179,13 +190,15 @@ namespace NuGetGallery
                 };
 
                 var urlHelper = TestUtility.MockUrlHelper();
-                var messageService = TestableMessageService.Create(GetConfigurationService());
                 var requestingUser = new User
                 {
                     Username = "Joe Schmoe",
                     EmailAddress = "joe@example.com"
                 };
-                var reportPackageRequest = new ReportPackageRequest
+
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var request = new ReportPackageRequest
                 {
                     AlreadyContactedOwners = true,
                     FromAddress = from,
@@ -199,13 +212,14 @@ namespace NuGetGallery
                     RequestingUserUrl = urlHelper.User(requestingUser, 1, false),
                     CopySender = true
                 };
-                await messageService.ReportMyPackageAsync(reportPackageRequest);
+                var reportMyPackageMessage = new ReportMyPackageMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(reportMyPackageMessage);
 
                 var message = messageService.MockMailSender.Sent.Single();
                 Assert.Equal(TestGalleryOwner, message.To.Single());
                 Assert.Equal(TestGalleryOwner, message.From);
-                Assert.Equal(reportPackageRequest.FromAddress, message.ReplyToList.Single());
-                Assert.Equal(reportPackageRequest.FromAddress, message.CC.Single());
+                Assert.Equal(request.FromAddress, message.ReplyToList.Single());
+                Assert.Equal(request.FromAddress, message.CC.Single());
                 Assert.DoesNotContain("Owners", message.Body);
             }
         }
@@ -239,7 +253,8 @@ namespace NuGetGallery
                     Version = packageVersion
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configuration = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configuration);
                 var request = new ContactOwnersRequest
                 {
                     FromAddress = from,
@@ -250,8 +265,10 @@ namespace NuGetGallery
                     CopySender = true
                 };
 
+                var contactOwnersMessage = new ContactOwnersMessage(configuration.Current, request);
+
                 // act
-                await messageService.SendContactOwnersMessageAsync(request);
+                await messageService.SendMessageAsync(contactOwnersMessage, request.CopySender, discloseSenderAddress: false);
                 var messages = messageService.MockMailSender.Sent;
 
                 // assert
@@ -291,7 +308,8 @@ namespace NuGetGallery
                     Version = version
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configuration = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configuration);
 
                 var request = new ContactOwnersRequest
                 {
@@ -302,8 +320,9 @@ namespace NuGetGallery
                     HtmlEncodedMessage = "Test message",
                     CopySender = false
                 };
+                var contactOwnersMessage = new ContactOwnersMessage(configuration.Current, request);
 
-                await messageService.SendContactOwnersMessageAsync(request);
+                await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(owner1Email, message.To[0].Address);
@@ -343,7 +362,8 @@ namespace NuGetGallery
                     Version = packageVersion
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new ContactOwnersRequest
                 {
                     FromAddress = from,
@@ -354,7 +374,9 @@ namespace NuGetGallery
                     CopySender = false
                 };
 
-                await messageService.SendContactOwnersMessageAsync(request);
+                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+
+                await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 // assert
@@ -388,7 +410,8 @@ namespace NuGetGallery
                     Version = packageVersion
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new ContactOwnersRequest
                 {
                     FromAddress = from,
@@ -399,7 +422,9 @@ namespace NuGetGallery
                     CopySender = false
                 };
 
-                await messageService.SendContactOwnersMessageAsync(request);
+                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+
+                await messageService.SendMessageAsync(contactOwnersMessage);
 
                 // assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -431,7 +456,8 @@ namespace NuGetGallery
                     Version = packageVersion
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new ContactOwnersRequest
                 {
                     FromAddress = from,
@@ -442,7 +468,8 @@ namespace NuGetGallery
                     CopySender = false
                 };
 
-                await messageService.SendContactOwnersMessageAsync(request);
+                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(contactOwnersMessage);
 
                 // assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -461,8 +488,11 @@ namespace NuGetGallery
                 var user = isOrganization ? new Organization("organization") : new User("user");
                 user.UnconfirmedEmailAddress = unconfirmedEmailAddress;
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendNewAccountEmailAsync(user, "http://example.com/confirmation-token-url");
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var newAccountEmailMessage = new NewAccountMessage(configurationService.Current, user, "http://example.com/confirmation-token-url");
+
+                await messageService.SendMessageAsync(newAccountEmailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(unconfirmedEmailAddress, message.To[0].Address);
@@ -486,8 +516,12 @@ namespace NuGetGallery
                 user.UnconfirmedEmailAddress = unconfirmedEmailAddress;
                 var tokenUrl = "http://example.com/confirmation-token-url";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendEmailChangeConfirmationNoticeAsync(user, tokenUrl);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailChangeConfirmationMessage = new EmailChangeConfirmationMessage(configurationService.Current, user, tokenUrl);
+
+                await messageService.SendMessageAsync(emailChangeConfirmationMessage);
+
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.UnconfirmedEmailAddress, message.To[0].Address);
@@ -510,8 +544,11 @@ namespace NuGetGallery
                 user.EmailAddress = newEmail;
                 var oldEmail = "old@email.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendEmailChangeNoticeToPreviousEmailAddressAsync(user, oldEmail);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailChangeMessage = new EmailChangeNoticeToPreviousEmailAddressMessage(configurationService.Current, user, oldEmail);
+
+                await messageService.SendMessageAsync(emailChangeMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 var accountString = isOrganization ? "organization" : "account";
@@ -543,7 +580,8 @@ namespace NuGetGallery
                 const string rejectionUrl = "http://example.com/rejection-token-url";
                 const string userMessage = "Hello World!";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new PackageOwnershipRequest
                 {
                     FromUser = from,
@@ -555,8 +593,8 @@ namespace NuGetGallery
                     HtmlEncodedMessage = userMessage,
                     PolicyMessage = string.Empty
                 };
-
-                await messageService.SendPackageOwnershipRequestAsync(request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -595,7 +633,8 @@ namespace NuGetGallery
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 const string rejectionUrl = "http://example.com/rejection-token-url";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new PackageOwnershipRequest
                 {
                     FromUser = from,
@@ -608,7 +647,8 @@ namespace NuGetGallery
                     PolicyMessage = string.Empty
                 };
 
-                await messageService.SendPackageOwnershipRequestAsync(request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(packageOwnershipRequestMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.DoesNotContain("The user 'Existing' added the following message for you", message.Body);
@@ -629,7 +669,8 @@ namespace NuGetGallery
                 const string confirmationUrl = "http://example.com/confirmation-token-url";
                 const string rejectionUrl = "http://example.com/rejection-token-url";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var request = new PackageOwnershipRequest
                 {
                     FromUser = from,
@@ -642,7 +683,8 @@ namespace NuGetGallery
                     PolicyMessage = string.Empty
                 };
 
-                await messageService.SendPackageOwnershipRequestAsync(request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                await messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -672,8 +714,10 @@ namespace NuGetGallery
                     NewOwner = newOwner
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestInitiatedNoticeAsync(requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestInitiatedMessage(configurationService.Current, requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(receivingOwner.EmailAddress, message.To[0].Address);
@@ -705,8 +749,10 @@ namespace NuGetGallery
                     NewOwner = newOwner
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestInitiatedNoticeAsync(requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestInitiatedMessage(configurationService.Current, requestingOwner, receivingOwner, newOwner, package, cancelUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -734,8 +780,11 @@ namespace NuGetGallery
                     NewOwner = newOwner
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestDeclinedNoticeAsync(requestingOwner, newOwner, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestDeclinedMessage(configurationService.Current, requestingOwner, newOwner, package);
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 var yourString = isOrganization ? "your organization's" : "your";
@@ -773,8 +822,10 @@ namespace NuGetGallery
                     NewOwner = newOwner
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestDeclinedNoticeAsync(requestingOwner, newOwner, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestDeclinedMessage(configurationService.Current, requestingOwner, newOwner, package);
+                await messageService.SendMessageAsync(emailMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -795,8 +846,10 @@ namespace NuGetGallery
                 newOwner.EmailAllowed = true;
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestCanceledNoticeAsync(requestingOwner, newOwner, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestCanceledMessage(configurationService.Current, requestingOwner, newOwner, package);
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 var yourString = isOrganization ? "your organization" : "you";
@@ -834,9 +887,10 @@ namespace NuGetGallery
                     RequestingOwner = requestingOwner,
                     NewOwner = newOwner
                 };
-
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnershipRequestCanceledNoticeAsync(requestingOwner, newOwner, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnershipRequestCanceledMessage(configurationService.Current, requestingOwner, newOwner, package);
+                await messageService.SendMessageAsync(emailMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -857,11 +911,19 @@ namespace NuGetGallery
                 toUser.EmailAllowed = true;
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
-                var messageService = TestableMessageService.Create(GetConfigurationService());
                 var packageUrl = "packageUrl";
 
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnerAddedMessage(
+                    configurationService.Current,
+                    toUser,
+                    newUser,
+                    package,
+                    packageUrl);
+
                 // Act
-                await messageService.SendPackageOwnerAddedNoticeAsync(toUser, newUser, package, packageUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -890,10 +952,18 @@ namespace NuGetGallery
                 toUser.EmailAllowed = false;
                 var newUser = new User { Username = "Noob", EmailAddress = "new-owner@example.com", EmailAllowed = false };
                 var package = new PackageRegistration { Id = "CoolStuff" };
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnerAddedMessage(
+                    configurationService.Current,
+                    toUser,
+                    newUser,
+                    package,
+                    "packageUrl");
 
                 // Act
-                await messageService.SendPackageOwnerAddedNoticeAsync(toUser, newUser, package, "packageUrl");
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -915,8 +985,10 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnerRemovedNoticeAsync(from, to, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnerRemovedMessage(configurationService.Current, from, to, package);
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 if (isOrganization)
@@ -945,8 +1017,10 @@ namespace NuGetGallery
                 var from = new User { Username = "Existing", EmailAddress = "existing-owner@example.com" };
                 var package = new PackageRegistration { Id = "CoolStuff" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageOwnerRemovedNoticeAsync(from, to, package);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new PackageOwnerRemovedMessage(configurationService.Current, from, to, package);
+                await messageService.SendMessageAsync(emailMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
             }
@@ -965,8 +1039,15 @@ namespace NuGetGallery
             {
                 var user = new User { EmailAddress = "legit@example.com", Username = "too" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPasswordResetInstructionsAsync(user, "http://example.com/pwd-reset-token-url", true);
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var passwordResetInstructionsMessage = new PasswordResetInstructionsMessage(
+                    configurationService.Current,
+                    user,
+                    "http://example.com/pwd-reset-token-url",
+                    forgotPassword: true);
+
+                await messageService.SendMessageAsync(passwordResetInstructionsMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal("legit@example.com", message.To[0].Address);
@@ -994,9 +1075,14 @@ namespace NuGetGallery
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialRemovedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
 
-                await messageService.SendCredentialRemovedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1011,8 +1097,14 @@ namespace NuGetGallery
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendCredentialRemovedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialRemovedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1029,8 +1121,14 @@ namespace NuGetGallery
                 cred.Description = "new api key";
                 cred.User = user;
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendCredentialRemovedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialRemovedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1057,8 +1155,14 @@ namespace NuGetGallery
                 var cred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "abc123", "Test User");
                 const string MicrosoftAccountCredentialName = "Microsoft account";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendCredentialAddedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialAddedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1073,8 +1177,14 @@ namespace NuGetGallery
                 var user = new User { EmailAddress = "legit@example.com", Username = "foo" };
                 var cred = new CredentialBuilder().CreatePasswordCredential("bogus");
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendCredentialAddedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialAddedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1091,8 +1201,14 @@ namespace NuGetGallery
                 cred.Description = "new api key";
                 cred.User = user;
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendCredentialAddedNoticeAsync(user, _authenticationService.DescribeCredential(cred));
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new CredentialAddedMessage(
+                    configurationService.Current,
+                    user,
+                    _authenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+
+                await messageService.SendMessageAsync(emailMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
                 Assert.Equal(user.ToMailAddress(), message.To[0]);
@@ -1133,12 +1249,21 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
                 var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
-                var emailSettingsUrl = "https://localhost/account";
-                await messageService.SendPackageAddedNoticeAsync(package, packageUrl, supportUrl, emailSettingsUrl);
+
+                var packageAddedMessage = new PackageAddedMessage(
+                    configurationService.Current,
+                    package,
+                    packageUrl,
+                    supportUrl,
+                    "https://localhost/account",
+                    warningMessages: null);
+
+                // Act
+                var messageService = TestableMessageService.Create(configurationService);
+                await messageService.SendMessageAsync(packageAddedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1172,9 +1297,19 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+
+                var packageAddedMessage = new PackageAddedMessage(
+                    configurationService.Current,
+                    package,
+                    "http://dummy1",
+                    "http://dummy2",
+                    "http://dummy3",
+                    warningMessages: null);
+
                 // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageAddedNoticeAsync(package, "http://dummy1", "http://dummy2", "http://dummy3");
+                await messageService.SendMessageAsync(packageAddedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1204,9 +1339,19 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+
+                var packageAddedMessage = new PackageAddedMessage(
+                    configurationService.Current,
+                    package,
+                    "http://dummy1",
+                    "http://dummy2",
+                    "http://dummy3",
+                    warningMessages: null);
+
                 // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendPackageAddedNoticeAsync(package, "http://dummy1", "http://dummy2", "http://dummy3");
+                await messageService.SendMessageAsync(packageAddedMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1289,13 +1434,24 @@ namespace NuGetGallery
                     }
                 };
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://packageUrl";
                 var supportUrl = $"https://supportUrl";
                 var announcementsUrl = "https://announcementsUrl";
                 var twitterUrl = "https://twitterUrl";
-                await messageService.SendPackageValidationFailedNoticeAsync(package, packageValidationSet, packageUrl, supportUrl, announcementsUrl, twitterUrl);
+
+                var packageValidationFailedMessage = new PackageValidationFailedMessage(
+                    configurationService.Current,
+                    package,
+                    packageValidationSet,
+                    packageUrl,
+                    supportUrl,
+                    announcementsUrl,
+                    twitterUrl);
+
+                // Act
+                await messageService.SendMessageAsync(packageValidationFailedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1379,10 +1535,13 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
-                await messageService.SendValidationTakingTooLongNoticeAsync(package, packageUrl);
+                var validationTakingTooLongMessage = new PackageValidationTakingTooLongMessage(configurationService.Current, package, packageUrl);
+
+                // Act
+                await messageService.SendMessageAsync(validationTakingTooLongMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1428,9 +1587,12 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var validationTakingTooLongMessage = new PackageValidationTakingTooLongMessage(configurationService.Current, package, "http://dummy1");
+
                 // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendValidationTakingTooLongNoticeAsync(package, "http://dummy1");
+                await messageService.SendMessageAsync(validationTakingTooLongMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.LastOrDefault();
@@ -1478,12 +1640,18 @@ namespace NuGetGallery
                 };
                 packageRegistration.Packages.Add(package);
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
                 var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
+                var emailMessage = new PackageDeletedNoticeMessage(
+                    configurationService.Current,
+                    package,
+                    packageUrl,
+                    supportUrl);
 
                 // Act
-                await messageService.SendPackageDeletedNoticeAsync(package, packageUrl, supportUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1509,10 +1677,18 @@ namespace NuGetGallery
                 var confirmationUrl = "www.confirm.com";
                 var rejectionUrl = "www.rejection.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRequestMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    profileUrl,
+                    confirmationUrl,
+                    rejectionUrl);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestAsync(accountToTransform, adminUser, profileUrl, confirmationUrl, rejectionUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1536,10 +1712,18 @@ namespace NuGetGallery
                 var confirmationUrl = "www.confirm.com";
                 var rejectionUrl = "www.rejection.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRequestMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    profileUrl,
+                    confirmationUrl,
+                    rejectionUrl);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestAsync(accountToTransform, adminUser, profileUrl, confirmationUrl, rejectionUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1557,10 +1741,16 @@ namespace NuGetGallery
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var organizationTransformInitiatedMessage = new OrganizationTransformInitiatedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    cancelUrl);
 
                 // Act
-                await messageService.SendOrganizationTransformInitiatedNoticeAsync(accountToTransform, adminUser, cancelUrl);
+                await messageService.SendMessageAsync(organizationTransformInitiatedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1582,10 +1772,16 @@ namespace NuGetGallery
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var organizationTransformInitiatedMessage = new OrganizationTransformInitiatedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    cancelUrl);
 
                 // Act
-                await messageService.SendOrganizationTransformInitiatedNoticeAsync(accountToTransform, adminUser, cancelUrl);
+                await messageService.SendMessageAsync(organizationTransformInitiatedMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1602,10 +1798,12 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = true };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformAcceptedMessage(configurationService.Current, accountToTransform, adminUser);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestAcceptedNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1624,10 +1822,12 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = false };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformAcceptedMessage(configurationService.Current, accountToTransform, adminUser);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestAcceptedNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1644,10 +1844,16 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = true };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRejectedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    isCanceledByAdmin: true);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestDeclinedNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1666,10 +1872,16 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com", EmailAllowed = false };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRejectedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    isCanceledByAdmin: true);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestDeclinedNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1686,10 +1898,16 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRejectedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    isCanceledByAdmin: false);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1708,10 +1926,16 @@ namespace NuGetGallery
                 var accountToTransform = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" };
                 var adminUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationTransformRejectedMessage(
+                    configurationService.Current,
+                    accountToTransform,
+                    adminUser,
+                    isCanceledByAdmin: false);
 
                 // Act
-                await messageService.SendOrganizationTransformRequestCancelledNoticeAsync(accountToTransform, adminUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1745,10 +1969,12 @@ namespace NuGetGallery
                     RawRejectionUrl = rejectionUrl
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestMessage(configurationService.Current, organizationMembershipRequest);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestAsync(organizationMembershipRequest);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1781,10 +2007,12 @@ namespace NuGetGallery
                     RawRejectionUrl = "www.rejection.com"
                 };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestMessage(configurationService.Current, organizationMembershipRequest);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestAsync(organizationMembershipRequest);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1805,10 +2033,18 @@ namespace NuGetGallery
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestInitiatedMessage(
+                    configurationService.Current,
+                    organization,
+                    requestingUser,
+                    pendingUser,
+                    isAdmin,
+                    cancelUrl);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestInitiatedNoticeAsync(organization, requestingUser, pendingUser, isAdmin, cancelUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1832,10 +2068,18 @@ namespace NuGetGallery
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var cancelUrl = "www.cancel.com";
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestInitiatedMessage(
+                    configurationService.Current,
+                    organization,
+                    requestingUser,
+                    pendingUser,
+                    isAdmin,
+                    cancelUrl);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestInitiatedNoticeAsync(organization, requestingUser, pendingUser, isAdmin, cancelUrl);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1852,10 +2096,12 @@ namespace NuGetGallery
                 var organization = GetOrganizationWithRecipients();
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestDeclinedMessage(configurationService.Current, organization, pendingUser);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestDeclinedNoticeAsync(organization, pendingUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1875,10 +2121,12 @@ namespace NuGetGallery
                 var organization = GetOrganizationWithoutRecipients();
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestDeclinedMessage(configurationService.Current, organization, pendingUser);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestDeclinedNoticeAsync(organization, pendingUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1895,10 +2143,12 @@ namespace NuGetGallery
                 var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = true };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestCanceledMessage(configurationService.Current, organization, pendingUser);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestCanceledNoticeAsync(organization, pendingUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1917,10 +2167,12 @@ namespace NuGetGallery
                 var accountToTransform = new Organization("transformers") { EmailAddress = "transformers@transformers.com" };
                 var pendingUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMembershipRequestCanceledMessage(configurationService.Current, accountToTransform, pendingUser);
 
                 // Act
-                await messageService.SendOrganizationMembershipRequestCanceledNoticeAsync(accountToTransform, pendingUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1940,10 +2192,12 @@ namespace NuGetGallery
                 var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var membership = new Membership { Organization = organization, Member = member, IsAdmin = isAdmin };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMemberUpdatedMessage(configurationService.Current, organization, membership);
 
                 // Act
-                await messageService.SendOrganizationMemberUpdatedNoticeAsync(organization, membership);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -1966,10 +2220,12 @@ namespace NuGetGallery
                 var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
                 var membership = new Membership { Organization = organization, Member = member, IsAdmin = isAdmin };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMemberUpdatedMessage(configurationService.Current, organization, membership);
 
                 // Act
-                await messageService.SendOrganizationMemberUpdatedNoticeAsync(organization, membership);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1986,10 +2242,12 @@ namespace NuGetGallery
                 var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = true };
                 var removedUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMemberRemovedMessage(configurationService.Current, organization, removedUser);
 
                 // Act
-                await messageService.SendOrganizationMemberRemovedNoticeAsync(organization, removedUser);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2008,10 +2266,12 @@ namespace NuGetGallery
                 var organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com", EmailAllowed = false };
                 var member = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com" };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new OrganizationMemberRemovedMessage(configurationService.Current, organization, member);
 
                 // Act
-                await messageService.SendOrganizationMemberRemovedNoticeAsync(organization, member);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -2029,10 +2289,12 @@ namespace NuGetGallery
                 var userEmailAddress = "onedeleteduser@hotmail.com";
                 var userToDelete = new User(userName) { EmailAddress = userEmailAddress };
 
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var emailMessage = new AccountDeleteNoticeMessage(configurationService.Current, userToDelete);
 
                 // Act
-                await messageService.SendAccountDeleteNoticeAsync(userToDelete);
+                await messageService.SendMessageAsync(emailMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2173,10 +2435,13 @@ namespace NuGetGallery
                     Key = 12
                 };
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
-                await messageService.SendValidationTakingTooLongNoticeAsync(symbolPackage, packageUrl);
+                var validationTakingTooLongMessage = new SymbolPackageValidationTakingTooLongMessage(configurationService.Current, symbolPackage, packageUrl);
+
+                // Act
+                await messageService.SendMessageAsync(validationTakingTooLongMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2268,13 +2533,24 @@ namespace NuGetGallery
                     }
                 };
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://packageUrl";
                 var supportUrl = $"https://supportUrl";
                 var announcementsUrl = "https://announcementsUrl";
                 var twitterUrl = "https://twitterUrl";
-                await messageService.SendSymbolPackageValidationFailedNoticeAsync(symbolPackage, packageValidationSet, packageUrl, supportUrl, announcementsUrl, twitterUrl);
+
+                var symbolPackageValidationFailedMessage = new SymbolPackageValidationFailedMessage(
+                    configurationService.Current,
+                    symbolPackage,
+                    packageValidationSet,
+                    packageUrl,
+                    supportUrl,
+                    announcementsUrl,
+                    twitterUrl);
+
+                // Act
+                await messageService.SendMessageAsync(symbolPackageValidationFailedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2368,12 +2644,21 @@ namespace NuGetGallery
                     Key = 12
                 };
 
-                // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
                 var packageUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}";
                 var supportUrl = $"https://localhost/packages/{packageRegistration.Id}/{nugetVersion.ToNormalizedString()}/ReportMyPackage";
                 var emailSettingsUrl = "https://localhost/account";
-                await messageService.SendSymbolPackageAddedNoticeAsync(symbolPackage, packageUrl, supportUrl, emailSettingsUrl);
+                var symbolPackageAddedMessage = new SymbolPackageAddedMessage(
+                    configurationService.Current,
+                    symbolPackage,
+                    packageUrl,
+                    supportUrl,
+                    emailSettingsUrl,
+                    warningMessages: null);
+
+                // Act
+                await messageService.SendMessageAsync(symbolPackageAddedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2411,10 +2696,18 @@ namespace NuGetGallery
                     Package = package,
                     Key = 12
                 };
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var symbolPackageAddedMessage = new SymbolPackageAddedMessage(
+                    configurationService.Current,
+                    symbolPackage,
+                    "http://dummy1",
+                    "http://dummy2",
+                    "http://dummy3",
+                    warningMessages: null);
 
                 // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendSymbolPackageAddedNoticeAsync(symbolPackage, "http://dummy1", "http://dummy2", "http://dummy3");
+                await messageService.SendMessageAsync(symbolPackageAddedMessage);
 
                 // Assert
                 var message = messageService.MockMailSender.Sent.Last();
@@ -2449,9 +2742,18 @@ namespace NuGetGallery
                     Key = 12
                 };
 
+                var configurationService = GetConfigurationService();
+                var messageService = TestableMessageService.Create(configurationService);
+                var symbolPackageAddedMessage = new SymbolPackageAddedMessage(
+                    configurationService.Current,
+                    symbolPackage,
+                    "http://dummy1",
+                    "http://dummy2",
+                    "http://dummy3",
+                    warningMessages: null);
+
                 // Act
-                var messageService = TestableMessageService.Create(GetConfigurationService());
-                await messageService.SendSymbolPackageAddedNoticeAsync(symbolPackage, "http://dummy1", "http://dummy2", "http://dummy3");
+                await messageService.SendMessageAsync(symbolPackageAddedMessage);
 
                 // Assert
                 Assert.Empty(messageService.MockMailSender.Sent);
