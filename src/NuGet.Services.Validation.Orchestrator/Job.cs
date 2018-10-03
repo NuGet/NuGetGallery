@@ -597,7 +597,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IValidationOutcomeProcessor<SymbolPackage>, ValidationOutcomeProcessor<SymbolPackage>>();
             services.AddTransient<IStatusProcessor<SymbolPackage>, EntityStatusProcessor<SymbolPackage>>();
             services.AddTransient<IValidationSetProvider<SymbolPackage>, ValidationSetProvider<SymbolPackage>>();
-            services.AddTransient<IMessageService<SymbolPackage>, SymbolPackageMessageService>();
+            services.AddTransient<IMessageService<SymbolPackage>, SymbolsPackageMessageService>();
             services.AddTransient<IBrokeredMessageSerializer<SymbolsValidatorMessage>, SymbolsValidatorMessageSerializer>();
             services.AddTransient<ISymbolsValidationEntitiesService, SymbolsValidationEntitiesService>();
         }

@@ -1,6 +1,6 @@
 ﻿{
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Integrated Security=False;User ID=$$Dev-ValidationDBWriter-UserName$$;Password=$$Dev-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-dev-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=ValidateCertificate;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.ValidationDbWriter.ClientId};AadCertificate=$$dev-validationdb-writer$$"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetdev.servicebus.windows.net/;SharedAccessKeyName=validate-certificate;SharedAccessKey=$$Dev-ServiceBus-SharedAccessKey-Validation-ValidateCertificate$$",

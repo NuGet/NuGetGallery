@@ -4,12 +4,12 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
+using System.Data.Common;
 using System.Net;
 using System.Net.Http;
 using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using NuGet.Jobs.Configuration;
 using NuGet.Services.ServiceBus;
@@ -93,7 +93,7 @@ namespace NuGet.Jobs.Validation
             services.AddScoped<IEntitiesContext>(p =>
             {
                 var connectionFactory = p.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
-                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
+                DbConnection  connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
 
                 return new EntitiesContext(connection, readOnly: true);
             });
