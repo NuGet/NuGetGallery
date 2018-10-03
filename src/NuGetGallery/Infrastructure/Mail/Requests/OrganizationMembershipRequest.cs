@@ -27,6 +27,7 @@ namespace NuGetGallery.Infrastructure.Mail.Requests
                 return HttpUtility.UrlDecode(ConfirmationUrl).Replace("_", "\\_");
             }
         }
+
         public string RejectionUrl
         {
             get
