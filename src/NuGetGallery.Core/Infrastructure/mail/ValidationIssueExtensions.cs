@@ -8,6 +8,9 @@ namespace NuGetGallery.Infrastructure.Mail
 {
     internal static class ValidationIssueExtensions
     {
+        /// <summary>
+        /// Returns a plain-text representation describing the <see cref="ValidationIssue"/> in a user-friendly way.
+        /// </summary>
         public static string ToPlainTextString(this ValidationIssue validationIssue, string announcementsUrl, string twitterUrl)
         {
             switch (validationIssue.IssueCode)
@@ -43,6 +46,9 @@ namespace NuGetGallery.Infrastructure.Mail
             }
         }
 
+        /// <summary>
+        /// Returns a Markdown representation describing the <see cref="ValidationIssue"/> in a user-friendly way.
+        /// </summary>
         public static string ToMarkdownString(this ValidationIssue validationIssue, string announcementsUrl, string twitterUrl)
         {
             switch (validationIssue.IssueCode)
