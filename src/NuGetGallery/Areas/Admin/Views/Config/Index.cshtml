@@ -22,7 +22,13 @@
                     <td>@pair.Value.Item1.Name</td>
                     @if (pair.Value.Item2 != null)
                     {
-                        <td>@pair.Value.Item2.ToString()</td>
+                        var value = pair.Value.Item2.ToString();
+                        if (pair.Value.Item2 is Uri)
+                        {
+                            value = value.Replace(((Uri)pair.Value.Item2).UserInfo, "*****");
+                        }
+
+                        <td>@value</td>
                     }
                     else
                     {

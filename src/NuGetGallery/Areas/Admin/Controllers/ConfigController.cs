@@ -33,10 +33,7 @@ namespace NuGetGallery.Areas.Admin.Controllers
                            var propertyType = p.PropertyType;
                            var propertyValue = p.GetValue(_config.Current);
 
-                           if (propertyValue != null && 
-                                (p.Name.ToLowerInvariant().Contains("connectionstring") 
-                                || p.Name.ToLowerInvariant().Contains("clientsecret") 
-                                || p.Name.ToLowerInvariant().Contains("smtpuri")))
+                           if (propertyValue != null && p.Name.ToLowerInvariant().Contains("connectionstring"))
                            {
                                propertyValue = new string('*', 10);
                            }
