@@ -38,7 +38,9 @@ namespace NuGetGallery.Areas.Admin.ViewModels
         public AuthConfigViewModel(Authenticator provider)
         {
             Name = provider.Name;
-            Config = provider.BaseConfig.GetConfigValues();
+            Config = provider.BaseConfig.GetConfigValues()
+                .Where(c => c.Key != "ClientSecret")
+                .ToDictionary(c => c.Key, c => c.Value);
         }
     }
 
