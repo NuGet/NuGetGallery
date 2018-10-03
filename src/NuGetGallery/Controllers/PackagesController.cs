@@ -2029,10 +2029,8 @@ namespace NuGetGallery
                 case SymbolPackageValidationResultType.Accepted:
                     return null;
                 case SymbolPackageValidationResultType.Invalid:
-                    httpStatusCode = HttpStatusCode.BadRequest;
-                    break;
                 case SymbolPackageValidationResultType.MissingPackage:
-                    httpStatusCode = HttpStatusCode.NotFound;
+                    httpStatusCode = HttpStatusCode.BadRequest;
                     break;
                 case SymbolPackageValidationResultType.SymbolsPackagePendingValidation:
                     httpStatusCode = HttpStatusCode.Conflict;
