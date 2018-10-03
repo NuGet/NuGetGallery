@@ -21,12 +21,12 @@ namespace NuGetGallery.Infrastructure.Mail
             ReplyTo = replyTo ?? new List<MailAddress>();
         }
 
-        public IReadOnlyList<MailAddress> To { get; private set; }
+        public IReadOnlyList<MailAddress> To { get; }
 
-        public IReadOnlyList<MailAddress> CC { get; private set; }
+        public IReadOnlyList<MailAddress> CC { get; }
 
-        public IReadOnlyList<MailAddress> Bcc { get; private set; }
+        public IReadOnlyList<MailAddress> Bcc { get; }
 
-        public IReadOnlyList<MailAddress> ReplyTo { get; private set; }
+        public IReadOnlyList<MailAddress> ReplyTo { get; }
     }
 }
