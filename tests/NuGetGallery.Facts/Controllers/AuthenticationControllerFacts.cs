@@ -471,7 +471,7 @@ namespace NuGetGallery.Controllers
 
                 var credentialViewModel = new CredentialViewModel();
                 GetMock<AuthenticationService>()
-                    .Setup(x => x.DescribeCredential(externalCredential))
+                    .Setup(x => x.DescribeCredential(externalCredential, It.IsAny<bool?>()))
                     .Returns(credentialViewModel);
 
                 var controller = GetController<AuthenticationController>();
