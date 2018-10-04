@@ -220,7 +220,7 @@ namespace NuGetGallery
             var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
 
             IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
-            bool isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            bool isAllowed = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
             if (!isAllowed)
             {
                 accountsAllowedOnBehalfOf = new[] { currentUser };
@@ -363,7 +363,7 @@ namespace NuGetGallery
 
             // Evaluate the permissions for user on behalf of any account possible, since the user 
             // could change the ownership before submitting the package.
-            if (ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(
+            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(
                 currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
             {
                 return Json(HttpStatusCode.Conflict, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
@@ -1161,6 +1161,37 @@ namespace NuGetGallery
             return View(model);
         }
 
+        [HttpGet]
+        [UIAuthorize]
+        [RequiresAccountConfirmation("delete a symbols package")]
+        public virtual ActionResult DeleteSymbols(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return HttpForbidden();
+            }
+
+            var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
+
+            model.VersionSelectList = new SelectList(
+                model
+                .PackageVersions
+                .Where(p => !p.Deleted && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
+                .Select(p => new
+                {
+                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    url = Url.DeletePackage(p)
+                }), "url", "text", Url.DeletePackage(model));
+
+            return View(model);
+        }
+
         [UIAuthorize(Roles = "Admins")]
         [RequiresAccountConfirmation("reflow a package")]
         public virtual async Task<ActionResult> Reflow(string id, string version)
@@ -1276,6 +1307,51 @@ namespace NuGetGallery
 
             var firstPackage = packagesToDelete.First();
             return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [RequiresAccountConfirmation("delete a symbols package")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteSymbolsPackage(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound,
+                    string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+
+            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.SymbolsPackage_UploadNotAllowed);
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+            }
+
+            var availableSymbolPackages = package
+                .SymbolPackages
+                .Where(sp => sp.StatusKey == PackageStatus.Available);
+            if (availableSymbolPackages.Any())
+            {
+                foreach (var symbolPackage in availableSymbolPackages)
+                {
+                    await _symbolPackageUploadService.DeleteSymbolsPackage(symbolPackage);
+                }
+
+                TempData["Message"] = Strings.SymbolsPackage_Deleted;
+
+                // Redirect to the package details page
+                return Redirect(Url.Package(package, relativeUrl: true));
+            }
+            else
+            {
+                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest,
+                    string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
+            }
         }
 
         [UIAuthorize]
@@ -1697,7 +1773,7 @@ namespace NuGetGallery
 
                 // Evaluate the permissions for the owner, the permissions for uploading a symbols should be same as that of
                 // uploading a new version of a given package.
-                var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissions(currentUser, owner, existingPackageRegistration);
                 if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
                 {
                     if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
