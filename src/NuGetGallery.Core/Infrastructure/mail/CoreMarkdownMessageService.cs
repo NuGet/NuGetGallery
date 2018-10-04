@@ -50,8 +50,8 @@ namespace NuGetGallery.Infrastructure.Mail
                 return;
             }
 
-            int attempt = 0;
-            bool success = false;
+            var attempt = 0;
+            var success = false;
             while (!success)
             {
                 try
