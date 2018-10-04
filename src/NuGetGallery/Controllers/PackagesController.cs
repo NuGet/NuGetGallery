@@ -1324,14 +1324,16 @@ namespace NuGetGallery
                     string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package)
+                != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.SymbolsPackage_UploadNotAllowed);
             }
 
             if (package.PackageRegistration.IsLocked)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
             // Get all available symbol packages for a given package, ideally this should
@@ -1348,6 +1350,11 @@ namespace NuGetGallery
                 }
 
                 TempData["Message"] = Strings.SymbolsPackage_Deleted;
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(package, AuditedPackageAction.SymbolsDelete, PackageDeletedVia.Web));
+
+                _telemetryService.TrackSymbolPackagePushEvent(package.Id, package.Version);
 
                 // Redirect to the package details page
                 return Redirect(Url.Package(package, relativeUrl: true));
