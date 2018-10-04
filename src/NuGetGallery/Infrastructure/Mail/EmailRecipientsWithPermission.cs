@@ -63,13 +63,8 @@ namespace NuGetGallery.Infrastructure.Mail
                     recipients.Add(member.ToMailAddress());
                 }
             }
-            else
+            else if (user.EmailAllowed)
             {
-                if (!user.EmailAllowed)
-                {
-                    return recipients;
-                }
-
                 recipients.Add(user.ToMailAddress());
             }
 
