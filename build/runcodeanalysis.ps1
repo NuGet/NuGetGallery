@@ -3,6 +3,7 @@ param (
     [ValidateSet("debug", "release")]
     [string]$Configuration = 'debug',
     [int]$BuildNumber,
+    [string]$SolutionDirectory,
     [switch]$SkipRestore,
     [string]$FxCopDirectory,
     [string]$FxCopProject,
@@ -20,7 +21,11 @@ param (
 # - build.ps1 was already executed and sources were already fetched
 
 # Discover the solution
-$SolutionPath = $(Get-ChildItem -Path "$PSScriptRoot/../*.sln")[0]
+if (-not $SolutionDirectory) {
+    $SolutionDirectory = Join-Path $PSScriptRoot '..'
+}
+
+$SolutionPath = $(Get-ChildItem -Path "$SolutionDirectory/*.sln")[0]
 
 if (-not (Test-Path $SolutionPath)) {
     throw "Solution $SolutionPath does not exist!"

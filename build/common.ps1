@@ -281,6 +281,9 @@ Function Invoke-FxCop {
     
     # Write FxCop logs to specific output directory
     if ($FxCopOutputDirectory) {
+        if (-not (Test-Path $FxCopOutputDirectory)) {
+            New-Item $FxCopOutputDirectory -Type Directory
+        }
         $env:FXCOP_OUTPUT_DIRECTORY = Resolve-Path $FxCopOutputDirectory
         
         Trace-Log "Using FXCOP_OUTPUT_DIRECTORY=$FxCopOutputDirectory"
