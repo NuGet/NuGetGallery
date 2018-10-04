@@ -79,7 +79,8 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' {
             "src\Catalog\Properties\AssemblyInfo.g.cs", `
             "src\NuGet.ApplicationInsights.Owin\Properties\AssemblyInfo.g.cs", `
             "src\Ng\Properties\AssemblyInfo.g.cs", `
-            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs"
+            "src\NuGet.Services.Metadata.Catalog.Monitoring\Properties\AssemblyInfo.g.cs", `
+            "src\NuGet.Services.AzureSearch\Properties\AssemblyInfo.g.cs"
 
         Foreach ($assemblyInfo in $assemblyInfos) {
             Set-VersionInfo -Path (Join-Path $PSScriptRoot $assemblyInfo) -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
