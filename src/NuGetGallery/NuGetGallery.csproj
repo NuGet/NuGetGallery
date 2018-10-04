@@ -253,8 +253,6 @@
     <Compile Include="Areas\Admin\DynamicData\OrderedFieldGenerator.cs" />
     <Compile Include="Areas\Admin\Controllers\LuceneController.cs" />
     <Compile Include="Areas\Admin\Models\LuceneInfoModel.cs" />
-    <Compile Include="Areas\Admin\Controllers\ConfigController.cs" />
-    <Compile Include="Areas\Admin\ViewModels\ConfigViewModel.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationExtensions.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationHandler.cs" />
     <Compile Include="Authentication\Providers\ApiKey\ApiKeyAuthenticationMiddleware.cs" />
@@ -1926,7 +1924,6 @@
     <Content Include="Areas\Admin\Views\Lucene\Index.cshtml">
       <SubType>Code</SubType>
     </Content>
-    <Content Include="Areas\Admin\Views\Config\Index.cshtml" />
     <Content Include="Views\Errors\BadRequest.cshtml" />
     <Content Include="Views\Packages\_PackageDependencies.cshtml" />
     <Content Include="Views\Statistics\Index.cshtml" />
