@@ -39,6 +39,6 @@ namespace NuGetGallery
         /// Mark the specifed symbol package for deletion and delete the corressponding snupkg as well.
         /// </summary>
         /// <param name="symbolPackage">The <see cref="SymbolPackage"/> entity to be marked for deletion</param>
-        Task DeleteSymbolsPackage(SymbolPackage symbolPackage);
+        Task DeleteSymbolsPackageAsync(SymbolPackage symbolPackage);
     }
 }

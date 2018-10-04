@@ -14,4 +14,10 @@
             e.preventDefault();
         }
     });
+
+    $('#delete-symbols-form').submit(function (e) {
+        if (!confirm('Deleting this symbols package will make it unavailable for download and remove all corresponding symbols from the symbol server. Are you sure you want to continue with the delete?')) {
+            e.preventDefault();
+        }
+    });
 });

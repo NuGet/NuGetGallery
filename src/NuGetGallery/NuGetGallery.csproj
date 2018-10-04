@@ -1780,6 +1780,7 @@
     <Content Include="Views\Shared\ConfirmationRequired.cshtml" />
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
+    <Content Include="Views\Packages\DeleteSymbols.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

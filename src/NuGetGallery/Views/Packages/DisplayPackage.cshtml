@@ -699,6 +699,13 @@
                         <a href="@Url.DeletePackage(Model)" class="delete">Delete package</a>
                     </li>
                 }
+                @if (!Model.Deleted && hasSymbolsPackageAvailable && Model.CanDeleteSymbolsPackage)
+                {
+                    <li>
+                        <i class="ms-Icon ms-Icon--Delete" aria-hidden="true"></i>
+                        <a href="@Url.DeleteSymbolsPackage(Model)" class="delete">Delete symbols</a>
+                    </li>
+                }
 
                 @if (Model.Available && User.IsAdministrator())
                 {

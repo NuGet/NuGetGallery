@@ -231,14 +231,18 @@ namespace NuGetGallery
             return PackageCommitResult.Success;
         }
 
-        public async Task DeleteSymbolsPackage(SymbolPackage symbolPackage)
+        public async Task DeleteSymbolsPackageAsync(SymbolPackage symbolPackage)
         {
             if (symbolPackage == null)
             {
                 throw new ArgumentNullException(nameof(symbolPackage));
             }
 
-            await _symbolPackageFileService.DeletePackageFileAsync(symbolPackage.Id, symbolPackage.Version);
+            if (await _symbolPackageFileService.DoesPackageFileExistAsync(symbolPackage.Package))
+            {
+                await _symbolPackageFileService.DeletePackageFileAsync(symbolPackage.Id, symbolPackage.Version);
+            }
+
             await _symbolPackageService.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, commitChanges: true);
         }
     }

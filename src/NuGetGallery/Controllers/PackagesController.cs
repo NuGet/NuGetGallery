@@ -1172,22 +1172,24 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (ActionsRequiringPermissions.UnlistOrRelistPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
             {
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel(package, GetCurrentUser(), ReportMyPackageReasons);
+            var model = new DeletePackageViewModel(package, GetCurrentUser(), DeleteReasons);
 
             model.VersionSelectList = new SelectList(
                 model
                 .PackageVersions
-                .Where(p => !p.Deleted && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
+                .Where(p => !p.Deleted 
+                    && p.LatestSymbolsPackage != null
+                    && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
                 .Select(p => new
                 {
                     text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
-                    url = Url.DeletePackage(p)
-                }), "url", "text", Url.DeletePackage(model));
+                    url = Url.DeleteSymbolsPackage(p)
+                }), "url", "text", Url.DeleteSymbolsPackage(model));
 
             return View(model);
         }
@@ -1332,6 +1334,9 @@ namespace NuGetGallery
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
             }
 
+            // Get all available symbol packages for a given package, ideally this should
+            // always return one symbol package. For thoroughness we can cleanup the data
+            // for any inconsistencies.
             var availableSymbolPackages = package
                 .SymbolPackages
                 .Where(sp => sp.StatusKey == PackageStatus.Available);
@@ -1339,7 +1344,7 @@ namespace NuGetGallery
             {
                 foreach (var symbolPackage in availableSymbolPackages)
                 {
-                    await _symbolPackageUploadService.DeleteSymbolsPackage(symbolPackage);
+                    await _symbolPackageUploadService.DeleteSymbolsPackageAsync(symbolPackage);
                 }
 
                 TempData["Message"] = Strings.SymbolsPackage_Deleted;
@@ -1349,7 +1354,7 @@ namespace NuGetGallery
             }
             else
             {
-                return new HttpStatusCodeWithBodyResult(HttpStatusCode.BadRequest,
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
                     string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
             }
         }
