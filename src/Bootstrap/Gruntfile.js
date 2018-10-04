@@ -274,4 +274,5 @@ module.exports = function (grunt) {
     var destFilepath = 'dist/js/npm.js';
     generateCommonJSModule(grunt, srcFiles, destFilepath);
   });
+  
 };
