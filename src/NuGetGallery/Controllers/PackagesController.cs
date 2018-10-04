@@ -24,6 +24,7 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -843,9 +844,11 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url,
                 CopySender = reportForm.CopySender,
-                Signature = reportForm.Signature
+                Signature = reportForm.Signature,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
             var subject = $"Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
@@ -991,8 +994,10 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url,
-                CopySender = reportForm.CopySender
+                CopySender = reportForm.CopySender,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
             await _messageService.ReportMyPackageAsync(request);

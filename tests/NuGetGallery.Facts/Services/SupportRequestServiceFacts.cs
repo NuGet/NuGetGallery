@@ -43,7 +43,7 @@ namespace NuGetGallery.Services
                 {
                     CreatedBy = userName,
                     Key = 1,
-                    IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                    IssueTitle = CoreStrings.AccountDelete_SupportRequestTitle,
                     OwnerEmail = emailAddress,
                     IssueStatusId = IssueStatusKeys.New,
                     HistoryEntries = new List<History>() { new History() { EditedBy = userName, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New } }

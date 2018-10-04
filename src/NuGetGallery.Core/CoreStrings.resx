@@ -213,4 +213,89 @@
   <data name="CertificateThumbprintHashAlgorithmChanged" xml:space="preserve">
     <value>The thumbprint is expected to be a SHA-256 thumbprint, which is exactly 64 characters in length.  Did the hash algorithm change?</value>
   </data>
+  <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
+    <value>Account Deletion Request</value>
+  </data>
+  <data name="Emails_ForgotPassword_HtmlBody" xml:space="preserve">
+    <value>&lt;p&gt;The word on the street is you lost your password. Sorry to hear it!&lt;br/&gt;
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.&lt;/p&gt;
+
+&lt;p&gt;Click the following link within the next hour to reset your password:&lt;br/&gt;
+&lt;a href="{0}"&gt;{0}&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.&lt;/p&gt;
+
+&lt;p&gt;Thanks,&lt;br/&gt;
+The {1} Team&lt;/p&gt;</value>
+  </data>
+  <data name="Emails_ForgotPassword_MarkdownBody" xml:space="preserve">
+    <value>The word on the street is you lost your password. Sorry to hear it!
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
+
+Click the following link within the next hour to reset your password:
+
+[{0}]({0})
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="Emails_ForgotPassword_PlainTextBody" xml:space="preserve">
+    <value>The word on the street is you lost your password. Sorry to hear it!
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
+
+Use the following link within the next hour to reset your password:
+
+{0}
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please reset your password.</value>
+  </data>
+  <data name="Emails_SetPassword_HtmlBody" xml:space="preserve">
+    <value>&lt;p&gt;The word on the street is you want to set a password for your account.&lt;br/&gt;
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.&lt;/p&gt;
+
+&lt;p&gt;Click the following link within the next hour to set your password:&lt;br/&gt;
+&lt;a href="{0}"&gt;{0}&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.&lt;/p&gt;
+
+&lt;p&gt;Thanks,&lt;br/&gt;
+The {1} Team&lt;/p&gt;</value>
+  </data>
+  <data name="Emails_SetPassword_MarkdownBody" xml:space="preserve">
+    <value>The word on the street is you want to set a password for your account.
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.
+
+Click the following link within the next hour to set your password:
+
+[{0}]({0})
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="Emails_SetPassword_PlainTextBody" xml:space="preserve">
+    <value>The word on the street is you want to set a password for your account.
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.
+
+Use the following link within the next hour to set your password:
+
+{0}
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="Emails_SetPassword_Subject" xml:space="preserve">
+    <value>[{0}] Please set your password.</value>
+  </data>
 </root>

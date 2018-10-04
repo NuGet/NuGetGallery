@@ -234,38 +234,6 @@
   <data name="PasswordSet" xml:space="preserve">
     <value>Your password has been set.</value>
   </data>
-  <data name="Emails_ForgotPassword_Body" xml:space="preserve">
-    <value>The word on the street is you lost your password. Sorry to hear it!
-If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
-
-Click the following link within the next hour to reset your password:
-
-[{0}]({0})
-
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-
-Thanks,
-The {1} Team</value>
-  </data>
-  <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
-    <value>[{0}] Please reset your password.</value>
-  </data>
-  <data name="Emails_SetPassword_Body" xml:space="preserve">
-    <value>The word on the street is you want to set a password for your account.
-If you didn't request a password, you can safely ignore this message. A password has not yet been set.
-
-Click the following link within the next hour to set your password:
-
-[{0}]({0})
-
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-
-Thanks,
-The {1} Team</value>
-  </data>
-  <data name="Emails_SetPassword_Subject" xml:space="preserve">
-    <value>[{0}] Please set your password.</value>
-  </data>
   <data name="Emails_CredentialAdded_Body" xml:space="preserve">
     <value>A {0} was added to your account and can now be used to sign in. If you did not request this change, please reply to this email to contact support.</value>
   </data>
@@ -602,9 +570,6 @@ For more information, please contact '{2}'.</value>
   </data>
   <data name="AccountDelete_CreateSupportRequestFails" xml:space="preserve">
     <value>The request failed to be submitted. Please try again or contact support.</value>
-  </data>
-  <data name="AccountDelete_SupportRequestTitle" xml:space="preserve">
-    <value>Account Deletion Request</value>
   </data>
   <data name="MessageIsRequired" xml:space="preserve">
     <value>Please enter a message.</value>

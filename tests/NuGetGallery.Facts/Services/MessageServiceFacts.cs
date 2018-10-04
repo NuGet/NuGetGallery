@@ -17,6 +17,7 @@ using NuGet.Versioning;
 using NuGet.Services.Validation;
 using NuGet.Services.Validation.Issues;
 using System.Threading.Tasks;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGetGallery
 {
@@ -38,7 +39,8 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1"
                 };
-                
+
+                var urlHelper = TestUtility.MockUrlHelper();
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
                 // Act
@@ -52,7 +54,9 @@ namespace NuGetGallery
                         Reason = "Reason!",
                         RequestingUser = null,
                         Signature = "Joe Schmoe",
-                        Url = TestUtility.MockUrlHelper(),
+                        PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                        PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                        RequestingUserUrl = null
                     });
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -78,9 +82,15 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-                
+
+                var urlHelper = TestUtility.MockUrlHelper();
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
+                var requestingUser = new User
+                {
+                    Username = "Joe Schmoe",
+                    EmailAddress = "joe@example.com"
+                };
                 var reportPackageRequest = new ReportPackageRequest
                 {
                     AlreadyContactedOwners = true,
@@ -88,13 +98,11 @@ namespace NuGetGallery
                     Message = "Abuse!",
                     Package = package,
                     Reason = "Reason!",
-                    RequestingUser = new User
-                    {
-                        Username = "Joe Schmoe",
-                        EmailAddress = "joe@example.com"
-                    },
+                    RequestingUser = requestingUser,
                     Signature = "Joe Schmoe",
-                    Url = TestUtility.MockUrlHelper(),
+                    PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                    PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                    RequestingUserUrl = urlHelper.User(requestingUser, 1, false),
                     CopySender = true,
                 };
                 await messageService.ReportAbuseAsync(reportPackageRequest);
@@ -129,7 +137,8 @@ namespace NuGetGallery
                     },
                     Version = "1.42.0.1"
                 };
-                
+
+                var urlHelper = TestUtility.MockUrlHelper();
                 var messageService = TestableMessageService.Create(GetConfigurationService());
 
                 await messageService.ReportMyPackageAsync(
@@ -141,7 +150,9 @@ namespace NuGetGallery
                         Reason = "Reason!",
                         RequestingUser = owner,
                         Signature = "Joe Schmoe",
-                        Url = TestUtility.MockUrlHelper(),
+                        PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                        PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                        RequestingUserUrl = urlHelper.User(owner, 1, false),
                     });
 
                 var message = messageService.MockMailSender.Sent.Last();
@@ -166,9 +177,14 @@ namespace NuGetGallery
                     PackageRegistration = new PackageRegistration { Id = "smangit" },
                     Version = "1.42.0.1",
                 };
-                
-                var messageService = TestableMessageService.Create(GetConfigurationService());
 
+                var urlHelper = TestUtility.MockUrlHelper();
+                var messageService = TestableMessageService.Create(GetConfigurationService());
+                var requestingUser = new User
+                {
+                    Username = "Joe Schmoe",
+                    EmailAddress = "joe@example.com"
+                };
                 var reportPackageRequest = new ReportPackageRequest
                 {
                     AlreadyContactedOwners = true,
@@ -176,14 +192,12 @@ namespace NuGetGallery
                     Message = "Abuse!",
                     Package = package,
                     Reason = "Reason!",
-                    RequestingUser = new User
-                    {
-                        Username = "Joe Schmoe",
-                        EmailAddress = "joe@example.com"
-                    },
+                    RequestingUser = requestingUser,
                     Signature = "Joe Schmoe",
-                    Url = TestUtility.MockUrlHelper(),
-                    CopySender = true,
+                    PackageUrl = urlHelper.Package(package.PackageRegistration.Id, false),
+                    PackageVersionUrl = urlHelper.Package(package.PackageRegistration.Id, package.Version, false),
+                    RequestingUserUrl = urlHelper.User(requestingUser, 1, false),
+                    CopySender = true
                 };
                 await messageService.ReportMyPackageAsync(reportPackageRequest);
 
@@ -2003,7 +2017,7 @@ namespace NuGetGallery
         }
 
         public class TestableMessageService 
-            : MessageService
+            : MarkdownMessageService
         {
             private TestableMessageService(IGalleryConfigurationService configurationService)
                 : base(new TestMailSender(), configurationService.Current, new Mock<ITelemetryService>().Object)

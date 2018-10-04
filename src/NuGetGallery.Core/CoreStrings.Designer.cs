@@ -61,6 +61,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Account Deletion Request.
+        /// </summary>
+        public static string AccountDelete_SupportRequestTitle {
+            get {
+                return ResourceManager.GetString("AccountDelete_SupportRequestTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument cannot be null or empty..
         /// </summary>
         public static string ArgumentCannotBeNullOrEmpty {
@@ -120,6 +129,136 @@ namespace NuGetGallery {
         public static string CookieComplianceServiceNotInitialized {
             get {
                 return ResourceManager.GetString("CookieComplianceServiceNotInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;p&gt;The word on the street is you lost your password. Sorry to hear it!&lt;br/&gt;
+        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Click the following link within the next hour to reset your password:&lt;br/&gt;
+        ///&lt;a href=&quot;{0}&quot;&gt;{0}&lt;/a&gt;&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Thanks,&lt;br/&gt;
+        ///The {1} Team&lt;/p&gt;.
+        /// </summary>
+        public static string Emails_ForgotPassword_HtmlBody {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_HtmlBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
+        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
+        ///
+        ///Click the following link within the next hour to reset your password:
+        ///
+        ///[{0}]({0})
+        ///
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///
+        ///Thanks,
+        ///The {1} Team.
+        /// </summary>
+        public static string Emails_ForgotPassword_MarkdownBody {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_MarkdownBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
+        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
+        ///
+        ///Use the following link within the next hour to reset your password:
+        ///
+        ///{0}
+        ///
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///
+        ///Thanks,
+        ///The {1} Team.
+        /// </summary>
+        public static string Emails_ForgotPassword_PlainTextBody {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_PlainTextBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] Please reset your password..
+        /// </summary>
+        public static string Emails_ForgotPassword_Subject {
+            get {
+                return ResourceManager.GetString("Emails_ForgotPassword_Subject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;p&gt;The word on the street is you want to set a password for your account.&lt;br/&gt;
+        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Click the following link within the next hour to set your password:&lt;br/&gt;
+        ///&lt;a href=&quot;{0}&quot;&gt;{0}&lt;/a&gt;&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.&lt;/p&gt;
+        ///
+        ///&lt;p&gt;Thanks,&lt;br/&gt;
+        ///The {1} Team&lt;/p&gt;.
+        /// </summary>
+        public static string Emails_SetPassword_HtmlBody {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_HtmlBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
+        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
+        ///
+        ///Click the following link within the next hour to set your password:
+        ///
+        ///[{0}]({0})
+        ///
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///
+        ///Thanks,
+        ///The {1} Team.
+        /// </summary>
+        public static string Emails_SetPassword_MarkdownBody {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_MarkdownBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
+        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
+        ///
+        ///Use the following link within the next hour to set your password:
+        ///
+        ///{0}
+        ///
+        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+        ///
+        ///Thanks,
+        ///The {1} Team.
+        /// </summary>
+        public static string Emails_SetPassword_PlainTextBody {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_PlainTextBody", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to [{0}] Please set your password..
+        /// </summary>
+        public static string Emails_SetPassword_Subject {
+            get {
+                return ResourceManager.GetString("Emails_SetPassword_Subject", resourceCulture);
             }
         }
         

@@ -2145,7 +2145,7 @@ namespace NuGetGallery
                 {
                     issues.Add(new Issue()
                     {
-                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                        IssueTitle = CoreStrings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = testUser.EmailAddress,
                         CreatedBy = userName,
                         UserKey = testUser.Key,
@@ -2207,7 +2207,7 @@ namespace NuGetGallery
                 {
                     issues.Add(new Issue()
                     {
-                        IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                        IssueTitle = CoreStrings.AccountDelete_SupportRequestTitle,
                         OwnerEmail = testUser.EmailAddress,
                         CreatedBy = testUser.Username,
                         UserKey = testUser.Key,

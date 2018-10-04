@@ -397,7 +397,7 @@ namespace NuGetGallery.Services
                 {
                     CreatedBy = user.Username,
                     Key = 1,
-                    IssueTitle = Strings.AccountDelete_SupportRequestTitle,
+                    IssueTitle = CoreStrings.AccountDelete_SupportRequestTitle,
                     OwnerEmail = user.EmailAddress,
                     IssueStatusId = IssueStatusKeys.New,
                     HistoryEntries = new List<History>() { new History() { EditedBy = user.Username, IssueId = 1, Key = 1, IssueStatusId = IssueStatusKeys.New } }

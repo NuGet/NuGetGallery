@@ -216,8 +216,8 @@ namespace NuGetGallery.Areas.Admin
         public async Task<bool> TryAddDeleteSupportRequestAsync(User user)
         {
             var requestSent = await AddNewSupportRequestAsync(
-                Strings.AccountDelete_SupportRequestTitle,
-                Strings.AccountDelete_SupportRequestTitle,
+                CoreStrings.AccountDelete_SupportRequestTitle,
+                CoreStrings.AccountDelete_SupportRequestTitle,
                 user.EmailAddress,
                 "The user requested to have the account deleted.",
                 user) != null;
@@ -294,11 +294,11 @@ namespace NuGetGallery.Areas.Admin
             var userCreatedIssues = GetIssues().Where(i => string.Equals(i.CreatedBy, createdBy, StringComparison.InvariantCultureIgnoreCase)).ToList();
             // Delete all the support requests with exception of the delete account request.
             // For the DeleteAccount support request clean the user data.
-            foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            foreach(var issue in userCreatedIssues.Where(i => !string.Equals(i.IssueTitle, CoreStrings.AccountDelete_SupportRequestTitle)))
             {
                 _supportRequestDbContext.Issues.Remove(issue);
             }
-            foreach(var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, Strings.AccountDelete_SupportRequestTitle)))
+            foreach(var accountDeletedIssue in userCreatedIssues.Where(i => string.Equals(i.IssueTitle, CoreStrings.AccountDelete_SupportRequestTitle)))
             {
                 accountDeletedIssue.OwnerEmail = "deletedaccount";
                 accountDeletedIssue.CreatedBy = null;
