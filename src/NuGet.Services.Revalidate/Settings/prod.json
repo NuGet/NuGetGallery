@@ -17,7 +17,7 @@
     },
 
     "MinPackageEventRate": 120,
-    "MaxPackageEventRate": 200,
+    "MaxPackageEventRate": 400,
 
     "RetryLaterSleep": "00:00:30",
 
