@@ -87,19 +87,17 @@ namespace NuGetGallery
             contactForm.SubjectLine = HttpUtility.HtmlEncode(contactForm.SubjectLine);
 
             var user = GetCurrentUser();
-            var request = new ContactSupportRequest
-            {
-                CopySender = contactForm.CopySender,
-                Message = contactForm.Message,
-                SubjectLine = contactForm.SubjectLine,
-                FromAddress = user.ToMailAddress(),
-                RequestingUser = user
-            };
 
             var subject = $"Support Request for user '{user.Username}'";
             await _supportRequestService.AddNewSupportRequestAsync(subject, contactForm.Message, user.EmailAddress, "Other", user);
 
-            var emailMessage = new ContactSupportMessage(_messageServiceConfiguration, request);
+            var emailMessage = new ContactSupportMessage(
+                _messageServiceConfiguration,
+                user.ToMailAddress(),
+                user,
+                contactForm.Message,
+                contactForm.SubjectLine,
+                contactForm.CopySender);
             await _messageService.SendMessageAsync(emailMessage);
 
             ModelState.Clear();

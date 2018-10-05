@@ -47,7 +47,6 @@ namespace NuGetGallery
                 var messageService = TestableMessageService.Create(configurationService);
                 var request = new ReportPackageRequest
                 {
-                    AlreadyContactedOwners = true,
                     FromAddress = from,
                     Message = "Abuse!",
                     Package = package,
@@ -59,7 +58,10 @@ namespace NuGetGallery
                     RequestingUserUrl = null
                 };
 
-                var reportAbuseMessage = new ReportAbuseMessage(configurationService.Current, request);
+                var reportAbuseMessage = new ReportAbuseMessage(
+                    configurationService.Current, 
+                    request,
+                    alreadyContactedOwners: true);
 
                 // Act
                 await messageService.SendMessageAsync(reportAbuseMessage);
@@ -99,7 +101,6 @@ namespace NuGetGallery
                 var messageService = TestableMessageService.Create(configurationService);
                 var request = new ReportPackageRequest
                 {
-                    AlreadyContactedOwners = true,
                     FromAddress = from,
                     Message = "Abuse!",
                     Package = package,
@@ -112,7 +113,10 @@ namespace NuGetGallery
                     CopySender = true,
                 };
 
-                var reportAbuseMessage = new ReportAbuseMessage(configurationService.Current, request);
+                var reportAbuseMessage = new ReportAbuseMessage(
+                    configurationService.Current, 
+                    request,
+                    alreadyContactedOwners: true);
 
                 await messageService.SendMessageAsync(reportAbuseMessage);
 
@@ -200,7 +204,6 @@ namespace NuGetGallery
                 var messageService = TestableMessageService.Create(configurationService);
                 var request = new ReportPackageRequest
                 {
-                    AlreadyContactedOwners = true,
                     FromAddress = from,
                     Message = "Abuse!",
                     Package = package,
@@ -212,7 +215,9 @@ namespace NuGetGallery
                     RequestingUserUrl = urlHelper.User(requestingUser, 1, false),
                     CopySender = true
                 };
-                var reportMyPackageMessage = new ReportMyPackageMessage(configurationService.Current, request);
+                var reportMyPackageMessage = new ReportMyPackageMessage(
+                    configurationService.Current, 
+                    request);
                 await messageService.SendMessageAsync(reportMyPackageMessage);
 
                 var message = messageService.MockMailSender.Sent.Single();
@@ -255,20 +260,18 @@ namespace NuGetGallery
 
                 var configuration = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configuration);
-                var request = new ContactOwnersRequest
-                {
-                    FromAddress = from,
-                    Package = package,
-                    PackageUrl = "http://someurl/",
-                    EmailSettingsUrl = "http://someotherurl/",
-                    HtmlEncodedMessage = "Test message",
-                    CopySender = true
-                };
 
-                var contactOwnersMessage = new ContactOwnersMessage(configuration.Current, request);
+                var contactOwnersMessage = new ContactOwnersMessage(
+                    configuration.Current,
+                    from,
+                    package,
+                    "http://someurl/",
+                    "Test message",
+                    "http://someotherurl/",
+                    copySender: true);
 
                 // act
-                await messageService.SendMessageAsync(contactOwnersMessage, request.CopySender, discloseSenderAddress: false);
+                await messageService.SendMessageAsync(contactOwnersMessage, copySender: true, discloseSenderAddress: false);
                 var messages = messageService.MockMailSender.Sent;
 
                 // assert
@@ -311,16 +314,14 @@ namespace NuGetGallery
                 var configuration = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configuration);
 
-                var request = new ContactOwnersRequest
-                {
-                    FromAddress = from,
-                    Package = package,
-                    PackageUrl = "http://packageUrl/",
-                    EmailSettingsUrl = "http://emailSettingsUrl/",
-                    HtmlEncodedMessage = "Test message",
-                    CopySender = false
-                };
-                var contactOwnersMessage = new ContactOwnersMessage(configuration.Current, request);
+                var contactOwnersMessage = new ContactOwnersMessage(
+                    configuration.Current,
+                    from,
+                    package,
+                    "http://packageUrl/",
+                    "Test message",
+                    "http://emailSettingsUrl/",
+                    copySender: false);
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
@@ -332,7 +333,7 @@ namespace NuGetGallery
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Message for owners of the package '{id}'", message.Subject);
                 Assert.Contains("Test message", message.Body);
                 Assert.Contains(
-                    $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id} {version}]({request.PackageUrl})'.",
+                    $"User {userUsername} &lt;{userEmail}&gt; sends the following message to the owners of Package '[{id} {version}]({contactOwnersMessage.PackageUrl})'.",
                     message.Body);
             }
 
@@ -364,17 +365,15 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new ContactOwnersRequest
-                {
-                    FromAddress = from,
-                    Package = package,
-                    PackageUrl = "http://someurl/",
-                    EmailSettingsUrl = "http://someotherurl/",
-                    HtmlEncodedMessage = "Test message",
-                    CopySender = false
-                };
 
-                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+                var contactOwnersMessage = new ContactOwnersMessage(
+                    configurationService.Current,
+                    from,
+                    package,
+                    "http://someurl/",
+                    "Test message",
+                    "http://someotherurl/",
+                    copySender: false);
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
                 var message = messageService.MockMailSender.Sent.Last();
@@ -412,17 +411,15 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new ContactOwnersRequest
-                {
-                    FromAddress = from,
-                    Package = package,
-                    PackageUrl = "http://someurl/",
-                    EmailSettingsUrl = "http://someotherurl/",
-                    HtmlEncodedMessage = "Test message",
-                    CopySender = false
-                };
 
-                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+                var contactOwnersMessage = new ContactOwnersMessage(
+                    configurationService.Current,
+                    from,
+                    package,
+                    "http://someurl/",
+                    "Test message",
+                    "http://someotherurl/",
+                    copySender: false);
 
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
@@ -458,17 +455,14 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new ContactOwnersRequest
-                {
-                    FromAddress = from,
-                    Package = package,
-                    PackageUrl = "http://someurl/",
-                    EmailSettingsUrl = "http://someotherurl/",
-                    HtmlEncodedMessage = "Test message",
-                    CopySender = false
-                };
-
-                var contactOwnersMessage = new ContactOwnersMessage(configurationService.Current, request);
+                var contactOwnersMessage = new ContactOwnersMessage(
+                    configurationService.Current,
+                    from,
+                    package,
+                    "http://someurl/",
+                    "Test message",
+                    "http://someotherurl/",
+                    copySender: false);
                 await messageService.SendMessageAsync(contactOwnersMessage);
 
                 // assert
@@ -582,18 +576,16 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new PackageOwnershipRequest
-                {
-                    FromUser = from,
-                    ToUser = to,
-                    PackageRegistration = package,
-                    PackageUrl = packageUrl,
-                    ConfirmationUrl = confirmationUrl,
-                    RejectionUrl = rejectionUrl,
-                    HtmlEncodedMessage = userMessage,
-                    PolicyMessage = string.Empty
-                };
-                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                    configurationService.Current,
+                    from,
+                    to,
+                    package,
+                    packageUrl,
+                    confirmationUrl,
+                    rejectionUrl,
+                    userMessage,
+                    string.Empty);
                 await messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                 var message = messageService.MockMailSender.Sent.Last();
@@ -635,19 +627,16 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new PackageOwnershipRequest
-                {
-                    FromUser = from,
-                    ToUser = to,
-                    PackageRegistration = package,
-                    PackageUrl = packageUrl,
-                    ConfirmationUrl = confirmationUrl,
-                    RejectionUrl = rejectionUrl,
-                    HtmlEncodedMessage = string.Empty,
-                    PolicyMessage = string.Empty
-                };
-
-                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                    configurationService.Current,
+                    from,
+                    to,
+                    package,
+                    packageUrl,
+                    confirmationUrl,
+                    rejectionUrl,
+                    string.Empty,
+                    string.Empty);
                 await messageService.SendMessageAsync(packageOwnershipRequestMessage);
                 var message = messageService.MockMailSender.Sent.Last();
 
@@ -671,19 +660,16 @@ namespace NuGetGallery
 
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var request = new PackageOwnershipRequest
-                {
-                    FromUser = from,
-                    ToUser = to,
-                    PackageRegistration = package,
-                    PackageUrl = packageUrl,
-                    ConfirmationUrl = confirmationUrl,
-                    RejectionUrl = rejectionUrl,
-                    HtmlEncodedMessage = string.Empty,
-                    PolicyMessage = string.Empty
-                };
-
-                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(configurationService.Current, request);
+                var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                    configurationService.Current,
+                    from,
+                    to,
+                    package,
+                    packageUrl,
+                    confirmationUrl,
+                    rejectionUrl,
+                    string.Empty,
+                    string.Empty);
                 await messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                 Assert.Empty(messageService.MockMailSender.Sent);
@@ -1551,8 +1537,8 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published.\n\n" +
-                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
+                    $"It is taking longer than expected for your package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published." + Environment.NewLine + Environment.NewLine +
+                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published." + Environment.NewLine + Environment.NewLine +
                     $"Thank you for your patience.", message.Body);
             }
 
@@ -1958,20 +1944,17 @@ namespace NuGetGallery
                 var confirmationUrl = "www.confirm.com";
                 var rejectionUrl = "www.rejection.com";
 
-                var organizationMembershipRequest = new OrganizationMembershipRequest
-                {
-                    Organization = organization,
-                    NewUser = newUser,
-                    AdminUser = adminUser,
-                    IsAdmin = isAdmin,
-                    ProfileUrl = profileUrl,
-                    RawConfirmationUrl = confirmationUrl,
-                    RawRejectionUrl = rejectionUrl
-                };
-
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var emailMessage = new OrganizationMembershipRequestMessage(configurationService.Current, organizationMembershipRequest);
+                var emailMessage = new OrganizationMembershipRequestMessage(
+                    configurationService.Current,
+                    organization,
+                    newUser,
+                    adminUser,
+                    isAdmin,
+                    profileUrl,
+                    confirmationUrl,
+                    rejectionUrl);
 
                 // Act
                 await messageService.SendMessageAsync(emailMessage);
@@ -1996,20 +1979,17 @@ namespace NuGetGallery
             public async Task WillNotSendEmailIfEmailNotAllowed(bool isAdmin)
             {
                 // Arrange
-                var organizationMembershipRequest = new OrganizationMembershipRequest
-                {
-                    Organization = new Organization("transformers") { EmailAddress = "transformers@transformers.com" },
-                    NewUser = new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false },
-                    AdminUser = new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" },
-                    IsAdmin = isAdmin,
-                    ProfileUrl = "www.profile.com",
-                    RawConfirmationUrl = "www.confirm.com",
-                    RawRejectionUrl = "www.rejection.com"
-                };
-
                 var configurationService = GetConfigurationService();
                 var messageService = TestableMessageService.Create(configurationService);
-                var emailMessage = new OrganizationMembershipRequestMessage(configurationService.Current, organizationMembershipRequest);
+                var emailMessage = new OrganizationMembershipRequestMessage(
+                    configurationService.Current,
+                    new Organization("transformers") { EmailAddress = "transformers@transformers.com" },
+                    new User("shia_labeouf") { EmailAddress = "justdoit@shia.com", EmailAllowed = false },
+                    new User("bumblebee") { EmailAddress = "bumblebee@transformers.com" },
+                    isAdmin,
+                    "www.profile.com",
+                    "www.confirm.com",
+                    "www.rejection.com");
 
                 // Act
                 await messageService.SendMessageAsync(emailMessage);
@@ -2451,8 +2431,8 @@ namespace NuGetGallery
                 Assert.Equal(TestGalleryNoReplyAddress, message.From);
                 Assert.Contains($"[{TestGalleryOwner.DisplayName}] Symbol package validation taking longer than expected - {packageRegistration.Id} {nugetVersion.ToNormalizedString()}", message.Subject);
                 Assert.Contains(
-                    $"It is taking longer than expected for your symbol package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published.\n\n" +
-                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.\n\n" +
+                    $"It is taking longer than expected for your symbol package [{packageRegistration.Id} {nugetVersion.ToFullString()}]({packageUrl}) to get published." + Environment.NewLine + Environment.NewLine +
+                    $"We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published." + Environment.NewLine + Environment.NewLine +
                     $"Thank you for your patience.", message.Body);
             }
         }

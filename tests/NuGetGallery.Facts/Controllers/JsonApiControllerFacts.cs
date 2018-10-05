@@ -393,15 +393,15 @@ namespace NuGetGallery.Controllers
                                     .Setup(m => m.SendMessageAsync(It.IsAny<PackageOwnershipRequestMessage>(), false, false))
                                     .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) =>
                                     {
-                                        var request = (msg as PackageOwnershipRequestMessage).Request;
-                                        Assert.Equal(currentUser, request.FromUser);
-                                        Assert.Equal(userToAdd, request.ToUser);
-                                        Assert.Equal(fakes.Package, request.PackageRegistration);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + "packages/FakePackage/", request.PackageUrl);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code", request.ConfirmationUrl);
-                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code", request.RejectionUrl);
-                                        Assert.Equal("Hello World! Html Encoded &lt;3", request.HtmlEncodedMessage);
-                                        Assert.Equal(string.Empty, request.PolicyMessage);
+                                        var message = msg as PackageOwnershipRequestMessage;
+                                        Assert.Equal(currentUser, message.FromUser);
+                                        Assert.Equal(userToAdd, message.ToUser);
+                                        Assert.Equal(fakes.Package, message.PackageRegistration);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + "packages/FakePackage/", message.PackageUrl);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code", message.ConfirmationUrl);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code", message.RejectionUrl);
+                                        Assert.Equal("Hello World! Html Encoded &lt;3", message.HtmlEncodedMessage);
+                                        Assert.Equal(string.Empty, message.PolicyMessage);
                                     })
                                     .Returns(Task.CompletedTask)
                                     .Verifiable();

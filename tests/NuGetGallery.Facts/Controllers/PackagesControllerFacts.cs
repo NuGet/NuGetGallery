@@ -1544,8 +1544,8 @@ namespace NuGetGallery
                     .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) =>
                     {
                         var contactOwnersMessage = msg as ContactOwnersMessage;
-                        sentPackageUrl = contactOwnersMessage.Request.PackageUrl;
-                        sentMessage = contactOwnersMessage.Request.HtmlEncodedMessage;
+                        sentPackageUrl = contactOwnersMessage.PackageUrl;
+                        sentMessage = contactOwnersMessage.HtmlEncodedMessage;
                     })
                     .Returns(Task.CompletedTask);
                 var package = new Package
@@ -3159,7 +3159,7 @@ namespace NuGetGallery
                                  && r.Request.Package == package
                                  && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
                                  && r.Request.Message == EncodedMessage
-                                 && r.Request.AlreadyContactedOwners),
+                                 && r.AlreadyContactedOwners),
                         false,
                         false));
             }
@@ -3196,7 +3196,7 @@ namespace NuGetGallery
                                  && r.Request.FromAddress.DisplayName == currentUser.Username
                                  && r.Request.Package == package
                                  && r.Request.Reason == EnumHelper.GetDescription(ReportPackageReason.ViolatesALicenseIOwn)
-                                 && r.Request.AlreadyContactedOwners),
+                                 && r.AlreadyContactedOwners),
                         false,
                         false));
             }

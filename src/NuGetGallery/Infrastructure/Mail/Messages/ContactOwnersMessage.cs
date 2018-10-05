@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
@@ -14,29 +13,45 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public ContactOwnersMessage(
             IMessageServiceConfiguration configuration,
-            ContactOwnersRequest request)
+            MailAddress fromAddress,
+            Package package,
+            string packageUrl,
+            string htmlEncodedMessage,
+            string emailSettingsUrl,
+            bool copySender)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            Request = request ?? throw new ArgumentNullException(nameof(request));
+            FromAddress = fromAddress ?? throw new ArgumentNullException(nameof(fromAddress));
+            Package = package ?? throw new ArgumentNullException(nameof(package));
+            PackageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+            HtmlEncodedMessage = htmlEncodedMessage ?? throw new ArgumentNullException(nameof(htmlEncodedMessage));
+            EmailSettingsUrl = emailSettingsUrl ?? throw new ArgumentNullException(nameof(emailSettingsUrl));
+            CopySender = copySender;
         }
 
-        public ContactOwnersRequest Request { get; }
+        public MailAddress FromAddress { get; }
+        public Package Package { get; }
+        public string PackageUrl { get; }
+        public string HtmlEncodedMessage { get; }
+        public string EmailSettingsUrl { get; }
+        public bool CopySender { get; }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
         public override IEmailRecipients GetRecipients()
         {
             var to = EmailRecipients.GetAllOwners(
-                Request.Package.PackageRegistration,
+                Package.PackageRegistration,
                 requireEmailAllowed: true);
 
             return new EmailRecipients(
                 to,
-                replyTo: new[] { Request.FromAddress });
+                cc: CopySender ? new[] { FromAddress } : null,
+                replyTo: new[] { FromAddress });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Message for owners of the package '{Request.Package.PackageRegistration.Id}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Message for owners of the package '{Package.PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
@@ -50,17 +65,37 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     [change your email notification settings]({7}).
 </em>";
 
+            return GetBodyInternal(bodyTemplate);
+        }
+
+        protected override string GetPlainTextBody()
+        {
+            // The HTML emphasis tag is not supported by the Plain Text renderer in Markdig.
+            // Manually overriding this one.
+            var bodyTemplate = @"User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2} {3} ({4})'.
+
+{5}
+
+-----------------------------------------------
+    To stop receiving contact emails as an owner of this package, sign in to the {6} and
+    change your email notification settings ({7}).";
+
+            return GetBodyInternal(bodyTemplate);
+        }
+
+        private string GetBodyInternal(string template)
+        {
             return string.Format(
                 CultureInfo.CurrentCulture,
-                bodyTemplate,
-                Request.FromAddress.DisplayName,
-                Request.FromAddress.Address,
-                Request.Package.PackageRegistration.Id,
-                Request.Package.Version,
-                Request.PackageUrl,
-                Request.HtmlEncodedMessage,
+                template,
+                FromAddress.DisplayName,
+                FromAddress.Address,
+                Package.PackageRegistration.Id,
+                Package.Version,
+                PackageUrl,
+                HtmlEncodedMessage,
                 _configuration.GalleryOwner.DisplayName,
-                Request.EmailSettingsUrl);
+                EmailSettingsUrl);
         }
     }
 }

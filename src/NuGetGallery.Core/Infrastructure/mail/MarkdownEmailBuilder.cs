@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System.IO;
 using Markdig;
 
 namespace NuGetGallery.Infrastructure.Mail
@@ -12,7 +13,21 @@ namespace NuGetGallery.Infrastructure.Mail
     {
         protected override string GetPlainTextBody()
         {
-            return Markdown.ToPlainText(GetMarkdownBody());
+            var markdown = GetMarkdownBody();
+
+            var writer = new StringWriter();
+            var pipeline = new MarkdownPipelineBuilder().Build();
+
+            // We override the renderer with our own writer
+            var renderer = new PlainTextRenderer(writer);
+
+            pipeline.Setup(renderer);
+
+            var document = Markdown.Parse(markdown, pipeline);
+            renderer.Render(document);
+            writer.Flush();
+
+            return writer.ToString();
         }
     }
 }

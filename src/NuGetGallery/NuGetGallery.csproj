@@ -327,10 +327,8 @@
     <Compile Include="Infrastructure\Mail\Messages\PasswordResetInstructionsMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
     <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
-    <Compile Include="Infrastructure\Mail\Requests\ContactOwnersRequest.cs" />
-    <Compile Include="Infrastructure\Mail\Requests\OrganizationMembershipRequest.cs" />
-    <Compile Include="Infrastructure\Mail\Requests\PackageOwnershipRequest.cs" />
     <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
@@ -675,7 +673,6 @@
     <Compile Include="Telemetry\UserPackageDeleteOutcome.cs" />
     <Compile Include="UrlHelperExtensions.cs" />
     <Compile Include="ViewModels\AddOrganizationViewModel.cs" />
-    <Compile Include="Authentication\Providers\CredentialTypeInfo.cs" />
     <Compile Include="ViewModels\DeleteOrganizationViewModel.cs" />
     <Compile Include="ViewModels\DeleteUserViewModel.cs" />
     <Compile Include="ViewModels\ListCertificateItemViewModel.cs" />

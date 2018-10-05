@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery

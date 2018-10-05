@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
@@ -12,40 +11,56 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly bool _isToUserOrganization;
-        private readonly string _rawConfirmationUrl;
-        private readonly string _confirmationUrl;
-        private readonly string _rawRejectionUrl;
-        private readonly string _rejectionUrl;
 
         public PackageOwnershipRequestMessage(
             IMessageServiceConfiguration configuration,
-            PackageOwnershipRequest request)
+            User fromUser,
+            User toUser,
+            PackageRegistration packageRegistration,
+            string packageUrl,
+            string confirmationUrl,
+            string rejectionUrl,
+            string htmlEncodedMessage,
+            string policyMessage)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            Request = request ?? throw new ArgumentNullException(nameof(request));
+            FromUser = fromUser ?? throw new ArgumentNullException(nameof(fromUser));
+            ToUser = toUser ?? throw new ArgumentNullException(nameof(toUser));
+            PackageRegistration = packageRegistration ?? throw new ArgumentNullException(nameof(packageRegistration));
+            PackageUrl = packageUrl ?? throw new ArgumentNullException(nameof(packageUrl));
+            RawConfirmationUrl = confirmationUrl ?? throw new ArgumentNullException(nameof(confirmationUrl));
+            RawRejectionUrl = rejectionUrl ?? throw new ArgumentNullException(nameof(rejectionUrl));
+            HtmlEncodedMessage = htmlEncodedMessage ?? throw new ArgumentNullException(nameof(htmlEncodedMessage));
+            PolicyMessage = policyMessage ?? throw new ArgumentNullException(nameof(policyMessage));
 
-            _isToUserOrganization = request.ToUser is Organization;
-
-            _rawConfirmationUrl = request.ConfirmationUrl ?? throw new ArgumentNullException(nameof(request.ConfirmationUrl));
-            _confirmationUrl = EscapeLinkForMarkdown(request.ConfirmationUrl);
-            _rawRejectionUrl = request.RejectionUrl ?? throw new ArgumentNullException(nameof(request.RejectionUrl));
-            _rejectionUrl = EscapeLinkForMarkdown(request.RejectionUrl);
+            _isToUserOrganization = ToUser is Organization;
+            ConfirmationUrl = EscapeLinkForMarkdown(confirmationUrl);
+            RejectionUrl = EscapeLinkForMarkdown(rejectionUrl);
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
-        public PackageOwnershipRequest Request { get; }
+        public User FromUser { get; }
+        public User ToUser { get; }
+        public PackageRegistration PackageRegistration { get; }
+        public string PackageUrl { get; }
+        public string RawConfirmationUrl { get; }
+        public string ConfirmationUrl { get; }
+        public string RawRejectionUrl { get; }
+        public string RejectionUrl { get; }
+        public string HtmlEncodedMessage { get; }
+        public string PolicyMessage { get; }
 
         public override IEmailRecipients GetRecipients()
         {
             return new EmailRecipientsWithPermission(
-                Request.ToUser,
+                ToUser,
                 ActionsRequiringPermissions.HandlePackageOwnershipRequest,
-                replyTo: new[] { Request.FromUser.ToMailAddress() });
+                replyTo: new[] { FromUser.ToMailAddress() });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{Request.PackageRegistration.Id}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
         {
@@ -53,24 +68,23 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
             string body = string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{Request.FromUser.Username}' would like to add {(_isToUserOrganization ? "your organization" : "you")} as an owner of the package ['{Request.PackageRegistration.Id}']({Request.PackageUrl}).
-
+                $@"The user '{FromUser.Username}' would like to add {(_isToUserOrganization ? "your organization" : "you")} as an owner of the package ['{PackageRegistration.Id}']({PackageUrl}).
 {policyMessage}");
 
-            if (!string.IsNullOrWhiteSpace(Request.HtmlEncodedMessage))
+            if (!string.IsNullOrWhiteSpace(HtmlEncodedMessage))
             {
-                body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"The user '{Request.FromUser.Username}' added the following message for you:
+                body += Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"The user '{FromUser.Username}' added the following message for you:
 
-'{Request.HtmlEncodedMessage}'");
+'{HtmlEncodedMessage}'");
             }
 
             body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"To accept this request and {(_isToUserOrganization ? "make your organization" : "become")} a listed owner of the package:
 
-[{_confirmationUrl}]({_rawConfirmationUrl})
+[{ConfirmationUrl}]({RawConfirmationUrl})
 
 To decline:
 
-[{_rejectionUrl}]({_rawRejectionUrl})");
+[{RejectionUrl}]({RawRejectionUrl})");
 
             body += Environment.NewLine + Environment.NewLine + $@"Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team";
@@ -81,9 +95,9 @@ The {_configuration.GalleryOwner.DisplayName} Team";
         private string GetPolicyMessage()
         {
             var policyMessage = string.Empty;
-            if (!string.IsNullOrEmpty(Request.PolicyMessage))
+            if (!string.IsNullOrEmpty(PolicyMessage))
             {
-                policyMessage = Environment.NewLine + Request.PolicyMessage + Environment.NewLine;
+                policyMessage = Environment.NewLine + PolicyMessage + Environment.NewLine;
             }
 
             return policyMessage;

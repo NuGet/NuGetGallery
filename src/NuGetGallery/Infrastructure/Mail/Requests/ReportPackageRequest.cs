@@ -13,7 +13,6 @@ namespace NuGetGallery.Infrastructure.Mail.Requests
         public string Reason { get; set; }
         public string Signature { get; set; }
         public string Message { get; set; }
-        public bool AlreadyContactedOwners { get; set; }
         public bool CopySender { get; set; }
         public string PackageUrl { get; set; }
         public string PackageVersionUrl { get; set; }

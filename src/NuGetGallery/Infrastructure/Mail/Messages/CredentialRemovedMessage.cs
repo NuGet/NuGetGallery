@@ -4,7 +4,7 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using NuGetGallery.Authentication.Providers;
+using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {

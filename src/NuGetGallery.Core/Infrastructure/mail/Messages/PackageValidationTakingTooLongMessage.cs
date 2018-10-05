@@ -41,9 +41,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetMarkdownBody()
         {
-            string body = "It is taking longer than expected for your package [{1} {2}]({3}) to get published.\n\n" +
-                   "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.\n\n" +
-                   "Thank you for your patience.";
+            var body = @"It is taking longer than expected for your package [{1} {2}]({3}) to get published.
+
+We are looking into it and there is no action on you at this time. We’ll send you an email notification when your package has been published.
+
+Thank you for your patience.";
 
             return string.Format(
                 CultureInfo.CurrentCulture,

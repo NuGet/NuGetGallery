@@ -850,7 +850,6 @@ namespace NuGetGallery
 
             var request = new ReportPackageRequest
             {
-                AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
                 FromAddress = from,
                 Message = reportForm.Message,
                 Package = package,
@@ -863,7 +862,10 @@ namespace NuGetGallery
                 RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
-            var reportAbuseMessage = new ReportAbuseMessage(_config, request);
+            var reportAbuseMessage = new ReportAbuseMessage(
+                _config,
+                request,
+                reportForm.AlreadyContactedOwner);
             await _messageService.SendMessageAsync(reportAbuseMessage);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
@@ -1105,21 +1107,16 @@ namespace NuGetGallery
 
             var user = GetCurrentUser();
 
-            var contactOwnersRequest = new ContactOwnersRequest
-            {
-                FromAddress = new MailAddress(user.EmailAddress, user.Username),
-                Package = package,
-                PackageUrl = Url.Package(package, false),
-                EmailSettingsUrl = Url.AccountSettings(relativeUrl: false),
-                CopySender = contactForm.CopySender,
+            var contactOwnersMessage = new ContactOwnersMessage(
+                _config,
+                new MailAddress(user.EmailAddress, user.Username),
+                package,
+                Url.Package(package, false),
+                HttpUtility.HtmlEncode(contactForm.Message),
+                Url.AccountSettings(relativeUrl: false),
+                contactForm.CopySender);
 
-                // Html Encode the message
-                HtmlEncodedMessage = HttpUtility.HtmlEncode(contactForm.Message)
-            };
-
-            var contactOwnersMessage = new ContactOwnersMessage(_config, contactOwnersRequest);
-
-            await _messageService.SendMessageAsync(contactOwnersMessage, contactOwnersRequest.CopySender, discloseSenderAddress: false);
+            await _messageService.SendMessageAsync(contactOwnersMessage, contactForm.CopySender, discloseSenderAddress: false);
 
             string message = string.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;

@@ -514,10 +514,10 @@ namespace NuGetGallery
                     .Setup(m => m.SendMessageAsync(
                         It.Is<OrganizationMembershipRequestMessage>(
                             msg =>
-                            msg.Request.Organization == account
-                            && msg.Request.NewUser == It.Is<User>(u => u.Username == defaultMemberName)
-                            && msg.Request.AdminUser == controller.GetCurrentUser()
-                            && msg.Request.IsAdmin == isAdmin),
+                            msg.Organization == account
+                            && msg.NewUser == It.Is<User>(u => u.Username == defaultMemberName)
+                            && msg.AdminUser == controller.GetCurrentUser()
+                            && msg.IsAdmin == isAdmin),
                         false,
                         false))
                     .Returns(Task.CompletedTask)

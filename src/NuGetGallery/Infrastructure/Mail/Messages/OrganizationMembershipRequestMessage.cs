@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
@@ -14,56 +13,74 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public OrganizationMembershipRequestMessage(
             IMessageServiceConfiguration configuration,
-            OrganizationMembershipRequest request)
+            Organization organization,
+            User newUser,
+            User adminUser,
+            bool isAdmin,
+            string profileUrl,
+            string confirmationUrl,
+            string rejectionUrl)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            Request = request ?? throw new ArgumentNullException(nameof(request));
+            Organization = organization ?? throw new ArgumentNullException(nameof(organization));
+            NewUser = newUser ?? throw new ArgumentNullException(nameof(newUser));
+            AdminUser = adminUser ?? throw new ArgumentNullException(nameof(adminUser));
+            ProfileUrl = profileUrl ?? throw new ArgumentNullException(nameof(profileUrl));
+            RawConfirmationUrl = confirmationUrl ?? throw new ArgumentNullException(nameof(confirmationUrl));
+            RawRejectionUrl = rejectionUrl ?? throw new ArgumentNullException(nameof(rejectionUrl));
 
-            ConfirmationUrl = EscapeLinkForMarkdown(request.RawConfirmationUrl);
-            RejectionUrl = EscapeLinkForMarkdown(request.RawRejectionUrl);
+            ConfirmationUrl = EscapeLinkForMarkdown(confirmationUrl);
+            RejectionUrl = EscapeLinkForMarkdown(rejectionUrl);
+            IsAdmin = isAdmin;
         }
 
         public override MailAddress Sender => _configuration.GalleryNoReplyAddress;
 
-        public OrganizationMembershipRequest Request { get; }
+        public Organization Organization { get; }
+        public User NewUser { get; }
+        public User AdminUser { get; }
+        public bool IsAdmin { get; }
+        public string ProfileUrl { get; }
+        public string RawConfirmationUrl { get; }
+        public string RawRejectionUrl { get; }
         public string ConfirmationUrl { get; }
         public string RejectionUrl { get; }
 
         public override IEmailRecipients GetRecipients()
         {
-            if (!Request.NewUser.EmailAllowed)
+            if (!NewUser.EmailAllowed)
             {
                 return EmailRecipients.None;
             }
 
             return new EmailRecipients(
-                to: new[] { Request.NewUser.ToMailAddress() },
+                to: new[] { NewUser.ToMailAddress() },
                 replyTo: new[]
                 {
-                    Request.Organization.ToMailAddress(),
-                    Request.AdminUser.ToMailAddress()
+                    Organization.ToMailAddress(),
+                    AdminUser.ToMailAddress()
                 });
         }
 
         public override string GetSubject()
-            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Request.Organization.Username}'";
+            => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
         {
-            var membershipLevel = Request.IsAdmin ? "an administrator" : "a collaborator";
+            var membershipLevel = IsAdmin ? "an administrator" : "a collaborator";
             return string.Format(
                 CultureInfo.CurrentCulture,
-                $@"The user '{Request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, ['{Request.Organization.Username}']({Request.ProfileUrl}).
+                $@"The user '{AdminUser.Username}' would like you to become {membershipLevel} of their organization, ['{Organization.Username}']({ProfileUrl}).
 
 To learn more about organization roles, [refer to the documentation.](https://go.microsoft.com/fwlink/?linkid=870439)
 
-To accept the request and become {membershipLevel} of '{Request.Organization.Username}':
+To accept the request and become {membershipLevel} of '{Organization.Username}':
 
-[{ConfirmationUrl}]({Request.RawConfirmationUrl})
+[{ConfirmationUrl}]({RawConfirmationUrl})
 
 To decline the request:
 
-[{RejectionUrl}]({Request.RawRejectionUrl})
+[{RejectionUrl}]({RawRejectionUrl})
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.Net.Mail;
-using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
@@ -14,23 +13,35 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public ContactSupportMessage(
             IMessageServiceConfiguration configuration,
-            ContactSupportRequest request)
+            MailAddress fromAddress,
+            User requestingUser,
+            string message,
+            string reason,
+            bool copySender)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            Request = request ?? throw new ArgumentNullException(nameof(request));
+            FromAddress = fromAddress ?? throw new ArgumentNullException(nameof(fromAddress));
+            RequestingUser = requestingUser ?? throw new ArgumentNullException(nameof(requestingUser));
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Reason = reason ?? throw new ArgumentNullException(nameof(reason));
+            CopySender = copySender;
         }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
 
-        public ContactSupportRequest Request { get; }
+        public MailAddress FromAddress { get; }
+        public User RequestingUser { get; }
+        public string Message { get; }
+        public string Reason { get; }
+        public bool CopySender { get; }
 
-        public override IEmailRecipients GetRecipients() 
-            => new EmailRecipients(
-                to: new[] { _configuration.GalleryOwner },
-                cc: Request.CopySender ? new[] { Request.FromAddress } : null,
-                replyTo: new[] { Request.FromAddress });
+        public override IEmailRecipients GetRecipients()
+                => new EmailRecipients(
+                    to: new[] { _configuration.GalleryOwner },
+                    cc: CopySender ? new[] { FromAddress } : null,
+                    replyTo: new[] { FromAddress });
 
-        public override string GetSubject() => $"Support Request (Reason: {Request.SubjectLine})";
+        public override string GetSubject() => $"Support Request (Reason: {Reason})";
 
         protected override string GetMarkdownBody()
         {
@@ -43,10 +54,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 **Message:**
 {3}",
-                Request.RequestingUser.Username,
-                Request.RequestingUser.EmailAddress,
-                Request.SubjectLine,
-                Request.Message);
+                RequestingUser.Username,
+                RequestingUser.EmailAddress,
+                Reason,
+                Message);
         }
     }
 }

@@ -47,8 +47,8 @@ namespace NuGetGallery
                     .Verify(svc => svc.SendMessageAsync(
                         It.Is<ContactSupportMessage>(
                             msg =>
-                            msg.Request.Message == expectedMessage
-                            && msg.Request.SubjectLine == expectedSubjectLine),
+                            msg.Message == expectedMessage
+                            && msg.Reason == expectedSubjectLine),
                         false,
                         false));
             }

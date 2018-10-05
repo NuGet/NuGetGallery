@@ -12,7 +12,6 @@ using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -139,22 +138,15 @@ namespace NuGetGallery
                 var request = await UserService.AddMembershipRequestAsync(account, memberName, isAdmin);
                 var currentUser = GetCurrentUser();
 
-                var cancelUrl = Url.CancelOrganizationMembershipRequest(memberName, relativeUrl: false);
-
-                var organizationMembershipRequest = new OrganizationMembershipRequest
-                {
-                    Organization = account,
-                    NewUser = request.NewMember,
-                    AdminUser = currentUser,
-                    IsAdmin = request.IsAdmin,
-                    ProfileUrl = Url.User(account, relativeUrl: false),
-                    RawConfirmationUrl = Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false),
-                    RawRejectionUrl = Url.RejectOrganizationMembershipRequest(request, relativeUrl: false)
-                };
-
                 var organizationMembershipRequestMessage = new OrganizationMembershipRequestMessage(
                     MessageServiceConfiguration,
-                    organizationMembershipRequest);
+                    account,
+                    request.NewMember,
+                    currentUser,
+                    request.IsAdmin,
+                    profileUrl: Url.User(account, relativeUrl: false),
+                    confirmationUrl: Url.AcceptOrganizationMembershipRequest(request, relativeUrl: false),
+                    rejectionUrl: Url.RejectOrganizationMembershipRequest(request, relativeUrl: false));
                 await MessageService.SendMessageAsync(organizationMembershipRequestMessage);
 
                 var organizationMembershipRequestInitiatedMessage = new OrganizationMembershipRequestInitiatedMessage(
@@ -163,7 +155,7 @@ namespace NuGetGallery
                     currentUser,
                     request.NewMember,
                     request.IsAdmin,
-                    cancelUrl);
+                    cancellationUrl: Url.CancelOrganizationMembershipRequest(memberName, relativeUrl: false));
                 await MessageService.SendMessageAsync(organizationMembershipRequestInitiatedMessage);
 
                 return Json(new OrganizationMemberViewModel(request));

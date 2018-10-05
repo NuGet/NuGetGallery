@@ -38,7 +38,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         {
             string body = @"Hi there,
 
-We heard you were looking for Microsoft logins associated with your account on {0}. 
+We heard you were looking for Microsoft logins associated with your account on {0}.
 
 {1}
 

@@ -12,7 +12,6 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -155,19 +154,16 @@ namespace NuGetGallery
                         model.User.Username,
                         relativeUrl: false);
 
-                    var packageOwnershipRequest = new PackageOwnershipRequest
-                    {
-                        FromUser = model.CurrentUser,
-                        ToUser = model.User,
-                        PackageRegistration = model.Package,
-                        PackageUrl = packageUrl,
-                        ConfirmationUrl = confirmationUrl,
-                        RejectionUrl = rejectionUrl,
-                        HtmlEncodedMessage = encodedMessage,
-                        PolicyMessage = string.Empty
-                    };
-
-                    var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(_appConfiguration, packageOwnershipRequest);
+                    var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                        _appConfiguration,
+                        model.CurrentUser,
+                        model.User,
+                        model.Package,
+                        packageUrl,
+                        confirmationUrl,
+                        rejectionUrl,
+                        encodedMessage,
+                        string.Empty);
                     await _messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                     foreach (var owner in model.Package.Owners)

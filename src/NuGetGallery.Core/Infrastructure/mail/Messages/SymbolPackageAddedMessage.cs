@@ -72,5 +72,23 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     [change your email notification settings]({_emailSettingsUrl}).
 </em>";
         }
+
+        protected override string GetPlainTextBody()
+        {
+            // The HTML emphasis tag is not supported by the Plain Text renderer in Markdig.
+            // Manually overriding this one.
+            var warningMessagesPlaceholder = string.Empty;
+            if (_hasWarnings)
+            {
+                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
+            }
+
+            return $@"The symbol package {_symbolPackage.Id} {_symbolPackage.Version} ({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {_symbolPackage.Package.User.Username}. If this was not intended, please contact support ({_packageSupportUrl}).
+{warningMessagesPlaceholder}
+
+-----------------------------------------------
+    To stop receiving emails as an owner of this package, sign in to the {_configuration.GalleryOwner.DisplayName} and
+    change your email notification settings ({_emailSettingsUrl}).";
+        }
     }
 }
