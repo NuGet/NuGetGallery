@@ -17,19 +17,19 @@ namespace NuGet.Services.Status.Tests
             AssertFieldEqual(expected, actual, i => i.Events, AssertEvent);
         }
 
-        public static void AssertComponent(IReadOnlyComponent expected, IReadOnlyComponent actual)
+        public static void AssertComponent<TComponent>(TComponent expected, TComponent actual)
+            where TComponent : class, IComponentDescription, IRootComponent<TComponent>
         {
             AssertFieldEqual(expected, actual, i => i.Description);
             AssertFieldEqual(expected, actual, i => i.Name);
             AssertFieldEqual(expected, actual, i => i.Status);
-            AssertFieldEqual(expected, actual, i => i.SubComponents, AssertComponent);
+            AssertFieldEqual(expected, actual, i => i.SubComponents, AssertComponent<TComponent>);
             AssertFieldEqual(expected, actual, i => i.Path);
         }
 
         public static void AssertEvent(Event expected, Event actual)
         {
             AssertFieldEqual(expected, actual, i => i.AffectedComponentPath);
-            AssertFieldEqual(expected, actual, i => i.AffectedComponentStatus);
             AssertFieldEqual(expected, actual, i => i.EndTime);
             AssertFieldEqual(expected, actual, i => i.StartTime);
             AssertFieldEqual(expected, actual, i => i.Messages, AssertMessage);

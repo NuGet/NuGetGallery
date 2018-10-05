@@ -4,22 +4,22 @@
 namespace NuGet.Services.Status
 {
     /// <summary>
-    /// Describes whether or not a <see cref="IReadOnlyComponent"/> is performing as expected.
+    /// Describes whether or not the component is performing as expected.
     /// </summary>
     public enum ComponentStatus
     {
         /// <summary>
-        /// The <see cref="IReadOnlyComponent"/> is performing as expected.
+        /// The component is performing as expected.
         /// </summary>
         Up = 0,
 
         /// <summary>
-        /// Some portion of the <see cref="IReadOnlyComponent"/> is not performing as expected.
+        /// Some portion of the component is not performing as expected.
         /// </summary>
         Degraded = 1,
 
         /// <summary>
-        /// The <see cref="IReadOnlyComponent"/> is completely unfunctional.
+        /// The component is completely unfunctional.
         /// </summary>
         Down = 2,
     }

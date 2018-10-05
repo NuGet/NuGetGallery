@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 namespace NuGet.Services.Status
 {
     /// <summary>
-    /// Represents an event affecting a <see cref="IReadOnlyComponent"/>.
+    /// Represents an downtime affecting a <see cref="IReadOnlyComponent"/> that customers should be alerted on.
     /// </summary>
     public class Event
     {
@@ -16,11 +16,6 @@ namespace NuGet.Services.Status
         /// The <see cref="IReadOnlyComponent.Path"/> of the <see cref="IReadOnlyComponent"/> affected.
         /// </summary>
         public string AffectedComponentPath { get; }
-
-        /// <summary>
-        /// The <see cref="IReadOnlyComponent.Status"/> of the <see cref="IReadOnlyComponent"/> affected.
-        /// </summary>
-        public ComponentStatus AffectedComponentStatus { get; }
 
         /// <summary>
         /// When the event began.
@@ -40,13 +35,11 @@ namespace NuGet.Services.Status
         [JsonConstructor]
         public Event(
             string affectedComponentPath,
-            ComponentStatus affectedComponentStatus,
             DateTime startTime,
             DateTime? endTime,
             IEnumerable<Message> messages)
         {
             AffectedComponentPath = affectedComponentPath;
-            AffectedComponentStatus = affectedComponentStatus;
             StartTime = startTime;
             EndTime = endTime;
             Messages = messages;

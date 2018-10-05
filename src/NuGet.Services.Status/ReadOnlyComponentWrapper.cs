@@ -23,7 +23,7 @@ namespace NuGet.Services.Status
         public string Description => _component.Description;
         public ComponentStatus Status => _component.Status;
         public IEnumerable<IReadOnlyComponent> SubComponents { get; }
-        public string Path => _parent.Path + Constants.ComponentPathDivider + Name;
+        public string Path => ComponentUtility.GetSubPath(_parent, _component);
 
         public ReadOnlyComponentWrapper(IReadOnlyComponent component, IReadOnlyComponent parent)
         {

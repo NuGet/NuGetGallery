@@ -45,11 +45,12 @@
     <Compile Include="Component.cs" />
     <Compile Include="ComponentUtility.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Event.cs" />
+    <Compile Include="IComponentDescription.cs" />
     <Compile Include="IRootComponent.cs" />
     <Compile Include="LeafComponent.cs" />
     <Compile Include="ReadOnlyComponent.cs" />
     <Compile Include="ComponentStatus.cs" />
-    <Compile Include="Event.cs" />
     <Compile Include="IReadOnlyComponent.cs" />
     <Compile Include="Message.cs" />
     <Compile Include="PrimarySecondaryComponent.cs" />

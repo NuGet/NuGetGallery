@@ -36,7 +36,7 @@ namespace NuGet.Services.Status.Tests
         }
 
         private void AssertPath<TComponent>(TComponent root, TComponent subComponent, params string[] componentNames)
-            where TComponent : class, IReadOnlyComponent, IRootComponent<TComponent>
+            where TComponent : class, IComponentDescription, IRootComponent<TComponent>
         {
             AssertUtility.AssertComponent(subComponent, root.GetByNames(componentNames));
 
@@ -71,7 +71,7 @@ namespace NuGet.Services.Status.Tests
         }
 
         private void AssertMissingPath<TComponent>(TComponent root, params string[] componentNames)
-            where TComponent : class, IReadOnlyComponent, IRootComponent<TComponent>
+            where TComponent : class, IComponentDescription, IRootComponent<TComponent>
         {
             Assert.Null(root.GetByNames(componentNames));
 
@@ -144,6 +144,57 @@ namespace NuGet.Services.Status.Tests
             var component = CreateComponent("component", "description", new[] { subComponent1, subComponent2 });
 
             Assert.Equal(GetExpectedStatusWithTwoSubComponents(subStatus1, subStatus2), component.Status);
+        }
+
+        [Fact]
+        public void LeastCommonAncestorPathReturnsEmptyIfNoCommonAncestor()
+        {
+            var component1 = CreateComponent("component1", "description1");
+            var component2 = CreateComponent("component2", "description2");
+            AssertLeastCommonAncestorPath(component1, component2, "");
+        }
+
+        [Fact]
+        public void LeastCommonAncestorPathReturnsIntermediatePath()
+        {
+            var subComponent1 = CreateComponent("subComponent1", "subDescription1");
+            var subComponent2 = CreateComponent("subComponent2", "subDescription2");
+            var ancestorComponent = CreateComponent("root", "rootDescription", new[] { subComponent1, subComponent2 });
+
+            AssertLeastCommonAncestorPath(
+                ancestorComponent.SubComponents.Single(c => c.Name == subComponent1.Name),
+                ancestorComponent.SubComponents.Single(c => c.Name == subComponent2.Name),
+                ancestorComponent.Path);
+        }
+
+        [Fact]
+        public void LeastCommonAncestorPathReturnsIdenticalComponent()
+        {
+            var component = CreateComponent("component", "description");
+            AssertLeastCommonAncestorPath(component, component, component.Path);
+        }
+
+        [Fact]
+        public void LeastCommonAncestorPathReturnsAncestor()
+        {
+            var subComponent = CreateComponent("subComponent", "subDescription");
+            var ancestorComponent = CreateComponent("root", "rootDescription", new[] { subComponent });
+            AssertLeastCommonAncestorPath(
+                ancestorComponent.SubComponents.Single(c => c.Name == subComponent.Name), 
+                ancestorComponent, 
+                ancestorComponent.Path);
+        }
+
+        private void AssertLeastCommonAncestorPath(IComponent firstComponent, IComponent secondComponent, string expectedLeastCommonAncestor)
+        {
+            AssertLeastCommonAncestorPathHelper(firstComponent, secondComponent, expectedLeastCommonAncestor);
+            AssertLeastCommonAncestorPathHelper(secondComponent, firstComponent, expectedLeastCommonAncestor);
+        }
+
+        private void AssertLeastCommonAncestorPathHelper(IComponent firstComponent, IComponent secondComponent, string expectedLeastCommonAncestor)
+        {
+            Assert.Equal(expectedLeastCommonAncestor, ComponentUtility.GetLeastCommonAncestorPath(firstComponent, secondComponent));
+            Assert.Equal(expectedLeastCommonAncestor, ComponentUtility.GetLeastCommonAncestorPath(firstComponent.Path, secondComponent.Path));
         }
     }
 }

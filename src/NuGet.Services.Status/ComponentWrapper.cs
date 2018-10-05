@@ -9,16 +9,19 @@ namespace NuGet.Services.Status
     /// <summary>
     /// Wrapper class for <see cref="IComponent"/> that sets <see cref="IComponent.Path"/> as expected.
     /// </summary>
-    internal class ComponentWrapper : ReadOnlyComponentWrapper, IComponent
+    internal class ComponentWrapper : IComponent
     {
         private readonly IComponent _component;
         private readonly IComponent _parent;
 
-        public new ComponentStatus Status { get { return _component.Status; } set { _component.Status = value; } }
-        public new IEnumerable<IComponent> SubComponents { get; }
+        public string Name => _component.Name;
+        public string Description => _component.Description;
+        public ComponentStatus Status { get { return _component.Status; } set { _component.Status = value; } }
+        public IEnumerable<IComponent> SubComponents { get; }
+        public bool DisplaySubComponents => _component.DisplaySubComponents;
+        public string Path => ComponentUtility.GetSubPath(_parent, _component);
 
         public ComponentWrapper(IComponent component, IComponent parent)
-            : base(component, parent)
         {
             _component = component;
             _parent = parent;

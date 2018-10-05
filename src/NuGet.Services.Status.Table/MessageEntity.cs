@@ -1,15 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Microsoft.WindowsAzure.Storage.Table;
 using System;
 
 namespace NuGet.Services.Status.Table
 {
     /// <summary>
-    /// Class used to serialize a <see cref="Message"/> in a table.
+    /// A message posted on the status page to inform users of a change in the service's status.
+    /// Each message is correlated to a <see cref="EventEntity"/>.
+    /// See <see cref="Message"/>.
     /// </summary>
-    public class MessageEntity : TableEntity
+    public class MessageEntity : ChildEntity<EventEntity>
     {
         public const string DefaultPartitionKey = "messages";
 
@@ -17,27 +18,26 @@ namespace NuGet.Services.Status.Table
         {
         }
 
-        public MessageEntity(string eventRowKey, DateTime time, string contents)
-            : base(DefaultPartitionKey, GetRowKey(eventRowKey, time))
+        public MessageEntity(EventEntity eventEntity, DateTime time, string contents, MessageType type)
+            : base(
+                  DefaultPartitionKey,
+                  GetRowKey(eventEntity, time),
+                  eventEntity)
         {
-            EventRowKey = eventRowKey;
             Time = time;
             Contents = contents;
+            Type = (int)type;
         }
 
-        public MessageEntity(EventEntity eventEntity, DateTime time, string contents)
-            : this(eventEntity.RowKey, time, contents)
-        {
-        }
-
-        public string EventRowKey { get; set; }
         public DateTime Time { get; set; }
+
         public string Contents { get; set; }
 
-        public Message AsMessage()
-        {
-            return new Message(Time, Contents);
-        }
+        /// <remarks>
+        /// This should be a <see cref="MessageType"/> converted to an enum.
+        /// See https://github.com/Azure/azure-storage-net/issues/383
+        /// </remarks>
+        public int Type { get; set; }
 
         public static string GetRowKey(string eventRowKey, DateTime time)
         {

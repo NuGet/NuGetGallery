@@ -15,7 +15,7 @@ namespace NuGet.Services.Status
     /// reusable between <see cref="IReadOnlyComponent"/> and <see cref="IComponent"/>.
     /// </remarks>
     public interface IRootComponent<out TComponent> 
-        where TComponent : IReadOnlyComponent
+        where TComponent : IComponentDescription
     {
         /// <summary>
         /// A list of subcomponents that make up this part of the service.

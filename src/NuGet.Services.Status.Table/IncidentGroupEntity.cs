@@ -6,27 +6,27 @@ using System;
 namespace NuGet.Services.Status.Table
 {
     /// <summary>
-    /// Represents a downtime that can be shown to users on the status page.
-    /// Can be considered an aggregation of all <see cref="IncidentGroupEntity"/>s affecting a component and its subcomponents during a period of time.
-    /// All messaging is related to an event.
-    /// See <see cref="Event"/>.
+    /// An aggregation of all of the <see cref="IncidentEntity"/>s affecting a single component during a time period.
+    /// Is aggregated by <see cref="EventEntity"/>.
     /// </summary>
-    public class EventEntity : ComponentAffectingEntity
+    public class IncidentGroupEntity : AggregatedComponentAffectingEntity<EventEntity>
     {
-        public const string DefaultPartitionKey = "events";
+        public const string DefaultPartitionKey = "groups";
 
-        public EventEntity()
+        public IncidentGroupEntity()
         {
         }
 
-        public EventEntity(
+        public IncidentGroupEntity(
+            EventEntity eventEntity,
             string affectedComponentPath,
+            ComponentStatus affectedComponentStatus,
             DateTime startTime,
-            ComponentStatus affectedComponentStatus = ComponentStatus.Up,
             DateTime? endTime = null)
             : base(
                   DefaultPartitionKey, 
                   GetRowKey(affectedComponentPath, startTime),
+                  eventEntity,
                   affectedComponentPath,
                   startTime,
                   affectedComponentStatus,

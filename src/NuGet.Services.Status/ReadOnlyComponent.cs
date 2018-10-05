@@ -54,5 +54,16 @@ namespace NuGet.Services.Status
             : this(name, description, status, subComponents?.Cast<IReadOnlyComponent>())
         {
         }
+
+        public ReadOnlyComponent(IComponent component)
+            : this(
+                  component.Name, 
+                  component.Description, 
+                  component.Status, 
+                  component.DisplaySubComponents 
+                    ? component.SubComponents.Select(s => new ReadOnlyComponent(s)).ToList() 
+                    : Enumerable.Empty<IReadOnlyComponent>())
+        {
+        }
     }
 }

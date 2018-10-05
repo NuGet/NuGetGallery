@@ -6,10 +6,10 @@ using System.Collections.Generic;
 namespace NuGet.Services.Status
 {
     /// <summary>
-    /// An <see cref="IComponent"/> that ignores the status of its secondary subcomponents if its primary subcomponent is up.
+    /// An <see cref="Component"/> that ignores the status of its secondary subcomponents if its primary subcomponent is up.
     /// </summary>
     /// <remarks>
-    /// The primary subcomponent is the first subcomponent in its <see cref="IReadOnlyComponent.SubComponents"/>.
+    /// The primary subcomponent is the first subcomponent in its <see cref="Component.SubComponents"/>.
     /// </remarks>
     /// <example>
     /// A website is deployed to two regions, region A and region B.
@@ -30,7 +30,7 @@ namespace NuGet.Services.Status
             string name,
             string description,
             IEnumerable<IComponent> subComponents)
-            : base(name, description, subComponents)
+            : base(name, description, subComponents, displaySubComponents: false)
         {
         }
 

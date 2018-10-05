@@ -7,7 +7,7 @@ using System.Linq;
 namespace NuGet.Services.Status
 {
     /// <summary>
-    /// A <see cref="Component"/> that treats all of its <see cref="IReadOnlyComponent.SubComponents"/> equally.
+    /// A <see cref="Component"/> that treats all of its <see cref="Component.SubComponents"/> equally.
     /// </summary>
     /// <example>
     /// A website is deployed to two regions, region A and region B.

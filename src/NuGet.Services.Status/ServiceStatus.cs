@@ -24,11 +24,16 @@ namespace NuGet.Services.Status
         public IReadOnlyComponent ServiceRootComponent { get; }
 
         /// <summary>
-        /// A list of <see cref="IEvent"/>s that have affected the service recently.
+        /// A list of recent <see cref="Event"/>s regarding the service.
         /// </summary>
         public IEnumerable<Event> Events { get; }
 
         public ServiceStatus(IReadOnlyComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(DateTime.Now, serviceRootComponent, events)
+        {
+        }
+
+        public ServiceStatus(IComponent serviceRootComponent, IEnumerable<Event> events)
             : this(DateTime.Now, serviceRootComponent, events)
         {
         }
@@ -38,6 +43,11 @@ namespace NuGet.Services.Status
             LastUpdated = lastUpdated;
             ServiceRootComponent = serviceRootComponent;
             Events = events;
+        }
+
+        public ServiceStatus(DateTime lastUpdated, IComponent serviceRootComponent, IEnumerable<Event> events)
+            : this(lastUpdated, new ReadOnlyComponent(serviceRootComponent), events)
+        {
         }
 
         [JsonConstructor]
