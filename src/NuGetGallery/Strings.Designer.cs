@@ -1851,7 +1851,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The symbols package associated with this package have been deleted..
+        ///   Looks up a localized string similar to The symbols package associated with this package has been deleted..
         /// </summary>
         public static string SymbolsPackage_Deleted {
             get {

@@ -994,6 +994,6 @@ Policy violations: {0}</value>
     <value>Successfully uploaded the symbols package for package with ID {0} and version {1}.</value>
   </data>
   <data name="SymbolsPackage_Deleted" xml:space="preserve">
-    <value>The symbols package associated with this package have been deleted.</value>
+    <value>The symbols package associated with this package has been deleted.</value>
   </data>
 </root>
