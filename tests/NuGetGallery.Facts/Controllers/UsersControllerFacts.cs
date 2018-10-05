@@ -1642,6 +1642,59 @@ namespace NuGetGallery
                 GetMock<IMessageService>().VerifyAll();
             }
 
+            [Theory]
+            [MemberData(nameof(GivenValidRequest_ItRemovesAPIKeyWithDifferentScopesAndSendsCorrectMessageToUser_Input))]
+            public async Task GivenValidRequest_ItRemovesAPIKeyWithDifferentScopesAndSendsCorrectMessageToUser(ICollection<Scope> scopes, string expectedDescription)
+            {
+                // Arrange
+                var fakes = Get<Fakes>();
+                var apiKey = new CredentialBuilder().CreateApiKey(TimeSpan.FromHours(1), out string plaintextApiKey);
+                apiKey.Description = "theApiKey";
+                apiKey.Scopes = scopes;
+                apiKey.Expires -= TimeSpan.FromDays(1);
+
+                var user = fakes.CreateUser("test", apiKey);
+                var cred = user.Credentials.First();
+                cred.Key = CredentialKey;
+
+                var controller = GetController<UsersController>();
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = await controller.RemoveCredential(
+                    credentialType: apiKey.Type,
+                    credentialKey: CredentialKey);
+
+                // Assert
+                GetMock<IMessageService>()
+                    .Verify(m =>
+                                m.SendCredentialRemovedNoticeAsync(
+                                    user,
+                                    It.Is<CredentialViewModel>(c => c.Description == expectedDescription)));
+            }
+            public static IEnumerable<object[]> GivenValidRequest_ItRemovesAPIKeyWithDifferentScopesAndSendsCorrectMessageToUser_Input
+            {
+                get
+                {
+                    return new[]
+                    {
+                        new object[]
+                        {
+                            new []
+                            {
+                                new Scope("*", NuGetScopes.All)
+                            },
+                            "theApiKey",
+                        },
+                        new object[]
+                        {
+                            new Scope[]{ },
+                            Strings.NonScopedApiKeyDescription
+                        }
+                    };
+                }
+            }
+
             [Fact]
             public async Task GivenValidRequest_CanDeleteMicrosoftAccountWithMultipleMicrosoftAccounts()
             {
