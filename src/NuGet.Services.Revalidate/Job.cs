@@ -4,7 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -120,9 +120,10 @@ namespace NuGet.Services.Revalidate
 
             services.AddScoped<IGalleryContext>(provider =>
             {
-                var config = provider.GetRequiredService<IOptionsSnapshot<GalleryDbConfiguration>>().Value;
+                var connectionFactory = provider.GetRequiredService<ISqlConnectionFactory<GalleryDbConfiguration>>();
+                var connection = connectionFactory.CreateAsync().GetAwaiter().GetResult();
 
-                return new GalleryContext(config.ConnectionString, readOnly: false);
+                return new GalleryContext(connection, readOnly: false);
             });
 
             // Core
