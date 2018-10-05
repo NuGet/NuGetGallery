@@ -6,8 +6,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using NuGet.Services.Metadata.Catalog.Helpers;
 using Xunit;
+using NuGetAsyncExtensions = NuGet.Services.Metadata.Catalog.Helpers.AsyncExtensions;
 
 namespace CatalogTests.Helpers
 {
@@ -19,7 +19,7 @@ namespace CatalogTests.Helpers
             IEnumerable<string> enumerable = null;
 
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(
-                () => AsyncExtensions.ForEachAsync(enumerable, maxDegreeOfParallelism: 2, func: _ => Task.FromResult(0)));
+                () => NuGetAsyncExtensions.ForEachAsync(enumerable, maxDegreeOfParallelism: 2, func: _ => Task.FromResult(0)));
 
             Assert.Equal("enumerable", exception.ParamName);
         }
@@ -30,7 +30,7 @@ namespace CatalogTests.Helpers
         public async Task ForEachAsync_WhenMaxDegreeOfParallelismIsLessThanOne_Throws(int maxDegreeOfParallelism)
         {
             var exception = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
-                () => AsyncExtensions.ForEachAsync(Enumerable.Empty<string>(), maxDegreeOfParallelism, func: _ => Task.FromResult(0)));
+                () => NuGetAsyncExtensions.ForEachAsync(Enumerable.Empty<string>(), maxDegreeOfParallelism, func: _ => Task.FromResult(0)));
 
             Assert.Equal("maxDegreeOfParallelism", exception.ParamName);
             Assert.StartsWith($"The argument must be within the range from 1 (inclusive) to {int.MaxValue} (inclusive).", exception.Message);
@@ -40,7 +40,7 @@ namespace CatalogTests.Helpers
         public async Task ForEachAsync_WhenFuncIsNull_Throws()
         {
             var exception = await Assert.ThrowsAsync<ArgumentNullException>(
-                () => AsyncExtensions.ForEachAsync(Enumerable.Empty<string>(), maxDegreeOfParallelism: 2, func: null));
+                () => NuGetAsyncExtensions.ForEachAsync(Enumerable.Empty<string>(), maxDegreeOfParallelism: 2, func: null));
 
             Assert.Equal("func", exception.ParamName);
         }
@@ -51,7 +51,7 @@ namespace CatalogTests.Helpers
             var enumerable = Enumerable.Range(1, 100);
             var bag = new ConcurrentBag<int>();
 
-            await AsyncExtensions.ForEachAsync(
+            await NuGetAsyncExtensions.ForEachAsync(
                 enumerable,
                 maxDegreeOfParallelism: 10,
                 func: i =>
