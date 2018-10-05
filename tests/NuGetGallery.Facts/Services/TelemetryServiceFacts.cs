@@ -184,6 +184,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackSymbolPackagePushEvent("id", "version"))
                     };
 
+                    yield return new object[] { "SymbolPackageDelete",
+                        (TrackAction)(s => s.TrackSymbolPackageDeleteEvent("id", "version"))
+                    };
+
                     yield return new object[] { "SymbolPackagePushFailure",
                         (TrackAction)(s => s.TrackSymbolPackagePushFailureEvent("id", "version"))
                     };

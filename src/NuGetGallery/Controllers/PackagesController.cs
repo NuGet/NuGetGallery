@@ -1317,14 +1317,14 @@ namespace NuGetGallery
         [ValidateAntiForgeryToken]
         public virtual async Task<ActionResult> DeleteSymbolsPackage(string id, string version)
         {
-            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
             if (package == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.NotFound,
                     string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
             }
 
-            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package)
+            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package)
                 != PermissionsCheckResult.Allowed)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.SymbolsPackage_UploadNotAllowed);
@@ -1354,7 +1354,7 @@ namespace NuGetGallery
                 await _auditingService.SaveAuditRecordAsync(
                     new PackageAuditRecord(package, AuditedPackageAction.SymbolsDelete, PackageDeletedVia.Web));
 
-                _telemetryService.TrackSymbolPackagePushEvent(package.Id, package.Version);
+                _telemetryService.TrackSymbolPackageDeleteEvent(package.Id, package.Version);
 
                 // Redirect to the package details page
                 return Redirect(Url.Package(package, relativeUrl: true));
