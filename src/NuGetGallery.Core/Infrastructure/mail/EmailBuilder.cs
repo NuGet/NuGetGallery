@@ -7,6 +7,9 @@ using System.Web;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
+    /// <summary>
+    /// Abstract base class for building email messages.
+    /// </summary>
     public abstract class EmailBuilder : IEmailBuilder
     {
         public abstract MailAddress Sender { get; }

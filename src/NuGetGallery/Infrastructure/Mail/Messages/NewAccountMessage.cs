@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
     public class NewAccountMessage : ConfirmationEmailBuilder
@@ -30,19 +29,6 @@ We can't wait to see what packages you'll upload.
 So we can be sure to contact you, please verify your email address using the following link:
 
 [{ConfirmationUrl}]({RawConfirmationUrl})
-
-Thanks,
-The {Configuration.GalleryOwner.DisplayName} Team";
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return $@"Thank you for {(IsOrganization ? $"creating an organization on the" : $"registering with the")} {Configuration.GalleryOwner.DisplayName}.
-We can't wait to see what packages you'll upload.
-
-So we can be sure to contact you, please verify your email address using the following link:
-
-{RawConfirmationUrl}
 
 Thanks,
 The {Configuration.GalleryOwner.DisplayName} Team";

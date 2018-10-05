@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationTransformAcceptedMessage : EmailBuilder
+    public class OrganizationTransformAcceptedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly User _accountToTransform;
@@ -41,11 +41,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Account '{_accountToTransform.Username}' has been transformed into an organization";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,

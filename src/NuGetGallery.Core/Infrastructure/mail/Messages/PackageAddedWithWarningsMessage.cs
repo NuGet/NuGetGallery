@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageAddedWithWarningsMessage : EmailBuilder
+    public class PackageAddedWithWarningsMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly Package _package;
@@ -45,15 +45,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             var warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
 
             return $@"The package [{_package.PackageRegistration.Id} {_package.Version}]({_packageUrl}) was recently pushed to {_configuration.GalleryOwner.DisplayName} by {_package.User.Username}. If this was not intended, please [contact support]({_packageSupportUrl}).
-{warningMessagesPlaceholder}
-";
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
-
-            return $@"The package {_package.PackageRegistration.Id} {_package.Version} ({_packageUrl}) was recently pushed to {_configuration.GalleryOwner.DisplayName} by {_package.User.Username}. If this was not intended, please contact support: {_packageSupportUrl}.
 {warningMessagesPlaceholder}
 ";
         }

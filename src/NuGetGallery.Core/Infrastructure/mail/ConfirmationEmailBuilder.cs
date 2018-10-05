@@ -6,7 +6,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail
 {
-    public abstract class ConfirmationEmailBuilder : EmailBuilder
+    public abstract class ConfirmationEmailBuilder : MarkdownEmailBuilder
     {
         protected readonly IMessageServiceConfiguration Configuration;
         protected readonly string RawConfirmationUrl;

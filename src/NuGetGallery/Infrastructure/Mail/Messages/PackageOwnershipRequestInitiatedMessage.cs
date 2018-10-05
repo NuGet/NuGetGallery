@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageOwnershipRequestInitiatedMessage : EmailBuilder
+    public class PackageOwnershipRequestInitiatedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly string _rawCancellationUrl;
@@ -62,19 +62,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 To cancel this request:
 
 [{_cancellationUrl}]({_rawCancellationUrl})
-
-Thanks,
-The {_configuration.GalleryOwner.DisplayName} Team");
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                $@"The user '{RequestingOwner.Username}' has requested that user '{NewOwner.Username}' be added as an owner of the package '{PackageRegistration.Id}'.
-
-To cancel this request:
-{_rawCancellationUrl}
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

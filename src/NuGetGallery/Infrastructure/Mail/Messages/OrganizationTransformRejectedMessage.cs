@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationTransformRejectedMessage : EmailBuilder
+    public class OrganizationTransformRejectedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -55,11 +55,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Transformation of account '{AccountToTransform.Username}' has been cancelled";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,

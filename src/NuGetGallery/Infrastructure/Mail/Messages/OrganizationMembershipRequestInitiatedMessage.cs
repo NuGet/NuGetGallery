@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationMembershipRequestInitiatedMessage : EmailBuilder
+    public class OrganizationMembershipRequestInitiatedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly string _cancellationUrl;
@@ -51,11 +51,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             var membershipLevel = IsAdmin ? "an administrator" : "a collaborator";
             return string.Format(

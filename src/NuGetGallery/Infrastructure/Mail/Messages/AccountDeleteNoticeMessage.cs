@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class AccountDeleteNoticeMessage : EmailBuilder
+    public class AccountDeleteNoticeMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -28,9 +28,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         public override string GetSubject() => Strings.AccountDelete_SupportRequestTitle;
 
-        protected override string GetMarkdownBody() => GetPlainTextBody();
-
-        protected override string GetPlainTextBody()
+        protected override string GetMarkdownBody()
         {
             var body = @"We received a request to delete your account {0}. If you did not initiate this request, please contact the {1} team immediately.
 {2}When your account will be deleted, we will:{2}

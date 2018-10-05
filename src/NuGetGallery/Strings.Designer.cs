@@ -859,25 +859,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The word on the street is you lost your password. Sorry to hear it!
-        ///If you haven&apos;t forgotten your password you can safely ignore this email. Your password has not been changed.
-        ///
-        ///Use the following link within the next hour to reset your password:
-        ///
-        ///{0}
-        ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-        ///
-        ///Thanks,
-        ///The {1} Team.
-        /// </summary>
-        public static string Emails_ForgotPassword_PlainTextBody {
-            get {
-                return ResourceManager.GetString("Emails_ForgotPassword_PlainTextBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to [{0}] Please reset your password..
         /// </summary>
         public static string Emails_ForgotPassword_Subject {
@@ -902,25 +883,6 @@ namespace NuGetGallery {
         public static string Emails_SetPassword_MarkdownBody {
             get {
                 return ResourceManager.GetString("Emails_SetPassword_MarkdownBody", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The word on the street is you want to set a password for your account.
-        ///If you didn&apos;t request a password, you can safely ignore this message. A password has not yet been set.
-        ///
-        ///Use the following link within the next hour to set your password:
-        ///
-        ///{0}
-        ///
-        ///Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-        ///
-        ///Thanks,
-        ///The {1} Team.
-        /// </summary>
-        public static string Emails_SetPassword_PlainTextBody {
-            get {
-                return ResourceManager.GetString("Emails_SetPassword_PlainTextBody", resourceCulture);
             }
         }
         

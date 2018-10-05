@@ -48,24 +48,5 @@ The {1} Team";
                 ConfirmationUrl,
                 RawConfirmationUrl);
         }
-
-        protected override string GetPlainTextBody()
-        {
-            var bodyTemplate = @"You recently changed your {0}'s {1} email address.
-
-To verify {0} new email address:
-
-{2}
-
-Thanks,
-The {1} Team";
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                bodyTemplate,
-                IsOrganization ? "organization" : "account",
-                Configuration.GalleryOwner.DisplayName,
-                RawConfirmationUrl);
-        }
     }
 }

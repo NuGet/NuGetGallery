@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class EmailChangeNoticeToPreviousEmailAddressMessage : EmailBuilder
+    public class EmailChangeNoticeToPreviousEmailAddressMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly User _user;
@@ -43,22 +43,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         protected override string GetMarkdownBody()
         {
             var template = @"The email address associated with your {0} {1} was recently changed from _{2}_ to _{3}_.
-
-Thanks,
-The {0} Team";
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                template,
-                _configuration.GalleryOwner.DisplayName,
-                _isOrganization ? "organization" : "account",
-                _previousEmailAddress,
-                _user.EmailAddress);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var template = @"The email address associated with your {0} {1} was recently changed from {2} to {3}.
 
 Thanks,
 The {0} Team";

@@ -8,7 +8,7 @@ using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class CredentialRemovedMessage : EmailBuilder
+    public class CredentialRemovedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -39,9 +39,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 _configuration.GalleryOwner.DisplayName,
                 CredentialType.IsApiKey ? Strings.CredentialType_ApiKey : CredentialType.Description);
 
-        protected override string GetMarkdownBody() => GetPlainTextBody();
-
-        protected override string GetPlainTextBody()
+        protected override string GetMarkdownBody()
             => string.Format(
                 CultureInfo.CurrentCulture,
                 CredentialType.IsApiKey ? Strings.Emails_ApiKeyRemoved_Body : Strings.Emails_CredentialRemoved_Body,

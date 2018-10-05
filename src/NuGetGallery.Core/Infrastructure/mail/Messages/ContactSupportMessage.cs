@@ -8,7 +8,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class ContactSupportMessage : EmailBuilder
+    public class ContactSupportMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -42,23 +42,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {2}
 
 **Message:**
-{3}",
-                Request.RequestingUser.Username,
-                Request.RequestingUser.EmailAddress,
-                Request.SubjectLine,
-                Request.Message);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                @"Email: {0} ({1})
-
-Reason:
-{2}
-
-Message:
 {3}",
                 Request.RequestingUser.Username,
                 Request.RequestingUser.EmailAddress,

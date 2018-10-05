@@ -9,7 +9,7 @@ using NuGet.Services.Validation;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SymbolPackageValidationFailedMessage : EmailBuilder
+    public class SymbolPackageValidationFailedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly SymbolPackage _symbolPackage;
@@ -71,39 +71,6 @@ Your symbol package was not published on {_configuration.GalleryOwner.DisplayNam
             if (validationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
             {
                 bodyBuilder.Append($"Please [contact support]({_packageSupportUrl}) to help.");
-            }
-            else
-            {
-                var issuePluralString = validationIssues.Count() > 1 ? "all the issues" : "the issue";
-                bodyBuilder.Append($"You can reupload your symbol package once you've fixed {issuePluralString} with it.");
-            }
-
-            return bodyBuilder.ToString();
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var validationIssues = _validationSet.GetValidationIssues();
-
-            var bodyBuilder = new StringBuilder();
-            bodyBuilder.Append($@"The symbol package {_symbolPackage.Id} {_symbolPackage.Version} ({_packageUrl}) failed validation because of the following reason(s):
-");
-
-            foreach (var validationIssue in validationIssues)
-            {
-                bodyBuilder.Append($@"
-- {validationIssue.ToPlainTextString(_announcementsUrl, _twitterUrl)}");
-            }
-
-            bodyBuilder.Append($@"
-
-Your symbol package was not published on {_configuration.GalleryOwner.DisplayName} and is not available for consumption.
-
-");
-
-            if (validationIssues.Any(i => i.IssueCode == ValidationIssueCode.Unknown))
-            {
-                bodyBuilder.Append($"Please contact support ({_packageSupportUrl}) to help.");
             }
             else
             {

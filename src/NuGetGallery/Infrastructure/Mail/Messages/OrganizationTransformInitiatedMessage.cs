@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationTransformInitiatedMessage : EmailBuilder
+    public class OrganizationTransformInitiatedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly User _accountToTransform;
@@ -55,22 +55,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 To cancel the transformation:
 
 [{_cancellationUrl}]({_rawCancellationUrl})
-
-If you did not request this change, please contact support by responding to this email.
-
-Thanks,
-The {_configuration.GalleryOwner.DisplayName} Team");
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                $@"We have received a request to transform account '{_accountToTransform.Username}' into an organization with user '{_adminUser.Username}' as its admin.
-
-To cancel the transformation:
-
-{_rawCancellationUrl}
 
 If you did not request this change, please contact support by responding to this email.
 

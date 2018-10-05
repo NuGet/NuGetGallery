@@ -8,7 +8,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationMembershipRequestMessage : EmailBuilder
+    public class OrganizationMembershipRequestMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -64,27 +64,6 @@ To accept the request and become {membershipLevel} of '{Request.Organization.Use
 To decline the request:
 
 [{RejectionUrl}]({Request.RawRejectionUrl})
-
-Thanks,
-The {_configuration.GalleryOwner.DisplayName} Team");
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var membershipLevel = Request.IsAdmin ? "an administrator" : "a collaborator";
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                $@"The user '{Request.AdminUser.Username}' would like you to become {membershipLevel} of their organization, '{Request.Organization.Username}' ({Request.ProfileUrl}).
-
-To learn more about organization roles, refer to the documentation (https://go.microsoft.com/fwlink/?linkid=870439).
-
-To accept the request and become {membershipLevel} of '{Request.Organization.Username}':
-
-{Request.RawConfirmationUrl}
-
-To decline the request:
-
-{Request.RawRejectionUrl}
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team");

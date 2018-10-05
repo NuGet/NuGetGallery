@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageDeletedNoticeMessage : EmailBuilder
+    public class PackageDeletedNoticeMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly string _packageUrl;
@@ -48,23 +48,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         protected override string GetMarkdownBody()
         {
             var body = @"The package [{1} {2}]({3}) was just deleted from {0}. If this was not intended, please [contact support]({4}).
-
-Thanks,
-The {0} Team";
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                _configuration.GalleryOwner.DisplayName,
-                Package.PackageRegistration.Id,
-                Package.Version,
-                _packageUrl,
-                _packageSupportUrl);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var body = @"The package {1} {2} ({3}) was just deleted from {0}. If this was not intended, please contact support: {4}.
 
 Thanks,
 The {0} Team";

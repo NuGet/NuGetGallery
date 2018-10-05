@@ -2,20 +2,18 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Net.Mail;
 using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class ContactOwnersMessage : EmailBuilder
+    public class ContactOwnersMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
         public ContactOwnersMessage(
-            IMessageServiceConfiguration configuration, 
+            IMessageServiceConfiguration configuration,
             ContactOwnersRequest request)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
@@ -25,11 +23,11 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public ContactOwnersRequest Request { get; }
 
         public override MailAddress Sender => _configuration.GalleryOwner;
-        
+
         public override IEmailRecipients GetRecipients()
         {
             var to = EmailRecipients.GetAllOwners(
-                Request.Package.PackageRegistration, 
+                Request.Package.PackageRegistration,
                 requireEmailAllowed: true);
 
             return new EmailRecipients(
@@ -37,7 +35,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 replyTo: new[] { Request.FromAddress });
         }
 
-        public override string GetSubject() 
+        public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] Message for owners of the package '{Request.Package.PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
@@ -51,29 +49,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
     To stop receiving contact emails as an owner of this package, sign in to the {6} and
     [change your email notification settings]({7}).
 </em>";
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                bodyTemplate,
-                Request.FromAddress.DisplayName,
-                Request.FromAddress.Address,
-                Request.Package.PackageRegistration.Id,
-                Request.Package.Version,
-                Request.PackageUrl,
-                Request.HtmlEncodedMessage,
-                _configuration.GalleryOwner.DisplayName,
-                Request.EmailSettingsUrl);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var bodyTemplate = @"User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2} {3}' ({4}).
-
-{5}
-
------------------------------------------------
-    To stop receiving contact emails as an owner of this package, sign in to the {6} and
-    change your email notification settings: {7}";
 
             return string.Format(
                 CultureInfo.CurrentCulture,

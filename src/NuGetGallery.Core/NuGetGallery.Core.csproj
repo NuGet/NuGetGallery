@@ -175,6 +175,7 @@
     <Compile Include="Infrastructure\Mail\IEmailRecipients.cs" />
     <Compile Include="Infrastructure\Mail\EmailRecipients.cs" />
     <Compile Include="Infrastructure\Mail\IMessageServiceConfiguration.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessage.cs" />
     <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessage.cs" />
@@ -254,6 +255,9 @@
     <EmbeddedResource Include="Infrastructure\MigrateUserToOrganization.sql" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Markdig.Signed">
+      <Version>0.15.3</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>

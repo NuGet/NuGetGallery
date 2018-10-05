@@ -6,7 +6,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageOwnerAddedMessage : EmailBuilder
+    public class PackageOwnerAddedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -49,14 +49,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         protected override string GetMarkdownBody()
         {
             return $@"User '{NewOwner.Username}' is now an owner of the package ['{PackageRegistration.Id}']({PackageUrl}).
-
-Thanks,
-The {_configuration.GalleryOwner.DisplayName} Team";
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return $@"User '{NewOwner.Username}' is now an owner of the package '{PackageRegistration.Id}' ({PackageUrl}).
 
 Thanks,
 The {_configuration.GalleryOwner.DisplayName} Team";

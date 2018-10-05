@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationMemberRemovedMessage : EmailBuilder
+    public class OrganizationMemberRemovedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -43,11 +43,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Membership update for organization '{Organization.Username}'";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,

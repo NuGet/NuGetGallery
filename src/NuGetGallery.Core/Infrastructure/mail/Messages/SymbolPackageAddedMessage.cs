@@ -8,7 +8,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SymbolPackageAddedMessage : EmailBuilder
+    public class SymbolPackageAddedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly SymbolPackage _symbolPackage;
@@ -70,24 +70,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 <em style=""font-size: 0.8em;"">
     To stop receiving emails as an owner of this package, sign in to the {_configuration.GalleryOwner.DisplayName} and
     [change your email notification settings]({_emailSettingsUrl}).
-</em>";
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var warningMessagesPlaceholder = string.Empty;
-            if (_hasWarnings)
-            {
-                warningMessagesPlaceholder = Environment.NewLine + string.Join(Environment.NewLine, _warningMessages);
-            }
-
-            return $@"The symbol package {_symbolPackage.Id} {_symbolPackage.Version} ({_packageUrl}) was recently published on {_configuration.GalleryOwner.DisplayName} by {_symbolPackage.Package.User.Username}. If this was not intended, please contact support ({_packageSupportUrl}).
-{warningMessagesPlaceholder}
-
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving emails as an owner of this package, sign in to the {_configuration.GalleryOwner.DisplayName} and
-    change your email notification settings: {_emailSettingsUrl}.
 </em>";
         }
     }

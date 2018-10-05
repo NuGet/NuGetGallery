@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class OrganizationMembershipRequestDeclinedMessage : EmailBuilder
+    public class OrganizationMembershipRequestDeclinedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -39,11 +39,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Membership request for organization '{Organization.Username}' declined";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,

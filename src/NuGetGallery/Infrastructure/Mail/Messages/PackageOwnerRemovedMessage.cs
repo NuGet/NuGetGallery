@@ -6,7 +6,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageOwnerRemovedMessage : EmailBuilder
+    public class PackageOwnerRemovedMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -42,11 +42,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership removal for '{PackageRegistration.Id}'";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return $@"The user '{FromUser.Username}' removed {(ToUser is Organization ? "your organization" : "you")} as an owner of the package '{PackageRegistration.Id}'.
 

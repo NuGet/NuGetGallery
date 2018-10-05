@@ -9,7 +9,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class ReportMyPackageMessage : EmailBuilder
+    public class ReportMyPackageMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -72,39 +72,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 {Request.Reason}
 
 **Message**:
-{Request.Message}
-
-
-Message sent from {_configuration.GalleryOwner.DisplayName}";
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var userString = string.Empty;
-            if (Request.RequestingUser != null && Request.RequestingUserUrl != null)
-            {
-                userString = string.Format(
-                    CultureInfo.CurrentCulture,
-                    "{2}User: {0} ({1}){2}{3}",
-                    Request.RequestingUser.Username,
-                    Request.RequestingUser.EmailAddress,
-                    Environment.NewLine,
-                    Request.RequestingUserUrl);
-            }
-
-            return $@"Email: {Request.FromAddress.DisplayName} ({Request.FromAddress.Address})
-
-Package: {Request.Package.PackageRegistration.Id}
-{Request.PackageUrl}
-
-Version: {Request.Package.Version}
-{Request.PackageVersionUrl}
-{userString}
-
-Reason:
-{Request.Reason}
-
-Message:
 {Request.Message}
 
 

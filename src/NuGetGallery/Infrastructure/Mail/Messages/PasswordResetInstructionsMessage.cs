@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PasswordResetInstructionsMessage : EmailBuilder
+    public class PasswordResetInstructionsMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -50,15 +50,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             return string.Format(
                 CultureInfo.CurrentCulture,
                 ForgotPassword ? Strings.Emails_ForgotPassword_MarkdownBody : Strings.Emails_SetPassword_MarkdownBody,
-                ResetPasswordUrl,
-                _configuration.GalleryOwner.DisplayName);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                ForgotPassword ? Strings.Emails_ForgotPassword_PlainTextBody : Strings.Emails_SetPassword_PlainTextBody,
                 ResetPasswordUrl,
                 _configuration.GalleryOwner.DisplayName);
         }

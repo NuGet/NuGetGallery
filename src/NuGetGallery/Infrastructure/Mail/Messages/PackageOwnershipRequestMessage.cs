@@ -8,7 +8,7 @@ using NuGetGallery.Infrastructure.Mail.Requests;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageOwnershipRequestMessage : EmailBuilder
+    public class PackageOwnershipRequestMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly bool _isToUserOrganization;
@@ -87,35 +87,6 @@ The {_configuration.GalleryOwner.DisplayName} Team";
             }
 
             return policyMessage;
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            var policyMessage = GetPolicyMessage();
-
-            string body = string.Format(
-                CultureInfo.CurrentCulture,
-                $@"The user '{Request.FromUser.Username}' would like to add {(_isToUserOrganization ? "your organization" : "you")} as an owner of the package '{Request.PackageRegistration.Id}' ({Request.PackageUrl}).
-
-{policyMessage}");
-
-            if (!string.IsNullOrWhiteSpace(Request.HtmlEncodedMessage))
-            {
-                body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"The user '{Request.FromUser.Username}' added the following message for you:
-
-'{Request.HtmlEncodedMessage}'");
-            }
-
-            body += Environment.NewLine + Environment.NewLine + string.Format(CultureInfo.CurrentCulture, $@"To accept this request and {(_isToUserOrganization ? "make your organization" : "become")} a listed owner of the package:
-{_rawConfirmationUrl}
-
-To decline:
-{_rawRejectionUrl}");
-
-            body += Environment.NewLine + Environment.NewLine + $@"Thanks,
-The {_configuration.GalleryOwner.DisplayName} Team";
-
-            return body;
         }
     }
 }

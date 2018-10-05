@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class PackageOwnershipRequestCanceledMessage : EmailBuilder
+    public class PackageOwnershipRequestCanceledMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
 
@@ -39,15 +39,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
                 replyTo: new[] { RequestingOwner.ToMailAddress() });
         }
 
-        public override string GetSubject() 
+        public override string GetSubject()
             => $"[{_configuration.GalleryOwner.DisplayName}] Package ownership request for '{PackageRegistration.Id}' cancelled";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             return string.Format(
                 CultureInfo.CurrentCulture,

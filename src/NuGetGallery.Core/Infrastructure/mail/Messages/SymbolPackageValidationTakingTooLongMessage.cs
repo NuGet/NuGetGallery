@@ -7,7 +7,7 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SymbolPackageValidationTakingTooLongMessage : EmailBuilder
+    public class SymbolPackageValidationTakingTooLongMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly SymbolPackage _symbolPackage;
@@ -42,21 +42,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         protected override string GetMarkdownBody()
         {
             string body = "It is taking longer than expected for your symbol package [{1} {2}]({3}) to get published.\n\n" +
-                   "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.\n\n" +
-                   "Thank you for your patience.";
-
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                body,
-                _configuration.GalleryOwner.DisplayName,
-                _symbolPackage.Id,
-                _symbolPackage.Version,
-                _packageUrl);
-        }
-
-        protected override string GetPlainTextBody()
-        {
-            string body = "It is taking longer than expected for your symbol package {1} {2} ({3}) to get published.\n\n" +
                    "We are looking into it and there is no action on you at this time. We’ll send you an email notification when your symbol package has been published.\n\n" +
                    "Thank you for your patience.";
 

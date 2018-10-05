@@ -9,14 +9,14 @@ using System.Net.Mail;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
-    public class SigninAssistanceMessage : EmailBuilder
+    public class SigninAssistanceMessage : MarkdownEmailBuilder
     {
         private readonly IMessageServiceConfiguration _configuration;
         private readonly MailAddress _toAddress;
         private readonly IEnumerable<Credential> _credentials;
 
         public SigninAssistanceMessage(
-            IMessageServiceConfiguration configuration, 
+            IMessageServiceConfiguration configuration,
             MailAddress toAddress,
             IEnumerable<Credential> credentials)
         {
@@ -35,11 +35,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         public override string GetSubject() => $"[{_configuration.GalleryOwner.DisplayName}] Sign-In Assistance.";
 
         protected override string GetMarkdownBody()
-        {
-            return GetPlainTextBody();
-        }
-
-        protected override string GetPlainTextBody()
         {
             string body = @"Hi there,
 
