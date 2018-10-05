@@ -549,7 +549,7 @@ namespace NuGetGallery.Authentication
             _telemetryService.TrackNewCredentialCreated(user, credential);
         }
 
-        public virtual CredentialViewModel DescribeCredential(Credential credential, bool? isNonScopedAPIkey = null)
+        public virtual CredentialViewModel DescribeCredential(Credential credential)
         {
             var kind = GetCredentialKind(credential.Type);
             Authenticator authenticator = null;
@@ -592,14 +592,8 @@ namespace NuGetGallery.Authentication
                                              (credentialViewModel.IsNonScopedApiKey &&
                                               !credential.HasBeenUsedInLastDays(_config.ExpirationInDaysForApiKeyV1));
 
-            if (isNonScopedAPIkey.HasValue)
-            {
-                credentialViewModel.Description = isNonScopedAPIkey.Value ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
-            }
-            else
-            {
-                credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
-            }
+            credentialViewModel.Description = credentialViewModel.IsNonScopedApiKey
+                ? Strings.NonScopedApiKeyDescription : credentialViewModel.Description;
 
             return credentialViewModel;
         }

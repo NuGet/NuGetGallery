@@ -990,12 +990,12 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
-            var isNonScopedAPIkey = !cred.IsScopedApiKey();
+            var credDescription = AuthenticationService.DescribeCredential(cred);
 
             await AuthenticationService.RemoveCredential(user, cred);
 
             // Notify the user of the change
-            await MessageService.SendCredentialRemovedNoticeAsync(user, AuthenticationService.DescribeCredential(cred, isNonScopedAPIkey));
+            await MessageService.SendCredentialRemovedNoticeAsync(user, credDescription);
 
             return Json(Strings.CredentialRemoved);
         }
@@ -1054,7 +1054,7 @@ namespace NuGetGallery
                 .Where(CredentialTypes.IsViewSupportedCredential)
                 .OrderByDescending(c => c.Created)
                 .ThenBy(c => c.Description)
-                .Select(c => AuthenticationService.DescribeCredential(c))
+                .Select(AuthenticationService.DescribeCredential)
                 .GroupBy(c => c.Kind)
                 .ToDictionary(g => g.Key, g => g.ToList());
         }
