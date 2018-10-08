@@ -996,4 +996,10 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_Deleted" xml:space="preserve">
     <value>The symbols package associated with this package has been deleted.</value>
   </data>
+  <data name="SymbolsPackage_RevalidateDeletedPackage" xml:space="preserve">
+    <value>The latest associated symbols package for package with ID {0} and version {1} is deleted. Cannot revalidate a deleted symbols package.</value>
+  </data>
+  <data name="SymbolsPackage_RevalidateValidatingPackage" xml:space="preserve">
+    <value>The latest associated symbols package for package with ID {0} and version {1} is currently validating. Wait until the validations finish to queue new validaitons.</value>
+  </data>
 </root>

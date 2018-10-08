@@ -187,6 +187,13 @@ namespace NuGetGallery
         void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
 
         /// <summary>
+        /// Track metric for symbol package revalidation
+        /// </summary>
+        /// <param name="packageId">The id of the symbols package that has the symbols revalidated.</param>
+        /// <param name="packageVersion">The version of the symbols package that has the symbols revalidated.</param>
+        void TrackSymbolPackageRevalidate(string packageId, string packageVersion);
+
+        /// <summary>
         /// The typosquatting check result and total time for the uploaded package.
         /// </summary>
         /// <param name="packageId">The Id of the uploaded package.</param>

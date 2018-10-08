@@ -22,6 +22,7 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
+using NuGetGallery.Extensions;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
@@ -1256,6 +1257,61 @@ namespace NuGetGallery
                 ex.Log();
 
                 TempData["Message"] = $"An error occurred while revalidating the package. {ex.Message}";
+            }
+
+            return SafeRedirect(Url.Package(id, version));
+        }
+
+
+        [UIAuthorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("revalidate a symbols package")]
+        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound,
+                    string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+
+            try
+            {
+                // Select the latest symbols package for re-validation only if it is
+                // 1. Available
+                // 2. Or Failed Validations
+                var latestSymbolPackage = package.LatestSymbolPackage();
+                if (latestSymbolPackage == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                        string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
+                }
+
+                switch (latestSymbolPackage.StatusKey)
+                {
+                    case PackageStatus.Available:
+                    case PackageStatus.FailedValidation:
+                        // Allowed to revalidate
+                        break;
+                    case PackageStatus.Deleted:
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                            string.Format(Strings.SymbolsPackage_RevalidateDeletedPackage, id, version));
+                    case PackageStatus.Validating:
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                            string.Format(Strings.SymbolsPackage_RevalidateValidatingPackage, id, version));
+                    default:
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest, $"Unkown Package status {latestSymbolPackage.StatusKey}!");
+                }
+
+                await _validationService.RevalidateAsync(latestSymbolPackage);
+
+                TempData["Message"] = "The symbols package is being revalidated.";
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+
+                TempData["Message"] = $"An error occurred while revalidating the symbols package. {ex.Message}";
             }
 
             return SafeRedirect(Url.Package(id, version));
