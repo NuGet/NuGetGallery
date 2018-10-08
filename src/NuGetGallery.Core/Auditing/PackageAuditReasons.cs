@@ -19,7 +19,7 @@ namespace NuGetGallery.Auditing
     public static class PackageDeletedVia
     {
         /// <summary>
-        /// Package has been deleted via NuGet API (nuget.exe push)
+        /// Package has been deleted via NuGet API (nuget.exe delete)
         /// </summary>
         public const string Api = "Deleted via API.";
 

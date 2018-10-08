@@ -21,6 +21,7 @@ using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
@@ -88,6 +89,7 @@ namespace NuGetGallery
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IContentObjectService _contentObjectService;
         private readonly ISymbolPackageUploadService _symbolPackageUploadService;
+        private readonly IDiagnosticsSource _trace;
 
         public PackagesController(
             IPackageService packageService,
@@ -111,7 +113,8 @@ namespace NuGetGallery
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
             IContentObjectService contentObjectService,
-            ISymbolPackageUploadService symbolPackageUploadService)
+            ISymbolPackageUploadService symbolPackageUploadService,
+            IDiagnosticsService diagnosticsService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
@@ -135,6 +138,7 @@ namespace NuGetGallery
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
             _symbolPackageUploadService = symbolPackageUploadService;
+            _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
         }
 
         [HttpGet]
@@ -1172,12 +1176,13 @@ namespace NuGetGallery
                 return HttpNotFound();
             }
 
-            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package) != PermissionsCheckResult.Allowed)
+            var currentUser = GetCurrentUser();
+            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
             {
                 return HttpForbidden();
             }
 
-            var model = new DeletePackageViewModel(package, GetCurrentUser(), DeleteReasons);
+            var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
 
             model.VersionSelectList = new SelectList(
                 model
@@ -1342,6 +1347,12 @@ namespace NuGetGallery
             var availableSymbolPackages = package
                 .SymbolPackages
                 .Where(sp => sp.StatusKey == PackageStatus.Available);
+
+            if (availableSymbolPackages.Count() > 1)
+            {
+                _trace.Warning($"Multiple({availableSymbolPackages.Count()}) available symbol packages found for {package.Id}, {package.Version}");
+            }
+
             if (availableSymbolPackages.Any())
             {
                 foreach (var symbolPackage in availableSymbolPackages)

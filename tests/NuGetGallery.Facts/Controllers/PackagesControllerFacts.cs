@@ -25,6 +25,7 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
@@ -155,7 +156,7 @@ namespace NuGetGallery
                     .Setup(x => x.DeleteSymbolsPackageAsync(It.IsAny<SymbolPackage>()))
                     .Completes();
             }
-
+            var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -178,7 +179,8 @@ namespace NuGetGallery
                 validationService.Object,
                 packageOwnershipManagementService.Object,
                 contentObjectService.Object,
-                symbolPackageUploadService.Object);
+                symbolPackageUploadService.Object,
+                diagnosticsService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
