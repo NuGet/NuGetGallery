@@ -50,6 +50,7 @@ namespace NuGetGallery
             public const string AccountDeleteCompleted = "AccountDeleteCompleted";
             public const string AccountDeleteRequested = "AccountDeleteRequested";
             public const string SymbolPackagePush = "SymbolPackagePush";
+            public const string SymbolPackageDelete = "SymbolPackageDelete";
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
             public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
@@ -408,6 +409,10 @@ namespace NuGetGallery
         public void TrackSymbolPackagePushEvent(string packageId, string packageVersion)
         {
             TrackMetricForSymbolPackage(Events.SymbolPackagePush, packageId, packageVersion);
+        }
+        public void TrackSymbolPackageDeleteEvent(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackageDelete, packageId, packageVersion);
         }
 
         public void TrackSymbolPackagePushFailureEvent(string packageId, string packageVersion)

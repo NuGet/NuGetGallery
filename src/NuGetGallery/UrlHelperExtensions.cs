@@ -752,7 +752,8 @@ namespace NuGetGallery
         /// that only need a single link should call Url.DeletePackage instead.
         public static RouteUrlTemplate<IPackageVersionModel> DeletePackageTemplate(
             this UrlHelper url,
-            bool relativeUrl = true)
+            bool relativeUrl = true,
+            string action = "Delete")
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
@@ -762,7 +763,7 @@ namespace NuGetGallery
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
-                "Delete",
+                action,
                 "Packages",
                 relativeUrl,
                 routeValues: rv);
@@ -776,6 +777,14 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.DeletePackageTemplate(relativeUrl).Resolve(package);
+        }
+
+        public static string DeleteSymbolsPackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.DeletePackageTemplate(relativeUrl, action: "DeleteSymbols").Resolve(package);
         }
 
         public static string AccountSettings(

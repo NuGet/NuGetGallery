@@ -25,6 +25,7 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
@@ -151,8 +152,11 @@ namespace NuGetGallery
                         Version = "1.0.42",
                         NormalizedVersion = "1.0.42"
                     }));
+                symbolPackageUploadService
+                    .Setup(x => x.DeleteSymbolsPackageAsync(It.IsAny<SymbolPackage>()))
+                    .Completes();
             }
-
+            var diagnosticsService = new Mock<IDiagnosticsService>();
             var controller = new Mock<PackagesController>(
                 packageService.Object,
                 uploadFileService.Object,
@@ -175,7 +179,8 @@ namespace NuGetGallery
                 validationService.Object,
                 packageOwnershipManagementService.Object,
                 contentObjectService.Object,
-                symbolPackageUploadService.Object);
+                symbolPackageUploadService.Object,
+                diagnosticsService.Object);
 
             controller.CallBase = true;
             controller.Object.SetOwinContextOverride(Fakes.CreateOwinContext());
@@ -1745,6 +1750,409 @@ namespace NuGetGallery
                 packageService.Verify();
 
                 return result;
+            }
+        }
+
+        public class TheDeleteSymbolsMethod : TestContainer
+        {
+            private string _packageId = "CrestedGecko";
+            private PackageRegistration _packageRegistration;
+            private Package _package;
+
+            public TheDeleteSymbolsMethod()
+            {
+                var symbolPackage1 = new SymbolPackage() { StatusKey = PackageStatus.Available };
+                var symbolPackage2 = new SymbolPackage() { StatusKey = PackageStatus.Available };
+                _packageRegistration = new PackageRegistration { Id = _packageId };
+
+                _package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = _packageRegistration,
+                    Version = "1.0.0+metadata",
+                    Listed = true,
+                    IsLatestSemVer2 = true,
+                    HasReadMe = false,
+                    SymbolPackages = new List<SymbolPackage>() { symbolPackage1 }
+                };
+                var olderPackageVersion = new Package
+                {
+                    Key = 1,
+                    PackageRegistration = _packageRegistration,
+                    Version = "1.0.0-alpha",
+                    IsLatest = true,
+                    IsLatestSemVer2 = true,
+                    Listed = true,
+                    HasReadMe = false,
+                    SymbolPackages = new List<SymbolPackage>() { symbolPackage2 }
+                };
+
+                _packageRegistration.Packages.Add(_package);
+                _packageRegistration.Packages.Add(olderPackageVersion);
+                symbolPackage1.Package = _package;
+                symbolPackage2.Package = olderPackageVersion;
+            }
+
+            [Fact]
+            public void Returns404IfPackageNotFound()
+            {
+                var controller = CreateController(GetConfigurationService());
+
+                var result = controller.DeleteSymbols(_packageRegistration.Id, _package.Version);
+
+                Assert.IsType<HttpNotFoundResult>(result);
+            }
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 5535 }
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public void Returns403IfNotOwner(User currentUser, User owner)
+            {
+                var result = GetDeleteSymbolsResult(currentUser, owner, out var controller);
+
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public void DisplaysFullVersionStringAndUsesNormalizedVersionsInUrlsInSelectList(User currentUser, User owner)
+            {
+                var result = GetDeleteSymbolsResult(currentUser, owner, out var controller);
+
+                Assert.IsType<ViewResult>(result);
+                var model = ((ViewResult)result).Model as DeletePackageViewModel;
+                Assert.NotNull(model);
+                Assert.False(model.IsLocked);
+
+                // Verify version select list
+                Assert.Equal(_packageRegistration.Packages.Count, model.VersionSelectList.Count());
+
+                foreach (var pkg in _packageRegistration.Packages)
+                {
+                    var valueField = controller.Url.DeleteSymbolsPackage(model);
+                    var textField = model.NuGetVersion.ToFullString() + (pkg.IsLatestSemVer2 ? " (Latest)" : string.Empty);
+
+                    var selectListItem = model.VersionSelectList
+                        .SingleOrDefault(i => string.Equals(i.Text, textField) && string.Equals(i.Value, valueField));
+
+                    Assert.NotNull(selectListItem);
+                    Assert.Equal(valueField, selectListItem.Value);
+                    Assert.Equal(textField, selectListItem.Text);
+                }
+            }
+
+            [Fact]
+            public void WhenPackageRegistrationIsLockedReturnsLockedState()
+            {
+                // Arrange
+                var user = new User("Frodo") { Key = 1 };
+                var packageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true };
+                packageRegistration.Owners.Add(user);
+
+                var package = new Package
+                {
+                    Key = 2,
+                    PackageRegistration = packageRegistration,
+                    Version = "1.0.0+metadata",
+                };
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService.Setup(svc => svc.FindPackageByIdAndVersion("Foo", "1.0.0", SemVerLevelKey.Unknown, true))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+                controller.SetCurrentUser(user);
+
+                // Act
+                var result = controller.DeleteSymbols("Foo", "1.0.0");
+
+                // Assert
+                var model = ResultAssert.IsView<DeletePackageViewModel>(result);
+                Assert.True(model.IsLocked);
+            }
+
+            private ActionResult GetDeleteSymbolsResult(User currentUser, User owner, out PackagesController controller)
+            {
+                _packageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersion(_packageId, _package.Version, SemVerLevelKey.Unknown, true))
+                    .Returns(_package).Verifiable();
+
+                controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+
+                var routeCollection = new RouteCollection();
+                Routes.RegisterRoutes(routeCollection);
+                controller.Url = new UrlHelper(controller.ControllerContext.RequestContext, routeCollection);
+
+                var result = controller.DeleteSymbols(_packageId, _package.Version);
+
+                packageService.Verify();
+                return result;
+            }
+        }
+
+        public class TheDeleteSymbolsPackageMethod : TestContainer
+        {
+            [Fact]
+            public async Task WhenPackageNotFoundReturns404()
+            {
+                // Arrange
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns((Package)null);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+
+                // Act
+                var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            public static IEnumerable<object[]> NotOwner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        null,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        new User { Key = 5535 }
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(NotOwner_Data))]
+            public async Task Returns403IfNotOwner(User currentUser, User owner)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package)
+                    .Verifiable();
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal((int)HttpStatusCode.Forbidden, httpStatusCodeResult.StatusCode);
+            }
+
+            public static IEnumerable<object[]> Owner_Data
+            {
+                get
+                {
+                    yield return new object[]
+                    {
+                        TestUtility.FakeUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeAdminUser,
+                        TestUtility.FakeUser
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationAdmin,
+                        TestUtility.FakeOrganization
+                    };
+
+                    yield return new object[]
+                    {
+                        TestUtility.FakeOrganizationCollaborator,
+                        TestUtility.FakeOrganization
+                    };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task Returns400IfThereAreNoSymbolsPackage(User currentUser, User owner)
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    Listed = true
+                };
+                package.PackageRegistration.Owners.Add(owner);
+
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService);
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                var httpStatusCodeResult = result as HttpStatusCodeResult;
+                Assert.Equal((int)HttpStatusCode.BadRequest, httpStatusCodeResult.StatusCode);
+            }
+
+            [Theory]
+            [MemberData(nameof(Owner_Data))]
+            public async Task RedirectsToPackagePageAfterSymbolsPackageDeletion(User currentUser, User owner)
+            {
+                // Arrange
+                var symbolPackage = new SymbolPackage()
+                {
+                    StatusKey = PackageStatus.Available
+                };
+
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo" },
+                    Version = "1.0",
+                    NormalizedVersion = "1.0.0",
+                    SymbolPackages = new List<SymbolPackage>() { symbolPackage }
+                };
+                package.PackageRegistration.Owners.Add(owner);
+                symbolPackage.Package = package;
+
+                var packageService = new Mock<IPackageService>();
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>()))
+                    .Returns(package);
+                var auditingService = new TestAuditingService();
+                var telemetryService = new Mock<ITelemetryService>();
+                telemetryService
+                    .Setup(x => x.TrackSymbolPackageDeleteEvent(It.IsAny<string>(), It.IsAny<string>()));
+
+                var controller = CreateController(
+                    GetConfigurationService(),
+                    packageService: packageService,
+                    auditingService: auditingService,
+                    telemetryService: telemetryService);
+
+                controller.SetCurrentUser(currentUser);
+
+                // Act
+                var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
+
+                // Assert
+                Assert.IsType<RedirectResult>(result);
+                Assert.Equal($"/?id={package.Id}&version={package.NormalizedVersion}", ((RedirectResult)result).Url);
+                Assert.True(auditingService.WroteRecord<PackageAuditRecord>(ar =>
+                    ar.Action == AuditedPackageAction.SymbolsDelete
+                    && ar.Id == package.PackageRegistration.Id
+                    && ar.Version == package.Version));
+                telemetryService
+                    .Verify(x => x.TrackSymbolPackageDeleteEvent(package.Id, package.Version), Times.Once);
+            }
+
+            [Fact]
+            public async Task WhenPackageRegistrationIsLockedReturns403()
+            {
+                // Arrange
+                var package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "Foo", IsLocked = true },
+                    Version = "1.0",
+                };
+                package.PackageRegistration.Owners.Add(new User("Frodo"));
+
+                var packageService = new Mock<IPackageService>(MockBehavior.Strict);
+                packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersionStrict("Foo", "1.0"))
+                    .Returns(package);
+
+                var controller = CreateController(GetConfigurationService(), packageService: packageService);
+
+                controller.SetCurrentUser(new User("Frodo"));
+
+                // Act
+                var result = await controller.DeleteSymbolsPackage("Foo", "1.0");
+
+                // Assert
+                ResultAssert.IsStatusCode(result, HttpStatusCode.Forbidden);
             }
         }
 

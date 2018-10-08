@@ -15,4 +15,17 @@ namespace NuGetGallery.Auditing
         /// </summary>
         public const string Web = "Created via web.";
     }
+
+    public static class PackageDeletedVia
+    {
+        /// <summary>
+        /// Package has been deleted via NuGet API (nuget.exe delete)
+        /// </summary>
+        public const string Api = "Deleted via API.";
+
+        /// <summary>
+        /// Package has been deleted via NuGet web interface (browser)
+        /// </summary>
+        public const string Web = "Deleted via web.";
+    }
 }

@@ -1851,6 +1851,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The symbols package associated with this package has been deleted..
+        /// </summary>
+        public static string SymbolsPackage_Deleted {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_Deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg)..
         /// </summary>
         public static string SymbolsPackage_FailedToReadPackage {

@@ -340,5 +340,95 @@ namespace NuGetGallery
                 Assert.Equal(PackageCommitResult.Success, result);
             }
         }
+
+        public class TheDeleteSymbolsPackageAsyncMethod
+        {
+            [Fact]
+            public async Task ThrowsExceptionForNullPackage()
+            {
+                // Arrange
+                var service = CreateService();
+
+                // Act & Assert
+                await Assert.ThrowsAsync<ArgumentNullException>(async () => await service.DeleteSymbolsPackageAsync(null));
+            }
+
+            [Fact]
+            public async Task WillNotDeleteSymbolsPackageIfItDoesNotExist()
+            {
+                // Arrange
+                var symbolPackage = new SymbolPackage()
+                {
+                    Package = new Package() {
+                        PackageRegistration = new PackageRegistration() { Id = "foo" },
+                        Version = "1.0.0",
+                        NormalizedVersion = "1.0.0"
+                    },
+                    StatusKey = PackageStatus.Available
+                };
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService
+                    .Setup(x => x.DoesPackageFileExistAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(false)
+                    .Verifiable();
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.UpdateStatusAsync(It.IsAny<SymbolPackage>(), It.IsAny<PackageStatus>(), It.IsAny<bool>()))
+                    .Completes()
+                    .Verifiable();
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService, symbolPackageService: symbolPackageService);
+
+                // Act
+                await service.DeleteSymbolsPackageAsync(symbolPackage);
+
+                // Assert
+                symbolPackageService
+                    .Verify(x => x.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, true), Times.Once);
+                symbolPackageFileService
+                    .Verify(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+                symbolPackageFileService
+                    .Verify(x => x.DoesPackageFileExistAsync(It.IsAny<Package>()), Times.Once);
+            }
+
+            [Fact]
+            public async Task WillDeleteSymbolsPackageIfItDoesExist()
+            {
+                // Arrange
+                var symbolPackage = new SymbolPackage()
+                {
+                    Package = new Package()
+                    {
+                        PackageRegistration = new PackageRegistration() { Id = "foo" },
+                        Version = "1.0.0",
+                        NormalizedVersion = "1.0.0"
+                    },
+                    StatusKey = PackageStatus.Available
+                };
+                var symbolPackageFileService = new Mock<ISymbolPackageFileService>();
+                symbolPackageFileService
+                    .Setup(x => x.DoesPackageFileExistAsync(It.IsAny<Package>()))
+                    .ReturnsAsync(true)
+                    .Verifiable();
+                symbolPackageFileService
+                    .Setup(x => x.DeletePackageFileAsync(It.IsAny<string>(), It.IsAny<string>()))
+                    .Completes()
+                    .Verifiable();
+                var symbolPackageService = new Mock<ISymbolPackageService>();
+                symbolPackageService
+                    .Setup(x => x.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, true))
+                    .Completes()
+                    .Verifiable();
+
+                var service = CreateService(symbolPackageFileService: symbolPackageFileService, symbolPackageService: symbolPackageService);
+
+                // Act
+                await service.DeleteSymbolsPackageAsync(symbolPackage);
+
+                // Assert
+                symbolPackageService.Verify();
+                symbolPackageFileService.Verify();
+            }
+        }
     }
 }
