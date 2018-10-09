@@ -252,7 +252,16 @@ namespace NuGetGallery.Areas.Admin.Controllers
                 var viewModel = new SupportRequestViewModel(issue);
                 viewModel.AssignedToGalleryUsername = issue.AssignedTo?.GalleryUsername;
                 viewModel.IssueStatusName = issue.IssueStatus.Name;
-                viewModel.UserEmail = issue.UserKey.HasValue ? userEmails[issue.UserKey.Value] : string.Empty;
+
+                // Email may not be available, because the delete workflow hard deletes unconfirmed users.
+                if (issue.UserKey.HasValue && userEmails.ContainsKey(issue.UserKey.Value))
+                {
+                    viewModel.UserEmail = userEmails[issue.UserKey.Value];
+                }
+                else
+                {
+                    viewModel.UserEmail = string.Empty;
+                }
 
                 results.Add(viewModel);
             }
