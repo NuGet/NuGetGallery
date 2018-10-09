@@ -37,8 +37,10 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FilteredVersionListFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="VersionListDataClientFacts.cs" />
+    <Compile Include="TestExtensionMethods.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">
