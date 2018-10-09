@@ -44,7 +44,6 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
-    <Reference Include="System.IO.Compression" />
     <Reference Include="System.Net" />
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Xml.Linq" />
@@ -178,13 +177,13 @@
       <Version>4.7.25</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>4.3.0</Version>
+      <Version>4.8.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Configuration">
-      <Version>2.2.2</Version>
+      <Version>2.28.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Logging">
-      <Version>2.25.0-master-30088</Version>
+      <Version>2.28.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>8.2.1</Version>

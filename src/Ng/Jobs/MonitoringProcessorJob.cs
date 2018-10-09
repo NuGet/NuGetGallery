@@ -174,7 +174,11 @@ namespace Ng.Jobs
         {
             var id = feedPackage.Id;
             var version = NuGetVersion.Parse(feedPackage.Version);
-            var leafBlob = await _regResource.GetPackageMetadata(new PackageIdentity(id, version), Logger.AsCommon(), token);
+            var leafBlob = await _regResource.GetPackageMetadata(
+                new PackageIdentity(id, version),
+                NullSourceCacheContext.Instance,
+                Logger.AsCommon(),
+                token);
 
             if (leafBlob == null)
             {
