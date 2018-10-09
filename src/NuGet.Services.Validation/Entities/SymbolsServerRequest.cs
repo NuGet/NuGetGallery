@@ -9,6 +9,8 @@ namespace NuGet.Services.Validation
 {
     public class SymbolsServerRequest
     {
+        public int Key { get; set; }
+
         /// <summary>
         /// The key of the symbols package.
         /// </summary>

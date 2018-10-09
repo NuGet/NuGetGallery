@@ -144,6 +144,10 @@
     <Compile Include="Migrations\201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.Designer.cs">
       <DependentUpon>201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810060058081_AddKeyOnSymbolsServerRequests.cs" />
+    <Compile Include="Migrations\201810060058081_AddKeyOnSymbolsServerRequests.Designer.cs">
+      <DependentUpon>201810060058081_AddKeyOnSymbolsServerRequests.cs</DependentUpon>
+    </Compile>
     <Compile Include="Migrations\ValidationMigrationsConfiguration.cs" />
     <Compile Include="PackageValidationEnqueuer.cs" />
     <Compile Include="PackageValidationMessageData.cs" />
@@ -227,6 +231,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.resx">
       <DependentUpon>201808302142379_AddPackageRevalidationEnqueuedCompletedIndex.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810060058081_AddKeyOnSymbolsServerRequests.resx">
+      <DependentUpon>201810060058081_AddKeyOnSymbolsServerRequests.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

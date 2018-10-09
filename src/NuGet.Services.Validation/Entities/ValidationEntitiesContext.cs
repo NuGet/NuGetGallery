@@ -75,6 +75,8 @@ namespace NuGet.Services.Validation
         private const string PackageRevalidationEnqueuedCompletedIndex = "IX_PackageRevalidations_Enqueued_Completed";
         private const string PackageRevalidationValidationTrackingIdIndex = "IX_PackageRevalidations_ValidationTrackingId";
 
+        private const string SymbolsServerRequestSymbolsKeyIndex = "IX_SymbolServerRequests_SymbolsKey";
+
         static ValidationEntitiesContext()
         {
             // Don't run migrations, ever!
@@ -680,10 +682,19 @@ namespace NuGet.Services.Validation
         private void RegisterSymbolEntities(DbModelBuilder modelBuilder)
         {
             modelBuilder.Entity<SymbolsServerRequest>()
-                .HasKey(r => r.SymbolsKey);
+               .HasKey(r => r.Key);
+
             modelBuilder.Entity<SymbolsServerRequest>()
-              .Property(r => r.SymbolsKey)
-              .HasDatabaseGeneratedOption(DatabaseGeneratedOption.None);
+                .Property(r => r.SymbolsKey)
+                .HasColumnAnnotation(
+                    IndexAnnotation.AnnotationName,
+                    new IndexAnnotation(new[]
+                    {
+                        new IndexAttribute(SymbolsServerRequestSymbolsKeyIndex)
+                        {
+                            IsUnique = true,
+                        }
+                    }));
 
             modelBuilder.Entity<SymbolsServerRequest>()
                .Property(s => s.RowVersion)
