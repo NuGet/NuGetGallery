@@ -9,7 +9,7 @@ set solutionPath="BasicSearchTests.FunctionalTests.sln"
 set exitCode=0
 
 REM Required Tools
-set msbuild="%PROGRAMFILES(X86)%\MsBuild\14.0\Bin\msbuild"
+set msbuild="%PROGRAMFILES(X86)%\Microsoft Visual Studio\2017\Enterprise\MSBuild\15.0\Bin\msbuild"
 set xunit=".\packages\xunit.runner.console.2.1.0\tools\xunit.console.exe"
 set nuget="nuget.exe"
 
