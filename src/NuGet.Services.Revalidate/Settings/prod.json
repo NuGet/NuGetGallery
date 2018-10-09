@@ -33,10 +33,10 @@
   },
 
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.GalleryDbReader.ClientId};AadCertificate=$$prod-gallerydb-reader$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Integrated Security=False;User ID=$$Prod-GalleryDBReadOnly-UserName$$;Password=$$Prod-GalleryDBReadOnly-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.DatabaseAddress};Initial Catalog=nuget-prod-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=Revalidate;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.ValidationDbWriter.ClientId};AadCertificate=$$prod-validationdb-writer$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.nuget.services.revalidate.DatabaseAddress};Initial Catalog=nuget-prod-validation;Integrated Security=False;User ID=$$Prod-ValidationDBWriter-UserName$$;Password=$$Prod-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationStorage": {
     "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"

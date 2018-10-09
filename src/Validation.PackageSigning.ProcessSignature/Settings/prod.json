@@ -1,9 +1,9 @@
 ﻿{
   "GalleryDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=ProcessSignature;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.GalleryDbWriter.ClientId};AadCertificate=$$prod-gallerydb-writer$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.GalleryDatabaseAddress};Initial Catalog=NuGetGallery;Integrated Security=False;User ID=$$Prod-GalleryDBWriter-UserName$$;Password=$$Prod-GalleryDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ValidationDb": {
-    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Persist Security Info=False;Connect Timeout=30;Encrypt=True;TrustServerCertificate=False;Application Name=ProcessSignature;AadTenant=#{Deployment.Azure.ActiveDirectory.Tenant};AadClientId=#{Deployment.Azure.ActiveDirectory.ValidationDbWriter.ClientId};AadCertificate=$$prod-validationdb-writer$$"
+    "ConnectionString": "Data Source=tcp:#{Jobs.validation.DatabaseAddress};Initial Catalog=nuget-prod-validation;Integrated Security=False;User ID=$$Prod-ValidationDBWriter-UserName$$;Password=$$Prod-ValidationDBWriter-Password$$;Connect Timeout=30;Encrypt=True"
   },
   "ServiceBus": {
     "ConnectionString": "Endpoint=sb://nugetprod.servicebus.windows.net/;SharedAccessKeyName=extract-and-validate-signature;SharedAccessKey=$$Prod-ServiceBus-SharedAccessKey-Validation-ExtractAndValidatePackageSignature$$",
