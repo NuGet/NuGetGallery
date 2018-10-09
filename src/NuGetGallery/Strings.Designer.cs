@@ -1923,15 +1923,6 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The latest associated symbols package for package with ID {0} and version {1} is currently validating. Wait until the validations finish to queue new validaitons..
-        /// </summary>
-        public static string SymbolsPackage_RevalidateValidatingPackage {
-            get {
-                return ResourceManager.GetString("SymbolsPackage_RevalidateValidatingPackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
         /// </summary>
         public static string SymbolsPackage_UploadNotAllowed {

@@ -1279,6 +1279,7 @@ namespace NuGetGallery
             {
                 // Select the latest symbols package for re-validation only if it is
                 // 1. Available
+                // 2. Or Pending validations
                 // 2. Or Failed Validations
                 var latestSymbolPackage = package.LatestSymbolPackage();
                 if (latestSymbolPackage == null)
@@ -1290,16 +1291,14 @@ namespace NuGetGallery
                 switch (latestSymbolPackage.StatusKey)
                 {
                     case PackageStatus.Available:
+                    case PackageStatus.Validating:
                     case PackageStatus.FailedValidation:
                         // Allowed to revalidate
                         break;
                     case PackageStatus.Deleted:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
                             string.Format(Strings.SymbolsPackage_RevalidateDeletedPackage, id, version));
-                    case PackageStatus.Validating:
-                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
-                            string.Format(Strings.SymbolsPackage_RevalidateValidatingPackage, id, version));
-                    default:
+                   default:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest, $"Unkown Package status {latestSymbolPackage.StatusKey}!");
                 }
 
