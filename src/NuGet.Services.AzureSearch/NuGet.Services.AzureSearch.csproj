@@ -35,10 +35,14 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VersionList\KeyValuePair.cs" />
+    <Compile Include="VersionList\VersionProperties.cs" />
     <Compile Include="VersionList\FilteredVersionProperties.cs" />
     <Compile Include="VersionList\ResultAndAccessCondition.cs" />
+    <Compile Include="VersionList\SearchFilters.cs" />
     <Compile Include="VersionList\SearchIndexChangeType.cs" />
     <Compile Include="VersionList\SemVerOrderedDictionaryJsonConverter.cs" />
+    <Compile Include="VersionList\VersionLists.cs" />
     <Compile Include="VersionList\VersionListDataClient.cs" />
     <Compile Include="VersionList\VersionListData.cs" />
     <Compile Include="VersionList\FilteredVersionList.cs" />

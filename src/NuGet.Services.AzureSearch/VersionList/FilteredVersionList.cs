@@ -63,6 +63,21 @@ namespace NuGet.Services.AzureSearch
             return DeleteFromSearchIndex(ctx);
         }
 
+        /// <summary>
+        /// When a non-applicable version is encountered, the search index should make sure it doesn't have that
+        /// version at all (much like a <see cref="Delete(NuGetVersion)"/>). For the hijack index, the non-applicable
+        /// version should not be deleted but the latest booleans should still be updated, for reflow.
+        /// </summary>
+        public SearchIndexChangeType Remove(NuGetVersion version)
+        {
+            var ctx = UpdateVersionList(
+                (v, p) => _versions.Remove(v),
+                version,
+                newProperties: null);
+
+            return UpsertToSearchIndex(ctx);
+        }
+
         public SearchIndexChangeType Upsert(FilteredVersionProperties addedProperties)
         {
             var ctx = UpdateVersionList(
@@ -127,7 +142,9 @@ namespace NuGet.Services.AzureSearch
                 // look up the old new latest's metadata.
                 Assert(ctx.NewLatest != ctx.ChangedVersion, "This case should already have been handled.");
                 Assert(ctx.OldLatest == ctx.ChangedVersion, "This case should already have been handled.");
-                Assert(!ctx.NewProperties.Listed, "A downgrade from an upserted version can only happen from an unlist.");
+                Assert(
+                    ctx.NewProperties == null || !ctx.NewProperties.Listed,
+                    "A downgrade from an upserted version can only happen from an unlist or removing a non-applicable version.");
                 return SearchIndexChangeType.DowngradeLatest;
             }
 

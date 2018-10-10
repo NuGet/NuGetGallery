@@ -119,7 +119,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void DowngradeLatestWhenUnlistingLatestWithOtherListedVersion()
             {
-                var listed = new FilteredVersionProperties(PreviousVersion, listed: true);
+                var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
                 var type = _list.Upsert(_unlistedVersionProperties);
@@ -134,7 +134,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void UpdateVersionListWhenUnlistingNonLatestVersion()
             {
-                var listed = new FilteredVersionProperties(NextVersion, listed: true);
+                var listed = new FilteredVersionProperties(NextFullVersion, listed: true);
                 _list.Upsert(listed);
 
                 var type = _list.Upsert(_unlistedVersionProperties);
@@ -149,21 +149,21 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void UpdateVersionListWhenAddingListedNonLatestVersion()
             {
-                var listed = new FilteredVersionProperties(PreviousVersion, listed: true);
+                var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
 
                 var type = _list.Upsert(listed);
 
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
             [Fact]
             public void UpdateVersionListWhenRelistingNonLatestVersion()
             {
-                var listed = new FilteredVersionProperties(PreviousVersion, listed: true);
+                var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
                 var type = _list.Upsert(listed);
@@ -171,7 +171,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
@@ -219,7 +219,7 @@ namespace NuGet.Services.AzureSearch
             public void UpdateExistingNewVersionIsIntroduced()
             {
                 ClearList();
-                var listed = new FilteredVersionProperties(PreviousVersion, listed: true);
+                var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
                 var type = _list.Upsert(_initialVersionProperties);
@@ -229,6 +229,171 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+        }
+
+        public class Remove : BaseFacts
+        {
+            [Fact]
+            public void RemovesByNormalizedVersion()
+            {
+                ClearList();
+                _list.Upsert(new FilteredVersionProperties("1.02.0-Alpha.1+git", listed: true));
+                var removedVersion = "1.02.0-Alpha.1+git";
+
+                var changes = _list.Remove(removedVersion);
+
+                Assert.Equal(SearchIndexChangeType.Delete, changes);
+
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Empty(_list._versions.Keys);
+            }
+
+            [Theory]
+            [MemberData(nameof(PreviousAndNextVersions))]
+            public void RemovesNewVersion(string version)
+            {
+                var changes = _list.Remove(version);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Theory]
+            [MemberData(nameof(PreviousAndNextVersions))]
+            public void RemovesUnlistedVersion(string version)
+            {
+                var unlisted = new FilteredVersionProperties(version, listed: false);
+                _list.Upsert(unlisted);
+
+                var changes = _list.Remove(unlisted.FullVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void RemovesLatestVersion()
+            {
+                var latest = new FilteredVersionProperties(NextFullVersion, listed: true);
+                _list.Upsert(latest);
+
+                var changes = _list.Remove(latest.FullVersion);
+
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, changes);
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void RemovesVeryLastVersionWhenLastVersionIsListed()
+            {
+                StartWithUnlisted();
+
+                var changes = _list.Remove(InitialFullVersion);
+
+                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Empty(_list._versions);
+            }
+
+            [Fact]
+            public void RemovesVeryLastVersionWhenLastVersionIsUnlisted()
+            {
+                var changes = _list.Remove(InitialFullVersion);
+
+                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Empty(_list._versions);
+            }
+
+            [Fact]
+            public void RemovesFromEmptyList()
+            {
+                ClearList();
+
+                var changes = _list.Remove(InitialFullVersion);
+
+                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Empty(_list._versions.Keys);
+            }
+
+            [Theory]
+            [MemberData(nameof(PreviousAndNextVersions))]
+            public void RemovesLastListedVersion(string version)
+            {
+                var unlisted = new FilteredVersionProperties(version, listed: false);
+                _list.Upsert(unlisted);
+
+                var changes = _list.Remove(InitialFullVersion);
+
+                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Equal(new[] { unlisted.ParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void RemovesNonLatestListedVersionWithOneOtherVersion()
+            {
+                var nonLatest = new FilteredVersionProperties(PreviousFullVersion, listed: true);
+                _list.Upsert(nonLatest);
+
+                var changes = _list.Remove(nonLatest.FullVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void RemovesNonLatestListedVersionWithTwoOtherVersions()
+            {
+                _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
+                _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
+
+                var changes = _list.Remove(InitialFullVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(NextFullVersion, _list.LatestOrNull);
+                Assert.Equal(NextParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousParsedVersion, NextParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void RemovesLatestListedVersionWithTwoOtherVersions()
+            {
+                _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
+                _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
+
+                var changes = _list.Remove(NextParsedVersion);
+
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, changes);
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
         }
 
@@ -278,7 +443,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void DowngradeForDeletingLatestVersion()
             {
-                var latest = new FilteredVersionProperties(NextVersion, listed: true);
+                var latest = new FilteredVersionProperties(NextFullVersion, listed: true);
                 _list.Upsert(latest);
 
                 var type = _list.Delete(latest.FullVersion);
@@ -354,7 +519,7 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void UpdateVersionListForDeletingNonLatestListedVersion()
             {
-                var nonLatest = new FilteredVersionProperties(PreviousVersion, listed: true);
+                var nonLatest = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(nonLatest);
 
                 var type = _list.Delete(nonLatest.FullVersion);
@@ -447,10 +612,12 @@ namespace NuGet.Services.AzureSearch
 
         public abstract class BaseFacts
         {
-            protected const string PreviousVersion = "0.9.0";
+            protected const string PreviousFullVersion = "0.9.0";
             protected const string InitialFullVersion = "1.0.0";
-            protected const string NextVersion = "1.1.0";
+            protected const string NextFullVersion = "1.1.0";
+            protected static readonly NuGetVersion PreviousParsedVersion = NuGetVersion.Parse(PreviousFullVersion);
             protected static readonly NuGetVersion InitialParsedVersion = NuGetVersion.Parse(InitialFullVersion);
+            protected static readonly NuGetVersion NextParsedVersion = NuGetVersion.Parse(NextFullVersion);
             internal readonly FilteredVersionProperties _initialVersionProperties;
             internal readonly FilteredVersionProperties _unlistedVersionProperties;
             internal readonly FilteredVersionList _list;
@@ -481,8 +648,8 @@ namespace NuGet.Services.AzureSearch
 
             public static IEnumerable<object[]> PreviousAndNextVersions => new[]
             {
-                new object[] { PreviousVersion },
-                new object[] { NextVersion },
+                new object[] { PreviousFullVersion },
+                new object[] { NextFullVersion },
             };
         }
     }
