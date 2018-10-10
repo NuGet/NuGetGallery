@@ -61,19 +61,21 @@ DELETE FROM [dbo].[Credentials] WHERE [Key] IN ({0})";
             if (expectedRowCount > 0)
             {
                 using (var connection = await job.OpenSqlConnectionAsync<GalleryDbConfiguration>())
+                using (var transaction = connection.BeginTransaction())
+                using (var command = connection.CreateCommand())
                 {
-                    using (var transaction = connection.BeginTransaction())
-                    {
-                        var numKeys = 0;
-                        var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
+                    var numKeys = 0;
+                    var parameters = credentialKeys.Select(c => new SqlParameter("@Key" + numKeys++, SqlDbType.Int) { Value = c }).ToArray();
+                    command.Parameters.AddRange(parameters);
 
-                        rowCount = await connection.ExecuteAsync(
-                            string.Format(DeleteQuery, string.Join(",", parameters.Select(p => p.ParameterName))),
-                            parameters,
-                            transaction, _commandTimeout);
+                    command.CommandText = string.Format(DeleteQuery, string.Join(",", parameters.Select(p => p.ParameterName)));
+                    command.CommandType = CommandType.Text;
+                    command.CommandTimeout = (int)_commandTimeout.TotalSeconds;
+                    command.Transaction = transaction;
 
-                        transaction.Commit();
-                    }
+                    rowCount = await command.ExecuteNonQueryAsync();
+
+                    transaction.Commit();
                 }
             }
 

@@ -148,7 +148,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
         {
             // Create a temporary table
             Logger.LogDebug("Creating temporary table...");
-            await destinationDatabase.ExecuteAsync(_createTempTable);
+
+            using (var cmd = destinationDatabase.CreateCommand())
+            {
+                cmd.CommandText = _createTempTable;
+                cmd.CommandType = CommandType.Text;
+
+                await cmd.ExecuteNonQueryAsync();
+            }
 
             // Load temporary table
             var aggregateCdnDownloadsInGalleryTable = new DataTable();
@@ -206,8 +213,14 @@ namespace Stats.AggregateCdnDownloadsInGallery
             Logger.LogInformation("Updating destination database Download Counts... ({RecordCount} package registrations to process).", batch.Count());
             stopwatch.Restart();
 
-            await destinationDatabase.ExecuteAsync(_updateFromTempTable,
-                commandTimeout: TimeSpan.FromMinutes(30));
+            using (var cmd = destinationDatabase.CreateCommand())
+            {
+                cmd.CommandText = _updateFromTempTable;
+                cmd.CommandType = CommandType.Text;
+                cmd.CommandTimeout = (int)TimeSpan.FromMinutes(30).TotalSeconds;
+
+                await cmd.ExecuteNonQueryAsync();
+            }
 
             Logger.LogInformation(
                 "Updated destination database Download Counts (took {DurationSeconds} seconds).",

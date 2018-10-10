@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,8 +33,7 @@ namespace Search.GenerateAuxiliaryData
 
         protected override JContainer GetResultOfQuery(SqlConnection connection)
         {
-            var command = new SqlCommand(GetEmbeddedSqlScript(SqlScript), connection);
-            command.CommandType = CommandType.Text;
+            var command = GetEmbeddedSqlCommand(connection, SqlScript);
 
             return SqlDataReaderToNestedJArrays(command.ExecuteReader(), Col0, Col1);
         }

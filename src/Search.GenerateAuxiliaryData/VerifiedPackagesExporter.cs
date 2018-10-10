@@ -29,8 +29,7 @@ namespace Search.GenerateAuxiliaryData
 
         protected override JContainer GetResultOfQuery(SqlConnection connection)
         {
-            var verifiedPackagesCommand = new SqlCommand(GetEmbeddedSqlScript(_verifiedPackagesScript), connection);
-            verifiedPackagesCommand.CommandType = CommandType.Text;
+            var verifiedPackagesCommand = GetEmbeddedSqlCommand(connection, _verifiedPackagesScript);
             verifiedPackagesCommand.CommandTimeout = 60;
 
             SqlDataReader reader = null;
