@@ -233,6 +233,7 @@ Function Invoke-FxCop {
         [string]$FxCopDirectory,
         [string]$FxCopProject,
         [string]$FxCopRuleSet,
+        [string]$FxCopNoWarn,
         [string]$FxCopOutputDirectory
     )
     
@@ -244,6 +245,7 @@ Function Invoke-FxCop {
     $env:FXCOP_RULESET = ''
     $env:FXCOP_RULESET_DIRECTORY = ''
     $env:FXCOP_OUTPUT_DIRECTORY = ''
+    # Do not clear $env:FXCOP_NOWARN, in case set via VSTS variable (was additive)
     
     # Configure FxCop defaults
     $codeAnalysisProps = Resolve-Path $(Join-Path 'build' 'nuget.codeanalysis.props')
@@ -279,6 +281,11 @@ Function Invoke-FxCop {
         }
     }
     
+    if ($FxCopNoWarn) {
+        $env:FXCOP_NOWARN = $FxCopNoWarn
+        Trace-Log "Using FXCOP_NOWARN=$FxCopNoWarn"
+    }
+    
     # Write FxCop logs to specific output directory
     if ($FxCopOutputDirectory) {
         if (-not (Test-Path $FxCopOutputDirectory)) {
@@ -296,7 +303,7 @@ Function Invoke-FxCop {
         $msBuildProps += ";CodeAnalysisVerbose=true"
     }
     
-    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Build;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore
+    Build-Solution $Configuration $BuildNumber -MSBuildVersion "$MSBuildVersion" $SolutionPath -Target "Rebuild;RunCodeAnalysis" -MSBuildProperties $msBuildProps -SkipRestore:$SkipRestore
 }
 
 Function Invoke-Git {

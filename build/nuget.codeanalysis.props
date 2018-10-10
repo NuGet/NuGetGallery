@@ -3,6 +3,8 @@
 
   <PropertyGroup>
     <RunCodeAnalysis>true</RunCodeAnalysis>
+    <DefineConstants>$(DefineConstants);CODE_ANALYSIS</DefineConstants>
+    <NoWarn>$(NoWarn);$(FXCOP_NOWARN)</NoWarn>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     
     <CodeAnalysisSearchGlobalAssemblyCache>true</CodeAnalysisSearchGlobalAssemblyCache>

@@ -8,6 +8,7 @@ param (
     [string]$FxCopDirectory,
     [string]$FxCopProject,
     [string]$FxCopRuleSet,
+    [string]$FxCopNoWarn,
     [string]$FxCopOutputDirectory
 )
 
@@ -46,7 +47,7 @@ Trace-Log "RunCodeAnalysis Build #$BuildNumber started at $startTime"
 $BuildErrors = @()
     
 Invoke-BuildStep 'Running code analysis' { 
-        Invoke-FxCop $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -FxCopDirectory $FxCopDirectory -FxCopProject $FxCopProject -FxCopRuleSet $FxCopRuleSet -FxCopOutputDirectory $FxCopOutputDirectory `
+        Invoke-FxCop $Configuration $BuildNumber -MSBuildVersion "15" $SolutionPath -SkipRestore:$SkipRestore -FxCopDirectory $FxCopDirectory -FxCopProject $FxCopProject -FxCopRuleSet $FxCopRuleSet -FxCopOutputDirectory $FxCopOutputDirectory -FxCopNoWarn $FxCopNoWarn`
     } `
     -ev +BuildErrors
 
