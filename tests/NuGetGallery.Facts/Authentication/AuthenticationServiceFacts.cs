@@ -844,6 +844,29 @@ namespace NuGetGallery.Authentication
                 auth.Entities.VerifyCommitChanges();
             }
 
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("AzureActiveDirectory")]
+            public async Task WillSaveTheNewUserWithExternalCredentialAsConfirmed(string credType)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = true;
+
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"));
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                Assert.True(authUser.User.Confirmed);
+                auth.Entities.VerifyCommitChanges();
+            }
+
             [Fact]
             public async Task SetsAConfirmationToken()
             {
