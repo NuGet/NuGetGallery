@@ -1725,17 +1725,25 @@ namespace NuGetGallery
                 var controller = GetController<UsersController>();
                 controller.SetCurrentUser(user);
 
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<CredentialRemovedMessage>(
+                            msg =>
+                            msg.User == user
+                            && msg.CredentialType.Description == expectedDescription),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
                 // Act
                 var result = await controller.RemoveCredential(
                     credentialType: apiKey.Type,
                     credentialKey: CredentialKey);
 
                 // Assert
-                GetMock<IMessageService>()
-                    .Verify(m =>
-                                m.SendCredentialRemovedNoticeAsync(
-                                    user,
-                                    It.Is<CredentialViewModel>(c => c.Description == expectedDescription)));
+                messageService.VerifyAll();
             }
 
             public static IEnumerable<object[]> GivenValidRequest_ItRemovesAPIKeyWithDifferentScopesAndSendsCorrectMessageToUser_Input
