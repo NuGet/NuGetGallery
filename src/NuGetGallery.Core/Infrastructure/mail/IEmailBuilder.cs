@@ -24,13 +24,11 @@ namespace NuGetGallery.Infrastructure.Mail
         /// <summary>
         /// Gets the email message subject.
         /// </summary>
-        /// <returns></returns>
         string GetSubject();
 
         /// <summary>
         /// Gets the email recipients.
         /// </summary>
-        /// <returns></returns>
         IEmailRecipients GetRecipients();
     }
 }
