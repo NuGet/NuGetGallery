@@ -53,14 +53,17 @@ namespace NuGet.Services.AzureSearch
             .Select(x => x.Value.FullVersion)
             .ToList();
 
-        public SearchIndexChangeType Delete(NuGetVersion deleted)
+        public LatestIndexChanges Delete(NuGetVersion deleted)
         {
             var ctx = UpdateVersionList(
                 (v, p) => _versions.Remove(v),
                 deleted,
                 newProperties: null);
 
-            return DeleteFromSearchIndex(ctx);
+            var searchIndexChangeType = DeleteFromSearchIndex(ctx);
+            var hijackIndexChanges = DeleteFromHijackIndex(ctx);
+
+            return new LatestIndexChanges(searchIndexChangeType, hijackIndexChanges);
         }
 
         /// <summary>
@@ -68,24 +71,30 @@ namespace NuGet.Services.AzureSearch
         /// version at all (much like a <see cref="Delete(NuGetVersion)"/>). For the hijack index, the non-applicable
         /// version should not be deleted but the latest booleans should still be updated, for reflow.
         /// </summary>
-        public SearchIndexChangeType Remove(NuGetVersion version)
+        public LatestIndexChanges Remove(NuGetVersion version)
         {
             var ctx = UpdateVersionList(
                 (v, p) => _versions.Remove(v),
                 version,
                 newProperties: null);
 
-            return UpsertToSearchIndex(ctx);
+            var searchIndexChangeType = UpsertToSearchIndex(ctx);
+            var hijackIndexChanges = UpsertToHijackIndex(ctx);
+
+            return new LatestIndexChanges(searchIndexChangeType, hijackIndexChanges);
         }
 
-        public SearchIndexChangeType Upsert(FilteredVersionProperties addedProperties)
+        public LatestIndexChanges Upsert(FilteredVersionProperties addedProperties)
         {
             var ctx = UpdateVersionList(
                 (v, p) => _versions[v] = p,
                 addedProperties.ParsedVersion,
                 addedProperties);
 
-            return UpsertToSearchIndex(ctx);
+            var searchIndexChangeType = UpsertToSearchIndex(ctx);
+            var hijackIndexChanges = UpsertToHijackIndex(ctx);
+
+            return new LatestIndexChanges(searchIndexChangeType, hijackIndexChanges);
         }
 
         private static SearchIndexChangeType DeleteFromSearchIndex(Context ctx)
@@ -110,6 +119,23 @@ namespace NuGet.Services.AzureSearch
             // handled without any change to the search index. However, to support the reflow case, we update the
             // version list to make sure it is consistent.
             return SearchIndexChangeType.UpdateVersionList;
+        }
+
+        private static IReadOnlyList<HijackIndexChange> DeleteFromHijackIndex(Context ctx)
+        {
+            var changes = new List<HijackIndexChange>();
+
+            // Delete the document for the deleted version.
+            changes.Add(HijackIndexChange.Delete(ctx.ChangedVersion));
+
+            // Update the latest status of the latest version, if there is one.
+            if (ctx.NewLatest != null)
+            {
+                Assert(ctx.ChangedVersion != ctx.NewLatest, "The deleted version should not be the new latest version.");
+                changes.Add(HijackIndexChange.SetLatestToTrue(ctx.NewLatest));
+            }
+
+            return changes;
         }
 
         private static SearchIndexChangeType UpsertToSearchIndex(Context ctx)
@@ -152,6 +178,39 @@ namespace NuGet.Services.AzureSearch
             // handled without any change to the search index. However, to support the reflow case, we update the
             // version list to make sure it is consistent.
             return SearchIndexChangeType.UpdateVersionList;
+        }
+
+        private static IReadOnlyList<HijackIndexChange> UpsertToHijackIndex(Context ctx)
+        {
+            var changes = new List<HijackIndexChange>();
+
+            // Update the metadata for the upserted version.
+            changes.Add(HijackIndexChange.UpdateMetadata(ctx.ChangedVersion));
+
+            // If the new latest is not the version that we are processing right now, explicitly set the current version
+            // to not be the latest. This supports the reflow scenario.
+            if (ctx.NewLatest != ctx.ChangedVersion)
+            {
+                changes.Add(HijackIndexChange.SetLatestToFalse(ctx.ChangedVersion));
+            }
+
+            // If the latest version has changed and the old latest version existed, mark that old latest version as
+            // no longer latest.
+            if (ctx.OldLatest != null
+                && ctx.OldLatest != ctx.NewLatest
+                && ctx.OldLatest != ctx.ChangedVersion)
+            {
+                changes.Add(HijackIndexChange.SetLatestToFalse(ctx.OldLatest));
+            }
+
+            // Always mark the new latest version as latest, even if it has not changed. This supports the reflow
+            // scenario.
+            if (ctx.NewLatest != null)
+            {
+                changes.Add(HijackIndexChange.SetLatestToTrue(ctx.NewLatest));
+            }
+
+            return changes;
         }
 
         private static void Assert(bool condition, string message)

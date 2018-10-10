@@ -17,35 +17,69 @@ namespace NuGet.Services.AzureSearch
             {
                 ClearList();
                 _list.Upsert(new FilteredVersionProperties("1.02.0-Alpha.1+git", listed: true));
+                var properties = new FilteredVersionProperties("1.2.0.0-ALPHA.1+somethingelse", listed: true);
 
-                var type = _list.Upsert(new FilteredVersionProperties("1.2.0.0-ALPHA.1+somethingelse", listed: true));
+                var output = _list.Upsert(properties);
 
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, type);
-                Assert.Equal(new[] { "1.2.0-ALPHA.1+somethingelse" }, _list.FullVersions.ToArray());
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(properties.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(properties.ParsedVersion),
+                    },
+                    output.Hijack.ToArray());
+                Assert.Equal(properties.FullVersion, _list.LatestOrNull);
+                Assert.Equal(properties.ParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { properties.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { properties.ParsedVersion }, _list._versions.Keys.ToArray());
             }
 
             [Fact]
             public void ReplacesNonLatestFullVersionByNormalizedVersion()
             {
                 ClearList();
-                _list.Upsert(new FilteredVersionProperties("2.0.0", listed: true));
+                var latest = new FilteredVersionProperties("2.0.0", listed: true);
+                _list.Upsert(latest);
                 _list.Upsert(new FilteredVersionProperties("1.02.0-Alpha.1+git", listed: true));
+                var properties = new FilteredVersionProperties("1.2.0.0-ALPHA.1+somethingelse", listed: true);
 
-                var type = _list.Upsert(new FilteredVersionProperties("1.2.0.0-ALPHA.1+somethingelse", listed: true));
+                var output = _list.Upsert(properties);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
-                Assert.Equal(new[] { "1.2.0-ALPHA.1+somethingelse", "2.0.0" }, _list.FullVersions.ToArray());
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(properties.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(properties.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(latest.ParsedVersion),
+                    },
+                    output.Hijack.ToArray());
+                Assert.Equal(latest.FullVersion, _list.LatestOrNull);
+                Assert.Equal(latest.ParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { properties.FullVersion, latest.FullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(
+                    new[] { properties.ParsedVersion, latest.ParsedVersion },
+                    _list._versions.Keys.ToArray());
             }
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void UpdateVersionListForAddingUnlistedVersion(string version)
+            public void AddingUnlistedVersion(string version)
             {
                 var unlisted = new FilteredVersionProperties(version, listed: false);
 
-                var type = _list.Upsert(unlisted);
+                var output = _list.Upsert(unlisted);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(unlisted.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(unlisted.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -55,13 +89,20 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void AddFirstWhenAddingVeryFirstVersion()
+            public void AddingVeryFirstVersion()
             {
                 ClearList();
 
-                var type = _list.Upsert(_initialVersionProperties);
+                var output = _list.Upsert(_initialVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.AddFirst, type);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -70,14 +111,21 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void AddFirstWhenAddingFirstListedVersion(string version)
+            public void AddingFirstListedVersion(string version)
             {
                 StartWithUnlisted();
                 var listed = new FilteredVersionProperties(version, listed: true);
 
-                var type = _list.Upsert(listed);
+                var output = _list.Upsert(listed);
 
-                Assert.Equal(SearchIndexChangeType.AddFirst, type);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(listed.ParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(listed.FullVersion, _list.LatestOrNull);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
@@ -87,11 +135,18 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DeleteWhenUnlistingLatestAndNoOtherVersions()
+            public void UnlistingLatestAndNoOtherVersions()
             {
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -100,14 +155,21 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void DeleteWhenUnlistingLatestWithOtherUnlistedVersions(string version)
+            public void UnlistingLatestWithOtherUnlistedVersions(string version)
             {
                 var unlisted = new FilteredVersionProperties(version, listed: false);
                 _list.Upsert(unlisted);
 
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -117,14 +179,22 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DowngradeLatestWhenUnlistingLatestWithOtherListedVersion()
+            public void UnlistingLatestWithOtherListedVersion()
             {
                 var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, type);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(PreviousParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(listed.FullVersion, _list.LatestOrNull);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
@@ -132,14 +202,22 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateVersionListWhenUnlistingNonLatestVersion()
+            public void UnlistingNonLatestVersion()
             {
                 var listed = new FilteredVersionProperties(NextFullVersion, listed: true);
                 _list.Upsert(listed);
 
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(NextParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(listed.FullVersion, _list.LatestOrNull);
                 Assert.Equal(listed.ParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { listed.FullVersion }, _list.FullVersions.ToArray());
@@ -147,13 +225,21 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateVersionListWhenAddingListedNonLatestVersion()
+            public void AddingListedNonLatestVersion()
             {
                 var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
 
-                var type = _list.Upsert(listed);
+                var output = _list.Upsert(listed);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
@@ -161,28 +247,43 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateVersionListWhenRelistingNonLatestVersion()
+            public void RelistingNonLatestVersion()
             {
                 var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
-                var type = _list.Upsert(listed);
+                var output = _list.Upsert(listed);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
-                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
                 Assert.Equal(new[] { listed.ParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
 
             [Fact]
-            public void DeleteWhenUnlistingUnlistedVersionAndNoOtherVersions()
+            public void UnlistingUnlistedVersionAndNoOtherVersions()
             {
                 StartWithUnlisted();
 
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -190,13 +291,20 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DeleteWhenUnlistingNewVersionAndNoOtherVersions()
+            public void UnlistingNewVersionAndNoOtherVersions()
             {
                 ClearList();
 
-                var type = _list.Upsert(_unlistedVersionProperties);
+                var output = _list.Upsert(_unlistedVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -204,11 +312,18 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateExistingWhenRelistingLatestVersion()
+            public void RelistingLatestVersion()
             {
-                var type = _list.Upsert(_initialVersionProperties);
+                var output = _list.Upsert(_initialVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, type);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -216,15 +331,23 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateExistingNewVersionIsIntroduced()
+            public void NewVersionIsIntroduced()
             {
                 ClearList();
                 var listed = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(listed);
 
-                var type = _list.Upsert(_initialVersionProperties);
+                var output = _list.Upsert(_initialVersionProperties);
 
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, type);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(PreviousParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { listed.FullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
@@ -239,12 +362,18 @@ namespace NuGet.Services.AzureSearch
             {
                 ClearList();
                 _list.Upsert(new FilteredVersionProperties("1.02.0-Alpha.1+git", listed: true));
-                var removedVersion = "1.02.0-Alpha.1+git";
+                var removedVersion = NuGetVersion.Parse("1.02.0-Alpha.1+git");
 
-                var changes = _list.Remove(removedVersion);
+                var output = _list.Remove(removedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, changes);
-
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(removedVersion),
+                        HijackIndexChange.SetLatestToFalse(removedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -255,9 +384,19 @@ namespace NuGet.Services.AzureSearch
             [MemberData(nameof(PreviousAndNextVersions))]
             public void RemovesNewVersion(string version)
             {
-                var changes = _list.Remove(version);
+                var parsedVersion = NuGetVersion.Parse(version);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                var output = _list.Remove(parsedVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(parsedVersion),
+                        HijackIndexChange.SetLatestToFalse(parsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -271,9 +410,17 @@ namespace NuGet.Services.AzureSearch
                 var unlisted = new FilteredVersionProperties(version, listed: false);
                 _list.Upsert(unlisted);
 
-                var changes = _list.Remove(unlisted.FullVersion);
+                var output = _list.Remove(unlisted.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(unlisted.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(unlisted.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -286,9 +433,17 @@ namespace NuGet.Services.AzureSearch
                 var latest = new FilteredVersionProperties(NextFullVersion, listed: true);
                 _list.Upsert(latest);
 
-                var changes = _list.Remove(latest.FullVersion);
+                var output = _list.Remove(latest.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, changes);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(latest.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(latest.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -300,9 +455,16 @@ namespace NuGet.Services.AzureSearch
             {
                 StartWithUnlisted();
 
-                var changes = _list.Remove(InitialFullVersion);
+                var output = _list.Remove(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -312,9 +474,16 @@ namespace NuGet.Services.AzureSearch
             [Fact]
             public void RemovesVeryLastVersionWhenLastVersionIsUnlisted()
             {
-                var changes = _list.Remove(InitialFullVersion);
+                var output = _list.Remove(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -326,9 +495,16 @@ namespace NuGet.Services.AzureSearch
             {
                 ClearList();
 
-                var changes = _list.Remove(InitialFullVersion);
+                var output = _list.Remove(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -342,9 +518,16 @@ namespace NuGet.Services.AzureSearch
                 var unlisted = new FilteredVersionProperties(version, listed: false);
                 _list.Upsert(unlisted);
 
-                var changes = _list.Remove(InitialFullVersion);
+                var output = _list.Remove(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, changes);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -357,9 +540,17 @@ namespace NuGet.Services.AzureSearch
                 var nonLatest = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(nonLatest);
 
-                var changes = _list.Remove(nonLatest.FullVersion);
+                var output = _list.Remove(nonLatest.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(nonLatest.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(nonLatest.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -372,9 +563,17 @@ namespace NuGet.Services.AzureSearch
                 _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
                 _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
 
-                var changes = _list.Remove(InitialFullVersion);
+                var output = _list.Remove(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, changes);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(NextParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(NextFullVersion, _list.LatestOrNull);
                 Assert.Equal(NextParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.FullVersions.ToArray());
@@ -387,9 +586,17 @@ namespace NuGet.Services.AzureSearch
                 _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
                 _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
 
-                var changes = _list.Remove(NextParsedVersion);
+                var output = _list.Remove(NextParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, changes);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(NextParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(NextParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    Enumerable.ToArray(output.Hijack));
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
@@ -404,20 +611,39 @@ namespace NuGet.Services.AzureSearch
             {
                 ClearList();
                 _list.Upsert(new FilteredVersionProperties("1.02.0-Alpha.1+git", listed: true));
+                var deletedVersion = NuGetVersion.Parse("1.02.0-Alpha.1+git");
 
-                var type = _list.Delete("1.2.0.0-ALPHA.1+somethingelse");
+                var output = _list.Delete(deletedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
-                Assert.Empty(_list._versions);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(deletedVersion),
+                    },
+                    output.Hijack.ToArray());
+                Assert.Null(_list.LatestOrNull);
+                Assert.Null(_list._latestOrNull);
+                Assert.Empty(_list.FullVersions);
+                Assert.Empty(_list._versions.Keys);
             }
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void UpdateVersionListForDeletingNewVersion(string version)
+            public void DeletesNewVersion(string version)
             {
-                var type = _list.Delete(version);
+                var parsedVersion = NuGetVersion.Parse(version);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                var output = _list.Delete(parsedVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(parsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -426,14 +652,21 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void UpdateVersionListForDeletingUnlistedVersion(string version)
+            public void DeletesUnlistedVersion(string version)
             {
                 var unlisted = new FilteredVersionProperties(version, listed: false);
                 _list.Upsert(unlisted);
 
-                var type = _list.Delete(unlisted.FullVersion);
+                var output = _list.Delete(unlisted.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(unlisted.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -441,14 +674,21 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DowngradeForDeletingLatestVersion()
+            public void DeletesLatestVersion()
             {
                 var latest = new FilteredVersionProperties(NextFullVersion, listed: true);
                 _list.Upsert(latest);
 
-                var type = _list.Delete(latest.FullVersion);
+                var output = _list.Delete(latest.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, type);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(latest.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
@@ -456,13 +696,19 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DeleteForDeletingVeryLastVersionWhenLastVersionIsListed()
+            public void DeletesVeryLastVersionWhenLastVersionIsListed()
             {
                 StartWithUnlisted();
 
-                var type = _list.Delete(InitialFullVersion);
+                var output = _list.Delete(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -470,11 +716,17 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void DeleteForDeletingVeryLastVersionWhenLastVersionIsUnlisted()
+            public void DeletesVeryLastVersionWhenLastVersionIsUnlisted()
             {
-                var type = _list.Delete(InitialFullVersion);
+                var output = _list.Delete(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -487,13 +739,19 @@ namespace NuGet.Services.AzureSearch
             /// to reflow a delete and force the document to be deleted.
             /// </summary>
             [Fact]
-            public void DeleteFromEmptyListIsDelete()
+            public void DeletesFromEmptyList()
             {
                 ClearList();
 
-                var type = _list.Delete(InitialFullVersion);
+                var output = _list.Delete(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -502,14 +760,20 @@ namespace NuGet.Services.AzureSearch
 
             [Theory]
             [MemberData(nameof(PreviousAndNextVersions))]
-            public void DeleteForDeletingLastListedVersion(string version)
+            public void DeletesLastListedVersion(string version)
             {
                 var unlisted = new FilteredVersionProperties(version, listed: false);
                 _list.Upsert(unlisted);
 
-                var type = _list.Delete(InitialFullVersion);
+                var output = _list.Delete(InitialParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.Delete, type);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Null(_list.LatestOrNull);
                 Assert.Null(_list._latestOrNull);
                 Assert.Empty(_list.FullVersions);
@@ -517,18 +781,69 @@ namespace NuGet.Services.AzureSearch
             }
 
             [Fact]
-            public void UpdateVersionListForDeletingNonLatestListedVersion()
+            public void DeletesNonLatestListedVersionWithOneOtherVersion()
             {
                 var nonLatest = new FilteredVersionProperties(PreviousFullVersion, listed: true);
                 _list.Upsert(nonLatest);
 
-                var type = _list.Delete(nonLatest.FullVersion);
+                var output = _list.Delete(nonLatest.ParsedVersion);
 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, type);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(nonLatest.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    output.Hijack.ToArray());
                 Assert.Equal(InitialFullVersion, _list.LatestOrNull);
                 Assert.Equal(InitialParsedVersion, _list._latestOrNull);
                 Assert.Equal(new[] { InitialFullVersion }, _list.FullVersions.ToArray());
                 Assert.Equal(new[] { InitialParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void DeletesNonLatestListedVersionWithTwoOtherVersions()
+            {
+                _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
+                _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
+
+                var output = _list.Delete(InitialParsedVersion);
+
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(InitialParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(NextParsedVersion),
+                    },
+                    output.Hijack.ToArray());
+                Assert.Equal(NextFullVersion, _list.LatestOrNull);
+                Assert.Equal(NextParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { PreviousFullVersion, NextFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousParsedVersion, NextParsedVersion }, _list._versions.Keys.ToArray());
+            }
+
+            [Fact]
+            public void DeletesLatestListedVersionWithTwoOtherVersions()
+            {
+                _list.Upsert(new FilteredVersionProperties(PreviousFullVersion, listed: true));
+                _list.Upsert(new FilteredVersionProperties(NextFullVersion, listed: true));
+
+                var output = _list.Delete(NextParsedVersion);
+
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search);
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.Delete(NextParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(InitialParsedVersion),
+                    },
+                    Enumerable.ToArray(output.Hijack));
+                Assert.Equal(InitialFullVersion, _list.LatestOrNull);
+                Assert.Equal(InitialParsedVersion, _list._latestOrNull);
+                Assert.Equal(new[] { PreviousFullVersion, InitialFullVersion }, _list.FullVersions.ToArray());
+                Assert.Equal(new[] { PreviousParsedVersion, InitialParsedVersion }, _list._versions.Keys.ToArray());
             }
         }
 
@@ -636,7 +951,7 @@ namespace NuGet.Services.AzureSearch
             {
                 foreach (var version in _list._versions.ToList())
                 {
-                    _list.Delete(version.Value.FullVersion);
+                    _list.Delete(version.Value.ParsedVersion);
                 }
             }
 

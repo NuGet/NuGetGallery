@@ -73,42 +73,42 @@ namespace NuGet.Services.AzureSearch
             return new VersionListData(_versionProperties.Values.ToDictionary(x => x.Key, x => x.Value));
         }
 
-        public IReadOnlyDictionary<SearchFilters, SearchIndexChangeType> Upsert(
+        public IReadOnlyDictionary<SearchFilters, LatestIndexChanges> Upsert(
             string fullOrOriginalVersion,
             VersionPropertiesData data)
         {
             var added = new VersionProperties(fullOrOriginalVersion, data);
             _versionProperties[added.ParsedVersion] = KeyValuePair.Create(added.FullVersion, data);
 
-            var output = new Dictionary<SearchFilters, SearchIndexChangeType>();
+            var output = new Dictionary<SearchFilters, LatestIndexChanges>();
             foreach (var pair in _versionLists)
             {
                 var searchFilter = pair.Key;
                 var listState = pair.Value;
                 var predicate = SearchFilterPredicates[searchFilter];
 
-                SearchIndexChangeType changeType;
+                LatestIndexChanges latestIndexChanges;
                 if (predicate(added))
                 {
-                    changeType = listState.Upsert(added.Filtered);
+                    latestIndexChanges = listState.Upsert(added.Filtered);
                 }
                 else
                 {
-                    changeType = listState.Remove(added.ParsedVersion);
+                    latestIndexChanges = listState.Remove(added.ParsedVersion);
                 }
 
-                output[searchFilter] = changeType;
+                output[searchFilter] = latestIndexChanges;
             }
 
             return output;
         }
 
-        public IReadOnlyDictionary<SearchFilters, SearchIndexChangeType> Delete(string version)
+        public IReadOnlyDictionary<SearchFilters, LatestIndexChanges> Delete(string version)
         {
             var parsedVersion = NuGetVersion.Parse(version);
             _versionProperties.Remove(parsedVersion);
 
-            var output = new Dictionary<SearchFilters, SearchIndexChangeType>();
+            var output = new Dictionary<SearchFilters, LatestIndexChanges>();
             foreach (var pair in _versionLists)
             {
                 var searchFilter = pair.Key;

@@ -35,6 +35,9 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="VersionList\HijackIndexChange.cs" />
+    <Compile Include="VersionList\HijackIndexChangeType.cs" />
+    <Compile Include="VersionList\LatestIndexChanges.cs" />
     <Compile Include="VersionList\KeyValuePair.cs" />
     <Compile Include="VersionList\VersionProperties.cs" />
     <Compile Include="VersionList\FilteredVersionProperties.cs" />

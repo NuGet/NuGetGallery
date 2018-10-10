@@ -125,7 +125,7 @@ namespace NuGet.Services.AzureSearch
                 var list = Create(
                     new VersionProperties("1.02.0-Alpha.1+git", new VersionPropertiesData(listed: true, semVer2: true)));
 
-                var type = list.Upsert("1.2.0.0-ALPHA.1+somethingelse", new VersionPropertiesData(listed: true, semVer2: true));
+                list.Upsert("1.2.0.0-ALPHA.1+somethingelse", new VersionPropertiesData(listed: true, semVer2: true));
 
                 Assert.Equal(
                     new[] { "1.2.0-ALPHA.1+somethingelse" },
@@ -139,11 +139,68 @@ namespace NuGet.Services.AzureSearch
                     new VersionProperties("2.0.0", new VersionPropertiesData(listed: true, semVer2: true)),
                     new VersionProperties("1.02.0-Alpha.1+git", new VersionPropertiesData(listed: true, semVer2: true)));
 
-                var type = list.Upsert("1.2.0.0-ALPHA.1+somethingelse", new VersionPropertiesData(listed: true, semVer2: true));
+                list.Upsert("1.2.0.0-ALPHA.1+somethingelse", new VersionPropertiesData(listed: true, semVer2: true));
 
                 Assert.Equal(
                     new[] { "1.2.0-ALPHA.1+somethingelse", "2.0.0" },
                     list.GetVersionListData().VersionProperties.Keys.ToArray());
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.Default)]
+            [InlineData(SearchFilters.IncludeSemVer2)]
+            public void AddNonApplicableVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            {
+                var list = Create(_stableSemVer1Listed);
+
+                var output = list.Upsert(_prereleaseSemVer1Listed);
+
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(_prereleaseSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
+                    },
+                    output[searchFilters].Hijack.ToArray());
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.IncludePrerelease)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
+            public void AddApplicableNonLatestVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            {
+                var list = Create(_stableSemVer1Listed);
+
+                var output = list.Upsert(_prereleaseSemVer1Listed);
+
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(_prereleaseSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
+                    },
+                    output[searchFilters].Hijack.ToArray());
+            }
+
+            [Theory]
+            [InlineData(SearchFilters.IncludePrerelease)]
+            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
+            public void AddApplicableLatestVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            {
+                var list = Create(_prereleaseSemVer1Listed);
+
+                var output = list.Upsert(_stableSemVer1Listed);
+
+                Assert.Equal(
+                    new[]
+                    {
+                        HijackIndexChange.UpdateMetadata(_stableSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
+                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
+                    },
+                    output[searchFilters].Hijack.ToArray());
             }
 
             [Theory]
@@ -157,7 +214,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -171,7 +228,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -185,7 +242,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -199,7 +256,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -213,7 +270,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -227,7 +284,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
         }
 
@@ -239,7 +296,7 @@ namespace NuGet.Services.AzureSearch
                 var list = Create(
                     new VersionProperties("1.02.0-Alpha.1+git", new VersionPropertiesData(listed: true, semVer2: true)));
 
-                var type = list.Delete("1.2.0.0-ALPHA.1+somethingelse");
+                list.Delete("1.2.0.0-ALPHA.1+somethingelse");
 
                 Assert.Empty(list.GetVersionListData().VersionProperties);
             }
@@ -255,7 +312,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -269,7 +326,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -283,7 +340,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -297,7 +354,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -311,7 +368,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Listed);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
 
             [Theory]
@@ -325,7 +382,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(_prereleaseSemVer2Unlisted);
 
-                Assert.Equal(expected, output[searchFilters]);
+                Assert.Equal(expected, output[searchFilters].Search);
             }
         }
 
