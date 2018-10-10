@@ -1672,6 +1672,7 @@ namespace NuGetGallery
                                     user,
                                     It.Is<CredentialViewModel>(c => c.Description == expectedDescription)));
             }
+
             public static IEnumerable<object[]> GivenValidRequest_ItRemovesAPIKeyWithDifferentScopesAndSendsCorrectMessageToUser_Input
             {
                 get
@@ -1688,7 +1689,7 @@ namespace NuGetGallery
                         },
                         new object[]
                         {
-                            new Scope[]{ },
+                            new Scope[0]{ },
                             Strings.NonScopedApiKeyDescription
                         }
                     };
