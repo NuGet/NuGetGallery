@@ -1025,13 +1025,15 @@ namespace NuGetGallery
                 return Json(Strings.CredentialNotFound);
             }
 
+            var credentialTypeInfo = AuthenticationService.DescribeCredential(cred).GetCredentialTypeInfo();
+
             await AuthenticationService.RemoveCredential(user, cred);
 
             // Notify the user of the change
             var emailMessage = new CredentialRemovedMessage(
                 _config,
                 user,
-                AuthenticationService.DescribeCredential(cred).GetCredentialTypeInfo());
+                credentialTypeInfo);
             await MessageService.SendMessageAsync(emailMessage);
 
             return Json(Strings.CredentialRemoved);
