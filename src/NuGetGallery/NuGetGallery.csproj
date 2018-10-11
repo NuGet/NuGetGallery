@@ -293,6 +293,37 @@
     <Compile Include="Infrastructure\Authentication\ApiKeyV3.cs" />
     <Compile Include="Infrastructure\Authentication\ApiKeyV4.cs" />
     <Compile Include="Infrastructure\Authentication\Base32Encoder.cs" />
+    <Compile Include="Infrastructure\Mail\EmailRecipientsWithPermission.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeNoticeToPreviousEmailAddressMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\NewAccountMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestCanceledMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestDeclinedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PasswordResetInstructionsMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportPackageMessageBase.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessage.cs" />
+    <Compile Include="Infrastructure\Mail\Requests\ReportPackageRequest.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.cs" />
     <Compile Include="Migrations\201711082145351_AddAccountDelete.Designer.cs">
       <DependentUpon>201711082145351_AddAccountDelete.cs</DependentUpon>
@@ -387,13 +418,14 @@
     <Compile Include="Services\ActionRequiringReservedNamespacePermissions.cs" />
     <Compile Include="Services\ActionsRequiringPermissions.cs" />
     <Compile Include="Services\AsynchronousPackageValidationInitiator.cs" />
-    <Compile Include="Services\BackgroundMessageService.cs" />
+    <Compile Include="Infrastructure\Mail\BackgroundMarkdownMessageService.cs" />
     <Compile Include="Services\ISymbolPackageUploadService.cs" />
     <Compile Include="Services\ISymbolPackageFileService.cs" />
     <Compile Include="Services\ITyposquattingConfiguration.cs" />
     <Compile Include="Services\ISymbolsConfiguration.cs" />
     <Compile Include="Services\ITyposquattingService.cs" />
     <Compile Include="Services\SymbolPackageValidationResult.cs" />
+    <Compile Include="Infrastructure\Mail\MarkdownMessageService.cs" />
     <Compile Include="Services\SymbolPackageUploadService.cs" />
     <Compile Include="Services\SymbolPackageFileService.cs" />
     <Compile Include="Services\SymbolPackageService.cs" />
@@ -1339,7 +1371,6 @@
     <Compile Include="Services\AppActivatorException.cs" />
     <Compile Include="Services\CloudDownloadCountService.cs" />
     <Compile Include="Services\ConfirmOwnershipResult.cs" />
-    <Compile Include="Services\ContactSupportRequest.cs" />
     <Compile Include="Services\CuratedFeedService.cs" />
     <Compile Include="Services\DownloadCountObjectMaterializedInterceptor.cs" />
     <Compile Include="Services\ICuratedFeedService.cs" />
@@ -1369,7 +1400,6 @@
     <Compile Include="Services\JsonAggregateStatsService.cs" />
     <Compile Include="Services\SearchResults.cs" />
     <Compile Include="Services\SqlAggregateStatsService.cs" />
-    <Compile Include="Services\ReportPackageRequest.cs" />
     <Compile Include="Services\SearchFilter.cs" />
     <Compile Include="Services\StatisticsReportName.cs" />
     <Compile Include="Services\StatisticsReportNotFoundException.cs" />
@@ -1401,8 +1431,6 @@
     <Compile Include="Controllers\UsersController.cs" />
     <Compile Include="Infrastructure\CookieTempDataProvider.cs" />
     <Compile Include="Services\SearchExtensionMethods.cs" />
-    <Compile Include="Services\IMessageService.cs" />
-    <Compile Include="Services\MessageService.cs" />
     <Compile Include="ViewModels\ContactOwnersViewModel.cs" />
     <Compile Include="ViewModels\PasswordResetViewModel.cs" />
     <Compile Include="ViewModels\ManagePackageOwnersViewModel.cs" />
@@ -1944,6 +1972,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Markdig.Signed">
+      <Version>0.15.3</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>

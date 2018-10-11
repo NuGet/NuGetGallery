@@ -15,6 +15,8 @@ using Moq;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Authentication;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 using Xunit;
 
@@ -23,10 +25,10 @@ namespace NuGetGallery
     public class OrganizationsControllerFacts
         : AccountsControllerFacts<OrganizationsController, Organization, OrganizationAccountViewModel>
     {
-        private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
-        private static Func<Fakes, User> _getFakesSiteAdmin = (Fakes fakes) => fakes.Admin;
-        private static Func<Fakes, User> _getFakesOrganizationAdmin = (Fakes fakes) => fakes.OrganizationAdmin;
-        private static Func<Fakes, User> _getFakesOrganizationCollaborator = (Fakes fakes) => fakes.OrganizationCollaborator;
+        private static readonly Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
+        private static readonly Func<Fakes, User> _getFakesSiteAdmin = (Fakes fakes) => fakes.Admin;
+        private static readonly Func<Fakes, User> _getFakesOrganizationAdmin = (Fakes fakes) => fakes.OrganizationAdmin;
+        private static readonly Func<Fakes, User> _getFakesOrganizationCollaborator = (Fakes fakes) => fakes.OrganizationCollaborator;
 
         public class TheAccountAction : TheAccountBaseAction
         {
@@ -317,10 +319,10 @@ namespace NuGetGallery
             private const string OrgName = "TestOrg";
             private const string OrgEmail = "TestOrg@testorg.com";
 
-            private AddOrganizationViewModel Model = 
+            private readonly AddOrganizationViewModel Model =
                 new AddOrganizationViewModel { OrganizationName = OrgName, OrganizationEmailAddress = OrgEmail };
 
-            private User Admin;
+            private readonly User Admin;
 
             private Fakes Fakes;
 
@@ -346,7 +348,7 @@ namespace NuGetGallery
                 var result = await controller.Add(Model);
 
                 ResultAssert.IsView<AddOrganizationViewModel>(result);
-                
+
                 Assert.Equal(message, controller.TempData["AddOrganizationErrorMessage"]);
 
                 GetMock<ITelemetryService>()
@@ -370,25 +372,32 @@ namespace NuGetGallery
                     .Setup(x => x.AddOrganizationAsync(OrgName, OrgEmail, Admin))
                     .Returns(Task.FromResult(org));
 
+                NewAccountMessage sentMessage = null;
                 var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(It.IsAny<NewAccountMessage>(), false, false))
+                    .Callback<IEmailBuilder, bool, bool>(
+                        (msg, copySender, discloseSenderAddress) =>
+                        {
+                            sentMessage = msg as NewAccountMessage;
+                        })
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 var controller = GetController<OrganizationsController>();
                 controller.SetCurrentUser(Admin);
 
                 var result = await controller.Add(Model);
 
-                ResultAssert.IsRedirectToRoute(result, 
+                ResultAssert.IsRedirectToRoute(result,
                     new { accountName = org.Username, action = nameof(OrganizationsController.ManageOrganization) });
 
-                messageService.Verify(
-                    x => x.SendNewAccountEmailAsync(
-                        org, 
-                        It.Is<string>(s => s.Contains(token))), 
-                    Times.Once());
+                Assert.NotNull(sentMessage);
+                Assert.Equal(org, sentMessage.User);
+                Assert.Contains(token, sentMessage.ConfirmationUrl);
 
                 GetMock<ITelemetryService>()
-                    .Verify(
-                        t => t.TrackOrganizationAdded(It.IsAny<Organization>()));
+                    .Verify(t => t.TrackOrganizationAdded(It.IsAny<Organization>()));
             }
         }
 
@@ -406,7 +415,7 @@ namespace NuGetGallery
             }
 
             public static IEnumerable<object[]> AllowedCurrentUsers_IsAdmin_Data => MemberDataHelper.Combine(
-                AllowedCurrentUsers_Data, 
+                AllowedCurrentUsers_Data,
                 new[] { MemberDataHelper.AsData(false), MemberDataHelper.AsData(true) });
 
             public static IEnumerable<object[]> WithNonOrganizationAdmin_ReturnsForbidden_Data
@@ -484,9 +493,35 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<OrganizationMembershipRequestInitiatedMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.RequestingUser == controller.GetCurrentUser()
+                            && msg.PendingUser == It.Is<User>(u => u.Username == defaultMemberName)
+                            && msg.IsAdmin == isAdmin),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeAddMember(controller, account, getCurrentUser, isAdmin: isAdmin);
+
+                GetMock<IMessageService>()
+                    .Setup(m => m.SendMessageAsync(
+                        It.Is<OrganizationMembershipRequestMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.NewUser == It.Is<User>(u => u.Username == defaultMemberName)
+                            && msg.AdminUser == controller.GetCurrentUser()
+                            && msg.IsAdmin == isAdmin),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Assert
                 Assert.Equal(0, controller.Response.StatusCode);
@@ -498,22 +533,11 @@ namespace NuGetGallery
                 Assert.Equal(true, data.Pending);
 
                 GetMock<IUserService>().Verify(s => s.AddMembershipRequestAsync(account, defaultMemberName, isAdmin), Times.Once);
-                GetMock<IMessageService>()
-                    .Verify(s => s.SendOrganizationMembershipRequestAsync(
-                        account,
-                        It.Is<User>(u => u.Username == defaultMemberName),
-                        controller.GetCurrentUser(),
-                        isAdmin,
-                        It.IsAny<string>(),
-                        It.IsAny<string>(),
-                        It.IsAny<string>()));
-                GetMock<IMessageService>()
-                    .Verify(s => s.SendOrganizationMembershipRequestInitiatedNoticeAsync(
-                        account,
-                        controller.GetCurrentUser(),
-                        It.Is<User>(u => u.Username == defaultMemberName),
-                        isAdmin,
-                        It.IsAny<string>()));
+                messageService
+                    .Verify(s => s.SendMessageAsync(
+                        It.IsAny<OrganizationMembershipRequestInitiatedMessage>(),
+                        false,
+                        false));
             }
 
             private Task<JsonResult> InvokeAddMember(
@@ -571,7 +595,7 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
 
                 GetMock<IUserService>().Verify(s => s.AddMemberAsync(It.IsAny<Organization>(), Fakes.User.Username, defaultConfirmationToken), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberUpdatedNoticeAsync(It.IsAny<Organization>(), It.IsAny<Membership>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMemberUpdatedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -597,7 +621,7 @@ namespace NuGetGallery
                 Assert.False(model.Successful);
 
                 GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberUpdatedNoticeAsync(It.IsAny<Organization>(), It.IsAny<Membership>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMemberUpdatedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -608,6 +632,17 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<OrganizationMemberUpdatedMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.Membership == It.Is<Membership>(m => Fakes.User.Username == m.Member.Username && m.Organization == account && m.IsAdmin == isAdmin)),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeConfirmMember(controller, account, isAdmin: isAdmin);
@@ -622,10 +657,12 @@ namespace NuGetGallery
                     controller.TempData["Message"]);
 
                 GetMock<IUserService>().Verify(s => s.AddMemberAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
-                GetMock<IMessageService>()
-                    .Verify(s => s.SendOrganizationMemberUpdatedNoticeAsync(
-                        account,
-                        It.Is<Membership>(m => Fakes.User.Username == m.Member.Username && m.Organization == account && m.IsAdmin == isAdmin)), Times.Once);
+                messageService
+                    .Verify(s => s.SendMessageAsync(
+                        It.IsAny<OrganizationMemberUpdatedMessage>(),
+                        false,
+                        false),
+                        Times.Once);
             }
 
             private Task<ActionResult> InvokeConfirmMember(
@@ -678,6 +715,7 @@ namespace NuGetGallery
             {
                 // Arrange
                 var controller = GetController();
+                var messageService = GetMock<IMessageService>();
 
                 // Act
                 var result = await InvokeRejectMember(controller, account: null, isAdmin: isAdmin);
@@ -686,7 +724,10 @@ namespace NuGetGallery
                 ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
 
                 GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                messageService
+                    .Verify(
+                    s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestDeclinedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Never);
             }
 
             [Theory]
@@ -712,7 +753,10 @@ namespace NuGetGallery
                 Assert.False(model.Successful);
 
                 GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>()
+                    .Verify(
+                    s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestDeclinedMessage>(), It.IsAny<bool>(), It.IsAny<bool>()),
+                    Times.Never);
             }
 
             [Theory]
@@ -723,6 +767,17 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<OrganizationMembershipRequestDeclinedMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.PendingUser == Fakes.User),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeRejectMember(controller, account, isAdmin: isAdmin);
@@ -735,7 +790,7 @@ namespace NuGetGallery
                 Assert.True(model.Successful);
 
                 GetMock<IUserService>().Verify(s => s.RejectMembershipRequestAsync(account, Fakes.User.Username, defaultConfirmationToken), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestRejectedNoticeAsync(account, Fakes.User), Times.Once);
+                messageService.Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestDeclinedMessage>(), false, false), Times.Once);
             }
 
             private Task<ActionResult> InvokeRejectMember(
@@ -869,6 +924,17 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<OrganizationMemberUpdatedMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.Membership == It.Is<Membership>(m => m.Organization == account && m.Member.Username == defaultMemberName && m.IsAdmin == isAdmin)),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeUpdateMember(controller, account, getCurrentUser, isAdmin: isAdmin);
@@ -882,10 +948,13 @@ namespace NuGetGallery
                 Assert.Equal(isAdmin, data.IsAdmin);
 
                 GetMock<IUserService>().Verify(s => s.UpdateMemberAsync(account, defaultMemberName, isAdmin), Times.Once);
-                GetMock<IMessageService>()
-                    .Verify(s => s.SendOrganizationMemberUpdatedNoticeAsync(
-                        account,
-                        It.Is<Membership>(m => m.Organization == account && m.Member.Username == defaultMemberName && m.IsAdmin == isAdmin)));
+
+                messageService
+                   .Verify(s => s.SendMessageAsync(
+                       It.IsAny<OrganizationMemberUpdatedMessage>(),
+                       false,
+                       false),
+                       Times.Once);
             }
 
             private Task<JsonResult> InvokeUpdateMember(
@@ -962,7 +1031,7 @@ namespace NuGetGallery
                 Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMemberRemovedMessage>(), false, false), Times.Never);
             }
 
             [Theory]
@@ -983,7 +1052,7 @@ namespace NuGetGallery
                 Assert.Equal(Strings.Member_OrganizationUnconfirmed, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMemberRemovedMessage>(), false, false), Times.Never);
             }
 
             [Theory]
@@ -1003,7 +1072,7 @@ namespace NuGetGallery
                 Assert.Equal("error", result.Data);
 
                 GetMock<IUserService>().Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMemberRemovedNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMemberRemovedMessage>(), false, false), Times.Never);
             }
 
             [Theory]
@@ -1013,6 +1082,16 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<OrganizationMemberRemovedMessage>(
+                            msg =>
+                            msg.Organization == It.Is<User>(u => u.Username == defaultMemberName)),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeDeleteMember(controller, account, getCurrentUser);
@@ -1024,8 +1103,12 @@ namespace NuGetGallery
 
                 GetMock<IUserService>()
                     .Verify(s => s.DeleteMemberAsync(account, defaultMemberName), Times.Once);
-                GetMock<IMessageService>()
-                    .Verify(s => s.SendOrganizationMemberRemovedNoticeAsync(account, It.Is<User>(u => u.Username == defaultMemberName)), Times.Once);
+                messageService
+                    .Verify(s => s.SendMessageAsync(
+                        It.IsAny<OrganizationMemberRemovedMessage>(),
+                        false,
+                        false),
+                        Times.Once);
             }
 
             [Fact]
@@ -1116,7 +1199,7 @@ namespace NuGetGallery
                 Assert.Equal(Strings.Unauthorized, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(It.IsAny<Organization>(), It.IsAny<string>()), Times.Never);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestCanceledMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -1136,7 +1219,7 @@ namespace NuGetGallery
                 Assert.Equal("error", result.Data);
 
                 GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(account, defaultMemberName), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNoticeAsync(It.IsAny<Organization>(), It.IsAny<User>()), Times.Never);
+                GetMock<IMessageService>().Verify(s => s.SendMessageAsync(It.IsAny<OrganizationMembershipRequestCanceledMessage>(), It.IsAny<bool>(), It.IsAny<bool>()), Times.Never);
             }
 
             [Theory]
@@ -1146,6 +1229,17 @@ namespace NuGetGallery
                 // Arrange
                 var controller = GetController();
                 var account = GetAccount(controller);
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(s => s.SendMessageAsync(
+                        It.Is<OrganizationMembershipRequestCanceledMessage>(
+                            msg =>
+                            msg.Organization == account
+                            && msg.PendingUser == It.Is<User>(u => u.Username == defaultMemberName)),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
 
                 // Act
                 var result = await InvokeCancelMemberRequestMember(controller, account, getCurrentUser);
@@ -1156,7 +1250,11 @@ namespace NuGetGallery
                 Assert.Equal(Strings.CancelMemberRequest_Success, result.Data);
 
                 GetMock<IUserService>().Verify(s => s.CancelMembershipRequestAsync(account, defaultMemberName), Times.Once);
-                GetMock<IMessageService>().Verify(s => s.SendOrganizationMembershipRequestCancelledNoticeAsync(account, It.Is<User>(u => u.Username == defaultMemberName)), Times.Once);
+                messageService.Verify(s => s.SendMessageAsync(
+                    It.IsAny<OrganizationMembershipRequestCanceledMessage>(),
+                    false,
+                    false),
+                    Times.Once);
             }
 
             private Task<JsonResult> InvokeCancelMemberRequestMember(
@@ -1297,7 +1395,7 @@ namespace NuGetGallery
 
                 // Act & Assert
                 await RedirectsToDeleteRequest(
-                    controller, 
+                    controller,
                     testOrganization.Username,
                     "You cannot delete your organization unless you transfer ownership of all of its packages to another account.");
             }

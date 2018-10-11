@@ -852,9 +852,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_ForgotPassword_Body {
+        public static string Emails_ForgotPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_ForgotPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_ForgotPassword_MarkdownBody", resourceCulture);
             }
         }
         
@@ -880,9 +880,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_SetPassword_Body {
+        public static string Emails_SetPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_SetPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_SetPassword_MarkdownBody", resourceCulture);
             }
         }
         

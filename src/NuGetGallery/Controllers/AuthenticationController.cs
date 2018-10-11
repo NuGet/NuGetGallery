@@ -16,6 +16,8 @@ using NuGetGallery.Authentication.Providers;
 using NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2;
 using NuGetGallery.Authentication.Providers.MicrosoftAccount;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -32,11 +34,11 @@ namespace NuGetGallery
         private readonly ICredentialBuilder _credentialBuilder;
 
         private readonly IContentObjectService _contentObjectService;
-
+        private readonly IMessageServiceConfiguration _messageServiceConfiguration;
         private const string EMAIL_FORMAT_PADDING = "**********";
 
         // Prioritize the external authentication mechanism.
-        private readonly static string[] ExternalAuthenticationPriority = new string[] {
+        private static readonly string[] ExternalAuthenticationPriority = new string[] {
             Authenticator.GetName(typeof(AzureActiveDirectoryV2Authenticator)),
             Authenticator.GetName(typeof(MicrosoftAccountAuthenticator))
         };
@@ -46,13 +48,15 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             ICredentialBuilder credentialBuilder,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IMessageServiceConfiguration messageServiceConfiguration)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _messageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             _credentialBuilder = credentialBuilder ?? throw new ArgumentNullException(nameof(credentialBuilder));
             _contentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            _messageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
         }
 
         /// <summary>
@@ -287,12 +291,15 @@ namespace NuGetGallery
             // Send a new account email
             if (NuGetContext.Config.Current.ConfirmEmailAddresses && !string.IsNullOrEmpty(user.User.UnconfirmedEmailAddress))
             {
-                await _messageService.SendNewAccountEmailAsync(
+                var message = new NewAccountMessage(
+                    _messageServiceConfiguration,
                     user.User,
                     Url.ConfirmEmail(
                         user.User.Username,
                         user.User.EmailConfirmationToken,
                         relativeUrl: false));
+
+                await _messageService.SendMessageAsync(message);
             }
 
             // If we are an administrator and Gallery.EnforcedAuthProviderForAdmin is set
@@ -351,8 +358,13 @@ namespace NuGetGallery
                     }
                     else
                     {
-                        var externalCredentials = user.Credentials.Where(cred => cred.IsExternal());
-                        await _messageService.SendSigninAssistanceEmailAsync(new MailAddress(email, user.Username), externalCredentials);
+                        var message = new SigninAssistanceMessage(
+                            _messageServiceConfiguration,
+                            new MailAddress(email, user.Username),
+                            user.Credentials.Where(cred => cred.IsExternal()));
+
+                        await _messageService.SendMessageAsync(message);
+
                         return Json(new { success = true });
                     }
                 }
@@ -674,7 +686,11 @@ namespace NuGetGallery
             await RemovePasswordCredential(user.User);
 
             // Notify the user of the change
-            await _messageService.SendCredentialAddedNoticeAsync(user.User, _authService.DescribeCredential(result.Credential));
+            var emailMessage = new CredentialAddedMessage(
+                _messageServiceConfiguration,
+                user.User,
+                _authService.DescribeCredential(result.Credential).GetCredentialTypeInfo());
+            await _messageService.SendMessageAsync(emailMessage);
 
             return new LoginUserDetails
             {
