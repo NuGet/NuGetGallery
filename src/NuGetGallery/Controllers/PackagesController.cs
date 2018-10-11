@@ -1304,6 +1304,8 @@ namespace NuGetGallery
 
                 await _validationService.RevalidateAsync(latestSymbolPackage);
 
+                await _symbolPackageUploadService.MarkSymbolsPackageAsValidating(latestSymbolPackage);
+
                 TempData["Message"] = "The symbols package is being revalidated.";
             }
             catch (Exception ex)

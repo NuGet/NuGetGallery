@@ -40,5 +40,11 @@ namespace NuGetGallery
         /// </summary>
         /// <param name="symbolPackage">The <see cref="SymbolPackage"/> entity to be marked for deletion</param>
         Task DeleteSymbolsPackageAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
+        /// Mark the specifed symbol package for validations.
+        /// </summary>
+        /// <param name="symbolPackage">The <see cref="SymbolPackage"/> entity to be marked for validating</param>
+        Task MarkSymbolsPackageAsValidating(SymbolPackage symbolPackage);
     }
 }
