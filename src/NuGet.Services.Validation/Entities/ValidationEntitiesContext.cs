@@ -692,7 +692,7 @@ namespace NuGet.Services.Validation
                     {
                         new IndexAttribute(SymbolsServerRequestSymbolsKeyIndex)
                         {
-                            IsUnique = true,
+                            IsUnique = false,
                         }
                     }));
 
