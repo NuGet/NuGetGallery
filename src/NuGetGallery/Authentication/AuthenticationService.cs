@@ -299,7 +299,7 @@ namespace NuGetGallery.Authentication
             return claims.ToArray();
         }
 
-        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential)
+        public virtual async Task<AuthenticatedUser> Register(string username, string emailAddress, Credential credential, bool autoConfirm = false)
         {
             if (_config.FeedOnlyMode)
             {
@@ -332,7 +332,7 @@ namespace NuGetGallery.Authentication
             // Add a credential for the password
             newUser.Credentials.Add(credential);
 
-            if (!_config.ConfirmEmailAddresses || credential.IsExternal())
+            if (!_config.ConfirmEmailAddresses || (credential.IsExternal() && autoConfirm))
             {
                 newUser.ConfirmEmailAddress();
             }
@@ -651,7 +651,8 @@ namespace NuGetGallery.Authentication
                     ExternalIdentity = externalIdentity,
                     Authenticator = authenticator,
                     Credential = _credentialBuilder.CreateExternalCredential(userInfo.AuthenticationType, userInfo.Identifier, identity, userInfo.TenantId),
-                    LoginDetails = new ExternalLoginSessionDetails(userInfo.Email, userInfo.UsedMultiFactorAuthentication)
+                    LoginDetails = new ExternalLoginSessionDetails(userInfo.Email, userInfo.UsedMultiFactorAuthentication),
+                    UserInfo = userInfo
                 };
             }
             catch (Exception ex)
