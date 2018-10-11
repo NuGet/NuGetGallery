@@ -59,6 +59,8 @@
     <Compile Include="Model\PackageRegistrationLeafMetadata.cs" />
     <Compile Include="Model\PackageTimestampMetadata.cs" />
     <Compile Include="Notification\IMonitoringNotificationService.cs" />
+    <Compile Include="Providers\PackageBaseAddressResourceProvider.cs" />
+    <Compile Include="Resources\PackageBaseAddressResource.cs" />
     <Compile Include="Status\IPackageMonitoringStatusService.cs" />
     <Compile Include="Notification\LoggerMonitoringNotificationService.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -100,6 +102,9 @@
     <Compile Include="Validation\Test\Exceptions\MissingPackageSignatureFileException.cs" />
     <Compile Include="Validation\Test\Exceptions\TimestampComparisonException.cs" />
     <Compile Include="Validation\Test\Exceptions\ValidationException.cs" />
+    <Compile Include="Validation\Test\FlatContainer\FlatContainerValidator.cs" />
+    <Compile Include="Validation\Test\FlatContainer\PackageIsRepositorySignedValidator.cs" />
+    <Compile Include="Validation\Test\Exceptions\MissingRepositorySignatureException.cs" />
     <Compile Include="Validation\Test\IAggregateValidator.cs" />
     <Compile Include="Validation\Test\IValidator.cs" />
     <Compile Include="Validation\Test\IValidatorIdentity.cs" />

@@ -20,12 +20,12 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             _loggerFactory = loggerFactory;
         }
 
-        public ValidatorFactory Create(string galleryUrl, string indexUrl)
+        public ValidatorFactory Create(string galleryUrl, string indexUrl, string packageBaseAddress)
         {
             return new ValidatorFactory(new Dictionary<FeedType, SourceRepository>()
             {
                 {FeedType.HttpV2, new SourceRepository(new PackageSource(galleryUrl), GetResourceProviders(ResourceProvidersToInjectV2), FeedType.HttpV2)},
-                {FeedType.HttpV3, new SourceRepository(new PackageSource(indexUrl), GetResourceProviders(ResourceProvidersToInjectV3), FeedType.HttpV3)}
+                {FeedType.HttpV3, new SourceRepository(new PackageSource(indexUrl), GetResourceProviders(ResourceProvidersToInjectV3(packageBaseAddress)), FeedType.HttpV3)}
             }, _loggerFactory);
         }
 
@@ -36,10 +36,14 @@ namespace NuGet.Services.Metadata.Catalog.Monitoring
             new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV2FeedProvider())
         };
 
-        private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV3 => new List<Lazy<INuGetResourceProvider>>
+        private IList<Lazy<INuGetResourceProvider>> ResourceProvidersToInjectV3(string packageBaseAddress)
         {
-            new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV3Provider())
-        };
+            return new List<Lazy<INuGetResourceProvider>>
+            {
+                new Lazy<INuGetResourceProvider>(() => new PackageRegistrationMetadataResourceV3Provider()),
+                new Lazy<INuGetResourceProvider>(() => new PackageBaseAddressResourceProvider(packageBaseAddress))
+            };
+        }
 
         private IEnumerable<Lazy<INuGetResourceProvider>> GetResourceProviders(IList<Lazy<INuGetResourceProvider>> providersToInject)
         {

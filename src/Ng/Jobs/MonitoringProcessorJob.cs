@@ -42,6 +42,7 @@ namespace Ng.Jobs
         {
             var gallery = arguments.GetOrThrow<string>(Arguments.Gallery);
             var index = arguments.GetOrThrow<string>(Arguments.Index);
+            var packageBaseAddress = arguments.GetOrThrow<string>(Arguments.ContentBaseAddress);
             var source = arguments.GetOrThrow<string>(Arguments.Source);
             var requireSignature = arguments.GetOrDefault(Arguments.RequireSignature, false);
             var verbose = arguments.GetOrDefault(Arguments.Verbose, false);
@@ -59,7 +60,7 @@ namespace Ng.Jobs
                 gallery, index, monitoringStorageFactory, auditingStorageFactory, string.Join(", ", endpointInputs.Select(e => e.Name)));
 
             _packageValidator = new PackageValidatorFactory(LoggerFactory)
-                .Create(gallery, index, auditingStorageFactory, endpointInputs, messageHandlerFactory, requireSignature, verbose);
+                .Create(gallery, index, packageBaseAddress, auditingStorageFactory, endpointInputs, messageHandlerFactory, requireSignature, verbose);
 
             _queue = CommandHelpers.CreateStorageQueue<PackageValidatorContext>(arguments, PackageValidatorContext.Version);
 

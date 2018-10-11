@@ -103,6 +103,7 @@
     <Compile Include="Validators\DummyAggregateValidator.cs" />
     <Compile Include="Validators\DummyValidator.cs" />
     <Compile Include="Validators\PackageHasSignatureValidatorFacts.cs" />
+    <Compile Include="Validators\PackageIsRepositorySignedValidatorFacts.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTestData.cs" />
     <Compile Include="Validators\RegistrationIndexValidatorTests.cs" />
     <Compile Include="Validators\RegistrationListedValidatorTestData.cs" />
@@ -128,6 +129,18 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Packages\OtherPackage.1.0.0.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Packages\TestAuthorAndRepoSigned.leaf-1.1.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+      <None Include="Packages\TestRepoSigned.leaf-1.1.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Packages\TestSigned.leaf-1.1.0.0.nupkg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="Packages\TestUnsigned.1.0.0.nupkg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="Packages\UnlistedPackage.1.0.0.zip">
