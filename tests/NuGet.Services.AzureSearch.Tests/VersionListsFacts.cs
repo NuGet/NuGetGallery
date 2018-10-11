@@ -30,16 +30,16 @@ namespace NuGet.Services.AzureSearch
                     },
                     list._versionLists.Keys);
                 Assert.Equal(
-                    new[] { "1.0.0" },
+                    new[] { StableSemVer1 },
                     list._versionLists[SearchFilters.Default].FullVersions.ToArray());
                 Assert.Equal(
-                    new[] { "1.0.0-alpha", "1.0.0" },
+                    new[] { StableSemVer1, PrereleaseSemVer1 },
                     list._versionLists[SearchFilters.IncludePrerelease].FullVersions.ToArray());
                 Assert.Equal(
-                    new[] { "1.0.0", "2.0.0" },
+                    new[] { StableSemVer1, StableSemVer2 },
                     list._versionLists[SearchFilters.IncludeSemVer2].FullVersions.ToArray());
                 Assert.Equal(
-                    new[] { "1.0.0-alpha", "1.0.0", "2.0.0-alpha", "2.0.0" },
+                    new[] { StableSemVer1, PrereleaseSemVer1, StableSemVer2, PrereleaseSemVer2 },
                     list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].FullVersions.ToArray());
             }
 
@@ -81,7 +81,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Empty(list._versionLists[SearchFilters.IncludePrerelease]._versions);
                 Assert.Empty(list._versionLists[SearchFilters.IncludeSemVer2]._versions);
                 Assert.Equal(
-                    new[] { "2.0.0-alpha" },
+                    new[] { PrereleaseSemVer2 },
                     list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2].FullVersions.ToArray());
             }
         }
@@ -112,7 +112,7 @@ namespace NuGet.Services.AzureSearch
 
                 var data = list.GetVersionListData();
                 Assert.Equal(
-                    new[] { "1.0.0", "2.0.0-ALPHA" },
+                    new[] { StableSemVer1, PrereleaseSemVer2.ToUpper() },
                     data.VersionProperties.Keys.ToArray());
             }
         }
@@ -146,145 +146,427 @@ namespace NuGet.Services.AzureSearch
                     list.GetVersionListData().VersionProperties.Keys.ToArray());
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default)]
-            [InlineData(SearchFilters.IncludeSemVer2)]
-            public void AddNonApplicableVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            [Fact]
+            public void DifferentUpdateLatestForAllFilters()
+            {
+                var list = Create(_stableSemVer1Listed, _prereleaseSemVer1Listed, _stableSemVer2Listed, _prereleaseSemVer2Listed);
+                var latest = new VersionProperties("5.0.0", new VersionPropertiesData(listed: true, semVer2: false));
+
+                var output = list.Upsert(latest);
+                
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[]
+                    {
+                        _stableSemVer1Listed.ParsedVersion,
+                        _prereleaseSemVer1Listed.ParsedVersion,
+                        _stableSemVer2Listed.ParsedVersion,
+                        _prereleaseSemVer2Listed.ParsedVersion,
+                        latest.ParsedVersion,
+                    },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: false,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: false,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: false,
+                        latestSemVer2: null),
+                    output.Hijack[_stableSemVer2Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer2Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: true,
+                        latestSemVer1: true,
+                        latestStableSemVer2: true,
+                        latestSemVer2: true),
+                    output.Hijack[latest.ParsedVersion]);
+            }
+
+            [Fact]
+            public void AddPartiallyApplicableLatestVersion()
             {
                 var list = Create(_stableSemVer1Listed);
 
                 var output = list.Upsert(_prereleaseSemVer1Listed);
-
+                
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
-                    new[]
-                    {
-                        HijackIndexChange.UpdateMetadata(_prereleaseSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
-                    },
-                    output[searchFilters].Hijack.ToArray());
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: true,
+                        latestSemVer1: false,
+                        latestStableSemVer2: true,
+                        latestSemVer2: false),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: true,
+                        latestStableSemVer2: false,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.IncludePrerelease)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
-            public void AddApplicableNonLatestVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            [Fact]
+            public void AddPartiallyApplicableLatestUnlistedVersion()
             {
                 var list = Create(_stableSemVer1Listed);
 
-                var output = list.Upsert(_prereleaseSemVer1Listed);
-
+                var output = list.Upsert(_prereleaseSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
-                    new[]
-                    {
-                        HijackIndexChange.UpdateMetadata(_prereleaseSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
-                    },
-                    output[searchFilters].Hijack.ToArray());
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: true,
+                        latestSemVer1: true,
+                        latestStableSemVer2: true,
+                        latestSemVer2: true),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.IncludePrerelease)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2)]
-            public void AddApplicableLatestVersionUpdatesHijackIndex(SearchFilters searchFilters)
+            [Fact]
+            public void AddPartiallyApplicableNonLatestVersion()
             {
                 var list = Create(_prereleaseSemVer1Listed);
 
                 var output = list.Upsert(_stableSemVer1Listed);
-
+                
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
-                    new[]
-                    {
-                        HijackIndexChange.UpdateMetadata(_stableSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToFalse(_prereleaseSemVer1Listed.ParsedVersion),
-                        HijackIndexChange.SetLatestToTrue(_stableSemVer1Listed.ParsedVersion),
-                    },
-                    output[searchFilters].Hijack.ToArray());
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: true,
+                        latestSemVer1: false,
+                        latestStableSemVer2: true,
+                        latestSemVer2: false),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: true,
+                        latestStableSemVer2: null,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.UpdateLatest)]
-            public void AddListedVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void AddPartiallyApplicableNonLatestUnlistedVersion()
             {
-                var list = Create(_stableSemVer1Listed);
+                var list = Create(_prereleaseSemVer1Listed);
 
-                var output = list.Upsert(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Upsert(_stableSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: true,
+                        latestStableSemVer2: null,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            public void AddUnlistedVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
-            {
-                var list = Create(_stableSemVer1Listed);
-
-                var output = list.Upsert(_prereleaseSemVer2Unlisted);
-
-                Assert.Equal(expected, output[searchFilters].Search);
-            }
-
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.AddFirst)]
-            public void AddListedVersionWhenSingleUnlistedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void AddPartiallyApplicableLatestVersionWhenOnlyUnlistedExists()
             {
                 var list = Create(_stableSemVer1Unlisted);
 
-                var output = list.Upsert(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Upsert(_prereleaseSemVer1Listed);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: true,
+                        latestStableSemVer2: false,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.Delete)]
-            public void AddUnlistedVersionWhenSingleUnlistedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void AddPartiallyApplicableLatestUnlistedVersionWhenOnlyUnlistedExists()
             {
                 var list = Create(_stableSemVer1Unlisted);
 
-                var output = list.Upsert(_prereleaseSemVer2Unlisted);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Upsert(_prereleaseSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.Delete)]
-            public void UnlistLatestVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void AddPartiallyApplicableNonLatestVersionWhenOnlyUnlistedExists()
             {
-                var list = Create(_prereleaseSemVer2Listed);
+                var list = Create(_prereleaseSemVer1Unlisted);
 
-                var output = list.Upsert(_prereleaseSemVer2Unlisted);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Upsert(_stableSemVer1Listed);
+                
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: true,
+                        latestSemVer1: true,
+                        latestStableSemVer2: true,
+                        latestSemVer2: true),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.DowngradeLatest)]
-            public void UnlistLatestVersionWhenOtherListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void AddPartiallyApplicableNonLatestUnlistedVersionWhenOnlyUnlistedExists()
             {
-                var list = Create(_stableSemVer1Listed, _prereleaseSemVer2Listed);
+                var list = Create(_prereleaseSemVer1Unlisted);
 
-                var output = list.Upsert(_prereleaseSemVer2Unlisted);
+                var output = list.Upsert(_stableSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+            }
 
-                Assert.Equal(expected, output[searchFilters].Search);
+            [Fact]
+            public void UnlistLatestWhenOtherVersionExists()
+            {
+                var list = Create(_stableSemVer1Listed, _prereleaseSemVer1Listed);
+
+                var output = list.Upsert(_prereleaseSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: true,
+                        latestSemVer1: true,
+                        latestStableSemVer2: true,
+                        latestSemVer2: true),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+            }
+
+            [Fact]
+            public void UnlistLatestWhenNoOtherVersionExists()
+            {
+                var list = Create(_prereleaseSemVer1Listed);
+
+                var output = list.Upsert(_prereleaseSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+            }
+
+            [Fact]
+            public void UnlistLatestWhenOnlyUnlistOtherVersionExists()
+            {
+                var list = Create(_stableSemVer1Unlisted, _prereleaseSemVer1Listed);
+
+                var output = list.Upsert(_prereleaseSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+            }
+
+            [Fact]
+            public void UnlistNonLatestWhenLatestExists()
+            {
+                var list = Create(_stableSemVer1Listed, _prereleaseSemVer1Listed);
+
+                var output = list.Upsert(_stableSemVer1Unlisted);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: true,
+                        latestStableSemVer1: false,
+                        latestSemVer1: false,
+                        latestStableSemVer2: false,
+                        latestSemVer2: false),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: true,
+                        latestStableSemVer2: null,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
         }
 
@@ -301,97 +583,165 @@ namespace NuGet.Services.AzureSearch
                 Assert.Empty(list.GetVersionListData().VersionProperties);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            public void DeleteListedVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void DeleteUnknownVersionWhenSingleListedVersionExists()
             {
-                var list = Create(_stableSemVer1Listed);
+                var list = Create(_prereleaseSemVer1Listed);
 
-                var output = list.Delete(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Delete(StableSemVer1);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: true,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: true,
+                        latestStableSemVer2: null,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.Delete)]
-            public void DeleteLatestVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
-            {
-                var list = Create(_prereleaseSemVer2Listed);
-
-                var output = list.Delete(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
-            }
-
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.DowngradeLatest)]
-            public void DeleteLatestVersionWhenTwoListedVersionsExists(SearchFilters searchFilters, SearchIndexChangeType expected)
-            {
-                var list = Create(_stableSemVer1Listed, _prereleaseSemVer2Listed);
-
-                var output = list.Delete(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
-            }
-
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.UpdateVersionList)]
-            public void DeleteUnlistedVersionWhenSingleListedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
-            {
-                var list = Create(_stableSemVer1Listed);
-
-                var output = list.Delete(_prereleaseSemVer2Unlisted);
-
-                Assert.Equal(expected, output[searchFilters].Search);
-            }
-
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.Delete)]
-            public void DeleteListedVersionWhenSingleUnlistedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void DeleteUnknownVersionWhenSingleUnlistedVersionExists()
             {
                 var list = Create(_stableSemVer1Unlisted);
 
-                var output = list.Delete(_prereleaseSemVer2Listed);
-
-                Assert.Equal(expected, output[searchFilters].Search);
+                var output = list.Delete(PrereleaseSemVer1);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: true,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
-            [Theory]
-            [InlineData(SearchFilters.Default, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrerelease, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludeSemVer2, SearchIndexChangeType.Delete)]
-            [InlineData(SearchFilters.IncludePrereleaseAndSemVer2, SearchIndexChangeType.Delete)]
-            public void DeleteUnlistedVersionWhenSingleUnlistedVersionExists(SearchFilters searchFilters, SearchIndexChangeType expected)
+            [Fact]
+            public void DeleteLatestVersionWhenSingleListedVersionExists()
             {
-                var list = Create(_stableSemVer1Unlisted);
+                var list = Create(_prereleaseSemVer1Listed);
 
-                var output = list.Delete(_prereleaseSemVer2Unlisted);
+                var output = list.Delete(PrereleaseSemVer1);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: true,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+            }
 
-                Assert.Equal(expected, output[searchFilters].Search);
+            [Fact]
+            public void DeleteLatestVersionWhenTwoListedVersionsExists()
+            {
+                var list = Create(_stableSemVer1Listed, _prereleaseSemVer1Listed);
+
+                var output = list.Delete(PrereleaseSemVer1);
+                
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: true,
+                        latestSemVer1: true,
+                        latestStableSemVer2: true,
+                        latestSemVer2: true),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: true,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+            }
+
+            [Fact]
+            public void DeleteNonLatestVersionWhenTwoListedVersionsExists()
+            {
+                var list = Create(_stableSemVer1Listed, _prereleaseSemVer1Listed);
+
+                var output = list.Delete(StableSemVer1);
+                
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: true,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: null,
+                        latestStableSemVer2: null,
+                        latestSemVer2: null),
+                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                Assert.Equal(
+                    new MutableHijackIndexDocument(
+                        delete: null,
+                        updateMetadata: null,
+                        latestStableSemVer1: null,
+                        latestSemVer1: true,
+                        latestStableSemVer2: null,
+                        latestSemVer2: true),
+                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
             }
         }
 
         public abstract class BaseFacts
         {
             internal const string StableSemVer1 = "1.0.0";
-            internal const string PrereleaseSemVer1 = "1.0.0-alpha";
-            internal const string StableSemVer2 = "2.0.0";
-            internal const string PrereleaseSemVer2 = "2.0.0-alpha";
+            internal const string PrereleaseSemVer1 = "2.0.0-alpha";
+            internal const string StableSemVer2 = "3.0.0";
+            internal const string PrereleaseSemVer2 = "4.0.0-alpha";
 
             internal readonly VersionProperties _stableSemVer1Listed;
             internal readonly VersionProperties _stableSemVer1Unlisted;

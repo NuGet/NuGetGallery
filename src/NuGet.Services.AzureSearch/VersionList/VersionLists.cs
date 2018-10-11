@@ -73,13 +73,14 @@ namespace NuGet.Services.AzureSearch
             return new VersionListData(_versionProperties.Values.ToDictionary(x => x.Key, x => x.Value));
         }
 
-        public IReadOnlyDictionary<SearchFilters, LatestIndexChanges> Upsert(
+        internal MutableIndexChanges Upsert(
             string fullOrOriginalVersion,
             VersionPropertiesData data)
         {
             var added = new VersionProperties(fullOrOriginalVersion, data);
             _versionProperties[added.ParsedVersion] = KeyValuePair.Create(added.FullVersion, data);
 
+            // Detect changes related to the latest versions, per search filter.
             var output = new Dictionary<SearchFilters, LatestIndexChanges>();
             foreach (var pair in _versionLists)
             {
@@ -100,14 +101,15 @@ namespace NuGet.Services.AzureSearch
                 output[searchFilter] = latestIndexChanges;
             }
 
-            return output;
+            return MutableIndexChanges.FromLatestIndexChanges(output);
         }
 
-        public IReadOnlyDictionary<SearchFilters, LatestIndexChanges> Delete(string version)
+        internal MutableIndexChanges Delete(string version)
         {
             var parsedVersion = NuGetVersion.Parse(version);
             _versionProperties.Remove(parsedVersion);
 
+            // Detect changes related to the latest versions, per search filter.
             var output = new Dictionary<SearchFilters, LatestIndexChanges>();
             foreach (var pair in _versionLists)
             {
@@ -120,7 +122,7 @@ namespace NuGet.Services.AzureSearch
                 output[searchFilter] = listState.Delete(parsedVersion);
             }
 
-            return output;
+            return MutableIndexChanges.FromLatestIndexChanges(output);
         }
     }
 }

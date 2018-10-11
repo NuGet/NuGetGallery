@@ -109,9 +109,9 @@ namespace NuGet.Services.AzureSearch
             {
                 // If the latest version changes due to deletion, this can only happen if the existing latest version
                 // was the one that was deleted.
-                Assert(ctx.OldProperties != null, "This version should have existed before.");
-                Assert(ctx.OldProperties.Listed, "The existing version should have been listed.");
-                Assert(ctx.OldLatest == ctx.ChangedVersion, "The existing latest should be the deleted version.");
+                Guard.Assert(ctx.OldProperties != null, "This version should have existed before.");
+                Guard.Assert(ctx.OldProperties.Listed, "The existing version should have been listed.");
+                Guard.Assert(ctx.OldLatest == ctx.ChangedVersion, "The existing latest should be the deleted version.");
                 return SearchIndexChangeType.DowngradeLatest;
             }
 
@@ -131,7 +131,7 @@ namespace NuGet.Services.AzureSearch
             // Update the latest status of the latest version, if there is one.
             if (ctx.NewLatest != null)
             {
-                Assert(ctx.ChangedVersion != ctx.NewLatest, "The deleted version should not be the new latest version.");
+                Guard.Assert(ctx.ChangedVersion != ctx.NewLatest, "The deleted version should not be the new latest version.");
                 changes.Add(HijackIndexChange.SetLatestToTrue(ctx.NewLatest));
             }
 
@@ -150,8 +150,8 @@ namespace NuGet.Services.AzureSearch
             {
                 // If there was no latest version before but now there is a latest version, then we have just added
                 // the only listed version. The new latest version is of course the version we are adding right now.
-                Assert(ctx.NewLatest == ctx.ChangedVersion, "The first latest version must be the added version.");
-                Assert(ctx.NewProperties.Listed, "The added version should be listed for the latest version to have changed.");
+                Guard.Assert(ctx.NewLatest == ctx.ChangedVersion, "The first latest version must be the added version.");
+                Guard.Assert(ctx.NewProperties.Listed, "The added version should be listed for the latest version to have changed.");
                 return SearchIndexChangeType.AddFirst;
             }
 
@@ -166,9 +166,9 @@ namespace NuGet.Services.AzureSearch
             {
                 // If the new latest is a lower version than the old latest, this is a special case where we need to
                 // look up the old new latest's metadata.
-                Assert(ctx.NewLatest != ctx.ChangedVersion, "This case should already have been handled.");
-                Assert(ctx.OldLatest == ctx.ChangedVersion, "This case should already have been handled.");
-                Assert(
+                Guard.Assert(ctx.NewLatest != ctx.ChangedVersion, "This case should already have been handled.");
+                Guard.Assert(ctx.OldLatest == ctx.ChangedVersion, "This case should already have been handled.");
+                Guard.Assert(
                     ctx.NewProperties == null || !ctx.NewProperties.Listed,
                     "A downgrade from an upserted version can only happen from an unlist or removing a non-applicable version.");
                 return SearchIndexChangeType.DowngradeLatest;
@@ -211,16 +211,6 @@ namespace NuGet.Services.AzureSearch
             }
 
             return changes;
-        }
-
-        private static void Assert(bool condition, string message)
-        {
-            /// We could use <see cref="System.Diagnostics.Debug.Assert(bool, string)"/> here, but it's preferable
-            /// in this case to even fail on a non-Debug build.
-            if (!condition)
-            {
-                throw new InvalidOperationException(message);
-            }
         }
 
         private Context UpdateVersionList(
