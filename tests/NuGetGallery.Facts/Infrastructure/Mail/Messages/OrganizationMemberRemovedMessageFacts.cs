@@ -90,6 +90,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBody)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(organizationEmailAllowed: true);
@@ -123,5 +124,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBody =
+            "<p>The user 'requestingUser' is no longer a member of organization 'requestingOrganization'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

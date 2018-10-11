@@ -81,8 +81,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForNoCredentials, false)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForNoCredentials, false)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForNoCredentials, false)]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForCredentials, true)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForCredentials, true)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForCredentials, true)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString, bool hasCredentials)
             {
                 var message = CreateMessage(hasCredentials);
@@ -140,5 +142,19 @@ Our records indicate the associated Microsoft login(s): Credential identity.
 Thanks,
 
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForNoCredentials =
+            "<p>Hi there,</p>\n" +
+"<p>We heard you were looking for Microsoft logins associated with your account on NuGetGallery.</p>\n" +
+"<p>No associated Microsoft logins were found.</p>\n" +
+"<p>Thanks,</p>\n" +
+"<p>The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForCredentials =
+            "<p>Hi there,</p>\n" +
+"<p>We heard you were looking for Microsoft logins associated with your account on NuGetGallery.</p>\n" +
+"<p>Our records indicate the associated Microsoft login(s): Credential identity.</p>\n" +
+"<p>Thanks,</p>\n" +
+"<p>The NuGetGallery Team</p>\n";
     }
 }

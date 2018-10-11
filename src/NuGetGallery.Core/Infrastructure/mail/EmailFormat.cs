@@ -18,6 +18,11 @@ namespace NuGetGallery.Infrastructure.Mail
         /// Indicates that <see cref="EmailBuilder"/> will create email messages using Markdown formatting,
         /// which will be rendered as HTML by email clients.
         /// </summary>
-        Markdown
+        Markdown,
+
+        /// <summary>
+        /// Indicates that <see cref="EmailBuilder"/> will create email messages using HTML formatting.
+        /// </summary>
+        Html
     }
 }

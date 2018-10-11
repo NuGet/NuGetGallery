@@ -360,5 +360,10 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating whether asynchronous email service is enabled.
+        /// </summary>
+        bool AsynchronousEmailServiceEnabled { get; set; }
     }
 }

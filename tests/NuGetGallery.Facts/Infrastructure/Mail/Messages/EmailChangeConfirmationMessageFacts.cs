@@ -83,6 +83,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBodyForUser)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBodyForUser)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForUser)]
             public void ReturnsExpectedBodyForUser(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(Fakes.UnconfirmedUser);
@@ -94,6 +95,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBodyForOrganization)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBodyForOrganization)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForOrganization)]
             public void ReturnsExpectedBodyForOrganization(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(Fakes.UnconfirmedOrganization);
@@ -158,5 +160,17 @@ confirmationUrl
 
 Thanks,
 The NuGetGallery Team";
+        private const string _expectedHtmlBodyForUser =
+            "<p>You recently changed your account's NuGetGallery email address.</p>\n" +
+"<p>To verify account new email address:</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+        private const string _expectedHtmlBodyForOrganization =
+            "<p>You recently changed your organization's NuGetGallery email address.</p>\n" +
+"<p>To verify organization new email address:</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

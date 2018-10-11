@@ -2,8 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.Net.Mail;
+using Markdig;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {
@@ -55,47 +55,42 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
 
         protected override string GetMarkdownBody()
         {
-            var bodyTemplate = @"_User {0} &lt;{1}&gt; sends the following message to the owners of Package '[{2} {3}]({4})'._
-
-{5}
-
------------------------------------------------
-<em style=""font-size: 0.8em;"">
-    To stop receiving contact emails as an owner of this package, sign in to the {6} and
-    [change your email notification settings]({7}).
-</em>";
-
-            return GetBodyInternal(bodyTemplate);
+            return GetBodyInternal(EmailFormat.Markdown);
         }
 
         protected override string GetPlainTextBody()
         {
-            // The HTML emphasis tag is not supported by the Plain Text renderer in Markdig.
-            // Manually overriding this one.
-            var bodyTemplate = @"User {0} &lt;{1}&gt; sends the following message to the owners of Package '{2} {3} ({4})'.
-
-{5}
-
------------------------------------------------
-    To stop receiving contact emails as an owner of this package, sign in to the {6} and
-    change your email notification settings ({7}).";
-
-            return GetBodyInternal(bodyTemplate);
+            return GetBodyInternal(EmailFormat.PlainText);
         }
 
-        private string GetBodyInternal(string template)
+        protected override string GetHtmlBody()
         {
-            return string.Format(
-                CultureInfo.CurrentCulture,
-                template,
-                FromAddress.DisplayName,
-                FromAddress.Address,
-                Package.PackageRegistration.Id,
-                Package.Version,
-                PackageUrl,
-                HtmlEncodedMessage,
-                _configuration.GalleryOwner.DisplayName,
-                EmailSettingsUrl);
+            return GetBodyInternal(EmailFormat.Html);
+        }
+
+        private string GetBodyInternal(EmailFormat format)
+        {
+            var markdown = $@"_User {FromAddress.DisplayName} &lt;{FromAddress.Address}&gt; sends the following message to the owners of Package '[{Package.PackageRegistration.Id} {Package.Version}]({PackageUrl})'._
+
+{HtmlEncodedMessage}";
+
+            string body;
+            switch (format)
+            {
+                case EmailFormat.PlainText:
+                    body = ToPlainText(markdown);
+                    break;
+                case EmailFormat.Markdown:
+                    body = markdown;
+                    break;
+                case EmailFormat.Html:
+                    body = Markdown.ToHtml(markdown);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(format));
+            }
+
+            return body + EmailMessageFooter.ForContactOwnerNotifications(format, _configuration.GalleryOwner.DisplayName, EmailSettingsUrl);
         }
     }
 }

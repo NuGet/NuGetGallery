@@ -100,6 +100,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownMessage)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextMessage)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(adminUserEmailAllowed: true);
@@ -158,5 +159,14 @@ cancellationUrl
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBody =
+            "<p>We have received a request to transform account <a href=\"profileUrl\">'requestingUser'</a> into an organization.</p>\n" +
+"<p>To proceed with the transformation and become an administrator of 'requestingUser':</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>To cancel the transformation:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

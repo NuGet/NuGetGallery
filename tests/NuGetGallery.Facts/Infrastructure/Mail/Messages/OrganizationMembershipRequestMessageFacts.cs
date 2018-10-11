@@ -106,6 +106,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBodyForAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBodyForAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForAdmin)]
             public void ReturnsExpectedBodyForAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(newUserEmailAllowed: true, isAdmin: true);
@@ -117,6 +118,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBodyForNonAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBodyForNonAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForNonAdmin)]
             public void ReturnsExpectedBodyForNonAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(newUserEmailAllowed: true);
@@ -212,5 +214,25 @@ cancellationUrl
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForAdmin =
+            "<p>The user 'requestingUser' would like you to become an administrator of their organization, <a href=\"profileUrl\">'requestingOrganization'</a>.</p>\n" +
+"<p>To learn more about organization roles, <a href=\"https://go.microsoft.com/fwlink/?linkid=870439\">refer to the documentation.</a></p>\n" +
+"<p>To accept the request and become an administrator of 'requestingOrganization':</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>To decline the request:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForNonAdmin =
+            "<p>The user 'requestingUser' would like you to become a collaborator of their organization, <a href=\"profileUrl\">'requestingOrganization'</a>.</p>\n" +
+"<p>To learn more about organization roles, <a href=\"https://go.microsoft.com/fwlink/?linkid=870439\">refer to the documentation.</a></p>\n" +
+"<p>To accept the request and become a collaborator of 'requestingOrganization':</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>To decline the request:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

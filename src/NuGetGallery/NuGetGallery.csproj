@@ -1975,6 +1975,9 @@
     <PackageReference Include="Markdig.Signed">
       <Version>0.15.3</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.28.0-master-42092</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>

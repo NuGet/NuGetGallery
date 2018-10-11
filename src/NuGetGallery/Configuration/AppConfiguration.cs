@@ -352,5 +352,7 @@ namespace NuGetGallery.Configuration
         [DefaultValue(null)]
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] RedirectedCuratedFeeds { get; set; }
+
+        public bool AsynchronousEmailServiceEnabled { get; set; }
     }
 }
