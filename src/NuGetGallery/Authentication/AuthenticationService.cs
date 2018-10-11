@@ -332,7 +332,7 @@ namespace NuGetGallery.Authentication
             // Add a credential for the password
             newUser.Credentials.Add(credential);
 
-            if (!_config.ConfirmEmailAddresses || (credential.IsExternal() && autoConfirm))
+            if (!_config.ConfirmEmailAddresses || autoConfirm)
             {
                 newUser.ConfirmEmailAddress();
             }

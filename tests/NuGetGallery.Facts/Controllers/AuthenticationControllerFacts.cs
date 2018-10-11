@@ -797,10 +797,113 @@ namespace NuGetGallery.Controllers
                     }, "/theReturnUrl", linkingAccount: false);
 
                 // Assert
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), false));
+
                 GetMock<IMessageService>()
                     .Verify(x => x.SendNewAccountEmailAsync(
                         It.IsAny<User>(),
                         It.IsAny<string>()), Times.Never());
+            }
+
+            [Fact]
+            public async Task WillNotAutoConfirmWhenNotExternalCredential()
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+
+                var authenticationServiceMock = GetMock<AuthenticationService>();
+                var controller = GetController<AuthenticationController>();
+                authenticationServiceMock
+                    .Setup(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), It.IsAny<bool>()))
+                    .CompletesWith(authUser);
+                authenticationServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+                authenticationServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = new Credential(),
+                        UserInfo = new IdentityInformation("", "", authUser.User.UnconfirmedEmailAddress, "")
+                    });
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = "theUsername",
+                            EmailAddress = authUser.User.UnconfirmedEmailAddress,
+                        }
+                    }, "/theReturnUrl", linkingAccount: true);
+
+                // Assert
+                authenticationServiceMock.VerifyAll();
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), false));
+            }
+
+            [Theory]
+            [InlineData("unconfirmed@example.com", true)]
+            [InlineData("anotherunconfirmed@example.com", false)]
+            public async Task GivenModelRegisterEmailAddress_ItWillAutoConfirmWhenModelRegisterEmailAndExternalCredentialEmailMatch(string modelRegisterEmailAddress, bool shouldAutoConfirm)
+            {
+                // Arrange
+                var authUser = new AuthenticatedUser(
+                    new User("theUsername")
+                    {
+                        UnconfirmedEmailAddress = "unconfirmed@example.com",
+                        EmailConfirmationToken = "t0k3n"
+                    },
+                    new Credential());
+
+                var externalCred = new CredentialBuilder().CreateExternalCredential("MicrosoftAccount", "blorg", "Bloog");
+
+                var authenticationServiceMock = GetMock<AuthenticationService>();
+                var controller = GetController<AuthenticationController>();
+                authenticationServiceMock
+                    .Setup(x => x.Register(authUser.User.Username, modelRegisterEmailAddress, externalCred, It.IsAny<bool>()))
+                    .CompletesWith(authUser);
+                authenticationServiceMock
+                    .Setup(x => x.CreateSessionAsync(controller.OwinContext, authUser, false))
+                    .Returns(Task.FromResult(0))
+                    .Verifiable();
+                authenticationServiceMock
+                    .Setup(x => x.ReadExternalLoginCredential(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult()
+                    {
+                        ExternalIdentity = new ClaimsIdentity(),
+                        Credential = externalCred,
+                        UserInfo = new IdentityInformation("", "", authUser.User.UnconfirmedEmailAddress, "")
+                    });
+
+                // Act
+                var result = await controller.Register(
+                    new LogOnViewModel()
+                    {
+                        Register = new RegisterViewModel
+                        {
+                            Username = "theUsername",
+                            EmailAddress = modelRegisterEmailAddress,
+                        }
+                    }, "/theReturnUrl", linkingAccount: true);
+
+                // Assert
+                authenticationServiceMock.VerifyAll();
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.Register(authUser.User.Username, modelRegisterEmailAddress, externalCred, shouldAutoConfirm));
             }
 
             [Fact]
@@ -868,7 +971,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Credential = externalCred,
-                        UserInfo = new IdentityInformation("", "", "", "")
+                        UserInfo = new IdentityInformation("", "", authUser.User.UnconfirmedEmailAddress, "")
                     });
 
                 // Simulate the model state error that will be added when doing an external account registration (since password is not present)
@@ -892,6 +995,9 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.SendNewAccountEmailAsync(
                         authUser.User,
                         TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
+
+                GetMock<AuthenticationService>()
+                    .Verify(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, externalCred, true));
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
@@ -950,7 +1056,7 @@ namespace NuGetGallery.Controllers
                     {
                         ExternalIdentity = new ClaimsIdentity(),
                         Credential = externalCred,
-                        UserInfo = new IdentityInformation("", "", "", "")
+                        UserInfo = new IdentityInformation("", "", "theEmailAddress", "")
                     });
 
                 // Act
