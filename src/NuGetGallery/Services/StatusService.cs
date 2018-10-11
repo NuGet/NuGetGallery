@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Net;
@@ -40,7 +39,6 @@ namespace NuGetGallery
             _config = config;
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Just want to log the exception and return the appropriate HTTPStatusCode")]
         public async Task<ActionResult> GetStatus()
         {
             bool sqlAzureAvailable =  IsSqlAzureAvailable();

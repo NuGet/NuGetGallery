@@ -1,10 +1,8 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
-using System.Web.DynamicData;
-using System.Web;
 using System.Web.UI;
-using System.Web.UI.WebControls;
 
 namespace NuGetGallery {
     public partial class UrlField : System.Web.DynamicData.FieldTemplateUserControl {
@@ -12,7 +10,6 @@ namespace NuGetGallery {
             HyperLinkUrl.NavigateUrl = ProcessUrl(FieldValueString);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
         private string ProcessUrl(string url) {
             if (url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) || url.StartsWith("https://", StringComparison.OrdinalIgnoreCase)) {
                 return url;    

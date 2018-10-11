@@ -50,7 +50,6 @@ namespace NuGetGallery
             public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
             var telemetryClient = TelemetryClientWrapper.Instance;
