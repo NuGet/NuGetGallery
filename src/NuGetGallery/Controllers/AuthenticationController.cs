@@ -268,7 +268,7 @@ namespace NuGetGallery
                         model.Register.Username,
                         model.Register.EmailAddress,
                         result.Credential,
-                        string.Equals(result.UserInfo.Email, model.Register.EmailAddress, StringComparison.OrdinalIgnoreCase)
+                        string.Equals(result.UserInfo.Email, model.Register.EmailAddress)
                         );
                 }
                 else
