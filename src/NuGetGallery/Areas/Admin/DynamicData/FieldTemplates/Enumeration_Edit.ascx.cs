@@ -1,8 +1,9 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Specialized;
-using System.ComponentModel.DataAnnotations;
 using System.Web.DynamicData;
-using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -36,7 +37,6 @@ namespace NuGetGallery {
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         private Type EnumType {
             get {
                 if (_enumType == null) {
@@ -46,7 +46,6 @@ namespace NuGetGallery {
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1820:TestForEmptyStringsUsingStringLength")]
         protected override void ExtractValues(IOrderedDictionary dictionary) {
             string value = DropDownList1.SelectedValue;
             if (value == String.Empty) {

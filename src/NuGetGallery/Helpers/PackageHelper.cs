@@ -70,7 +70,6 @@ namespace NuGetGallery
             return Constants.GitRepository.Equals(repositoryType, StringComparison.OrdinalIgnoreCase);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:AvoidExcessiveComplexity")]
         public static void ValidateNuGetPackageMetadata(PackageMetadata packageMetadata)
         {
             // TODO: Change this to use DataAnnotations

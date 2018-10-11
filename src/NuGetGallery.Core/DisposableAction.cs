@@ -3,14 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace NuGetGallery
 {
     public sealed class DisposableAction : IDisposable
     {
-        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "This is immutable. Multiple calls to dispose will be complete no-op and there is no state stored.")]
         public static readonly DisposableAction NoOp = new DisposableAction(() => { });
 
         private readonly Action _action;
