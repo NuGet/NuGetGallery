@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGet.Services.Status;
-using StatusAggregator.Parse;
 using System.Collections.Generic;
 
 namespace StatusAggregator
@@ -43,19 +41,17 @@ namespace StatusAggregator
 
         /// <summary>
         /// A team ID to use to query the incident API.
-        /// See <see cref="IncidentUpdater"/>.
         /// </summary>
         public string TeamId { get; set; }
 
         /// <summary>
         /// The number of minutes that must pass before a message is created for a recently started event.
-        /// In other words, <see cref="MessageUpdater"/> will wait this amount of time before it creates a start message for an event.
         /// </summary>
         public int EventStartMessageDelayMinutes { get; set; }
 
         /// <summary>
         /// The number of minutes that must pass before an event whose incidents have all been mitigated is deactivated.
-        /// In other words, <see cref="EventUpdater"/> will wait this amount of time before it deactivates an event with all mitigated incidents.
+        /// In other words, <see cref="IncidentGroupUpdater"/> will wait this amount of time before it deactivates an event with all mitigated incidents.
         /// </summary>
         public int EventEndDelayMinutes { get; set; }
 

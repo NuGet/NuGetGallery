@@ -22,21 +22,20 @@ namespace StatusAggregator.Manual
         public async Task Handle(EditStatusMessageManualChangeEntity entity)
         {
             var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
-            var eventEntity = await _table.RetrieveAsync<EventEntity>(EventEntity.DefaultPartitionKey, eventRowKey);
+            var eventEntity = await _table.RetrieveAsync<EventEntity>(eventRowKey);
             if (eventEntity == null)
             {
                 throw new ArgumentException("Cannot edit a message for an event that does not exist.");
             }
 
-            var messageEntity = await _table.RetrieveAsync<MessageEntity>(
-                MessageEntity.DefaultPartitionKey,
-                MessageEntity.GetRowKey(eventRowKey, entity.MessageTimestamp));
+            var messageEntity = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventRowKey, entity.MessageTimestamp));
             if (messageEntity == null)
             {
                 throw new ArgumentException("Cannot edit a message that does not exist.");
             }
 
             messageEntity.Contents = entity.MessageContents;
+            messageEntity.Type = (int)MessageType.Manual;
 
             await _table.ReplaceAsync(messageEntity);
         }

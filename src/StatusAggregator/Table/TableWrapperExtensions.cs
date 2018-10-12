@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using Microsoft.WindowsAzure.Storage.Table;
 using NuGet.Services.Status.Table;
 using System.Linq;
 
@@ -8,30 +9,21 @@ namespace StatusAggregator.Table
 {
     public static class TableWrapperExtensions
     {
-        public static IQueryable<EventEntity> GetActiveEvents(this ITableWrapper table)
+        public static IQueryable<TEntity> GetActiveEntities<TEntity>(this ITableWrapper table)
+            where TEntity : ComponentAffectingEntity, new()
         {
             return table
-                .CreateQuery<EventEntity>()
-                .Where(e => e.PartitionKey == EventEntity.DefaultPartitionKey && e.IsActive);
+                .CreateQuery<TEntity>()
+                .Where(e => e.IsActive);
         }
 
-        public static IQueryable<IncidentEntity> GetIncidentsLinkedToEvent(this ITableWrapper table, EventEntity eventEntity)
+        public static IQueryable<TChild> GetChildEntities<TChild, TParent>(this ITableWrapper table, TParent entity)
+            where TChild : ITableEntity, IChildEntity<TParent>, new()
+            where TParent : ITableEntity
         {
             return table
-                .CreateQuery<IncidentEntity>()
-                .Where(i =>
-                    i.PartitionKey == IncidentEntity.DefaultPartitionKey &&
-                    i.IsLinkedToEvent &&
-                    i.EventRowKey == eventEntity.RowKey);
-        }
-
-        public static IQueryable<MessageEntity> GetMessagesLinkedToEvent(this ITableWrapper table, EventEntity eventEntity)
-        {
-            return table
-                .CreateQuery<MessageEntity>()
-                .Where(m =>
-                    m.PartitionKey == MessageEntity.DefaultPartitionKey &&
-                    m.EventRowKey == eventEntity.RowKey);
+                .CreateQuery<TChild>()
+                .Where(e => e.ParentRowKey == entity.RowKey);
         }
     }
 }

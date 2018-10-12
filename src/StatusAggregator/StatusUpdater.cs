@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Logging;
 using NuGet.Jobs.Extensions;
 using StatusAggregator.Manual;
+using StatusAggregator.Update;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace StatusAggregator
         private readonly ICursor _cursor;
         private readonly IEnumerable<IManualStatusChangeUpdater> _manualStatusChangeUpdaters;
         private readonly IIncidentUpdater _incidentUpdater;
-        private readonly IEventUpdater _eventUpdater;
+        private readonly IActiveEventEntityUpdater _activeEventUpdater;
 
         private readonly ILogger<StatusUpdater> _logger;
 
@@ -26,13 +27,13 @@ namespace StatusAggregator
             ICursor cursor,
             IEnumerable<IManualStatusChangeUpdater> manualStatusChangeUpdaters,
             IIncidentUpdater incidentUpdater,
-            IEventUpdater eventUpdater,
+            IActiveEventEntityUpdater eventUpdater,
             ILogger<StatusUpdater> logger)
         {
             _cursor = cursor ?? throw new ArgumentNullException(nameof(cursor));
             _manualStatusChangeUpdaters = manualStatusChangeUpdaters ?? throw new ArgumentNullException(nameof(manualStatusChangeUpdaters));
             _incidentUpdater = incidentUpdater ?? throw new ArgumentNullException(nameof(incidentUpdater));
-            _eventUpdater = eventUpdater ?? throw new ArgumentNullException(nameof(eventUpdater));
+            _activeEventUpdater = eventUpdater ?? throw new ArgumentNullException(nameof(eventUpdater));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -47,11 +48,10 @@ namespace StatusAggregator
 
                 var incidentCursor = await ProcessCursor(IncidentCursorName, async (value) =>
                 {
-                    await _incidentUpdater.RefreshActiveIncidents();
                     return await _incidentUpdater.FetchNewIncidents(value);
                 });
 
-                await _eventUpdater.UpdateActiveEvents(incidentCursor);
+                await _activeEventUpdater.UpdateAllAsync(incidentCursor);
             }
         }
 

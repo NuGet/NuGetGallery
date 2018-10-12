@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
@@ -10,11 +11,19 @@ namespace StatusAggregator.Table
 {
     public class TableWrapper : ITableWrapper
     {
+        /// <summary>
+        /// The <see cref="ITableEntity.ETag"/> to provide when the existing content in the table is unimportant.
+        /// E.g. "if match any".
+        /// </summary>
+        public const string ETagWildcard = "*";
+
         public TableWrapper(
             CloudStorageAccount storageAccount, 
             string tableName)
         {
-            var tableClient = storageAccount.CreateCloudTableClient();
+
+            var tableClient = storageAccount?.CreateCloudTableClient() 
+                ?? throw new ArgumentNullException(nameof(storageAccount));
             _table = tableClient.GetTableReference(tableName);
         }
 
@@ -25,10 +34,10 @@ namespace StatusAggregator.Table
             return _table.CreateIfNotExistsAsync();
         }
 
-        public async Task<T> RetrieveAsync<T>(string partitionKey, string rowKey) 
+        public async Task<T> RetrieveAsync<T>(string rowKey) 
             where T : class, ITableEntity
         {
-            var operation = TableOperation.Retrieve<T>(partitionKey, rowKey);
+            var operation = TableOperation.Retrieve<T>(TablePartitionKeys.Get<T>(), rowKey);
             return (await _table.ExecuteAsync(operation)).Result as T;
         }
 
@@ -49,7 +58,7 @@ namespace StatusAggregator.Table
 
         public Task DeleteAsync(string partitionKey, string rowKey)
         {
-            return DeleteAsync(partitionKey, rowKey, TableUtility.ETagWildcard);
+            return DeleteAsync(partitionKey, rowKey, ETagWildcard);
         }
 
         public Task DeleteAsync(string partitionKey, string rowKey, string eTag)
@@ -71,7 +80,8 @@ namespace StatusAggregator.Table
         {
             return _table
                 .CreateQuery<T>()
-                .AsQueryable();
+                .AsQueryable()
+                .Where(e => e.PartitionKey == TablePartitionKeys.Get<T>());
         }
     }
 }

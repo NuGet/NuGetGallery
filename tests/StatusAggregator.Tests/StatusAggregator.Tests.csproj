@@ -44,16 +44,53 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="EventUpdaterTests.cs" />
-    <Compile Include="IncidentFactoryTests.cs" />
-    <Compile Include="Manual\AddStatusEventManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\AddStatusMessageManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\DeleteStatusEventManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\DeleteStatusMessageManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\EditStatusEventManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\EditStatusMessageManualChangeHandlerFacts.cs" />
-    <Compile Include="Manual\ManualStatusChangeUtilityFacts.cs" />
+    <Compile Include="Collector\CursorTests.cs" />
+    <Compile Include="Collector\EntityCollectorTests.cs" />
+    <Compile Include="Collector\IncidentEntityCollectorProcessorTests.cs" />
+    <Compile Include="Collector\ManualStatusChangeCollectorProcessorTests.cs" />
+    <Compile Include="Export\ComponentExporterTests.cs" />
+    <Compile Include="Export\EventExporterTests.cs" />
+    <Compile Include="Export\EventsExporterTests.cs" />
+    <Compile Include="Export\StatusExporterTests.cs" />
+    <Compile Include="Export\StatusSerializerTests.cs" />
+    <Compile Include="Factory\AggregationProviderTests.cs" />
+    <Compile Include="Factory\EventAffectedPathProviderTests.cs" />
+    <Compile Include="Factory\EventFactoryTests.cs" />
+    <Compile Include="Factory\AggregationStrategyTests.cs" />
+    <Compile Include="Factory\IncidentAffectedComponentPathProviderTests.cs" />
+    <Compile Include="Factory\IncidentFactoryTests.cs" />
+    <Compile Include="Factory\IncidentGroupFactoryTests.cs" />
+    <Compile Include="Factory\NuGetServiceComponentFactoryTests.cs" />
+    <Compile Include="Manual\AddStatusEventManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\AddStatusMessageManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\DeleteStatusEventManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\DeleteStatusMessageManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\EditStatusEventManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\EditStatusMessageManualChangeHandlerTests.cs" />
+    <Compile Include="Manual\ManualStatusChangeUtilityTests.cs" />
+    <Compile Include="Messages\IncidentGroupMessageFilterTests.cs" />
+    <Compile Include="Messages\MessageChangeEventIteratorTests.cs" />
+    <Compile Include="Messages\MessageChangeEventProcessorTests.cs" />
+    <Compile Include="Messages\MessageChangeEventProviderTests.cs" />
+    <Compile Include="Messages\MessageContentBuilderTests.cs" />
+    <Compile Include="Messages\MessageFactoryTests.cs" />
+    <Compile Include="Parse\AggregateIncidentParserTests.cs" />
+    <Compile Include="Parse\EnvironmentPrefixIncidentRegexParsingHandlerTests.cs" />
+    <Compile Include="Parse\EnvironmentRegexParsingFilterTests.cs" />
+    <Compile Include="Parse\ParsingUtility.cs" />
+    <Compile Include="Parse\IncidentRegexParserTests.cs" />
+    <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentRegexParsingHandlerTests.cs" />
+    <Compile Include="Parse\PingdomIncidentRegexParsingHandlerTests.cs" />
+    <Compile Include="Parse\SeverityRegexParsingFilterTests.cs" />
+    <Compile Include="Parse\TrafficManagerEndpointStatusIncidentRegexParsingHandlerTests.cs" />
+    <Compile Include="Parse\ValidationDurationIncidentRegexParsingHandlerTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TestComponent.cs" />
+    <Compile Include="TestUtility\MockTableWrapperExtensions.cs" />
+    <Compile Include="Update\ActiveEventEntityUpdaterTests.cs" />
+    <Compile Include="Update\AggregationEntityUpdaterTests.cs" />
+    <Compile Include="Update\EventMessagingUpdaterTests.cs" />
+    <Compile Include="Update\IncidentUpdaterTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\StatusAggregator\StatusAggregator.csproj">
@@ -69,13 +106,13 @@
       <Version>4.7.145</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Incidents">
-      <Version>2.28.0-sb-tablegeo-38564</Version>
+      <Version>2.28.0-master-41827</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status">
-      <Version>2.28.0-master-38796</Version>
+      <Version>2.28.0-master-41827</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status.Table">
-      <Version>2.28.0-master-38796</Version>
+      <Version>2.28.0-master-41827</Version>
     </PackageReference>
     <PackageReference Include="System.Threading.Tasks.Extensions">
       <Version>4.3.0</Version>
@@ -92,6 +129,12 @@
     <PackageReference Include="xunit.core">
       <Version>2.3.1</Version>
     </PackageReference>
+    <PackageReference Include="xunit.runner.visualstudio">
+      <Version>2.4.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
