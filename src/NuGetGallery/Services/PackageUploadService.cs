@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Extensions;
@@ -70,7 +71,69 @@ namespace NuGetGallery
                 return result;
             }
 
+            result = CheckLicenseMetadata(nuGetPackage, warnings);
+            if (result != null)
+            {
+                return result;
+            }
+
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+
+        private PackageValidationResult CheckLicenseMetadata(IPackageCoreReader nuGetPackage, List<string> warnings)
+        {
+            NuspecReader nuspecReader = null;
+            using (var nuspec = nuGetPackage.GetNuspec())
+            {
+                nuspecReader = new NuspecReader(nuspec);
+            }
+
+            var licenseUrl = nuspecReader.GetLicenseUrl();
+            var licenseMetadata = nuspecReader.GetLicenseMetadata();
+
+            if (!_config.AllowLicenselessPackages && string.IsNullOrWhiteSpace(licenseUrl) && licenseMetadata == null)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_MissingLicenseInformation);
+            }
+
+            if (LicenseHelper.DeprecationUrl == licenseUrl && licenseMetadata == null)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlUsage);
+            }
+
+            if (!string.IsNullOrWhiteSpace(licenseUrl) && licenseMetadata == null)
+            {
+                if (_config.BlockLegacyLicenseUrl)
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_LegacyLicenseUrlNotAllowed);
+                }
+                else
+                {
+                    warnings.Add(Strings.UploadPackage_DeprecatingLicenseUrl);
+                }
+            }
+
+            if (licenseMetadata != null && LicenseHelper.DeprecationUrl != licenseUrl)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlRequired);
+            }
+
+            if (licenseMetadata?.WarningsAndErrors != null && licenseMetadata.WarningsAndErrors.Any())
+            {
+                return PackageValidationResult.Invalid(
+                    string.Format(
+                        Strings.UploadPackage_InvalidLicenseExpression,
+                        string.Join(" ", licenseMetadata.WarningsAndErrors)));
+            }
+
+            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
+            }
+
+            // TODO: more license expression validations
+
+            return null;
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
@@ -369,7 +432,22 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    await _packageFileService.SavePackageFileAsync(package, packageFile);
+                    if (package.HasEmbeddedLicenseFile)
+                    {
+                        await SavePackageLicenseFile(packageFile, licenseStream => _packageFileService.SaveLicenseFileAsync(package, licenseStream));
+                    }
+                    try
+                    {
+                        await _packageFileService.SavePackageFileAsync(package, packageFile);
+                    }
+                    catch (Exception)
+                    {
+                        if (package.HasEmbeddedLicenseFile)
+                        {
+                            await _packageFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion.ToString());
+                        }
+                        throw;
+                    }
                 }
             }
             catch (FileAlreadyExistsException ex)
@@ -403,6 +481,29 @@ namespace NuGetGallery
             }
 
             return PackageCommitResult.Success;
+        }
+
+        private static async Task SavePackageLicenseFile(Stream packageFile, Func<Stream, Task> saveLicenseAsync)
+        {
+            packageFile.Seek(0, SeekOrigin.Begin);
+            using (var packageArchiveReader = new PackageArchiveReader(packageFile, leaveStreamOpen: true))
+            {
+                var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader(), strict: true);
+                if (packageMetadata.LicenseMetadata != null && packageMetadata.LicenseMetadata.Type == LicenseType.File && !string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
+                {
+                    var filename = packageMetadata.LicenseMetadata.License;
+                    var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
+                    using (var licenseFileStream = licenseFileEntry.Open())
+                    {
+                        await saveLicenseAsync(licenseFileStream);
+                    }
+                }
+                else
+                {
+                    throw new Exception("No license file specified in the nuspec");
+                }
+            }
+            throw new NotImplementedException();
         }
     }
 }

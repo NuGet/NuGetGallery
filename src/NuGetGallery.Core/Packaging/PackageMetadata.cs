@@ -51,7 +51,8 @@ namespace NuGetGallery.Packaging
             IEnumerable<FrameworkSpecificGroup> frameworkGroups,
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes,
             NuGetVersion minClientVersion,
-            RepositoryMetadata repositoryMetadata)
+            RepositoryMetadata repositoryMetadata,
+            LicenseMetadata licenseMetadata = null)
         {
             _metadata = new Dictionary<string, string>(metadata, StringComparer.OrdinalIgnoreCase);
             _dependencyGroups = dependencyGroups.ToList().AsReadOnly();
@@ -67,6 +68,8 @@ namespace NuGetGallery.Packaging
                 RepositoryUrl = repoUrl;
                 RepositoryType = repositoryMetadata.Type;
             }
+
+            LicenseMetadata = licenseMetadata;
         }
 
         private void SetPropertiesFromMetadata()
@@ -122,6 +125,7 @@ namespace NuGetGallery.Packaging
         public string Owners { get; private set; }
         public string Language { get; private set; }
         public NuGetVersion MinClientVersion { get; set; }
+        public LicenseMetadata LicenseMetadata { get; }
 
         public string GetValueFromMetadata(string key)
         {
@@ -244,7 +248,8 @@ namespace NuGetGallery.Packaging
                 nuspecReader.GetFrameworkReferenceGroups(),
                 nuspecReader.GetPackageTypes(),
                 nuspecReader.GetMinClientVersion(),
-                nuspecReader.GetRepositoryMetadata());
+                nuspecReader.GetRepositoryMetadata(),
+                nuspecReader.GetLicenseMetadata());
         }
 
         private class StrictNuspecReader : NuspecReader

@@ -441,6 +441,234 @@ namespace NuGetGallery
                 Assert.Empty(result.Warnings);
             }
 
+            [Theory]
+            [InlineData(false, false)]
+            [InlineData(true, true)]
+            public async Task HandlesMissingLicenseAccordingToSettings(bool allowLicenselessPackages, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: null, licenseExpression: null, licenseFilename: null);
+                _config
+                    .Setup(x => x.AllowLicenselessPackages)
+                    .Returns(allowLicenselessPackages);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Equal("Package has no license information specified.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                }
+            }
+
+            const string LicenseDeprecationUrl = LicenseHelper.DeprecationUrl;
+            const string RegularLicenseUrl = "https://example.com/license";
+
+            [Theory]
+            [InlineData(null)]
+            [InlineData(LicenseDeprecationUrl)]
+            [InlineData(RegularLicenseUrl)]
+            public async Task RejectsPackageWithBothLicenseExpressionAndFile(string licenseUrl)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseExpression: "MIT",
+                    licenseFilename: "license.txt",
+                    licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl));
+
+                var ex = await Assert.ThrowsAsync<PackagingException>(() => _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage)));
+
+                Assert.Contains("duplicate", ex.Message);
+                Assert.Contains("license", ex.Message);
+            }
+
+            [Theory]
+            [InlineData(false, true)]
+            [InlineData(true, false)]
+            public async Task HandlesLegacyLicenseUrlPackageAccordingToSettings(bool blockLegacyLicenseUrl, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(RegularLicenseUrl), licenseExpression: null, licenseFilename: null);
+                _config
+                    .Setup(x => x.BlockLegacyLicenseUrl)
+                    .Returns(blockLegacyLicenseUrl);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Equal("Specifying external license URLs are not allowed anymore, please specify the license in the package.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Single(result.Warnings);
+                    Assert.Equal("Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package.", result.Warnings[0]);
+                }
+            }
+
+            [Fact]
+            public async Task RejectsLicenseDeprecationUrlWithoutLicense()
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: null, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("The license deprecation URL must be used in conjunction with specifying the license in the package.", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("MIT", null, null)]
+            [InlineData("MIT", null, RegularLicenseUrl)]
+            [InlineData(null, "license.txt", null)]
+            [InlineData(null, "license.txt", RegularLicenseUrl)]
+            public async Task RequiresDeprecationUrlWithEmbeddedLicense(string licenseExpression, string licenseFilename, string licenseUrl)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: licenseUrl == null ? null : new Uri(licenseUrl),
+                    licenseExpression: licenseExpression,
+                    licenseFilename: licenseFilename,
+                    licenseFileContents: licenseFilename);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            //[Theory]
+            [InlineData(true, true)]
+            [InlineData(false, false)]
+            public async Task HandlesUnlicensedPackagesAccordingToSettings(bool allowUnlicensedPackages, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: "UNLICENSED", licenseFilename: null);
+                _config
+                    .Setup(x => x.AllowUnlicensedPackages)
+                    .Returns(allowUnlicensedPackages);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Equal("Unlicensed packages are not allowed to be published.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    // will be changed once implementation is in
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Equal("License expressions are not currenly supported.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
+            public static IEnumerable<object[]> LicenseExceptions =>
+                from exception in LicenseHelper.StandardExceptions
+                select new object[] { $"{LicenseHelper.StandardLicenses.First()} WITH {exception}", true };
+
+            public static IEnumerable<object[]> StandardLicenses =>
+                LicenseHelper.StandardLicenses.Select(sl => new object[] { sl, true });
+
+            [Theory]
+            [InlineData("MIT", true)]
+            [InlineData("MIT AND MIT", true)]
+            [InlineData("(((MIT)))", true)]
+            [InlineData("MIT OR GPL-1.0-only", true)]
+            [InlineData("MIT or GPL-1.0-only", false)]
+            [InlineData("MIT Or GPL-1.0-only", false)]
+            [InlineData("(MIT OR GPL-1.0-only)", true)]
+            [InlineData("(MIT AND GPL-1.0-only)", true)]
+            [InlineData("(MIT and GPL-1.0-only)", false)]
+            [InlineData("(MIT And GPL-1.0-only)", false)]
+            [InlineData("((((MIT) OR (GPL-1.0-only))))", true)]
+            [InlineData("(MIT", false)]
+            [InlineData("EUPL-1.0+", true)]
+            [InlineData("Vim WITH Font-exception-2.0", true)] // we are not checking if license expression make sense
+            [InlineData("Vim with Font-exception-2.0", false)]
+            [InlineData("Vim With Font-exception-2.0", false)]
+            [InlineData("(EUPL-1.0+ OR (TORQUE-1.1 WITH Nokia-Qt-exception-1.1) AND Noweb)", true)]
+            [MemberData(nameof(StandardLicenses))]
+            [MemberData(nameof(LicenseExceptions))]
+            public async Task ChecksLicenseExpressionCorrectness(string licenseExpression, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("Invalid license expression", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    // will be changed once implementation is in
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Equal("License expressions are not currenly supported.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
+            [Theory]
+            [InlineData("MIIT")]
+            [InlineData("Mit")]
+            [InlineData("mit")]
+            public async Task RejectsUnknownLicense(string licenseExpression)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseExpression, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                // will be changed once implementation is in
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Equal("License expressions are not currenly supported.", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            public static IEnumerable<object[]> DeprecatedLicenses =>
+                LicenseHelper.DeprecatedLicenses.Select(dl => new object[] { dl });
+
+            [Theory]
+            [MemberData(nameof(DeprecatedLicenses))]
+            public async Task RejectsDeprecatedLicense(string licenseName)
+            {
+                _nuGetPackage = GeneratePackage(licenseUrl: new Uri(LicenseDeprecationUrl), licenseExpression: licenseName, licenseFilename: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("deprecated", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
             {
                 return PackageMetadata.FromNuspecReader(mockPackage.Object.GetNuspecReader(), strict: true);
@@ -1071,6 +1299,10 @@ namespace NuGetGallery
                 _reservedNamespaceService = new Mock<IReservedNamespaceService>();
                 _validationService = new Mock<IValidationService>();
                 _config = new Mock<IAppConfiguration>();
+                _config
+                    .SetupGet(x => x.AllowLicenselessPackages)
+                    .Returns(true);
+
                 _typosquattingService = new Mock<ITyposquattingService>();
 
                 _package = new Package
@@ -1100,14 +1332,22 @@ namespace NuGetGallery
                 string version = "1.2.3-alpha.0",
                 RepositoryMetadata repositoryMetadata = null,
                 bool isSigned = true,
-                int? desiredTotalEntryCount = null)
+                int? desiredTotalEntryCount = null,
+                Uri licenseUrl = null,
+                string licenseExpression = null,
+                string licenseFilename = null,
+                string licenseFileContents = null)
             {
                 return PackageServiceUtility.CreateNuGetPackage(
                     id: "theId",
                     version: version,
                     repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned,
-                    desiredTotalEntryCount: desiredTotalEntryCount);
+                    desiredTotalEntryCount: desiredTotalEntryCount,
+                    licenseUrl: licenseUrl,
+                    licenseExpression: licenseExpression,
+                    licenseFilename: licenseFilename,
+                    licenseFileContents: licenseFileContents);
             }
         }
     }

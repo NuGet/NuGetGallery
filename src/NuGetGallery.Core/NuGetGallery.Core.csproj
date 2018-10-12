@@ -269,7 +269,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="NuGet.Packaging">
-      <Version>4.8.0-preview4.5287</Version>
+      <Version>5.0.0-preview1.5556</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
       <Version>2.28.0-master-37018</Version>

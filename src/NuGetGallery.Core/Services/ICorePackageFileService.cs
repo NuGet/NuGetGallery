@@ -20,9 +20,19 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile, bool overwrite);
 
         /// <summary>
+        /// Extracts the license file from the package file and saves it to the public container for package content.
+        /// </summary>
+        Task SaveLicenseFileAsync(Package package, Stream licenseFile);
+
+        /// <summary>
         /// Downloads the package from the file storage and reads it into a stream.
         /// </summary>
         Task<Stream> DownloadPackageFileAsync(Package package);
+
+        /// <summary>
+        /// Downloads previously saved license file for a specified package.
+        /// </summary>
+        Task<Stream> DownloadLicenseFileAsync(Package package);
 
         /// <summary>
         /// Generates the URL for the specified package in the public container for available packages.
@@ -86,6 +96,14 @@ namespace NuGetGallery
         /// <param name="id">The package ID. This value is case-insensitive.</param>
         /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
         Task DeletePackageFileAsync(string id, string version);
+
+        /// <summary>
+        /// Deletes the license file for the package from the publicly available storage for the package content.
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="version"></param>
+        /// <returns></returns>
+        Task DeleteLicenseFileAsync(string id, string version);
 
         /// <summary>
         /// Copies the contents of the package represented by the stream into the file storage backup location.

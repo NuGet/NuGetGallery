@@ -996,4 +996,26 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_Deleted" xml:space="preserve">
     <value>The symbols package associated with this package has been deleted.</value>
   </data>
+  <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
+    <value>Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package.</value>
+  </data>
+  <data name="UploadPackage_DeprecationUrlRequired" xml:space="preserve">
+    <value>For backwards compatibility when a license is specified in the package, its &lt;licenseUrl&gt; node must point to https://aka.ms/deprecateLicenseUrl</value>
+  </data>
+  <data name="UploadPackage_DeprecationUrlUsage" xml:space="preserve">
+    <value>The license deprecation URL must be used in conjunction with specifying the license in the package.</value>
+  </data>
+  <data name="UploadPackage_InvalidLicenseExpression" xml:space="preserve">
+    <value>Invalid license expression. {0}</value>
+    <comment>{0} is the list of the issues found with license expression.</comment>
+  </data>
+  <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">
+    <value>Specifying external license URLs are not allowed anymore, please specify the license in the package.</value>
+  </data>
+  <data name="UploadPackage_LicenseExpressionsNotSupported" xml:space="preserve">
+    <value>License expressions are not currenly supported.</value>
+  </data>
+  <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
+    <value>Package has no license information specified.</value>
+  </data>
 </root>

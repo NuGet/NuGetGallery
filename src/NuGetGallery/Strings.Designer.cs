@@ -2166,6 +2166,33 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package..
+        /// </summary>
+        public static string UploadPackage_DeprecatingLicenseUrl {
+            get {
+                return ResourceManager.GetString("UploadPackage_DeprecatingLicenseUrl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For backwards compatibility when a license is specified in the package, its &lt;licenseUrl&gt; node must point to https://aka.ms/deprecateLicenseUrl.
+        /// </summary>
+        public static string UploadPackage_DeprecationUrlRequired {
+            get {
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlRequired", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The license deprecation URL must be used in conjunction with specifying the license in the package..
+        /// </summary>
+        public static string UploadPackage_DeprecationUrlUsage {
+            get {
+                return ResourceManager.GetString("UploadPackage_DeprecationUrlUsage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package ID has been reserved. Please request access to upload to this reserved namespace from the owner of the reserved prefix, or re-upload the package with a different ID..
         /// </summary>
         public static string UploadPackage_IdNamespaceConflict {
@@ -2180,6 +2207,15 @@ namespace NuGetGallery {
         public static string UploadPackage_IdVersionConflict {
             get {
                 return ResourceManager.GetString("UploadPackage_IdVersionConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid license expression. {0}.
+        /// </summary>
+        public static string UploadPackage_InvalidLicenseExpression {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidLicenseExpression", resourceCulture);
             }
         }
         
@@ -2211,11 +2247,38 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Specifying external license URLs are not allowed anymore, please specify the license in the package..
+        /// </summary>
+        public static string UploadPackage_LegacyLicenseUrlNotAllowed {
+            get {
+                return ResourceManager.GetString("UploadPackage_LegacyLicenseUrlNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License expressions are not currenly supported..
+        /// </summary>
+        public static string UploadPackage_LicenseExpressionsNotSupported {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseExpressionsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
         /// </summary>
         public static string UploadPackage_MinClientVersionOutOfRange {
             get {
                 return ResourceManager.GetString("UploadPackage_MinClientVersionOutOfRange", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package has no license information specified..
+        /// </summary>
+        public static string UploadPackage_MissingLicenseInformation {
+            get {
+                return ResourceManager.GetString("UploadPackage_MissingLicenseInformation", resourceCulture);
             }
         }
         

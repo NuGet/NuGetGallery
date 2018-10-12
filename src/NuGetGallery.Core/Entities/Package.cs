@@ -245,5 +245,7 @@ namespace NuGetGallery
         public virtual ICollection<SymbolPackage> SymbolPackages { get; set; }
 
         public string Id => PackageRegistration.Id;
+
+        public bool HasEmbeddedLicenseFile { get; set; }
     }
 }

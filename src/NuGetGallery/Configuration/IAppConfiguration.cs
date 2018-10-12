@@ -360,5 +360,26 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+
+        /// <summary>
+        /// Indicates whether packages that specify the licene the "old" way (with a "licenseUrl" node only) should be rejected.
+        /// </summary>
+        bool BlockLegacyLicenseUrl { get; set; }
+
+        /// <summary>
+        /// Indicates whether packages that specify license name 'UNLICENSED' (that is explicit statement that no license
+        /// is granted, effectively not allowing any third party to use the package) are allowed into Gallery.
+        /// </summary>
+        bool AllowUnlicensedPackages { get; set; }
+
+        /// <summary>
+        /// Indicates whether packages that don't specify any license information (no license URL, no license expression,
+        /// no embedded license) are allowed into Gallery. If they are they are allowed, they would be considered having
+        /// the UNLICENSED license.
+        /// </summary>
+        /// <remarks>
+        /// Enabling this assumes <see cref="AllowUnlicensedPackages"/> is enabled as well. Otherwise it does not make sense.
+        /// </remarks>
+        bool AllowLicenselessPackages { get; set; }
     }
 }

@@ -271,5 +271,20 @@ namespace NuGetGallery
                 version.ToLowerInvariant(),
                 extension);
         }
+
+        public Task SaveLicenseFileAsync(Package package, Stream licenseFile)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Stream> DownloadLicenseFileAsync(Package package)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteLicenseFileAsync(string id, string version)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

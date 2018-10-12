@@ -31,6 +31,7 @@ namespace NuGetGallery
         public const string PackageBackupsFolderName = "package-backups";
         public const string PackageReadMesFolderName = "readmes";
         public const string PackagesFolderName = "packages";
+        public const string PackagesContentFolderName = "packages-content";
         public const string UploadsFolderName = "uploads";
         public const string ValidationFolderName = "validation";
         public const string RevalidationFolderName = "revalidation";
@@ -41,5 +42,7 @@ namespace NuGetGallery
         public const string SymbolPackageBackupsFolderName = "symbol-package-backups";
 
         public const string UploadTracingKeyHeaderName = "upload-id";
+
+        public const string LicenseFileName = "license";
     }
 }

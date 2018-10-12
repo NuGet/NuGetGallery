@@ -289,6 +289,7 @@
     <Compile Include="Filters\ValidateRecaptchaResponseAttribute.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Helpers\GravatarHelper.cs" />
+    <Compile Include="Helpers\LicenseHelper.cs" />
     <Compile Include="Helpers\ObfuscationHelper.cs" />
     <Compile Include="Helpers\ZipArchiveHelpers.cs" />
     <Compile Include="Helpers\PermissionsHelpers.cs" />
@@ -1779,6 +1780,7 @@
     <Content Include="Views\Pages\Contact.cshtml" />
     <Content Include="Views\Shared\_DeletePackage.cshtml" />
     <Content Include="Views\Packages\DeleteSymbols.cshtml" />
+    <Content Include="Update-Licenses.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -2170,10 +2172,10 @@
       <Version>9.0.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Configuration">
-      <Version>4.8.0-preview4.5287</Version>
+      <Version>5.0.0-preview1.5556</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Protocol">
-      <Version>4.8.0-preview4.5287</Version>
+      <Version>5.0.0-preview1.5556</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.KeyVault">
       <Version>2.27.0</Version>
