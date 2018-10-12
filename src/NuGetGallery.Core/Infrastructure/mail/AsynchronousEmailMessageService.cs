@@ -89,6 +89,14 @@ namespace NuGetGallery.Infrastructure.Mail
                 return Task.CompletedTask;
             }
 
+            if (string.IsNullOrEmpty(message.HtmlBody)
+                && string.IsNullOrEmpty(message.PlainTextBody))
+            {
+                throw new ArgumentException(
+                    "No message body defined. Both plain-text and html bodies are empty.",
+                    nameof(message));
+            }
+
             return _emailMessageEnqueuer.SendEmailMessageAsync(message);
         }
     }
