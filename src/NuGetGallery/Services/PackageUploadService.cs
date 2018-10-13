@@ -17,6 +17,7 @@ namespace NuGetGallery
 {
     public class PackageUploadService : IPackageUploadService
     {
+        private const string LicenseNodeName = "license";
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IEntitiesContext _entitiesContext;
@@ -70,7 +71,51 @@ namespace NuGetGallery
                 return result;
             }
 
+            result = CheckLicenseMetadata(nuGetPackage, warnings);
+
+            if (result != null)
+            {
+                return result;
+            }
+
+
             return PackageValidationResult.AcceptedWithWarnings(warnings);
+        }
+        
+        private class LicenseCheckingNuspecReader : NuspecReader
+        {
+            public LicenseCheckingNuspecReader(Stream stream)
+                : base(stream)
+            {
+
+            }
+
+            public bool HasLicenseMetadata()
+                => MetadataNode
+                    .Elements()
+                    .Any(e => LicenseNodeName == e.Name.LocalName);
+        }
+
+        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage, List<string> warnings)
+        {
+            if (!_config.RejectPackagesWithLicense)
+            {
+                return null;
+            }
+
+            LicenseCheckingNuspecReader nuspecReader = null;
+
+            using (var nuspec = nuGetPackage.GetNuspec())
+            {
+                nuspecReader = new LicenseCheckingNuspecReader(nuspec);
+            }
+
+            if (nuspecReader.HasLicenseMetadata())
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_NotAcceptingPackagesWithLicense);
+            }
+
+            return null;
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(
