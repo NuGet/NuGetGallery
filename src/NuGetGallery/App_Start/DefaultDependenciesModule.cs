@@ -84,7 +84,7 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.Current)
                 .AsSelf()
-                .As<IAppConfiguration>();
+                .AsImplementedInterfaces();
 
             // Force the read of this configuration, so it will be initialized on startup
             builder.Register(c => configuration.Features)
