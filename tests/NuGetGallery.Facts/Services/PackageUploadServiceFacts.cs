@@ -442,7 +442,9 @@ namespace NuGetGallery
 
             private static string[] LicenseNodeVariants => new string[]
             {
+                "<license/>",
                 "<license></license>",
+                "<license> </license>",
                 "<license>ttt</license>",
                 "<license type='file'>fff</license>",
                 "<license type='expression'>ee</license>",

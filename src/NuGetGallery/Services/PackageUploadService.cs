@@ -71,7 +71,7 @@ namespace NuGetGallery
                 return result;
             }
 
-            result = CheckLicenseMetadata(nuGetPackage, warnings);
+            result = CheckLicenseMetadata(nuGetPackage);
 
             if (result != null)
             {
@@ -96,7 +96,7 @@ namespace NuGetGallery
                     .Any(e => LicenseNodeName == e.Name.LocalName);
         }
 
-        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage, List<string> warnings)
+        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage)
         {
             if (!_config.RejectPackagesWithLicense)
             {
