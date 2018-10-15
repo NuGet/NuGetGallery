@@ -245,15 +245,5 @@ namespace NuGetGallery
 
             await _symbolPackageService.UpdateStatusAsync(symbolPackage, PackageStatus.Deleted, commitChanges: true);
         }
-
-        public async Task MarkSymbolsPackageAsValidating(SymbolPackage symbolPackage)
-        {
-            if (symbolPackage == null)
-            {
-                throw new ArgumentNullException(nameof(symbolPackage));
-            }
-
-            await _symbolPackageService.UpdateStatusAsync(symbolPackage, PackageStatus.Validating, commitChanges: true);
-        }
     }
 }
