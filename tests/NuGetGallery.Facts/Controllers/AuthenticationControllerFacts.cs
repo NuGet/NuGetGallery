@@ -834,9 +834,12 @@ namespace NuGetGallery.Controllers
                     .Verify(x => x.Register("theUsername", "unconfirmed@example.com", It.IsAny<Credential>(), false));
 
                 GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        It.IsAny<User>(),
-                        It.IsAny<string>()), Times.Never());
+                    .Verify(
+                    x => x.SendMessageAsync(
+                        It.IsAny<NewAccountMessage>(),
+                        It.IsAny<bool>(),
+                        It.IsAny<bool>()),
+                    Times.Never());
             }
 
             [Fact]
@@ -869,6 +872,20 @@ namespace NuGetGallery.Controllers
                         UserInfo = new IdentityInformation("", "", authUser.User.UnconfirmedEmailAddress, "")
                     });
 
+                var confirmationUrl = TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
+                var configurationService = GetConfigurationService();
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<NewAccountMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.ConfirmationUrl == confirmationUrl),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
                 // Act
                 var result = await controller.Register(
                     new LogOnViewModel()
@@ -886,10 +903,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Verify(x => x.Register(authUser.User.Username, authUser.User.UnconfirmedEmailAddress, It.IsAny<Credential>(), false));
 
-                GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        authUser.User,
-                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
+                messageService.Verify();
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
@@ -926,6 +940,20 @@ namespace NuGetGallery.Controllers
                         UserInfo = new IdentityInformation("", "", "unconfirmed@example.com", "")
                     });
 
+                var confirmationUrl = TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken;
+                var configurationService = GetConfigurationService();
+                var messageService = GetMock<IMessageService>();
+                messageService
+                    .Setup(svc => svc.SendMessageAsync(
+                        It.Is<NewAccountMessage>(
+                            msg =>
+                            msg.User == authUser.User
+                            && msg.ConfirmationUrl == confirmationUrl),
+                        false,
+                        false))
+                    .Returns(Task.CompletedTask)
+                    .Verifiable();
+
                 // Act
                 var result = await controller.Register(
                     new LogOnViewModel()
@@ -943,10 +971,7 @@ namespace NuGetGallery.Controllers
                 GetMock<AuthenticationService>()
                     .Verify(x => x.Register(authUser.User.Username, "anotherunconfirmed@example.com", externalCred, false));
 
-                GetMock<IMessageService>()
-                    .Verify(x => x.SendNewAccountEmailAsync(
-                        authUser.User,
-                        TestUtility.GallerySiteRootHttps + "account/confirm/" + authUser.User.Username + "/" + authUser.User.EmailConfirmationToken));
+                messageService.Verify();
 
                 ResultAssert.IsSafeRedirectTo(result, "/theReturnUrl");
             }
