@@ -20,6 +20,7 @@ namespace NuGet.Services.Validation.Tests
         private const string PackageValidationMessageDataType = "PackageValidationMessageData";
         private const int SchemaVersion1 = 1;
         private const int DeliveryCount = 2;
+        private const int PackageKey = 123;
 
         public class TheSerializePackageValidationMessageDataMethod : Base
         {
@@ -27,7 +28,7 @@ namespace NuGet.Services.Validation.Tests
             public void ProducesExpectedMessage()
             {
                 // Arrange
-                var input = new PackageValidationMessageData(PackageId, PackageVersion, ValidationTrackingId);
+                var input = new PackageValidationMessageData(PackageId, PackageVersion, ValidationTrackingId, ValidatingType.Package, PackageKey);
 
                 // Act
                 var output = _target.SerializePackageValidationMessageData(input);
@@ -45,7 +46,7 @@ namespace NuGet.Services.Validation.Tests
             public void ProducesExpectedMessageForSymbols()
             {
                 // Arrange
-                var input = new PackageValidationMessageData(PackageId, PackageVersion, ValidationTrackingId, ValidatingType.SymbolPackage);
+                var input = new PackageValidationMessageData(PackageId, PackageVersion, ValidationTrackingId, ValidatingType.SymbolPackage, PackageKey);
 
                 // Act
                 var output = _target.SerializePackageValidationMessageData(input);
@@ -64,11 +65,24 @@ namespace NuGet.Services.Validation.Tests
         {
             private const string TypeValue = "PackageValidationMessageData";
 
-            [Fact]
-            public void ProducesExpectedMessage()
+            public static IEnumerable<object[]> SerializedTestMessageData2 = new[]
+            {
+                new object[] { TestData.SerializedPackageValidationMessageData2, PackageKey },
+                new object[] { TestData.SerializedPackageValidationMessageDataWithNoEntityKey2, null}
+            };
+
+            public static IEnumerable<object[]> SerializedTestMessageDataForSymbols = new[]
+            {
+                new object[] { TestData.SerializedPackageValidationMessageDataSymbols, PackageKey },
+                new object[] { TestData.SerializedPackageValidationMessageDataSymbolsWithNoEntityKey, null}
+            };
+
+            [Theory]
+            [MemberData(nameof(SerializedTestMessageData2))]
+            public void ProducesExpectedMessage(string serializedMessage, int? expectedKey)
             {
                 // Arrange
-                var brokeredMessage = GetBrokeredMessage();
+                var brokeredMessage = GetBrokeredMessage(serializedMessage);
 
                 // Act
                 var output = _target.DeserializePackageValidationMessageData(brokeredMessage.Object);
@@ -80,6 +94,7 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
                 Assert.Equal(ValidatingType.Package, output.ValidatingType);
+                Assert.Equal(expectedKey, output.EntityKey);
             }
 
             [Fact]
@@ -98,13 +113,15 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
                 Assert.Equal(ValidatingType.Package, output.ValidatingType);
+                Assert.Equal(null, output.EntityKey);
             }
 
-            [Fact]
-            public void ProducesExpectedMessageForSymbols()
+            [Theory]
+            [MemberData(nameof(SerializedTestMessageDataForSymbols))]
+            public void ProducesExpectedMessageForSymbols(string serializedMessage, int? expectedKey)
             {
                 // Arrange
-                var brokeredMessage = GetBrokeredSymbolMessage();
+                var brokeredMessage = GetBrokeredSymbolMessage(serializedMessage);
 
                 // Act
                 var output = _target.DeserializePackageValidationMessageData(brokeredMessage.Object);
@@ -116,8 +133,8 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Equal(ValidationTrackingId, output.ValidationTrackingId);
                 Assert.Equal(DeliveryCount, output.DeliveryCount);
                 Assert.Equal(ValidatingType.SymbolPackage, output.ValidatingType);
+                Assert.Equal(expectedKey, output.EntityKey);
             }
-
 
             [Fact]
             public void RejectsInvalidType()
@@ -197,12 +214,12 @@ namespace NuGet.Services.Validation.Tests
                 Assert.Contains($"The provided message contains a {SchemaVersionKey} property that is not an integer.", exception.Message);
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredMessage()
+            private static Mock<IBrokeredMessage> GetBrokeredMessage(string expectedMessage = null)
             {
                 var brokeredMessage = new Mock<IBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
-                    .Returns(TestData.SerializedPackageValidationMessageData2);
+                    .Returns(expectedMessage ?? TestData.SerializedPackageValidationMessageData2);
                 brokeredMessage
                     .Setup(x => x.DeliveryCount)
                     .Returns(DeliveryCount);
@@ -235,12 +252,12 @@ namespace NuGet.Services.Validation.Tests
                 return brokeredMessage;
             }
 
-            private static Mock<IBrokeredMessage> GetBrokeredSymbolMessage()
+            private static Mock<IBrokeredMessage> GetBrokeredSymbolMessage(string serializedMessage = null)
             {
                 var brokeredMessage = new Mock<IBrokeredMessage>();
                 brokeredMessage
                     .Setup(x => x.GetBody())
-                    .Returns(TestData.SerializedPackageValidationMessageDataSymbols);
+                    .Returns(serializedMessage ?? TestData.SerializedPackageValidationMessageDataSymbols);
                 brokeredMessage
                     .Setup(x => x.DeliveryCount)
                     .Returns(DeliveryCount);

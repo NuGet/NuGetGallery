@@ -121,12 +121,18 @@
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
   <data name="SerializedPackageValidationMessageData2" xml:space="preserve">
-    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","EntityKey":123}</value>
   </data>
   <data name="SerializedPackageValidationMessageDataPackage" xml:space="preserve">
-    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":0}</value>
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":0,"EntityKey":123}</value>
   </data>
   <data name="SerializedPackageValidationMessageDataSymbols" xml:space="preserve">
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":1,"EntityKey":123}</value>
+  </data>
+  <data name="SerializedPackageValidationMessageDataSymbolsWithNoEntityKey" xml:space="preserve">
     <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5","ValidatingType":1}</value>
+  </data>
+  <data name="SerializedPackageValidationMessageDataWithNoEntityKey2" xml:space="preserve">
+    <value>{"PackageId":"NuGet.Versioning","PackageVersion":"4.3","PackageNormalizedVersion":"4.3.0","ValidationTrackingId":"14b4c1b8-40e2-4d60-9db7-4b7195e807f5"}</value>
   </data>
 </root>
