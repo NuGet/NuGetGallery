@@ -297,10 +297,10 @@
       <Version>4.8.0-preview4.5287</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.28.0-master-37018</Version>
+      <Version>2.28.0-master-42295</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.28.0-master-37018</Version>
+      <Version>2.28.0-master-42295</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>

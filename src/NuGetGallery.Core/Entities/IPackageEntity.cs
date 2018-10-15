@@ -7,7 +7,7 @@ namespace NuGetGallery
     /// The common entity type to be shared by <see cref="Package"/> and <see cref="SymbolPackage"/>
     /// This allows us the generic type instantiation in dependency injection for the commonly required code.
     /// </summary>
-    public interface IPackageEntity
+    public interface IPackageEntity : IEntity
     {
         string Id { get; }
 

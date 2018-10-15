@@ -15,7 +15,7 @@ namespace NuGetGallery.Extensions
         public static SymbolPackage LatestSymbolPackage(this Package package)
         {
             return package
-                .SymbolPackages
+                .SymbolPackages?
                 .OrderByDescending(sp => sp.Created)
                 .FirstOrDefault();
         }
