@@ -25,6 +25,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
         private const string PackageVersion = "1.2.3";
         private static readonly Guid ValidationId = new Guid("12345678-1234-1234-1234-123456789012");
         private const string NupkgUrl = "https://example/nuget.versioning/1.2.3/package.nupkg";
+        private const string SnupkgUrl = "https://example/nuget.versioning/1.2.3/package.snupkg";
 
         public class TheGetStatusMethod : FactsBase
         {
@@ -97,7 +98,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                 await _target.StartAsync(_validationRequest.Object);
 
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<IValidationRequest>()), Times.Never);
+                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()), Times.Never);
 
                 _symbolsValidationEntitiesService
                     .Verify(x => x.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()), Times.Never);
@@ -122,18 +123,19 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
                     RequestStatusKey = SymbolsPackageIngestRequestStatus.Ingesting,
                     SymbolsKey = PackageKey
                 };
+                var symbolsIngesterMessage = new SymbolsIngesterMessage(ValidationId, PackageKey, PackageId, PackageVersion, SnupkgUrl, "DummyRequestName");
 
                 _symbolsValidationEntitiesService
                      .Setup(x => x.GetSymbolsServerRequestAsync(It.IsAny<IValidationRequest>()))
                      .ReturnsAsync((SymbolsServerRequest)null);
 
                 _symbolMessageEnqueuer
-                    .Setup(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<IValidationRequest>()))
+                    .Setup(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()))
                     .Callback(() =>
                     {
                         verificationQueuedBeforeStatePersisted = !statePersisted;
                     })
-                    .Returns(Task.FromResult(0));
+                    .Returns(Task.FromResult(symbolsIngesterMessage));
 
                 _symbolsValidationEntitiesService
                     .Setup(x => x.AddSymbolsServerRequestAsync(It.IsAny<SymbolsServerRequest>()))
@@ -148,7 +150,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
 
                 // Assert
                 _symbolMessageEnqueuer
-                    .Verify(x => x.EnqueueSymbolsValidationMessageAsync(It.IsAny<IValidationRequest>()), Times.Once);
+                    .Verify(x => x.EnqueueSymbolsIngestionMessageAsync(It.IsAny<IValidationRequest>()), Times.Once);
 
                 _symbolsValidationEntitiesService
                     .Verify(
@@ -168,7 +170,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
         public abstract class FactsBase
         {
             protected readonly Mock<ISymbolsValidationEntitiesService> _symbolsValidationEntitiesService;
-            protected readonly Mock<ISymbolsMessageEnqueuer> _symbolMessageEnqueuer;
+            protected readonly Mock<ISymbolsIngesterMessageEnqueuer> _symbolMessageEnqueuer;
             protected readonly Mock<ITelemetryService> _telemetryService;
             protected readonly ILogger<SymbolsIngester> _logger;
             protected readonly Mock<IValidationRequest> _validationRequest;
@@ -177,7 +179,7 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
             public FactsBase(ITestOutputHelper output)
             {
                 _symbolsValidationEntitiesService = new Mock<ISymbolsValidationEntitiesService>();
-                _symbolMessageEnqueuer = new Mock<ISymbolsMessageEnqueuer>();
+                _symbolMessageEnqueuer = new Mock<ISymbolsIngesterMessageEnqueuer>();
                 _telemetryService = new Mock<ITelemetryService>();
                 var loggerFactory = new LoggerFactory().AddXunit(output);
                 _logger = loggerFactory.CreateLogger<SymbolsIngester>();
