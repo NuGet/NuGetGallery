@@ -78,7 +78,6 @@ namespace NuGetGallery
                 return result;
             }
 
-
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
         
