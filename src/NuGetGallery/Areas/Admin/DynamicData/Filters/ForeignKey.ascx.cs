@@ -1,5 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
 using System.Collections;
 using System.Linq;
@@ -13,7 +14,6 @@ namespace NuGetGallery.Areas.Admin.DynamicData
     {
         private const string NullValueString = "[null]";
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2222:DoNotDecreaseInheritedMemberVisibility")]
         private new MetaForeignKeyColumn Column
         {
             get { return (MetaForeignKeyColumn)base.Column; }

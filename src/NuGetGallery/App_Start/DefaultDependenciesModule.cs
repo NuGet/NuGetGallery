@@ -34,8 +34,8 @@ using NuGetGallery.Diagnostics;
 using NuGetGallery.Infrastructure;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Security;
-using NuGetGallery.Services;
 using SecretReaderFactory = NuGetGallery.Configuration.SecretReader.SecretReaderFactory;
 
 namespace NuGetGallery
@@ -50,7 +50,6 @@ namespace NuGetGallery
             public const string SymbolsPackageValidationEnqueuer = "SymbolsPackageValidationEnqueuerBindingKey";
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Maintainability", "CA1502:CyclomaticComplexity", Justification = "This code is more maintainable in the same function.")]
         protected override void Load(ContainerBuilder builder)
         {
             var telemetryClient = TelemetryClientWrapper.Instance;
@@ -85,7 +84,7 @@ namespace NuGetGallery
 
             builder.Register(c => configuration.Current)
                 .AsSelf()
-                .As<IAppConfiguration>();
+                .AsImplementedInterfaces();
 
             // Force the read of this configuration, so it will be initialized on startup
             builder.Register(c => configuration.Features)
@@ -328,52 +327,7 @@ namespace NuGetGallery
                 .As<ITyposquattingService>()
                 .InstancePerLifetimeScope();
 
-            Func<MailSender> mailSenderFactory = () =>
-                {
-                    var settings = configuration;
-                    if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
-                    {
-                        var smtpUri = new SmtpUri(settings.Current.SmtpUri);
-
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.Network,
-                            Host = smtpUri.Host,
-                            Port = smtpUri.Port,
-                            EnableSsl = smtpUri.Secure
-                        };
-
-                        if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
-                        {
-                            mailSenderConfiguration.UseDefaultCredentials = false;
-                            mailSenderConfiguration.Credentials = new NetworkCredential(
-                                smtpUri.UserName,
-                                smtpUri.Password);
-                        }
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                    else
-                    {
-                        var mailSenderConfiguration = new MailSenderConfiguration
-                        {
-                            DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
-                            PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
-                        };
-
-                        return new MailSender(mailSenderConfiguration);
-                    }
-                };
-
-            builder.Register(c => mailSenderFactory())
-                .AsSelf()
-                .As<IMailSender>()
-                .InstancePerDependency();
-
-            builder.RegisterType<BackgroundMessageService>()
-                .AsSelf()
-                .As<IMessageService>()
-                .InstancePerDependency();
+            RegisterMessagingService(builder, configuration);
 
             builder.Register(c => HttpContext.Current.User)
                 .AsSelf()
@@ -419,6 +373,56 @@ namespace NuGetGallery
             }
 
             ConfigureAutocomplete(builder, configuration);
+        }
+
+        private static void RegisterMessagingService(ContainerBuilder builder, ConfigurationService configuration)
+        {
+            MailSender mailSenderFactory()
+            {
+                var settings = configuration;
+                if (settings.Current.SmtpUri != null && settings.Current.SmtpUri.IsAbsoluteUri)
+                {
+                    var smtpUri = new SmtpUri(settings.Current.SmtpUri);
+
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.Network,
+                        Host = smtpUri.Host,
+                        Port = smtpUri.Port,
+                        EnableSsl = smtpUri.Secure
+                    };
+
+                    if (!string.IsNullOrWhiteSpace(smtpUri.UserName))
+                    {
+                        mailSenderConfiguration.UseDefaultCredentials = false;
+                        mailSenderConfiguration.Credentials = new NetworkCredential(
+                            smtpUri.UserName,
+                            smtpUri.Password);
+                    }
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+                else
+                {
+                    var mailSenderConfiguration = new MailSenderConfiguration
+                    {
+                        DeliveryMethod = SmtpDeliveryMethod.SpecifiedPickupDirectory,
+                        PickupDirectoryLocation = HostingEnvironment.MapPath("~/App_Data/Mail")
+                    };
+
+                    return new MailSender(mailSenderConfiguration);
+                }
+            }
+
+            builder.Register(c => mailSenderFactory())
+                .AsSelf()
+                .As<IMailSender>()
+                .InstancePerDependency();
+
+            builder.RegisterType<BackgroundMarkdownMessageService>()
+                .AsSelf()
+                .As<IMessageService>()
+                .InstancePerDependency();
         }
 
         private static ISqlConnectionFactory CreateDbConnectionFactory(IDiagnosticsService diagnostics, string name,
@@ -489,7 +493,8 @@ namespace NuGetGallery
                 ConfigureValidationEntitiesContext(builder, diagnostics, configuration, secretInjector);
 
                 builder
-                    .Register(c => {
+                    .Register(c =>
+                    {
                         return new AsynchronousPackageValidationInitiator<Package>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.PackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),
@@ -497,7 +502,8 @@ namespace NuGetGallery
                     }).As<IPackageValidationInitiator<Package>>();
 
                 builder
-                    .Register(c => {
+                    .Register(c =>
+                    {
                         return new AsynchronousPackageValidationInitiator<SymbolPackage>(
                             c.ResolveKeyed<IPackageValidationEnqueuer>(BindingKeys.SymbolsPackageValidationEnqueuer),
                             c.Resolve<IAppConfiguration>(),

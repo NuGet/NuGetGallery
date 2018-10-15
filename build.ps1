@@ -10,7 +10,7 @@ param (
     [string]$PackageSuffix,
     [string]$Branch,
     [string]$CommitSHA,
-    [string]$BuildBranch = 'c35bbc228717720bdbc610f3285259391635e90e'
+    [string]$BuildBranch = '80b8f1b4a1cfe57367881e59fca063866dcaaa42'
 )
 
 Set-StrictMode -Version 1.0

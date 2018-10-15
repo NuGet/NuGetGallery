@@ -119,6 +119,33 @@
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeNoticeToPreviousEmailAddressMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\NewAccountMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestDeclinedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestCanceledMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\MicrosoftTeamSubscriptionFacts.cs" />
@@ -312,6 +339,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>

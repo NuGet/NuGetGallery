@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Web.Mvc;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Configuration;
@@ -30,8 +29,6 @@ namespace NuGetGallery.Areas.Admin.Controllers
         }
 
         [HttpGet]
-        [SuppressMessage("Microsoft.Naming", "CA1716:IdentifiersShouldNotMatchKeywords", MessageId = "Throw", Justification="This is an admin action")]
-        [SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes", Justification = "This is an admin action")]
         public virtual ActionResult Throw()
         {
             throw new Exception("KA BOOM!");
