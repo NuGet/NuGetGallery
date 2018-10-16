@@ -1193,10 +1193,12 @@ namespace NuGetGallery
                     expectedLicenseSave ? Times.Once() : Times.Never());
             }
 
-            [Fact]
-            public async Task CleansUpLicenseIfBlobSaveFails()
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task CleansUpLicenseIfBlobSaveFails(PackageStatus packageStatus, bool expectedLicenseDelete)
             {
-                _package.PackageStatusKey = PackageStatus.Available;
+                _package.PackageStatusKey = packageStatus;
                 _package.HasEmbeddedLicenseFile = true;
                 _package.NormalizedVersion = "3.2.1";
 
@@ -1205,18 +1207,23 @@ namespace NuGetGallery
                 _packageFileService
                     .Setup(pfs => pfs.SavePackageFileAsync(_package, It.IsAny<Stream>()))
                     .ThrowsAsync(new Exception());
+                _packageFileService
+                    .Setup(pfs => pfs.SaveValidationPackageFileAsync(_package, It.IsAny<Stream>()))
+                    .ThrowsAsync(new Exception());
 
                 await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
 
                 _packageFileService.Verify(
                     pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
-                    Times.Once);
+                    expectedLicenseDelete ? Times.Once() : Times.Never());
             }
 
-            [Fact]
-            public async Task CleansUpLicenseIfDbUpdateFails()
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task CleansUpLicenseIfDbUpdateFails(PackageStatus packageStatus, bool expectedLicenseDelete)
             {
-                _package.PackageStatusKey = PackageStatus.Available;
+                _package.PackageStatusKey = packageStatus;
                 _package.HasEmbeddedLicenseFile = true;
                 _package.NormalizedVersion = "3.2.1";
 
@@ -1230,7 +1237,7 @@ namespace NuGetGallery
 
                 _packageFileService.Verify(
                     pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
-                    Times.Once);
+                    expectedLicenseDelete ? Times.Once() : Times.Never());
             }
         }
 
