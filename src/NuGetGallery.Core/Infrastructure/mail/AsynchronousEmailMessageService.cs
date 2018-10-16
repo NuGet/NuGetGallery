@@ -27,6 +27,11 @@ namespace NuGetGallery.Infrastructure.Mail
             bool copySender = false,
             bool discloseSenderAddress = false)
         {
+            if (emailBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(emailBuilder));
+            }
+
             var message = CreateMessage(
                 emailBuilder,
                 copySender,
@@ -41,6 +46,19 @@ namespace NuGetGallery.Infrastructure.Mail
             bool discloseSenderAddress = false)
         {
             var recipients = emailBuilder.GetRecipients();
+
+            if (recipients == EmailRecipients.None)
+            {
+                // Optimization: no need to construct message body when no recipients.
+                return null;
+            }
+
+            if (emailBuilder.Sender == null)
+            {
+                throw new ArgumentException(
+                    $"No sender defined for message of type '{emailBuilder.GetType()}'.",
+                    nameof(emailBuilder.Sender));
+            }
 
             return new EmailMessageData(
                 emailBuilder.GetSubject(),
@@ -79,12 +97,7 @@ namespace NuGetGallery.Infrastructure.Mail
 
         private Task EnqueueMessageAsync(EmailMessageData message)
         {
-            if (message == null)
-            {
-                throw new ArgumentNullException(nameof(message));
-            }
-
-            if (!message.To.Any())
+            if (message == null || !message.To.Any())
             {
                 return Task.CompletedTask;
             }
