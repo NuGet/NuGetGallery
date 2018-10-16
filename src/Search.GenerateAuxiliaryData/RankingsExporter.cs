@@ -32,8 +32,7 @@ namespace Search.GenerateAuxiliaryData
 
         protected override JContainer GetResultOfQuery(SqlConnection connection)
         {
-            var rankingsTotalCommand = new SqlCommand(GetEmbeddedSqlScript(_rankingsTotalScript), connection);
-            rankingsTotalCommand.CommandType = CommandType.Text;
+            var rankingsTotalCommand = GetEmbeddedSqlCommand(connection, _rankingsTotalScript);
             rankingsTotalCommand.Parameters.AddWithValue(_rankingCountParameterName, _rankingCount);
             rankingsTotalCommand.CommandTimeout = 60;
 

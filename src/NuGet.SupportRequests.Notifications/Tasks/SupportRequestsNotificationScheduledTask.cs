@@ -15,8 +15,6 @@ namespace NuGet.SupportRequests.Notifications.Tasks
       : IScheduledTask
         where TNotification : INotification
     {
-        private InitializationConfiguration _configuration;
-
         private readonly SupportRequestRepository _supportRequestRepository;
         private readonly MessagingService _messagingService;
 

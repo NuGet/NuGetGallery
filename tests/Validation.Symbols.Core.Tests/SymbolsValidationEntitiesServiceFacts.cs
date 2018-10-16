@@ -185,13 +185,14 @@ namespace Validation.Symbols.Core.Tests
             {
                 // Arrange
                 ValidationRequest request = new ValidationRequest(Guid.NewGuid(), PackageKey, PackageId, PackageVersion, "");
+                string requestName = "DummyRequestName";
 
                 // Act
-                var result = SymbolsValidationEntitiesService.CreateFromValidationRequest(request, SymbolsPackageIngestRequestStatus.FailedIngestion);
+                var result = SymbolsValidationEntitiesService.CreateFromValidationRequest(request, SymbolsPackageIngestRequestStatus.FailedIngestion, requestName);
 
                 // Assert
                 Assert.Equal(PackageKey, result.SymbolsKey);
-                Assert.Equal(PackageKey.ToString(), result.RequestName);
+                Assert.Equal(requestName, result.RequestName);
                 Assert.Equal(SymbolsPackageIngestRequestStatus.FailedIngestion, result.RequestStatusKey);
             }
         }
@@ -257,6 +258,23 @@ namespace Validation.Symbols.Core.Tests
 
                 // Assert
                 Assert.Equal(ValidationStatus.NotStarted, result.Status);
+            }
+        }
+
+        public class The
+        {
+            [Fact]
+            public void CreateRequestName()
+            {
+                // Arrange
+                Guid id = Guid.NewGuid();
+                ValidationRequest vRequest = new ValidationRequest(id, 10, "pId", "1.1.1", "url");
+
+                // Act
+                var requestName = SymbolsValidationEntitiesService.CreateSymbolServerRequestNameFromValidationRequest(vRequest);
+
+                // Assert
+                Assert.Equal($"{vRequest.PackageKey}_{vRequest.ValidationId}", requestName);
             }
         }
 

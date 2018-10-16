@@ -599,6 +599,7 @@ namespace NuGet.Services.Validation.Orchestrator
             services.AddTransient<IValidationSetProvider<SymbolPackage>, ValidationSetProvider<SymbolPackage>>();
             services.AddTransient<IMessageService<SymbolPackage>, SymbolsPackageMessageService>();
             services.AddTransient<IBrokeredMessageSerializer<SymbolsValidatorMessage>, SymbolsValidatorMessageSerializer>();
+            services.AddTransient<IBrokeredMessageSerializer<SymbolsIngesterMessage>, SymbolsIngesterMessageSerializer>();
             services.AddTransient<ISymbolsValidationEntitiesService, SymbolsValidationEntitiesService>();
         }
 
@@ -653,18 +654,18 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Keyed<ITopicClient>(SymbolsIngesterBindingKey);
 
             builder
-                .RegisterType<SymbolsMessageEnqueuer>()
+                .RegisterType<SymbolsIngesterMessageEnqueuer>()
                 .WithKeyedParameter(typeof(ITopicClient), SymbolsIngesterBindingKey)
                 .WithParameter(
                     (pi, ctx) => pi.ParameterType == typeof(TimeSpan?),
                     (pi, ctx) => ctx.Resolve<IOptionsSnapshot<SymbolsIngesterConfiguration>>().Value.MessageDelay)
-                .Keyed<ISymbolsMessageEnqueuer>(SymbolsIngesterBindingKey)
-                .As<ISymbolsMessageEnqueuer>();
+                .Keyed<ISymbolsIngesterMessageEnqueuer>(SymbolsIngesterBindingKey)
+                .As<ISymbolsIngesterMessageEnqueuer>();
 
             builder
                 .RegisterType<SymbolsIngester>()
                 .WithKeyedParameter(typeof(IValidatorStateService), SymbolsIngesterBindingKey)
-                .WithKeyedParameter(typeof(ISymbolsMessageEnqueuer), SymbolsIngesterBindingKey)
+                .WithKeyedParameter(typeof(ISymbolsIngesterMessageEnqueuer), SymbolsIngesterBindingKey)
                 .AsSelf();
         }
 
@@ -672,6 +673,5 @@ namespace NuGet.Services.Validation.Orchestrator
         {
             return _serviceProvider.GetRequiredService<T>();
         }
-
     }
 }

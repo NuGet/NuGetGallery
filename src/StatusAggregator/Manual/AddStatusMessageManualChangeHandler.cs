@@ -24,13 +24,13 @@ namespace StatusAggregator.Manual
             var time = entity.Timestamp.UtcDateTime;
 
             var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
-            var messageEntity = new MessageEntity(eventRowKey, time, entity.MessageContents);
-
-            var eventEntity = await _table.RetrieveAsync<EventEntity>(EventEntity.DefaultPartitionKey, eventRowKey);
+            var eventEntity = await _table.RetrieveAsync<EventEntity>(eventRowKey);
             if (eventEntity == null)
             {
                 throw new ArgumentException("Cannot create a message for an event that does not exist.");
             }
+            
+            var messageEntity = new MessageEntity(eventEntity, time, entity.MessageContents, MessageType.Manual);
 
             await _table.InsertAsync(messageEntity);
             if (ManualStatusChangeUtility.UpdateEventIsActive(eventEntity, entity.EventIsActive, time))

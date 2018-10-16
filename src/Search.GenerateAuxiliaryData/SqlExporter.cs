@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -34,10 +35,18 @@ namespace Search.GenerateAuxiliaryData
             OpenSqlConnectionAsync = openSqlConnectionAsync;
         }
 
-        protected static string GetEmbeddedSqlScript(string resourceName)
+        [SuppressMessage("Microsoft.Security", "CA2100", Justification = "Query string comes from embedded resource, not user input.")]
+        protected static SqlCommand GetEmbeddedSqlCommand(SqlConnection connection, string resourceName)
         {
-            var stream = _executingAssembly.GetManifestResourceStream(_assemblyName + "." + resourceName);
-            return new StreamReader(stream).ReadToEnd();
+            using (var reader = new StreamReader(_executingAssembly.GetManifestResourceStream(_assemblyName + "." + resourceName)))
+            {
+                var commandText = reader.ReadToEnd();
+
+                return new SqlCommand(commandText, connection)
+                {
+                    CommandType = CommandType.Text
+                };
+            }
         }
 
         public override async Task ExportAsync()

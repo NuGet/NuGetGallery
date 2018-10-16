@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using NuGet.Services.Logging;
+using NuGet.Services.Validation;
 
 namespace Validation.Symbols
 {
@@ -15,11 +16,14 @@ namespace Validation.Symbols
         private const string SymbolValidationDuration = Prefix + "SymbolValidationDurationInSeconds";
         private const string MessageDeliveryLag = Prefix + "MessageDeliveryLag";
         private const string MessageEnqueueLag = Prefix + "MessageEnqueueLag";
+        private const string SymbolValidationResult = Prefix + "SymbolValidationResult";
 
         private const string PackageId = "PackageId";
         private const string PackageNormalizedVersion = "PackageNormalizedVersion";
         private const string MessageType = "MessageType";
         private const string SymbolCount = "SymbolCount";
+        private const string ValidationResult = "ValidationResult";
+        private const string Issue = "Issue";
 
         private readonly ITelemetryClient _telemetryClient;
 
@@ -61,6 +65,20 @@ namespace Validation.Symbols
                     { PackageId, packageId },
                     { PackageNormalizedVersion, packageNormalizedVersion },
                     { SymbolCount, symbolCount.ToString()}
+                });
+        }
+
+        public void TrackSymbolsValidationResultEvent(string packageId, string packageNormalizedVersion, ValidationStatus validationStatus, string issue)
+        {
+            _telemetryClient.TrackMetric(
+                SymbolValidationResult,
+                1,
+                new Dictionary<string, string>
+                {
+                    { ValidationResult, validationStatus.ToString() },
+                    { Issue, issue },
+                    { PackageId, packageId },
+                    { PackageNormalizedVersion, packageNormalizedVersion }
                 });
         }
 

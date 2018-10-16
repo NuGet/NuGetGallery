@@ -53,6 +53,7 @@
     <Compile Include="Error.cs" />
     <Compile Include="Services\MessageServiceConfiguration.cs" />
     <Compile Include="Services\SymbolsMessageService.cs" />
+    <Compile Include="Symbols\ISymbolsIngesterMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolScanOnlyConfiguration.cs" />
     <Compile Include="Symbols\SymbolCriteriaEvaluator.cs" />
     <Compile Include="Symbols\SymbolScanValidator.cs" />
@@ -62,6 +63,7 @@
     <Compile Include="IPackageStatusProcessor.cs" />
     <Compile Include="Services\SymbolEntityService.cs" />
     <Compile Include="Symbols\ISymbolsMessageEnqueuer.cs" />
+    <Compile Include="Symbols\SymbolsIngesterMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsMessageEnqueuer.cs" />
     <Compile Include="Symbols\SymbolsIngesterConfiguration.cs" />
     <Compile Include="Symbols\SymbolsIngester.cs" />

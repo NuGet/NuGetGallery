@@ -11,7 +11,7 @@ namespace StatusAggregator.Table
     {
         Task CreateIfNotExistsAsync();
 
-        Task<T> RetrieveAsync<T>(string partitionKey, string rowKey) 
+        Task<T> RetrieveAsync<T>(string rowKey) 
             where T : class, ITableEntity;
 
         Task InsertAsync(ITableEntity tableEntity);

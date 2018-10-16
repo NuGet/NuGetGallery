@@ -112,7 +112,7 @@ namespace StatusAggregator
 
             public async Task GetTask(ITableWrapper table, ManualStatusChangeEntity entity)
             {
-                var typedEntity = await table.RetrieveAsync<T>(entity.PartitionKey, entity.RowKey);
+                var typedEntity = await table.RetrieveAsync<T>(entity.RowKey);
                 await _handler.Handle(typedEntity);
             }
         }

@@ -46,6 +46,60 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Container\ContainerWrapper.cs" />
+    <Compile Include="Container\IContainerWrapper.cs" />
+    <Compile Include="Export\ComponentExporter.cs" />
+    <Compile Include="Export\EventExporter.cs" />
+    <Compile Include="Export\EventsExporter.cs" />
+    <Compile Include="Export\IComponentExporter.cs" />
+    <Compile Include="Export\IEventExporter.cs" />
+    <Compile Include="Export\IEventsExporter.cs" />
+    <Compile Include="Export\IStatusExporter.cs" />
+    <Compile Include="Export\IStatusSerializer.cs" />
+    <Compile Include="Export\StatusExporter.cs" />
+    <Compile Include="Export\StatusSerializer.cs" />
+    <Compile Include="Collector\Cursor.cs" />
+    <Compile Include="Collector\EntityCollector.cs" />
+    <Compile Include="Collector\ICursor.cs" />
+    <Compile Include="Collector\IEntityCollector.cs" />
+    <Compile Include="Collector\IEntityCollectorProcessor.cs" />
+    <Compile Include="Collector\IncidentEntityCollectorProcessor.cs" />
+    <Compile Include="Collector\ManualStatusChangeCollectorProcessor.cs" />
+    <Compile Include="Factory\AggregationStrategy.cs" />
+    <Compile Include="Factory\AggregationProvider.cs" />
+    <Compile Include="Factory\IAffectedComponentPathProvider.cs" />
+    <Compile Include="Factory\IComponentFactory.cs" />
+    <Compile Include="Factory\IAggregationStrategy.cs" />
+    <Compile Include="Factory\IAggregationProvider.cs" />
+    <Compile Include="Factory\IncidentAffectedComponentPathProvider.cs" />
+    <Compile Include="Factory\EventAffectedComponentPathProvider.cs" />
+    <Compile Include="Messages\ExistingStartMessageContext.cs" />
+    <Compile Include="Parse\IIncidentRegexParsingHandler.cs" />
+    <Compile Include="Parse\IncidentRegexParsingHandler.cs" />
+    <Compile Include="Update\EventMessagingUpdater.cs" />
+    <Compile Include="Messages\IIncidentGroupMessageFilter.cs" />
+    <Compile Include="Messages\IMessageChangeEventIterator.cs" />
+    <Compile Include="Messages\IMessageChangeEventProcessor.cs" />
+    <Compile Include="Messages\IMessageChangeEventProvider.cs" />
+    <Compile Include="Messages\IMessageContentBuilder.cs" />
+    <Compile Include="Messages\IMessageFactory.cs" />
+    <Compile Include="Messages\IncidentGroupMessageFilter.cs" />
+    <Compile Include="Messages\MessageChangeEvent.cs" />
+    <Compile Include="Messages\MessageChangeEventIterator.cs" />
+    <Compile Include="Messages\MessageChangeEventProcessor.cs" />
+    <Compile Include="Messages\MessageChangeEventProvider.cs" />
+    <Compile Include="Messages\MessageContentBuilder.cs" />
+    <Compile Include="Messages\MessageFactory.cs" />
+    <Compile Include="Update\ActiveEventEntityUpdater.cs" />
+    <Compile Include="Update\AggregationEntityUpdater.cs" />
+    <Compile Include="Factory\EventFactory.cs" />
+    <Compile Include="Factory\IComponentAffectingEntityFactory.cs" />
+    <Compile Include="Update\EventUpdater.cs" />
+    <Compile Include="Update\IActiveEventEntityUpdater.cs" />
+    <Compile Include="Update\IComponentAffectingEntityUpdater.cs" />
+    <Compile Include="Update\IncidentUpdater.cs" />
+    <Compile Include="Factory\IncidentFactory.cs" />
+    <Compile Include="Factory\IncidentGroupFactory.cs" />
     <Compile Include="Manual\AddStatusEventManualChangeHandler.cs" />
     <Compile Include="Manual\AddStatusMessageManualChangeHandler.cs" />
     <Compile Include="Manual\DeleteStatusEventManualChangeHandler.cs" />
@@ -53,50 +107,35 @@
     <Compile Include="Manual\EditStatusEventManualChangeHandler.cs" />
     <Compile Include="Manual\EditStatusMessageManualChangeHandler.cs" />
     <Compile Include="Manual\IManualStatusChangeHandler.cs" />
-    <Compile Include="Manual\IManualStatusChangeUpdater.cs" />
     <Compile Include="Manual\ManualStatusChangeHandler.cs" />
-    <Compile Include="Manual\ManualStatusChangeUpdater.cs" />
     <Compile Include="Manual\ManualStatusChangeUtility.cs" />
-    <Compile Include="NuGetServiceComponentFactory.cs" />
+    <Compile Include="Factory\NuGetServiceComponentFactory.cs" />
     <Compile Include="LogEvents.cs" />
-    <Compile Include="Parse\TrafficManagerEndpointStatusIncidentParser.cs" />
+    <Compile Include="Parse\TrafficManagerEndpointStatusIncidentRegexParsingHandler.cs" />
     <Compile Include="StatusAggregatorConfiguration.cs" />
-    <Compile Include="Cursor.cs" />
-    <Compile Include="EventUpdater.cs" />
-    <Compile Include="ICursor.cs" />
-    <Compile Include="IEventUpdater.cs" />
-    <Compile Include="IIncidentFactory.cs" />
-    <Compile Include="IIncidentUpdater.cs" />
-    <Compile Include="Parse\EnvironmentFilter.cs" />
-    <Compile Include="Parse\IIncidentParsingFilter.cs" />
-    <Compile Include="Parse\PingdomIncidentParser.cs" />
-    <Compile Include="Parse\SeverityFilter.cs" />
-    <Compile Include="IncidentUpdater.cs" />
-    <Compile Include="IStatusUpdater.cs" />
-    <Compile Include="IMessageUpdater.cs" />
+    <Compile Include="Parse\EnvironmentRegexParsingFilter.cs" />
+    <Compile Include="Parse\IIncidentRegexParsingFilter.cs" />
+    <Compile Include="Parse\PingdomIncidentRegexParsingHandler.cs" />
+    <Compile Include="Parse\SeverityRegexParsingFilter.cs" />
     <Compile Include="StatusAggregator.cs" />
-    <Compile Include="StatusContractResolver.cs" />
     <Compile Include="StatusStorageConnectionBuilder.cs" />
-    <Compile Include="StatusUpdater.cs" />
     <Compile Include="Parse\AggregateIncidentParser.cs" />
     <Compile Include="Parse\IAggregateIncidentParser.cs" />
-    <Compile Include="IncidentFactory.cs" />
-    <Compile Include="IStatusExporter.cs" />
-    <Compile Include="MessageUpdater.cs" />
-    <Compile Include="StatusExporter.cs" />
-    <Compile Include="Parse\EnvironmentPrefixIncidentParser.cs" />
+    <Compile Include="Parse\EnvironmentPrefixIncidentRegexParsingHandler.cs" />
     <Compile Include="Parse\IIncidentParser.cs" />
-    <Compile Include="Parse\IncidentParser.cs" />
+    <Compile Include="Parse\IncidentRegexParser.cs" />
     <Compile Include="Job.cs" />
     <Compile Include="Table\ITableWrapper.cs" />
-    <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentParser.cs" />
+    <Compile Include="Parse\OutdatedSearchServiceInstanceIncidentRegexParsingHandler.cs" />
     <Compile Include="Parse\ParsedIncident.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Parse\ValidationDurationIncidentParser.cs" />
-    <Compile Include="Table\TableUtility.cs" />
+    <Compile Include="Parse\ValidationDurationIncidentRegexParsingHandler.cs" />
+    <Compile Include="Table\TablePartitionKeys.cs" />
     <Compile Include="Table\TableWrapper.cs" />
     <Compile Include="Table\TableWrapperExtensions.cs" />
+    <Compile Include="Update\IStatusUpdater.cs" />
+    <Compile Include="Update\StatusUpdater.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Jobs.Common\NuGet.Jobs.Common.csproj">
@@ -118,13 +157,13 @@
       <Version>1.1.1</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Incidents">
-      <Version>2.28.0-master-38796</Version>
+      <Version>2.29.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status">
-      <Version>2.28.0-master-38796</Version>
+      <Version>2.29.0</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Status.Table">
-      <Version>2.28.0-master-38796</Version>
+      <Version>2.29.0</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>9.2.0</Version>

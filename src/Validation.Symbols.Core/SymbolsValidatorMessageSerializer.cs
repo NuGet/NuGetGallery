@@ -8,7 +8,7 @@ namespace NuGet.Jobs.Validation.Symbols.Core
 {
     public class SymbolsValidatorMessageSerializer : IBrokeredMessageSerializer<SymbolsValidatorMessage>
     {
-        private const string SchemaName = "SignatureValidationMessageData";
+        private const string SchemaName = "SymbolsValidatorMessageData";
 
         private IBrokeredMessageSerializer<SymbolsValidatorMessageDataV1> _serializer =
             new BrokeredMessageSerializer<SymbolsValidatorMessageDataV1>();

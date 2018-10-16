@@ -76,6 +76,7 @@ namespace Validation.Symbols
             {
                 if (!SymbolsHaveMatchingPEFiles(pdbs, pes))
                 {
+                    _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
                     return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
                 }
                 var targetDirectory = Settings.GetWorkingDirectory();
@@ -165,6 +166,7 @@ namespace Validation.Symbols
 
                             if (checksumRecords.Length == 0)
                             {
+                                _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch));
                                 return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
                             }
 
@@ -195,15 +197,18 @@ namespace Validation.Symbols
                                     if (checksumRecord.Checksum.ToArray().SequenceEqual(hash))
                                     {
                                         // found the right checksum
+                                        _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Succeeded, "");
                                         return ValidationResult.Succeeded;
                                     }
                                 }
 
                                 // Not found any checksum record that matches the PDB.
+                                _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch));
                                 return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_ChecksumDoesNotMatch);
                             }
                         }
                     }
+                    _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
                     return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
                 }
             }
@@ -215,6 +220,7 @@ namespace Validation.Symbols
                              packageId,
                              packageNormalizedVersion,
                              Directory.GetFiles(targetDirectory, SymbolExtensionPattern, SearchOption.AllDirectories));
+            _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
             return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
         }
 

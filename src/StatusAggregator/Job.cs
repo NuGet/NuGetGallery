@@ -11,15 +11,22 @@ using Autofac;
 using Autofac.Core;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json.Linq;
 using NuGet.Jobs;
 using NuGet.Services.Incidents;
+using NuGet.Services.Status.Table;
 using NuGet.Services.Status.Table.Manual;
+using StatusAggregator.Collector;
+using StatusAggregator.Container;
+using StatusAggregator.Export;
+using StatusAggregator.Factory;
 using StatusAggregator.Manual;
+using StatusAggregator.Messages;
 using StatusAggregator.Parse;
 using StatusAggregator.Table;
+using StatusAggregator.Update;
 
 namespace StatusAggregator
 {
@@ -39,6 +46,10 @@ namespace StatusAggregator
             containerBuilder.Populate(serviceCollection);
 
             AddStorage(containerBuilder);
+            AddFactoriesAndUpdaters(containerBuilder);
+            AddIncidentRegexParser(containerBuilder);
+            AddExporters(containerBuilder);
+            AddEntityCollector(containerBuilder);
 
             _serviceProvider = new AutofacServiceProvider(containerBuilder.Build());
         }
@@ -47,22 +58,30 @@ namespace StatusAggregator
         {
             return _serviceProvider
                 .GetRequiredService<StatusAggregator>()
-                .Run();
+                .Run(DateTime.UtcNow);
         }
 
         private static void AddServices(IServiceCollection serviceCollection)
         {
             serviceCollection.AddTransient<ICursor, Cursor>();
             serviceCollection.AddSingleton<IIncidentApiClient, IncidentApiClient>();
-            serviceCollection.AddTransient<IMessageUpdater, MessageUpdater>();
-            serviceCollection.AddTransient<IEventUpdater, EventUpdater>();
-            serviceCollection.AddTransient<IIncidentFactory, IncidentFactory>();
             AddParsing(serviceCollection);
-            serviceCollection.AddTransient<IIncidentUpdater, IncidentUpdater>();
+            serviceCollection.AddTransient<IEntityCollectorProcessor, IncidentEntityCollectorProcessor>();
             AddManualStatusChangeHandling(serviceCollection);
+            AddMessaging(serviceCollection);
+            serviceCollection.AddTransient<IComponentFactory, NuGetServiceComponentFactory>();
             serviceCollection.AddTransient<IStatusUpdater, StatusUpdater>();
-            serviceCollection.AddTransient<IStatusExporter, StatusExporter>();
             serviceCollection.AddTransient<StatusAggregator>();
+        }
+
+        private static void AddMessaging(IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddTransient<IMessageContentBuilder, MessageContentBuilder>();
+            serviceCollection.AddTransient<IMessageFactory, MessageFactory>();
+            serviceCollection.AddTransient<IMessageChangeEventIterator, MessageChangeEventIterator>();
+            serviceCollection.AddTransient<IMessageChangeEventProcessor, MessageChangeEventProcessor>();
+            serviceCollection.AddTransient<IIncidentGroupMessageFilter, IncidentGroupMessageFilter>();
+            serviceCollection.AddTransient<IMessageChangeEventProvider, MessageChangeEventProvider>();
         }
 
         private static void AddManualStatusChangeHandling(IServiceCollection serviceCollection)
@@ -78,13 +97,13 @@ namespace StatusAggregator
 
         private static void AddParsing(IServiceCollection serviceCollection)
         {
-            serviceCollection.AddTransient<IIncidentParsingFilter, SeverityFilter>();
-            serviceCollection.AddTransient<IIncidentParsingFilter, EnvironmentFilter>();
+            serviceCollection.AddTransient<IIncidentRegexParsingFilter, SeverityRegexParsingFilter>();
+            serviceCollection.AddTransient<IIncidentRegexParsingFilter, EnvironmentRegexParsingFilter>();
 
-            serviceCollection.AddTransient<IIncidentParser, OutdatedSearchServiceInstanceIncidentParser>();
-            serviceCollection.AddTransient<IIncidentParser, PingdomIncidentParser>();
-            serviceCollection.AddTransient<IIncidentParser, ValidationDurationIncidentParser>();
-            serviceCollection.AddTransient<IIncidentParser, TrafficManagerEndpointStatusIncidentParser>();
+            serviceCollection.AddTransient<IIncidentRegexParsingHandler, OutdatedSearchServiceInstanceIncidentRegexParsingHandler>();
+            serviceCollection.AddTransient<IIncidentRegexParsingHandler, PingdomIncidentRegexParsingHandler>();
+            serviceCollection.AddTransient<IIncidentRegexParsingHandler, ValidationDurationIncidentRegexParsingHandler>();
+            serviceCollection.AddTransient<IIncidentRegexParsingHandler, TrafficManagerEndpointStatusIncidentRegexParsingHandler>();
 
             serviceCollection.AddTransient<IAggregateIncidentParser, AggregateIncidentParser>();
         }
@@ -129,18 +148,17 @@ namespace StatusAggregator
                         var storageAccount = ctx.ResolveNamed<CloudStorageAccount>(name);
                         return GetCloudBlobContainer(ctx, storageAccount);
                     })
-                    .As<CloudBlobContainer>()
-                    .Named<CloudBlobContainer>(name);
+                    .As<IContainerWrapper>()
+                    .Named<IContainerWrapper>(name);
 
                 // We need to listen to manual status change updates from each storage.
                 containerBuilder
-                    .RegisterType<ManualStatusChangeUpdater>()
+                    .RegisterType<ManualStatusChangeCollectorProcessor>()
                     .WithParameter(new NamedParameter(StorageAccountNameParameter, name))
                     .WithParameter(new ResolvedParameter(
                         (pi, ctx) => pi.ParameterType == typeof(ITableWrapper),
                         (pi, ctx) => ctx.ResolveNamed<ITableWrapper>(name)))
-                    .As<IManualStatusChangeUpdater>()
-                    .Named<IManualStatusChangeUpdater>(name);
+                    .As<IEntityCollectorProcessor>();
             }
         }
 
@@ -156,11 +174,128 @@ namespace StatusAggregator
             return new TableWrapper(storageAccount, configuration.TableName);
         }
 
-        private static CloudBlobContainer GetCloudBlobContainer(IComponentContext ctx, CloudStorageAccount storageAccount)
+        private static IContainerWrapper GetCloudBlobContainer(IComponentContext ctx, CloudStorageAccount storageAccount)
         {
             var blobClient = storageAccount.CreateCloudBlobClient();
             var configuration = ctx.Resolve<StatusAggregatorConfiguration>();
-            return blobClient.GetContainerReference(configuration.ContainerName);
+            var container = blobClient.GetContainerReference(configuration.ContainerName);
+            return new ContainerWrapper(container);
+        }
+
+        private static void AddFactoriesAndUpdaters(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .RegisterType<AggregationStrategy<IncidentEntity, IncidentGroupEntity>>()
+                .As<IAggregationStrategy<IncidentGroupEntity>>();
+
+            containerBuilder
+                .RegisterType<AggregationStrategy<IncidentGroupEntity, EventEntity>>()
+                .As<IAggregationStrategy<EventEntity>>();
+
+            containerBuilder
+                .RegisterType<IncidentAffectedComponentPathProvider>()
+                .As<IAffectedComponentPathProvider<IncidentEntity>>()
+                .As<IAffectedComponentPathProvider<IncidentGroupEntity>>();
+
+            containerBuilder
+                .RegisterType<EventAffectedComponentPathProvider>()
+                .As<IAffectedComponentPathProvider<EventEntity>>();
+
+            containerBuilder
+                .RegisterType<AggregationProvider<IncidentEntity, IncidentGroupEntity>>()
+                .As<IAggregationProvider<IncidentEntity, IncidentGroupEntity>>();
+
+            containerBuilder
+                .RegisterType<AggregationProvider<IncidentGroupEntity, EventEntity>>()
+                .As<IAggregationProvider<IncidentGroupEntity, EventEntity>>();
+
+            containerBuilder
+                .RegisterType<IncidentFactory>()
+                .As<IComponentAffectingEntityFactory<IncidentEntity>>();
+
+            containerBuilder
+                .RegisterType<IncidentGroupFactory>()
+                .As<IComponentAffectingEntityFactory<IncidentGroupEntity>>();
+
+            containerBuilder
+                .RegisterType<EventFactory>()
+                .As<IComponentAffectingEntityFactory<EventEntity>>();
+
+            containerBuilder
+                .RegisterType<IncidentUpdater>()
+                .As<IComponentAffectingEntityUpdater<IncidentEntity>>();
+
+            containerBuilder
+                .RegisterType<AggregationEntityUpdater<IncidentEntity, IncidentGroupEntity>>()
+                .As<IComponentAffectingEntityUpdater<IncidentGroupEntity>>();
+            
+            AddEventUpdater(containerBuilder);
+
+            containerBuilder
+                .RegisterType<ActiveEventEntityUpdater>()
+                .As<IActiveEventEntityUpdater>();
+        }
+
+        private static void AddEventUpdater(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .RegisterType<AggregationEntityUpdater<IncidentGroupEntity, EventEntity>>()
+                .AsSelf();
+
+            containerBuilder
+                .RegisterType<EventMessagingUpdater>()
+                .AsSelf();
+
+            containerBuilder
+                .RegisterType<EventUpdater>()
+                .As<IComponentAffectingEntityUpdater<EventEntity>>();
+        }
+
+        private static void AddIncidentRegexParser(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .RegisterAdapter<IIncidentRegexParsingHandler, IIncidentParser>(
+                    (ctx, handler) =>
+                    {
+                        return new IncidentRegexParser(
+                            handler,
+                            ctx.Resolve<ILogger<IncidentRegexParser>>());
+                    });
+        }
+
+        private static void AddEntityCollector(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .RegisterAdapter<IEntityCollectorProcessor, IEntityCollector>(
+                    (ctx, processor) =>
+                    {
+                        return new EntityCollector(
+                            ctx.Resolve<ICursor>(),
+                            processor);
+                    });
+        }
+
+        private static void AddExporters(ContainerBuilder containerBuilder)
+        {
+            containerBuilder
+                .RegisterType<ComponentExporter>()
+                .As<IComponentExporter>();
+
+            containerBuilder
+                .RegisterType<EventExporter>()
+                .As<IEventExporter>();
+
+            containerBuilder
+                .RegisterType<EventsExporter>()
+                .As<IEventsExporter>();
+
+            containerBuilder
+                .RegisterType<StatusSerializer>()
+                .As<IStatusSerializer>();
+
+            containerBuilder
+                .RegisterType<StatusExporter>()
+                .As<IStatusExporter>();
         }
 
         private const int _defaultEventStartMessageDelayMinutes = 15;

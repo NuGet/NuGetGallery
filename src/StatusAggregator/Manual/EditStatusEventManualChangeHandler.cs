@@ -22,7 +22,7 @@ namespace StatusAggregator.Manual
         public async Task Handle(EditStatusEventManualChangeEntity entity)
         {
             var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
-            var eventEntity = await _table.RetrieveAsync<EventEntity>(EventEntity.DefaultPartitionKey, eventRowKey);
+            var eventEntity = await _table.RetrieveAsync<EventEntity>(eventRowKey);
             if (eventEntity == null)
             {
                 throw new ArgumentException("Cannot edit an event that does not exist.");

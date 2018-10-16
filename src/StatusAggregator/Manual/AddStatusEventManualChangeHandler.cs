@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using NuGet.Services.Status;
 using NuGet.Services.Status.Table;
 using NuGet.Services.Status.Table.Manual;
 using StatusAggregator.Table;
@@ -25,14 +26,15 @@ namespace StatusAggregator.Manual
 
             var eventEntity = new EventEntity(
                 entity.EventAffectedComponentPath,
-                entity.EventAffectedComponentStatus,
                 time,
-                entity.EventIsActive ? (DateTime?)null : time);
+                affectedComponentStatus: (ComponentStatus)entity.EventAffectedComponentStatus,
+                endTime: entity.EventIsActive ? (DateTime?)null : time);
 
             var messageEntity = new MessageEntity(
                 eventEntity,
                 time,
-                entity.MessageContents);
+                entity.MessageContents,
+                MessageType.Manual);
 
             await _table.InsertAsync(messageEntity);
             await _table.InsertAsync(eventEntity);

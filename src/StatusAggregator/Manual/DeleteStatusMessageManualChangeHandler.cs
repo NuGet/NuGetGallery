@@ -19,11 +19,19 @@ namespace StatusAggregator.Manual
             _table = table ?? throw new ArgumentNullException(nameof(table));
         }
 
-        public Task Handle(DeleteStatusMessageManualChangeEntity entity)
+        public async Task Handle(DeleteStatusMessageManualChangeEntity entity)
         {
             var eventRowKey = EventEntity.GetRowKey(entity.EventAffectedComponentPath, entity.EventStartTime);
-            var messageRowKey = MessageEntity.GetRowKey(eventRowKey, entity.MessageTimestamp);
-            return _table.DeleteAsync(MessageEntity.DefaultPartitionKey, messageRowKey);
+            var messageEntity = await _table.RetrieveAsync<MessageEntity>(MessageEntity.GetRowKey(eventRowKey, entity.MessageTimestamp));
+            if (messageEntity == null)
+            {
+                throw new ArgumentException("Cannot delete a message that does not exist.");
+            }
+
+            messageEntity.Contents = "";
+            messageEntity.Type = (int)MessageType.Manual;
+
+            await _table.ReplaceAsync(messageEntity);
         }
     }
 }
