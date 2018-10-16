@@ -170,6 +170,7 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
             var model = new SubmitPackageRequest();
+            model.IsSymbolsUploadEnabled = _contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser);
             PackageMetadata packageMetadata;
 
             using (var uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))

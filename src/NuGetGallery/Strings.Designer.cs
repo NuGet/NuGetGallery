@@ -2247,6 +2247,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This package contains a &lt;license&gt; metadata which is currently not supported..
+        /// </summary>
+        public static string UploadPackage_NotAcceptingPackagesWithLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The package contains too many files and/or folders..
         /// </summary>
         public static string UploadPackage_PackageContainsTooManyEntries {
