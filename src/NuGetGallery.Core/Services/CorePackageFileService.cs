@@ -198,6 +198,34 @@ namespace NuGetGallery
             }
         }
 
+        public Task SaveLicenseFileAsync(Package package, Stream licenseFile)
+        {
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (licenseFile == null)
+            {
+                throw new ArgumentNullException(nameof(licenseFile));
+            }
+
+            var template = _metadata.PackageContentFileSavePathTemplate + "/license";
+            var fileName = BuildFileName(package, template, string.Empty);
+
+            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, licenseFile, overwrite: false);
+        }
+
+        public Task<Stream> DownloadLicenseFileAsync(Package package)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task DeleteLicenseFileAsync(string id, string version)
+        {
+            throw new NotImplementedException();
+        }
+
         private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)
         {
             if (id == null)
@@ -270,32 +298,6 @@ namespace NuGetGallery
                 id.ToLowerInvariant(),
                 version.ToLowerInvariant(),
                 extension);
-        }
-
-        public Task SaveLicenseFileAsync(Package package, Stream licenseFile)
-        {
-            if (package == null)
-            {
-                throw new ArgumentNullException(nameof(package));
-            }
-
-            if (licenseFile == null)
-            {
-                throw new ArgumentNullException(nameof(licenseFile));
-            }
-
-            var fileName = "license";
-            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, licenseFile, overwrite: false);
-        }
-
-        public Task<Stream> DownloadLicenseFileAsync(Package package)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task DeleteLicenseFileAsync(string id, string version)
-        {
-            throw new NotImplementedException();
         }
     }
 }
