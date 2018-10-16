@@ -81,7 +81,8 @@ namespace NuGetGallery.TestUtils
             IEnumerable<NuGet.Packaging.Core.PackageType> packageTypes = null,
             RepositoryMetadata repositoryMetadata = null,
             bool isSigned = false,
-            int? desiredTotalEntryCount = null)
+            int? desiredTotalEntryCount = null,
+            Func<string> getCustomNuspecNodes = null)
         {
             if (packageDependencyGroups == null)
             {
@@ -139,7 +140,9 @@ namespace NuGetGallery.TestUtils
                             writer.Write("Fake signature file.");
                         }
                     }
-                }, desiredTotalEntryCount: desiredTotalEntryCount);
+                },
+                desiredTotalEntryCount: desiredTotalEntryCount,
+                getCustomNuspecNodes: getCustomNuspecNodes);
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;

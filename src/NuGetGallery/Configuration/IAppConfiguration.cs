@@ -360,5 +360,10 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+
+        /// <summary>
+        /// Flag that indicates whether packages with `license` node in them should be rejected.
+        /// </summary>
+        bool RejectPackagesWithLicense { get; set; }
     }
 }
