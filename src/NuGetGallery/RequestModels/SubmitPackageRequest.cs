@@ -8,5 +8,7 @@ namespace NuGetGallery
         public bool IsUploadInProgress => InProgressUpload != null;
 
         public VerifyPackageRequest InProgressUpload { get; set; }
+
+        public bool IsSymbolsUploadEnabled { get; set; }
     }
 }
