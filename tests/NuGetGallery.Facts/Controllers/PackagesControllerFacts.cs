@@ -142,7 +142,13 @@ namespace NuGetGallery
 
             readMeService = readMeService ?? new ReadMeService(packageFileService.Object, entitiesContext.Object);
 
-            contentObjectService = contentObjectService ?? new Mock<IContentObjectService>();
+            if (contentObjectService == null)
+            {
+                contentObjectService = new Mock<IContentObjectService>();
+                contentObjectService
+                    .Setup(x => x.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(It.IsAny<User>()))
+                    .Returns(false);
+            }
 
             if (symbolPackageUploadService == null)
             {
@@ -4016,9 +4022,10 @@ namespace NuGetGallery
                     uploadFileService: fakeUploadFileService);
                 controller.SetCurrentUser(TestUtility.FakeUser);
 
-                var result = await controller.UploadPackage() as ViewResult;
+                var result = (await controller.UploadPackage() as ViewResult).Model as SubmitPackageRequest;
 
                 Assert.NotNull(result);
+                Assert.False(result.IsSymbolsUploadEnabled);
             }
 
             [Fact]
