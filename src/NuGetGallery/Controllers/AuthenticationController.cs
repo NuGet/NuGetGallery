@@ -271,7 +271,9 @@ namespace NuGetGallery
                     user = await _authService.Register(
                         model.Register.Username,
                         model.Register.EmailAddress,
-                        result.Credential);
+                        result.Credential,
+                        (result.Credential.IsExternal() && string.Equals(result.UserInfo?.Email, model.Register.EmailAddress))
+                        );
                 }
                 else
                 {
