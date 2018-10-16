@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Moq;
@@ -568,6 +569,106 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Equal("For backwards compatibility when a license is specified in the package, its <licenseUrl> node must point to https://aka.ms/deprecateLicenseUrl", result.Message);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Fact]
+            public async Task RejectsPackagesWithMissingLicenseFileWhenSpecified()
+            {
+                const string licenseFileName = "license.txt";
+
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseExpression: null,
+                    licenseFilename: licenseFileName,
+                    licenseFileContents: null);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("file", result.Message);
+                Assert.Contains("does not exist", result.Message);
+                Assert.Contains(licenseFileName, result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData(".txt", true)]
+            [InlineData(".md", true)]
+            [InlineData(".doc", false)]
+            [InlineData(".pdf", false)]
+            public async Task ChecksLicenseFileExtension(string extension, bool successExpected)
+            {
+                string licenseFileName = $"sdfzklgj{extension}";
+
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseExpression: null,
+                    licenseFilename: licenseFileName,
+                    licenseFileContents: "license");
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (successExpected)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("License file has invalid extension", result.Message);
+                    Assert.Contains("Extension must be one of the following", result.Message);
+                    Assert.Contains(extension, result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
+            // any valid UTF-8 encoded file should be accepted
+            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_Smoke => new object[][]
+            {
+                new object[] { new byte[] { 0, 1, 2, 3 }, true },
+                new object[] { new byte[] { 10, 13 }, false },
+                new object[] { Encoding.UTF8.GetBytes("test"), false},
+                new object[] { Encoding.UTF8.GetBytes("тест"), false},
+            };
+
+            // any characters with code <32 except line break characters should be rejected
+            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_AllInvalidBytes =>
+                from @byte in Enumerable.Range(0, 32)
+                select new object[] { new byte[1] { (byte)@byte }, @byte != 10 && @byte != 13 };
+
+            [Theory]
+            [MemberData(nameof(RejectsBinaryLicenseFiles_Smoke))]
+            [MemberData(nameof(RejectsBinaryLicenseFiles_AllInvalidBytes))]
+            public async Task RejectsBinaryLicenseFiles(byte[] licenseFileContent, bool expectedFailure)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseExpression: null,
+                    licenseFilename: "license.txt",
+                    licenseFileBinaryContents: licenseFileContent);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (!expectedFailure)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("License file must be plain text using UTF-8 encoding.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
             }
 
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
@@ -1302,7 +1403,8 @@ namespace NuGetGallery
                 Uri licenseUrl = null,
                 string licenseExpression = null,
                 string licenseFilename = null,
-                string licenseFileContents = null)
+                string licenseFileContents = null,
+                byte[] licenseFileBinaryContents = null)
             {
                 return PackageServiceUtility.CreateNuGetPackage(
                     id: "theId",
@@ -1313,7 +1415,22 @@ namespace NuGetGallery
                     licenseUrl: licenseUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,
-                    licenseFileContents: licenseFileContents);
+                    licenseFileContents: GetBinaryLicenseFileContents(licenseFileBinaryContents, licenseFileContents));
+            }
+
+            private static byte[] GetBinaryLicenseFileContents(byte[] binaryContents, string stringContents)
+            {
+                if (binaryContents != null)
+                {
+                    return binaryContents;
+                }
+
+                if (stringContents != null)
+                {
+                    return Encoding.UTF8.GetBytes(stringContents);
+                }
+
+                return null;
             }
         }
     }

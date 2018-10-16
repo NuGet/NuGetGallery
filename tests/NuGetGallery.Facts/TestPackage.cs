@@ -194,7 +194,7 @@ namespace NuGetGallery
             int? desiredTotalEntryCount = null,
             string licenseExpression = null,
             string licenseFilename = null,
-            string licenseFileContents = null)
+            byte[] licenseFileContents = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -211,9 +211,8 @@ namespace NuGetGallery
                 {
                     var licenseEntry = packageArchive.CreateEntry(licenseFilename, CompressionLevel.Fastest);
                     using (var licenseStream = licenseEntry.Open())
-                    using (var streamWriter = new StreamWriter(licenseStream, Encoding.UTF8, 1024, leaveOpen: true))
                     {
-                        streamWriter.Write(licenseFileContents);
+                        licenseStream.Write(licenseFileContents, 0, licenseFileContents.Length);
                     }
                 }
 

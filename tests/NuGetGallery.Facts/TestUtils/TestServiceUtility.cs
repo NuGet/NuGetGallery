@@ -84,7 +84,7 @@ namespace NuGetGallery.TestUtils
             int? desiredTotalEntryCount = null,
             string licenseExpression = null,
             string licenseFilename = null,
-            string licenseFileContents = null)
+            byte[] licenseFileContents = null)
         {
             if (packageDependencyGroups == null)
             {

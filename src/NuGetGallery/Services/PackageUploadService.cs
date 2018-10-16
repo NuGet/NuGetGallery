@@ -18,6 +18,12 @@ namespace NuGetGallery
 {
     public class PackageUploadService : IPackageUploadService
     {
+        private static readonly IReadOnlyCollection<string> AllowedLicenseFileExtensions = new HashSet<string>
+        {
+            ".txt",
+            ".md",
+        };
+
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IEntitiesContext _entitiesContext;
@@ -126,6 +132,39 @@ namespace NuGetGallery
                         string.Join(" ", licenseMetadata.WarningsAndErrors)));
             }
 
+            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.File)
+            {
+                // check if specified file is present in the package
+                var fileList = new HashSet<string>(nuGetPackage.GetFiles());
+                if (!fileList.Contains(licenseMetadata.License))
+                {
+                    return PackageValidationResult.Invalid(
+                        string.Format(
+                            Strings.UploadPackage_LicenseFileDoesNotExist,
+                            licenseMetadata.License));
+                }
+
+                // check if specified file has allowed extension
+                var licenseFileExtension = Path.GetExtension(licenseMetadata.License);
+                if (!AllowedLicenseFileExtensions.Contains(licenseFileExtension))
+                {
+                    return PackageValidationResult.Invalid(
+                        string.Format(
+                            Strings.UploadPackage_InvalidLicenseFileExtension,
+                            licenseFileExtension,
+                            string.Join(", ", AllowedLicenseFileExtensions)));
+                }
+
+                // check if specified file is a text file
+                using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
+                {
+                    if (!IsTextStream(licenseFileStream))
+                    {
+                        return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
+                    }
+                }
+            }
+
             if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
@@ -134,6 +173,30 @@ namespace NuGetGallery
             // TODO: more license expression validations
 
             return null;
+        }
+
+        private bool IsTextByte(int byteValue)
+        {
+            const int TextRangeStart = 32;
+            const int LineFeed = 10;
+            const int CarriageReturn = 13;
+
+            return byteValue > TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn;
+        }
+
+        private bool IsTextStream(Stream stream)
+        {
+            int valueRead = -1;
+            do
+            {
+                valueRead = stream.ReadByte();
+                if (valueRead >= 0 && !IsTextByte(valueRead))
+                {
+                    return false;
+                }
+            } while (valueRead >= 0);
+
+            return true;
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(

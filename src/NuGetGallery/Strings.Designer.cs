@@ -2220,6 +2220,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to License file has invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
+        /// </summary>
+        public static string UploadPackage_InvalidLicenseFileExtension {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidLicenseFileExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The NuGet package contains an invalid .nuspec file. The error encountered was: &apos;{0}&apos;. Correct the error and try again..
         /// </summary>
         public static string UploadPackage_InvalidNuspec {
@@ -2261,6 +2270,24 @@ namespace NuGetGallery {
         public static string UploadPackage_LicenseExpressionsNotSupported {
             get {
                 return ResourceManager.GetString("UploadPackage_LicenseExpressionsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License file &apos;{0}&apos; does not exist..
+        /// </summary>
+        public static string UploadPackage_LicenseFileDoesNotExist {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseFileDoesNotExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License file must be plain text using UTF-8 encoding..
+        /// </summary>
+        public static string UploadPackage_LicenseMustBePlainText {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseMustBePlainText", resourceCulture);
             }
         }
         

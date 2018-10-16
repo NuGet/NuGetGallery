@@ -1018,4 +1018,15 @@ Policy violations: {0}</value>
   <data name="UploadPackage_MissingLicenseInformation" xml:space="preserve">
     <value>Package has no license information specified.</value>
   </data>
+  <data name="UploadPackage_InvalidLicenseFileExtension" xml:space="preserve">
+    <value>License file has invalid extension '{0}'. Extension must be one of the following: {1}.</value>
+    <comment>{0} is the specified extension. {1} is the string containing the allowed extensions list</comment>
+  </data>
+  <data name="UploadPackage_LicenseFileDoesNotExist" xml:space="preserve">
+    <value>License file '{0}' does not exist.</value>
+    <comment>{0} is the license file name specified in the .nuspec</comment>
+  </data>
+  <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
+    <value>License file must be plain text using UTF-8 encoding.</value>
+  </data>
 </root>
