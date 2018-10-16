@@ -1105,6 +1105,7 @@ namespace NuGetGallery
             public async Task DeletesPackageIfDatabaseCommitFailsWhenAvailable()
             {
                 _package.PackageStatusKey = PackageStatus.Available;
+                _package.NormalizedVersion = "3.2.1";
 
                 _entitiesContext
                     .Setup(x => x.SaveChangesAsync())
@@ -1155,7 +1156,7 @@ namespace NuGetGallery
                     .ReturnsAsync(true);
 
                 var result = await _target.CommitPackageAsync(_package, _packageFile);
-                
+
                 _packageFileService.Verify(
                     x => x.SaveValidationPackageFileAsync(It.IsAny<Package>(), It.IsAny<Stream>()),
                     Times.Once);
@@ -1173,6 +1174,63 @@ namespace NuGetGallery
                     Times.Once);
 
                 Assert.Equal(PackageCommitResult.Conflict, result);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Validating, false)]
+            [InlineData(PackageStatus.Available, true)]
+            public async Task SavesLicenseFileWhenPackageIsAvailable(PackageStatus packageStatus, bool expectedLicenseSave)
+            {
+                _package.PackageStatusKey = packageStatus;
+                _package.HasEmbeddedLicenseFile = true;
+
+                _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+
+                var result = await _target.CommitPackageAsync(_package, _packageFile);
+
+                _packageFileService.Verify(
+                    pfs => pfs.SaveLicenseFileAsync(_package, It.Is<Stream>(s => s != null)),
+                    expectedLicenseSave ? Times.Once() : Times.Never());
+            }
+
+            [Fact]
+            public async Task CleansUpLicenseIfBlobSaveFails()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                _package.HasEmbeddedLicenseFile = true;
+                _package.NormalizedVersion = "3.2.1";
+
+                _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+
+                _packageFileService
+                    .Setup(pfs => pfs.SavePackageFileAsync(_package, It.IsAny<Stream>()))
+                    .ThrowsAsync(new Exception());
+
+                await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
+
+                _packageFileService.Verify(
+                    pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion),
+                    Times.Once);
+            }
+
+            [Fact]
+            public async Task CleansUpLicenseIfDbUpdateFails()
+            {
+                _package.PackageStatusKey = PackageStatus.Available;
+                _package.HasEmbeddedLicenseFile = true;
+                _package.NormalizedVersion = "3.2.1";
+
+                _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
+
+                _entitiesContext
+                    .Setup(ec => ec.SaveChangesAsync())
+                    .ThrowsAsync(new Exception());
+
+                await Assert.ThrowsAsync<Exception>(() => _target.CommitPackageAsync(_package, _packageFile));
+
+                _packageFileService.Verify(
+                    pfs => pfs.DeleteLicenseFileAsync(_package.Id, _package.NormalizedVersion.ToString()),
+                    Times.Once);
             }
         }
 

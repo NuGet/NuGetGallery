@@ -434,18 +434,19 @@ namespace NuGetGallery
                 {
                     if (package.HasEmbeddedLicenseFile)
                     {
+                        // if the package is immediately made avaialble, it means there is a high chance we don't have
+                        // validation pipeline that would normally store the license file, so we'll do it ourselves here.
                         await SavePackageLicenseFile(packageFile, licenseStream => _packageFileService.SaveLicenseFileAsync(package, licenseStream));
                     }
                     try
                     {
                         await _packageFileService.SavePackageFileAsync(package, packageFile);
                     }
-                    catch (Exception)
+                    catch when (package.HasEmbeddedLicenseFile)
                     {
-                        if (package.HasEmbeddedLicenseFile)
-                        {
-                            await _packageFileService.DeleteLicenseFileAsync(package.Id, package.NormalizedVersion.ToString());
-                        }
+                        await _packageFileService.DeleteLicenseFileAsync(
+                            package.PackageRegistration.Id,
+                            package.NormalizedVersion);
                         throw;
                     }
                 }
@@ -475,6 +476,9 @@ namespace NuGetGallery
                     await _packageFileService.DeletePackageFileAsync(
                         package.PackageRegistration.Id,
                         package.Version);
+                    await _packageFileService.DeleteLicenseFileAsync(
+                        package.PackageRegistration.Id,
+                        package.NormalizedVersion);
                 }
 
                 throw;
@@ -503,7 +507,6 @@ namespace NuGetGallery
                     throw new Exception("No license file specified in the nuspec");
                 }
             }
-            throw new NotImplementedException();
         }
     }
 }
