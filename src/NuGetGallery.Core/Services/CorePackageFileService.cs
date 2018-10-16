@@ -274,7 +274,18 @@ namespace NuGetGallery
 
         public Task SaveLicenseFileAsync(Package package, Stream licenseFile)
         {
-            throw new NotImplementedException();
+            if (package == null)
+            {
+                throw new ArgumentNullException(nameof(package));
+            }
+
+            if (licenseFile == null)
+            {
+                throw new ArgumentNullException(nameof(licenseFile));
+            }
+
+            var fileName = "license";
+            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, licenseFile, overwrite: false);
         }
 
         public Task<Stream> DownloadLicenseFileAsync(Package package)

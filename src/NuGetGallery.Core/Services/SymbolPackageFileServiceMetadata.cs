@@ -7,7 +7,8 @@ namespace NuGetGallery
     {
         public string FileFolderName => CoreConstants.SymbolPackagesFolderName;
 
-        public string PackageContentFolderName => throw new System.Exception($"{nameof(PackageContentFolderName)} property should not be used for an instance of {nameof(SymbolPackageFileMetadataService)} class");
+        public string PackageContentFolderName => throw new System.NotImplementedException();
+        public string PackageContentFileSavePathTemplate => throw new System.NotImplementedException();
 
         public string FileSavePathTemplate => CoreConstants.PackageFileSavePathTemplate;
 

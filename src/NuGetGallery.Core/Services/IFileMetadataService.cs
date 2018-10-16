@@ -16,6 +16,11 @@ namespace NuGetGallery
         string PackageContentFolderName { get; }
 
         /// <summary>
+        /// The template for the filename
+        /// </summary>
+        string PackageContentFileSavePathTemplate { get; }
+
+        /// <summary>
         /// The save file path template. For example <see cref="CoreConstants.PackageFileSavePathTemplate"/>
         /// </summary>
         string FileSavePathTemplate { get; }
