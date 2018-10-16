@@ -38,6 +38,7 @@ namespace NuGetGallery
             IEnumerable<ClientPackageType> packageTypes = null,
             bool isSymbolPackage = false,
             RepositoryMetadata repositoryMetadata = null,
+            Func<string> getCustomNodes = null,
             string licenseExpression = null,
             string licenseFilename = null)
         {
@@ -63,6 +64,7 @@ namespace NuGetGallery
                         <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
                         <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         " + WriteRepositoryMetadata(repositoryMetadata) + @"
+                        " + (getCustomNodes != null ? getCustomNodes() : "") + @"
                     </metadata>
                 </package>");
 
@@ -192,6 +194,7 @@ namespace NuGetGallery
             Action<ZipArchive> populatePackage = null,
             bool isSymbolPackage = false,
             int? desiredTotalEntryCount = null,
+            Func<string> getCustomNuspecNodes = null,
             string licenseExpression = null,
             string licenseFilename = null,
             byte[] licenseFileContents = null)
@@ -204,7 +207,7 @@ namespace NuGetGallery
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
                         requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
-                        licenseExpression, licenseFilename);
+                        getCustomNuspecNodes, licenseExpression, licenseFilename);
                 }
 
                 if (licenseFileContents != null && licenseFilename != null)

@@ -82,6 +82,7 @@ namespace NuGetGallery.TestUtils
             RepositoryMetadata repositoryMetadata = null,
             bool isSigned = false,
             int? desiredTotalEntryCount = null,
+            Func<string> getCustomNuspecNodes = null,
             string licenseExpression = null,
             string licenseFilename = null,
             byte[] licenseFileContents = null)
@@ -142,8 +143,11 @@ namespace NuGetGallery.TestUtils
                             writer.Write("Fake signature file.");
                         }
                     }
-                }, desiredTotalEntryCount: desiredTotalEntryCount, licenseExpression: licenseExpression,
-                licenseFilename: licenseFilename, licenseFileContents: licenseFileContents);
+                }, desiredTotalEntryCount: desiredTotalEntryCount,
+                getCustomNuspecNodes: getCustomNuspecNodes,
+                licenseExpression: licenseExpression,
+                licenseFilename: licenseFilename,
+                licenseFileContents: licenseFileContents);
 
             var mock = new Mock<TestPackageReader>(testPackage);
             mock.CallBase = true;

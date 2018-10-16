@@ -759,7 +759,8 @@ namespace NuGetGallery.Authentication
                         It.Is<Credential>(c => VerifyPasswordHash(
                             c.Value,
                             CredentialBuilder.LatestPasswordType,
-                            password))))
+                            password)),
+                        It.IsAny<bool>()))
                     .CompletesWithNull()
                     .Verifiable();
 
@@ -842,6 +843,57 @@ namespace NuGetGallery.Authentication
                 Assert.True(auth.Entities.Users.Contains(authUser.User));
                 Assert.True(authUser.User.Confirmed);
                 auth.Entities.VerifyCommitChanges();
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("AzureActiveDirectory")]
+            public async Task WillSaveTheNewUserWithExternalCredentialAndMatchEmailAsConfirmed(string credType)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = true;
+
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
+                    true);
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                Assert.True(authUser.User.Confirmed);
+                Assert.True(string.Equals(authUser.User.EmailAddress, "theEmailAddress"));
+                auth.Entities.VerifyCommitChanges();
+            }
+
+            [Theory]
+            [InlineData("MicrosoftAccount")]
+            [InlineData("AzureActiveDirectory")]
+            public async Task WillSaveTheNewUserWithExternalCredentialAndNotMatchEmailAsNotConfirmed(string credType)
+            {
+                // Arrange
+                var configurationService = GetConfigurationService();
+                configurationService.Current.ConfirmEmailAddresses = true;
+
+                var auth = Get<AuthenticationService>();
+
+                // Act
+                var authUser = await auth.Register(
+                    "newUser",
+                    "theEmailAddress",
+                    new CredentialBuilder().CreateExternalCredential(credType, "blorg", "Bloog"),
+                    false);
+
+                // Assert
+                Assert.True(auth.Entities.Users.Contains(authUser.User));
+                auth.Entities.VerifyCommitChanges();
+                Assert.True(string.Equals(authUser.User.UnconfirmedEmailAddress, "theEmailAddress"));
+                Assert.NotNull(authUser.User.EmailConfirmationToken);
+                Assert.False(authUser.User.Confirmed);
             }
 
             [Fact]

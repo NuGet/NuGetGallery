@@ -3,14 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 
 namespace NuGetGallery.Diagnostics
 {
     public class NullDiagnosticsSource : IDiagnosticsSource
     {
-        [SuppressMessage("Microsoft.Security", "CA2104:DoNotDeclareReadOnlyMutableReferenceTypes", Justification = "Type is immutable")]
         public static readonly NullDiagnosticsSource Instance = new NullDiagnosticsSource();
 
         private NullDiagnosticsSource() { }

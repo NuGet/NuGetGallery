@@ -234,34 +234,8 @@
   <data name="PasswordSet" xml:space="preserve">
     <value>Your password has been set.</value>
   </data>
-  <data name="Emails_ForgotPassword_Body" xml:space="preserve">
-    <value>The word on the street is you lost your password. Sorry to hear it!
-If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
-
-Click the following link within the next hour to reset your password:
-
-[{0}]({0})
-
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-
-Thanks,
-The {1} Team</value>
-  </data>
   <data name="Emails_ForgotPassword_Subject" xml:space="preserve">
     <value>[{0}] Please reset your password.</value>
-  </data>
-  <data name="Emails_SetPassword_Body" xml:space="preserve">
-    <value>The word on the street is you want to set a password for your account.
-If you didn't request a password, you can safely ignore this message. A password has not yet been set.
-
-Click the following link within the next hour to set your password:
-
-[{0}]({0})
-
-Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
-
-Thanks,
-The {1} Team</value>
   </data>
   <data name="Emails_SetPassword_Subject" xml:space="preserve">
     <value>[{0}] Please set your password.</value>
@@ -995,6 +969,35 @@ Policy violations: {0}</value>
   </data>
   <data name="SymbolsPackage_Deleted" xml:space="preserve">
     <value>The symbols package associated with this package has been deleted.</value>
+  </data>
+  <data name="Emails_ForgotPassword_MarkdownBody" xml:space="preserve">
+    <value>The word on the street is you lost your password. Sorry to hear it!
+If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
+
+Click the following link within the next hour to reset your password:
+
+[{0}]({0})
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="Emails_SetPassword_MarkdownBody" xml:space="preserve">
+    <value>The word on the street is you want to set a password for your account.
+If you didn't request a password, you can safely ignore this message. A password has not yet been set.
+
+Click the following link within the next hour to set your password:
+
+[{0}]({0})
+
+Note that NuGet.org password login is deprecated. Please use Microsoft account to sign into {1}.
+
+Thanks,
+The {1} Team</value>
+  </data>
+  <data name="UploadPackage_NotAcceptingPackagesWithLicense" xml:space="preserve">
+    <value>This package contains a &lt;license&gt; metadata which is currently not supported.</value>
   </data>
   <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
     <value>Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package.</value>

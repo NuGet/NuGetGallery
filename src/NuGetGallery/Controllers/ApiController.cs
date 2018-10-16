@@ -23,6 +23,8 @@ using NuGetGallery.Authentication;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using PackageIdValidator = NuGetGallery.Packaging.PackageIdValidator;
@@ -134,7 +136,7 @@ namespace NuGetGallery
             : this(apiScopeEvaluator, entitiesContext, packageService, packageFileService, userService, contentService,
                   indexingService, searchService, statusService, messageService, auditingService,
                   configurationService, telemetryService, authenticationService, credentialBuilder, securityPolicies,
-                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService, 
+                  reservedNamespaceService, packageUploadService, packageDeleteService, symbolPackageFileService,
                   symbolPackageUploadServivce)
         {
             StatisticsService = statisticsService;
@@ -256,7 +258,7 @@ namespace NuGetGallery
 
         [HttpGet]
         [ActionName("StatusApi")]
-        public async virtual Task<ActionResult> Status()
+        public virtual async Task<ActionResult> Status()
         {
             if (StatusService == null)
             {
@@ -276,7 +278,7 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("CreatePackageVerificationKey")]
-        public async virtual Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
+        public virtual async Task<ActionResult> CreatePackageVerificationKeyAsync(string id, string version)
         {
             // For backwards compatibility, we must preserve existing behavior where the client always pushes
             // symbols and the VerifyPackageKey callback returns the appropriate response. For this reason, we
@@ -302,7 +304,7 @@ namespace NuGetGallery
         [ApiAuthorize]
         [ApiScopeRequired(NuGetScopes.PackageVerify, NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion)]
         [ActionName("VerifyPackageKey")]
-        public async virtual Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
+        public virtual async Task<ActionResult> VerifyPackageKeyAsync(string id, string version)
         {
             var user = GetCurrentUser();
             var policyResult = await SecurityPolicyService.EvaluateUserPoliciesAsync(SecurityPolicyAction.PackageVerify, user, HttpContext);
@@ -625,7 +627,7 @@ namespace NuGetGallery
                                 packageStreamMetadata,
                                 owner,
                                 currentUser);
-                                
+
                             var packagePolicyResult = await SecurityPolicyService.EvaluatePackagePoliciesAsync(
                                 securityPolicyAction,
                                 package,
@@ -682,20 +684,28 @@ namespace NuGetGallery
                             if (!(ConfigurationService.Current.AsynchronousPackageValidationEnabled && ConfigurationService.Current.BlockingAsynchronousPackageValidationEnabled))
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                await MessageService.SendPackageAddedNoticeAsync(package,
+                                var packageAddedMessage = new PackageAddedMessage(
+                                    ConfigurationService.Current,
+                                    package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.AccountSettings(relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
+
+                                await MessageService.SendMessageAsync(packageAddedMessage);
                             }
                             // Emit warning messages if any
                             else if (packagePolicyResult.HasWarnings)
                             {
                                 // Notify user of push unless async validation in blocking mode is used
-                                await MessageService.SendPackageAddedWithWarningsNoticeAsync(package,
+                                var packageAddedWithWarningsMessage = new PackageAddedWithWarningsMessage(
+                                    ConfigurationService.Current,
+                                    package,
                                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                                     packagePolicyResult.WarningMessages);
+
+                                await MessageService.SendMessageAsync(packageAddedWithWarningsMessage);
                             }
 
                             TelemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);

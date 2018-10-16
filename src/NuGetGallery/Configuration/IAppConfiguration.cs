@@ -2,11 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using NuGetGallery.Services;
+using NuGetGallery.Infrastructure.Mail;
 
 namespace NuGetGallery.Configuration
 {
-    public interface IAppConfiguration : ICoreMessageServiceConfiguration
+    public interface IAppConfiguration : IMessageServiceConfiguration
     {
         /// <summary>
         /// Gets the location in which the Lucene Index is stored
@@ -360,6 +360,11 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+
+        /// <summary>
+        /// Flag that indicates whether packages with `license` node in them should be rejected.
+        /// </summary>
+        bool RejectPackagesWithLicense { get; set; }
 
         /// <summary>
         /// Indicates whether packages that specify the licene the "old" way (with a "licenseUrl" node only) should be rejected.

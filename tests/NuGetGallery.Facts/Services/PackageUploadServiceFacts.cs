@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -667,6 +666,49 @@ namespace NuGetGallery
                 {
                     Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                     Assert.Contains("License file must be plain text using UTF-8 encoding.", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+            }
+
+            private static string[] LicenseNodeVariants => new string[]
+            {
+                // TODO: uncomment. Client has a bug apparently, which makes it not like the <license> nodes without attributes
+                //"<license/>",
+                //"<license></license>",
+                //"<license> </license>",
+                //"<license>ttt</license>",
+                "<license type='file'>fff</license>",
+                "<license type='expression'>ee</license>",
+                "<license type='foobar'>ttt</license>",
+            };
+
+            public static IEnumerable<object[]> RejectsLicensedPackagesWhenConfigured_Input =>
+                from licenseNode in LicenseNodeVariants
+                select new object[] { licenseNode, true, false };
+
+            [Theory]
+            [MemberData(nameof(RejectsLicensedPackagesWhenConfigured_Input))]
+            public async Task RejectsLicensedPackagesWhenConfigured(string licenseNode, bool rejectPackagesWithLicense, bool expectedSuccess)
+            {
+                _config
+                    .SetupGet(x => x.RejectPackagesWithLicense)
+                    .Returns(rejectPackagesWithLicense);
+                _nuGetPackage = GeneratePackage(getCustomNuspecNodes: () => licenseNode);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("license", result.Message);
                     Assert.Empty(result.Warnings);
                 }
             }
@@ -1400,6 +1442,7 @@ namespace NuGetGallery
                 RepositoryMetadata repositoryMetadata = null,
                 bool isSigned = true,
                 int? desiredTotalEntryCount = null,
+                Func<string> getCustomNuspecNodes = null,
                 Uri licenseUrl = null,
                 string licenseExpression = null,
                 string licenseFilename = null,
@@ -1412,6 +1455,7 @@ namespace NuGetGallery
                     repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned,
                     desiredTotalEntryCount: desiredTotalEntryCount,
+                    getCustomNuspecNodes: getCustomNuspecNodes,
                     licenseUrl: licenseUrl,
                     licenseExpression: licenseExpression,
                     licenseFilename: licenseFilename,

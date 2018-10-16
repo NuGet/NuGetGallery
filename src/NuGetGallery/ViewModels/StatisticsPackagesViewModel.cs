@@ -81,7 +81,6 @@ namespace NuGetGallery
             PackageVersion = packageVersion;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayDownloads(int downloads)
         {
             return downloads.ToNuGetNumberString();
@@ -95,7 +94,6 @@ namespace NuGetGallery
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayWeek(int year, int weekOfYear, WeekFormats format = WeekFormats.FullDate)
         {
             if (weekOfYear < 1 || weekOfYear > 53)
@@ -139,7 +137,6 @@ namespace NuGetGallery
             return string.Format(CultureInfo.CurrentCulture, outputStringTemplate, startOfWeek, startOfWeek.AddDays(7));
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic", Justification = "We want to be able to use this easily in the related view.")]
         public string DisplayPercentage(float amount, float total)
         {
             return (amount / total).ToString("P0", CultureInfo.CurrentCulture);

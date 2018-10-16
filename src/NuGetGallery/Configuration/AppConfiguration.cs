@@ -354,6 +354,9 @@ namespace NuGetGallery.Configuration
         public string[] RedirectedCuratedFeeds { get; set; }
 
         [DefaultValue(false)]
+        public bool RejectPackagesWithLicense { get; set; }
+
+        [DefaultValue(false)]
         public bool BlockLegacyLicenseUrl { get; set; }
 
         [DefaultValue(false)]

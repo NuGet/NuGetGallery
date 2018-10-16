@@ -852,9 +852,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_ForgotPassword_Body {
+        public static string Emails_ForgotPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_ForgotPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_ForgotPassword_MarkdownBody", resourceCulture);
             }
         }
         
@@ -880,9 +880,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_SetPassword_Body {
+        public static string Emails_SetPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_SetPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_SetPassword_MarkdownBody", resourceCulture);
             }
         }
         
@@ -2324,6 +2324,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package contains a &lt;license&gt; metadata which is currently not supported..
+        /// </summary>
+        public static string UploadPackage_NotAcceptingPackagesWithLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
             }
         }
         

@@ -86,6 +86,16 @@
     <Compile Include="Extensions\PackageRegistrationExtensionsFacts.cs" />
     <Compile Include="Infrastructure\ElmahExceptionFacts.cs" />
     <Compile Include="Extensions\UserExtensionsCoreFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactSupportMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\MarkdownMessageBuilderFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageAddedWithWarningsMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageValidationFailedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationFailedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SymbolPackageValidationTakingTooLongMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\TestMessageServiceConfiguration.cs" />
     <Compile Include="PackageStatusFacts.cs" />
     <Compile Include="Packaging\ManifestValidatorFacts.cs" />
     <Compile Include="Packaging\PackageIdValidatorTest.cs" />
