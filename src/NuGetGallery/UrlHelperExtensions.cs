@@ -710,12 +710,38 @@ namespace NuGetGallery
                 });
         }
 
+        public static string RevalidateSymbolsPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(PackagesController.RevalidateSymbols),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
         public static string RevalidatePackage(
             this UrlHelper url,
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
             return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
+        }
+
+        public static string RevalidateSymbolsPackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.RevalidateSymbolsPackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string ViewValidations(

@@ -44,6 +44,7 @@ namespace NuGetGallery
             }
 
             ValidatingType validatingType;
+            var entityKey = package.Key == default(int) ? (int?)null : package.Key;
             if (package is Package)
             {
                 validatingType = ValidatingType.Package;
@@ -61,7 +62,8 @@ namespace NuGetGallery
                 package.Id,
                 package.Version,
                 Guid.NewGuid(),
-                validatingType);
+                validatingType,
+                entityKey: entityKey);
 
             var activityName = $"Enqueuing asynchronous package validation: " +
                 $"{data.PackageId} {data.PackageVersion} {data.ValidatingType} ({data.ValidationTrackingId})";

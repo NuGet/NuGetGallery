@@ -10,7 +10,7 @@ namespace NuGetGallery
 {
     [DisplayColumn("Title")]
     public class Package
-        : IEntity, IPackageEntity
+        : IPackageEntity
     {
 
 #pragma warning disable 618 // TODO: remove Package.Authors completely once production services definitely no longer need it

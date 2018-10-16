@@ -6699,6 +6699,119 @@ namespace NuGetGallery
             }
         }
 
+        public class TheRevalidateSymbolsMethod : TestContainer
+        {
+            private Package _package;
+            private SymbolPackage _symbolPacakge;
+            private readonly Mock<IPackageService> _packageService;
+            private readonly Mock<IValidationService> _validationService;
+            private readonly TestGalleryConfigurationService _configurationService;
+            private readonly PackagesController _target;
+
+            public TheRevalidateSymbolsMethod()
+            {
+                _package = new Package
+                {
+                    PackageRegistration = new PackageRegistration { Id = "NuGet.Versioning" },
+                    Version = "3.4.0",
+                };
+                _symbolPacakge = new SymbolPackage
+                {
+                    Package = _package,
+                    StatusKey = PackageStatus.Available
+                };
+                _package.SymbolPackages.Add(_symbolPacakge);
+
+                _packageService = new Mock<IPackageService>();
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<bool>()))
+                    .Returns(_package);
+
+                _validationService = new Mock<IValidationService>();
+
+                _configurationService = GetConfigurationService();
+
+                _target = CreateController(
+                    _configurationService,
+                    packageService: _packageService,
+                    validationService: _validationService);
+            }
+
+            [Fact]
+            public async Task RevalidateIsCalledWithTheExistingSymbolsPackage()
+            {
+                // Arrange & Act
+                await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                _validationService.Verify(
+                    x => x.RevalidateAsync(_symbolPacakge),
+                    Times.Once);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Available)]
+            [InlineData(PackageStatus.FailedValidation)]
+            [InlineData(PackageStatus.Validating)]
+            public async Task RedirectsAfterRevalidatingSymbolsPackageForAllValidStatus(PackageStatus status)
+            {
+                // Arrange & Act
+                _symbolPacakge.StatusKey = status;
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                var redirect = Assert.IsType<SafeRedirectResult>(result);
+                Assert.Equal($"/?id={_package.PackageRegistration.Id}&version={_package.Version}", redirect.Url);
+                Assert.Equal("/", redirect.SafeUrl);
+            }
+
+            [Fact]
+            public async Task ReturnsNotFoundForUnknownPackage()
+            {
+                // Arrange
+                _packageService
+                    .Setup(svc => svc.FindPackageByIdAndVersion(
+                        It.IsAny<string>(),
+                        It.IsAny<string>(),
+                        It.IsAny<int?>(),
+                        It.IsAny<bool>()))
+                    .Returns<Package>(null);
+
+                // Act
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.NotFound);
+            }
+
+            [Theory]
+            [InlineData(PackageStatus.Deleted)]
+            [InlineData(921)]
+            public async Task ReturnsBadRequestForInvalidSymbolPackageStatus(PackageStatus status)
+            {
+                // Arrange and Act
+                _symbolPacakge.StatusKey = status;
+                var result = await _target.RevalidateSymbols(
+                    _package.PackageRegistration.Id,
+                    _package.Version);
+
+                // Assert
+                Assert.IsType<HttpStatusCodeResult>(result);
+                ResultAssert.IsStatusCode(result, HttpStatusCode.BadRequest);
+            }
+        }
+
         public class TheSetRequiredSignerMethod : TestContainer
         {
             private readonly PackageRegistration _packageRegistration;

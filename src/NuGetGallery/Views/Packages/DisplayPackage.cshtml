@@ -721,6 +721,11 @@
                         <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
                         <a href="@Url.RevalidatePackage(Model)">Revalidate package</a>
                     </li>
+
+                    <li>
+                        <i class="ms-Icon ms-Icon--Refresh" aria-hidden="true"></i>
+                        <a href="@Url.RevalidateSymbolsPackage(Model)">Revalidate symbols</a>
+                    </li>
                 }
 
                 @if (User.IsAdministrator() && Config.Current.AsynchronousPackageValidationEnabled)
