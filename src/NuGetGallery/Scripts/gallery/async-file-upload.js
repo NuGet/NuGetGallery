@@ -272,7 +272,7 @@
                     cancelUploadAsync();
                 });
 
-                if (model.HasExistingAvailableSymbols) {
+                if (model.IsSymbolsPackage && model.HasExistingAvailableSymbols) {
                     $('#symbols-replace-warning-container').removeClass('hidden');
                 } else {
                     $('#symbols-replace-warning-container').addClass('hidden');

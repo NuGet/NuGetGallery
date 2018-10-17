@@ -161,6 +161,7 @@
     <Compile Include="Entities\UserSecurityPolicy.cs" />
     <Compile Include="Entities\User.cs" />
     <Compile Include="Extensions\EntitiesContextExtensions.cs" />
+    <Compile Include="Extensions\SymbolPackageExtensions.cs" />
     <Compile Include="Extensions\PackageExtensions.cs" />
     <Compile Include="Extensions\PackageRegistrationExtensions.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />

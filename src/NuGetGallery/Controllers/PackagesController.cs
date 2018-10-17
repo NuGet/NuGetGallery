@@ -239,7 +239,7 @@ namespace NuGetGallery
             verifyRequest.IsSymbolsPackage = true;
 
             var latestSymbolPackage = packageForUploadingSymbols.LatestSymbolPackage();
-            verifyRequest.HasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.StatusKey == PackageStatus.Available;
+            verifyRequest.HasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.IsAvailable();
 
             model.InProgressUpload = verifyRequest;
 
@@ -391,7 +391,7 @@ namespace NuGetGallery
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
             var latestSymbolPackage = packageForUploadingSymbols.LatestSymbolPackage();
-            var hasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.StatusKey == PackageStatus.Available;
+            var hasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.IsAvailable();
 
             return await GetVerifyPackageView(currentUser,
                 packageMetadata,
@@ -507,12 +507,19 @@ namespace NuGetGallery
 
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
+            var hasExistingSymbolsPackageAvailable = false;
+            if (existingPackage != null)
+            {
+                var latestSymbolsPackage = existingPackage.LatestSymbolPackage();
+                hasExistingSymbolsPackageAvailable = latestSymbolsPackage != null && latestSymbolsPackage.IsAvailable();
+            }
+
             return await GetVerifyPackageView(currentUser,
                 packageMetadata,
                 accountsAllowedOnBehalfOf,
                 existingPackageRegistration,
                 isSymbolsPackageUpload: false,
-                hasExistingSymbolsPackageAvailable: false);
+                hasExistingSymbolsPackageAvailable: hasExistingSymbolsPackageAvailable);
         }
 
         private async Task<JsonResult> GetVerifyPackageView(User currentUser,
@@ -520,7 +527,7 @@ namespace NuGetGallery
             IEnumerable<User> accountsAllowedOnBehalfOf,
             PackageRegistration existingPackageRegistration,
             bool isSymbolsPackageUpload,
-            bool hasExistingSymbolsPackageAvailable = false)
+            bool hasExistingSymbolsPackageAvailable)
         {
             IReadOnlyList<string> warnings = new List<string>();
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
