@@ -57,6 +57,10 @@ namespace NuGet.Services.AzureSearch
                         UpdateMetadata != true,
                         "The hijack document has already been set to update metadata.");
                     Delete = true;
+                    foreach (var eachSearchFilters in MutableIndexChanges.AllSearchFilters)
+                    {
+                        SetLatest(eachSearchFilters, latest: null);
+                    }
                     return;
                 case HijackIndexChangeType.UpdateMetadata:
                     Guard.Assert(
@@ -74,16 +78,12 @@ namespace NuGet.Services.AzureSearch
                     latest = true;
                     break;
                 default:
-                    throw new NotImplementedException($"The change type '{changeType}' is not supported.");
+                    throw new NotImplementedException($"The hijack index change type '{changeType}' is not supported.");
             }
 
             Guard.Assert(
                 Delete != true,
                 "The hijack document has already been set to delete so the latest value can't be updated.");
-            var oldValue = GetLatest(searchFilters);
-            Guard.Assert(
-                !oldValue.HasValue || oldValue.Value == latest,
-                $"The latest value for search filters '{searchFilters}' cannot change from {oldValue} to {latest}.");
             SetLatest(searchFilters, latest);
         }
 
@@ -104,7 +104,7 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
-        private void SetLatest(SearchFilters searchFilters, bool latest)
+        private void SetLatest(SearchFilters searchFilters, bool? latest)
         {
             switch (searchFilters)
             {

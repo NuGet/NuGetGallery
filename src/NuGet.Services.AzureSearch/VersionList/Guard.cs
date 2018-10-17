@@ -21,5 +21,13 @@ namespace NuGet.Services.AzureSearch
                 throw new InvalidOperationException(message);
             }
         }
+
+        /// <remarks>
+        /// Similar to <see cref="System.Diagnostics.Debug.Fail(string)"/> but run in Release builds.
+        /// </remarks>
+        public static void Fail(string message)
+        {
+            Assert(false, message);
+        }
     }
 }

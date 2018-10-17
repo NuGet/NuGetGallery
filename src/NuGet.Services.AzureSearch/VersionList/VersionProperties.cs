@@ -12,6 +12,12 @@ namespace NuGet.Services.AzureSearch
     /// </summary>
     internal class VersionProperties
     {
+        public VersionProperties(string fullVersion, NuGetVersion parsedVersion, VersionPropertiesData data)
+        {
+            Data = data ?? throw new ArgumentNullException(nameof(data));
+            Filtered = new FilteredVersionProperties(fullVersion, parsedVersion, Data.Listed);
+        }
+
         public VersionProperties(string fullOrOriginalVersion, VersionPropertiesData data)
         {
             Data = data ?? throw new ArgumentNullException(nameof(data));

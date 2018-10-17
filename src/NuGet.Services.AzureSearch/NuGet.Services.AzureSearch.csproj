@@ -42,6 +42,7 @@
     <Compile Include="VersionList\KeyValuePair.cs" />
     <Compile Include="VersionList\MutableHijackIndexDocument.cs" />
     <Compile Include="VersionList\MutableIndexChanges.cs" />
+    <Compile Include="VersionList\VersionListChange.cs" />
     <Compile Include="VersionList\VersionProperties.cs" />
     <Compile Include="VersionList\FilteredVersionProperties.cs" />
     <Compile Include="VersionList\ResultAndAccessCondition.cs" />

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using NuGet.Versioning;
 using Xunit;
 
 namespace NuGet.Services.AzureSearch
@@ -117,6 +119,624 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        public class ApplyChangesInternal : BaseFacts
+        {
+            internal readonly Versions _v1;
+            internal readonly Versions _v2;
+            internal readonly Versions _v3;
+            internal readonly Versions _v4;
+            internal readonly Versions _v5;
+
+            public ApplyChangesInternal()
+            {
+                // Use all stable, SemVer 1.0.0 packages for simplicity. Search filter predicate logic is covered by
+                // other tests.
+                _v1 = new Versions("1.0.0");
+                _v2 = new Versions("2.0.0");
+                _v3 = new Versions("3.0.0");
+                _v4 = new Versions("4.0.0");
+                _v5 = new Versions("5.0.0");
+            }
+
+            [Fact]
+            public void ProcessesVersionsInDescendingOrder()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v3.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, null, false);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v3, null, true, true);
+            }
+
+            [Fact]
+            public void InterleavedUpsertsWithNoNewLatest()
+            {
+                var list = Create(_v1.Listed, _v3.Listed, _v5.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v4.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateVersionList);
+                AssertHijackKeys(output, _v2, _v4, _v5);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v4, null, true, false);
+                AssertHijack(output, _v5, null, null, true);
+            }
+
+            [Fact]
+            public void InterleavedUpsertsWithNewLatest()
+            {
+                var list = Create(_v1.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v4.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v2, _v3, _v4);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v3, null, null, false);
+                AssertHijack(output, _v4, null, true, true);
+            }
+
+            [Fact]
+            public void InterleavedUpsertsWithNewLatestAndUnlistedHighest()
+            {
+                var list = Create(_v1.Listed, _v3.Listed, _v5.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v4.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v2, _v3, _v4);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v3, null, null, false);
+                AssertHijack(output, _v4, null, true, true);
+            }
+
+            [Fact]
+            public void InterleavedUpsertsWithRelistedLatest()
+            {
+                var list = Create(_v1.Listed, _v3.Listed, _v5.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v4.Listed, _v5.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v2, _v3, _v4, _v5);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v3, null, null, false);
+                AssertHijack(output, _v4, null, true, false);
+                AssertHijack(output, _v5, null, true, true);
+            }
+
+            [Fact]
+            public void RelistNewLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Unlisted, _v3.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, null, false);
+                AssertHijack(output, _v2, null, true, true);
+            }
+
+            [Fact]
+            public void RelistExistingLatest()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, null, true, true);
+            }
+
+            [Fact]
+            public void RelistNonLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateVersionList);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, null, true);
+            }
+
+            [Fact]
+            public void UnlistLastListed()
+            {
+                var list = Create(_v1.Unlisted, _v2.Listed, _v3.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v2);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void UnlistNonLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Unlisted, _v1.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateVersionList);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v3, null, null, true);
+            }
+
+            [Fact]
+            public void EmptyChangeList()
+            {
+                var list = Create(_v1.Listed, _v2.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(Enumerable.Empty<VersionListChange>());
+
+                Assert.Empty(output.Search);
+                Assert.Empty(output.HijackDocuments);
+            }
+
+            [Fact]
+            public void DeleteNonLatestAndUpsertLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted, _v3.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, true, null, null);
+                AssertHijack(output, _v2, null, null, false);
+                AssertHijack(output, _v3, null, true, true);
+            }
+
+            [Fact]
+            public void DeleteLatestAndUpsertHigherLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted, _v3.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v2, _v3);
+                AssertHijack(output, _v2, true, null, null);
+                AssertHijack(output, _v3, null, true, true);
+            }
+
+            [Fact]
+            public void DeleteLatestAndUpsertLowerLatest()
+            {
+                var list = Create(_v1.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v3.Deleted, _v2.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, null, false);
+                AssertHijack(output, _v2, null, true, true);
+                AssertHijack(output, _v3, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.DowngradeLatest);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, null, true);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void UnlistLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.DowngradeLatest);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, null, true);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void UnlistLatestAndRelistNewLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, true);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void DeleteLatestAndUpsertNonLatest()
+            {
+                var list = Create(_v2.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v3.Deleted, _v1.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.DowngradeLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, null, true);
+                AssertHijack(output, _v3, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteNonLatestAndUpsertNonLatest()
+            {
+                var list = Create(_v2.Listed, _v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted, _v1.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateVersionList);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, true, null, null);
+                AssertHijack(output, _v3, null, null, true);
+            }
+
+            [Fact]
+            public void DeleteLastListedWithOneRemainingUnlisted()
+            {
+                var list = Create(_v1.Unlisted, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v2);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteVeryLastWhenLastIsListed()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteVeryLastWhenLastIsUnlisted()
+            {
+                var list = Create(_v1.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, true, null, null);
+            }
+
+            [Fact]
+            public void AddSingleFirstWhichIsUnlisted()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, null, true, false);
+            }
+
+            [Fact]
+            public void AddSingleFirstWhichIsListed()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, null, true, true);
+            }
+
+            [Fact]
+            public void DeleteLatestAndAndNewLatestWithoutAnyOtherVersions()
+            {
+                var list = Create(_v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, true);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteLatestAndAndTwoNewLatestWithoutAnyOtherVersions()
+            {
+                var list = Create(_v3.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Listed, _v3.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, true, true);
+                AssertHijack(output, _v3, true, null, null);
+            }
+
+            [Fact]
+            public void RejectsMultipleChangesForSameVersion()
+            {
+                var list = Create();
+
+                var ex = Assert.Throws<ArgumentException>(
+                    () => list.ApplyChangesInternal(new[]
+                    {
+                        _v1.Listed,
+                        _v1.Unlisted,
+                        _v2.Listed,
+                        _v2.Listed,
+                        _v2.Listed,
+                    }));
+                Assert.Contains(
+                    "There are multiple changes for the following version(s): 1.0.0 (2 changes), 2.0.0 (3 changes)",
+                    ex.Message);
+            }
+
+            [Fact]
+            public void AddMultipleFirstWhenAllAreListed()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, true, true);
+            }
+
+            [Fact]
+            public void AddMultipleFirstWhenAllAreUnlisted()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Unlisted, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void AddMultipleFirstWhenWithListedLessThanUnlisted()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, true);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void AddMultipleFirstWhenWithListedGreaterThanUnlisted()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Unlisted, _v2.Listed });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, null, true, true);
+            }
+
+            [Fact]
+            public void DeleteNonExistingVersionFromEmptyList()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1);
+                AssertHijack(output, _v1, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteNonExistingVersionFromListWithLatest()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateVersionList);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, null, true);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteNonExistingVersionFromListWithOnlyUnlisted()
+            {
+                var list = Create(_v1.Unlisted);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v2);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void DeleteNonExistingVersionAndAddNewVersion()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v3.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, null, false);
+                AssertHijack(output, _v2, null, true, true);
+                AssertHijack(output, _v3, true, null, null);
+            }
+
+            [Fact]
+            public void UnlistLatestAndDeleteNextLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, true, null, null);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void DeleteNonExistentAndUnlistLatest()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Unlisted, _v2.Deleted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, false);
+                AssertHijack(output, _v2, true, null, null);
+            }
+
+            [Fact]
+            public void UnlistNewHighestVersionAndDeleteLatest()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Deleted, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.Delete);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, true, null, null);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void UnlistNewHighestVersionAndUnlistLatest()
+            {
+                var list = Create(_v1.Listed, _v2.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Unlisted, _v3.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.DowngradeLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, null, true);
+                AssertHijack(output, _v2, null, true, false);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            [Fact]
+            public void AddUnlistedHighestThenNewLatest()
+            {
+                var list = Create(_v1.Listed);
+
+                var output = list.ApplyChangesInternal(new[] { _v2.Listed, _v3.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.UpdateLatest);
+                AssertHijackKeys(output, _v1, _v2, _v3);
+                AssertHijack(output, _v1, null, null, false);
+                AssertHijack(output, _v2, null, true, true);
+                AssertHijack(output, _v3, null, true, false);
+            }
+            
+            [Fact]
+            public void AddUnlistedHighestThenFirstLatest()
+            {
+                var list = Create();
+
+                var output = list.ApplyChangesInternal(new[] { _v1.Listed, _v2.Unlisted });
+
+                AssertSearchFilters(output, SearchIndexChangeType.AddFirst);
+                AssertHijackKeys(output, _v1, _v2);
+                AssertHijack(output, _v1, null, true, true);
+                AssertHijack(output, _v2, null, true, false);
+            }
+
+            private void AssertSearchFilters(MutableIndexChanges output, SearchIndexChangeType type)
+            {
+                Assert.Equal(type, output.Search[SearchFilters.Default]);
+                Assert.Equal(type, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(type, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(type, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+            }
+
+            private void AssertHijackKeys(MutableIndexChanges output, params Versions[] versions)
+            {
+                Assert.Equal(
+                    versions.Select(x => x.Parsed).OrderBy(x => x).ToArray(),
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
+            }
+
+            private void AssertHijack(MutableIndexChanges output, Versions versions, bool? delete, bool? updateMetadata, bool? latest)
+            {
+                Assert.Equal(delete, output.HijackDocuments[versions.Parsed].Delete);
+                Assert.Equal(updateMetadata, output.HijackDocuments[versions.Parsed].UpdateMetadata);
+                Assert.Equal(latest, output.HijackDocuments[versions.Parsed].LatestStableSemVer1);
+                Assert.Equal(latest, output.HijackDocuments[versions.Parsed].LatestSemVer1);
+                Assert.Equal(latest, output.HijackDocuments[versions.Parsed].LatestStableSemVer2);
+                Assert.Equal(latest, output.HijackDocuments[versions.Parsed].LatestSemVer2);
+            }
+
+            internal static VersionLists Create(params VersionListChange[] versions)
+            {
+                if (versions.Any(x => x.IsDelete))
+                {
+                    throw new ArgumentException(nameof(versions));
+                }
+
+                var data = new VersionListData(versions.ToDictionary(x => x.FullVersion, x => x.Data));
+                return new VersionLists(data);
+            }
+
+            internal class Versions
+            {
+                public Versions(string fullOrOriginalVersion)
+                {
+                    Listed = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: true, semVer2: false));
+                    Full = Listed.FullVersion;
+                    Parsed = Listed.ParsedVersion;
+                    Unlisted = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: false, semVer2: false));
+                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
+                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
+                }
+
+                public string Full { get; }
+                public NuGetVersion Parsed { get; }
+                public VersionListChange Listed { get; }
+                public VersionListChange Unlisted { get; }
+                public VersionListChange Deleted { get; }
+            }
+        }
+
         public class Upsert : BaseFacts
         {
             [Fact]
@@ -167,7 +787,7 @@ namespace NuGet.Services.AzureSearch
                         _prereleaseSemVer2Listed.ParsedVersion,
                         latest.ParsedVersion,
                     },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -176,7 +796,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -185,7 +805,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -194,7 +814,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: false,
                         latestSemVer2: null),
-                    output.Hijack[_stableSemVer2Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer2Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -203,7 +823,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer2Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer2Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -212,7 +832,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: true,
                         latestSemVer2: true),
-                    output.Hijack[latest.ParsedVersion]);
+                    output.HijackDocuments[latest.ParsedVersion]);
             }
 
             [Fact]
@@ -228,7 +848,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -237,7 +857,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: true,
                         latestSemVer2: false),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -246,7 +866,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: false,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -262,7 +882,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -271,7 +891,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: true,
                         latestSemVer2: true),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -280,7 +900,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -296,7 +916,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -305,7 +925,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: true,
                         latestSemVer2: false),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -314,7 +934,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: null,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -330,7 +950,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -339,7 +959,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -348,7 +968,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: null,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -364,7 +984,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -373,7 +993,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: false,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -389,7 +1009,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -398,7 +1018,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -414,7 +1034,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -423,7 +1043,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: true,
                         latestSemVer2: true),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -439,7 +1059,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -448,7 +1068,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -464,7 +1084,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -473,7 +1093,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: true,
                         latestSemVer2: true),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -482,7 +1102,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -498,7 +1118,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -507,7 +1127,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -516,14 +1136,14 @@ namespace NuGet.Services.AzureSearch
                 var list = Create(_stableSemVer1Unlisted, _prereleaseSemVer1Listed);
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
-                
+
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -532,7 +1152,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -548,7 +1168,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -557,7 +1177,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: false,
                         latestStableSemVer2: false,
                         latestSemVer2: false),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -566,7 +1186,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: null,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
         }
 
@@ -596,7 +1216,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: true,
@@ -605,7 +1225,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -614,7 +1234,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: null,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -630,7 +1250,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: true,
@@ -639,7 +1259,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -655,7 +1275,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: true,
@@ -664,7 +1284,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -680,7 +1300,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -689,7 +1309,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: true,
                         latestSemVer2: true),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: true,
@@ -698,7 +1318,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
 
             [Fact]
@@ -714,7 +1334,7 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
-                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                    output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: true,
@@ -723,7 +1343,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: null,
                         latestStableSemVer2: null,
                         latestSemVer2: null),
-                    output.Hijack[_stableSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
                     new MutableHijackIndexDocument(
                         delete: null,
@@ -732,7 +1352,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer1: true,
                         latestStableSemVer2: null,
                         latestSemVer2: true),
-                    output.Hijack[_prereleaseSemVer1Listed.ParsedVersion]);
+                    output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
             }
         }
 

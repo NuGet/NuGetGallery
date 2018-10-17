@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using NuGet.Versioning;
+using SICT = NuGet.Services.AzureSearch.SearchIndexChangeType;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -13,22 +14,85 @@ namespace NuGet.Services.AzureSearch
     /// </summary>
     internal class MutableIndexChanges
     {
+        internal static readonly IReadOnlyList<SearchFilters> AllSearchFilters = Enum
+            .GetValues(typeof(SearchFilters))
+            .Cast<SearchFilters>()
+            .ToList();
+
+        /// <summary>
+        /// This is a dictionary where the key is the state transition. The value of the dictionary is the resulting
+        /// state from that transition. Remember that versions are processed in descending version order so some state
+        /// transition should not be possible.
+        /// </summary>
+        private static readonly IReadOnlyDictionary<StateTransition, SICT> AcceptableTransitions
+            = new Dictionary<StateTransition, SICT>
+            {
+                // Example: add an initial, listed version then add a lower, listed version
+                { new StateTransition(SICT.AddFirst, SICT.UpdateVersionList), SICT.AddFirst },
+
+                // Example: add an initial, unlisted version then add a lower, listed version
+                { new StateTransition(SICT.Delete, SICT.AddFirst), SICT.AddFirst },
+
+                // Example: add a new latest, listed version then add a lower, listed version
+                { new StateTransition(SICT.UpdateLatest, SICT.UpdateVersionList), SICT.UpdateLatest },  
+
+                // Example: delete a non-existent version then unlist the latest version
+                { new StateTransition(SICT.UpdateVersionList, SICT.Delete), SICT.Delete },
+
+                // Example: unlist an already unlisted higher version then unlist the latest version
+                { new StateTransition(SICT.UpdateVersionList, SICT.DowngradeLatest), SICT.DowngradeLatest },
+
+                // Example: unlist an already unlisted higher version then add a new latest version
+                { new StateTransition(SICT.UpdateVersionList, SICT.UpdateLatest), SICT.UpdateLatest },
+
+                // Example: unlist the latest version then add a new latest version
+                { new StateTransition(SICT.DowngradeLatest, SICT.UpdateLatest), SICT.UpdateLatest },
+
+                // Example: unlist the latest version then add a new non-latest version
+                { new StateTransition(SICT.DowngradeLatest, SICT.UpdateVersionList), SICT.DowngradeLatest },
+
+                // Example: delete the latest version then delete the last latest version
+                { new StateTransition(SICT.DowngradeLatest, SICT.Delete), SICT.Delete },
+            };
+
         public MutableIndexChanges()
         {
-            Search = new Dictionary<SearchFilters, SearchIndexChangeType>();
-            Hijack = new Dictionary<NuGetVersion, MutableHijackIndexDocument>();
+            Search = new Dictionary<SearchFilters, SICT>();
+            HijackChanges = new Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>>();
+            HijackDocuments = new Dictionary<NuGetVersion, MutableHijackIndexDocument>();
         }
 
         public MutableIndexChanges(
-            Dictionary<SearchFilters, SearchIndexChangeType> search,
-            Dictionary<NuGetVersion, MutableHijackIndexDocument> hijack)
+            Dictionary<SearchFilters, SICT> search,
+            Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>> hijack)
         {
             Search = search ?? throw new ArgumentNullException(nameof(search));
-            Hijack = hijack ?? throw new ArgumentNullException(nameof(hijack));
+            HijackChanges = hijack ?? throw new ArgumentNullException(nameof(hijack));
+            HijackDocuments = hijack.ToDictionary(
+                x => x.Key,
+                x => InitializeHijackIndexDocument(x.Value));
         }
 
-        public Dictionary<SearchFilters, SearchIndexChangeType> Search { get; }
-        public Dictionary<NuGetVersion, MutableHijackIndexDocument> Hijack { get; }
+        private static MutableHijackIndexDocument InitializeHijackIndexDocument(
+            IEnumerable<KeyValuePair<SearchFilters, HijackIndexChangeType>> changes)
+        {
+            var document = new MutableHijackIndexDocument();
+            foreach (var change in changes)
+            {
+                document.ApplyChange(change.Key, change.Value);
+            }
+
+            return document;
+        }
+
+        public Dictionary<SearchFilters, SICT> Search { get; }
+        private Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>> HijackChanges { get; }
+
+        /// <summary>
+        /// Keep track of the hijack document as we merge multiple <see cref="MutableIndexChanges"/>. This allows
+        /// us to detect consistency problems are quickly as possible.
+        /// </summary>
+        public Dictionary<NuGetVersion, MutableHijackIndexDocument> HijackDocuments { get; }
 
         public static MutableIndexChanges FromLatestIndexChanges(
             IReadOnlyDictionary<SearchFilters, LatestIndexChanges> latestIndexChanges)
@@ -37,40 +101,128 @@ namespace NuGet.Services.AzureSearch
             var search = latestIndexChanges.ToDictionary(x => x.Key, x => x.Value.Search);
 
             // Group hijack index changes by version.
-            var versionGroups = latestIndexChanges
+            var hijack = latestIndexChanges
                 .SelectMany(pair => pair
                     .Value
                     .Hijack
                     .Select(change => new { SearchFilters = pair.Key, change.Type, change.Version }))
-                .GroupBy(x => x.Version);
+                .GroupBy(x => x.Version)
+                .ToDictionary(
+                    x => x.Key,
+                    x => x.Select(y => KeyValuePair.Create(y.SearchFilters, y.Type)).ToList());
 
-            // Apply all of the changes related to each version.
-            var hijack = new Dictionary<NuGetVersion, MutableHijackIndexDocument>();
-            foreach (var group in versionGroups)
+            return new MutableIndexChanges(search, hijack);
+        }
+
+        public void Merge(MutableIndexChanges added)
+        {
+            if (added == null)
             {
-                var document = new MutableHijackIndexDocument();
-                foreach (var change in group)
-                {
-                    document.ApplyChange(change.SearchFilters, change.Type);
-                }
-
-                hijack.Add(group.Key, document);
+                throw new ArgumentNullException(nameof(added));
             }
 
-            // Verify that there are not multiple versions set to latest, per search filter.
-            foreach (var searchFilters in latestIndexChanges.Keys)
+            foreach (var pair in added.Search)
             {
-                var latestVersions = hijack
+                MergeSearchIndexChanges(pair.Key, pair.Value);
+            }
+
+            foreach (var pair in added.HijackChanges)
+            {
+                MergeHijackIndexChanges(pair.Key, pair.Value);
+            }
+
+            // Verify that there are not multiple latest versions per search filter.
+            foreach (var searchFilters in AllSearchFilters)
+            {
+                var latest = HijackDocuments
                     .Where(x => x.Value.GetLatest(searchFilters).GetValueOrDefault(false))
                     .Select(x => x.Key.ToFullString())
                     .ToList();
-
                 Guard.Assert(
-                    latestVersions.Count <= 1,
-                    $"There are multiple latest versions for search filters '{searchFilters}': {string.Join(", ", latestVersions)}");
+                    latest.Count <= 1,
+                    $"There are {latest.Count} versions set to be latest on search filter {searchFilters}: {string.Join(", ", latest)}");
+            }
+        }
+
+        private void MergeSearchIndexChanges(SearchFilters searchFilters, SICT addedType)
+        {
+            if (!Search.TryGetValue(searchFilters, out var existingType))
+            {
+                Search[searchFilters] = addedType;
+                return;
             }
 
-            return new MutableIndexChanges(search, hijack);
+            // If the search index change type is the same, move on.
+            if (existingType == addedType)
+            {
+                return;
+            }
+
+            var transition = new StateTransition(existingType, addedType);
+            if (AcceptableTransitions.TryGetValue(transition, out var result))
+            {
+                Search[searchFilters] = result;
+                return;
+            }
+
+            Guard.Fail($"A {existingType} search index change cannot be replaced with {addedType}.");
+        }
+
+        private void MergeHijackIndexChanges(
+            NuGetVersion version,
+            List<KeyValuePair<SearchFilters, HijackIndexChangeType>> addedChanges)
+        {
+            // If the version does not yet exist, add it and move on.
+            if (!HijackChanges.TryGetValue(version, out var existingChanges))
+            {
+                HijackDocuments.Add(version, InitializeHijackIndexDocument(addedChanges));
+                HijackChanges.Add(version, addedChanges);
+            }
+            else
+            {
+                var document = HijackDocuments[version];
+                foreach (var change in addedChanges)
+                {
+                    document.ApplyChange(change.Key, change.Value);
+                }
+
+                existingChanges.AddRange(addedChanges);
+            }
+        }
+
+        private class StateTransition : IEquatable<StateTransition>
+        {
+            public StateTransition(SICT existing, SICT added)
+            {
+                Existing = existing;
+                Added = added;
+            }
+
+            public SICT Existing { get; }
+            public SICT Added { get; }
+
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as StateTransition);
+            }
+
+            public bool Equals(StateTransition transition)
+            {
+                return transition != null &&
+                       Existing == transition.Existing &&
+                       Added == transition.Added;
+            }
+
+            /// <summary>
+            /// This method was generated by Visual Studio.
+            /// </summary>
+            public override int GetHashCode()
+            {
+                var hashCode = -699697695;
+                hashCode = hashCode * -1521134295 + Existing.GetHashCode();
+                hashCode = hashCode * -1521134295 + Added.GetHashCode();
+                return hashCode;
+            }
         }
     }
 }
