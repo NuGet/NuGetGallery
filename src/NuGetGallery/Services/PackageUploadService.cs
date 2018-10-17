@@ -537,7 +537,7 @@ namespace NuGetGallery
                 }
                 else
                 {
-                    if (package.HasEmbeddedLicenseFile)
+                    if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
                         // if the package is immediately made avaialble, it means there is a high chance we don't have
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
@@ -547,7 +547,7 @@ namespace NuGetGallery
                     {
                         await _packageFileService.SavePackageFileAsync(package, packageFile);
                     }
-                    catch when (package.HasEmbeddedLicenseFile)
+                    catch when (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
                         await _packageFileService.DeleteLicenseFileAsync(
                             package.PackageRegistration.Id,

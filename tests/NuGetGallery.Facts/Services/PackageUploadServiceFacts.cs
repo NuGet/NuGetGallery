@@ -1325,7 +1325,7 @@ namespace NuGetGallery
             public async Task SavesLicenseFileWhenPackageIsAvailable(PackageStatus packageStatus, bool expectedLicenseSave)
             {
                 _package.PackageStatusKey = packageStatus;
-                _package.HasEmbeddedLicenseFile = true;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
 
                 _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
 
@@ -1342,7 +1342,7 @@ namespace NuGetGallery
             public async Task CleansUpLicenseIfBlobSaveFails(PackageStatus packageStatus, bool expectedLicenseDelete)
             {
                 _package.PackageStatusKey = packageStatus;
-                _package.HasEmbeddedLicenseFile = true;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
                 _package.NormalizedVersion = "3.2.1";
 
                 _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();
@@ -1367,7 +1367,7 @@ namespace NuGetGallery
             public async Task CleansUpLicenseIfDbUpdateFails(PackageStatus packageStatus, bool expectedLicenseDelete)
             {
                 _package.PackageStatusKey = packageStatus;
-                _package.HasEmbeddedLicenseFile = true;
+                _package.EmbeddedLicenseType = EmbeddedLicenseFileType.PlainText;
                 _package.NormalizedVersion = "3.2.1";
 
                 _packageFile = GeneratePackage(licenseFilename: "license.txt", licenseFileContents: "some license").Object.GetStream();

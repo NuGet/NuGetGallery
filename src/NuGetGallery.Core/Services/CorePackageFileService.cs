@@ -12,6 +12,10 @@ namespace NuGetGallery
 {
     public class CorePackageFileService : ICorePackageFileService
     {
+        private const string ContentTypePlainText = CoreConstants.TextContentType;
+        private const string ContentTypeMarkdown = "text/markdown"; // rfc7763
+        private const string LicenseFileName = "license";
+
         private readonly ICoreFileStorageService _fileStorageService;
         private readonly IFileMetadataService _metadata;
 
@@ -210,20 +214,32 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(licenseFile));
             }
 
-            var template = _metadata.PackageContentFileSavePathTemplate + "/license";
-            var fileName = BuildFileName(package, template, string.Empty);
+            var fileName = BuildLicenseFileName(package);
 
-            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, licenseFile, overwrite: false);
+            // Gallery will generally ignore the content type on license files and will use value from the DB,
+            // but we'll be nice and try to specify correct content type for them.
+            var contentType = package.EmbeddedLicenseType == EmbeddedLicenseFileType.MarkDown ? ContentTypeMarkdown : ContentTypePlainText;
+
+            return _fileStorageService.SaveFileAsync(_metadata.PackageContentFolderName, fileName, contentType, licenseFile, overwrite: false);
         }
 
         public Task<Stream> DownloadLicenseFileAsync(Package package)
         {
-            throw new NotImplementedException();
+            var fileName = BuildLicenseFileName(package);
+
+            return _fileStorageService.GetFileAsync(_metadata.PackageContentFolderName, fileName);
         }
 
         public Task DeleteLicenseFileAsync(string id, string version)
         {
             throw new NotImplementedException();
+        }
+
+        private string BuildLicenseFileName(Package package)
+        {
+            var template = $"{_metadata.PackageContentPathTemplate}/{LicenseFileName}";
+            var fileName = BuildFileName(package, template, string.Empty);
+            return fileName;
         }
 
         private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)

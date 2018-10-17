@@ -246,6 +246,6 @@ namespace NuGetGallery
 
         public string Id => PackageRegistration.Id;
 
-        public bool HasEmbeddedLicenseFile { get; set; }
+        public EmbeddedLicenseFileType EmbeddedLicenseType { get; set; }
     }
 }
