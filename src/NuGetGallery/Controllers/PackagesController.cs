@@ -237,9 +237,7 @@ namespace NuGetGallery
 
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.IsSymbolsPackage = true;
-
-            var latestSymbolPackage = packageForUploadingSymbols.LatestSymbolPackage();
-            verifyRequest.HasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.IsAvailable();
+            verifyRequest.HasExistingAvailableSymbols = packageForUploadingSymbols.IsLatestSymbolPackageAvailable();
 
             model.InProgressUpload = verifyRequest;
 
@@ -390,15 +388,12 @@ namespace NuGetGallery
             // Save the uploaded file
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
-            var latestSymbolPackage = packageForUploadingSymbols.LatestSymbolPackage();
-            var hasExistingAvailableSymbols = latestSymbolPackage != null && latestSymbolPackage.IsAvailable();
-
             return await GetVerifyPackageView(currentUser,
                 packageMetadata,
                 accountsAllowedOnBehalfOf,
                 existingPackageRegistration,
                 isSymbolsPackageUpload: true,
-                hasExistingSymbolsPackageAvailable: hasExistingAvailableSymbols);
+                hasExistingSymbolsPackageAvailable: packageForUploadingSymbols.IsLatestSymbolPackageAvailable());
         }
 
         private async Task<JsonResult> UploadPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
@@ -507,12 +502,7 @@ namespace NuGetGallery
 
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
-            var hasExistingSymbolsPackageAvailable = false;
-            if (existingPackage != null)
-            {
-                var latestSymbolsPackage = existingPackage.LatestSymbolPackage();
-                hasExistingSymbolsPackageAvailable = latestSymbolsPackage != null && latestSymbolsPackage.IsAvailable();
-            }
+            var hasExistingSymbolsPackageAvailable = existingPackage != null && existingPackage.IsLatestSymbolPackageAvailable();
 
             return await GetVerifyPackageView(currentUser,
                 packageMetadata,
