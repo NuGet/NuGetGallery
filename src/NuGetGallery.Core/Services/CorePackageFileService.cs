@@ -232,15 +232,38 @@ namespace NuGetGallery
 
         public Task DeleteLicenseFileAsync(string id, string version)
         {
-            throw new NotImplementedException();
+            if (id == null)
+            {
+                throw new ArgumentNullException(nameof(id));
+            }
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                throw new ArgumentException($"{nameof(id)} cannot be empty", nameof(id));
+            }
+
+            if (version == null)
+            {
+                throw new ArgumentNullException(nameof(version));
+            }
+
+            if (string.IsNullOrWhiteSpace(version))
+            {
+                throw new ArgumentException($"{nameof(version)} cannot be empty", nameof(version));
+            }
+
+            var fileName = BuildLicenseFileName(id, version);
+
+            return _fileStorageService.DeleteFileAsync(_metadata.PackageContentFolderName, fileName);
         }
 
+        private string LicensePathTemplate => $"{_metadata.PackageContentPathTemplate}/{LicenseFileName}";
+
         private string BuildLicenseFileName(Package package)
-        {
-            var template = $"{_metadata.PackageContentPathTemplate}/{LicenseFileName}";
-            var fileName = BuildFileName(package, template, string.Empty);
-            return fileName;
-        }
+            => BuildFileName(package, LicensePathTemplate, string.Empty);
+
+        private string BuildLicenseFileName(string id, string version)
+            => BuildFileName(id, version, LicensePathTemplate, string.Empty);
 
         private static string BuildBackupFileName(string id, string version, string hash, string extension, string fileBackupSavePathTemplate)
         {
