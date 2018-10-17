@@ -117,6 +117,7 @@ namespace NuGetGallery
         public string Tags { get; set; }
         public string Title { get; set; }
         public bool IsSymbolsPackage { get; set; }
+        public bool HasExistingAvailableSymbols { get; set; }
 
         public List<string> Warnings { get; set; } = new List<string>();
 

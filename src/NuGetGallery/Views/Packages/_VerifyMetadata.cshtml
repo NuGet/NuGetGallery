@@ -121,6 +121,7 @@
             </div>
             <!-- /ko -->
 
+            <!-- ko ifnot: $data.IsSymbolsPackage -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Title</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Title }}"></div>
@@ -136,7 +137,6 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
             </div>
 
-            <!-- ko ifnot: $data.IsSymbolsPackage -->
             <div class="verify-package-field">
                 <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ReleaseNotes }}"></div>

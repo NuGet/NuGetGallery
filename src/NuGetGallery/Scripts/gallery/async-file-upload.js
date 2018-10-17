@@ -84,7 +84,7 @@
         };
 
         function resetFileSelectFeedback() {
-            $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package or symbols package...');
+            $('#file-select-feedback').attr('value', 'Browse or Drop files to select a package (.nupkg) or symbols package (.snupkg)...');
         }
 
         function prepareUploadFormData() {
@@ -232,6 +232,7 @@
         function clearErrors() {
             $("#validation-failure-container").addClass("hidden");
             $("#validation-failure-list").remove();
+            $('#symbols-replace-warning-container').addClass('hidden');
 
             var warnings = $('#warning-container');
             warnings.addClass("hidden");
@@ -270,6 +271,12 @@
                     resetFileSelectFeedback();
                     cancelUploadAsync();
                 });
+
+                if (model.HasExistingAvailableSymbols) {
+                    $('#symbols-replace-warning-container').removeClass('hidden');
+                } else {
+                    $('#symbols-replace-warning-container').addClass('hidden');
+                }
 
                 $('#verify-submit-button').on('click', function () {
                     $('#verify-cancel-button').attr('disabled', 'disabled');
