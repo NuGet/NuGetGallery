@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -11,6 +10,8 @@ using System.Web;
 using System.Web.Mvc;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -71,11 +72,11 @@ namespace NuGetGallery
             var owners =
                 packageAndReservedNamespaceOwners
                 .Select(u => new PackageOwnersResultViewModel(
-                    u, 
+                    u,
                     currentUser,
                     packageRegistration,
                     Url,
-                    isPending: false, 
+                    isPending: false,
                     isNamespaceOwner: true));
 
             var packageOwnersOnlyResultViewModel =
@@ -124,7 +125,8 @@ namespace NuGetGallery
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        await _messageService.SendPackageOwnerAddedNoticeAsync(owner, model.User, model.Package, packageUrl);
+                        var emailMessage = new PackageOwnerAddedMessage(_appConfiguration, owner, model.User, model.Package, packageUrl);
+                        await _messageService.SendMessageAsync(emailMessage);
                     }
                 }
                 else
@@ -152,12 +154,23 @@ namespace NuGetGallery
                         model.User.Username,
                         relativeUrl: false);
 
-                    await _messageService.SendPackageOwnerRequestAsync(model.CurrentUser, model.User, model.Package, packageUrl,
-                        confirmationUrl, rejectionUrl, encodedMessage, policyMessage: string.Empty);
+                    var packageOwnershipRequestMessage = new PackageOwnershipRequestMessage(
+                        _appConfiguration,
+                        model.CurrentUser,
+                        model.User,
+                        model.Package,
+                        packageUrl,
+                        confirmationUrl,
+                        rejectionUrl,
+                        encodedMessage,
+                        string.Empty);
+                    await _messageService.SendMessageAsync(packageOwnershipRequestMessage);
 
                     foreach (var owner in model.Package.Owners)
                     {
-                        await _messageService.SendPackageOwnerRequestInitiatedNoticeAsync(model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+                        var emailMessage = new PackageOwnershipRequestInitiatedMessage(_appConfiguration, model.CurrentUser, owner, model.User, model.Package, cancellationUrl);
+
+                        await _messageService.SendMessageAsync(emailMessage);
                     }
                 }
 
@@ -194,13 +207,18 @@ namespace NuGetGallery
                     {
                         throw new InvalidOperationException("You can't remove the only owner from a package.");
                     }
-                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction:true);
-                    await _messageService.SendPackageOwnerRemovedNoticeAsync(model.CurrentUser, model.User, model.Package);
+
+                    await _packageOwnershipManagementService.RemovePackageOwnerAsync(model.Package, model.CurrentUser, model.User, commitAsTransaction: true);
+
+                    var emailMessage = new PackageOwnerRemovedMessage(_appConfiguration, model.CurrentUser, model.User, model.Package);
+                    await _messageService.SendMessageAsync(emailMessage);
                 }
                 else
                 {
                     await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(model.Package, model.User);
-                    await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(model.CurrentUser, model.User, model.Package);
+
+                    var emailMessage = new PackageOwnershipRequestCanceledMessage(_appConfiguration, model.CurrentUser, model.User, model.Package);
+                    await _messageService.SendMessageAsync(emailMessage);
                 }
 
                 return Json(new { success = true });
@@ -255,7 +273,7 @@ namespace NuGetGallery
                 return false;
             }
 
-            var isOwner = 
+            var isOwner =
                 package.Owners.Any(o => o.MatchesUser(user)) ||
                 _packageOwnershipManagementService.GetPackageOwnershipRequests(package: package, newOwner: user).Any();
 
@@ -289,7 +307,7 @@ namespace NuGetGallery
                 Package = package;
                 User = user;
                 CurrentUser = currentUser;
-                CurrentUserCanAcceptOnBehalfOfUser = 
+                CurrentUserCanAcceptOnBehalfOfUser =
                     ActionsRequiringPermissions.HandlePackageOwnershipRequest.CheckPermissions(currentUser, user) == PermissionsCheckResult.Allowed;
             }
 

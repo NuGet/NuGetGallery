@@ -105,11 +105,7 @@ namespace NuGetGallery
             }
             else if (result.StatusCode == HttpStatusCode.OK)
             {
-                if (await blob.ExistsAsync())
-                {
-                    await blob.FetchAttributesAsync();
-                }
-                return CloudFileReference.Modified(blob, result.Data);
+                return CloudFileReference.Modified(result.Data, result.ETag);
             }
             else
             {
@@ -505,11 +501,11 @@ namespace NuGetGallery
 
                 if (ex.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotModified)
                 {
-                    return new StorageResult(HttpStatusCode.NotModified, null);
+                    return new StorageResult(HttpStatusCode.NotModified, null, blob.ETag);
                 }
                 else if (ex.RequestInformation.ExtendedErrorInformation?.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
                 {
-                    return new StorageResult(HttpStatusCode.NotFound, null);
+                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
                 }
 
                 throw;
@@ -522,14 +518,14 @@ namespace NuGetGallery
 
                 if (ex.ErrorCode == BlobErrorCodeStrings.BlobNotFound)
                 {
-                    return new StorageResult(HttpStatusCode.NotFound, null);
+                    return new StorageResult(HttpStatusCode.NotFound, null, blob.ETag);
                 }
 
                 throw;
             }
 
             stream.Position = 0;
-            return new StorageResult(HttpStatusCode.OK, stream);
+            return new StorageResult(HttpStatusCode.OK, stream, blob.ETag);
         }
 
         private static string GetContentType(string folderName)
@@ -607,11 +603,13 @@ namespace NuGetGallery
         {
             public HttpStatusCode StatusCode { get; }
             public Stream Data { get; }
+            public string ETag { get; }
 
-            public StorageResult(HttpStatusCode statusCode, Stream data)
+            public StorageResult(HttpStatusCode statusCode, Stream data, string etag)
             {
                 StatusCode = statusCode;
                 Data = data;
+                ETag = etag;
             }
         }
     }

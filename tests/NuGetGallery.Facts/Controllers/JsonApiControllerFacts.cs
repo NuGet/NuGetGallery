@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
 using NuGetGallery.Framework;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -137,7 +140,7 @@ namespace NuGetGallery.Controllers
 
                 public class TheAddPackageOwnerMethods : TestContainer
                 {
-                    private static IEnumerable<InvokePackageOwnerModificationRequest> _addRequests = new InvokePackageOwnerModificationRequest[]
+                    private static readonly IEnumerable<InvokePackageOwnerModificationRequest> _addRequests = new InvokePackageOwnerModificationRequest[]
                     {
                         new InvokePackageOwnerModificationRequest(AddPackageOwner),
                     };
@@ -155,7 +158,7 @@ namespace NuGetGallery.Controllers
                             }
                         }
                     }
-                    
+
                     public static IEnumerable<object[]> AllCanManagePackageOwnersByAddRequests_Data
                     {
                         get
@@ -343,7 +346,7 @@ namespace NuGetGallery.Controllers
 
                         [Theory]
                         [MemberData(nameof(AllCanManagePackageOwners_Data))]
-                        public async Task FailsIfUserInputIsEmailAddress(Func<Fakes,User> getCurrentUser)
+                        public async Task FailsIfUserInputIsEmailAddress(Func<Fakes, User> getCurrentUser)
                         {
                             // Arrange
                             var fakes = Get<Fakes>();
@@ -385,31 +388,38 @@ namespace NuGetGallery.Controllers
                                     .Setup(p => p.AddPackageOwnershipRequestAsync(fakes.Package, currentUser, userToAdd))
                                     .Returns(Task.FromResult(new PackageOwnerRequest { ConfirmationCode = "confirmation-code" }))
                                     .Verifiable();
-                                
+
                                 messageServiceMock
-                                    .Setup(m => m.SendPackageOwnerRequestAsync(
-                                        currentUser,
-                                        userToAdd,
-                                        fakes.Package,
-                                        TestUtility.GallerySiteRootHttps + "packages/FakePackage/",
-                                        TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code",
-                                        TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code",
-                                        "Hello World! Html Encoded &lt;3",
-                                        ""))
+                                    .Setup(m => m.SendMessageAsync(It.IsAny<PackageOwnershipRequestMessage>(), false, false))
+                                    .Callback<IEmailBuilder, bool, bool>((msg, copySender, discloseSenderAddress) =>
+                                    {
+                                        var message = msg as PackageOwnershipRequestMessage;
+                                        Assert.Equal(currentUser, message.FromUser);
+                                        Assert.Equal(userToAdd, message.ToUser);
+                                        Assert.Equal(fakes.Package, message.PackageRegistration);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + "packages/FakePackage/", message.PackageUrl);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/confirm/confirmation-code", message.ConfirmationUrl);
+                                        Assert.Equal(TestUtility.GallerySiteRootHttps + $"packages/FakePackage/owners/{userToAdd.Username}/reject/confirmation-code", message.RejectionUrl);
+                                        Assert.Equal("Hello World! Html Encoded &lt;3", message.HtmlEncodedMessage);
+                                        Assert.Equal(string.Empty, message.PolicyMessage);
+                                    })
                                     .Returns(Task.CompletedTask)
                                     .Verifiable();
 
                                 foreach (var owner in fakes.Package.Owners)
                                 {
                                     messageServiceMock
-                                        .Setup(m => m.SendPackageOwnerRequestInitiatedNoticeAsync(
-                                            currentUser,
-                                            owner,
-                                            userToAdd,
-                                            fakes.Package,
-                                            It.IsAny<string>()))
-                                        .Returns(Task.CompletedTask)
-                                        .Verifiable();
+                                          .Setup(m => m.SendMessageAsync(
+                                              It.Is<PackageOwnershipRequestInitiatedMessage>(
+                                                  msg =>
+                                                  msg.RequestingOwner == currentUser
+                                                  && msg.ReceivingOwner == owner
+                                                  && msg.NewOwner == userToAdd
+                                                  && msg.PackageRegistration == fakes.Package),
+                                              false,
+                                              false))
+                                          .Returns(Task.CompletedTask)
+                                          .Verifiable();
                                 }
                             }
                             else
@@ -422,11 +432,14 @@ namespace NuGetGallery.Controllers
                                 foreach (var owner in fakes.Package.Owners)
                                 {
                                     messageServiceMock
-                                        .Setup(m => m.SendPackageOwnerAddedNoticeAsync(
-                                            owner,
-                                            userToAdd,
-                                            fakes.Package,
-                                            It.IsAny<string>()))
+                                        .Setup(m => m.SendMessageAsync(
+                                            It.Is<PackageOwnerAddedMessage>(
+                                                msg =>
+                                                msg.ToUser == owner
+                                                && msg.NewOwner == userToAdd
+                                                && msg.PackageRegistration == fakes.Package),
+                                            false,
+                                            false))
                                         .Returns(Task.CompletedTask)
                                         .Verifiable();
                                 }
@@ -448,9 +461,9 @@ namespace NuGetGallery.Controllers
 
                 public class TheRemovePackageOwnerMethod : TestContainer
                 {
-                    private static IEnumerable<Func<Fakes, User>> _canBeRemovedUsers = _cannotBeAddedUsers;
+                    private static readonly IEnumerable<Func<Fakes, User>> _canBeRemovedUsers = _cannotBeAddedUsers;
 
-                    private static IEnumerable<Func<Fakes, User>> _cannotBeRemovedUsers = _canBeAddedUsers;
+                    private static readonly IEnumerable<Func<Fakes, User>> _cannotBeRemovedUsers = _canBeAddedUsers;
 
                     public static IEnumerable<object[]> AllCanManagePackageOwners_Data => ThePackageOwnerMethods.AllCanManagePackageOwners_Data;
 
@@ -563,9 +576,16 @@ namespace NuGetGallery.Controllers
                         Assert.True(data.success);
 
                         packageOwnershipManagementService.Verify(x => x.DeletePackageOwnershipRequestAsync(package, requestedUser, true));
-
+                        
                         GetMock<IMessageService>()
-                            .Verify(x => x.SendPackageOwnerRequestCancellationNoticeAsync(currentUser, requestedUser, package));
+                            .Verify(x => x.SendMessageAsync(
+                                It.Is<PackageOwnershipRequestCanceledMessage>(
+                                    msg =>
+                                    msg.RequestingOwner == currentUser
+                                    && msg.NewOwner == requestedUser
+                                    && msg.PackageRegistration == package),
+                                false,
+                                false));
                     }
 
                     [Theory]
@@ -596,7 +616,14 @@ namespace NuGetGallery.Controllers
                         packageOwnershipManagementService.Verify(x => x.RemovePackageOwnerAsync(package, currentUser, userToRemove, It.IsAny<bool>()));
 
                         GetMock<IMessageService>()
-                            .Verify(x => x.SendPackageOwnerRemovedNoticeAsync(currentUser, userToRemove, package));
+                            .Verify(x => x.SendMessageAsync(
+                                It.Is<PackageOwnerRemovedMessage>(
+                                    msg =>
+                                    msg.FromUser == currentUser
+                                    && msg.ToUser == userToRemove
+                                    && msg.PackageRegistration == package),
+                                false,
+                                false));
                     }
                 }
 
@@ -612,7 +639,7 @@ namespace NuGetGallery.Controllers
                     return await jsonApiController.RemovePackageOwner(packageId, username);
                 }
 
-                private static IEnumerable<InvokePackageOwnerModificationRequest> _requests = new InvokePackageOwnerModificationRequest[]
+                private static readonly IEnumerable<InvokePackageOwnerModificationRequest> _requests = new InvokePackageOwnerModificationRequest[]
                 {
                     new InvokePackageOwnerModificationRequest(AddPackageOwner),
                     new InvokePackageOwnerModificationRequest(RemovePackageOwner),
@@ -674,7 +701,7 @@ namespace NuGetGallery.Controllers
                 public static IEnumerable<object[]> AllCanManagePackageOwners_Data => ThePackageOwnerMethods.AllCanManagePackageOwners_Data;
 
                 public static IEnumerable<object[]> AllCannotManagePackageOwners_Data => ThePackageOwnerMethods.AllCannotManagePackageOwners_Data;
-                
+
                 [Fact]
                 public void ReturnsFailureIfPackageNotFound()
                 {
@@ -732,14 +759,14 @@ namespace NuGetGallery.Controllers
                 {
                     var controller = GetController<JsonApiController>();
                     controller.SetCurrentUser(currentUser);
-                    
+
                     var result = controller.GetPackageOwners("FakePackage", "2.0");
                     return ((JsonResult)result).Data as IEnumerable<PackageOwnersResultViewModel>;
                 }
 
                 private bool ModelMatchesUser(PackageOwnersResultViewModel model, User user, bool grantsCurrentUserAccess, bool isCurrentUserAdminOfOrganization)
                 {
-                    return 
+                    return
                         user.Username == model.Name &&
                         user.EmailAddress == model.EmailAddress &&
                         grantsCurrentUserAccess == model.GrantsCurrentUserAccess &&
@@ -747,37 +774,37 @@ namespace NuGetGallery.Controllers
                 }
             }
 
-            private static Func<Fakes, User> _getFakesNull = (Fakes fakes) => null;
-            private static Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
-            private static Func<Fakes, User> _getFakesOwner = (Fakes fakes) => fakes.Owner;
-            private static Func<Fakes, User> _getFakesOrganizationOwner = (Fakes fakes) => fakes.OrganizationOwner;
-            private static Func<Fakes, User> _getFakesOrganizationAdminOwner = (Fakes fakes) => fakes.OrganizationOwnerAdmin;
-            private static Func<Fakes, User> _getFakesOrganizationCollaboratorOwner = (Fakes fakes) => fakes.OrganizationOwnerCollaborator;
+            private static readonly Func<Fakes, User> _getFakesNull = (Fakes fakes) => null;
+            private static readonly Func<Fakes, User> _getFakesUser = (Fakes fakes) => fakes.User;
+            private static readonly Func<Fakes, User> _getFakesOwner = (Fakes fakes) => fakes.Owner;
+            private static readonly Func<Fakes, User> _getFakesOrganizationOwner = (Fakes fakes) => fakes.OrganizationOwner;
+            private static readonly Func<Fakes, User> _getFakesOrganizationAdminOwner = (Fakes fakes) => fakes.OrganizationOwnerAdmin;
+            private static readonly Func<Fakes, User> _getFakesOrganizationCollaboratorOwner = (Fakes fakes) => fakes.OrganizationOwnerCollaborator;
 
             public static IEnumerable<string> _missingData = new[] { null, string.Empty };
 
-            private static IEnumerable<Func<Fakes, User>> _canManagePackageOwnersUsers = new Func<Fakes, User>[]
+            private static readonly IEnumerable<Func<Fakes, User>> _canManagePackageOwnersUsers = new Func<Fakes, User>[]
             {
                 _getFakesOwner,
                 _getFakesOrganizationOwner,
                 _getFakesOrganizationAdminOwner,
             };
 
-            private static IEnumerable<Func<Fakes, User>> _cannotManagePackageOwnersUsers = new Func<Fakes, User>[]
+            private static readonly IEnumerable<Func<Fakes, User>> _cannotManagePackageOwnersUsers = new Func<Fakes, User>[]
             {
                 _getFakesNull,
                 _getFakesUser,
                 _getFakesOrganizationCollaboratorOwner,
             };
 
-            private static IEnumerable<Func<Fakes, User>> _canBeAddedUsers = new Func<Fakes, User>[]
+            private static readonly IEnumerable<Func<Fakes, User>> _canBeAddedUsers = new Func<Fakes, User>[]
             {
                 _getFakesUser,
                 _getFakesOrganizationAdminOwner,
                 _getFakesOrganizationCollaboratorOwner,
             };
 
-            private static IEnumerable<Func<Fakes, User>> _cannotBeAddedUsers = new Func<Fakes, User>[]
+            private static readonly IEnumerable<Func<Fakes, User>> _cannotBeAddedUsers = new Func<Fakes, User>[]
             {
                 _getFakesOwner,
                 _getFakesOrganizationOwner,

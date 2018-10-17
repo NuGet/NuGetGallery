@@ -91,6 +91,7 @@
     <Compile Include="Helpers\NuspecHelper.cs" />
     <Compile Include="Helpers\ODataHelper.cs" />
     <Compile Include="Helpers\PackageCreationHelper.cs" />
+    <Compile Include="XunitExtensions\TyposquattingTestFactAttribute.cs" />
     <Compile Include="XunitExtensions\PriorityAttribute.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="XunitExtensions\CategoryDiscoverer.cs" />

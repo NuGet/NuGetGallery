@@ -252,6 +252,7 @@ namespace GalleryTools.Commands
                     IgnoreComments = true,
                     IgnoreProcessingInstructions = true,
                 };
+                settings.XmlResolver = null;
 
                 using (var streamReader = new StreamReader(stream))
                 using (var xmlReader = XmlReader.Create(streamReader, settings))

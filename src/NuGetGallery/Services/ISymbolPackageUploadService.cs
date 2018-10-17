@@ -34,5 +34,11 @@ namespace NuGetGallery
         /// <param name="currentUser">The user performing the uploads.</param>
         /// <returns>Awaitable task with <see cref="SymbolPackageValidationResult"/></returns>
         Task<SymbolPackageValidationResult> ValidateUploadedSymbolsPackage(Stream uploadStream, User currentUser);
+
+        /// <summary>
+        /// Mark the specifed symbol package for deletion and delete the corressponding snupkg as well.
+        /// </summary>
+        /// <param name="symbolPackage">The <see cref="SymbolPackage"/> entity to be marked for deletion</param>
+        Task DeleteSymbolsPackageAsync(SymbolPackage symbolPackage);
     }
 }

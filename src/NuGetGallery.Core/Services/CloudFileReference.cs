@@ -26,9 +26,9 @@ namespace NuGetGallery
             return new CloudFileReference(null, contentId);
         }
 
-        public static CloudFileReference Modified(ISimpleCloudBlob blob, Stream data)
+        public static CloudFileReference Modified(Stream data, string contentId)
         {
-            return new CloudFileReference(data, blob.ETag);
+            return new CloudFileReference(data, contentId);
         }
     }
 }

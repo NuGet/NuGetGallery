@@ -852,9 +852,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_ForgotPassword_Body {
+        public static string Emails_ForgotPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_ForgotPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_ForgotPassword_MarkdownBody", resourceCulture);
             }
         }
         
@@ -880,9 +880,9 @@ namespace NuGetGallery {
         ///Thanks,
         ///The {1} Team.
         /// </summary>
-        public static string Emails_SetPassword_Body {
+        public static string Emails_SetPassword_MarkdownBody {
             get {
-                return ResourceManager.GetString("Emails_SetPassword_Body", resourceCulture);
+                return ResourceManager.GetString("Emails_SetPassword_MarkdownBody", resourceCulture);
             }
         }
         
@@ -1279,15 +1279,6 @@ namespace NuGetGallery {
         public static string PackageIdNotAvailable {
             get {
                 return ResourceManager.GetString("PackageIdNotAvailable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The package is already curated..
-        /// </summary>
-        public static string PackageIsAlreadyCurated {
-            get {
-                return ResourceManager.GetString("PackageIsAlreadyCurated", resourceCulture);
             }
         }
         
@@ -1860,6 +1851,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The symbols package associated with this package has been deleted..
+        /// </summary>
+        public static string SymbolsPackage_Deleted {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_Deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Failed to read the symbols package. Ensure it is a valid symbols package (.snupkg)..
         /// </summary>
         public static string SymbolsPackage_FailedToReadPackage {
@@ -1914,11 +1914,29 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The latest associated symbols package for package with ID {0} and version {1} is deleted. Cannot revalidate a deleted symbols package..
+        /// </summary>
+        public static string SymbolsPackage_RevalidateDeletedPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_RevalidateDeletedPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
         /// </summary>
         public static string SymbolsPackage_UploadNotAllowed {
             get {
                 return ResourceManager.GetString("SymbolsPackage_UploadNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Successfully uploaded the symbols package for package with ID {0} and version {1}..
+        /// </summary>
+        public static string SymbolsPackage_UploadSuccessful {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_UploadSuccessful", resourceCulture);
             }
         }
         
@@ -2225,6 +2243,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package contains a &lt;license&gt; metadata which is currently not supported..
+        /// </summary>
+        public static string UploadPackage_NotAcceptingPackagesWithLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
             }
         }
         

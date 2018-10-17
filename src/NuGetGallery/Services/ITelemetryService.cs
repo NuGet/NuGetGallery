@@ -166,6 +166,13 @@ namespace NuGetGallery
         void TrackSymbolPackagePushEvent(string packageId, string packageVersion);
 
         /// <summary>
+        /// A telemetry event emitted when a symbol package is deleted.
+        /// </summary>
+        /// <param name="packageId">The id of the package for which symbols are deleted.</param>
+        /// <param name="packageVersion">The version of the package for which the symbols are delted.</param>
+        void TrackSymbolPackageDeleteEvent(string packageId, string packageVersion);
+
+        /// <summary>
         /// A telemetry event emitted when a symbol package fails to be pushed.
         /// </summary>
         /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
@@ -178,6 +185,13 @@ namespace NuGetGallery
         /// <param name="packageId">The id of the package that has the symbols uploaded.</param>
         /// <param name="packageVersion">The version of the package that has the symbols uploaded.</param>
         void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion);
+
+        /// <summary>
+        /// Track metric for symbol package revalidation
+        /// </summary>
+        /// <param name="packageId">The id of the symbols package that has the symbols revalidated.</param>
+        /// <param name="packageVersion">The version of the symbols package that has the symbols revalidated.</param>
+        void TrackSymbolPackageRevalidate(string packageId, string packageVersion);
 
         /// <summary>
         /// The typosquatting check result and total time for the uploaded package.

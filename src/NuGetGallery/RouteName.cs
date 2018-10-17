@@ -56,11 +56,6 @@ namespace NuGetGallery
         public const string CreatePackageVerificationKey = "CreatePackageVerificationKey";
         public const string VerifyPackageKey = "VerifyPackageKey";
         public const string CancelUpload = "CancelUpload";
-        public const string CuratedFeed = "CuratedFeed";
-        public const string CuratedFeedListPackages = "CuratedFeedListPackages";
-        public const string CreateCuratedPackageForm = "CreateCuratedPackageForm";
-        public const string CuratedPackages = "CuratedPackages";
-        public const string CuratedPackage = "CuratedPackage";
         public const string StatisticsHome = "StatisticsHome";
         public const string StatisticsPackages = "StatisticsPackages";
         public const string StatisticsPackageVersions = "StatisticsPackageVersions";

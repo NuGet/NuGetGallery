@@ -10,6 +10,8 @@ using System.Web.Mvc;
 using NuGetGallery.Authentication;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 
 namespace NuGetGallery
@@ -29,8 +31,6 @@ namespace NuGetGallery
 
         public AuthenticationService AuthenticationService { get; }
 
-        public ICuratedFeedService CuratedFeedService { get; }
-
         public IPackageService PackageService { get; }
 
         public IMessageService MessageService { get; }
@@ -45,19 +45,20 @@ namespace NuGetGallery
 
         public IContentObjectService ContentObjectService { get; }
 
+        public IMessageServiceConfiguration MessageServiceConfiguration { get; }
+
         public AccountsController(
             AuthenticationService authenticationService,
-            ICuratedFeedService curatedFeedService,
             IPackageService packageService,
             IMessageService messageService,
             IUserService userService,
             ITelemetryService telemetryService,
             ISecurityPolicyService securityPolicyService,
             ICertificateService certificateService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            IMessageServiceConfiguration messageServiceConfiguration)
         {
             AuthenticationService = authenticationService ?? throw new ArgumentNullException(nameof(authenticationService));
-            CuratedFeedService = curatedFeedService ?? throw new ArgumentNullException(nameof(curatedFeedService));
             PackageService = packageService ?? throw new ArgumentNullException(nameof(packageService));
             MessageService = messageService ?? throw new ArgumentNullException(nameof(messageService));
             UserService = userService ?? throw new ArgumentNullException(nameof(userService));
@@ -65,6 +66,7 @@ namespace NuGetGallery
             SecurityPolicyService = securityPolicyService ?? throw new ArgumentNullException(nameof(securityPolicyService));
             CertificateService = certificateService ?? throw new ArgumentNullException(nameof(certificateService));
             ContentObjectService = contentObjectService ?? throw new ArgumentNullException(nameof(contentObjectService));
+            MessageServiceConfiguration = messageServiceConfiguration ?? throw new ArgumentNullException(nameof(messageServiceConfiguration));
         }
 
         public abstract string AccountAction { get; }
@@ -163,7 +165,8 @@ namespace NuGetGallery
                 // Change notice not required for new accounts.
                 if (model.SuccessfulConfirmation && !model.ConfirmingNewAccount)
                 {
-                    await MessageService.SendEmailChangeNoticeToPreviousEmailAddressAsync(account, existingEmail);
+                    var message = new EmailChangeNoticeToPreviousEmailAddressMessage(MessageServiceConfiguration, account, existingEmail);
+                    await MessageService.SendMessageAsync(message);
 
                     string returnUrl = HttpContext.GetConfirmationReturnUrl();
                     if (!String.IsNullOrEmpty(returnUrl))
@@ -343,11 +346,6 @@ namespace NuGetGallery
 
             model.IsCertificatesUIEnabled = ContentObjectService.CertificatesConfiguration?.IsUIEnabledForUser(currentUser) ?? false;
             model.WasMultiFactorAuthenticated = User.WasMultiFactorAuthenticated();
-
-            model.CuratedFeeds = CuratedFeedService
-                .GetFeedsForManager(account.Key)
-                .Select(f => f.Name)
-                .ToList();
 
             model.HasPassword = account.Credentials.Any(c => c.IsPassword());
             model.CurrentEmailAddress = account.UnconfirmedEmailAddress ?? account.EmailAddress;

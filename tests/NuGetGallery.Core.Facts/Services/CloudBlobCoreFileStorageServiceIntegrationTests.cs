@@ -2,8 +2,10 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Auth;
@@ -11,6 +13,7 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Moq;
 using NuGetGallery.Diagnostics;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGetGallery
 {
@@ -26,6 +29,7 @@ namespace NuGetGallery
             string destFileName);
 
         private readonly BlobStorageFixture _fixture;
+        private readonly ITestOutputHelper _output;
         private readonly string _testId;
         private readonly string _prefixA;
         private readonly string _prefixB;
@@ -36,9 +40,10 @@ namespace NuGetGallery
         private readonly CloudBlobCoreFileStorageService _targetA;
         private readonly CloudBlobCoreFileStorageService _targetB;
 
-        public CloudBlobCoreFileStorageServiceIntegrationTests(BlobStorageFixture fixture)
+        public CloudBlobCoreFileStorageServiceIntegrationTests(BlobStorageFixture fixture, ITestOutputHelper output)
         {
             _fixture = fixture ?? throw new ArgumentNullException(nameof(fixture));
+            _output = output ?? throw new ArgumentNullException(nameof(output));
             _testId = Guid.NewGuid().ToString();
             _prefixA = $"{_fixture.PrefixA}/{_testId}";
             _prefixB = $"{_fixture.PrefixB}/{_testId}";
@@ -51,6 +56,98 @@ namespace NuGetGallery
 
             _targetA = new CloudBlobCoreFileStorageService(_clientA, Mock.Of<IDiagnosticsService>());
             _targetB = new CloudBlobCoreFileStorageService(_clientB, Mock.Of<IDiagnosticsService>());
+        }
+
+        [BlobStorageFact]
+        public async Task ReturnsCurrentETagForIfMatch()
+        {
+            // Arrange
+            var folderName = CoreConstants.ValidationFolderName;
+            var fileName = _prefixA;
+            await _targetA.SaveFileAsync(folderName, fileName, new MemoryStream(new byte[0]));
+            var initialReference = await _targetA.GetFileReferenceAsync(folderName, fileName);
+            initialReference.OpenRead().Dispose();
+
+            // Act
+            var reference = await _targetA.GetFileReferenceAsync(folderName, fileName, initialReference.ContentId);
+
+            // Assert
+            Assert.NotNull(reference);
+            Assert.Null(reference.OpenRead());
+            Assert.Equal(initialReference.ContentId, reference.ContentId);
+        }
+
+        [BlobStorageFact]
+        public async Task ReturnsNullForMissingBlob()
+        {
+            // Arrange
+            var folderName = CoreConstants.ValidationFolderName;
+            var fileName = _prefixA;
+
+            // Act
+            var reference = await _targetA.GetFileReferenceAsync(folderName, fileName);
+
+            // Assert
+            Assert.Null(reference);
+        }
+
+        [BlobStorageFact]
+        public async Task ReturnsTheETagMatchingTheContent()
+        {
+            // Arrange
+            var folderName = CoreConstants.ValidationFolderName;
+            var fileName = _prefixA;
+            var contentToETag = new ConcurrentDictionary<string, string>();
+            var iterations = 20;
+            var cts = new CancellationTokenSource();
+
+            Func<Task> update = async () =>
+            {
+                var container = _blobClientA.GetContainerReference(folderName);
+                for (var i = 1; i <= iterations && !cts.IsCancellationRequested; i++)
+                {
+                    var blob = container.GetBlockBlobReference(fileName);
+                    var content = i.ToString();
+                    await blob.UploadTextAsync(content);
+                    contentToETag[content] = blob.Properties.ETag;
+                    _output.WriteLine($"Content '{content}' should have etag '{blob.Properties.ETag}'.");
+                }
+            };
+
+            Func<Task> check = async () =>
+            {
+                string content = null;
+                while (content != iterations.ToString())
+                {
+                    var fileReference = await _targetA.GetFileReferenceAsync(folderName, fileName);
+                    if (fileReference == null)
+                    {
+                        continue;
+                    }
+
+                    using (var stream = fileReference.OpenRead())
+                    using (var streamReader = new StreamReader(stream))
+                    {
+                        content = await streamReader.ReadToEndAsync();
+                        if (contentToETag.TryGetValue(content, out var expectedETag))
+                        {
+                            _output.WriteLine($"Content '{content}' has etag '{fileReference.ContentId}'.");
+                            if (expectedETag != fileReference.ContentId)
+                            {
+                                cts.Cancel();
+                            }
+
+                            Assert.Equal(expectedETag, fileReference.ContentId);
+                        }
+                    }
+                }
+            };
+
+            // Act & Assert
+            var updateTask = update();
+            var checkTask = check();
+            await checkTask;
+            await updateTask;
         }
 
         [BlobStorageFact]

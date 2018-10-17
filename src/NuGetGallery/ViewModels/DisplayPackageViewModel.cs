@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.Extensions;
 
 namespace NuGetGallery
 {
@@ -26,10 +27,7 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            LatestSymbolsPackage = package
-                .SymbolPackages
-                .OrderByDescending(sp => sp.Created)
-                .FirstOrDefault();
+            LatestSymbolsPackage = package.LatestSymbolPackage();
 
             if (packageHistory.Any())
             {
@@ -55,6 +53,8 @@ namespace NuGetGallery
             DownloadsPerDay = 0;
 
             PushedBy = pushedBy;
+
+            LatestSymbolsPackage = package.LatestSymbolPackage();
 
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
 

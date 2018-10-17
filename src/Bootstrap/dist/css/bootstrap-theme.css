@@ -1049,26 +1049,6 @@ img.reserved-indicator-icon {
     white-space: nowrap;
   }
 }
-.page-manage-curated-feed .package-owners .owner {
-  margin-bottom: 10px;
-}
-.page-manage-curated-feed .feed-packages-list {
-  margin-bottom: 40px;
-}
-.page-manage-curated-feed .feed-packages-list .package {
-  margin-bottom: 10px;
-}
-.page-manage-curated-feed .feed-packages-list .package .id {
-  float: left;
-}
-.page-manage-curated-feed .feed-packages-list .package .controls {
-  float: right;
-}
-.page-manage-curated-feed .feed-packages-list .package .controls i {
-  position: relative;
-  top: 3px;
-  margin-right: 10px;
-}
 .page-manage-organizations h1 {
   margin-bottom: 0;
 }

@@ -1,233 +1,139 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Moq;
+using NuGetGallery.Configuration;
 using Xunit;
 
-namespace NuGetGallery.Services
+namespace NuGetGallery
 {
-    class CuratedFeedServiceFacts
+    public class CuratedFeedServiceFacts
     {
-        public class TestableCuratedFeedService : CuratedFeedService
+        public class TheGetFeedByNameMethod : Facts
         {
-            public TestableCuratedFeedService()
+            [Fact]
+            public void ReturnsNullWhenFeedIsDisabled()
             {
-                StubCuratedFeed = new CuratedFeed { Key = 0, Name = "aName" };
-                StubPackageRegistration = new PackageRegistration { Key = 1066, Id = "aPackageId" };
+                DisableFeed(_curatedFeed.Name);
 
-                StubCuratedPackage = new CuratedPackage
+                var output = _target.GetFeedByName(_curatedFeed.Name);
+
+                Assert.Null(output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Never);
+            }
+
+            [Fact]
+            public void ReturnsNullWhenFeedIsDisabledWithDifferentCasing()
+            {
+                _curatedFeed.Name = "curated-feed";
+                DisableFeed("CURATED-Feed");
+
+                var output = _target.GetFeedByName(_curatedFeed.Name);
+
+                Assert.Null(output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Never);
+            }
+
+            [Fact]
+            public void ReturnsFeedWhenNameMatchesAndFeedIsNotDisabled()
+            {
+                var output = _target.GetFeedByName(_curatedFeed.Name);
+
+                Assert.Same(_curatedFeed, output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Once);
+
+            }
+
+            [Fact]
+            public void ReturnsNullWhenFeedDoesNotExist()
+            {
+                var output = _target.GetFeedByName("something-else");
+
+                Assert.Null(output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Once);
+            }
+        }
+
+        public class TheGetPackagesMethod : Facts
+        {
+            [Fact]
+            public void ReturnsEmptyListWhenFeedIsDisabled()
+            {
+                DisableFeed(_curatedFeed.Name);
+
+                var output = _target.GetPackages(_curatedFeed.Name);
+
+                Assert.Empty(output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Never);
+            }
+
+            [Fact]
+            public void ReturnsPackagesWhenNameMatchesAndFeedIsNotDisabled()
+            {
+                var output = _target.GetPackages(_curatedFeed.Name);
+
+                var package = Assert.Single(output);
+                Assert.Same(_package, package);
+
+            }
+
+            [Fact]
+            public void ReturnsNullWhenFeedDoesNotExist()
+            {
+                var output = _target.GetPackages("something-else");
+
+                Assert.Empty(output);
+                _entityRepository.Verify(x => x.GetAll(), Times.Once);
+            }
+        }
+
+        public abstract class Facts
+        {
+            protected Package _package;
+            protected CuratedFeed _curatedFeed;
+            protected readonly Mock<IEntityRepository<CuratedFeed>> _entityRepository;
+            protected readonly Mock<IAppConfiguration> _config;
+            protected readonly CuratedFeedService _target;
+
+            protected Facts()
+            {
+                _package = new Package();
+                _curatedFeed = new CuratedFeed
                 {
-                    Key = 0,
-                    CuratedFeedKey = StubCuratedFeed.Key,
-                    CuratedFeed = StubCuratedFeed,
-                    PackageRegistration = StubPackageRegistration,
-                    PackageRegistrationKey = StubPackageRegistration.Key
+                    Name = "curated-feed",
+                    Packages = new[]
+                    {
+                        new CuratedPackage
+                        {
+                            PackageRegistration = new PackageRegistration
+                            {
+                                Packages = new[]
+                                {
+                                    _package,
+                                },
+                            },
+                        },
+                    },
                 };
-                StubCuratedFeed.Packages.Add(StubCuratedPackage);
 
-                StubCuratedFeedRepository = new Mock<IEntityRepository<CuratedFeed>>();
-                StubCuratedFeedRepository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new CuratedFeed[] { StubCuratedFeed }.AsQueryable());
+                _entityRepository = new Mock<IEntityRepository<CuratedFeed>>();
+                _config = new Mock<IAppConfiguration>();
 
-                StubCuratedPackageRepository = new Mock<IEntityRepository<CuratedPackage>>();
-                StubCuratedPackageRepository
-                    .Setup(repo => repo.GetAll())
-                    .Returns(new CuratedPackage[] { StubCuratedPackage }.AsQueryable());
+                _entityRepository
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { _curatedFeed }.AsQueryable());
+
+                _target = new CuratedFeedService(
+                    _entityRepository.Object,
+                    _config.Object);
             }
 
-            public Mock<IEntityRepository<CuratedFeed>> StubCuratedFeedRepository {
-                get
-                {
-                    return _stubCuratedFeedRepository;
-                }
-                set
-                {
-                    _stubCuratedFeedRepository = value;
-                    CuratedFeedRepository = value.Object;
-                }
-            }
-
-            public Mock<IEntityRepository<CuratedPackage>> StubCuratedPackageRepository {
-                get
-                {
-                    return _stubCuratedPackageRepository;
-                }
-                set
-                {
-                    _stubCuratedPackageRepository = value;
-                    CuratedPackageRepository = value.Object;
-                }
-            }
-
-            public PackageRegistration StubPackageRegistration { get; set; }
-            public CuratedFeed StubCuratedFeed { get; set; }
-            public CuratedPackage StubCuratedPackage { get; set; }
-
-            Mock<IEntityRepository<CuratedFeed>> _stubCuratedFeedRepository;
-            Mock<IEntityRepository<CuratedPackage>> _stubCuratedPackageRepository;
-        }
-
-        public class TheCreateCuratedPackageMethod
-        {
-            [Fact]
-            public async Task WillThrowWhenCuratedFeedDoesNotExist()
+            protected void DisableFeed(string feedName)
             {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await svc.CreatedCuratedPackageAsync(
-                        null,
-                        svc.StubPackageRegistration));
-            }
-
-            [Fact]
-            public async Task WillThrowWhenPackageRegistrationDoesNotExist()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<ArgumentNullException>(
-                    async () => await svc.CreatedCuratedPackageAsync(
-                        svc.StubCuratedFeed,
-                        null));
-            }
-
-            [Fact]
-            public async Task WillAddANewCuratedPackageToTheCuratedFeed()
-            {
-                var svc = new TestableCuratedFeedService();
-                svc.StubPackageRegistration.Key = 1066;
-
-                await svc.CreatedCuratedPackageAsync(
-                    svc.StubCuratedFeed,
-                    svc.StubPackageRegistration,
-                    false,
-                    true,
-                    "theNotes");
-
-                var curatedPackage = svc.StubCuratedFeed.Packages.First();
-                Assert.Equal(1066, curatedPackage.PackageRegistrationKey);
-                Assert.False(curatedPackage.Included);
-                Assert.True(curatedPackage.AutomaticallyCurated);
-                Assert.Equal("theNotes", curatedPackage.Notes);
-            }
-
-            [Fact]
-            public async Task WillSaveTheEntityChanges()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await svc.CreatedCuratedPackageAsync(
-                    svc.StubCuratedFeed,
-                    svc.StubPackageRegistration,
-                    false,
-                    true,
-                    "theNotes");
-
-                svc.StubCuratedPackageRepository.Verify(stub => stub.InsertOnCommit(It.IsAny<CuratedPackage>()));
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
-            }
-
-            [Fact]
-            public async Task WillReturnTheCreatedCuratedPackage()
-            {
-                var svc = new TestableCuratedFeedService();
-                svc.StubPackageRegistration.Key = 1066;
-
-                var curatedPackage = await svc.CreatedCuratedPackageAsync(
-                    svc.StubCuratedFeed,
-                    svc.StubPackageRegistration,
-                    false,
-                    true,
-                    "theNotes");
-
-                Assert.Equal(1066, curatedPackage.PackageRegistrationKey);
-                Assert.False(curatedPackage.Included);
-                Assert.True(curatedPackage.AutomaticallyCurated);
-                Assert.Equal("theNotes", curatedPackage.Notes);
-            }
-        }
-
-
-        public class TheModifyCuratedPackageMethod
-        {
-            [Fact]
-            public async Task WillThrowWhenCuratedFeedDoesNotExist()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await svc.ModifyCuratedPackageAsync(
-                        42,
-                        0,
-                        false));
-            }
-
-            [Fact]
-            public async Task WillThrowWhenCuratedPackageDoesNotExist()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await svc.ModifyCuratedPackageAsync(
-                        0,
-                        404,
-                        false));
-            }
-
-            [Fact]
-            public async Task WillModifyAndSaveTheCuratedPackage()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await svc.ModifyCuratedPackageAsync(
-                    0,
-                    1066,
-                    true);
-
-                Assert.True(svc.StubCuratedPackage.Included);
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
-            }
-        }
-
-        public class TheDeleteCuratedPackageMethod
-        {
-            [Fact]
-            public async Task WillThrowWhenCuratedFeedDoesNotExist()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await svc.DeleteCuratedPackageAsync(
-                        42,
-                        0));
-            }
-
-            [Fact]
-            public async Task WillThrowWhenCuratedPackageDoesNotExist()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await Assert.ThrowsAsync<InvalidOperationException>(
-                    async () => await svc.DeleteCuratedPackageAsync(
-                        0,
-                        1066));
-            }
-
-            [Fact]
-            public async Task WillDeleteTheCuratedPackage()
-            {
-                var svc = new TestableCuratedFeedService();
-
-                await svc.DeleteCuratedPackageAsync(
-                    0,
-                    1066);
-
-                svc.StubCuratedPackageRepository.Verify(stub => stub.DeleteOnCommit(svc.StubCuratedPackage));
-                svc.StubCuratedPackageRepository.Verify(stub => stub.CommitChangesAsync());
+                _config
+                    .Setup(x => x.DisabledCuratedFeeds)
+                    .Returns(new[] { feedName });
             }
         }
     }

@@ -1,0 +1,149 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Generic;
+using Xunit;
+
+namespace NuGetGallery.Infrastructure.Mail.Messages
+{
+    public class OrganizationTransformInitiatedMessageFacts : MarkdownMessageBuilderFacts
+    {
+        public class TheConstructor
+        {
+            public static IEnumerable<object[]> ConstructorArguments
+            {
+                get
+                {
+                    yield return new object[] { null, Fakes.RequestingUser, Fakes.OrganizationAdmin, Fakes.CancellationUrl };
+                    yield return new object[] { Configuration, null, Fakes.OrganizationAdmin, Fakes.CancellationUrl };
+                    yield return new object[] { Configuration, Fakes.RequestingUser, null, Fakes.CancellationUrl };
+                    yield return new object[] { Configuration, Fakes.RequestingUser, Fakes.OrganizationAdmin, null };
+                }
+            }
+
+            [Theory]
+            [MemberData(nameof(ConstructorArguments))]
+            public void GivenANullArgument_ItShouldThrow(
+                IMessageServiceConfiguration configuration,
+                User accountToTransform,
+                User adminUser,
+                string cancellationUrl)
+            {
+                Assert.Throws<ArgumentNullException>(() => new OrganizationTransformInitiatedMessage(
+                    configuration,
+                    accountToTransform,
+                    adminUser,
+                    cancellationUrl));
+            }
+        }
+
+        public class TheGetRecipientsMethod
+        {
+            [Fact]
+            public void AddsAccountToTransformMailAddressToToListWhenAccountToTransformEmailAllowed()
+            {
+                var message = CreateMessage();
+                var recipients = message.GetRecipients();
+
+                Assert.Equal(1, recipients.To.Count);
+                Assert.Contains(Fakes.RequestingUser.ToMailAddress(), recipients.To);
+            }
+
+            [Fact]
+            public void ReturnsRecipientsNoneWhenAccountToTransformEmailNotAllowed()
+            {
+                var message = CreateMessage(accountToTransformEmailAllowed: false);
+                var recipients = message.GetRecipients();
+
+                Assert.Equal(EmailRecipients.None, recipients);
+            }
+
+            [Fact]
+            public void HasEmptyCCList()
+            {
+                var message = CreateMessage();
+                var recipients = message.GetRecipients();
+
+                Assert.Empty(recipients.CC);
+            }
+
+            [Fact]
+            public void HasEmptyBccList()
+            {
+                var message = CreateMessage();
+                var recipients = message.GetRecipients();
+
+                Assert.Empty(recipients.Bcc);
+            }
+
+            [Fact]
+            public void AddsAdminUserToReplyToList()
+            {
+                var message = CreateMessage();
+                var recipients = message.GetRecipients();
+
+                Assert.Equal(1, recipients.ReplyTo.Count);
+                Assert.Contains(Fakes.OrganizationAdmin.ToMailAddress(), recipients.ReplyTo);
+            }
+        }
+
+        public class TheGetBodyMethod
+        {
+            [Theory]
+            [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
+            [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            public void ReturnsExpectedBody(EmailFormat format, string expectedString)
+            {
+                var message = CreateMessage();
+
+                var body = message.GetBody(format);
+                Assert.Equal(expectedString, body);
+            }
+        }
+
+        [Fact]
+        public void SetsGalleryOwnerAsSender()
+        {
+            var message = CreateMessage();
+
+            Assert.Equal(Configuration.GalleryOwner, message.Sender);
+        }
+
+        private static OrganizationTransformInitiatedMessage CreateMessage(bool accountToTransformEmailAllowed = true)
+        {
+            var accountToTransform = Fakes.RequestingUser;
+            accountToTransform.EmailAllowed = accountToTransformEmailAllowed;
+
+            return new OrganizationTransformInitiatedMessage(
+                Configuration,
+                accountToTransform,
+                Fakes.OrganizationAdmin,
+                Fakes.CancellationUrl);
+        }
+
+        private const string _expectedMarkdownBody =
+            @"We have received a request to transform account 'requestingUser' into an organization with user 'organizationAdmin' as its admin.
+
+To cancel the transformation:
+
+[cancellationUrl](cancellationUrl)
+
+If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The NuGetGallery Team";
+
+        private const string _expectedPlainTextBody =
+            @"We have received a request to transform account 'requestingUser' into an organization with user 'organizationAdmin' as its admin.
+
+To cancel the transformation:
+
+cancellationUrl
+
+If you did not request this change, please contact support by responding to this email.
+
+Thanks,
+The NuGetGallery Team";
+    }
+}

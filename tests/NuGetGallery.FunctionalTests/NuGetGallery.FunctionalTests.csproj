@@ -92,6 +92,7 @@
     <Compile Include="Security\HttpToHttpsRedirectTests.cs" />
     <Compile Include="Statistics\PackageStatisticsTests.cs" />
     <Compile Include="ODataFeeds\V2FeedTests.cs" />
+    <Compile Include="TyposquattingCheck\TyposquattingCheckForUploadPackageTests.cs" />
     <Compile Include="WebPages\FluentLinkChecker.cs" />
     <Compile Include="WebPages\LinksTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

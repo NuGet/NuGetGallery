@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
@@ -22,9 +21,14 @@ using NuGetGallery.Areas.Admin.Models;
 using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
+using NuGetGallery.Diagnostics;
+using NuGetGallery.Extensions;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
+using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -59,14 +63,14 @@ namespace NuGetGallery
 
         private static readonly IReadOnlyCollection<string> AllowedPackageExtentions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            CoreConstants.NuGetPackageFileExtension
+            CoreConstants.NuGetPackageFileExtension,
+            CoreConstants.NuGetSymbolPackageFileExtension
         };
 
         // TODO: add support for URL-based package submission
         // TODO: add support for uploading logos and screenshots
         // TODO: improve validation summary emphasis
 
-        private readonly IAutomaticallyCuratePackageCommand _autoCuratedPackageCmd;
         private readonly IAppConfiguration _config;
         private readonly IMessageService _messageService;
         private readonly IPackageService _packageService;
@@ -88,6 +92,8 @@ namespace NuGetGallery
         private readonly IValidationService _validationService;
         private readonly IPackageOwnershipManagementService _packageOwnershipManagementService;
         private readonly IContentObjectService _contentObjectService;
+        private readonly ISymbolPackageUploadService _symbolPackageUploadService;
+        private readonly IDiagnosticsSource _trace;
 
         public PackagesController(
             IPackageService packageService,
@@ -95,7 +101,6 @@ namespace NuGetGallery
             IUserService userService,
             IMessageService messageService,
             ISearchService searchService,
-            IAutomaticallyCuratePackageCommand autoCuratedPackageCmd,
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext,
             IAppConfiguration config,
@@ -111,14 +116,15 @@ namespace NuGetGallery
             IReadMeService readMeService,
             IValidationService validationService,
             IPackageOwnershipManagementService packageOwnershipManagementService,
-            IContentObjectService contentObjectService)
+            IContentObjectService contentObjectService,
+            ISymbolPackageUploadService symbolPackageUploadService,
+            IDiagnosticsService diagnosticsService)
         {
             _packageService = packageService;
             _uploadFileService = uploadFileService;
             _userService = userService;
             _messageService = messageService;
             _searchService = searchService;
-            _autoCuratedPackageCmd = autoCuratedPackageCmd;
             _packageFileService = packageFileService;
             _entitiesContext = entitiesContext;
             _config = config;
@@ -135,6 +141,8 @@ namespace NuGetGallery
             _validationService = validationService;
             _packageOwnershipManagementService = packageOwnershipManagementService;
             _contentObjectService = contentObjectService;
+            _symbolPackageUploadService = symbolPackageUploadService;
+            _trace = diagnosticsService?.SafeGetSource(nameof(PackagesController)) ?? throw new ArgumentNullException(nameof(diagnosticsService));
         }
 
         [HttpGet]
@@ -162,14 +170,15 @@ namespace NuGetGallery
         {
             var currentUser = GetCurrentUser();
             var model = new SubmitPackageRequest();
+            model.IsSymbolsUploadEnabled = _contentObjectService.SymbolsConfiguration.IsSymbolsUploadEnabledForUser(currentUser);
             PackageMetadata packageMetadata;
 
             using (var uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile != null)
                 {
-                    var package = await SafeCreatePackage(currentUser, uploadedFile);
-                    if (package == null)
+                    var packageArchiveReader = await SafeCreatePackage(currentUser, uploadedFile);
+                    if (packageArchiveReader == null)
                     {
                         return View(model);
                     }
@@ -177,7 +186,7 @@ namespace NuGetGallery
                     try
                     {
                         packageMetadata = PackageMetadata.FromNuspecReader(
-                            package.GetNuspecReader(),
+                            packageArchiveReader.GetNuspecReader(),
                             strict: true);
                     }
                     catch (Exception ex)
@@ -188,41 +197,91 @@ namespace NuGetGallery
                         return View(model);
                     }
 
-                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package, packageMetadata);
-                    var validationErrorMessage = GetErrorMessageOrNull(validationResult);
-                    if (validationErrorMessage != null)
+                    if (packageMetadata.IsSymbolsPackage())
                     {
-                        TempData["Message"] = validationErrorMessage;
-                        return View(model);
-                    }
-
-                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
-                    bool isAllowed;
-                    IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
-                    if (existingPackageRegistration == null)
-                    {
-                        isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                        return await UploadSymbolsPackageInternal(model, uploadedFile, packageArchiveReader, packageMetadata, currentUser);
                     }
                     else
                     {
-                        isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+                        return await UploadPackageInternal(model, packageArchiveReader, packageMetadata, currentUser);
                     }
-
-                    if (!isAllowed)
-                    {
-                        // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
-                        // The package upload will be rejected by submitting the form.
-                        // Related: https://github.com/NuGet/NuGetGallery/issues/5043
-                        accountsAllowedOnBehalfOf = new[] { currentUser };
-                    }
-
-                    var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
-                    verifyRequest.Warnings.AddRange(validationResult.Warnings);
-
-                    model.InProgressUpload = verifyRequest;
                 }
             }
 
+            return View(model);
+        }
+
+        private async Task<ActionResult> UploadSymbolsPackageInternal(SubmitPackageRequest model,
+            Stream uploadStream,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser)
+        {
+            var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadStream, currentUser);
+            var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
+            if (uploadResult != null)
+            {
+                TempData["Message"] = symbolsPackageValidationResult.Message;
+                return View(model);
+            }
+
+            var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
+            var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
+
+            IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
+            bool isAllowed = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            if (!isAllowed)
+            {
+                accountsAllowedOnBehalfOf = new[] { currentUser };
+            }
+
+            var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            verifyRequest.IsSymbolsPackage = true;
+            model.InProgressUpload = verifyRequest;
+
+            return View(model);
+        }
+
+        private async Task<ActionResult> UploadPackageInternal(SubmitPackageRequest model,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser)
+        {
+            var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+            var validationErrorMessage = GetErrorMessageOrNull(validationResult);
+            if (validationErrorMessage != null)
+            {
+                TempData["Message"] = validationErrorMessage;
+                return View(model);
+            }
+
+            var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageMetadata.Id);
+            bool isAllowed;
+            IEnumerable<User> accountsAllowedOnBehalfOf = Enumerable.Empty<User>();
+            if (existingPackageRegistration == null)
+            {
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, new ActionOnNewPackageContext(packageMetadata.Id, _reservedNamespaceService), out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            }
+            else
+            {
+                isAllowed = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissionsOnBehalfOfAnyAccount(
+                        currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) == PermissionsCheckResult.Allowed;
+            }
+
+            if (!isAllowed)
+            {
+                // If the current user cannot upload the package on behalf of any of the existing owners, show the current user as the only possible owner in the upload form.
+                // The package upload will be rejected by submitting the form.
+                // Related: https://github.com/NuGet/NuGetGallery/issues/5043
+                accountsAllowedOnBehalfOf = new[] { currentUser };
+            }
+
+            var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            verifyRequest.Warnings.AddRange(validationResult.Warnings);
+            verifyRequest.IsSymbolsPackage = false;
+
+            model.InProgressUpload = verifyRequest;
             return View(model);
         }
 
@@ -273,7 +332,14 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, errorStrings.ToArray());
                     }
 
-                    return await UploadPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
+                    if (packageMetadata.IsSymbolsPackage())
+                    {
+                        return await UploadSymbolsPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
+                    }
+                    else
+                    {
+                        return await UploadPackageInternal(packageArchiveReader, uploadStream, nuspec, packageMetadata);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -286,6 +352,41 @@ namespace NuGetGallery
                     _cacheService.RemoveProgress(uploadKey);
                 }
             }
+        }
+
+        private async Task<JsonResult> UploadSymbolsPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
+        {
+            var currentUser = GetCurrentUser();
+
+            IEnumerable<User> accountsAllowedOnBehalfOf = new[] { currentUser };
+
+            var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadStream, currentUser);
+            var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
+            if (uploadResult != null)
+            {
+                return uploadResult;
+            }
+
+            var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
+            var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
+
+            // Evaluate the permissions for user on behalf of any account possible, since the user 
+            // could change the ownership before submitting the package.
+            if (ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(
+                currentUser, existingPackageRegistration, out accountsAllowedOnBehalfOf) != PermissionsCheckResult.Allowed)
+            {
+                return Json(HttpStatusCode.Conflict, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIdNotAvailable, existingPackageRegistration.Id) });
+            }
+
+            if (existingPackageRegistration.IsLocked)
+            {
+                return Json(HttpStatusCode.Forbidden, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, existingPackageRegistration.Id) });
+            }
+
+            // Save the uploaded file
+            await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
+
+            return await GetVerifyPackageView(currentUser, packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration, isSymbolsPackageUpload: true);
         }
 
         private async Task<JsonResult> UploadPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
@@ -394,7 +495,16 @@ namespace NuGetGallery
 
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
-            IReadOnlyList<string> warnings;
+            return await GetVerifyPackageView(currentUser, packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration, isSymbolsPackageUpload: false);
+        }
+
+        private async Task<JsonResult> GetVerifyPackageView(User currentUser,
+            PackageMetadata packageMetadata,
+            IEnumerable<User> accountsAllowedOnBehalfOf,
+            PackageRegistration existingPackageRegistration,
+            bool isSymbolsPackageUpload)
+        {
+            IReadOnlyList<string> warnings = new List<string>();
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
             {
                 if (uploadedFile == null)
@@ -402,8 +512,8 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
                 }
 
-                var package = await SafeCreatePackage(currentUser, uploadedFile);
-                if (package == null)
+                var packageArchiveReader = await SafeCreatePackage(currentUser, uploadedFile);
+                if (packageArchiveReader == null)
                 {
                     return Json(HttpStatusCode.BadRequest, new[] { Strings.UploadFileIsRequired });
                 }
@@ -411,7 +521,7 @@ namespace NuGetGallery
                 try
                 {
                     packageMetadata = PackageMetadata.FromNuspecReader(
-                        package.GetNuspecReader(),
+                        packageArchiveReader.GetNuspecReader(),
                         strict: true);
                 }
                 catch (Exception ex)
@@ -421,17 +531,21 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { ex.GetUserSafeMessage() });
                 }
 
-                var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(package, packageMetadata);
-                var validationJsonResult = GetJsonResultOrNull(validationResult);
-                if (validationJsonResult != null)
+                if (!isSymbolsPackageUpload)
                 {
-                    return validationJsonResult;
-                }
+                    var validationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+                    var validationJsonResult = GetJsonResultOrNull(validationResult);
+                    if (validationJsonResult != null)
+                    {
+                        return validationJsonResult;
+                    }
 
-                warnings = validationResult.Warnings;
+                    warnings = validationResult.Warnings;
+                }
             }
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
+            model.IsSymbolsPackage = isSymbolsPackageUpload;
             model.Warnings.AddRange(warnings);
 
             return Json(model);
@@ -730,26 +844,31 @@ namespace NuGetGallery
                 from = new MailAddress(reportForm.Email);
             }
 
-            var request = new ReportPackageRequest
-            {
-                AlreadyContactedOwners = reportForm.AlreadyContactedOwner,
-                FromAddress = from,
-                Message = reportForm.Message,
-                Package = package,
-                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
-                RequestingUser = user,
-                Url = Url,
-                CopySender = reportForm.CopySender,
-                Signature = reportForm.Signature
-            };
-
             var subject = $"Support Request for '{package.PackageRegistration.Id}' version {package.Version}";
             var requestorEmailAddress = user != null ? user.EmailAddress : reportForm.Email;
             var reason = EnumHelper.GetDescription(reportForm.Reason.Value);
 
             await _supportRequestService.AddNewSupportRequestAsync(subject, reportForm.Message, requestorEmailAddress, reason, user, package);
 
-            await _messageService.ReportAbuseAsync(request);
+            var request = new ReportPackageRequest
+            {
+                FromAddress = from,
+                Message = reportForm.Message,
+                Package = package,
+                Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
+                RequestingUser = user,
+                CopySender = reportForm.CopySender,
+                Signature = reportForm.Signature,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
+            };
+
+            var reportAbuseMessage = new ReportAbuseMessage(
+                _config,
+                request,
+                reportForm.AlreadyContactedOwner);
+            await _messageService.SendMessageAsync(reportAbuseMessage);
 
             TempData["Message"] = "Your abuse report has been sent to the gallery operators.";
 
@@ -886,11 +1005,15 @@ namespace NuGetGallery
                 Package = package,
                 Reason = EnumHelper.GetDescription(reportForm.Reason.Value),
                 RequestingUser = user,
-                Url = Url,
-                CopySender = reportForm.CopySender
+                CopySender = reportForm.CopySender,
+                PackageUrl = Url.Package(package.PackageRegistration.Id, version: null, relativeUrl: false),
+                PackageVersionUrl = Url.Package(package.PackageRegistration.Id, package.Version, relativeUrl: false),
+                RequestingUserUrl = user != null ? Url.User(user, relativeUrl: false) : null
             };
 
-            await _messageService.ReportMyPackageAsync(request);
+            var reportMyPackageMessage = new ReportMyPackageMessage(_config, request);
+
+            await _messageService.SendMessageAsync(reportMyPackageMessage);
 
             TempData["Message"] = Strings.SupportRequestSentTransientMessage;
         }
@@ -928,10 +1051,12 @@ namespace NuGetGallery
                     comment: null,
                     editedBy: user.Username);
 
-                await _messageService.SendPackageDeletedNoticeAsync(
+                var emailMessage = new PackageDeletedNoticeMessage(
+                    _config,
                     package,
                     Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
                     Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false));
+                await _messageService.SendMessageAsync(emailMessage);
 
                 TempData["Message"] = Strings.UserPackageDeleteCompleteTransientMessage;
             }
@@ -971,9 +1096,6 @@ namespace NuGetGallery
         [RequiresAccountConfirmation("contact package owners")]
         public virtual async Task<ActionResult> ContactOwners(string id, string version, ContactOwnersViewModel contactForm)
         {
-            // Html Encode the message
-            contactForm.Message = System.Web.HttpUtility.HtmlEncode(contactForm.Message);
-
             if (!ModelState.IsValid)
             {
                 return ContactOwners(id, version);
@@ -986,16 +1108,19 @@ namespace NuGetGallery
             }
 
             var user = GetCurrentUser();
-            var fromAddress = new MailAddress(user.EmailAddress, user.Username);
-            await _messageService.SendContactOwnersMessageAsync(
-                fromAddress,
+
+            var contactOwnersMessage = new ContactOwnersMessage(
+                _config,
+                new MailAddress(user.EmailAddress, user.Username),
                 package,
                 Url.Package(package, false),
-                contactForm.Message,
+                HttpUtility.HtmlEncode(contactForm.Message),
                 Url.AccountSettings(relativeUrl: false),
                 contactForm.CopySender);
 
-            string message = String.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
+            await _messageService.SendMessageAsync(contactOwnersMessage, contactForm.CopySender, discloseSenderAddress: false);
+
+            string message = string.Format(CultureInfo.CurrentCulture, "Your message has been sent to the owners of {0}.", id);
             TempData["Message"] = message;
             return RedirectToAction(
                 actionName: "DisplayPackage",
@@ -1052,6 +1177,40 @@ namespace NuGetGallery
                     text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
                     url = Url.DeletePackage(p)
                 }), "url", "text", Url.DeletePackage(model));
+
+            return View(model);
+        }
+
+        [HttpGet]
+        [UIAuthorize]
+        [RequiresAccountConfirmation("delete a symbols package")]
+        public virtual ActionResult DeleteSymbols(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+            if (package == null)
+            {
+                return HttpNotFound();
+            }
+
+            var currentUser = GetCurrentUser();
+            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(currentUser, package) != PermissionsCheckResult.Allowed)
+            {
+                return HttpForbidden();
+            }
+
+            var model = new DeletePackageViewModel(package, currentUser, DeleteReasons);
+
+            model.VersionSelectList = new SelectList(
+                model
+                .PackageVersions
+                .Where(p => !p.Deleted 
+                    && p.LatestSymbolsPackage != null
+                    && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
+                .Select(p => new
+                {
+                    text = p.NuGetVersion.ToFullString() + (p.LatestVersionSemVer2 ? " (Latest)" : string.Empty),
+                    url = Url.DeleteSymbolsPackage(p)
+                }), "url", "text", Url.DeleteSymbolsPackage(model));
 
             return View(model);
         }
@@ -1118,6 +1277,60 @@ namespace NuGetGallery
             return SafeRedirect(Url.Package(id, version));
         }
 
+
+        [UIAuthorize(Roles = "Admins")]
+        [RequiresAccountConfirmation("revalidate a symbols package")]
+        public virtual async Task<ActionResult> RevalidateSymbols(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersion(id, version);
+
+            if (package == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound,
+                    string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+
+            try
+            {
+                // Select the latest symbols package for re-validation only if it is
+                // 1. Available
+                // 2. Or Pending validations
+                // 2. Or Failed Validations
+                var latestSymbolPackage = package.LatestSymbolPackage();
+                if (latestSymbolPackage == null)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                        string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
+                }
+
+                switch (latestSymbolPackage.StatusKey)
+                {
+                    case PackageStatus.Available:
+                    case PackageStatus.Validating:
+                    case PackageStatus.FailedValidation:
+                        // Allowed to revalidate
+                        break;
+                    case PackageStatus.Deleted:
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                            string.Format(Strings.SymbolsPackage_RevalidateDeletedPackage, id, version));
+                   default:
+                        return new HttpStatusCodeResult(HttpStatusCode.BadRequest, $"Unkown Package status {latestSymbolPackage.StatusKey}!");
+                }
+
+                await _validationService.RevalidateAsync(latestSymbolPackage);
+
+                TempData["Message"] = "The symbols package is being revalidated.";
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+
+                TempData["Message"] = $"An error occurred while revalidating the symbols package. {ex.Message}";
+            }
+
+            return SafeRedirect(Url.Package(id, version));
+        }
+
         [UIAuthorize(Roles = "Admins")]
         [HttpPost]
         [RequiresAccountConfirmation("delete a package")]
@@ -1171,6 +1384,67 @@ namespace NuGetGallery
 
             var firstPackage = packagesToDelete.First();
             return Delete(firstPackage.PackageRegistration.Id, firstPackage.Version);
+        }
+
+        [UIAuthorize]
+        [HttpPost]
+        [RequiresAccountConfirmation("delete a symbols package")]
+        [ValidateAntiForgeryToken]
+        public virtual async Task<ActionResult> DeleteSymbolsPackage(string id, string version)
+        {
+            var package = _packageService.FindPackageByIdAndVersionStrict(id, version);
+            if (package == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.NotFound,
+                    string.Format(Strings.PackageWithIdAndVersionNotFound, id, version));
+            }
+
+            if (ActionsRequiringPermissions.DeleteSymbolPackage.CheckPermissionsOnBehalfOfAnyAccount(GetCurrentUser(), package)
+                != PermissionsCheckResult.Allowed)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden, Strings.SymbolsPackage_UploadNotAllowed);
+            }
+
+            if (package.PackageRegistration.IsLocked)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.Forbidden,
+                    string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, package.PackageRegistration.Id));
+            }
+
+            // Get all available symbol packages for a given package, ideally this should
+            // always return one symbol package. For thoroughness we can cleanup the data
+            // for any inconsistencies.
+            var availableSymbolPackages = package
+                .SymbolPackages
+                .Where(sp => sp.StatusKey == PackageStatus.Available);
+
+            if (availableSymbolPackages.Count() > 1)
+            {
+                _trace.Warning($"Multiple({availableSymbolPackages.Count()}) available symbol packages found for {package.Id}, {package.Version}");
+            }
+
+            if (availableSymbolPackages.Any())
+            {
+                foreach (var symbolPackage in availableSymbolPackages)
+                {
+                    await _symbolPackageUploadService.DeleteSymbolsPackageAsync(symbolPackage);
+                }
+
+                TempData["Message"] = Strings.SymbolsPackage_Deleted;
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(package, AuditedPackageAction.SymbolsDelete, PackageDeletedVia.Web));
+
+                _telemetryService.TrackSymbolPackageDeleteEvent(package.Id, package.Version);
+
+                // Redirect to the package details page
+                return Redirect(Url.Package(package, relativeUrl: true));
+            }
+            else
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
+                    string.Format(Strings.SymbolsPackage_PackageNotAvailable, id, version));
+            }
         }
 
         [UIAuthorize]
@@ -1363,7 +1637,8 @@ namespace NuGetGallery
 
                 await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, user);
 
-                await _messageService.SendPackageOwnerRequestRejectionNoticeAsync(requestingUser, user, package);
+                var emailMessage = new PackageOwnershipRequestDeclinedMessage(_config, requestingUser, user, package);
+                await _messageService.SendMessageAsync(emailMessage);
 
                 return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, user.Username, ConfirmOwnershipResult.Rejected));
             }
@@ -1405,7 +1680,8 @@ namespace NuGetGallery
 
             await _packageOwnershipManagementService.DeletePackageOwnershipRequestAsync(package, pendingUser);
 
-            await _messageService.SendPackageOwnerRequestCancellationNoticeAsync(requestingUser, pendingUser, package);
+            var emailMessage = new PackageOwnershipRequestCanceledMessage(_config, requestingUser, pendingUser, package);
+            await _messageService.SendMessageAsync(emailMessage);
 
             return View("ConfirmOwner", new PackageOwnerConfirmationModel(id, pendingUsername, ConfirmOwnershipResult.Cancelled));
         }
@@ -1422,7 +1698,11 @@ namespace NuGetGallery
 
             // Notify existing owners
             var notNewOwners = package.Owners.Where(notNewOwner).ToList();
-            var tasks = notNewOwners.Select(owner => _messageService.SendPackageOwnerAddedNoticeAsync(owner, newOwner, package, packageUrl));
+            var tasks = notNewOwners.Select(owner =>
+            {
+                var emailMessage = new PackageOwnerAddedMessage(_config, owner, newOwner, package, packageUrl);
+                return _messageService.SendMessageAsync(emailMessage);
+            });
             return Task.WhenAll(tasks);
         }
 
@@ -1455,7 +1735,7 @@ namespace NuGetGallery
                 action = "listed";
                 await _packageService.MarkPackageListedAsync(package);
             }
-            TempData["Message"] = String.Format(
+            TempData["Message"] = string.Format(
                 CultureInfo.CurrentCulture,
                 "The package has been {0}. It may take several hours for this change to propagate through our system.",
                 action);
@@ -1472,9 +1752,6 @@ namespace NuGetGallery
         [ValidateInput(false)] // Security note: Disabling ASP.Net input validation which does things like disallow angle brackets in submissions. See http://go.microsoft.com/fwlink/?LinkID=212874
         public virtual async Task<JsonResult> VerifyPackage(VerifyPackageRequest formData)
         {
-            string packageId = null;
-            NuGetVersion packageVersion = null;
-
             try
             {
                 if (!ModelState.IsValid)
@@ -1500,7 +1777,6 @@ namespace NuGetGallery
                     return Json(HttpStatusCode.BadRequest, new[] { message });
                 }
 
-                Package package;
                 using (Stream uploadFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
                 {
                     if (uploadFile == null)
@@ -1508,246 +1784,377 @@ namespace NuGetGallery
                         return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UploadNotFound });
                     }
 
-                    var nugetPackage = await SafeCreatePackage(currentUser, uploadFile);
-                    if (nugetPackage == null)
+                    var packageArchiveReader = await SafeCreatePackage(currentUser, uploadFile);
+                    if (packageArchiveReader == null)
                     {
                         // Send the user back
                         return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
 
-                    Debug.Assert(nugetPackage != null);
+                    Debug.Assert(packageArchiveReader != null);
 
                     var packageMetadata = PackageMetadata.FromNuspecReader(
-                        nugetPackage.GetNuspecReader(),
+                        packageArchiveReader.GetNuspecReader(),
                         strict: true);
 
                     // Rule out problem scenario with multiple tabs - verification request (possibly with edits) was submitted by user
                     // viewing a different package to what was actually most recently uploaded
-                    if (!(String.IsNullOrEmpty(formData.Id) || String.IsNullOrEmpty(formData.OriginalVersion)))
+                    if (!(string.IsNullOrEmpty(formData.Id) || string.IsNullOrEmpty(formData.OriginalVersion)))
                     {
-                        if (!(String.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
-                            && String.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
-                            && String.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
+                        if (!(string.Equals(packageMetadata.Id, formData.Id, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(packageMetadata.Version.ToFullStringSafe(), formData.Version, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(packageMetadata.Version.OriginalVersion, formData.OriginalVersion, StringComparison.OrdinalIgnoreCase)))
                         {
                             return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_PackageFileModified });
                         }
                     }
 
-                    var packageStreamMetadata = new PackageStreamMetadata
+                    // Dispose the uploadFile stream in the below callers, before deleting the uploaded symbols package file;
+                    // otherwise the delete operation will fail.
+                    // Note: Do not use the disposed stream after the calls below here(stating the obvious).
+                    if (packageMetadata.IsSymbolsPackage())
                     {
-                        HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
-                        Hash = CryptographyService.GenerateHash(
-                            uploadFile.AsSeekableStream(),
-                            CoreConstants.Sha512HashAlgorithmId),
-                        Size = uploadFile.Length,
-                    };
-
-                    packageId = packageMetadata.Id;
-                    packageVersion = packageMetadata.Version;
-
-                    var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
-                    if (existingPackageRegistration == null)
-                    {
-                        var checkPermissionsOfUploadNewId = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(currentUser, owner, new ActionOnNewPackageContext(packageId, _reservedNamespaceService));
-                        if (checkPermissionsOfUploadNewId != PermissionsCheckResult.Allowed)
-                        {
-                            if (checkPermissionsOfUploadNewId == PermissionsCheckResult.AccountFailure)
-                            {
-                                // The user is not allowed to upload a new ID on behalf of the owner specified in the form
-                                var message = string.Format(CultureInfo.CurrentCulture,
-                                    Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
-                                    currentUser.Username, owner.Username);
-                                return Json(HttpStatusCode.BadRequest, new[] { message });
-                            }
-                            else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
-                            {
-                                // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
-                                var version = packageVersion.ToNormalizedString();
-                                _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
-
-                                var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
-                                return Json(HttpStatusCode.Conflict, new string[] { message });
-                            }
-
-                            // An unknown error occurred.
-                            return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
-                        }
+                        return await VerifySymbolsPackageInternal(formData,
+                            uploadFile,
+                            packageArchiveReader,
+                            packageMetadata,
+                            currentUser,
+                            owner);
                     }
                     else
                     {
-                        var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
-                        if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+                        return await VerifyPackageInternal(formData,
+                            uploadFile,
+                            packageArchiveReader,
+                            packageMetadata,
+                            currentUser,
+                            owner);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _telemetryService.TrackPackagePushFailureEvent(id: null, version: null);
+                throw ex;
+            }
+        }
+
+        public virtual async Task<JsonResult> VerifySymbolsPackageInternal(
+            VerifyPackageRequest formData,
+            Stream uploadFile,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser,
+            User owner)
+        {
+            string packageId = null;
+            string packageVersion = null;
+            try
+            {
+                // Perform initial validations again, the state could have been changed between the time 
+                // when the symbols package file was uploaded and before submitting for publish.
+                var symbolsPackageValidationResult = await _symbolPackageUploadService.ValidateUploadedSymbolsPackage(uploadFile, currentUser);
+                var uploadResult = GetJsonResultOrNull(symbolsPackageValidationResult);
+                if (uploadResult != null)
+                {
+                    return uploadResult;
+                }
+
+                var packageForUploadingSymbols = symbolsPackageValidationResult.Package;
+                var existingPackageRegistration = packageForUploadingSymbols.PackageRegistration;
+                packageId = existingPackageRegistration.Id;
+                packageVersion = packageForUploadingSymbols.NormalizedVersion;
+
+                if (existingPackageRegistration.IsLocked)
+                {
+                    return Json(HttpStatusCode.Forbidden, new[] { string.Format(CultureInfo.CurrentCulture, Strings.PackageIsLocked, existingPackageRegistration.Id) });
+                }
+
+                // Evaluate the permissions for the owner, the permissions for uploading a symbols should be same as that of
+                // uploading a new version of a given package.
+                var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadSymbolPackage.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
+                {
+                    if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
+                    {
+                        // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                        var message = string.Format(CultureInfo.CurrentCulture,
+                            Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                            currentUser.Username, owner.Username);
+                        return Json(HttpStatusCode.BadRequest, new[] { message });
+                    }
+
+                    if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
+                    {
+                        // The owner specified in the form is not allowed to upload a new version of the package
+                        var message = string.Format(CultureInfo.CurrentCulture,
+                            Strings.VerifyPackage_OwnerInvalid,
+                            owner.Username, existingPackageRegistration.Id);
+                        return Json(HttpStatusCode.BadRequest, new[] { message });
+                    }
+
+                    // An unknown error occurred.
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                }
+
+                var commitResult = await _symbolPackageUploadService.CreateAndUploadSymbolsPackage(
+                    packageForUploadingSymbols,
+                    uploadFile.AsSeekableStream());
+
+                switch (commitResult)
+                {
+                    case PackageCommitResult.Success:
+                        break;
+                    case PackageCommitResult.Conflict:
+                        TempData["Message"] = Strings.SymbolsPackage_ConflictValidating;
+                        return Json(HttpStatusCode.Conflict, new[] { Strings.SymbolsPackage_ConflictValidating });
+                    default:
+                        throw new NotImplementedException($"The symbols package commit result {commitResult} is not supported.");
+                }
+
+                await _auditingService.SaveAuditRecordAsync(
+                    new PackageAuditRecord(packageForUploadingSymbols, AuditedPackageAction.SymbolsCreate, PackageCreatedVia.Web));
+
+                _telemetryService.TrackSymbolPackagePushEvent(packageId, packageVersion);
+
+                TempData["Message"] = string.Format(
+                    CultureInfo.CurrentCulture, Strings.SymbolsPackage_UploadSuccessful, packageId, packageVersion);
+
+                // Delete the uploaded file
+                await DeleteUploadedFileForUser(currentUser, uploadFile);
+
+                // Redirect to the package details page
+                return Json(new
+                {
+                    location = Url.Package(packageId, packageVersion)
+                });
+            }
+            catch (Exception ex)
+            {
+                ex.Log();
+                _telemetryService.TrackSymbolPackagePushFailureEvent(packageId, packageVersion);
+                return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+            }
+        }
+
+        public virtual async Task<JsonResult> VerifyPackageInternal(
+            VerifyPackageRequest formData,
+            Stream uploadFile,
+            PackageArchiveReader packageArchiveReader,
+            PackageMetadata packageMetadata,
+            User currentUser,
+            User owner)
+        {
+            string packageId = null;
+            NuGetVersion packageVersion = null;
+
+            try
+            {
+                Package package;
+                var packageStreamMetadata = new PackageStreamMetadata
+                {
+                    HashAlgorithm = CoreConstants.Sha512HashAlgorithmId,
+                    Hash = CryptographyService.GenerateHash(
+                        uploadFile.AsSeekableStream(),
+                        CoreConstants.Sha512HashAlgorithmId),
+                    Size = uploadFile.Length,
+                };
+
+                packageId = packageMetadata.Id;
+                packageVersion = packageMetadata.Version;
+
+                var existingPackageRegistration = _packageService.FindPackageRegistrationById(packageId);
+                if (existingPackageRegistration == null)
+                {
+                    var checkPermissionsOfUploadNewId = ActionsRequiringPermissions.UploadNewPackageId.CheckPermissions(currentUser, owner, new ActionOnNewPackageContext(packageId, _reservedNamespaceService));
+                    if (checkPermissionsOfUploadNewId != PermissionsCheckResult.Allowed)
+                    {
+                        if (checkPermissionsOfUploadNewId == PermissionsCheckResult.AccountFailure)
                         {
-                            if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
-                            {
-                                // The user is not allowed to upload a new version on behalf of the owner specified in the form
-                                var message = string.Format(CultureInfo.CurrentCulture,
-                                    Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
-                                    currentUser.Username, owner.Username);
-                                return Json(HttpStatusCode.BadRequest, new[] { message });
-                            }
-
-                            if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
-                            {
-                                // The owner specified in the form is not allowed to upload a new version of the package
-                                var message = string.Format(CultureInfo.CurrentCulture,
-                                    Strings.VerifyPackage_OwnerInvalid,
-                                    owner.Username, existingPackageRegistration.Id);
-                                return Json(HttpStatusCode.BadRequest, new[] { message });
-                            }
-
-                            // An unknown error occurred.
-                            return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
+                            // The user is not allowed to upload a new ID on behalf of the owner specified in the form
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_NewIdOnBehalfOfUserNotAllowed,
+                                currentUser.Username, owner.Username);
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
-                    }
-
-                    // Perform all the validations we can before adding the package to the entity context.
-                    var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(nugetPackage, packageMetadata);
-                    var beforeValidationJsonResult = GetJsonResultOrNull(beforeValidationResult);
-                    if (beforeValidationJsonResult != null)
-                    {
-                        return beforeValidationJsonResult;
-                    }
-
-                    try
-                    {
-                        package = await _packageUploadService.GeneratePackageAsync(
-                            packageMetadata.Id,
-                            nugetPackage,
-                            packageStreamMetadata,
-                            owner,
-                            currentUser);
-
-                        Debug.Assert(package.PackageRegistration != null);
-                    }
-                    catch (InvalidPackageException ex)
-                    {
-                        _telemetryService.TraceException(ex);
-
-                        return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
-                    }
-
-                    var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
-                                    SecurityPolicyAction.PackagePush,
-                                    package,
-                                    currentUser,
-                                    owner,
-                                    HttpContext);
-
-                    if (!packagePolicyResult.Success)
-                    {
-                        return Json(HttpStatusCode.BadRequest, new[] { packagePolicyResult.ErrorMessage });
-                    }
-
-                    // Perform validations that require the package already being in the entity context.
-                    var afterValidationResult = await _packageUploadService.ValidateAfterGeneratePackageAsync(
-                        package,
-                        nugetPackage,
-                        owner,
-                        currentUser,
-                        isNewPackageRegistration: existingPackageRegistration == null);
-
-                    var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
-                    if (afterValidationJsonResult != null)
-                    {
-                        return afterValidationJsonResult;
-                    }
-
-                    if (formData.Edit != null)
-                    {
-                        try
+                        else if (checkPermissionsOfUploadNewId == PermissionsCheckResult.ReservedNamespaceFailure)
                         {
-                            if (await _readMeService.SaveReadMeMdIfChanged(
-                                package,
-                                formData.Edit,
-                                Request.ContentEncoding,
-                                commitChanges: false))
-                            {
-                                _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
-                            }
+                            // The owner specified in the form is not allowed to push to a reserved namespace matching the new ID
+                            var version = packageVersion.ToNormalizedString();
+                            _telemetryService.TrackPackagePushNamespaceConflictEvent(packageId, version, currentUser, User.Identity);
+
+                            var message = string.Format(CultureInfo.CurrentCulture, Strings.UploadPackage_IdNamespaceConflict);
+                            return Json(HttpStatusCode.Conflict, new string[] { message });
                         }
-                        catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
-                        {
-                            // Thrown when ReadmeUrlHost is invalid.
-                            return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
-                        }
-                        catch (InvalidOperationException ex)
-                        {
-                            // Thrown when readme max length exceeded, or unexpected file extension.
-                            return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
-                        }
+
+                        // An unknown error occurred.
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
-
-                    await _packageService.PublishPackageAsync(package, commitChanges: false);
-
-                    if (!formData.Listed)
+                }
+                else
+                {
+                    var checkPermissionsOfUploadNewVersion = ActionsRequiringPermissions.UploadNewPackageVersion.CheckPermissions(currentUser, owner, existingPackageRegistration);
+                    if (checkPermissionsOfUploadNewVersion != PermissionsCheckResult.Allowed)
                     {
-                        await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
-                    }
-
-                    await _autoCuratedPackageCmd.ExecuteAsync(package, nugetPackage, commitChanges: false);
-
-                    // Commit the package to storage and to the database.
-                    uploadFile.Position = 0;
-                    try
-                    {
-                        var commitResult = await _packageUploadService.CommitPackageAsync(
-                            package,
-                            uploadFile.AsSeekableStream());
-
-                        switch (commitResult)
+                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.AccountFailure)
                         {
-                            case PackageCommitResult.Success:
-                                break;
-                            case PackageCommitResult.Conflict:
-                                TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
-                                return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
-                            default:
-                                throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                            // The user is not allowed to upload a new version on behalf of the owner specified in the form
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.UploadPackage_NewVersionOnBehalfOfUserNotAllowed,
+                                currentUser.Username, owner.Username);
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
 
-                        // tell Lucene to update index for the new package
-                        _indexingService.UpdateIndex();
-
-                        // write an audit record
-                        await _auditingService.SaveAuditRecordAsync(
-                            new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
-
-                        if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                        if (checkPermissionsOfUploadNewVersion == PermissionsCheckResult.PackageRegistrationFailure)
                         {
-                            // notify user unless async validation in blocking mode is used
-                            await _messageService.SendPackageAddedNoticeAsync(package,
-                                Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
-                                Url.AccountSettings(relativeUrl: false));
+                            // The owner specified in the form is not allowed to upload a new version of the package
+                            var message = string.Format(CultureInfo.CurrentCulture,
+                                Strings.VerifyPackage_OwnerInvalid,
+                                owner.Username, existingPackageRegistration.Id);
+                            return Json(HttpStatusCode.BadRequest, new[] { message });
                         }
 
-                        _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
-
-                        TempData["Message"] = String.Format(
-                            CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
-                    }
-                    catch (Exception e)
-                    {
-                        e.Log();
+                        // An unknown error occurred.
                         return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                     }
                 }
 
+                // Perform all the validations we can before adding the package to the entity context.
+                var beforeValidationResult = await _packageUploadService.ValidateBeforeGeneratePackageAsync(packageArchiveReader, packageMetadata);
+                var beforeValidationJsonResult = GetJsonResultOrNull(beforeValidationResult);
+                if (beforeValidationJsonResult != null)
+                {
+                    return beforeValidationJsonResult;
+                }
+
                 try
                 {
-                    // delete the uploaded binary in the Uploads container
-                    await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+                    package = await _packageUploadService.GeneratePackageAsync(
+                        packageMetadata.Id,
+                        packageArchiveReader,
+                        packageStreamMetadata,
+                        owner,
+                        currentUser);
+
+                    Debug.Assert(package.PackageRegistration != null);
+                }
+                catch (InvalidPackageException ex)
+                {
+                    _telemetryService.TraceException(ex);
+
+                    return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
+                }
+
+                var packagePolicyResult = await _securityPolicyService.EvaluatePackagePoliciesAsync(
+                    SecurityPolicyAction.PackagePush,
+                    package,
+                    currentUser,
+                    owner,
+                    HttpContext);
+
+                if (!packagePolicyResult.Success)
+                {
+                    return Json(HttpStatusCode.BadRequest, new[] { packagePolicyResult.ErrorMessage });
+                }
+
+                // Perform validations that require the package already being in the entity context.
+                var afterValidationResult = await _packageUploadService.ValidateAfterGeneratePackageAsync(
+                    package,
+                    packageArchiveReader,
+                    owner,
+                    currentUser,
+                    isNewPackageRegistration: existingPackageRegistration == null);
+
+                var afterValidationJsonResult = GetJsonResultOrNull(afterValidationResult);
+                if (afterValidationJsonResult != null)
+                {
+                    return afterValidationJsonResult;
+                }
+
+                if (formData.Edit != null)
+                {
+                    try
+                    {
+                        if (await _readMeService.SaveReadMeMdIfChanged(
+                            package,
+                            formData.Edit,
+                            Request.ContentEncoding,
+                            commitChanges: false))
+                        {
+                            _telemetryService.TrackPackageReadMeChangeEvent(package, formData.Edit.ReadMe.SourceType, formData.Edit.ReadMeState);
+                        }
+                    }
+                    catch (ArgumentException ex) when (ex.Message.Contains(Strings.ReadMeUrlHostInvalid))
+                    {
+                        // Thrown when ReadmeUrlHost is invalid.
+                        return Json(HttpStatusCode.BadRequest, new[] { Strings.ReadMeUrlHostInvalid });
+                    }
+                    catch (InvalidOperationException ex)
+                    {
+                        // Thrown when readme max length exceeded, or unexpected file extension.
+                        return Json(HttpStatusCode.BadRequest, new[] { ex.Message });
+                    }
+                }
+
+                await _packageService.PublishPackageAsync(package, commitChanges: false);
+
+                if (!formData.Listed)
+                {
+                    await _packageService.MarkPackageUnlistedAsync(package, commitChanges: false);
+                }
+
+                // Commit the package to storage and to the database.
+                uploadFile.Position = 0;
+                try
+                {
+                    var commitResult = await _packageUploadService.CommitPackageAsync(
+                        package,
+                        uploadFile.AsSeekableStream());
+
+                    switch (commitResult)
+                    {
+                        case PackageCommitResult.Success:
+                            break;
+                        case PackageCommitResult.Conflict:
+                            TempData["Message"] = Strings.UploadPackage_IdVersionConflict;
+                            return Json(HttpStatusCode.Conflict, new[] { Strings.UploadPackage_IdVersionConflict });
+                        default:
+                            throw new NotImplementedException($"The package commit result {commitResult} is not supported.");
+                    }
+
+                    // tell Lucene to update index for the new package
+                    _indexingService.UpdateIndex();
+
+                    // write an audit record
+                    await _auditingService.SaveAuditRecordAsync(
+                        new PackageAuditRecord(package, AuditedPackageAction.Create, PackageCreatedVia.Web));
+
+                    if (!(_config.AsynchronousPackageValidationEnabled && _config.BlockingAsynchronousPackageValidationEnabled))
+                    {
+                        // notify user unless async validation in blocking mode is used
+                        var message = new PackageAddedMessage(
+                            _config,
+                            package,
+                            Url.Package(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.ReportPackage(package.PackageRegistration.Id, package.NormalizedVersion, relativeUrl: false),
+                            Url.AccountSettings(relativeUrl: false),
+                            warningMessages: null);
+
+                        await _messageService.SendMessageAsync(message);
+                    }
+
+                    _telemetryService.TrackPackagePushEvent(package, currentUser, User.Identity);
+
+                    TempData["Message"] = string.Format(
+                        CultureInfo.CurrentCulture, Strings.SuccessfullyUploadedPackage, package.PackageRegistration.Id, package.Version);
                 }
                 catch (Exception e)
                 {
-                    // Log the exception here and swallow it for now.
-                    // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
-                    // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
-                    //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
-                    // An issue to clear in progress if it already exists has been logged at https://github.com/NuGet/NuGetGallery/issues/6192
                     e.Log();
+                    return Json(HttpStatusCode.BadRequest, new[] { Strings.VerifyPackage_UnexpectedError });
                 }
+
+                await DeleteUploadedFileForUser(currentUser, uploadFile);
 
                 return Json(new
                 {
@@ -1761,6 +2168,27 @@ namespace NuGetGallery
             }
         }
 
+        private async Task DeleteUploadedFileForUser(User currentUser, Stream uploadedFileStream)
+        {
+            try
+            {
+                // We should dispose the stream before we can delete the file from the disk.
+                uploadedFileStream.Dispose();
+
+                // delete the uploaded binary in the Uploads container
+                await _uploadFileService.DeleteUploadFileAsync(currentUser.Key);
+            }
+            catch (Exception e)
+            {
+                // Log the exception here and swallow it for now.
+                // We want to know the delete has failed, but the user shouldn't get a failed request here since everything has actually gone through
+                // Note that this will still lead to the strange behavior where the next time a user comes to the upload page, an upload will be "in progress"
+                //  but verify will fail as the package has actually already been added, at which point, cancel will attempt the delete of this blob again.
+                // An issue to clear in progress if it already exists has been logged at https://github.com/NuGet/NuGetGallery/issues/6192
+                e.Log();
+            }
+        }
+
         private JsonResult GetJsonResultOrNull(PackageValidationResult validationResult)
         {
             var errorMessage = GetErrorMessageOrNull(validationResult);
@@ -1770,6 +2198,30 @@ namespace NuGetGallery
             }
 
             return Json(HttpStatusCode.BadRequest, new[] { errorMessage });
+        }
+
+        private JsonResult GetJsonResultOrNull(SymbolPackageValidationResult validationResult)
+        {
+            HttpStatusCode httpStatusCode;
+            switch (validationResult.Type)
+            {
+                case SymbolPackageValidationResultType.Accepted:
+                    return null;
+                case SymbolPackageValidationResultType.Invalid:
+                case SymbolPackageValidationResultType.MissingPackage:
+                    httpStatusCode = HttpStatusCode.BadRequest;
+                    break;
+                case SymbolPackageValidationResultType.SymbolsPackagePendingValidation:
+                    httpStatusCode = HttpStatusCode.Conflict;
+                    break;
+                case SymbolPackageValidationResultType.UserNotAllowedToUpload:
+                    httpStatusCode = HttpStatusCode.Unauthorized;
+                    break;
+                default:
+                    throw new NotImplementedException($"The symbol package validation result type {validationResult.Type} is not supported.");
+            }
+
+            return Json(httpStatusCode, new[] { validationResult.Message });
         }
 
         private static string GetErrorMessageOrNull(PackageValidationResult validationResult)
@@ -1883,7 +2335,7 @@ namespace NuGetGallery
 
             await _packageService.SetLicenseReportVisibilityAsync(package, visible);
 
-            TempData["Message"] = String.Format(
+            TempData["Message"] = string.Format(
                 CultureInfo.CurrentCulture,
                 "The license report for this package has been {0}. It may take several hours for this change to propagate through our system.",
                 visible ? "enabled" : "disabled");
@@ -1979,14 +2431,14 @@ namespace NuGetGallery
         // Determine whether an 'Edit' string submitted differs from one read from the package.
         private static bool IsDifferent(string posted, string package)
         {
-            if (String.IsNullOrEmpty(posted) || String.IsNullOrEmpty(package))
+            if (string.IsNullOrEmpty(posted) || string.IsNullOrEmpty(package))
             {
-                return String.IsNullOrEmpty(posted) != String.IsNullOrEmpty(package);
+                return string.IsNullOrEmpty(posted) != string.IsNullOrEmpty(package);
             }
 
             // Compare non-empty strings
             // Ignore those pesky '\r' characters which screw up comparisons.
-            return !String.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
+            return !string.Equals(posted.Replace("\r", ""), package.Replace("\r", ""), StringComparison.Ordinal);
         }
 
         private static HttpStatusCodeResult HttpForbidden()

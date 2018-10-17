@@ -1,12 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Web;
-using Autofac;
-using Autofac.Integration.Mvc;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery.AsyncFileUpload
@@ -70,7 +68,6 @@ namespace NuGetGallery.AsyncFileUpload
             ReadStream(uploadStream, request, uploadKey, progress, requestParser);
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "request", Justification="'request' parameter is used in debug build.")]
         private void ReadStream(Stream stream, HttpRequest request, string uploadKey, AsyncFileUploadProgress progress, AsyncFileUploadRequestParser parser)
         {
             const int bufferSize = 1024 * 4; // in bytes

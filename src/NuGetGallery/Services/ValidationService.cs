@@ -124,5 +124,12 @@ namespace NuGetGallery
                 symbolPackageStatus,
                 commitChanges: false);
         }
+
+        public async Task RevalidateAsync(SymbolPackage symbolPackage)
+        {
+            await _symbolPackageValidationInitiator.StartValidationAsync(symbolPackage);
+
+            _telemetryService.TrackSymbolPackageRevalidate(symbolPackage.Id, symbolPackage.Version);
+        }
     }
 }

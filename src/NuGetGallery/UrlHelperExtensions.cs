@@ -161,55 +161,6 @@ namespace NuGetGallery
                 routeValues);
         }
 
-        public static string CuratedPackage(
-            this UrlHelper url,
-            string curatedFeedName,
-            string id,
-            bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.CuratedPackage,
-                relativeUrl,
-                new RouteValueDictionary
-                {
-                    { "curatedFeedName", curatedFeedName },
-                    { "curatedPackageId", id }
-                });
-        }
-
-        public static string CuratedPackageList(
-            this UrlHelper url,
-            int page,
-            string q,
-            string curatedFeedName,
-            bool relativeUrl = true)
-        {
-            return GetActionLink(
-                url,
-                "ListPackages",
-                "CuratedFeeds",
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "q", q },
-                    { "page", page },
-                    { "curatedFeedName", curatedFeedName }
-                });
-        }
-
-        public static string CuratedFeed(this UrlHelper url, string curatedFeedName, bool relativeUrl = true)
-        {
-            return GetRouteLink(
-                url,
-                RouteName.CuratedFeed,
-                relativeUrl,
-                routeValues: new RouteValueDictionary
-                {
-                    { "name", curatedFeedName }
-                });
-        }
-
         public static string PackageList(this UrlHelper url, bool relativeUrl = true)
         {
             return GetRouteLink(url, RouteName.ListPackages, relativeUrl);
@@ -759,12 +710,38 @@ namespace NuGetGallery
                 });
         }
 
+        public static string RevalidateSymbolsPackage(
+            this UrlHelper url,
+            string id,
+            string version,
+            bool relativeUrl = true)
+        {
+            return GetActionLink(
+                url,
+                nameof(PackagesController.RevalidateSymbols),
+                "Packages",
+                relativeUrl,
+                routeValues: new RouteValueDictionary
+                {
+                    { "id", id },
+                    { "version", version }
+                });
+        }
+
         public static string RevalidatePackage(
             this UrlHelper url,
             IPackageVersionModel package,
             bool relativeUrl = true)
         {
             return url.RevalidatePackage(package.Id, package.Version, relativeUrl);
+        }
+
+        public static string RevalidateSymbolsPackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.RevalidateSymbolsPackage(package.Id, package.Version, relativeUrl);
         }
 
         public static string ViewValidations(
@@ -801,7 +778,8 @@ namespace NuGetGallery
         /// that only need a single link should call Url.DeletePackage instead.
         public static RouteUrlTemplate<IPackageVersionModel> DeletePackageTemplate(
             this UrlHelper url,
-            bool relativeUrl = true)
+            bool relativeUrl = true,
+            string action = "Delete")
         {
             var routesGenerator = new Dictionary<string, Func<IPackageVersionModel, object>>
             {
@@ -811,7 +789,7 @@ namespace NuGetGallery
 
             Func<RouteValueDictionary, string> linkGenerator = rv => GetActionLink(
                 url,
-                "Delete",
+                action,
                 "Packages",
                 relativeUrl,
                 routeValues: rv);
@@ -825,6 +803,14 @@ namespace NuGetGallery
             bool relativeUrl = true)
         {
             return url.DeletePackageTemplate(relativeUrl).Resolve(package);
+        }
+
+        public static string DeleteSymbolsPackage(
+            this UrlHelper url,
+            IPackageVersionModel package,
+            bool relativeUrl = true)
+        {
+            return url.DeletePackageTemplate(relativeUrl, action: "DeleteSymbols").Resolve(package);
         }
 
         public static string AccountSettings(

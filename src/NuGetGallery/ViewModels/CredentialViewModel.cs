@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGetGallery.Authentication;
 using NuGetGallery.Authentication.Providers;
 
 namespace NuGetGallery
@@ -28,6 +29,20 @@ namespace NuGetGallery
             get
             {
                 return CredentialTypes.IsApiKey(Type) && !Scopes.AnySafe();
+            }
+        }
+
+        public CredentialTypeInfo GetCredentialTypeInfo()
+        {
+            if (CredentialTypes.IsApiKey(Type))
+            {
+                return new CredentialTypeInfo(Type, true, Description);
+            }
+            else
+            {
+                return AuthUI == null
+                    ? new CredentialTypeInfo(Type, false, TypeCaption)
+                    : new CredentialTypeInfo(Type, false, AuthUI.AccountNoun);
             }
         }
     }

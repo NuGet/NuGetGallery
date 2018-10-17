@@ -25,6 +25,8 @@ using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
+using NuGetGallery.Infrastructure.Mail;
+using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
 using NuGetGallery.TestUtils;
@@ -43,7 +45,6 @@ namespace NuGetGallery
         public Mock<IContentService> MockContentService { get; private set; }
         public Mock<IStatisticsService> MockStatisticsService { get; private set; }
         public Mock<IIndexingService> MockIndexingService { get; private set; }
-        public Mock<IAutomaticallyCuratePackageCommand> MockAutoCuratePackage { get; private set; }
         public Mock<IMessageService> MockMessageService { get; private set; }
         public Mock<ITelemetryService> MockTelemetryService { get; private set; }
         public Mock<AuthenticationService> MockAuthenticationService { get; private set; }
@@ -70,7 +71,6 @@ namespace NuGetGallery
             ContentService = (MockContentService = new Mock<IContentService>()).Object;
             StatisticsService = (MockStatisticsService = new Mock<IStatisticsService>()).Object;
             IndexingService = (MockIndexingService = new Mock<IIndexingService>()).Object;
-            AutoCuratePackage = (MockAutoCuratePackage = new Mock<IAutomaticallyCuratePackageCommand>()).Object;
             AuthenticationService = (MockAuthenticationService = new Mock<AuthenticationService>()).Object;
             SecurityPolicyService = securityPolicyService ?? (MockSecurityPolicyService = new Mock<ISecurityPolicyService>()).Object;
             ReservedNamespaceService = (MockReservedNamespaceService = new Mock<IReservedNamespaceService>()).Object;
@@ -630,7 +630,10 @@ namespace NuGetGallery
 
                 // Assert
                 controller.MockMessageService
-                    .Verify(ms => ms.SendPackageAddedNoticeAsync(package, It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<IEnumerable<string>>()),
+                    .Verify(ms => ms.SendMessageAsync(
+                        It.Is<PackageAddedMessage>(msg => msg.Package == package),
+                        false,
+                        false),
                     Times.Exactly(callExpected ? 1 : 0));
             }
 
@@ -1192,36 +1195,6 @@ namespace NuGetGallery
             }
 
             [Fact]
-            public async Task WillCurateThePackage()
-            {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                await controller.CreatePackagePut();
-
-                controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
-            }
-
-            [Fact]
-            public async Task WillCurateThePackageViaApi()
-            {
-                var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
-
-                var user = new User() { EmailAddress = "confirmed@email.com" };
-                var controller = new TestableApiController(GetConfigurationService());
-                controller.SetCurrentUser(user);
-                controller.SetupPackageFromInputStream(nuGetPackage);
-
-                await controller.CreatePackagePost();
-
-                controller.MockAutoCuratePackage.Verify(x => x.ExecuteAsync(It.IsAny<Package>(), It.IsAny<PackageArchiveReader>(), false));
-            }
-
-            [Fact]
             public async Task WillCreateAPackageWithTheUserMatchingTheApiKey()
             {
                 var nuGetPackage = TestPackage.CreateTestPackageStream("theId", "1.0.42");
@@ -1695,7 +1668,7 @@ namespace NuGetGallery
                     .Returns((Package)null).Verifiable();
 
                 // Act
-                var result = (HttpStatusCodeWithBodyResult) await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
+                var result = (HttpStatusCodeWithBodyResult)await controller.GetPackageInternal(packageId, packageVersion, isSymbolPackage: true);
 
                 // Assert
                 Assert.Equal((int)HttpStatusCode.NotFound, result.StatusCode);
@@ -2254,7 +2227,7 @@ namespace NuGetGallery
                     It.IsAny<User>(), controller.OwinContext.Request.User.Identity, 404), Times.Once);
             }
 
-            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_PackageVersion_Data => 
+            public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_PackageVersion_Data =>
                 MemberDataHelper.AsDataSet("1.0.42", "invalidVersionString");
 
             public static IEnumerable<object[]> Returns403IfScopeDoesNotMatch_Data => InvalidScopes_Data;
@@ -2266,8 +2239,8 @@ namespace NuGetGallery
                     var notVerifyData = CredentialTypesExceptVerifyV1.Select(
                         t => MemberDataHelper.AsData(t, new[] { NuGetScopes.PackagePush, NuGetScopes.PackagePushVersion }));
                     return MemberDataHelper.Combine(
-                        notVerifyData, 
-                        Returns403IfScopeDoesNotMatch_Data, 
+                        notVerifyData,
+                        Returns403IfScopeDoesNotMatch_Data,
                         Returns403IfScopeDoesNotMatch_PackageVersion_Data);
                 }
             }
@@ -2277,7 +2250,7 @@ namespace NuGetGallery
                 get
                 {
                     return MemberDataHelper.Combine(
-                        new[] { new object[] { CredentialTypes.ApiKey.VerifyV1, new[] { NuGetScopes.PackageVerify } } }, 
+                        new[] { new object[] { CredentialTypes.ApiKey.VerifyV1, new[] { NuGetScopes.PackageVerify } } },
                         Returns403IfScopeDoesNotMatch_Data,
                         Returns403IfScopeDoesNotMatch_PackageVersion_Data);
                 }
@@ -2518,7 +2491,7 @@ namespace NuGetGallery
 
         public class SymbolsTestException : Exception
         {
-            public SymbolsTestException(string message) : base (message)
+            public SymbolsTestException(string message) : base(message)
             {
 
             }

@@ -124,20 +124,7 @@
             };
 
             ko.applyBindings(new viewModel(), $('#stage').get(0));
-
-            $('#SoftDelete').change(function(e) {
-                if (!this.checked) {
-                    $('#DeleteEmptyPackageRegistrationContainer').show();
-                } else {
-                    $('#DeleteEmptyPackageRegistrationContainer').hide();
-                }
-            });
-
-            $('#delete-form').submit(function(e) {
-                if (!confirm('Deleting these packages will make them unavailable for download and package restore. Are you sure you want to continue with the delete?')) {
-                    e.preventDefault();
-                }
-            });
         });
     </script>
+    @Scripts.Render("~/Scripts/gallery/page-delete-package.js")
 }

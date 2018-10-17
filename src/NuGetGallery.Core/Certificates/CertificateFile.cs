@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security.Cryptography;
 
@@ -62,6 +63,7 @@ namespace NuGetGallery
             }
         }
 
+        [SuppressMessage("Microsoft.Security.Cryptography", "CA5354:SHA1CannotBeUsed", Justification = @"SHA1 thumbprint is only used to distinguish certificates in the Gallery view.")]
         private static string GetSha1Thumbprint(MemoryStream stream)
         {
             using (var hashAlgorithm = SHA1.Create())

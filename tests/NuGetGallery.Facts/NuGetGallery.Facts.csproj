@@ -94,15 +94,12 @@
     <Compile Include="Infrastructure\Authentication\V3HasherTests.cs" />
     <Compile Include="AutocompleteServicePackageIdsQueryFacts.cs" />
     <Compile Include="AutocompleteServicePackageVersionsQueryFacts.cs" />
-    <Compile Include="Commands\AutomaticallyCuratePackageCommandFacts.cs" />
     <Compile Include="App_Start\ConfigurationServiceFacts.cs" />
     <Compile Include="App_Start\CachingSecretReaderFacts.cs" />
     <Compile Include="Controllers\AppControllerFacts.cs" />
     <Compile Include="Controllers\AuthenticationControllerFacts.cs" />
     <Compile Include="Controllers\ApiControllerFacts.cs" />
     <Compile Include="Controllers\ControllerTests.cs" />
-    <Compile Include="Controllers\CuratedFeedsControllerFacts.cs" />
-    <Compile Include="Controllers\CuratedPackagesControllerFacts.cs" />
     <Compile Include="Controllers\JsonApiControllerFacts.cs" />
     <Compile Include="Controllers\ODataFeedControllerFactsBase.cs" />
     <Compile Include="Controllers\ODataV2CuratedFeedControllerFacts.cs" />
@@ -122,6 +119,33 @@
     <Compile Include="Infrastructure\Authentication\Base32EncoderTests.cs" />
     <Compile Include="Infrastructure\HttpStatusCodeWithBodyResultFacts.cs" />
     <Compile Include="Infrastructure\Lucene\ExternalSearchServiceFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\SigninAssistanceMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportMyPackageMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ReportAbuseMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestDeclinedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnershipRequestCanceledMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageOwnerAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\PackageDeletedNoticeMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialAddedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\ContactOwnersMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\AccountDeleteNoticeMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\CredentialRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeConfirmationMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\EmailChangeNoticeToPreviousEmailAddressMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\NewAccountMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberRemovedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestDeclinedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMembershipRequestCanceledMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformInitiatedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformRejectedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationTransformAcceptedMessageFacts.cs" />
+    <Compile Include="Infrastructure\Mail\Messages\OrganizationMemberUpdatedMessageFacts.cs" />
     <Compile Include="Security\ControlRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\AutomaticallyOverwriteRequiredSignerPolicyFacts.cs" />
     <Compile Include="Security\MicrosoftTeamSubscriptionFacts.cs" />
@@ -130,6 +154,7 @@
     <Compile Include="Security\RequirePackageMetadataCompliancePolicyFacts.cs" />
     <Compile Include="Services\ActionRequiringEntityPermissionsFacts.cs" />
     <Compile Include="Services\CertificatesConfigurationFacts.cs" />
+    <Compile Include="Services\CuratedFeedServiceFacts.cs" />
     <Compile Include="Services\TyposquattingServiceFacts.cs" />
     <Compile Include="Services\CloudDownloadCountServiceFacts.cs" />
     <Compile Include="Services\CertificateServiceFacts.cs" />
@@ -203,15 +228,12 @@
     <Compile Include="Infrastructure\PackageIndexEntityFacts.cs" />
     <Compile Include="Infrastructure\LuceneSearchServiceFacts.cs" />
     <Compile Include="Infrastructure\NuGetQueryParserFacts.cs" />
-    <Compile Include="PackageCurators\Windows8PackageCuratorFacts.cs" />
-    <Compile Include="PackageCurators\WebMatrixPackageCuratorFacts.cs" />
     <Compile Include="PolicyFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Routing\VersionRouteConstraintFacts.cs" />
     <Compile Include="SearchClient\RetryingHttpClientWrapperFacts.cs" />
     <Compile Include="SemanticVersionExtensionsFacts.cs" />
     <Compile Include="Services\CloudBlobFileStorageServiceFacts.cs" />
-    <Compile Include="Services\CuratedFeedServiceFacts.cs" />
     <Compile Include="Services\ContentServiceFacts.cs" />
     <Compile Include="TestUtils\Infrastructure\FeedServiceHelpers.cs" />
     <Compile Include="Services\FileSystemFileStorageServiceFacts.cs" />
@@ -317,6 +339,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <SignPath>..\..\build</SignPath>

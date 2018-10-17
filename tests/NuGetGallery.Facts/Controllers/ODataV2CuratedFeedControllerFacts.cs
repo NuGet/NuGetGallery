@@ -4,10 +4,16 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Web.Http;
+using System.Web.Http.OData.Query;
+using System.Web.Http.Results;
 using Moq;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
+using NuGetGallery.WebApi;
 using Xunit;
 
 namespace NuGetGallery.Controllers
@@ -16,6 +22,150 @@ namespace NuGetGallery.Controllers
         : ODataFeedControllerFactsBase<ODataV2CuratedFeedController>
     {
         private const string _curatedFeedName = "dummy";
+
+        public class TheGetMethod
+        {
+            private readonly CuratedFeed _curatedFeed;
+            private readonly Package _curatedFeedPackage;
+            private readonly Package _mainFeedPackage;
+            private readonly FeatureConfiguration _featureConfiguration;
+            private readonly Mock<IGalleryConfigurationService> _config;
+            private readonly Mock<IAppConfiguration> _appConfig;
+            private readonly Mock<ISearchService> _searchService;
+            private readonly Mock<ICuratedFeedService> _curatedFeedService;
+            private readonly Mock<IEntityRepository<Package>> _packages;
+            private readonly ODataV2CuratedFeedController _target;
+            private readonly HttpRequestMessage _request;
+            private readonly ODataQueryOptions<V2FeedPackage> _options;
+
+            public TheGetMethod()
+            {
+                _curatedFeed = new CuratedFeed { Name = _curatedFeedName };
+                _curatedFeedPackage = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Core",
+                    },
+                };
+                _mainFeedPackage = new Package
+                {
+                    PackageRegistration = new PackageRegistration
+                    {
+                        Id = "NuGet.Versioning",
+                    },
+                };
+                _featureConfiguration = new FeatureConfiguration();
+                _appConfig = new Mock<IAppConfiguration>();
+
+                _config = new Mock<IGalleryConfigurationService>();
+                _searchService = new Mock<ISearchService>();
+                _curatedFeedService = new Mock<ICuratedFeedService>();
+                _packages = new Mock<IEntityRepository<Package>>();
+
+                _config
+                    .Setup(x => x.Current)
+                    .Returns(() => _appConfig.Object);
+                _config
+                    .Setup(x => x.Features)
+                    .Returns(() => _featureConfiguration);
+                _config
+                    .Setup(x => x.GetSiteRoot(It.IsAny<bool>()))
+                    .Returns(() => _siteRoot);
+                _curatedFeedService
+                    .Setup(x => x.GetFeedByName(_curatedFeedName))
+                    .Returns(() => _curatedFeed);
+                _curatedFeedService
+                    .Setup(x => x.GetPackages(_curatedFeedName))
+                    .Returns(() => new[] { _curatedFeedPackage }.AsQueryable());
+                _packages
+                    .Setup(x => x.GetAll())
+                    .Returns(() => new[] { _mainFeedPackage }.AsQueryable());
+
+                _target = new ODataV2CuratedFeedController(
+                    _config.Object,
+                    _searchService.Object,
+                    _curatedFeedService.Object,
+                    _packages.Object);
+
+                _request = new HttpRequestMessage(HttpMethod.Get, $"{_siteRoot}/api/v2/curated-feed/{_curatedFeedName}/Packages");
+                _options = new ODataQueryOptions<V2FeedPackage>(CreateODataQueryContext<V2FeedPackage>(), _request);
+                AddRequestToController(_request, _target);
+            }
+
+            [Fact]
+            public async Task RedirectedCuratedFeedQueriesMainFeed()
+            {
+                _appConfig
+                    .Setup(x => x.RedirectedCuratedFeeds)
+                    .Returns(() => new[] { _curatedFeedName });
+
+                var actionResult = _target.Get(_options, _curatedFeedName);
+
+                var list = await GetPackageListAsync(actionResult);
+                var package = Assert.Single(list);
+                Assert.Equal(_mainFeedPackage.PackageRegistration.Id, package.Id);
+                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Never);
+                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
+                _packages.Verify(x => x.GetAll(), Times.Once);
+            }
+
+            [Fact]
+            public async Task MissingAndRedirectedCuratedFeedQueriesMainFeed()
+            {
+                _appConfig
+                    .Setup(x => x.RedirectedCuratedFeeds)
+                    .Returns(() => new[] { _curatedFeedName });
+                _curatedFeedService
+                    .Setup(x => x.GetFeedByName(It.IsAny<string>()))
+                    .Returns<CuratedFeed>(null);
+
+                var actionResult = _target.Get(_options, _curatedFeedName);
+
+                var list = await GetPackageListAsync(actionResult);
+                var package = Assert.Single(list);
+                Assert.Equal(_mainFeedPackage.PackageRegistration.Id, package.Id);
+                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Never);
+                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
+                _packages.Verify(x => x.GetAll(), Times.Once);
+            }
+
+            [Fact]
+            public void MissingCuratedFeedReturnsNotFound()
+            {
+                _curatedFeedService
+                    .Setup(x => x.GetFeedByName(It.IsAny<string>()))
+                    .Returns<CuratedFeed>(null);
+
+                var actionResult = _target.Get(_options, _curatedFeedName);
+
+                Assert.IsType<NotFoundResult>(actionResult);
+                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Once);
+                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Never);
+                _packages.Verify(x => x.GetAll(), Times.Never);
+            }
+
+            [Fact]
+            public async Task NonRedirectCuratedFeedQueriesCuratedPackages()
+            {
+                var actionResult = _target.Get(_options, _curatedFeedName);
+
+                var list = await GetPackageListAsync(actionResult);
+                var package = Assert.Single(list);
+                Assert.Equal(_curatedFeedPackage.PackageRegistration.Id, package.Id);
+                _curatedFeedService.Verify(x => x.GetFeedByName(_curatedFeedName), Times.Once);
+                _curatedFeedService.Verify(x => x.GetPackages(It.IsAny<string>()), Times.Once);
+                _packages.Verify(x => x.GetAll(), Times.Never);
+            }
+
+            private static async Task<List<V2FeedPackage>> GetPackageListAsync(IHttpActionResult actionResult)
+            {
+                var queryResult = (QueryResult<V2FeedPackage>)actionResult;
+                var httpResponseMessage = await queryResult.ExecuteAsync(CancellationToken.None);
+                var objectContent = (ObjectContent<IQueryable<V2FeedPackage>>)httpResponseMessage.Content;
+                return ((IQueryable<V2FeedPackage>)objectContent.Value).ToList();
+            }
+        }
 
         [Fact]
         public async Task Get_FiltersSemVerV2PackageVersions()
@@ -330,17 +480,13 @@ namespace NuGetGallery.Controllers
 
             var curatedFeedServiceMock = new Mock<ICuratedFeedService>(MockBehavior.Strict);
             curatedFeedServiceMock.Setup(m => m.GetPackages(_curatedFeedName)).Returns(AllPackages);
-            curatedFeedServiceMock.Setup(m => m.GetFeedByName(_curatedFeedName, false)).Returns(curatedFeed);
-
-            var entitiesContextMock = new Mock<IEntitiesContext>(MockBehavior.Strict);
-            var curatedFeedDbSet = GetQueryableMockDbSet(curatedFeed);
-            entitiesContextMock.SetupGet(m => m.CuratedFeeds).Returns(curatedFeedDbSet);
+            curatedFeedServiceMock.Setup(m => m.GetFeedByName(_curatedFeedName)).Returns(curatedFeed);
 
             return new ODataV2CuratedFeedController(
-                entitiesContextMock.Object,
                 configurationService,
                 searchService,
-                curatedFeedServiceMock.Object);
+                curatedFeedServiceMock.Object,
+                packagesRepository);
         }
 
         private static IDbSet<T> GetQueryableMockDbSet<T>(params T[] sourceList) where T : class

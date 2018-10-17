@@ -52,7 +52,7 @@
                                     <li><span data-bind="text: $data"></span></li>
                                 </ul>
                                 We recommend that you fix these issues and upload a new package.
-                                    <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
+                                <a href="https://docs.microsoft.com/en-us/nuget/policies/nuget-faq#managing-packages-on-nugetorg" alt="Read more">Read more</a><br />
                             </span>)
             <!-- /ko -->
 
@@ -89,6 +89,7 @@
             </div>
             <!-- /ko -->
 
+            <!-- ko ifnot: $data.IsSymbolsPackage -->
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Minimum NuGet Client Version</label>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.MinClientVersionDisplay }}"></div>
@@ -118,6 +119,7 @@
                 <p><i>(none specified)</i></p>
                 <!-- /ko -->
             </div>
+            <!-- /ko -->
 
             <div class="verify-package-field">
                 <label class="verify-package-field-heading">Title</label>
@@ -134,6 +136,7 @@
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.Summary }}"></div>
             </div>
 
+            <!-- ko ifnot: $data.IsSymbolsPackage -->
             <div class="verify-package-field">
                 <div class="verify-package-field-heading"><label>Release Notes</label> (for this version)</div>
                 <div data-bind="template: { name: 'display-data-or-default', data: { DisplayText: $data.ReleaseNotes }}"></div>
@@ -201,6 +204,7 @@
                     </label>
                 </div>
             </div>
+            <!-- /ko -->
             <!-- /ko -->
         </div>
 

@@ -7,7 +7,7 @@ using System.ComponentModel.DataAnnotations;
 namespace NuGetGallery
 {
     public class SymbolPackage
-        : IEntity, IPackageEntity, IEquatable<SymbolPackage>
+        : IPackageEntity, IEquatable<SymbolPackage>
     {
         public int Key { get; set; }
 

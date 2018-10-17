@@ -1,16 +1,15 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using Moq;
-using Xunit;
 using System;
-using System.Linq;
-using System.Data.Entity;
-using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Moq;
 using NuGetGallery.Auditing;
 using NuGetGallery.Framework;
 using NuGetGallery.TestUtils;
+using Xunit;
 
 namespace NuGetGallery
 {
@@ -24,9 +23,10 @@ namespace NuGetGallery
             IAuditingService auditingService = null,
             bool useDefaultSetup = true)
         {
-            var dbContext = new Mock<DbContext>();
             entitiesContext = entitiesContext ?? new Mock<IEntitiesContext>();
-            entitiesContext.Setup(m => m.GetDatabase()).Returns(new DatabaseWrapper(dbContext.Object.Database));
+            var database = new Mock<IDatabase>();
+            database.Setup(x => x.BeginTransaction()).Returns(() => new Mock<IDbContextTransaction>().Object);
+            entitiesContext.Setup(m => m.GetDatabase()).Returns(database.Object);
             packageService = packageService ?? new Mock<IPackageService>();
             reservedNamespaceService = reservedNamespaceService ?? new Mock<IReservedNamespaceService>();
             packageOwnerRequestService = packageOwnerRequestService ?? new Mock<IPackageOwnerRequestService>();
