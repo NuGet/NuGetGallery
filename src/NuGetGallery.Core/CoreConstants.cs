@@ -11,7 +11,7 @@ namespace NuGetGallery
 
         public const string PackageFileSavePathTemplate = "{0}.{1}{2}";
         public const string PackageFileBackupSavePathTemplate = "{0}/{1}/{2}.{3}";
-        public const string PackageContentFileSavePathTemplate = "{0}/{1}/{2}";
+        public const string PackageContentFileSavePathTemplate = "{0}/{1}";
 
         public const string NuGetPackageFileExtension = ".nupkg";
         public const string CertificateFileExtension = ".cer";

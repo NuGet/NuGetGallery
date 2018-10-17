@@ -214,6 +214,11 @@ namespace NuGetGallery
                 throw new ArgumentNullException(nameof(licenseFile));
             }
 
+            if (package.EmbeddedLicenseType == EmbeddedLicenseFileType.Absent)
+            {
+                throw new ArgumentException("Package must have embedded license", nameof(package));
+            }
+
             var fileName = BuildLicenseFileName(package);
 
             // Gallery will generally ignore the content type on license files and will use value from the DB,
@@ -226,7 +231,6 @@ namespace NuGetGallery
         public Task<Stream> DownloadLicenseFileAsync(Package package)
         {
             var fileName = BuildLicenseFileName(package);
-
             return _fileStorageService.GetFileAsync(_metadata.PackageContentFolderName, fileName);
         }
 
@@ -252,7 +256,8 @@ namespace NuGetGallery
                 throw new ArgumentException($"{nameof(version)} cannot be empty", nameof(version));
             }
 
-            var fileName = BuildLicenseFileName(id, version);
+            var normalizedVersion = NuGetVersionFormatter.Normalize(version);
+            var fileName = BuildLicenseFileName(id, normalizedVersion);
 
             return _fileStorageService.DeleteFileAsync(_metadata.PackageContentFolderName, fileName);
         }

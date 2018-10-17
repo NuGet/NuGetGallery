@@ -100,8 +100,8 @@ namespace NuGetGallery
         /// <summary>
         /// Deletes the license file for the package from the publicly available storage for the package content.
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="version"></param>
+        /// <param name="id">The package ID. This value is case-insensitive.</param>
+        /// <param name="version">The package version. This value is case-insensitive and need not be normalized.</param>
         /// <returns></returns>
         Task DeleteLicenseFileAsync(string id, string version);
 
