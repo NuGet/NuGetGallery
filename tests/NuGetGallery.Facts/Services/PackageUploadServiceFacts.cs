@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -439,6 +438,49 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                 Assert.Null(result.Message);
                 Assert.Empty(result.Warnings);
+            }
+
+            private static string[] LicenseNodeVariants => new string[]
+            {
+                "<license/>",
+                "<license></license>",
+                "<license> </license>",
+                "<license>ttt</license>",
+                "<license type='file'>fff</license>",
+                "<license type='expression'>ee</license>",
+                "<license type='foobar'>ttt</license>",
+            };
+
+            public static IEnumerable<object[]> RejectsLicensedPackagesWhenConfigured_Input =>
+                from licenseNode in LicenseNodeVariants
+                from rejectLicenseSetting in new[] { false, true }
+                select new object[] { licenseNode, rejectLicenseSetting, !rejectLicenseSetting };
+
+            [Theory]
+            [MemberData(nameof(RejectsLicensedPackagesWhenConfigured_Input))]
+            public async Task RejectsLicensedPackagesWhenConfigured(string licenseNode, bool rejectPackagesWithLicense, bool expectedSuccess)
+            {
+                _config
+                    .SetupGet(x => x.RejectPackagesWithLicense)
+                    .Returns(rejectPackagesWithLicense);
+                _nuGetPackage = GeneratePackage(getCustomNuspecNodes: () => licenseNode);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("license", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
             }
 
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)
@@ -1100,14 +1142,16 @@ namespace NuGetGallery
                 string version = "1.2.3-alpha.0",
                 RepositoryMetadata repositoryMetadata = null,
                 bool isSigned = true,
-                int? desiredTotalEntryCount = null)
+                int? desiredTotalEntryCount = null,
+                Func<string> getCustomNuspecNodes = null)
             {
                 return PackageServiceUtility.CreateNuGetPackage(
                     id: "theId",
                     version: version,
                     repositoryMetadata: repositoryMetadata,
                     isSigned: isSigned,
-                    desiredTotalEntryCount: desiredTotalEntryCount);
+                    desiredTotalEntryCount: desiredTotalEntryCount,
+                    getCustomNuspecNodes: getCustomNuspecNodes);
             }
         }
     }

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NuGet.Services.Validation.Issues;
 using NuGet.Versioning;
+using NuGetGallery.Extensions;
 
 namespace NuGetGallery
 {
@@ -26,7 +27,7 @@ namespace NuGetGallery
             PushedBy = GetPushedBy(package, currentUser);
             PackageFileSize = package.PackageFileSize;
 
-            LatestSymbolsPackage = GetLatestSymbolPackage(package);
+            LatestSymbolsPackage = package.LatestSymbolPackage();
 
             if (packageHistory.Any())
             {
@@ -53,7 +54,7 @@ namespace NuGetGallery
 
             PushedBy = pushedBy;
 
-            LatestSymbolsPackage = GetLatestSymbolPackage(package);
+            LatestSymbolsPackage = package.LatestSymbolPackage();
 
             InitializeRepositoryMetadata(package.RepositoryUrl, package.RepositoryType);
 
@@ -197,14 +198,6 @@ namespace NuGetGallery
                     RepositoryType = RepositoryKind.Git;
                 }
             }
-        }
-
-        private SymbolPackage GetLatestSymbolPackage(Package package)
-        {
-            return package
-                .SymbolPackages
-                .OrderByDescending(sp => sp.Created)
-                .FirstOrDefault();
         }
 
         public enum RepositoryKind

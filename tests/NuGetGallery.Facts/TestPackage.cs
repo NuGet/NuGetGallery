@@ -37,7 +37,8 @@ namespace NuGetGallery
             IEnumerable<PackageDependencyGroup> packageDependencyGroups = null,
             IEnumerable<ClientPackageType> packageTypes = null,
             bool isSymbolPackage = false,
-            RepositoryMetadata repositoryMetadata = null)
+            RepositoryMetadata repositoryMetadata = null,
+            Func<string> getCustomNodes = null)
         {
             var fullNuspec = (@"<?xml version=""1.0""?>
                 <package xmlns=""http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd"">
@@ -60,6 +61,7 @@ namespace NuGetGallery
                         <packageTypes>" + WritePackageTypes(packageTypes) + @"</packageTypes>
                         <dependencies>" + WriteDependencies(packageDependencyGroups) + @"</dependencies>
                         " + WriteRepositoryMetadata(repositoryMetadata) + @"
+                        " + (getCustomNodes != null ? getCustomNodes() : "") + @"
                     </metadata>
                 </package>");
 
@@ -172,7 +174,8 @@ namespace NuGetGallery
             RepositoryMetadata repositoryMetadata = null,
             Action<ZipArchive> populatePackage = null,
             bool isSymbolPackage = false,
-            int? desiredTotalEntryCount = null)
+            int? desiredTotalEntryCount = null,
+            Func<string> getCustomNuspecNodes = null)
         {
             return CreateTestPackageStream(packageArchive =>
             {
@@ -181,7 +184,8 @@ namespace NuGetGallery
                 {
                     WriteNuspec(stream, true, id, version, title, summary, authors, owners, description, tags, language,
                         copyright, releaseNotes, minClientVersion, licenseUrl, projectUrl, iconUrl,
-                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata);
+                        requireLicenseAcceptance, packageDependencyGroups, packageTypes, isSymbolPackage, repositoryMetadata,
+                        getCustomNuspecNodes);
                 }
 
                 if (populatePackage != null)

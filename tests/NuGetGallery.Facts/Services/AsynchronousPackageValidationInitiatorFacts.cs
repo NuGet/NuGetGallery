@@ -50,6 +50,29 @@ namespace NuGetGallery
                 Assert.Equal(package.Version, _data[0].PackageVersion);
             }
 
+            [Theory]
+            [InlineData(default(int), null)]
+            [InlineData(123, 123)]
+            public async Task AddsEntityKeyAsAppropriate(int packageKey, int? expectedEntityKey)
+            {
+                // Arrange
+                var package = GetPackage();
+                package.Key = packageKey;
+
+                // Act
+                await _target.StartValidationAsync(package);
+
+                // Assert
+                _enqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+                Assert.Equal(1, _data.Count);
+                Assert.NotNull(_data[0]);
+                Assert.Equal(package.PackageRegistration.Id, _data[0].PackageId);
+                Assert.Equal(package.Version, _data[0].PackageVersion);
+                Assert.Equal(expectedEntityKey, _data[0].EntityKey);
+            }
+
             [Fact]
             public async Task FailsWhenTheGalleryIsInReadOnlyMode()
             {
@@ -148,6 +171,29 @@ namespace NuGetGallery
                 Assert.NotNull(_data[0]);
                 Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].PackageId);
                 Assert.Equal(symbolPackage.Package.Version, _data[0].PackageVersion);
+            }
+
+            [Theory]
+            [InlineData(default(int), null)]
+            [InlineData(123, 123)]
+            public async Task AddsEntityKeyAsAppropriate(int symbolPackageKey, int? expectedEntityKey)
+            {
+                // Arrange
+                var symbolPackage = GetSymbolPackage();
+                symbolPackage.Key = symbolPackageKey;
+
+                // Act
+                await _target.StartValidationAsync(symbolPackage);
+
+                // Assert
+                _enqueuer.Verify(
+                    x => x.StartValidationAsync(It.IsAny<PackageValidationMessageData>(), It.IsAny<DateTimeOffset>()),
+                    Times.Once);
+                Assert.Equal(1, _data.Count);
+                Assert.NotNull(_data[0]);
+                Assert.Equal(symbolPackage.Package.PackageRegistration.Id, _data[0].PackageId);
+                Assert.Equal(symbolPackage.Package.Version, _data[0].PackageVersion);
+                Assert.Equal(expectedEntityKey, _data[0].EntityKey);
             }
 
             [Fact]

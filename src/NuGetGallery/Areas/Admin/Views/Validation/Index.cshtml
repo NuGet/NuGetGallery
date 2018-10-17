@@ -60,9 +60,16 @@
                 }
 
                 <b>@package.ValidatingType Key:</b> @package.PackageKey<br />
-                @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted && package.ValidatingType == ValidatingType.Package )
+                @if (package.DeletedStatus == PackageDeletedStatus.NotDeleted)
                 {
-                    <a href="@Url.RevalidatePackage(package.Id, package.NormalizedVersion)">Revalidate</a><br />
+                    if (package.ValidatingType == ValidatingType.Package)
+                    {
+                        <a href="@Url.RevalidatePackage(package.Id, package.NormalizedVersion)">Revalidate Package</a><br />
+                    }
+                    else if (package.ValidatingType == ValidatingType.SymbolPackage)
+                    {
+                        <a href="@Url.RevalidateSymbolsPackage(package.Id, package.NormalizedVersion)">Revalidate Symbols</a><br />
+                    }
                 }
 
                 @if (package.DeletedStatus != PackageDeletedStatus.Unknown)

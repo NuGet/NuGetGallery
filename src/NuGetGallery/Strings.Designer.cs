@@ -1914,6 +1914,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The latest associated symbols package for package with ID {0} and version {1} is deleted. Cannot revalidate a deleted symbols package..
+        /// </summary>
+        public static string SymbolsPackage_RevalidateDeletedPackage {
+            get {
+                return ResourceManager.GetString("SymbolsPackage_RevalidateDeletedPackage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to You do not have the permissions to upload symbol packages..
         /// </summary>
         public static string SymbolsPackage_UploadNotAllowed {
@@ -2234,6 +2243,15 @@ namespace NuGetGallery {
         public static string UploadPackage_NewVersionOnBehalfOfUserNotAllowed {
             get {
                 return ResourceManager.GetString("UploadPackage_NewVersionOnBehalfOfUserNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This package contains a &lt;license&gt; metadata which is currently not supported..
+        /// </summary>
+        public static string UploadPackage_NotAcceptingPackagesWithLicense {
+            get {
+                return ResourceManager.GetString("UploadPackage_NotAcceptingPackagesWithLicense", resourceCulture);
             }
         }
         
