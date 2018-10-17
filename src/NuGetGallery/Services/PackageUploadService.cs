@@ -175,8 +175,6 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
             }
 
-            // TODO: more license expression validations
-
             return null;
         }
 

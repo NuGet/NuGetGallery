@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -567,12 +568,56 @@ namespace NuGetGallery
             // Identify the SemVerLevelKey using the original package version string and package dependencies
             package.SemVerLevelKey = SemVerLevelKey.ForPackage(packageMetadata.Version, package.Dependencies);
 
+            package.EmbeddedLicenseType = GetEmbeddedLicenseType(packageMetadata);
+
             return package;
         }
 
         public virtual IEnumerable<NuGetFramework> GetSupportedFrameworks(PackageArchiveReader package)
         {
             return package.GetSupportedFrameworks();
+        }
+
+        private static EmbeddedLicenseFileType GetEmbeddedLicenseType(PackageMetadata packageMetadata)
+        {
+            if (packageMetadata.LicenseMetadata == null)
+            {
+                return EmbeddedLicenseFileType.Absent;
+            }
+
+            switch (packageMetadata.LicenseMetadata.Type)
+            {
+                case LicenseType.File:
+                    return GetEmbeddedLicenseType(packageMetadata.LicenseMetadata.License);
+
+                case LicenseType.Expression:
+                    // execution shouldn't be able to reach here: validation should catch it first
+                    // so if we get here, it's a bug
+                    throw new NotImplementedException("License expression support is not implemented yet");
+
+                default:
+                    throw new NotImplementedException($"Unsupported license type: {packageMetadata.LicenseMetadata.Type}");
+            }
+        }
+
+        private static EmbeddedLicenseFileType GetEmbeddedLicenseType(string licenseFileName)
+        {
+            const string MarkdownFileExtension = ".md";
+            const string TextFileExtension = ".txt";
+
+            var extension = Path.GetExtension(licenseFileName);
+
+            if (MarkdownFileExtension == extension)
+            {
+                return EmbeddedLicenseFileType.MarkDown;
+            }
+
+            if (TextFileExtension == extension)
+            {
+                return EmbeddedLicenseFileType.PlainText;
+            }
+
+            throw new ArgumentException($"Invalid file name: {licenseFileName}");
         }
 
         private static void ValidateSupportedFrameworks(string[] supportedFrameworks)

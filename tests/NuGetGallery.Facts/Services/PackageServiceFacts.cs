@@ -10,7 +10,6 @@ using NuGet.Frameworks;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -205,7 +204,8 @@ namespace NuGetGallery
                 var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
                     licenseUrl: new Uri("http://thelicenseurl/"),
                     projectUrl: new Uri("http://theprojecturl/"),
-                    iconUrl: new Uri("http://theiconurl/"));
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseFilename: "license.txt");
                 var currentUser = new User();
 
                 var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
@@ -227,6 +227,7 @@ namespace NuGetGallery
                 Assert.Equal("theTags", package.Tags);
                 Assert.Equal("theTitle", package.Title);
                 Assert.Equal("theCopyright", package.Copyright);
+                Assert.Equal(EmbeddedLicenseFileType.PlainText, package.EmbeddedLicenseType);
                 Assert.Null(package.Language);
                 Assert.False(package.IsPrerelease);
 
@@ -295,6 +296,27 @@ namespace NuGetGallery
                 // Assert
                 Assert.True(package.IsPrerelease);
                 packageRegistrationRepository.Verify();
+            }
+
+            [Theory]
+            [InlineData(null, EmbeddedLicenseFileType.Absent)]
+            [InlineData("foo.txt", EmbeddedLicenseFileType.PlainText)]
+            [InlineData("bar.md", EmbeddedLicenseFileType.MarkDown)]
+            public async Task WillDetectLicenseFileType(string licenseFileName, EmbeddedLicenseFileType expectedFileType)
+            {
+                var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();
+                var service = CreateService(packageRegistrationRepository: packageRegistrationRepository, setup:
+                        mockPackageService => { mockPackageService.Setup(x => x.FindPackageRegistrationById(It.IsAny<string>())).Returns((PackageRegistration)null); });
+                var nugetPackage = PackageServiceUtility.CreateNuGetPackage(
+                    licenseUrl: new Uri("http://thelicenseurl/"),
+                    projectUrl: new Uri("http://theprojecturl/"),
+                    iconUrl: new Uri("http://theiconurl/"),
+                    licenseFilename: licenseFileName);
+                var currentUser = new User();
+
+                var package = await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), currentUser, currentUser, isVerified: false);
+
+                Assert.Equal(expectedFileType, package.EmbeddedLicenseType);
             }
 
             [Fact]

@@ -125,6 +125,11 @@ namespace NuGetGallery.Packaging
         public string Owners { get; private set; }
         public string Language { get; private set; }
         public NuGetVersion MinClientVersion { get; set; }
+
+        /// <summary>
+        /// Contains license metadata taken from the 'license' node of the nuspec file.
+        /// Null if no 'license' node present.
+        /// </summary>
         public LicenseMetadata LicenseMetadata { get; }
 
         public string GetValueFromMetadata(string key)

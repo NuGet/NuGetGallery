@@ -11,16 +11,16 @@ namespace NuGetGallery
         /// <summary>
         /// Indicates that package has no license file embedded.
         /// </summary>
-        Absent,
+        Absent = 0,
 
         /// <summary>
         /// Indicates that embedded license file is plain text.
         /// </summary>
-        PlainText,
+        PlainText = 1,
 
         /// <summary>
         /// Indicates that embedded license file is markdown.
         /// </summary>
-        MarkDown,
+        MarkDown = 2,
     }
 }
