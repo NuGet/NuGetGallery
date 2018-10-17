@@ -3,8 +3,8 @@
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
     var placeholder = Model.IsSymbolsUploadEnabled
-        ? "Browse or Drop files to select a package or symbols package..."
-        : "Browse or Drop files to select a package";
+        ? "Browse or Drop files to select a package (.nupkg) or symbols package (.snupkg)..."
+        : "Browse or Drop files to select a package (.nupkg)";
     var acceptExtensions = Model.IsSymbolsUploadEnabled
         ? ".nupkg,.snupkg"
         : ".nupkg";
