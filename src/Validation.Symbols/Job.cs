@@ -40,11 +40,7 @@ namespace Validation.Symbols
                     configurationAccessor.Value.ValidationPackageConnectionString,
                     readAccessGeoRedundant: false), c.GetRequiredService<IDiagnosticsService>());
 
-                var symbolValidationStorageService = new CloudBlobCoreFileStorageService(new CloudBlobClientWrapper(
-                    configurationAccessor.Value.ValidationSymbolsConnectionString,
-                    readAccessGeoRedundant: false), c.GetRequiredService<IDiagnosticsService>());
-
-                return new SymbolsFileService(packageStorageService, packageValidationStorageService, symbolValidationStorageService);
+                return new SymbolsFileService(packageStorageService, packageValidationStorageService, c.GetRequiredService<IFileDownloader>());
             });
             services.AddSingleton(new TelemetryClient());
         }

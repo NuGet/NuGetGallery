@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using NuGet.Jobs.Validation.Symbols.Core;
 using NuGet.Services.Validation;
 
 namespace Validation.Symbols
@@ -12,12 +11,11 @@ namespace Validation.Symbols
     public interface ISymbolsValidatorService
     {
         /// <summary>
-        /// Validates the symbols against the PE files. 
+        /// Validates the symbol package.
         /// </summary>
-        /// <param name="packageId">The package Id.</param>
-        /// <param name="packageNormalizedVersion">The package normalized version.</param>
-        /// <param name="token">A cancellation token to be used for cancellation of the async execution.</param>
-        /// <returns></returns>
-        Task<IValidationResult> ValidateSymbolsAsync(string packageId, string packageNormalizedVersion, CancellationToken token);
+        /// <param name="message">The <see cref="SymbolsValidatorMessage"/> regarding to the symbols pacakge to be validated..</param>
+        /// <param name="token">Cancellation token.</param>
+        /// <returns>The validation result.</returns>
+        Task<IValidationResult> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token);
     }
 }

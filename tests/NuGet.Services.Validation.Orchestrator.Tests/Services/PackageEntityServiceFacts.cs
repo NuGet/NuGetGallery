@@ -25,8 +25,9 @@ namespace NuGet.Services.Validation
             {
                 // Arrange
                 var mockCorePackageService = new Mock<ICorePackageService>();
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
                 mockCorePackageService.Setup(c => c.FindPackageByIdAndVersionStrict(It.IsAny<string>(), It.IsAny<string>())).Returns((Package)null);
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.FindPackageByIdAndVersionStrict("Id", "version");
@@ -41,8 +42,9 @@ namespace NuGet.Services.Validation
                 var package = CreatePackage();
 
                 var mockCorePackageService = new Mock<ICorePackageService>();
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
                 mockCorePackageService.Setup(c => c.FindPackageByIdAndVersionStrict(PackageId, PackageNormalizedVersion)).Returns(package);
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.FindPackageByIdAndVersionStrict(PackageId, PackageNormalizedVersion);
@@ -63,8 +65,9 @@ namespace NuGet.Services.Validation
                 // Arrange
                 var package = CreatePackage();
                 var mockCorePackageService = new Mock<ICorePackageService>();
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
                 mockCorePackageService.Setup(c => c.UpdatePackageStatusAsync(It.IsAny<Package>(), It.IsAny<PackageStatus>(), true)).Returns(Task.CompletedTask);
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.UpdateStatusAsync(package, PackageStatus.Available, true);
@@ -82,7 +85,8 @@ namespace NuGet.Services.Validation
                 // Arrange
                 var package = CreatePackage();
                 var mockCorePackageService = new Mock<ICorePackageService>();
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.UpdateMetadataAsync(package, null, true);
@@ -97,7 +101,8 @@ namespace NuGet.Services.Validation
                 // Arrange
                 var package = CreatePackage();
                 var mockCorePackageService = new Mock<ICorePackageService>();
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.UpdateMetadataAsync(package, "NotMetadata", true);
@@ -122,7 +127,8 @@ namespace NuGet.Services.Validation
                 };
 
                 var mockCorePackageService = new Mock<ICorePackageService>();
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.UpdateMetadataAsync(package, metadata, true);
@@ -147,8 +153,9 @@ namespace NuGet.Services.Validation
                 };
 
                 var mockCorePackageService = new Mock<ICorePackageService>();
+                var mockIPackageEntityRepository = new Mock<IEntityRepository<Package>>();
                 mockCorePackageService.Setup(c => c.UpdatePackageStreamMetadataAsync(package, metadata, true)).Returns(Task.CompletedTask);
-                var service = new PackageEntityService(mockCorePackageService.Object);
+                var service = new PackageEntityService(mockCorePackageService.Object, mockIPackageEntityRepository.Object);
 
                 // Act & Assert
                 var result = service.UpdateMetadataAsync(package, metadata, true);

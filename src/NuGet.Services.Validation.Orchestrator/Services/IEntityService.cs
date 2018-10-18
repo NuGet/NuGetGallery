@@ -17,8 +17,14 @@ namespace NuGet.Services.Validation.Orchestrator
         /// </summary>
         /// <param name="id">The id .</param>
         /// <param name="version">The version.</param>
-        /// <returns></returns>
+        /// <returns>The entity.</returns>
         IValidatingEntity<T> FindPackageByIdAndVersionStrict(string id, string version);
+
+        /// <summary>
+        /// Find the entity based on the key.
+        /// </summary>
+        /// <returns>The entity.</returns>
+        IValidatingEntity<T> FindPackageByKey(int key);
 
         /// <summary>
         /// Update the status of the entity.
@@ -35,7 +41,7 @@ namespace NuGet.Services.Validation.Orchestrator
         /// <param name="entity">The entity.</param>
         /// <param name="metadata">The metadata.</param>
         /// <param name="commitChanges">True if the changes will be commited to the database.</param>
-        /// <returns></returns>
+        /// <returns>A <see cref="Task"/> that can be used to await for the operation completion.</returns>
         Task UpdateMetadataAsync(T entity, object metadata, bool commitChanges = true);
     }
 }

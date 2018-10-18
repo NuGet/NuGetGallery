@@ -86,7 +86,7 @@ namespace Validation.Symbols
                     return true;
                 }
 
-                var validationResult = await _symbolValidatorService.ValidateSymbolsAsync(message.PackageId, message.PackageNormalizedVersion, CancellationToken.None);
+                var validationResult = await _symbolValidatorService.ValidateSymbolsAsync(message, CancellationToken.None);
 
                 if (validationResult.Status == ValidationStatus.Failed || validationResult.Status == ValidationStatus.Succeeded)
                 {
