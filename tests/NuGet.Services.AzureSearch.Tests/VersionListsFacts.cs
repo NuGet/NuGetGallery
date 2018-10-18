@@ -2,10 +2,13 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using NuGet.Versioning;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace NuGet.Services.AzureSearch
 {
@@ -116,6 +119,349 @@ namespace NuGet.Services.AzureSearch
                 Assert.Equal(
                     new[] { StableSemVer1, PrereleaseSemVer2.ToUpper() },
                     data.VersionProperties.Keys.ToArray());
+            }
+        }
+
+        /// <summary>
+        /// This test suite produces every possible initial version state and version list change set to make sure no
+        /// exceptions are thrown. This has value given the number of <see cref="Guard.Assert(bool, string)"/> calls in
+        /// the implementation.
+        /// </summary>
+        public class FullEnumerationOfPossibleTestCases
+        {
+            private readonly ITestOutputHelper _output;
+
+            public FullEnumerationOfPossibleTestCases(ITestOutputHelper output)
+            {
+                _output = output ?? throw new ArgumentNullException(nameof(output));
+            }
+
+            [Fact]
+            public async Task AllTestCasesPass()
+            {
+                // Arrange
+                // 4 versions are used since it initially did not find any more bugs than 5 versions and, on most
+                // machines will run in under 2 seconds.
+                var versions = new[] { "1.0.0", "2.0.0", "3.0.0", "4.0.0" };
+                var testCases = new ConcurrentBag<TestCase>(EnumerateTestCases(versions));
+                _output.WriteLine($"Running {testCases.Count} test cases.");
+                var testResults = new ConcurrentBag<TestResult>();
+
+                // Run the test cases in parallel to improve test duration.
+                var tasks = Enumerable
+                    .Range(0, 8)
+                    .Select(i => Task.Run(() =>
+                    {
+                        while (testCases.TryTake(out var testCase))
+                        {
+                            var testResult = ExecuteTestCase(testCase);
+                            testResults.Add(testResult);
+                        }
+                    }));
+
+                // Act
+                await Task.WhenAll(tasks);
+
+                // Assert
+                _output.WriteLine("Analyzing results.");
+                const int maxTestFailuresToOutput = 5;
+                var failureCount = 0;
+                foreach (var testResult in testResults)
+                {
+                    if (testResult.Exception == null)
+                    {
+                        continue;
+                    }
+
+                    failureCount++;
+
+                    if (failureCount > maxTestFailuresToOutput)
+                    {
+                        if (failureCount == maxTestFailuresToOutput + 1)
+                        {
+                            _output.WriteLine($"{maxTestFailuresToOutput} test failures have been shown. The rest will be hidden.");
+                        }
+
+                        continue;
+                    }
+
+                    _output.WriteLine("========== TEST CASE FAILURE ==========");
+                    _output.WriteLine($"Initial state ({testResult.TestCase.InitialState.Length} versions):");
+                    foreach (var version in testResult.TestCase.InitialState)
+                    {
+                        _output.WriteLine(
+                            $" - {version.FullVersion} ({(version.Data.Listed ? "listed" : "unlisted")})");
+                    }
+                    _output.WriteLine($"Applied changes ({testResult.TestCase.ChangesToApply.Count} changes):");
+                    foreach (var version in testResult.TestCase.ChangesToApply)
+                    {
+                        _output.WriteLine(
+                            $" - {(version.IsDelete ? "Delete" : "Upsert")} {version.FullVersion}" +
+                            (version.IsDelete ? string.Empty : (version.Data.Listed ? " as listed" : " as unlisted")));
+                    }
+                    _output.WriteLine("Exception:");
+                    _output.WriteLine(testResult.Exception.ToString());
+                    _output.WriteLine("=======================================");
+                    _output.WriteLine(string.Empty);
+                }
+
+                _output.WriteLine($"There were {failureCount} failed test cases.");
+                Assert.Equal(0, failureCount);
+            }
+
+            private static TestResult ExecuteTestCase(TestCase testCase)
+            {
+                // Arrange
+                var list = ApplyChangesInternal.Create(testCase.InitialState);
+
+                try
+                {
+                    // Act & Assert
+                    var output = list.ApplyChangesInternal(testCase.ChangesToApply);
+
+                    // In a simplistic way, determine the expected version set and their listed status.
+                    var expectedVersions = new Dictionary<NuGetVersion, bool>();
+                    foreach (var version in testCase.InitialState)
+                    {
+                        expectedVersions[version.ParsedVersion] = version.Data.Listed;
+                    }
+
+                    foreach (var version in testCase.ChangesToApply)
+                    {
+                        if (version.IsDelete)
+                        {
+                            expectedVersions.Remove(version.ParsedVersion);
+                        }
+                        else
+                        {
+                            expectedVersions[version.ParsedVersion] = version.Data.Listed;
+                        }
+                    }
+
+                    // Verify it against the version list data.
+                    var data = list.GetVersionListData();
+                    Assert.Equal(
+                        expectedVersions.Keys.Select(x => x.ToFullString()).OrderBy(x => x).ToArray(),
+                        data.VersionProperties.Keys.OrderBy(x => x).ToArray());
+                    foreach (var pair in expectedVersions)
+                    {
+                        Assert.True(
+                            pair.Value == data.VersionProperties[pair.Key.ToFullString()].Listed,
+                            $"{pair.Key.ToFullString()} should have Listed = {pair.Value} but does not.");
+                    }
+
+                    // Verify it against the IncludePrereleaseAndSemVer2 version list, since this has all versions.
+                    var filteredList = list._versionLists[SearchFilters.IncludePrereleaseAndSemVer2];
+                    Assert.Equal(
+                        expectedVersions
+                            .Where(x => x.Value)
+                            .OrderBy(x => x.Key)
+                            .Select(x => x.Key.ToFullString())
+                            .ToList(),
+                        filteredList.FullVersions);
+                    Assert.Equal(
+                        expectedVersions
+                            .Where(x => x.Value)
+                            .Select(x => x.Key)
+                            .OrderBy(x => x)
+                            .LastOrDefault()?
+                            .ToFullString(),
+                        filteredList.LatestOrNull);
+
+                    return new TestResult(testCase, exception: null);
+                }
+                catch (Exception exception)
+                {
+                    return new TestResult(testCase, exception);
+                }
+            }
+
+            private static IEnumerable<TestCase> EnumerateTestCases(
+                IReadOnlyList<string> fullVersions)
+            {
+                // The GetAllVersionListChanges subroutine first finds all subsets of the version set. For each subset
+                // of versions, enumerate all combinations of version actions for that subset. For example, consider
+                // the subset [ 1.0.0, 2.0.0 ] and the version actions [ Listed (L), Unlisted (U), Deleted (D) ].
+                // The combinations (in no particular order) would be:
+                //
+                //   [
+                //     [ L-1.0.0, L-2.0.0 ], [ L-1.0.0, U-2.0.0 ], [ L-1.0.0, D-2.0.0 ],
+                //     [ U-1.0.0, L-2.0.0 ], [ U-1.0.0, U-2.0.0 ], [ U-1.0.0, D-2.0.0 ],
+                //     [ D-1.0.0, L-2.0.0 ], [ D-1.0.0, U-2.0.0 ], [ D-1.0.0, D-2.0.0 ]
+                //   ]
+                //
+                // The initialState sequence is this full enumeration without the Deleted version action. This is
+                // because a package deleted initially will simply not be present. The changesToApply sequence is this
+                // full enumeration with all version actions (as in the example).
+                //
+                // Finally, the cartesian produce of these two sequences is produced. Each pair is a test case.
+                var allActions = Enum.GetValues(typeof(VersionAction)).Cast<VersionAction>().ToArray();
+                var actionsExceptDelete = allActions.Where(x => x != VersionAction.Deleted).ToArray();
+
+                foreach (var initialState in GetAllVersionListChanges(fullVersions, actionsExceptDelete))
+                {
+                    foreach (var changeToApply in GetAllVersionListChanges(fullVersions, allActions))
+                    {
+                        yield return new TestCase(initialState.ToArray(), changeToApply.ToList());
+                    }
+                }
+            }
+
+            private static IEnumerable<IEnumerable<VersionListChange>> GetAllVersionListChanges(
+                IReadOnlyCollection<string> fullVersion,
+                IReadOnlyList<VersionAction> actions)
+            {
+                foreach (var versionSubsetSequence in SubsetsOf(fullVersion))
+                {
+                    var versionSubset = versionSubsetSequence.ToList();
+                    var combinations = CombinationsOfTwo(versionSubset, actions);
+                    foreach (var combination in combinations)
+                    {
+                        yield return combination.Select(x => ToVersionListChange(x.Item1, x.Item2));
+                    }
+                }
+            }
+
+            private static VersionListChange ToVersionListChange(string fullVersion, VersionAction action)
+            {
+                switch (action)
+                {
+                    case VersionAction.Listed:
+                        return VersionListChange.Upsert(
+                            fullVersion,
+                            new VersionPropertiesData(listed: true, semVer2: false));
+                    case VersionAction.Unlisted:
+                        return VersionListChange.Upsert(
+                            fullVersion,
+                            new VersionPropertiesData(listed: false, semVer2: false));
+                    case VersionAction.Deleted:
+                        return VersionListChange.Delete(fullVersion);
+                    default:
+                        throw new NotSupportedException($"The version action {action} is not supported.");
+                }
+            }
+
+            /// <summary>
+            /// Source: https://stackoverflow.com/a/3098381
+            /// </summary>
+            private static IEnumerable<IEnumerable<Tuple<T, int>>> CombinationsOfTwoByIndex<T>(
+                IEnumerable<T> sequenceA,
+                IEnumerable<int> sequenceBCounts)
+            {
+                // This takes as input a sequence of elements (A) and a sequence of element counts (related to another
+                // sequence B). The count at each position is how many elements from B to combine with that element of
+                // A. Suppose the input is:
+                //
+                //   A = [ x, y, z ]
+                //   B = [ 2, 2, 2 ]
+                //
+                // The output (in no particular order) would be:
+                //
+                //   [
+                //     [ x-1, y-1, z-1 ], [ x-1, y-1, z-2 ],
+                //     [ x-1, y-2, z-1 ], [ x-1, y-2, z-2 ],
+                //     [ x-2, y-1, z-1 ], [ x-2, y-1, z-2 ],
+                //     [ x-2, y-2, z-1 ], [ x-2, y-2, z-2 ],
+                //   ]
+                //
+                // This allows the caller to index into sequence B and produce the combinations of A and B.
+                return from cpLine in CartesianProduct(
+                       from count in sequenceBCounts select Enumerable.Range(1, count))
+                       select cpLine.Zip(sequenceA, (x1, x2) => Tuple.Create(x2, x1));
+
+            }
+
+            private static IEnumerable<IEnumerable<Tuple<T1, T2>>> CombinationsOfTwo<T1, T2>(
+                IReadOnlyCollection<T1> sequenceA,
+                IReadOnlyList<T2> sequenceB)
+            {
+                // This has the same behavior as CombinationsOfTwoByIndex but maps the sequence B indexes to actual
+                // values. Suppose the input is:
+                //
+                //   A = [ x, y, z ]
+                //   B = [ a, b ]
+                //
+                // The output (in no particular order) would be:
+                //
+                //   [
+                //     [ x-a, y-a, z-a ], [ x-a, y-a, z-b ],
+                //     [ x-a, y-b, z-a ], [ x-a, y-b, z-b ],
+                //     [ x-b, y-a, z-a ], [ x-b, y-a, z-b ],
+                //     [ x-b, y-b, z-a ], [ x-b, y-b, z-b ],
+                //   ]
+                //
+                // This allows the caller to create combinations of A and B where A is fixed but B is varied per
+                // returned combination.
+                var arr2 = Enumerable.Repeat(sequenceB.Count, sequenceA.Count);
+                var combinations = CombinationsOfTwoByIndex(sequenceA, arr2);
+                return combinations.Select(x => x.Select(t => Tuple.Create(t.Item1, sequenceB[t.Item2 - 1])));
+            }
+
+            /// <summary>
+            /// Source: https://stackoverflow.com/a/3098381
+            /// </summary>
+            private static IEnumerable<IEnumerable<T>> CartesianProduct<T>(IEnumerable<IEnumerable<T>> sequences)
+            {
+                IEnumerable<IEnumerable<T>> emptyProduct = new[] { Enumerable.Empty<T>() };
+                return sequences.Aggregate(
+                    emptyProduct,
+                    (accumulator, sequence) =>
+                        from accseq in accumulator
+                        from item in sequence
+                        select accseq.Concat(new[] { item })
+                    );
+            }
+
+            /// <summary>
+            /// Source: https://stackoverflow.com/a/999182
+            /// </summary>
+            private static IEnumerable<IEnumerable<T>> SubsetsOf<T>(IEnumerable<T> source)
+            {
+                // This produces all subsets of the input. This includes the input itself and the empty set. The term
+                // "set" is used to emphasize that order does not matter. The input is assumed to have unique items. If
+                // it has duplicates, some output sets will also have duplicates.
+                if (!source.Any())
+                {
+                    return Enumerable.Repeat(Enumerable.Empty<T>(), 1);
+                }
+
+                var element = source.Take(1);
+
+                var haveNots = SubsetsOf(source.Skip(1));
+                var haves = haveNots.Select(set => element.Concat(set));
+
+                return haves.Concat(haveNots);
+            }
+
+            private enum VersionAction
+            {
+                Listed,
+                Unlisted,
+                Deleted,
+            };
+
+            private class TestCase
+            {
+                public TestCase(VersionListChange[] initialState, IReadOnlyList<VersionListChange> changesToApply)
+                {
+                    InitialState = initialState ?? throw new ArgumentNullException(nameof(initialState));
+                    ChangesToApply = changesToApply ?? throw new ArgumentNullException(nameof(changesToApply));
+                }
+
+                public VersionListChange[] InitialState { get; }
+                public IReadOnlyList<VersionListChange> ChangesToApply { get; }
+            }
+
+            private class TestResult
+            {
+                public TestResult(TestCase testCase, Exception exception)
+                {
+                    TestCase = testCase;
+                    Exception = exception;
+                }
+
+                public TestCase TestCase { get; }
+                public Exception Exception { get; }
             }
         }
 
