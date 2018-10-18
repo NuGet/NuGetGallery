@@ -69,7 +69,7 @@
                 <div class="list-unstyled panel-collapse collapse in" id="delete-package">
                     @ViewHelpers.AlertDanger(
                         @<text>
-                            <strong>Deleting this symbols package will remove all the symbols from the symbol server and make them unavailable.</strong><br />
+                            <strong>Deleting this symbols package will remove all symbols in this package from the symbol server and make them unavailable.</strong><br />
                         </text>)
 
                     @using (Html.BeginForm("DeleteSymbolsPackage", "Packages", FormMethod.Post, new { id = "delete-symbols-form" }))

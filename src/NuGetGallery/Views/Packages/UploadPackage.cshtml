@@ -58,11 +58,10 @@
                 </div>
             }
 
-            <div id="symbols-replace-warning-container" class="hidden">
-                    @ViewHelpers.AlertWarning(@<text>It looks like there is an existing available symbols package (.snupkg) for the below package Id and version. 
-                        Please note that submitting this request will replace the previously uploaded symbols package (.snupkg) and all the corresponding symbol files (.pdb)
-                        from the symbol server with the currently uploaded symbols package.</text>)
-            </div>
+                <div id="symbols-replace-warning-container" class="hidden">
+                    @ViewHelpers.AlertWarning(@<text>There is an existing symbols package (.snupkg) for the below package ID and version. 
+                        Submitting this request will replace the previously uploaded symbols package as well as the corresponding symbol files from the symbol server.</text>)
+                </div>
 
             @Html.Partial("_VerifyForm")
         </div>
