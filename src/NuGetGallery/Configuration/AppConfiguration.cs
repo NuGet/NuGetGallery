@@ -360,9 +360,6 @@ namespace NuGetGallery.Configuration
         public bool BlockLegacyLicenseUrl { get; set; }
 
         [DefaultValue(false)]
-        public bool AllowUnlicensedPackages { get; set; }
-
-        [DefaultValue(false)]
         public bool AllowLicenselessPackages { get; set; }
     }
 }
