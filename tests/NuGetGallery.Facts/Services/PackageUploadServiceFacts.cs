@@ -632,8 +632,8 @@ namespace NuGetGallery
             {
                 new object[] { new byte[] { 0, 1, 2, 3 }, true },
                 new object[] { new byte[] { 10, 13 }, false },
-                new object[] { Encoding.UTF8.GetBytes("test"), false},
-                new object[] { Encoding.UTF8.GetBytes("тест"), false},
+                new object[] { Encoding.UTF8.GetBytes("Sample license test"), false},
+                new object[] { Encoding.UTF8.GetBytes("тест тест"), false},
             };
 
             // any characters with code <32 except line break characters should be rejected

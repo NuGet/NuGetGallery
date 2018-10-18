@@ -184,7 +184,7 @@ namespace NuGetGallery
             const int LineFeed = 10;
             const int CarriageReturn = 13;
 
-            return byteValue > TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn;
+            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn;
         }
 
         private bool IsTextStream(Stream stream)
