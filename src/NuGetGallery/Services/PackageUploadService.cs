@@ -124,6 +124,11 @@ namespace NuGetGallery
                 }
             }
 
+            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
+            {
+                return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
+            }
+
             if (licenseMetadata != null && LicenseHelper.DeprecationUrl != licenseUrl)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlRequired);
@@ -168,11 +173,6 @@ namespace NuGetGallery
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
                     }
                 }
-            }
-
-            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
-            {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
             }
 
             return null;
