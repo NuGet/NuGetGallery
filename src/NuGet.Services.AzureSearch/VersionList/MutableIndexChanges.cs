@@ -57,26 +57,26 @@ namespace NuGet.Services.AzureSearch
 
         public MutableIndexChanges()
         {
-            Search = new Dictionary<SearchFilters, SICT>();
+            SearchChanges = new Dictionary<SearchFilters, SICT>();
             HijackChanges = new Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>>();
-            HijackDocuments = new Dictionary<NuGetVersion, MutableHijackIndexDocument>();
+            HijackDocuments = new Dictionary<NuGetVersion, MutableHijackDocumentChanges>();
         }
 
         public MutableIndexChanges(
             Dictionary<SearchFilters, SICT> search,
             Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>> hijack)
         {
-            Search = search ?? throw new ArgumentNullException(nameof(search));
+            SearchChanges = search ?? throw new ArgumentNullException(nameof(search));
             HijackChanges = hijack ?? throw new ArgumentNullException(nameof(hijack));
             HijackDocuments = hijack.ToDictionary(
                 x => x.Key,
-                x => InitializeHijackIndexDocument(x.Value));
+                x => InitializeHijackDocumentChanges(x.Value));
         }
 
-        private static MutableHijackIndexDocument InitializeHijackIndexDocument(
+        private static MutableHijackDocumentChanges InitializeHijackDocumentChanges(
             IEnumerable<KeyValuePair<SearchFilters, HijackIndexChangeType>> changes)
         {
-            var document = new MutableHijackIndexDocument();
+            var document = new MutableHijackDocumentChanges();
             foreach (var change in changes)
             {
                 document.ApplyChange(change.Key, change.Value);
@@ -85,14 +85,14 @@ namespace NuGet.Services.AzureSearch
             return document;
         }
 
-        public Dictionary<SearchFilters, SICT> Search { get; }
+        public Dictionary<SearchFilters, SICT> SearchChanges { get; }
         private Dictionary<NuGetVersion, List<KeyValuePair<SearchFilters, HijackIndexChangeType>>> HijackChanges { get; }
 
         /// <summary>
         /// Keep track of the hijack document as we merge multiple <see cref="MutableIndexChanges"/>. This allows
         /// us to detect consistency problems are quickly as possible.
         /// </summary>
-        public Dictionary<NuGetVersion, MutableHijackIndexDocument> HijackDocuments { get; }
+        public Dictionary<NuGetVersion, MutableHijackDocumentChanges> HijackDocuments { get; }
 
         public static MutableIndexChanges FromLatestIndexChanges(
             IReadOnlyDictionary<SearchFilters, LatestIndexChanges> latestIndexChanges)
@@ -121,7 +121,7 @@ namespace NuGet.Services.AzureSearch
                 throw new ArgumentNullException(nameof(added));
             }
 
-            foreach (var pair in added.Search)
+            foreach (var pair in added.SearchChanges)
             {
                 MergeSearchIndexChanges(pair.Key, pair.Value);
             }
@@ -146,9 +146,9 @@ namespace NuGet.Services.AzureSearch
 
         private void MergeSearchIndexChanges(SearchFilters searchFilters, SICT addedType)
         {
-            if (!Search.TryGetValue(searchFilters, out var existingType))
+            if (!SearchChanges.TryGetValue(searchFilters, out var existingType))
             {
-                Search[searchFilters] = addedType;
+                SearchChanges[searchFilters] = addedType;
                 return;
             }
 
@@ -161,7 +161,7 @@ namespace NuGet.Services.AzureSearch
             var transition = new StateTransition(existingType, addedType);
             if (AcceptableTransitions.TryGetValue(transition, out var result))
             {
-                Search[searchFilters] = result;
+                SearchChanges[searchFilters] = result;
                 return;
             }
 
@@ -175,7 +175,7 @@ namespace NuGet.Services.AzureSearch
             // If the version does not yet exist, add it and move on.
             if (!HijackChanges.TryGetValue(version, out var existingChanges))
             {
-                HijackDocuments.Add(version, InitializeHijackIndexDocument(addedChanges));
+                HijackDocuments.Add(version, InitializeHijackDocumentChanges(addedChanges));
                 HijackChanges.Add(version, addedChanges);
             }
             else
@@ -188,6 +188,24 @@ namespace NuGet.Services.AzureSearch
 
                 existingChanges.AddRange(addedChanges);
             }
+        }
+
+        public IndexChanges Solidify()
+        {
+            // Verify that the running list of hijack changes is the same as the pre-computed hijack document.
+            Guard.Assert(HijackChanges.Count == HijackDocuments.Count, "The hijack document state has diverged.");
+            foreach (var pair in HijackChanges)
+            {
+                var expected = InitializeHijackDocumentChanges(pair.Value);
+                var actual = HijackDocuments[pair.Key];
+                Guard.Assert(
+                    expected == actual,
+                    $"The hijack document for {pair.Key.ToFullString()} is different than the list of index changes.");
+            }
+
+            return new IndexChanges(
+                SearchChanges.ToDictionary(x => x.Key, x => x.Value),
+                HijackDocuments.ToDictionary(x => x.Key, x => x.Value.Solidify()));
         }
 
         private class StateTransition : IEquatable<StateTransition>

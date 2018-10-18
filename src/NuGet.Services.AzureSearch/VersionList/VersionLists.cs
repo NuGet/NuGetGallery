@@ -73,6 +73,11 @@ namespace NuGet.Services.AzureSearch
             return new VersionListData(_versionProperties.Values.ToDictionary(x => x.Key, x => x.Value));
         }
 
+        public IndexChanges ApplyChanges(IEnumerable<VersionListChange> changes)
+        {
+            return ApplyChangesInternal(changes).Solidify();
+        }
+
         internal MutableIndexChanges ApplyChangesInternal(IEnumerable<VersionListChange> changes)
         {
             var mutableChanges = new MutableIndexChanges();

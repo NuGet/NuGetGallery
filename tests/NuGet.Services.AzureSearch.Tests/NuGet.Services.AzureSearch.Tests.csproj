@@ -37,11 +37,13 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="FilteredVersionListFacts.cs" />
+    <Compile Include="VersionList\FilteredVersionListFacts.cs" />
+    <Compile Include="VersionList\MutableHijackDocumentChangesFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="VersionListDataClientFacts.cs" />
-    <Compile Include="TestExtensionMethods.cs" />
-    <Compile Include="VersionListsFacts.cs" />
+    <Compile Include="VersionList\MutableIndexChangesFacts.cs" />
+    <Compile Include="VersionList\VersionListDataClientFacts.cs" />
+    <Compile Include="VersionList\TestExtensionMethods.cs" />
+    <Compile Include="VersionList\VersionListsFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.AzureSearch\NuGet.Services.AzureSearch.csproj">

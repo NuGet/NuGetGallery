@@ -465,6 +465,42 @@ namespace NuGet.Services.AzureSearch
             }
         }
 
+        public class ApplyChanges : BaseFacts
+        {
+            [Fact]
+            public void ProcessesAndSolidifiesChanges()
+            {
+                var v1 = new Versions("1.0.0");
+                var v2 = new Versions("2.0.0");
+                var v3 = new Versions("3.0.0");
+                var data = new VersionListData(
+                    new[] { v1.Listed, v3.Listed }.ToDictionary(x => x.FullVersion, x => x.Data));
+                var list = new VersionLists(data);
+
+                var output = list.ApplyChanges(new[] { v2.Listed, v3.Unlisted });
+
+                Assert.Equal(
+                    Enum.GetValues(typeof(SearchFilters)).Cast<SearchFilters>().OrderBy(x => x).ToArray(),
+                    output.Search.Keys.OrderBy(x => x).ToArray());
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(
+                    new[] { v1.Parsed, v2.Parsed, v3.Parsed },
+                    output.Hijack.Keys.OrderBy(x => x).ToArray());
+                Assert.False(output.Hijack[v1.Parsed].Delete);
+                Assert.False(output.Hijack[v1.Parsed].UpdateMetadata);
+                Assert.False(output.Hijack[v1.Parsed].LatestSemVer1);
+                Assert.False(output.Hijack[v2.Parsed].Delete);
+                Assert.True(output.Hijack[v2.Parsed].UpdateMetadata);
+                Assert.True(output.Hijack[v2.Parsed].LatestSemVer1);
+                Assert.False(output.Hijack[v3.Parsed].Delete);
+                Assert.True(output.Hijack[v3.Parsed].UpdateMetadata);
+                Assert.False(output.Hijack[v3.Parsed].LatestSemVer1);
+            }
+        }
+
         public class ApplyChangesInternal : BaseFacts
         {
             internal readonly Versions _v1;
@@ -626,7 +662,7 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.ApplyChangesInternal(Enumerable.Empty<VersionListChange>());
 
-                Assert.Empty(output.Search);
+                Assert.Empty(output.SearchChanges);
                 Assert.Empty(output.HijackDocuments);
             }
 
@@ -1029,10 +1065,10 @@ namespace NuGet.Services.AzureSearch
 
             private void AssertSearchFilters(MutableIndexChanges output, SearchIndexChangeType type)
             {
-                Assert.Equal(type, output.Search[SearchFilters.Default]);
-                Assert.Equal(type, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(type, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(type, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(type, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(type, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(type, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(type, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
             }
 
             private void AssertHijackKeys(MutableIndexChanges output, params Versions[] versions)
@@ -1061,25 +1097,6 @@ namespace NuGet.Services.AzureSearch
 
                 var data = new VersionListData(versions.ToDictionary(x => x.FullVersion, x => x.Data));
                 return new VersionLists(data);
-            }
-
-            internal class Versions
-            {
-                public Versions(string fullOrOriginalVersion)
-                {
-                    Listed = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: true, semVer2: false));
-                    Full = Listed.FullVersion;
-                    Parsed = Listed.ParsedVersion;
-                    Unlisted = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: false, semVer2: false));
-                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
-                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
-                }
-
-                public string Full { get; }
-                public NuGetVersion Parsed { get; }
-                public VersionListChange Listed { get; }
-                public VersionListChange Unlisted { get; }
-                public VersionListChange Deleted { get; }
             }
         }
 
@@ -1120,10 +1137,10 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(latest);
                 
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[]
                     {
@@ -1135,7 +1152,7 @@ namespace NuGet.Services.AzureSearch
                     },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: false,
@@ -1144,7 +1161,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: null),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1153,7 +1170,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: null),
                     output.HijackDocuments[_prereleaseSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1162,7 +1179,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: null),
                     output.HijackDocuments[_stableSemVer2Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1171,7 +1188,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: false),
                     output.HijackDocuments[_prereleaseSemVer2Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: true,
@@ -1188,15 +1205,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Listed);
                 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateLatest, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: true,
@@ -1205,7 +1222,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: false),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1222,15 +1239,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: true,
@@ -1239,7 +1256,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: true),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1256,15 +1273,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_stableSemVer1Listed);
                 
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: true,
@@ -1273,7 +1290,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: false),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1290,15 +1307,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_stableSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1307,7 +1324,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: false),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1324,15 +1341,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Listed);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1349,15 +1366,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1374,15 +1391,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_stableSemVer1Listed);
                 
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.AddFirst, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.AddFirst, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: true,
@@ -1399,15 +1416,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_stableSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1424,15 +1441,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: true,
@@ -1441,7 +1458,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: true),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1458,15 +1475,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1483,15 +1500,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_prereleaseSemVer1Unlisted);
 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1508,15 +1525,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Upsert(_stableSemVer1Unlisted);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: true,
                         latestStableSemVer1: false,
@@ -1525,7 +1542,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: false),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1556,15 +1573,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(StableSemVer1);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: true,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1573,7 +1590,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: null),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1590,15 +1607,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(PrereleaseSemVer1);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: true,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1615,15 +1632,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(PrereleaseSemVer1);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: true,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1640,15 +1657,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(PrereleaseSemVer1);
                 
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.DowngradeLatest, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: true,
@@ -1657,7 +1674,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: true),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: true,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1674,15 +1691,15 @@ namespace NuGet.Services.AzureSearch
 
                 var output = list.Delete(StableSemVer1);
                 
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.Default]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrerelease]);
-                Assert.Equal(SearchIndexChangeType.Delete, output.Search[SearchFilters.IncludeSemVer2]);
-                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.Search[SearchFilters.IncludePrereleaseAndSemVer2]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.Default]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrerelease]);
+                Assert.Equal(SearchIndexChangeType.Delete, output.SearchChanges[SearchFilters.IncludeSemVer2]);
+                Assert.Equal(SearchIndexChangeType.UpdateVersionList, output.SearchChanges[SearchFilters.IncludePrereleaseAndSemVer2]);
                 Assert.Equal(
                     new[] { _stableSemVer1Listed.ParsedVersion, _prereleaseSemVer1Listed.ParsedVersion },
                     output.HijackDocuments.Keys.OrderBy(x => x).ToArray());
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: true,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1691,7 +1708,7 @@ namespace NuGet.Services.AzureSearch
                         latestSemVer2: null),
                     output.HijackDocuments[_stableSemVer1Listed.ParsedVersion]);
                 Assert.Equal(
-                    new MutableHijackIndexDocument(
+                    new MutableHijackDocumentChanges(
                         delete: null,
                         updateMetadata: null,
                         latestStableSemVer1: null,
@@ -1739,6 +1756,25 @@ namespace NuGet.Services.AzureSearch
             {
                 var data = new VersionListData(versions.ToDictionary(x => x.FullVersion, x => x.Data));
                 return new VersionLists(data);
+            }
+
+            internal class Versions
+            {
+                public Versions(string fullOrOriginalVersion)
+                {
+                    Listed = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: true, semVer2: false));
+                    Full = Listed.FullVersion;
+                    Parsed = Listed.ParsedVersion;
+                    Unlisted = VersionListChange.Upsert(fullOrOriginalVersion, new VersionPropertiesData(listed: false, semVer2: false));
+                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
+                    Deleted = VersionListChange.Delete(fullOrOriginalVersion);
+                }
+
+                public string Full { get; }
+                public NuGetVersion Parsed { get; }
+                public VersionListChange Listed { get; }
+                public VersionListChange Unlisted { get; }
+                public VersionListChange Deleted { get; }
             }
         }
     }
