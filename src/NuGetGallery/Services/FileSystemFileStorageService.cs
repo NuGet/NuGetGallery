@@ -273,6 +273,13 @@ namespace NuGetGallery
             return fileStorageDirectory;
         }
 
+        public async Task<string> GetETagAsync(
+           string folderName,
+           string fileName)
+        {
+            return await Task.FromResult<string>(null);
+        }
+
         private static string GetContentType(string folderName)
         {
             switch (folderName)

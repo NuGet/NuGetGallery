@@ -120,5 +120,15 @@ namespace NuGetGallery
             string folderName,
             string fileName,
             Func<Lazy<Task<Stream>>, IDictionary<string, string>, Task<bool>> updateMetadataAsync);
+
+        /// <summary>
+        /// Returns the etag value for the specified blob. If the blob does not exists it will return null.
+        /// </summary>
+        /// <param name="folderName">The folder name.</param>
+        /// <param name="fileName">The file name.</param>
+        /// <returns>The etag of the specified file.</returns>
+        Task<string> GetETagAsync(
+            string folderName,
+            string fileName);
     }
 }
