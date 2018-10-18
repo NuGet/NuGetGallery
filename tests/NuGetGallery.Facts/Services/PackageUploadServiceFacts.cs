@@ -467,7 +467,7 @@ namespace NuGetGallery
                 }
             }
 
-            const string LicenseDeprecationUrl = LicenseHelper.DeprecationUrl;
+            const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
             const string RegularLicenseUrl = "https://example.com/license";
 
             [Theory]

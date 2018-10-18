@@ -18,6 +18,8 @@ namespace NuGetGallery
 {
     public class PackageUploadService : IPackageUploadService
     {
+        const string LicenseDeprecationUrl = "https://aka.ms/deprecateLicenseUrl";
+
         private static readonly IReadOnlyCollection<string> AllowedLicenseFileExtensions = new HashSet<string>
         {
             ".txt",
@@ -107,7 +109,7 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_MissingLicenseInformation);
             }
 
-            if (LicenseHelper.DeprecationUrl == licenseUrl && licenseMetadata == null)
+            if (LicenseDeprecationUrl == licenseUrl && licenseMetadata == null)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlUsage);
             }
@@ -129,7 +131,7 @@ namespace NuGetGallery
                 return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
             }
 
-            if (licenseMetadata != null && LicenseHelper.DeprecationUrl != licenseUrl)
+            if (licenseMetadata != null && LicenseDeprecationUrl != licenseUrl)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlRequired);
             }
