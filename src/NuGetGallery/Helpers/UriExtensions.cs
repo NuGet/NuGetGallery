@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Web;
 
 namespace NuGetGallery
 {
@@ -56,6 +58,20 @@ namespace NuGetGallery
             uriBuilder.Port = -1;
 
             return uriBuilder.Uri;
+        }
+
+        public static string AppendQueryStringToRelativeUri(string relativeUrl, IDictionary<string, string> queryStringCollection)
+        {
+            var tempUri = new Uri("http://www.nuget.org/");
+            var builder = new UriBuilder(new Uri(tempUri, relativeUrl));
+            var query = HttpUtility.ParseQueryString(builder.Query);
+            foreach (var key in queryStringCollection.Keys)
+            {
+                query[key] = queryStringCollection[key];
+            }
+
+            builder.Query = query.ToString();
+            return builder.Uri.PathAndQuery;
         }
     }
 }

@@ -37,6 +37,8 @@ namespace NuGetGallery
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
         private const string EMAIL_FORMAT_PADDING = "**********";
 
+        private static HashSet<string> _authenticationErrorMessageList = new HashSet<string> { "access_denied", "consent_required" };
+
         // Prioritize the external authentication mechanism.
         private static readonly string[] ExternalAuthenticationPriority = new string[] {
             Authenticator.GetName(typeof(AzureActiveDirectoryV2Authenticator)),
@@ -172,7 +174,7 @@ namespace NuGetGallery
                 authenticatedUser = loginUserDetails?.AuthenticatedUser;
                 if (authenticatedUser == null)
                 {
-                    return ExternalLinkExpired();
+                    return AuthenticationFailureOrExternalLinkExpired();
                 }
 
                 usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
@@ -264,7 +266,7 @@ namespace NuGetGallery
                     var result = await _authService.ReadExternalLoginCredential(OwinContext);
                     if (result.ExternalIdentity == null)
                     {
-                        return ExternalLinkExpired();
+                        return AuthenticationFailureOrExternalLinkExpired();
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
@@ -497,7 +499,7 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
-        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)
+        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl, string error = null, string errorDescription = null)
         {
             // Extract the external login info
             var result = await _authService.AuthenticateExternalLogin(OwinContext);
@@ -505,7 +507,19 @@ namespace NuGetGallery
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
-                return ExternalLinkExpired();
+                string errorMessage = null;
+                if (string.IsNullOrEmpty(error))
+                {
+                    errorMessage = "Unknown error!";
+                }
+                else
+                {
+                    errorMessage = _authenticationErrorMessageList.Contains(error, StringComparer.OrdinalIgnoreCase)
+                        ? Strings.ExternalAccountLinkExpired
+                        : errorDescription;
+                }
+
+                return AuthenticationFailureOrExternalLinkExpired(errorMessage);
             }
 
             if (result.Authentication != null)
@@ -749,11 +763,11 @@ namespace NuGetGallery
             }
         }
 
-        private ActionResult ExternalLinkExpired()
+        private ActionResult AuthenticationFailureOrExternalLinkExpired(string errorMessage = null)
         {
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
-            TempData["Message"] = Strings.ExternalAccountLinkExpired;
+            TempData["Message"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
             return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 

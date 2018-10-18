@@ -45,7 +45,6 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         public static readonly string Authority = "https://login.microsoftonline.com/{0}/v2.0";
 
         private static string _callbackPath = "users/account/authenticate/return";
-        private static HashSet<string> _errorMessageList = new HashSet<string> { "access_denied", "consent_required" };
         private static HashSet<string> _alternateSiteRootList;
         private const string SELECT_ACCOUNT = "select_account";
 
@@ -200,16 +199,23 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
-            if (_errorMessageList.Contains(notification.Exception.Message))
-            {
-                // For every 'Challenge' sent to the external providers, we store the 'State'
-                // with the redirect uri where we intend to return after successful authentication.
-                // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
-                var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
+            // For every 'Challenge' sent to the external providers, we store the 'State'
+            // with the redirect uri where we intend to return after successful authentication.
+            // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
+            var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
 
-                notification.HandleResponse();
-                notification.Response.Redirect(authenticationProperties.RedirectUri);
-            }
+            // All authentication related exceptions will be handled.
+            notification.HandleResponse();
+
+            // Pass the errors as the query string to show appropriate message to the user.
+            var queryString = new Dictionary<string, string>()
+            {
+                { "error", notification.ProtocolMessage.Error },
+                { "errorDescription", notification.ProtocolMessage.ErrorDescription }
+            };
+
+            var redirectUri = UriExtensions.AppendQueryStringToRelativeUri(authenticationProperties.RedirectUri, queryString);
+            notification.Response.Redirect(redirectUri);
 
             return Task.FromResult(0);
         }
