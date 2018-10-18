@@ -196,6 +196,10 @@ namespace NuGetGallery
                         (TrackAction)(s => s.TrackSymbolPackageFailedGalleryValidationEvent("id", "version"))
                     };
 
+                    yield return new object[] { "SymbolPackageRevalidate",
+                        (TrackAction)(s => s.TrackSymbolPackageRevalidate("id", "version"))
+                    };
+
                     yield return new object[] { "PackageMetadataComplianceError",
                         (TrackAction)(s => s.TrackPackageMetadataComplianceError(fakes.Package.Id, package.NormalizedVersion, new[] { "Failure reason" }))
                     };

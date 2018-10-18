@@ -53,6 +53,7 @@ namespace NuGetGallery
             public const string SymbolPackageDelete = "SymbolPackageDelete";
             public const string SymbolPackagePushFailure = "SymbolPackagePushFailure";
             public const string SymbolPackageGalleryValidation = "SymbolPackageGalleryValidation";
+            public const string SymbolPackageRevalidate = "SymbolPackageRevalidate";
             public const string PackageMetadataComplianceError = "PackageMetadataComplianceError";
             public const string PackageMetadataComplianceWarning = "PackageMetadataComplianceWarning";
             public const string PackageOwnershipAutomaticallyAdded = "PackageOwnershipAutomaticallyAdded";
@@ -423,6 +424,11 @@ namespace NuGetGallery
         public void TrackSymbolPackageFailedGalleryValidationEvent(string packageId, string packageVersion)
         {
             TrackMetricForSymbolPackage(Events.SymbolPackageGalleryValidation, packageId, packageVersion);
+        }
+
+        public void TrackSymbolPackageRevalidate(string packageId, string packageVersion)
+        {
+            TrackMetricForSymbolPackage(Events.SymbolPackageRevalidate, packageId, packageVersion);
         }
 
         private void TrackMetricForAccountActivity(string eventName, User user, Credential credential, bool wasMultiFactorAuthenticated = false)

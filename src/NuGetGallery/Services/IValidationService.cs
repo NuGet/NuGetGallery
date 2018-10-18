@@ -34,6 +34,13 @@ namespace NuGetGallery
         Task RevalidateAsync(Package package);
 
         /// <summary>
+        /// Starts the asynchronous validation for the provided new symbols package but does not change the symbol package's
+        /// <see cref="Package.PackageStatusKey"/>.
+        /// </summary>
+        /// <param name="symbolPackage">The symbols package to start validation for.</param>
+        Task RevalidateAsync(SymbolPackage symbolPackage);
+
+        /// <summary>
         /// Whether the package's validation time exceeds the expected validation time.
         /// </summary>
         /// <param name="package">The package whose validation time should be inspected.</param>

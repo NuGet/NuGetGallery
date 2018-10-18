@@ -970,6 +970,9 @@ Policy violations: {0}</value>
   <data name="SymbolsPackage_Deleted" xml:space="preserve">
     <value>The symbols package associated with this package has been deleted.</value>
   </data>
+  <data name="SymbolsPackage_RevalidateDeletedPackage" xml:space="preserve">
+    <value>The latest associated symbols package for package with ID {0} and version {1} is deleted. Cannot revalidate a deleted symbols package.</value>
+  </data>
   <data name="Emails_ForgotPassword_MarkdownBody" xml:space="preserve">
     <value>The word on the street is you lost your password. Sorry to hear it!
 If you haven't forgotten your password you can safely ignore this email. Your password has not been changed.
