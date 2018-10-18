@@ -1,0 +1,49 @@
+<Project>
+  <!--
+  "EnumerateScriptFilesToSign" is a custom target that signs deployment scripts and executables.
+  The process is non-trivial because only files in $(OutDir) can be signed.
+  We must copy the files into $(OutDir), sign them, and then copy them back.
+  -->
+  <ItemGroup>
+    <SignFilesDependsOn Include="EnumerateScriptFilesToSign" />
+  </ItemGroup>
+  <Target Name="EnumerateScriptFilesToSign" AfterTargets="AfterBuild" Condition="'$(SignType)' != 'none'">
+    <ItemGroup>
+      <PowerShellScriptsToSign Include="Functions.ps1"/>
+      <PowerShellScriptsToSign Include="PostDeploy.ps1"/>
+      <PowerShellScriptsToSign Include="PreDeploy.ps1"/>
+      <PowerShellScriptsToSign Remove="@(PowerShellScriptsToNotSign)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <ExecutablesToSign Include="nssm.exe"/>
+      <ExecutablesToSign Remove="@(ExecutablesToNotSign)"/>
+    </ItemGroup>
+    <ItemGroup>
+      <ScriptsToSign Include="@(PowerShellScriptsToSign)"/>
+      <ScriptsToSign Include="@(ExecutablesToSign)"/>
+    </ItemGroup>
+    <!-- Copy the files into $(OutDir) where they can be signed. -->
+    <Copy Condition="'@(ScriptsToSign)'!=''"
+      SourceFiles="$(MSBuildProjectDirectory)\Scripts\%(ScriptsToSign.Identity)"
+      DestinationFolder="$(OutDir)"
+    />
+    <ItemGroup>
+      <FilesToSign Condition="'@(PowerShellScriptsToSign)'!=''" Include="$(OutDir)%(PowerShellScriptsToSign.Identity)">
+        <Authenticode>Microsoft400</Authenticode>
+      </FilesToSign>
+      <FilesToSign Condition="'@(ExecutablesToSign)'!=''" Include="$(OutDir)%(ExecutablesToSign.Identity)">
+        <Authenticode>3PartySHA2</Authenticode>
+      </FilesToSign>
+    </ItemGroup>
+    <Message Text="Files to sign:%0A@(FilesToSign, '%0A')" Importance="High" />
+  </Target>
+  <Target Name="CleanUpScriptFilesToSign" AfterTargets="SignFiles" Condition="'$(SignType)' != 'none'">
+    <!-- Copy the signed files from $(OutDir) back to the Scripts folder. -->
+    <Copy Condition="'@(ScriptsToSign)'!=''"
+      SourceFiles="$(OutDir)%(ScriptsToSign.Identity)"
+      DestinationFolder="$(MSBuildProjectDirectory)\Scripts"
+    />
+    <!-- The copy of the files in $(OutDir) can now be deleted. -->
+    <Delete Condition="'@(ScriptsToSign)'!=''" Files="$(OutDir)%(ScriptsToSign.Identity)"/>
+  </Target>
+</Project>

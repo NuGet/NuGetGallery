@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!--
+  "MicroBuild_NuPkgSigningEnabled" configures whether or not .nupkg files built will be signed.
+  We are not required to sign the .nupkg files we produce, so we must set it to false.
+  -->
+  <PropertyGroup>
+    <MicroBuild_NuPkgSigningEnabled>false</MicroBuild_NuPkgSigningEnabled>
+  </PropertyGroup>
+  <!--
   "EnumerateFilesToSign" is a custom target that runs after build and signs the output assembly of the project. This
   target only runs if the "SignAssembly" is true (which enables delayed signing) and if "SignType" is not "none". This
   latter condition is to allow builds to disable signing explicitly, which is an optimization for Cloud Service builds.
