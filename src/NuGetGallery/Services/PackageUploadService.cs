@@ -138,7 +138,7 @@ namespace NuGetGallery
             {
                 return PackageValidationResult.Invalid(
                     string.Format(
-                        Strings.UploadPackage_InvalidLicenseExpression,
+                        Strings.UploadPackage_InvalidLicenseMetadata,
                         string.Join(" ", licenseMetadata.WarningsAndErrors)));
             }
 

@@ -1011,8 +1011,8 @@ The {1} Team</value>
   <data name="UploadPackage_DeprecationUrlUsage" xml:space="preserve">
     <value>The license deprecation URL must be used in conjunction with specifying the license in the package.</value>
   </data>
-  <data name="UploadPackage_InvalidLicenseExpression" xml:space="preserve">
-    <value>Invalid license expression. {0}</value>
+  <data name="UploadPackage_InvalidLicenseMetadata" xml:space="preserve">
+    <value>Invalid license metadata: {0}</value>
     <comment>{0} is the list of the issues found with license expression.</comment>
   </data>
   <data name="UploadPackage_LegacyLicenseUrlNotAllowed" xml:space="preserve">

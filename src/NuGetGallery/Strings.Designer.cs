@@ -2220,20 +2220,20 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid license expression. {0}.
-        /// </summary>
-        public static string UploadPackage_InvalidLicenseExpression {
-            get {
-                return ResourceManager.GetString("UploadPackage_InvalidLicenseExpression", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to License file has invalid extension &apos;{0}&apos;. Extension must be one of the following: {1}..
         /// </summary>
         public static string UploadPackage_InvalidLicenseFileExtension {
             get {
                 return ResourceManager.GetString("UploadPackage_InvalidLicenseFileExtension", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid license metadata: {0}.
+        /// </summary>
+        public static string UploadPackage_InvalidLicenseMetadata {
+            get {
+                return ResourceManager.GetString("UploadPackage_InvalidLicenseMetadata", resourceCulture);
             }
         }
         
