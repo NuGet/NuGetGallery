@@ -237,6 +237,8 @@ namespace NuGetGallery
 
             var verifyRequest = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             verifyRequest.IsSymbolsPackage = true;
+            verifyRequest.HasExistingAvailableSymbols = packageForUploadingSymbols.IsLatestSymbolPackageAvailable();
+
             model.InProgressUpload = verifyRequest;
 
             return View(model);
@@ -386,7 +388,12 @@ namespace NuGetGallery
             // Save the uploaded file
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
-            return await GetVerifyPackageView(currentUser, packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration, isSymbolsPackageUpload: true);
+            return await GetVerifyPackageView(currentUser,
+                packageMetadata,
+                accountsAllowedOnBehalfOf,
+                existingPackageRegistration,
+                isSymbolsPackageUpload: true,
+                hasExistingSymbolsPackageAvailable: packageForUploadingSymbols.IsLatestSymbolPackageAvailable());
         }
 
         private async Task<JsonResult> UploadPackageInternal(PackageArchiveReader packageArchiveReader, Stream uploadStream, NuspecReader nuspec, PackageMetadata packageMetadata)
@@ -495,14 +502,22 @@ namespace NuGetGallery
 
             await _uploadFileService.SaveUploadFileAsync(currentUser.Key, uploadStream);
 
-            return await GetVerifyPackageView(currentUser, packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration, isSymbolsPackageUpload: false);
+            var hasExistingSymbolsPackageAvailable = existingPackage != null && existingPackage.IsLatestSymbolPackageAvailable();
+
+            return await GetVerifyPackageView(currentUser,
+                packageMetadata,
+                accountsAllowedOnBehalfOf,
+                existingPackageRegistration,
+                isSymbolsPackageUpload: false,
+                hasExistingSymbolsPackageAvailable: hasExistingSymbolsPackageAvailable);
         }
 
         private async Task<JsonResult> GetVerifyPackageView(User currentUser,
             PackageMetadata packageMetadata,
             IEnumerable<User> accountsAllowedOnBehalfOf,
             PackageRegistration existingPackageRegistration,
-            bool isSymbolsPackageUpload)
+            bool isSymbolsPackageUpload,
+            bool hasExistingSymbolsPackageAvailable)
         {
             IReadOnlyList<string> warnings = new List<string>();
             using (Stream uploadedFile = await _uploadFileService.GetUploadFileAsync(currentUser.Key))
@@ -546,8 +561,8 @@ namespace NuGetGallery
 
             var model = new VerifyPackageRequest(packageMetadata, accountsAllowedOnBehalfOf, existingPackageRegistration);
             model.IsSymbolsPackage = isSymbolsPackageUpload;
+            model.HasExistingAvailableSymbols = hasExistingSymbolsPackageAvailable;
             model.Warnings.AddRange(warnings);
-
             return Json(model);
         }
 

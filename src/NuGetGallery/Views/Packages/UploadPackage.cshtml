@@ -3,8 +3,8 @@
     ViewBag.Title = "Upload Package";
     ViewBag.Tab = "Upload";
     var placeholder = Model.IsSymbolsUploadEnabled
-        ? "Browse or Drop files to select a package or symbols package..."
-        : "Browse or Drop files to select a package";
+        ? "Browse or Drop files to select a package (.nupkg) or symbols package (.snupkg)..."
+        : "Browse or Drop files to select a package (.nupkg)";
     var acceptExtensions = Model.IsSymbolsUploadEnabled
         ? ".nupkg,.snupkg"
         : ".nupkg";
@@ -57,6 +57,11 @@
                     @ViewHelpers.AlertInfo(@<text>You had an upload in progress. You can continue it here or cancel to restart.</text>)
                 </div>
             }
+
+                <div id="symbols-replace-warning-container" class="hidden">
+                    @ViewHelpers.AlertWarning(@<text>There is an existing symbols package (.snupkg) for the below package ID and version. 
+                        Submitting this request will replace the previously uploaded symbols package as well as the corresponding symbol files from the symbol server.</text>)
+                </div>
 
             @Html.Partial("_VerifyForm")
         </div>
