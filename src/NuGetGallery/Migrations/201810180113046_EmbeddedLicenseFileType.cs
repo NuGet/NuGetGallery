@@ -7,7 +7,7 @@ namespace NuGetGallery.Migrations
     {
         public override void Up()
         {
-            AddColumn("dbo.Packages", "EmbeddedLicenseType", c => c.Int(nullable: false));
+            AddColumn("dbo.Packages", "EmbeddedLicenseType", c => c.Int(nullable: false, defaultValue: 0));
         }
         
         public override void Down()
