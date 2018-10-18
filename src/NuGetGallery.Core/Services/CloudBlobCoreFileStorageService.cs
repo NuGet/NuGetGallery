@@ -426,7 +426,7 @@ namespace NuGetGallery
             }
         }
 
-        public async Task<string> GetETagAsync(
+        public async Task<string> GetETagOrNullAsync(
             string folderName,
             string fileName)
         {
@@ -435,13 +435,16 @@ namespace NuGetGallery
 
             var container = await GetContainerAsync(folderName);
             var blob = container.GetBlobReference(fileName);
-
-            if(blob == null)
+            try
+            {
+                await blob.FetchAttributesAsync();
+                return blob.ETag;
+            }
+            // In case that the blob does not exist return null.
+            catch (StorageException)
             {
                 return null;
             }
-            await blob.FetchAttributesAsync();
-            return blob.ETag;
         }
 
         private static SharedAccessBlobPermissions MapFileUriPermissions(FileUriPermissions permissions)

@@ -127,7 +127,7 @@ namespace NuGetGallery
         /// <param name="folderName">The folder name.</param>
         /// <param name="fileName">The file name.</param>
         /// <returns>The etag of the specified file.</returns>
-        Task<string> GetETagAsync(
+        Task<string> GetETagOrNullAsync(
             string folderName,
             string fileName);
     }

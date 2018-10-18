@@ -1445,12 +1445,25 @@ namespace NuGetGallery
                 _blob.SetupGet(x => x.ETag).Returns(_etag);
 
                 // Act 
-                var etagValue = await _service.GetETagAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
 
                 // Assert 
                 Assert.Equal(_etag, etagValue);
             }
 
+
+            [Fact]
+            public async Task VerifyETagIsNullWhenBlobDoesNotExist()
+            {
+                // Arrange
+                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
+
+                // Act 
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+
+                // Assert 
+                Assert.Null(etagValue);
+            }
         }
 
     }
