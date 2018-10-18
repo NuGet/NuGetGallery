@@ -393,6 +393,10 @@
     <Compile Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.Designer.cs">
       <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
     </Compile>
+    <Compile Include="Migrations\201810180113046_EmbeddedLicenseFileType.cs" />
+    <Compile Include="Migrations\201810180113046_EmbeddedLicenseFileType.Designer.cs">
+      <DependentUpon>201810180113046_EmbeddedLicenseFileType.cs</DependentUpon>
+    </Compile>
     <Compile Include="RequestModels\DeleteAccountRequest.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.cs" />
     <Compile Include="Migrations\201710301857232_Organizations.Designer.cs">
@@ -1583,6 +1587,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Migrations\201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.resx">
       <DependentUpon>201808312302101_AddIsVerifiedDownloadCountIdIndexForPackageRegistrationsTable.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Migrations\201810180113046_EmbeddedLicenseFileType.resx">
+      <DependentUpon>201810180113046_EmbeddedLicenseFileType.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1packages.json" />
     <EmbeddedResource Include="OData\QueryAllowed\Data\apiv1search.json" />
