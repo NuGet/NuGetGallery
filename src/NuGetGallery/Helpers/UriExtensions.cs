@@ -60,14 +60,14 @@ namespace NuGetGallery
             return uriBuilder.Uri;
         }
 
-        public static string AppendQueryStringToRelativeUri(string relativeUrl, IDictionary<string, string> queryStringCollection)
+        public static string AppendQueryStringToRelativeUri(string relativeUrl, IReadOnlyCollection<KeyValuePair<string, string>> queryStringCollection)
         {
             var tempUri = new Uri("http://www.nuget.org/");
             var builder = new UriBuilder(new Uri(tempUri, relativeUrl));
             var query = HttpUtility.ParseQueryString(builder.Query);
-            foreach (var key in queryStringCollection.Keys)
+            foreach (var pair in queryStringCollection)
             {
-                query[key] = queryStringCollection[key];
+                query[pair.Key] = pair.Value;
             }
 
             builder.Query = query.ToString();

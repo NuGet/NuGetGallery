@@ -48,6 +48,12 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         private static HashSet<string> _alternateSiteRootList;
         private const string SELECT_ACCOUNT = "select_account";
 
+        private static class ErrorQueryKeys
+        {
+            public const string Error = "error";
+            public const string ErrorDescription = "errorDescription";
+        }
+
         /// <summary>
         /// The possible values returned by <see cref="V2Claims.ACR"/> claim, and also the possible token values to be sent
         /// for authentication to the common endpoint.
@@ -199,7 +205,7 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
         // error handling is done.
         private Task AuthenticationFailed(AuthenticationFailedNotification<OpenIdConnectMessage, OpenIdConnectAuthenticationOptions> notification)
         {
-            // For every 'Challenge' sent to the external providers, we store the 'State'
+            // For every 'Challenge' sent to the external providers, we pass the 'State'
             // with the redirect uri where we intend to return after successful authentication.
             // Extract this "RedirectUri" property from this "State" object for redirecting on failed authentication as well.
             var authenticationProperties = GetAuthenticationPropertiesFromProtocolMessage(notification.ProtocolMessage, notification.Options);
@@ -208,10 +214,10 @@ namespace NuGetGallery.Authentication.Providers.AzureActiveDirectoryV2
             notification.HandleResponse();
 
             // Pass the errors as the query string to show appropriate message to the user.
-            var queryString = new Dictionary<string, string>()
+            var queryString = new List<KeyValuePair<string, string>>()
             {
-                { "error", notification.ProtocolMessage.Error },
-                { "errorDescription", notification.ProtocolMessage.ErrorDescription }
+                new KeyValuePair<string, string>(ErrorQueryKeys.Error, notification.ProtocolMessage.Error),
+                new KeyValuePair<string, string>(ErrorQueryKeys.ErrorDescription, notification.ProtocolMessage.ErrorDescription)
             };
 
             var redirectUri = UriExtensions.AppendQueryStringToRelativeUri(authenticationProperties.RedirectUri, queryString);
