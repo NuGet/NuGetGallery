@@ -20,7 +20,7 @@ namespace NuGetGallery
         Task SavePackageFileAsync(Package package, Stream packageFile, bool overwrite);
 
         /// <summary>
-        /// Extracts the license file from the package file and saves it to the public container for package content.
+        /// Saves the license file to the public container for package content.
         /// </summary>
         Task SaveLicenseFileAsync(Package package, Stream licenseFile);
 

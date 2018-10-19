@@ -593,8 +593,11 @@ namespace NuGetGallery
             }
 
             [Theory]
+            [InlineData("", true)]
             [InlineData(".txt", true)]
             [InlineData(".md", true)]
+            [InlineData(".Txt", true)]
+            [InlineData(".Md", true)]
             [InlineData(".doc", false)]
             [InlineData(".pdf", false)]
             public async Task ChecksLicenseFileExtension(string extension, bool successExpected)

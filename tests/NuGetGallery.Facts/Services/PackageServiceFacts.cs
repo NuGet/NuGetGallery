@@ -301,7 +301,10 @@ namespace NuGetGallery
             [Theory]
             [InlineData(null, EmbeddedLicenseFileType.Absent)]
             [InlineData("foo.txt", EmbeddedLicenseFileType.PlainText)]
-            [InlineData("bar.md", EmbeddedLicenseFileType.MarkDown)]
+            [InlineData("bar.md", EmbeddedLicenseFileType.Markdown)]
+            [InlineData("foo.tXt", EmbeddedLicenseFileType.PlainText)]
+            [InlineData("bar.mD", EmbeddedLicenseFileType.Markdown)]
+            [InlineData("baz", EmbeddedLicenseFileType.PlainText)]
             public async Task WillDetectLicenseFileType(string licenseFileName, EmbeddedLicenseFileType expectedFileType)
             {
                 var packageRegistrationRepository = new Mock<IEntityRepository<PackageRegistration>>();

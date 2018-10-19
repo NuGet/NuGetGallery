@@ -22,6 +22,7 @@ namespace NuGetGallery
 
         private static readonly IReadOnlyCollection<string> AllowedLicenseFileExtensions = new HashSet<string>
         {
+            "",
             ".txt",
             ".md",
         };
@@ -159,13 +160,13 @@ namespace NuGetGallery
 
                 // check if specified file has allowed extension
                 var licenseFileExtension = Path.GetExtension(licenseMetadata.License);
-                if (!AllowedLicenseFileExtensions.Contains(licenseFileExtension))
+                if (!AllowedLicenseFileExtensions.Contains(licenseFileExtension, StringComparer.OrdinalIgnoreCase))
                 {
                     return PackageValidationResult.Invalid(
                         string.Format(
                             Strings.UploadPackage_InvalidLicenseFileExtension,
                             licenseFileExtension,
-                            string.Join(", ", AllowedLicenseFileExtensions)));
+                            string.Join(", ", AllowedLicenseFileExtensions.Select(extension => $"'{extension}'"))));
                 }
 
                 var licenseFileEntry = nuGetPackage.GetEntry(licenseMetadata.License);
@@ -190,7 +191,7 @@ namespace NuGetGallery
             return null;
         }
 
-        private static bool IsTextByte(int byteValue)
+        private static bool IsUtf8TextByte(int byteValue)
         {
             const int TextRangeStart = ' ';
             const int LineFeed = '\n';
@@ -207,7 +208,7 @@ namespace NuGetGallery
             do
             {
                 bytesRead = stream.Read(buffer, 0, 1);
-                if (bytesRead > 0 && !IsTextByte(buffer[0]))
+                if (bytesRead > 0 && !IsUtf8TextByte(buffer[0]))
                 {
                     return false;
                 }

@@ -766,7 +766,7 @@ namespace NuGetGallery
             
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingPackageRegistration(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -780,7 +780,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingPackageRegistrationId(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -795,7 +795,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -810,7 +810,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText, "text/plain")]
-            [InlineData(EmbeddedLicenseFileType.MarkDown, "text/markdown")]
+            [InlineData(EmbeddedLicenseFileType.Markdown, "text/markdown")]
             public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedLicenseFileType licenseFileType, string expectedContentType)
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();
@@ -841,7 +841,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingPackageRegistration(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -855,7 +855,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingPackageRegistrationId(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -870,7 +870,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillThrowIfPackageIsMissingNormalizedVersionAndVersion(EmbeddedLicenseFileType licenseFileType)
             {
                 var service = CreateService();
@@ -886,7 +886,7 @@ namespace NuGetGallery
 
             [Theory]
             [InlineData(EmbeddedLicenseFileType.PlainText)]
-            [InlineData(EmbeddedLicenseFileType.MarkDown)]
+            [InlineData(EmbeddedLicenseFileType.Markdown)]
             public async Task WillUseNormalizedRegularVersionIfNormalizedVersionMissing(EmbeddedLicenseFileType licenseFileType)
             {
                 var fileStorageSvc = new Mock<ICoreFileStorageService>();

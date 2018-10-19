@@ -21,6 +21,7 @@ namespace NuGetGallery
         public const string PackageContentType = "binary/octet-stream";
         public const string OctetStreamContentType = "application/octet-stream";
         public const string TextContentType = "text/plain";
+        public const string MarkdownContentType = "text/markdown"; // rfc7763
         public const string CertificateContentType = "application/pkix-cert";
         public const string JsonContentType = "application/json";
 

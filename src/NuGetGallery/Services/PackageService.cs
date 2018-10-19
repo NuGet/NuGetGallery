@@ -607,12 +607,12 @@ namespace NuGetGallery
 
             var extension = Path.GetExtension(licenseFileName);
 
-            if (MarkdownFileExtension == extension)
+            if (MarkdownFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase))
             {
-                return EmbeddedLicenseFileType.MarkDown;
+                return EmbeddedLicenseFileType.Markdown;
             }
 
-            if (TextFileExtension == extension)
+            if (TextFileExtension.Equals(extension, StringComparison.OrdinalIgnoreCase) || string.Empty == extension)
             {
                 return EmbeddedLicenseFileType.PlainText;
             }

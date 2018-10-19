@@ -21,6 +21,6 @@ namespace NuGetGallery
         /// <summary>
         /// Indicates that embedded license file is markdown.
         /// </summary>
-        MarkDown = 2,
+        Markdown = 2,
     }
 }
