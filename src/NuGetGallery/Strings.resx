@@ -1002,4 +1002,7 @@ The {1} Team</value>
   <data name="UploadPackage_NotAcceptingPackagesWithLicense" xml:space="preserve">
     <value>This package contains a &lt;license&gt; metadata which is currently not supported.</value>
   </data>
+  <data name="AuthenticationFailure_UnkownError" xml:space="preserve">
+    <value>Unknown error!</value>
+  </data>
 </root>

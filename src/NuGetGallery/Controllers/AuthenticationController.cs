@@ -22,6 +22,12 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
+    public static class AuthenticationFailureErrors
+    {
+        public const string ACCESSS_DENIED = "access_denied";
+        public const string CONSENT_REQUIRED = "consent_required";
+    }
+
     public partial class AuthenticationController
         : AppController
     {
@@ -172,7 +178,7 @@ namespace NuGetGallery
                 authenticatedUser = loginUserDetails?.AuthenticatedUser;
                 if (authenticatedUser == null)
                 {
-                    return ExternalLinkExpired();
+                    return AuthenticationFailureOrExternalLinkExpired();
                 }
 
                 usedMultiFactorAuthentication = loginUserDetails.UsedMultiFactorAuthentication;
@@ -264,7 +270,7 @@ namespace NuGetGallery
                     var result = await _authService.ReadExternalLoginCredential(OwinContext);
                     if (result.ExternalIdentity == null)
                     {
-                        return ExternalLinkExpired();
+                        return AuthenticationFailureOrExternalLinkExpired();
                     }
 
                     usedMultiFactorAuthentication = result.LoginDetails?.WasMultiFactorAuthenticated ?? false;
@@ -497,7 +503,7 @@ namespace NuGetGallery
             return SafeRedirect(returnUrl);
         }
 
-        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl)
+        public virtual async Task<ActionResult> LinkExternalAccount(string returnUrl, string error = null, string errorDescription = null)
         {
             // Extract the external login info
             var result = await _authService.AuthenticateExternalLogin(OwinContext);
@@ -505,7 +511,8 @@ namespace NuGetGallery
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
-                return ExternalLinkExpired();
+                string errorMessage = GetAuthenticationFailureMessage(error, errorDescription);
+                return AuthenticationFailureOrExternalLinkExpired(errorMessage);
             }
 
             if (result.Authentication != null)
@@ -749,11 +756,11 @@ namespace NuGetGallery
             }
         }
 
-        private ActionResult ExternalLinkExpired()
+        private ActionResult AuthenticationFailureOrExternalLinkExpired(string errorMessage = null)
         {
             // User got here without an external login cookie (or an expired one)
             // Send them to the logon action with a message
-            TempData["Message"] = Strings.ExternalAccountLinkExpired;
+            TempData["Message"] = string.IsNullOrEmpty(errorMessage) ? Strings.ExternalAccountLinkExpired : errorMessage;
             return Redirect(Url.LogOn(null, relativeUrl: false));
         }
 
@@ -814,6 +821,25 @@ namespace NuGetGallery
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
             return View(viewName, existingModel);
+        }
+
+        private string GetAuthenticationFailureMessage(string error, string errorDescription)
+        {
+            if (string.IsNullOrEmpty(error))
+            {
+                return Strings.AuthenticationFailure_UnkownError;
+            }
+
+            switch (error)
+            {
+                case AuthenticationFailureErrors.ACCESSS_DENIED:
+                case AuthenticationFailureErrors.CONSENT_REQUIRED:
+                    return Strings.ExternalAccountLinkExpired;
+                default:
+                    return string.IsNullOrEmpty(errorDescription)
+                        ? error
+                        : errorDescription;
+            }
         }
     }
 }

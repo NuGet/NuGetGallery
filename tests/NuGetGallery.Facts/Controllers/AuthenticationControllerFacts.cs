@@ -1457,8 +1457,10 @@ namespace NuGetGallery.Controllers
 
         public class TheLinkExternalAccountAction : TestContainer
         {
-            [Fact]
-            public async Task GivenExpiredExternalAuth_ItRedirectsBackToLogOnWithExternalAuthExpiredMessage()
+            [Theory]
+            [InlineData("access_denied")]
+            [InlineData("consent_required")]
+            public async Task GivenExpiredExternalAuth_ItRedirectsBackToLogOnWithExternalAuthExpiredMessage(string error)
             {
                 // Arrange
                 GetMock<AuthenticationService>(); // Force a mock to be created
@@ -1468,10 +1470,31 @@ namespace NuGetGallery.Controllers
                     .CompletesWith(new AuthenticateExternalLoginResult());
 
                 // Act
-                var result = await controller.LinkExternalAccount("theReturnUrl");
+                var result = await controller.LinkExternalAccount("theReturnUrl", error);
 
                 // Assert
                 VerifyExternalLinkExpiredResult(controller, result);
+            }
+
+            [Theory]
+            [InlineData("server_error", "The server encountered an unexpected error.")]
+            [InlineData("temporarily_unavailable", "The server is temporarily too busy to handle the request.")]
+            [InlineData("invalid_resource", "The target resource is invalid because either it does not exist, Azure AD cannot find it, or it is not correctly configured.")]
+            [InlineData("invalid_request", "Protocol error, such as a missing, required parameter.")]
+            public async Task GivenExpiredExternalAuth_ItRedirectsBackToLogOnWithPassedErrorMessage(string error, string errorDescription)
+            {
+                // Arrange
+                GetMock<AuthenticationService>(); // Force a mock to be created
+                var controller = GetController<AuthenticationController>();
+                GetMock<AuthenticationService>()
+                    .Setup(x => x.AuthenticateExternalLogin(controller.OwinContext))
+                    .CompletesWith(new AuthenticateExternalLoginResult());
+
+                // Act
+                var result = await controller.LinkExternalAccount("theReturnUrl", error, errorDescription);
+
+                // Assert
+                VerifyExternalLinkExpiredResult(controller, result, errorDescription);
             }
 
             [Fact]
@@ -2213,10 +2236,11 @@ namespace NuGetGallery.Controllers
             }
         }
 
-        public static void VerifyExternalLinkExpiredResult(AuthenticationController controller, ActionResult result)
+        public static void VerifyExternalLinkExpiredResult(AuthenticationController controller, ActionResult result, string expectedMessage = null)
         {
+            expectedMessage = expectedMessage ?? Strings.ExternalAccountLinkExpired;
             ResultAssert.IsRedirect(result, permanent: false, url: controller.Url.LogOn(relativeUrl: false));
-            Assert.Equal(Strings.ExternalAccountLinkExpired, controller.TempData["Message"]);
+            Assert.Equal(expectedMessage, controller.TempData["Message"]);
         }
 
         private static void EnableAllAuthenticators(AuthenticationService authService)
