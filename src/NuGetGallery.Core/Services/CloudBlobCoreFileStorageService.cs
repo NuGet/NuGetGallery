@@ -580,6 +580,7 @@ namespace NuGetGallery
             {
                 case CoreConstants.PackagesFolderName:
                 case CoreConstants.SymbolPackagesFolderName:
+                case CoreConstants.PackagesContentFolderName:
                     return CoreConstants.DefaultCacheControl;
 
                 case CoreConstants.PackageBackupsFolderName:

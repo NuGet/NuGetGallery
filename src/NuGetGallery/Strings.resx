@@ -1003,7 +1003,7 @@ The {1} Team</value>
     <value>This package contains a &lt;license&gt; metadata which is currently not supported.</value>
   </data>
   <data name="UploadPackage_DeprecatingLicenseUrl" xml:space="preserve">
-    <value>Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package.</value>
+    <value>Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.</value>
   </data>
   <data name="UploadPackage_DeprecationUrlRequired" xml:space="preserve">
     <value>For backwards compatibility when a license is specified in the package, its &lt;licenseUrl&gt; node must point to https://aka.ms/deprecateLicenseUrl</value>

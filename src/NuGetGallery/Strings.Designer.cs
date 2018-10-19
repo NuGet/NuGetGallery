@@ -2175,7 +2175,7 @@ namespace NuGetGallery {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package..
+        ///   Looks up a localized string similar to Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package..
         /// </summary>
         public static string UploadPackage_DeprecatingLicenseUrl {
             get {

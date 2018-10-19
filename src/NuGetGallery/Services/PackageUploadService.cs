@@ -128,7 +128,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.Expression)
+            if (LicenseType.Expression == licenseMetadata?.Type)
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
             }
@@ -146,7 +146,7 @@ namespace NuGetGallery
                         string.Join(" ", licenseMetadata.WarningsAndErrors)));
             }
 
-            if (licenseMetadata != null && licenseMetadata.Type == LicenseType.File)
+            if (LicenseType.File == licenseMetadata?.Type)
             {
                 // check if specified file is present in the package
                 var fileList = new HashSet<string>(nuGetPackage.GetFiles());
@@ -552,7 +552,7 @@ namespace NuGetGallery
                 {
                     if (package.EmbeddedLicenseType != EmbeddedLicenseFileType.Absent)
                     {
-                        // if the package is immediately made avaialble, it means there is a high chance we don't have
+                        // if the package is immediately made available, it means there is a high chance we don't have
                         // validation pipeline that would normally store the license file, so we'll do it ourselves here.
                         await SavePackageLicenseFile(packageFile, licenseStream => _packageFileService.SaveLicenseFileAsync(package, licenseStream));
                     }
@@ -611,18 +611,16 @@ namespace NuGetGallery
             using (var packageArchiveReader = new PackageArchiveReader(packageFile, leaveStreamOpen: true))
             {
                 var packageMetadata = PackageMetadata.FromNuspecReader(packageArchiveReader.GetNuspecReader(), strict: true);
-                if (packageMetadata.LicenseMetadata != null && packageMetadata.LicenseMetadata.Type == LicenseType.File && !string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
-                {
-                    var filename = packageMetadata.LicenseMetadata.License;
-                    var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
-                    using (var licenseFileStream = licenseFileEntry.Open())
-                    {
-                        await saveLicenseAsync(licenseFileStream);
-                    }
-                }
-                else
+                if (packageMetadata.LicenseMetadata == null || packageMetadata.LicenseMetadata.Type != LicenseType.File || string.IsNullOrWhiteSpace(packageMetadata.LicenseMetadata.License))
                 {
                     throw new Exception("No license file specified in the nuspec");
+                }
+
+                var filename = packageMetadata.LicenseMetadata.License;
+                var licenseFileEntry = packageArchiveReader.GetEntry(filename); // throws on non-existent file
+                using (var licenseFileStream = licenseFileEntry.Open())
+                {
+                    await saveLicenseAsync(licenseFileStream);
                 }
             }
         }
