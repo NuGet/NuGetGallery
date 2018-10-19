@@ -22,6 +22,12 @@ using NuGetGallery.Security;
 
 namespace NuGetGallery
 {
+    public static class AuthenticationFailureErrors
+    {
+        public const string ACCESSS_DENIED = "access_denied";
+        public const string CONSENT_REQUIRED = "consent_required";
+    }
+
     public partial class AuthenticationController
         : AppController
     {
@@ -36,8 +42,6 @@ namespace NuGetGallery
         private readonly IContentObjectService _contentObjectService;
         private readonly IMessageServiceConfiguration _messageServiceConfiguration;
         private const string EMAIL_FORMAT_PADDING = "**********";
-
-        private static HashSet<string> _authenticationErrorMessageList = new HashSet<string> { "access_denied", "consent_required" };
 
         // Prioritize the external authentication mechanism.
         private static readonly string[] ExternalAuthenticationPriority = new string[] {
@@ -507,18 +511,7 @@ namespace NuGetGallery
             {
                 // User got here without an external login cookie (or an expired one)
                 // Send them to the logon action
-                string errorMessage = null;
-                if (string.IsNullOrEmpty(error))
-                {
-                    errorMessage = "Unknown error!";
-                }
-                else
-                {
-                    errorMessage = _authenticationErrorMessageList.Contains(error, StringComparer.OrdinalIgnoreCase)
-                        ? Strings.ExternalAccountLinkExpired
-                        : errorDescription;
-                }
-
+                string errorMessage = GetAuthenticationFailureMessage(error, errorDescription);
                 return AuthenticationFailureOrExternalLinkExpired(errorMessage);
             }
 
@@ -828,6 +821,25 @@ namespace NuGetGallery
             existingModel.Register = existingModel.Register ?? new RegisterViewModel();
 
             return View(viewName, existingModel);
+        }
+
+        private string GetAuthenticationFailureMessage(string error, string errorDescription)
+        {
+            if (string.IsNullOrEmpty(error))
+            {
+                return Strings.AuthenticationFailure_UnkownError;
+            }
+
+            switch (error)
+            {
+                case AuthenticationFailureErrors.ACCESSS_DENIED:
+                case AuthenticationFailureErrors.CONSENT_REQUIRED:
+                    return Strings.ExternalAccountLinkExpired;
+                default:
+                    return string.IsNullOrEmpty(errorDescription)
+                        ? error
+                        : errorDescription;
+            }
         }
     }
 }
