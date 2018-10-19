@@ -1410,5 +1410,61 @@ namespace NuGetGallery
                 _blobClient.VerifyAll();
             }
         }
+
+        public class TheGetETagMethod
+        {
+            private const string _etag = "dummy_etag";
+
+            private readonly Mock<ICloudBlobClient> _blobClient;
+            private readonly Mock<ICloudBlobContainer> _blobContainer;
+            private readonly Mock<ISimpleCloudBlob> _blob;
+            private readonly CloudBlobCoreFileStorageService _service;
+
+            public TheGetETagMethod()
+            {
+                _blobClient = new Mock<ICloudBlobClient>();
+                _blobContainer = new Mock<ICloudBlobContainer>();
+                _blob = new Mock<ISimpleCloudBlob>();
+
+                _blobClient.Setup(x => x.GetContainerReference(It.IsAny<string>()))
+                    .Returns(_blobContainer.Object);
+                _blobContainer.Setup(x => x.CreateIfNotExistAsync())
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.SetPermissionsAsync(It.IsAny<BlobContainerPermissions>()))
+                    .Returns(Task.FromResult(0));
+                _blobContainer.Setup(x => x.GetBlobReference(It.IsAny<string>()))
+                    .Returns(_blob.Object);
+
+                _service = CreateService(fakeBlobClient: _blobClient);
+            }
+
+            [Fact]
+            public async Task VerifyTheETagValue()
+            {
+                // Arrange
+                _blob.SetupGet(x => x.ETag).Returns(_etag);
+
+                // Act 
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+
+                // Assert 
+                Assert.Equal(_etag, etagValue);
+            }
+
+
+            [Fact]
+            public async Task VerifyETagIsNullWhenBlobDoesNotExist()
+            {
+                // Arrange
+                _blob.Setup(x => x.FetchAttributesAsync()).ThrowsAsync(new StorageException("Boo"));
+
+                // Act 
+                var etagValue = await _service.GetETagOrNullAsync(folderName: CoreConstants.PackagesFolderName, fileName: "a");
+
+                // Assert 
+                Assert.Null(etagValue);
+            }
+        }
+
     }
 }
