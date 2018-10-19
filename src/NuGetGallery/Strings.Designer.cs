@@ -2292,6 +2292,15 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to License file is too long. The limit is {0} bytes..
+        /// </summary>
+        public static string UploadPackage_LicenseFileTooLong {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseFileTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to License file must be plain text using UTF-8 encoding..
         /// </summary>
         public static string UploadPackage_LicenseMustBePlainText {

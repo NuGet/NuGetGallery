@@ -497,7 +497,7 @@ namespace NuGetGallery
                 _nuGetPackage = GeneratePackage(
                     licenseExpression: "MIT",
                     licenseFilename: null,
-                    licenseUrl: new Uri(LicenseHelper.DeprecationUrl));
+                    licenseUrl: new Uri(LicenseDeprecationUrl));
 
                 var result = await _target.ValidateBeforeGeneratePackageAsync(
                     _nuGetPackage.Object,
@@ -637,13 +637,13 @@ namespace NuGetGallery
             };
 
             // any characters with code <32 except line break characters should be rejected
-            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_AllInvalidBytes =>
-                from @byte in Enumerable.Range(0, 32)
-                select new object[] { new byte[1] { (byte)@byte }, @byte != 10 && @byte != 13 };
+            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_AllBytes =>
+                from @byte in Enumerable.Range(0, 256)
+                select new object[] { new byte[1] { (byte)@byte }, @byte != '\r' && @byte != '\n' && @byte != '\t' && @byte < 32 };
 
             [Theory]
             [MemberData(nameof(RejectsBinaryLicenseFiles_Smoke))]
-            [MemberData(nameof(RejectsBinaryLicenseFiles_AllInvalidBytes))]
+            [MemberData(nameof(RejectsBinaryLicenseFiles_AllBytes))]
             public async Task RejectsBinaryLicenseFiles(byte[] licenseFileContent, bool expectedFailure)
             {
                 _nuGetPackage = GeneratePackage(
@@ -711,6 +711,32 @@ namespace NuGetGallery
                     Assert.Contains("license", result.Message);
                     Assert.Empty(result.Warnings);
                 }
+            }
+
+            [Fact]
+            public async Task RejectsLongLicenses()
+            {
+                const int ExpectedMaxLicenseLength = 1024 * 1024;
+
+                var licenseTextBuilder = new StringBuilder(ExpectedMaxLicenseLength + 100);
+
+                while (licenseTextBuilder.Length < ExpectedMaxLicenseLength + 1)
+                {
+                    licenseTextBuilder.AppendLine("Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.");
+                }
+
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    licenseFilename: "license.txt",
+                    licenseFileContents: licenseTextBuilder.ToString());
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("License file is too long", result.Message);
+                Assert.Empty(result.Warnings);
             }
 
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)

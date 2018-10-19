@@ -27,6 +27,7 @@ namespace NuGetGallery
         };
 
         private const string LicenseNodeName = "license";
+        private const int MaxAllowedLicenseLength = 1024 * 1024;
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IEntitiesContext _entitiesContext;
@@ -89,7 +90,7 @@ namespace NuGetGallery
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
 
-        private PackageValidationResult CheckLicenseMetadata(IPackageCoreReader nuGetPackage, List<string> warnings)
+        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage, List<string> warnings)
         {
             LicenseCheckingNuspecReader nuspecReader = null;
             using (var nuspec = nuGetPackage.GetNuspec())
@@ -167,6 +168,15 @@ namespace NuGetGallery
                             string.Join(", ", AllowedLicenseFileExtensions)));
                 }
 
+                var licenseFileEntry = nuGetPackage.GetEntry(licenseMetadata.License);
+                if (licenseFileEntry.Length > MaxAllowedLicenseLength)
+                {
+                    return PackageValidationResult.Invalid(
+                        string.Format(
+                            Strings.UploadPackage_LicenseFileTooLong,
+                            MaxAllowedLicenseLength));
+                }
+
                 // check if specified file is a text file
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
@@ -180,26 +190,28 @@ namespace NuGetGallery
             return null;
         }
 
-        private bool IsTextByte(int byteValue)
+        private static bool IsTextByte(int byteValue)
         {
-            const int TextRangeStart = 32;
-            const int LineFeed = 10;
-            const int CarriageReturn = 13;
+            const int TextRangeStart = ' ';
+            const int LineFeed = '\n';
+            const int CarriageReturn = '\r';
+            const int Tab = '\t';
 
-            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn;
+            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn || byteValue == Tab;
         }
 
-        private bool IsTextStream(Stream stream)
+        private static bool IsTextStream(Stream stream)
         {
-            int valueRead = -1;
+            byte[] buffer = new byte[1];
+            int bytesRead;
             do
             {
-                valueRead = stream.ReadByte();
-                if (valueRead >= 0 && !IsTextByte(valueRead))
+                bytesRead = stream.Read(buffer, 0, 1);
+                if (bytesRead > 0 && !IsTextByte(buffer[0]))
                 {
                     return false;
                 }
-            } while (valueRead >= 0);
+            } while (bytesRead > 0);
 
             return true;
         }

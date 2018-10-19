@@ -1035,4 +1035,8 @@ The {1} Team</value>
   <data name="UploadPackage_LicenseMustBePlainText" xml:space="preserve">
     <value>License file must be plain text using UTF-8 encoding.</value>
   </data>
+  <data name="UploadPackage_LicenseFileTooLong" xml:space="preserve">
+    <value>License file is too long. The limit is {0} bytes.</value>
+    <comment>{0} is the max allowed number of bytes in the license.</comment>
+  </data>
 </root>
