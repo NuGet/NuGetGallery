@@ -15,7 +15,7 @@ namespace NuGet.Services.Messaging
         private readonly ILogger<EmailMessageEnqueuer> _logger;
 
         public EmailMessageEnqueuer(
-            ITopicClient topicClient, 
+            ITopicClient topicClient,
             IServiceBusMessageSerializer serializer,
             ILogger<EmailMessageEnqueuer> logger)
         {

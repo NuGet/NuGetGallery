@@ -76,7 +76,9 @@ Invoke-BuildStep 'Set version metadata in AssemblyInfo.cs' { `
             "$PSScriptRoot\src\NuGet.Services.Sql\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Status\Properties\AssemblyInfo.g.cs", `
             "$PSScriptRoot\src\NuGet.Services.Status.Table\Properties\AssemblyInfo.g.cs", `
-            "$PSScriptRoot\src\NuGet.Services.Messaging\Properties\AssemblyInfo.g.cs"
+            "$PSScriptRoot\src\NuGet.Services.Messaging\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Messaging.Email\Properties\AssemblyInfo.g.cs", `
+            "$PSScriptRoot\src\NuGet.Services.Entities\Properties\AssemblyInfo.g.cs"
             
         $versionMetadata | ForEach-Object {
             Set-VersionInfo -Path $_ -Version $SimpleVersion -Branch $Branch -Commit $CommitSHA
@@ -113,7 +115,9 @@ Invoke-BuildStep 'Creating artifacts' { `
             "src\NuGet.Services.Sql\NuGet.Services.Sql.csproj", `
             "src\NuGet.Services.Status\NuGet.Services.Status.csproj", `
             "src\NuGet.Services.Status.Table\NuGet.Services.Status.Table.csproj",
-            "src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj"
+            "src\NuGet.Services.Messaging\NuGet.Services.Messaging.csproj",
+            "src\NuGet.Services.Messaging.Email\NuGet.Services.Messaging.Email.csproj",
+            "src\NuGet.Services.Entities\NuGet.Services.Entities.csproj"
             
         $projects | ForEach-Object {
             New-Package (Join-Path $PSScriptRoot $_) -Configuration $Configuration -Symbols -IncludeReferencedProjects -MSBuildVersion "15"
