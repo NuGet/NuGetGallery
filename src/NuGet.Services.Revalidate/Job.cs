@@ -32,6 +32,7 @@ namespace NuGet.Services.Revalidate
         private const string RebuildPreinstalledSetArgumentName = "RebuildPreinstalledSet";
         private const string InitializeArgumentName = "Initialize";
         private const string VerifyInitializationArgumentName = "VerifyInitialization";
+
         private const string JobConfigurationSectionName = "RevalidateJob";
 
         private static readonly TimeSpan RetryLaterSleepDuration = TimeSpan.FromMinutes(5);
@@ -112,6 +113,7 @@ namespace NuGet.Services.Revalidate
         protected override void ConfigureJobServices(IServiceCollection services, IConfigurationRoot configurationRoot)
         {
             services.Configure<RevalidationConfiguration>(configurationRoot.GetSection(JobConfigurationSectionName));
+
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Initialization);
             services.AddSingleton(provider => provider.GetRequiredService<IOptionsSnapshot<RevalidationConfiguration>>().Value.Health);
