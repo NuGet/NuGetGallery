@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Moq;
 using Xunit;
 
 namespace NuGetGallery.Helpers
@@ -68,6 +70,34 @@ namespace NuGetGallery.Helpers
         {
             bool isText = TextHelper.IsUtf8TextByte(input[0]);
             Assert.Equal(expectedToBeText, isText);
+        }
+
+        [Fact]
+        public void ThrowsWhenStreamIsNull()
+        {
+            var ex = Assert.Throws<ArgumentNullException>(() => TextHelper.IsUtf8TextStream(null, 10));
+            Assert.Equal("stream", ex.ParamName);
+        }
+
+        [Fact]
+        public void ThrowsWhenStreamIsNotReadable()
+        {
+            var writeOnlyStream = new WriteOnlyStream();
+            var ex = Assert.Throws<ArgumentException>(() => TextHelper.IsUtf8TextStream(writeOnlyStream, 10));
+            Assert.Equal("stream", ex.ParamName);
+        }
+
+        [Fact]
+        public void ThrowsWhenBufferSizeIsNegative()
+        {
+            var writeOnlyStream = new MemoryStream();
+            var ex = Assert.Throws<ArgumentOutOfRangeException>(() => TextHelper.IsUtf8TextStream(writeOnlyStream, -1));
+            Assert.Equal("bufferSize", ex.ParamName);
+        }
+
+        private class WriteOnlyStream : MemoryStream
+        {
+            public override bool CanRead => false;
         }
     }
 
