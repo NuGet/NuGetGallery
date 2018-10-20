@@ -181,7 +181,7 @@ namespace NuGetGallery
                 // check if specified file is a text file
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
-                    if (!IsTextStream(licenseFileStream))
+                    if (!IsUtf8TextStream(licenseFileStream))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
                     }
@@ -201,7 +201,7 @@ namespace NuGetGallery
             return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn || byteValue == Tab;
         }
 
-        private static bool IsTextStream(Stream stream)
+        private static bool IsUtf8TextStream(Stream stream)
         {
             byte[] buffer = new byte[1];
             int bytesRead;
