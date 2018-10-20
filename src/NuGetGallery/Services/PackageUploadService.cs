@@ -8,10 +8,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
-using NuGet.Packaging.Core;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Extensions;
+using NuGetGallery.Helpers;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -181,7 +181,7 @@ namespace NuGetGallery
                 // check if specified file is a text file
                 using (var licenseFileStream = nuGetPackage.GetStream(licenseMetadata.License))
                 {
-                    if (!IsUtf8TextStream(licenseFileStream))
+                    if (!TextHelper.IsUtf8TextStream(licenseFileStream))
                     {
                         return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseMustBePlainText);
                     }
@@ -190,33 +190,6 @@ namespace NuGetGallery
 
             return null;
         }
-
-        private static bool IsUtf8TextByte(int byteValue)
-        {
-            const int TextRangeStart = ' ';
-            const int LineFeed = '\n';
-            const int CarriageReturn = '\r';
-            const int Tab = '\t';
-
-            return byteValue >= TextRangeStart || byteValue == LineFeed || byteValue == CarriageReturn || byteValue == Tab;
-        }
-
-        private static bool IsUtf8TextStream(Stream stream)
-        {
-            byte[] buffer = new byte[1];
-            int bytesRead;
-            do
-            {
-                bytesRead = stream.Read(buffer, 0, 1);
-                if (bytesRead > 0 && !IsUtf8TextByte(buffer[0]))
-                {
-                    return false;
-                }
-            } while (bytesRead > 0);
-
-            return true;
-        }
-
         
         private class LicenseCheckingNuspecReader : NuspecReader
         {

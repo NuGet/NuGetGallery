@@ -639,14 +639,8 @@ namespace NuGetGallery
                 new object[] { Encoding.UTF8.GetBytes("тест тест"), false},
             };
 
-            // any characters with code <32 except line break characters should be rejected
-            public static IEnumerable<object[]> RejectsBinaryLicenseFiles_AllBytes =>
-                from @byte in Enumerable.Range(0, 256)
-                select new object[] { new byte[1] { (byte)@byte }, @byte != '\r' && @byte != '\n' && @byte != '\t' && @byte < 32 };
-
             [Theory]
             [MemberData(nameof(RejectsBinaryLicenseFiles_Smoke))]
-            [MemberData(nameof(RejectsBinaryLicenseFiles_AllBytes))]
             public async Task RejectsBinaryLicenseFiles(byte[] licenseFileContent, bool expectedFailure)
             {
                 _nuGetPackage = GeneratePackage(
