@@ -10,6 +10,7 @@ using Microsoft.Owin.Logging;
 using Microsoft.Owin.Security;
 using Moq;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using NuGetGallery.Infrastructure.Authentication;
 using Xunit;
@@ -116,7 +117,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                 handler.OwinContext.Response.StatusCode = 401;
                 handler.OwinContext.Response.Headers.Set("WWW-Authenticate", "existing");
                 handler.OwinContext.Authentication.AuthenticationResponseChallenge =
-                    new AuthenticationResponseChallenge(new [] { "blarg" }, new AuthenticationProperties());
+                    new AuthenticationResponseChallenge(new[] { "blarg" }, new AuthenticationProperties());
 
                 // Act
                 var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
@@ -319,7 +320,7 @@ namespace NuGetGallery.Authentication.Providers.ApiKey
                     Constants.ApiKeyHeaderName,
                     plaintextApiKey);
                 handler.MockAuth.SetupAuth(apiKeyCredential, user, credentialValue: plaintextApiKey);
-                
+
                 // Act
                 var body = await handler.OwinContext.Response.CaptureBodyAsString(async () =>
                     await handler.InvokeAuthenticateCoreAsync());

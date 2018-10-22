@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using System.Web;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
@@ -22,9 +23,9 @@ namespace NuGetGallery.Security
         private static readonly IAuditingService _auditing = new Mock<IAuditingService>().Object;
         private static readonly IDiagnosticsService _diagnostics = new Mock<IDiagnosticsService>().Object;
         private static readonly IAppConfiguration _configuration = new Mock<IAppConfiguration>().Object;
-        private static readonly Lazy<IUserService> _userServiceFactory = 
+        private static readonly Lazy<IUserService> _userServiceFactory =
             new Lazy<IUserService>(() => new Mock<IUserService>().Object);
-        private static readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementServiceFactory = 
+        private static readonly Lazy<IPackageOwnershipManagementService> _packageOwnershipManagementServiceFactory =
             new Lazy<IPackageOwnershipManagementService>(() => new Mock<IPackageOwnershipManagementService>().Object);
         private static readonly ITelemetryService _telemetryService = new Mock<ITelemetryService>().Object;
 

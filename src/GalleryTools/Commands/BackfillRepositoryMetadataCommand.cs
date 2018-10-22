@@ -17,6 +17,7 @@ using CsvHelper.TypeConversion;
 using Microsoft.Extensions.CommandLineUtils;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGet.Services.Search.Client;
 using NuGetGallery;
 using NuGetGallery.Configuration;
@@ -447,7 +448,7 @@ namespace GalleryTools.Commands
 
         private class FileCursor : IDisposable
         {
-            private FileStream _fileStream;
+            private readonly FileStream _fileStream;
             private StreamWriter _cursorWriter;
 
             public FileCursor(string fileName)
@@ -473,7 +474,7 @@ namespace GalleryTools.Commands
 
             public DateTime GetCursorTime()
             {
-                using (var reader = new StreamReader(_fileStream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize:100, leaveOpen: true))
+                using (var reader = new StreamReader(_fileStream, Encoding.ASCII, detectEncodingFromByteOrderMarks: false, bufferSize: 100, leaveOpen: true))
                 {
                     reader.BaseStream.Seek(0, SeekOrigin.Begin);
 

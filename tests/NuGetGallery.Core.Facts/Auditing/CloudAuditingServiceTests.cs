@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery.Auditing

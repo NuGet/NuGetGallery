@@ -7,8 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Mvc;
 using Moq;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Framework;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using Xunit;
 

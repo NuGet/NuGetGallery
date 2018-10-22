@@ -15,6 +15,8 @@ using System.Web;
 using System.Web.Caching;
 using System.Web.Mvc;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.Models;
@@ -22,11 +24,9 @@ using NuGetGallery.AsyncFileUpload;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Diagnostics;
-using NuGetGallery.Extensions;
 using NuGetGallery.Filters;
 using NuGetGallery.Helpers;
 using NuGetGallery.Infrastructure.Lucene;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.OData;
@@ -1218,7 +1218,7 @@ namespace NuGetGallery
             model.VersionSelectList = new SelectList(
                 model
                 .PackageVersions
-                .Where(p => !p.Deleted 
+                .Where(p => !p.Deleted
                     && p.LatestSymbolsPackage != null
                     && p.LatestSymbolsPackage.StatusKey == PackageStatus.Available)
                 .Select(p => new
@@ -1328,7 +1328,7 @@ namespace NuGetGallery
                     case PackageStatus.Deleted:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest,
                             string.Format(Strings.SymbolsPackage_RevalidateDeletedPackage, id, version));
-                   default:
+                    default:
                         return new HttpStatusCodeResult(HttpStatusCode.BadRequest, $"Unkown Package status {latestSymbolPackage.StatusKey}!");
                 }
 

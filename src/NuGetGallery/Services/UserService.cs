@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Data.Entity;
 using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using NuGetGallery.Auditing;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Authentication;
@@ -460,12 +460,12 @@ namespace NuGetGallery
             await UserRepository.CommitChangesAsync();
             return true;
         }
-        
+
         public async Task RequestTransformToOrganizationAccount(User accountToTransform, User adminUser)
         {
             accountToTransform = accountToTransform ?? throw new ArgumentNullException(nameof(accountToTransform));
             adminUser = adminUser ?? throw new ArgumentNullException(nameof(adminUser));
-            
+
             // create new or update existing request
             if (accountToTransform.OrganizationMigrationRequest == null)
             {
@@ -591,7 +591,7 @@ namespace NuGetGallery
         private async Task SubscribeOrganizationToTenantPolicyIfTenantIdIsSupported(User organization, User adminUser, bool commitChanges = true)
         {
             var tenantId = adminUser.Credentials.GetAzureActiveDirectoryCredential()?.TenantId;
-            if (string.IsNullOrWhiteSpace(tenantId) || 
+            if (string.IsNullOrWhiteSpace(tenantId) ||
                 !ContentObjectService.LoginDiscontinuationConfiguration.IsTenantIdPolicySupportedForOrganization(organization.EmailAddress ?? organization.UnconfirmedEmailAddress, tenantId))
             {
                 return;

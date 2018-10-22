@@ -10,6 +10,7 @@ using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
 using NuGet.Frameworks;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
 using NuGetGallery.Infrastructure.Lucene;

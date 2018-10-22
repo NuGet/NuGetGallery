@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Web;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Authentication;
 using NuGetGallery.Diagnostics;

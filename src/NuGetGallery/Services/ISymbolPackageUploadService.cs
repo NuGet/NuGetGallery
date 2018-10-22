@@ -3,7 +3,7 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using NuGetGallery.Packaging;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -95,7 +96,7 @@ namespace NuGetGallery
 
             return package;
         }
-        
+
         private void ClearSupportedFrameworks(Package package)
         {
             foreach (var supportedFramework in package.SupportedFrameworks.ToList())

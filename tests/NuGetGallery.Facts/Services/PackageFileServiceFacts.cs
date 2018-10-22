@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Moq;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery

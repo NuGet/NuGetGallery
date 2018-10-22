@@ -5,6 +5,7 @@ using System.Text;
 using System.Web;
 using System.Web.Security;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {

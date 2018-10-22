@@ -3,6 +3,8 @@
 
 using System;
 using System.Net.Mail;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 
 namespace NuGetGallery.Infrastructure.Mail.Messages
 {

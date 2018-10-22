@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Web.Helpers;
+using NuGet.Services.Entities;
 using NuGetGallery.Infrastructure.Authentication;
 using NuGetGallery.Services.Authentication;
 
@@ -41,7 +42,7 @@ namespace NuGetGallery.Authentication
         public static Credential CreateV3ApiKey(Guid apiKey, TimeSpan? expiration)
         {
             var v3ApiKey = ApiKeyV3.CreateFromV1V2ApiKey(GuidToApiKey(apiKey));
-            
+
             return CreateApiKey(CredentialTypes.ApiKey.V3, v3ApiKey.HashedApiKey, expiration);
         }
 

@@ -8,9 +8,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
-using NuGetGallery.Extensions;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery
@@ -80,7 +80,7 @@ namespace NuGetGallery
 
             return PackageValidationResult.AcceptedWithWarnings(warnings);
         }
-        
+
         private class LicenseCheckingNuspecReader : NuspecReader
         {
             public LicenseCheckingNuspecReader(Stream stream)

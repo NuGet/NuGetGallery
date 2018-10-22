@@ -9,6 +9,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using NuGet.Services.Entities;
 using NuGetGallery.Utilities;
 using Xunit;
 

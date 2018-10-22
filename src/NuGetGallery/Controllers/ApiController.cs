@@ -16,6 +16,8 @@ using System.Web.Mvc;
 using Newtonsoft.Json.Linq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
 using NuGetGallery.Auditing.AuditedEntities;

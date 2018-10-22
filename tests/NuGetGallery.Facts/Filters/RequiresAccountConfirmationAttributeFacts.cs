@@ -7,6 +7,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Framework;
 using Xunit;
 
@@ -86,7 +87,7 @@ namespace NuGetGallery.Filters
             var httpContext = new Mock<HttpContextBase>();
             httpContext.SetupGet(h => h.Request).Returns(request.Object);
             httpContext.SetupGet(x => x.Response).Returns(response.Object);
-            
+
             var routeCollection = new RouteCollection();
             Routes.RegisterRoutes(routeCollection);
 

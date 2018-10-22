@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using NuGet.Protocol;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 
 namespace NuGetGallery.Security

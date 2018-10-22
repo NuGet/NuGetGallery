@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using NuGet.Services.Entities;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Auditing;

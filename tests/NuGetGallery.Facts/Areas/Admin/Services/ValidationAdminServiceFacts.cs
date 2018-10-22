@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Services.Validation;
 using NuGetGallery.Areas.Admin.Models;
 using Xunit;

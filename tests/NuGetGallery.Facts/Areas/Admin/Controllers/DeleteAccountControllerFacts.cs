@@ -8,6 +8,7 @@ using NuGetGallery.Areas.Admin.ViewModels;
 using NuGetGallery.Framework;
 using Moq;
 using Xunit;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Areas.Admin.Controllers
 {

@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using NuGet.Services.Entities;
 using Xunit;
 
 namespace NuGetGallery.Auditing

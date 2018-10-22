@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.OData;
 using System.Web.Http.OData.Query;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.OData.QueryFilter;
@@ -43,11 +44,11 @@ namespace NuGetGallery.Controllers
         [CacheOutput(NoCache = true)]
         public IHttpActionResult Get(ODataQueryOptions<V1FeedPackage> options)
         {
-            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages, 
+            if (!ODataQueryVerifier.AreODataOptionsAllowed(options, ODataQueryVerifier.V1Packages,
                 _configurationService.Current.IsODataFilterEnabled, nameof(Get)))
             {
                 return BadRequest(ODataQueryVerifier.GetValidationFailedMessage(options));
-            } 
+            }
             var queryable = _packagesRepository.GetAll()
                                 .Where(p => !p.IsPrerelease && p.PackageStatusKey == PackageStatus.Available)
                                 .Where(SemVerLevelKey.IsUnknownPredicate())
@@ -111,11 +112,11 @@ namespace NuGetGallery.Controllers
             try
             {
                 var searchAdaptorResult = await SearchAdaptor.FindByIdAndVersionCore(
-                    _searchService, 
-                    GetTraditionalHttpContext().Request, 
-                    packages, 
-                    id, 
-                    version, 
+                    _searchService,
+                    GetTraditionalHttpContext().Request,
+                    packages,
+                    id,
+                    version,
                     curatedFeed: null,
                     semVerLevel: null);
 
@@ -207,12 +208,12 @@ namespace NuGetGallery.Controllers
 
             // todo: search hijack should take queryOptions instead of manually parsing query options
             var searchAdaptorResult = await SearchAdaptor.SearchCore(
-                _searchService, 
-                GetTraditionalHttpContext().Request, 
-                packages, 
-                searchTerm, 
-                targetFramework, 
-                false, 
+                _searchService,
+                GetTraditionalHttpContext().Request,
+                packages,
+                searchTerm,
+                targetFramework,
+                false,
                 curatedFeed: null,
                 semVerLevel: null);
 

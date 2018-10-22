@@ -19,6 +19,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Security;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Helpers;
 
 namespace NuGetGallery

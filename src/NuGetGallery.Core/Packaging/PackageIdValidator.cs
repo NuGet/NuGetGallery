@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.Text.RegularExpressions;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery.Packaging
 {
@@ -33,15 +34,15 @@ namespace NuGetGallery.Packaging
                 throw new ArgumentNullException(nameof(packageId));
             }
 
-            if (packageId.Length > CoreConstants.MaxPackageIdLength)
+            if (packageId.Length > Constants.MaxPackageIdLength)
             {
-                throw new ArgumentException($"Id must not exceed {CoreConstants.MaxPackageIdLength} characters.");
+                throw new ArgumentException($"Id must not exceed {Constants.MaxPackageIdLength} characters.");
             }
 
             if (!IsValidPackageId(packageId))
             {
                 throw new ArgumentException(string.Format(
-                    CultureInfo.CurrentCulture, 
+                    CultureInfo.CurrentCulture,
                     "The package ID '{0}' contains invalid characters. Examples of valid package IDs include 'MyPackage' and 'MyPackage.Sample'.",
                     packageId));
             }

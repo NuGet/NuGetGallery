@@ -8,9 +8,10 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Entities;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Configuration;
 using NuGetGallery.Filters;
-using NuGetGallery.Infrastructure.Mail;
 using NuGetGallery.Infrastructure.Mail.Messages;
 using NuGetGallery.Security;
 

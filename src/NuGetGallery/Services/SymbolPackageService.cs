@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NuGet.Packaging;
 using NuGet.Packaging.Core;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 
 namespace NuGetGallery

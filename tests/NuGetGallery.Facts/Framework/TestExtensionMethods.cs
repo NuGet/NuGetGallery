@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Owin;
 using Moq;
 using Newtonsoft.Json;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 using AuthenticationTypes = NuGetGallery.Authentication.AuthenticationTypes;
 

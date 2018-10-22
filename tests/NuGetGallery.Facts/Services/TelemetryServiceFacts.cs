@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Moq;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Diagnostics;
 using NuGetGallery.Framework;

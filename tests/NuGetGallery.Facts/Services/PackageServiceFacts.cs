@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 using Moq;
 using NuGet.Frameworks;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGet.Versioning;
 using NuGetGallery.Auditing;
-using NuGetGallery.Configuration;
 using NuGetGallery.Framework;
 using NuGetGallery.Packaging;
 using NuGetGallery.Security;
@@ -431,7 +431,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Id", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -532,7 +532,7 @@ namespace NuGetGallery
 
                 var ex = await Assert.ThrowsAsync<InvalidPackageException>(async () => await service.CreatePackageAsync(nugetPackage.Object, new PackageStreamMetadata(), owner: null, currentUser: null, isVerified: false));
 
-                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", CoreConstants.MaxPackageIdLength), ex.Message);
+                Assert.Equal(String.Format(Strings.NuGetPackagePropertyTooLong, "Dependency.Id", NuGet.Services.Entities.Constants.MaxPackageIdLength), ex.Message);
             }
 
             [Fact]
@@ -2065,7 +2065,7 @@ namespace NuGetGallery
                 Assert.Equal(expectedResult, result);
             }
 
-            static PackageRegistration CreatePackageRegistration(int key)
+            private static PackageRegistration CreatePackageRegistration(int key)
             {
                 return new PackageRegistration() { Key = 1, Id = $"regKey{key}" };
             }

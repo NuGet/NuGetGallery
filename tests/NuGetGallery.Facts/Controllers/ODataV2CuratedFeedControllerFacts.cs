@@ -11,6 +11,7 @@ using System.Web.Http;
 using System.Web.Http.OData.Query;
 using System.Web.Http.Results;
 using Moq;
+using NuGet.Services.Entities;
 using NuGetGallery.Configuration;
 using NuGetGallery.OData;
 using NuGetGallery.WebApi;

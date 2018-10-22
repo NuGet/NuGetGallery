@@ -4,7 +4,6 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -12,6 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using CommonMark;
 using CommonMark.Syntax;
+using NuGet.Services.Entities;
 
 namespace NuGetGallery
 {
@@ -31,7 +31,7 @@ namespace NuGetGallery
         private static readonly TimeSpan UrlTimeout = TimeSpan.FromSeconds(10);
         private readonly IEntitiesContext _entitiesContext;
         private readonly IPackageFileService _packageFileService;
-        
+
         public ReadMeService(
             IPackageFileService packageFileService,
             IEntitiesContext entitiesContext)
@@ -147,7 +147,7 @@ namespace NuGetGallery
             {
                 await _packageFileService.DeleteReadMeMdFileAsync(package);
                 edit.ReadMeState = PackageEditReadMeState.Deleted;
-                
+
                 // Save entity to db.
                 package.HasReadMe = false;
 
@@ -214,8 +214,8 @@ namespace NuGetGallery
                     {
                         // Allow only http or https links in markdown.
                         Uri targetUri;
-                        if (! (Uri.TryCreate(inline.TargetUrl, UriKind.Absolute, out targetUri)
-                            && (targetUri.Scheme == Uri.UriSchemeHttp || targetUri.Scheme == Uri.UriSchemeHttps) ))
+                        if (!(Uri.TryCreate(inline.TargetUrl, UriKind.Absolute, out targetUri)
+                            && (targetUri.Scheme == Uri.UriSchemeHttp || targetUri.Scheme == Uri.UriSchemeHttps)))
                         {
                             inline.TargetUrl = string.Empty;
                         }
@@ -227,7 +227,7 @@ namespace NuGetGallery
             using (var htmlWriter = new StringWriter())
             {
                 CommonMarkConverter.ProcessStage3(document, htmlWriter, settings);
-                
+
                 return CommonMarkLinkPattern.Replace(htmlWriter.ToString(), "$0" + " rel=\"nofollow\"").Trim();
             }
         }
@@ -335,7 +335,7 @@ namespace NuGetGallery
         }
 
         private static readonly Regex NewLineRegex = new Regex(@"\n|\r\n");
-        
+
         private static string NormalizeNewLines(string content)
         {
             if (content == null) return null;

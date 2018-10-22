@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Threading.Tasks;
 using Moq;
 using NuGet.Packaging;
+using NuGet.Services.Entities;
 using NuGetGallery.Packaging;
 using Xunit;
 using ClientPackageType = NuGet.Packaging.Core.PackageType;
@@ -157,7 +157,7 @@ namespace NuGetGallery
                 var service = CreateService();
                 var action = CreatePopulatePackageAction(extension);
 
-                var invalidSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42",  populatePackage: action);
+                var invalidSymbolPackageStream = TestPackage.CreateTestSymbolPackageStream("theId", "1.0.42", populatePackage: action);
                 var packageArchiveReader = CreateArchiveReader(invalidSymbolPackageStream);
 
                 await Assert.ThrowsAsync<InvalidDataException>(async () => await service.EnsureValidAsync(packageArchiveReader));

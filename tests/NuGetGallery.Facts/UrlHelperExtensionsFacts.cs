@@ -1,10 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
-using NuGetGallery.Framework;
 using System;
 using System.Collections.Generic;
 using System.Web.Routing;
+using NuGet.Services.Entities;
+using NuGetGallery.Framework;
 using Xunit;
 
 namespace NuGetGallery
@@ -210,8 +211,8 @@ namespace NuGetGallery
             [InlineData("https://localhost/Account/SignIn?returnUrl=%2F", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignIn?returnUrl=%2F")]
             [InlineData("https://localhost/Account/SignInNuGetAccount?returnUrl=%2F", "https", "unittest.nuget.org", "https://unittest.nuget.org/Account/SignInNuGetAccount?returnUrl=%2F")]
             public void UsesConfiguredSiteRootInAbsoluteUri(
-                string returnUrl, 
-                string protocol, 
+                string returnUrl,
+                string protocol,
                 string hostName,
                 string expectedReturnUrl)
             {

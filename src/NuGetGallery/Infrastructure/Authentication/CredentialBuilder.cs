@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using NuGet.Services.Entities;
 using NuGetGallery.Authentication;
 
 namespace NuGetGallery.Infrastructure.Authentication

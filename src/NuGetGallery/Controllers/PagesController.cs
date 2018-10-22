@@ -8,11 +8,9 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
+using NuGet.Services.Messaging.Email;
 using NuGetGallery.Areas.Admin;
 using NuGetGallery.Filters;
-using NuGetGallery.Infrastructure.Mail;
-using NuGetGallery.Infrastructure.Mail.Messages;
-using NuGetGallery.Infrastructure.Mail.Requests;
 using NuGetGallery.ViewModels;
 
 namespace NuGetGallery
