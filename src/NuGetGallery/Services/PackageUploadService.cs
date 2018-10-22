@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using NuGet.Packaging;
 using NuGet.Versioning;
 using NuGetGallery.Configuration;
@@ -28,7 +29,10 @@ namespace NuGetGallery
         };
 
         private const string LicenseNodeName = "license";
+        private const string AllowedLicenseVersion = "1.0.0";
         private const int MaxAllowedLicenseLength = 1024 * 1024;
+        private const int MaxAllowedLicenseNodeValueLength = 500;
+
         private readonly IPackageService _packageService;
         private readonly IPackageFileService _packageFileService;
         private readonly IEntitiesContext _entitiesContext;
@@ -103,6 +107,32 @@ namespace NuGetGallery
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_NotAcceptingPackagesWithLicense);
             }
+
+            var licenseNode = nuspecReader.LicenseNode;
+
+            if (licenseNode != null)
+            {
+                if (licenseNode.Value.Length > MaxAllowedLicenseNodeValueLength)
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseNodeValueTooLong);
+                }
+
+                if (nuspecReader.LicenseHasChildElements())
+                {
+                    return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseNodeContainsChildren);
+                }
+
+                var versionText = nuspecReader.GetLicenseVersion();
+
+                if (versionText != null && AllowedLicenseVersion != versionText)
+                {
+                    return PackageValidationResult.Invalid(
+                        string.Format(
+                            Strings.UploadPackage_UnsupportedLicenseVersion,
+                            versionText));
+                }
+            }
+
             var licenseUrl = nuspecReader.GetLicenseUrl();
             var licenseMetadata = nuspecReader.GetLicenseMetadata();
 
@@ -128,12 +158,7 @@ namespace NuGetGallery
                 }
             }
 
-            if (LicenseType.Expression == licenseMetadata?.Type)
-            {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_LicenseExpressionsNotSupported);
-            }
-
-            if (licenseMetadata != null && LicenseDeprecationUrl != licenseUrl)
+            if (licenseMetadata != null && IsLicenseDeprecationUrl(licenseUrl))
             {
                 return PackageValidationResult.Invalid(Strings.UploadPackage_DeprecationUrlRequired);
             }
@@ -190,41 +215,30 @@ namespace NuGetGallery
 
             return null;
         }
-        
+
+        private static bool IsLicenseDeprecationUrl(string licenseUrl)
+            => LicenseDeprecationUrl != licenseUrl;
+
         private class LicenseCheckingNuspecReader : NuspecReader
         {
             public LicenseCheckingNuspecReader(Stream stream)
                 : base(stream)
             {
-
             }
+
+            public XElement LicenseNode => MetadataNode.Element(MetadataNode.Name.Namespace + LicenseNodeName);
 
             public bool HasLicenseMetadata()
-                => MetadataNode
+                => LicenseNode != null;
+
+            public bool LicenseHasChildElements() 
+                => LicenseNode
                     .Elements()
-                    .Any(e => LicenseNodeName == e.Name.LocalName);
-        }
+                    .Any();
 
-        private PackageValidationResult CheckLicenseMetadata(PackageArchiveReader nuGetPackage)
-        {
-            if (!_config.RejectPackagesWithLicense)
-            {
-                return null;
-            }
-
-            LicenseCheckingNuspecReader nuspecReader = null;
-
-            using (var nuspec = nuGetPackage.GetNuspec())
-            {
-                nuspecReader = new LicenseCheckingNuspecReader(nuspec);
-            }
-
-            if (nuspecReader.HasLicenseMetadata())
-            {
-                return PackageValidationResult.Invalid(Strings.UploadPackage_NotAcceptingPackagesWithLicense);
-            }
-
-            return null;
+            public string GetLicenseVersion()
+                => LicenseNode
+                    .GetOptionalAttributeValue("version");
         }
 
         private async Task<PackageValidationResult> CheckPackageEntryCountAsync(

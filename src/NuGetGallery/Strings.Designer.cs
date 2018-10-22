@@ -2310,6 +2310,24 @@ namespace NuGetGallery {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to License node cannot contain children nodes..
+        /// </summary>
+        public static string UploadPackage_LicenseNodeContainsChildren {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseNodeContainsChildren", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to License node value is too long. Please make sure it is under 500 characters long..
+        /// </summary>
+        public static string UploadPackage_LicenseNodeValueTooLong {
+            get {
+                return ResourceManager.GetString("UploadPackage_LicenseNodeValueTooLong", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This package requires version &apos;{0}&apos; of NuGet, which this gallery does not currently support. Please contact us if you have questions..
         /// </summary>
         public static string UploadPackage_MinClientVersionOutOfRange {
@@ -2406,6 +2424,15 @@ namespace NuGetGallery {
         public static string UploadPackage_SignedToUnsignedTransition {
             get {
                 return ResourceManager.GetString("UploadPackage_SignedToUnsignedTransition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unsupported license version &apos;{0}&apos;. The only supported license version is 1.0.0..
+        /// </summary>
+        public static string UploadPackage_UnsupportedLicenseVersion {
+            get {
+                return ResourceManager.GetString("UploadPackage_UnsupportedLicenseVersion", resourceCulture);
             }
         }
         

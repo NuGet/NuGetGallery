@@ -489,24 +489,6 @@ namespace NuGetGallery
                 Assert.Contains("license", ex.Message);
             }
 
-            [Fact]
-            public async Task RejectsPackageWithLicenseExpression()
-            {
-                // we don't support license expressions yet. The test to be removed when full support is implemented.
-
-                _nuGetPackage = GeneratePackage(
-                    licenseExpression: "MIT",
-                    licenseFilename: null,
-                    licenseUrl: new Uri(LicenseDeprecationUrl));
-
-                var result = await _target.ValidateBeforeGeneratePackageAsync(
-                    _nuGetPackage.Object,
-                    GetPackageMetadata(_nuGetPackage));
-
-                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
-                Assert.Contains("License expressions are not currenly supported", result.Message);
-            }
-
             [Theory]
             [InlineData(false, true)]
             [InlineData(true, false)]
@@ -532,7 +514,7 @@ namespace NuGetGallery
                     Assert.Equal(PackageValidationResultType.Accepted, result.Type);
                     Assert.Null(result.Message);
                     Assert.Single(result.Warnings);
-                    Assert.Equal("Specifying external license URLs is being deprecated, please consider switching to specifying the license in the package.", result.Warnings[0]);
+                    Assert.Equal("Specifying external license URLs will be deprecated, please consider switching to specifying the license in the package.", result.Warnings[0]);
                 }
             }
 
@@ -669,14 +651,22 @@ namespace NuGetGallery
 
             private static string[] LicenseNodeVariants => new string[]
             {
-                // TODO: uncomment. Client has a bug apparently, which makes it not like the <license> nodes without attributes
-                //"<license/>",
-                //"<license></license>",
-                //"<license> </license>",
-                //"<license>ttt</license>",
+                "<license/>",
+                "<license></license>",
+                "<license> </license>",
+                "<license>ttt</license>",
                 "<license type='file'>fff</license>",
                 "<license type='expression'>ee</license>",
                 "<license type='foobar'>ttt</license>",
+                "<license type='file'><someChildNode /></license>",
+                "<license type='file' version='1.0.0'>fff</license>",
+                "<license type='expression' version='1.0.0'>ee</license>",
+                "<license type='foobar' version='1.0.0'>ttt</license>",
+                "<license type='file' version='1.0.0'><someChildNode /></license>",
+                "<license type='file' version='2.0.0'>fff</license>",
+                "<license type='expression' version='2.0.0'>ee</license>",
+                "<license type='foobar' version='2.0.0'>ttt</license>",
+                "<license type='file' version='2.0.0'><someChildNode /></license>",
             };
 
             public static IEnumerable<object[]> RejectsLicensedPackagesWhenConfigured_Input =>
@@ -734,6 +724,58 @@ namespace NuGetGallery
                 Assert.Equal(PackageValidationResultType.Invalid, result.Type);
                 Assert.Contains("License file is too long", result.Message);
                 Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("<license><someChildNode /></license>")]
+            [InlineData("<license><someChildNode>license.txt</someChildNode></license>")]
+            [InlineData("<license type='file'><someChildNode /></license>")]
+            [InlineData("<license type='file'><someChildNode>license.txt</someChildNode></license>")]
+            [InlineData("<license type='file'>license.<someChildNode>txt</someChildNode></license>")]
+            [InlineData("<license type='expression'><someChildNode /></license>")]
+            [InlineData("<license type='expression'><M>M</M><I>I</I><T>T</T></license>")]
+            [InlineData("<license type='expression'>M<I>I</I>T</license>")]
+            public async Task RejectsLicensesWithChildNodes(string licenseNodeText)
+            {
+                _nuGetPackage = GeneratePackage(getCustomNuspecNodes: () => licenseNodeText);
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                Assert.Contains("child", result.Message);
+                Assert.Empty(result.Warnings);
+            }
+
+            [Theory]
+            [InlineData("", false)]
+            [InlineData("1.0.0", true)]
+            [InlineData("1.0", false)]
+            [InlineData("1", false)]
+            [InlineData("2.0.0", false)]
+            public async Task RejectsPackagesWithInvalidLicenseVersion(string version, bool expectedSuccess)
+            {
+                _nuGetPackage = GeneratePackage(
+                    licenseUrl: new Uri(LicenseDeprecationUrl),
+                    getCustomNuspecNodes: () => $"<license type='expression' version='{version}'>MIT</license>");
+
+                var result = await _target.ValidateBeforeGeneratePackageAsync(
+                    _nuGetPackage.Object,
+                    GetPackageMetadata(_nuGetPackage));
+
+                if (expectedSuccess)
+                {
+                    Assert.Equal(PackageValidationResultType.Accepted, result.Type);
+                    Assert.Null(result.Message);
+                    Assert.Empty(result.Warnings);
+                }
+                else
+                {
+                    Assert.Equal(PackageValidationResultType.Invalid, result.Type);
+                    Assert.Contains("version", result.Message);
+                    Assert.Empty(result.Warnings);
+                }
             }
 
             private PackageMetadata GetPackageMetadata(Mock<TestPackageReader> mockPackage)

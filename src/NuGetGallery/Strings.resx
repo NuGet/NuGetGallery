@@ -1039,4 +1039,14 @@ The {1} Team</value>
     <value>License file is too long. The limit is {0} bytes.</value>
     <comment>{0} is the max allowed number of bytes in the license.</comment>
   </data>
+  <data name="UploadPackage_LicenseNodeContainsChildren" xml:space="preserve">
+    <value>License node cannot contain children nodes.</value>
+  </data>
+  <data name="UploadPackage_LicenseNodeValueTooLong" xml:space="preserve">
+    <value>License node value is too long. Please make sure it is under 500 characters long.</value>
+  </data>
+  <data name="UploadPackage_UnsupportedLicenseVersion" xml:space="preserve">
+    <value>Unsupported license version '{0}'. The only supported license version is 1.0.0.</value>
+    <comment>{0} is the license version text from nuspec</comment>
+  </data>
 </root>
