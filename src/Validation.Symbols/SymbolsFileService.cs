@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Threading;
 using NuGetGallery;
+using NuGet.Jobs.Validation;
 
 namespace Validation.Symbols
 {
@@ -13,12 +14,12 @@ namespace Validation.Symbols
     {
         private CorePackageFileService _packageFileService;
         private CorePackageFileService _packageValidationFileService;
-        private CorePackageFileService _symbolValidationFileService;
+        private IFileDownloader _fileDownloader;
 
         public SymbolsFileService(
             ICoreFileStorageService packageStorageService,
             ICoreFileStorageService packageValidationStorageService,
-            ICoreFileStorageService symbolValidationStorageService)
+            IFileDownloader fileDownloader)
         {
             if (packageStorageService == null)
             {
@@ -28,32 +29,14 @@ namespace Validation.Symbols
             {
                 throw new ArgumentNullException(nameof(packageValidationStorageService));
             }
-            if (symbolValidationStorageService == null)
-            {
-                throw new ArgumentNullException(nameof(symbolValidationStorageService));
-            }
             _packageFileService = new CorePackageFileService(packageStorageService, new PackageFileMetadataService());
             _packageValidationFileService = new CorePackageFileService(packageValidationStorageService, new PackageFileMetadataService());
-            _symbolValidationFileService = new CorePackageFileService(symbolValidationStorageService, new SymbolPackageFileMetadataService());
+            _fileDownloader = fileDownloader ?? throw new ArgumentNullException(nameof(fileDownloader));
         }
 
-        public async Task<Stream> DownloadSnupkgFileAsync(string packageId, string packageNormalizedVersion, CancellationToken cancellationToken)
+        public async Task<Stream> DownloadSnupkgFileAsync(string snupkgUri, CancellationToken cancellationToken)
         {
-            var package = new Package()
-            {
-                NormalizedVersion = packageNormalizedVersion,
-                PackageRegistration = new PackageRegistration()
-                {
-                    Id = packageId
-                }
-            };
-
-            if (await _symbolValidationFileService.DoesValidationPackageFileExistAsync(package))
-            {
-                return await _symbolValidationFileService.DownloadValidationPackageFileAsync(package);
-            }
-
-            throw new FileNotFoundException(string.Format("Symbols package {0} {1} not found in the validation container.", packageId, packageNormalizedVersion));
+            return await _fileDownloader.DownloadAsync(new Uri(snupkgUri), cancellationToken);
         }
 
         public async Task<Stream> DownloadNupkgFileAsync(string packageId, string packageNormalizedVersion, CancellationToken cancellationToken)

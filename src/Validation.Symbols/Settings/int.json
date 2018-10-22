@@ -13,7 +13,7 @@
     "PackageConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetint0;AccountKey=$$Int-NuGetInt0Storage-Key$$",
     "ValidationSymbolsConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetint0;AccountKey=$$Int-NuGetInt0Storage-Key$$"
   },
-
+  "PackageDownloadTimeout": "00:10:00",
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
   "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",

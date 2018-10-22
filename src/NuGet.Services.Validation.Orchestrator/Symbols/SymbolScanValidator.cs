@@ -113,7 +113,7 @@ namespace NuGet.Services.Validation.Symbols
         {
             var symbolPackage = _symbolPackageService
                 .FindSymbolPackagesByIdAndVersion(request.PackageId,request.PackageVersion)
-                .FirstOrDefault(sp => sp.StatusKey == PackageStatus.Validating);
+                .FirstOrDefault(sp => sp.Key == request.PackageKey);
 
             if (symbolPackage == null)
             {

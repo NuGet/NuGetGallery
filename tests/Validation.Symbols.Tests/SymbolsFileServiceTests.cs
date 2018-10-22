@@ -6,6 +6,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NuGetGallery;
+using NuGet.Jobs.Validation;
 using Moq;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace Validation.Symbols.Tests
     public class SymbolsFileServiceTests
     {
         private Mock<ICoreFileStorageService> _packageStorageService;
-        private Mock<ICoreFileStorageService> _symbolsValidationStorageService;
+        private Mock<IFileDownloader> _fileDownloader;
         private Mock<ICoreFileStorageService> _packageValidationStorageService;
         private const string PackageId = "Pack";
         private const string PackageNormalizedVersion = "1.2.3";
@@ -22,7 +23,7 @@ namespace Validation.Symbols.Tests
         public SymbolsFileServiceTests()
         {
             _packageStorageService = new Mock<ICoreFileStorageService>();
-            _symbolsValidationStorageService = new Mock<ICoreFileStorageService>();
+            _fileDownloader = new Mock<IFileDownloader>();
             _packageValidationStorageService = new Mock<ICoreFileStorageService>();
         }
 
@@ -30,8 +31,8 @@ namespace Validation.Symbols.Tests
         public void ConstructorNullCheck()
         {
             // Arrange + Act + Assert
-            Assert.Throws<ArgumentNullException>(() => new SymbolsFileService(null, _packageValidationStorageService.Object, _symbolsValidationStorageService.Object));
-            Assert.Throws<ArgumentNullException>(() => new SymbolsFileService(_packageStorageService.Object, null, _symbolsValidationStorageService.Object));
+            Assert.Throws<ArgumentNullException>(() => new SymbolsFileService(null, _packageValidationStorageService.Object, _fileDownloader.Object));
+            Assert.Throws<ArgumentNullException>(() => new SymbolsFileService(_packageStorageService.Object, null, _fileDownloader.Object));
             Assert.Throws<ArgumentNullException>(() => new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, null));
         }
 
@@ -39,21 +40,20 @@ namespace Validation.Symbols.Tests
         public async Task DownloadSnupkgFileAsyncCallsDownloadValidationPackageFileAsync()
         {
             // Arrange
-            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _symbolsValidationStorageService.Object);
-            _symbolsValidationStorageService.Setup(svss => svss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
-            // Act 
-            var stream = await service.DownloadSnupkgFileAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
+            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _fileDownloader.Object);
+            _fileDownloader.Setup(svss => svss.DownloadAsync(It.IsAny<Uri>(), It.IsAny<CancellationToken>())).ThrowsAsync(new InvalidOperationException("Boo"));
+            
+            // Act + Assert 
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>( async () => await service.DownloadSnupkgFileAsync("https://dummy.snupkg", CancellationToken.None));
 
-            // Assert
-            _symbolsValidationStorageService.Verify(svss => svss.GetFileAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-
+            Assert.Equal("Boo", exception.Message);
         }
 
         [Fact]
         public async Task DownloadNupkgFileAsyncSearchPackageValidationAfterPackageFolder()
         {
             // Arrange
-            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _symbolsValidationStorageService.Object);
+            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _fileDownloader.Object);
             _packageStorageService.Setup(pss => pss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
             _packageValidationStorageService.Setup(pvss => pvss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
 
@@ -68,7 +68,7 @@ namespace Validation.Symbols.Tests
         public async Task DownloadNupkgFileAsyncUsesPackageFolderIfFound()
         {
             // Arrange
-            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _symbolsValidationStorageService.Object);
+            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _fileDownloader.Object);
             _packageStorageService.Setup(pss => pss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
             _packageValidationStorageService.Setup(pvss => pvss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(true);
 
@@ -84,7 +84,7 @@ namespace Validation.Symbols.Tests
         public void DownloadNupkgFileAsyncThowsIfNotFound()
         {
             // Arrange
-            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _symbolsValidationStorageService.Object);
+            var service = new SymbolsFileService(_packageStorageService.Object, _packageValidationStorageService.Object, _fileDownloader.Object);
             _packageStorageService.Setup(pss => pss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
             _packageValidationStorageService.Setup(pvss => pvss.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
 

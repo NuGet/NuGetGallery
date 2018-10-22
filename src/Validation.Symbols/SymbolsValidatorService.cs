@@ -42,59 +42,61 @@ namespace Validation.Symbols
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<IValidationResult> ValidateSymbolsAsync(string packageId, string packageNormalizedVersion, CancellationToken token)
+        public async Task<IValidationResult> ValidateSymbolsAsync(SymbolsValidatorMessage message, CancellationToken token)
         {
             _logger.LogInformation("{ValidatorName} :Start ValidateSymbolsAsync. PackageId: {packageId} PackageNormalizedVersion: {packageNormalizedVersion}",
                 ValidatorName.SymbolsValidator,
-                packageId,
-                packageNormalizedVersion);
+                message.PackageId,
+                message.PackageNormalizedVersion);
 
-            Stream snupkgstream;
-            Stream nupkgstream;
             try
             {
-                snupkgstream = await _symbolFileService.DownloadSnupkgFileAsync(packageId, packageNormalizedVersion, token);
+                using (Stream snupkgstream = await _symbolFileService.DownloadSnupkgFileAsync(message.SnupkgUrl, token))
+                {
+                    try
+                    {
+                        using (Stream nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(message.PackageId, message.PackageNormalizedVersion, token))
+                        {
+                            var pdbs = _zipArchiveService.ReadFilesFromZipStream(snupkgstream, SymbolExtension);
+                            var pes = _zipArchiveService.ReadFilesFromZipStream(nupkgstream, PEExtensions);
+
+                            using (_telemetryService.TrackSymbolValidationDurationEvent(message.PackageId, message.PackageNormalizedVersion, pdbs.Count))
+                            {
+                                if (!SymbolsHaveMatchingPEFiles(pdbs, pes))
+                                {
+                                    _telemetryService.TrackSymbolsValidationResultEvent(message.PackageId, message.PackageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
+                                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
+                                }
+                                var targetDirectory = Settings.GetWorkingDirectory();
+                                try
+                                {
+                                    _logger.LogInformation("Extracting symbols to {TargetDirectory}", targetDirectory);
+                                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory, SymbolExtension);
+
+                                    _logger.LogInformation("Extracting dlls to {TargetDirectory}", targetDirectory);
+                                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, PEExtensions, symbolFiles);
+
+                                    var status = ValidateSymbolMatching(targetDirectory, message.PackageId, message.PackageNormalizedVersion);
+                                    return status;
+                                }
+                                finally
+                                {
+                                    TryCleanWorkingDirectoryForSeconds(targetDirectory, message.PackageId, message.PackageNormalizedVersion, _cleanWorkingDirectoryTimeSpan);
+                                }
+                            }
+                        }
+                    }
+                    catch (FileNotFoundException)
+                    {
+                        _telemetryService.TrackPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
+                        return ValidationResult.Failed;
+                    }
+                }
             }
-            catch(FileNotFoundException)
+            catch(InvalidOperationException)
             {
-                _telemetryService.TrackSymbolsPackageNotFoundEvent(packageId, packageNormalizedVersion);
+                _telemetryService.TrackSymbolsPackageNotFoundEvent(message.PackageId, message.PackageNormalizedVersion);
                 return ValidationResult.Failed;
-            }
-            try
-            {
-                nupkgstream = await _symbolFileService.DownloadNupkgFileAsync(packageId, packageNormalizedVersion, token);
-            }
-            catch (FileNotFoundException)
-            {
-                _telemetryService.TrackPackageNotFoundEvent(packageId, packageNormalizedVersion);
-                return ValidationResult.Failed;
-            }
-            var pdbs = _zipArchiveService.ReadFilesFromZipStream(snupkgstream, SymbolExtension);
-            var pes = _zipArchiveService.ReadFilesFromZipStream(nupkgstream, PEExtensions);
-
-            using (_telemetryService.TrackSymbolValidationDurationEvent(packageId, packageNormalizedVersion, pdbs.Count))
-            {
-                if (!SymbolsHaveMatchingPEFiles(pdbs, pes))
-                {
-                    _telemetryService.TrackSymbolsValidationResultEvent(packageId, packageNormalizedVersion, ValidationStatus.Failed, nameof(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound));
-                    return ValidationResult.FailedWithIssues(ValidationIssue.SymbolErrorCode_MatchingPortablePDBNotFound);
-                }
-                var targetDirectory = Settings.GetWorkingDirectory();
-                try
-                {
-                    _logger.LogInformation("Extracting symbols to {TargetDirectory}", targetDirectory);
-                    var symbolFiles = _zipArchiveService.ExtractFilesFromZipStream(snupkgstream, targetDirectory, SymbolExtension);
-
-                    _logger.LogInformation("Extracting dlls to {TargetDirectory}", targetDirectory);
-                    _zipArchiveService.ExtractFilesFromZipStream(nupkgstream, targetDirectory, PEExtensions, symbolFiles);
-
-                    var status = ValidateSymbolMatching(targetDirectory, packageId, packageNormalizedVersion);
-                    return status;
-                }
-                finally
-                {
-                    TryCleanWorkingDirectoryForSeconds(targetDirectory, packageId, packageNormalizedVersion, _cleanWorkingDirectoryTimeSpan);
-                }
             }
         }
 

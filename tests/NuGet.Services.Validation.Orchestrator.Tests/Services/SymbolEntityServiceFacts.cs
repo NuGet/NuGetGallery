@@ -266,13 +266,15 @@ namespace NuGet.Services.Validation.Orchestrator.Tests.Symbol
         public abstract class FactsBase
         {
             protected readonly Mock<ICoreSymbolPackageService> _coreSymbolPackageService;
-           
+            protected readonly Mock<IEntityRepository<SymbolPackage>> _symbolEntityRepository;
+
             protected readonly SymbolEntityService _target;
 
             public FactsBase(ITestOutputHelper output)
             {
                 _coreSymbolPackageService = new Mock<ICoreSymbolPackageService>();
-                _target = new SymbolEntityService(_coreSymbolPackageService.Object);
+                _symbolEntityRepository = new Mock<IEntityRepository<SymbolPackage>>();
+                _target = new SymbolEntityService(_coreSymbolPackageService.Object, _symbolEntityRepository.Object);
             }
         }
     }

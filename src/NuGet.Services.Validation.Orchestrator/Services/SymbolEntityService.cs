@@ -13,10 +13,13 @@ namespace NuGet.Services.Validation.Orchestrator
     /// </summary>
     public class SymbolEntityService : IEntityService<SymbolPackage>
     {
-        ICoreSymbolPackageService _galleryEntityService;
-        public SymbolEntityService(ICoreSymbolPackageService galleryEntityService)
+        private ICoreSymbolPackageService _galleryEntityService;
+        private IEntityRepository<SymbolPackage> _symbolsPackageRepository;
+
+        public SymbolEntityService(ICoreSymbolPackageService galleryEntityService, IEntityRepository<SymbolPackage> symbolsPackageRepository)
         {
             _galleryEntityService = galleryEntityService ?? throw new ArgumentNullException(nameof(galleryEntityService));
+            _symbolsPackageRepository = symbolsPackageRepository ?? throw new ArgumentNullException(nameof(symbolsPackageRepository));
         }
 
         /// <summary>
@@ -32,6 +35,14 @@ namespace NuGet.Services.Validation.Orchestrator
                 .Where(s => s.StatusKey == PackageStatus.Validating)
                 .FirstOrDefault();
 
+            return symbolPackage == null ? null : new SymbolPackageValidatingEntity(symbolPackage);
+        }
+
+        public IValidatingEntity<SymbolPackage> FindPackageByKey(int key)
+        {
+            var symbolPackage = _symbolsPackageRepository
+                   .GetAll()
+                   .SingleOrDefault(p => p.Key == key);
             return symbolPackage == null ? null : new SymbolPackageValidatingEntity(symbolPackage);
         }
 

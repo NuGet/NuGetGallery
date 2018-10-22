@@ -18,6 +18,7 @@ namespace Validation.Symbols.Tests
     {
         private const string PackageId = "Pack";
         private const string PackageNormalizedVersion = "1.2.3";
+        private static readonly SymbolsValidatorMessage Message = new SymbolsValidatorMessage(new Guid(), 1, PackageId, PackageNormalizedVersion, "https://dummy.snupkg");
 
         public sealed class TheValidateSymbolsAsyncMethod : FactBase
         {
@@ -26,13 +27,13 @@ namespace Validation.Symbols.Tests
             {
                 // Arrange
                 _symbolsFileService.
-                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
-                    ThrowsAsync(new FileNotFoundException("Snupkg not found"));
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    ThrowsAsync(new InvalidOperationException("Snupkg not found"));
 
                 var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
 
                 // Act 
-                var  result = await service.ValidateSymbolsAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
+                var  result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
                 Assert.Equal(ValidationResult.Failed.Status, result.Status);
@@ -47,13 +48,13 @@ namespace Validation.Symbols.Tests
                     ThrowsAsync(new FileNotFoundException("Nupkg not found"));
 
                 _symbolsFileService.
-                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(new MemoryStream());
 
                 var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
 
                 // Act 
-                var result = await service.ValidateSymbolsAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
+                var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
                 Assert.Equal(ValidationResult.Failed.Status, result.Status);
@@ -69,7 +70,7 @@ namespace Validation.Symbols.Tests
                     ReturnsAsync(new MemoryStream());
 
                 _symbolsFileService.
-                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(new MemoryStream());
 
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>()
@@ -81,7 +82,7 @@ namespace Validation.Symbols.Tests
                 var service = new SymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
 
                 // Act 
-                var result = await service.ValidateSymbolsAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
+                var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
                 Assert.Equal(ValidationResult.Failed.Status, result.Status);
@@ -97,7 +98,7 @@ namespace Validation.Symbols.Tests
                     ReturnsAsync(new MemoryStream());
 
                 _symbolsFileService.
-                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                    Setup(sfs => sfs.DownloadSnupkgFileAsync(It.IsAny<string>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(new MemoryStream());
 
                 _zipService.Setup(s => s.ReadFilesFromZipStream(It.IsAny<Stream>(), It.IsAny<string[]>())).Returns(new List<string>()
@@ -109,7 +110,7 @@ namespace Validation.Symbols.Tests
                 var service = new TestSymbolsValidatorService(_symbolsFileService.Object, _zipService.Object, _telemetryService.Object, _logger.Object);
 
                 // Act 
-                var result = await service.ValidateSymbolsAsync(PackageId, PackageNormalizedVersion, CancellationToken.None);
+                var result = await service.ValidateSymbolsAsync(Message, CancellationToken.None);
 
                 // Assert 
                 Assert.Equal(ValidationResult.Succeeded.Status, result.Status);

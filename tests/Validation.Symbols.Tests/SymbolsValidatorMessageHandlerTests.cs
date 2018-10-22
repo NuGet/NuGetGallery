@@ -113,7 +113,7 @@ namespace Validation.Symbols.Tests
                 { State = ValidationStatus.Incomplete };
 
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Incomplete);
+                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Incomplete);
 
                 var handler = new SymbolsValidatorMessageHandler(_logger.Object, _symbolService.Object, _validatorStateService.Object);
 
@@ -122,7 +122,7 @@ namespace Validation.Symbols.Tests
 
                 // Assert
                 Assert.False(result);
-                _symbolService.Verify(ss => ss.ValidateSymbolsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Once);
+                _symbolService.Verify(ss => ss.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>()), Times.Once);
             }
 
             [Fact]
@@ -134,7 +134,7 @@ namespace Validation.Symbols.Tests
 
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.Success);
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Succeeded);
+                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).ReturnsAsync(ValidationResult.Succeeded);
 
                 var handler = new SymbolsValidatorMessageHandler(_logger.Object, _symbolService.Object, _validatorStateService.Object);
 
@@ -156,7 +156,7 @@ namespace Validation.Symbols.Tests
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.Success);
 
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(ValidationResult.FailedWithIssues(ValidationIssue.Unknown));
 
                 var handler = new SymbolsValidatorMessageHandler(_logger.Object, _symbolService.Object, _validatorStateService.Object);
@@ -180,7 +180,7 @@ namespace Validation.Symbols.Tests
                 _validatorStateService.Setup(s => s.GetStatusAsync(It.IsAny<Guid>())).ReturnsAsync(status);
                 _validatorStateService.Setup(s => s.SaveStatusAsync(It.IsAny<ValidatorStatus>())).ReturnsAsync(SaveStatusResult.StaleStatus);
 
-                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).
+                _symbolService.Setup(s => s.ValidateSymbolsAsync(It.IsAny<SymbolsValidatorMessage>(), It.IsAny<CancellationToken>())).
                     ReturnsAsync(ValidationResult.Succeeded);
 
                 var handler = new SymbolsValidatorMessageHandler(_logger.Object, _symbolService.Object, _validatorStateService.Object);

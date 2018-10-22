@@ -13,7 +13,7 @@
     "PackageConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$",
     "ValidationSymbolsConnectionString": "DefaultEndpointsProtocol=https;AccountName=nugetgallery;AccountKey=$$Prod-NuGetGalleryStorage-Key$$"
   },
-
+  "PackageDownloadTimeout": "00:10:00",
   "KeyVault_VaultName": "#{Deployment.Azure.KeyVault.VaultName}",
   "KeyVault_ClientId": "#{Deployment.Azure.KeyVault.ClientId}",
   "KeyVault_CertificateThumbprint": "#{Deployment.Azure.KeyVault.CertificateThumbprint}",
