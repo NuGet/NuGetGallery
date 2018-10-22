@@ -102,6 +102,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -133,7 +134,6 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private const string _expectedMarkdownBody =
             @"The symbol package [PackageId 1.0.0](packageUrl) was recently published on NuGetGallery by Username. If this was not intended, please [contact support](packageSupportUrl).
 
-
 -----------------------------------------------
 <em style=""font-size: 0.8em;"">
     To stop receiving emails as an owner of this package, sign in to the NuGetGallery and
@@ -143,9 +143,16 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
         private const string _expectedPlainTextBody =
             @"The symbol package PackageId 1.0.0 (packageUrl) was recently published on NuGetGallery by Username. If this was not intended, please contact support (packageSupportUrl).
 
-
 -----------------------------------------------
     To stop receiving emails as an owner of this package, sign in to the NuGetGallery and
     change your email notification settings (emailSettingsUrl).";
+
+        private const string _expectedHtmlBody =
+            "<p>The symbol package <a href=\"packageUrl\">PackageId 1.0.0</a> was recently published on NuGetGallery by Username. If this was not intended, please <a href=\"packageSupportUrl\">contact support</a>.</p>\n" +
+@"<hr />
+<em style=""font-size: 0.8em;"">
+    To stop receiving emails as an owner of this package, sign in to the NuGetGallery and
+    <a href=""emailSettingsUrl"">change your email notification settings</a>.
+</em>";
     }
 }

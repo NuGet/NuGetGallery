@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -360,6 +360,11 @@ namespace NuGetGallery.Configuration
         /// The name of zero or more curated feeds that are redirected to the main feed.
         /// </summary>
         string[] RedirectedCuratedFeeds { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating whether asynchronous email service is enabled.
+        /// </summary>
+        bool AsynchronousEmailServiceEnabled { get; set; }
 
         /// <summary>
         /// Flag that indicates whether packages with `license` node in them should be rejected.

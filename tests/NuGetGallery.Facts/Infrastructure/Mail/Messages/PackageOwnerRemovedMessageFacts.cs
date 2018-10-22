@@ -102,6 +102,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForUser)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForUser)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForUser)]
             public void ReturnsExpectedBodyForUser(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(isOrganization: false);
@@ -113,6 +114,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForOrganization)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForOrganization)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForOrganization)]
             public void ReturnsExpectedBodyForOrganization(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(isOrganization: true);
@@ -161,5 +163,15 @@ The NuGetGallery Team";
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForUser =
+            "<p>The user 'requestingOrganization' removed you as an owner of the package 'PackageId'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForOrganization =
+            "<p>The user 'requestingOrganization' removed your organization as an owner of the package 'PackageId'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

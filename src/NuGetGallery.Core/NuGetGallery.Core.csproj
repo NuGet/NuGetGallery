@@ -169,9 +169,11 @@
     <Compile Include="ICloudStorageStatusDependency.cs" />
     <Compile Include="Infrastructure\AzureEntityList.cs" />
     <Compile Include="Infrastructure\ElmahException.cs" />
+    <Compile Include="Infrastructure\Mail\AsynchronousEmailMessageService.cs" />
     <Compile Include="Infrastructure\Mail\ConfirmationEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\EmailFormat.cs" />
+    <Compile Include="Infrastructure\Mail\EmailMessageFooter.cs" />
     <Compile Include="Infrastructure\Mail\IEmailBuilder.cs" />
     <Compile Include="Infrastructure\Mail\IEmailRecipients.cs" />
     <Compile Include="Infrastructure\Mail\EmailRecipients.cs" />
@@ -263,6 +265,9 @@
     <PackageReference Include="Markdig.Signed">
       <Version>0.15.3</Version>
     </PackageReference>
+    <PackageReference Include="NuGet.Services.Messaging">
+      <Version>2.30.0-master-42538</Version>
+    </PackageReference>
     <PackageReference Include="NuGet.StrongName.AnglicanGeek.MarkdownMailer">
       <Version>1.2.0</Version>
     </PackageReference>
@@ -297,10 +302,10 @@
       <Version>4.8.0-preview4.5287</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation">
-      <Version>2.29.0</Version>
+      <Version>2.30.0-master-42538</Version>
     </PackageReference>
     <PackageReference Include="NuGet.Services.Validation.Issues">
-      <Version>2.29.0</Version>
+      <Version>2.30.0-master-42538</Version>
     </PackageReference>
     <PackageReference Include="WindowsAzure.Storage">
       <Version>7.1.2</Version>

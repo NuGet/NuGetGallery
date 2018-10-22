@@ -90,6 +90,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyNonAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyNonAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyNonAdmin)]
             public void ReturnsExpectedBodyForNonAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(organizationEmailAllowed: true);
@@ -101,6 +102,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyAdmin)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyAdmin)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyAdmin)]
             public void ReturnsExpectedBodyForAdmin(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(organizationEmailAllowed: true, isAdmin: true);
@@ -145,5 +147,15 @@ The NuGetGallery Team";
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyNonAdmin =
+            "<p>The user 'requestingUser' is now a collaborator of organization 'requestingOrganization'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyAdmin =
+            "<p>The user 'requestingUser' is now an administrator of organization 'requestingOrganization'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

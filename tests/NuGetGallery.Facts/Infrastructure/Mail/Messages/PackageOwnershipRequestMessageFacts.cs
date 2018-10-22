@@ -117,8 +117,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownMessageForUser, false)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextMessageForUser, false)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForUser, false)]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownMessageForOrganization, true)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextMessageForOrganization, true)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForOrganization, true)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString, bool isToUserOrganization)
             {
                 var message = CreateMessage(isToUserOrganization: isToUserOrganization);
@@ -238,5 +240,29 @@ cancellationUrl
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForUser =
+            "<p>The user 'requestingUser' would like to add you as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
+"<p>policy message</p>\n" +
+"<p>The user 'requestingUser' added the following message for you:</p>\n" +
+"<p>'html encoded message'</p>\n" +
+"<p>To accept this request and become a listed owner of the package:</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>To decline:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForOrganization =
+            "<p>The user 'requestingUser' would like to add your organization as an owner of the package <a href=\"packageUrl\">'PackageId'</a>.</p>\n" +
+"<p>policy message</p>\n" +
+"<p>The user 'requestingUser' added the following message for you:</p>\n" +
+"<p>'html encoded message'</p>\n" +
+"<p>To accept this request and make your organization a listed owner of the package:</p>\n" +
+"<p><a href=\"confirmationUrl\">confirmationUrl</a></p>\n" +
+"<p>To decline:</p>\n" +
+"<p><a href=\"cancellationUrl\">cancellationUrl</a></p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

@@ -81,6 +81,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForApiKey)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForApiKey)]
+            [InlineData(EmailFormat.Html, "<p>" + _expectedMessageBodyForApiKey + "</p>\n")]
             public void ReturnsExpectedBodyForApiKey(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(Fakes.ApiKeyCredentialTypeInfo);
@@ -92,6 +93,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForNonApiKey)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForNonApiKey)]
+            [InlineData(EmailFormat.Html, "<p>" + _expectedMessageBodyForNonApiKey + "</p>\n")]
             public void ReturnsExpectedBodyForNonApiKey(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage(Fakes.NonApiKeyCredentialTypeInfo);

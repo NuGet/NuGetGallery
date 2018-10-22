@@ -114,8 +114,10 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForUser, false)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForUser, false)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForUser, false)]
             [InlineData(EmailFormat.Markdown, _expectedMessageBodyForOrganization, true)]
             [InlineData(EmailFormat.PlainText, _expectedMessageBodyForOrganization, true)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBodyForOrganization, true)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString, bool isRequestingOwnerOrganization)
             {
                 var message = CreateMessage(isRequestingOwnerOrganization: isRequestingOwnerOrganization);
@@ -167,5 +169,15 @@ The NuGetGallery Team";
 
 Thanks,
 The NuGetGallery Team";
+
+        private const string _expectedHtmlBodyForUser =
+            "<p>The user 'organizationAdmin' has declined your request to add them as an owner of the package 'PackageId'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
+
+        private const string _expectedHtmlBodyForOrganization =
+            "<p>The user 'organizationAdmin' has declined your organization's request to add them as an owner of the package 'PackageId'.</p>\n" +
+"<p>Thanks,\n" +
+"The NuGetGallery Team</p>\n";
     }
 }

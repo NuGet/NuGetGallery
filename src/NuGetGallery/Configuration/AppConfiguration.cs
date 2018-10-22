@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 
 using System;
@@ -352,6 +352,8 @@ namespace NuGetGallery.Configuration
         [DefaultValue(null)]
         [TypeConverter(typeof(StringArrayConverter))]
         public string[] RedirectedCuratedFeeds { get; set; }
+
+        public bool AsynchronousEmailServiceEnabled { get; set; }
 
         [DefaultValue(false)]
         public bool RejectPackagesWithLicense { get; set; }

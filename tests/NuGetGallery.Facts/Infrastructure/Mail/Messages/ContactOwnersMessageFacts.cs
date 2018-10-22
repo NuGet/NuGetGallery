@@ -105,6 +105,7 @@ namespace NuGetGallery.Infrastructure.Mail.Messages
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -153,5 +154,14 @@ user input
 -----------------------------------------------
     To stop receiving contact emails as an owner of this package, sign in to the NuGetGallery and
     change your email notification settings (emailSettingsUrl).";
+
+        private const string _expectedHtmlBody =
+            "<p><em>User Sender &lt;sender@gallery.org&gt; sends the following message to the owners of Package '<a href=\"packageUrl\">PackageId 1.0.0</a>'.</em></p>\n" +
+"<p>user input</p>\n" +
+@"<hr />
+<em style=""font-size: 0.8em;"">
+    To stop receiving contact emails as an owner of this package, sign in to the NuGetGallery and
+    <a href=""emailSettingsUrl"">change your email notification settings</a>.
+</em>";
     }
 }
