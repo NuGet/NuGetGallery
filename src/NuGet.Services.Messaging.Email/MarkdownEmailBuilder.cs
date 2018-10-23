@@ -16,6 +16,11 @@ namespace NuGet.Services.Messaging.Email
         {
             var markdown = GetMarkdownBody();
 
+            return ToPlainText(markdown);
+        }
+
+        protected string ToPlainText(string markdown)
+        {
             var writer = new StringWriter();
             var pipeline = new MarkdownPipelineBuilder().Build();
 
@@ -29,6 +34,11 @@ namespace NuGet.Services.Messaging.Email
             writer.Flush();
 
             return writer.ToString();
+        }
+
+        protected override string GetHtmlBody()
+        {
+            return Markdown.ToHtml(GetMarkdownBody());
         }
     }
 }

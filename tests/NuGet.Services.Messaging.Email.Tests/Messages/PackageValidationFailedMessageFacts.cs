@@ -105,6 +105,7 @@ namespace NuGet.Services.Messaging.Email.Tests
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -151,5 +152,13 @@ Please [contact support](packageSupportUrl) to help fix your package.";
 Your package was not published on NuGetGallery and is not available for consumption.
 
 Please contact support (packageSupportUrl) to help fix your package.";
+
+        private const string _expectedHtmlBody =
+            "<p>The package <a href=\"packageUrl\">PackageId 1.0.0</a> failed validation because of the following reason(s):</p>\n" +
+"<ul>\n" +
+"<li>There was an unknown failure when validating your package.</li>\n" +
+"</ul>\n" +
+"<p>Your package was not published on NuGetGallery and is not available for consumption.</p>\n" +
+"<p>Please <a href=\"packageSupportUrl\">contact support</a> to help fix your package.</p>\n";
     }
 }

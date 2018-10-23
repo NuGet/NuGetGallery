@@ -42,6 +42,7 @@
     <Compile Include="CoreMarkdownMessageService.cs" />
     <Compile Include="EmailBuilder.cs" />
     <Compile Include="EmailFormat.cs" />
+    <Compile Include="EmailMessageFooter.cs" />
     <Compile Include="EmailRecipients.cs" />
     <Compile Include="Extensions\PackageValidationSetExtensions.cs" />
     <Compile Include="Extensions\UserExtensionsCore.cs" />
@@ -64,7 +65,7 @@
     <Compile Include="Messages\SymbolPackageValidationFailedMessage.cs" />
     <Compile Include="Messages\SymbolPackageValidationTakingTooLongMessage.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ValidationIssueExtensions.cs" />
+    <Compile Include="Extensions\ValidationIssueExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NuGet.Services.Contracts\NuGet.Services.Contracts.csproj">

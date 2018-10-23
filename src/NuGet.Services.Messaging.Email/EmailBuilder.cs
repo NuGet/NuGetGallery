@@ -22,6 +22,8 @@ namespace NuGet.Services.Messaging.Email
                     return GetPlainTextBody();
                 case EmailFormat.Markdown:
                     return GetMarkdownBody();
+                case EmailFormat.Html:
+                    return GetHtmlBody();
                 default:
                     throw new ArgumentOutOfRangeException(nameof(format));
             }
@@ -33,6 +35,7 @@ namespace NuGet.Services.Messaging.Email
 
         protected abstract string GetPlainTextBody();
         protected abstract string GetMarkdownBody();
+        protected abstract string GetHtmlBody();
 
         /// <summary>
         /// Markdown sees the underscore as italics indicator, so underscores are stripped in the message.

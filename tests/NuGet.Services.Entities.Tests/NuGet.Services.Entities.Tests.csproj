@@ -36,8 +36,12 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PackageFacts.cs" />
     <Compile Include="PackageRegistrationExtensionsFacts.cs" />
+    <Compile Include="PackageStatusFacts.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UserFacts.cs" />
+    <Compile Include="UserSecurityPolicyFacts.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\NuGet.Services.Entities\NuGet.Services.Entities.csproj">

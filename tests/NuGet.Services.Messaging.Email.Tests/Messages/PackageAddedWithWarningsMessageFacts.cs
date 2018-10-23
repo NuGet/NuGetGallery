@@ -101,6 +101,7 @@ namespace NuGet.Services.Messaging.Email.Tests
             [Theory]
             [InlineData(EmailFormat.Markdown, _expectedMarkdownBody)]
             [InlineData(EmailFormat.PlainText, _expectedPlainTextBody)]
+            [InlineData(EmailFormat.Html, _expectedHtmlBody)]
             public void ReturnsExpectedBody(EmailFormat format, string expectedString)
             {
                 var message = CreateMessage();
@@ -138,5 +139,9 @@ Warning message
             @"The package PackageId 1.0.0 (packageUrl) was recently pushed to NuGetGallery by Username. If this was not intended, please contact support (packageSupportUrl).
 
 Warning message";
+
+        private const string _expectedHtmlBody =
+            "<p>The package <a href=\"packageUrl\">PackageId 1.0.0</a> was recently pushed to NuGetGallery by Username. If this was not intended, please <a href=\"packageSupportUrl\">contact support</a>.</p>\n" +
+"<p>Warning message</p>\n";
     }
 }
